@@ -1,56 +1,6 @@
 # Requirements scoped to the how-to-plan design.
 # Promote to docs/requirements.yaml if one turns out broadly true.
 
-- id: sort-by-reversal-cost
-  statement: attention is allocated by how expensive a mistake is to undo, not by how visible it is
-  force: hard
-  status: active
-  sources:
-    - url: docs/vision.md
-      where: §Principles, 1
-      quote: |
-        Decide how much care something gets by how expensive it is to be wrong and undo it.
-
-- id: review-at-the-coherence-level
-  statement: I review design coherence and behavior; I do not hand-review what a machine can check
-  force: hard
-  status: active
-  sources:
-    - url: docs/vision.md
-      where: §Principles, 2
-      quote: |
-        The bad-base problem lives at the level of design coherence. That's what I need to look at — not the prose around it.
-
-- id: explicit-intent
-  statement: every load-bearing claim in a design states what it rests on
-  force: hard
-  status: active
-  sources:
-    - url: docs/vision.md
-      where: §Principles, 3
-      quote: |
-        Every claim in a design should say what it rests on — a known fact, a requirement, or a decision the agent made.
-
-- id: machine-holds-the-line
-  statement: anything types, tests, or checkers can enforce is enforced there and not reviewed by hand
-  force: hard
-  status: active
-  sources:
-    - url: docs/vision.md
-      where: §Principles, 4
-      quote: |
-        Anything they can enforce, I stop reviewing by hand.
-
-- id: owner-decides-abort
-  statement: the decision to abort a component is mine; tooling may flag, never decide
-  force: hard
-  status: active
-  sources:
-    - url: docs/vision.md
-      where: §The Problem, fourth bullet — the motivation, not the fiat
-      quote: |
-        Throwing the work out feels worse than patching, even when patching is the slower path. So I patch.
-
 - id: node-for-tooling
   statement: permanent scripts and tooling are written in Node.js unless the task requires otherwise
   force: soft

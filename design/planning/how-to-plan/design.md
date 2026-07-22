@@ -671,27 +671,7 @@ back with brackets on it. The test: *would it matter if this claim were wrong?*
 
 ### The loop
 
-1. **Capture first.** Write down the facts, requirements, and open questions before
-   designing, so the design stands on solid ground and treats the rest as unsettled.
-   Design-specific ones go in the design's folder; promote to global if they turn out
-   broadly true [[D3]].
-2. **Design the boundaries first.** The decomposition is the main artifact. Boundaries
-   become PRs become abort units [[D10]].
-3. **Write the design doc with citations.** Every load-bearing claim cites a fact or
-   requirement, or flags itself as an agent decision with a falsifier — what would prove it
-   wrong — not a justification [[D7]].
-4. **Review the decisions, open questions, and components before the prose.** Those short
-   lists are the entire place a bad base can hide; facts and requirements already have
-   someone standing behind them. Handle each: accept, adopt, test, or reject.
-5. **Clear the review before building on it.** A decision I haven't accepted, or an open
-   question I haven't answered, isn't safe to build the dependent components on yet.
-   Clearing the list *is* validating the boundaries.
-6. **Build one component at a time.** One component, one PR [[D10]]. The agent owns all the
-   tactical calls; the harness guards quality [[req:machine-holds-the-line]].
-7. **Review only two things:** does it fit the agreed boundaries, and do the tests check the
-   *right* behavior. Skim the rest [[req:review-at-the-coherence-level]].
-8. **When it feels off, cut the component.** It's cheap, because it's local. Save what you
-   learned into the facts file, and restart. Don't band-aid a bad base.
+Moved to the `process` design in this area, which owns the working protocol.
 
 ### Code-level decisions are the agent's
 
