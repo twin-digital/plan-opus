@@ -7,8 +7,6 @@
 # An entry promotes here when a second design in this area depends on it.
 
 - id: easily-reviewable-foundations
-  force: hard
-  status: active
   statement: |
     All design docs should be built on a concrete list of concise, easily-reviewable foundations: 
       
@@ -22,18 +20,26 @@
 
 - id: explicit-intent
   statement: |
-    every load-bearing claim in a design states what it rests on (a fact, requirement, or decision)
-  force: hard
-  status: active
+    a claim states what it rests on — a fact, requirement, or decision — whenever some
+    decision, component, or other claim in the design would have to change were it false.
+    Every citation in a design must belong to such a claim.
   rationale: |
     Supports vision.md §Principles (3)
+
+    Both directions matter. Citing every sentence satisfies the first half and destroys the
+    point: a document where every claim is cited signals as much as one where none is, and a
+    citation on filler is a false signal rather than extra rigour.
+
+    That test is what the requirement turns on, so it sits in the statement. Motivation,
+    illustration, restatement of something already cited, and editorial asides all fail the
+    test. When it is genuinely unclear, cut the sentence and see whether the argument has a
+    hole or merely less colour. Citation is the obligation, not the notation — how the
+    pointer is written is a separate choice.
 
 - id: enable-easy-capture
   statement: |
     a fact or requirement discovered outside the scope of the design that will use it keeps a home in the repo; knowledge 
     is never parked on a branch or in my head for want of somewhere to put it
-  force: hard
-  status: active
   rationale: |
     Enabling easy capture of good ideas or future requirements prevents losing good ideas without forcing frequent
     context switches to act on them.
@@ -41,16 +47,12 @@
 - id: only-settled-work-licenses-building
   statement: |
     nothing is built on a design that has not cleared review; a design's status says what it licenses, and only settled licenses construction
-  force: hard
-  status: active
 
 - id: invariants-are-enforced-or-marked
   statement: |
     every invariant a design states is either enforced by the harness, or carries an
     explicit note that it has no mechanical backstop; nothing the harness enforces is
     also reviewed by hand
-  force: hard
-  status: active
   rationale: |
     The concrete obligation behind vision.md §Principles (4). "Let machines catch what they
     can" is a principle, not something a design can satisfy or fail; this is the version

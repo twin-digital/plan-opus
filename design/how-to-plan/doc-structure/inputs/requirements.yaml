@@ -3,62 +3,83 @@
 # rationale is always a block scalar. Requirements take no sources.
 # Promote to design/how-to-plan/requirements.yaml when a second design depends on one.
 
-- id: weight-must-be-visible
-  statement: the artifact must distinguish load-bearing claims from everything else; uniform emphasis is a defect, not a style
-  force: hard
-  status: active
+- id: foundations-are-expressible
+  statement: |
+    a design is built on exactly three kinds of foundation — facts, requirements, and
+    decisions — each expressible in a fixed form a reader can recognise without being told
+    which kind they are looking at
   rationale: |
-    From the "reviewing fries my brain" problem in docs/vision.md: output that is fluent
-    and confident everywhere reads as uniformly important, so the wrong parts hide at the
-    same weight as the right ones. If the artifact does not mark what carries weight, the
-    reader has to treat everything as load-bearing, which is the fatigue this exists to end.
+    The general capability everything else rests on. What each kind must carry is refined by
+    fact-structure, requirement-structure, and decision-structure; this one fixes that there
+    are three, that the set is closed, and that they are distinguishable on sight.
 
-- id: claims-state-their-falsifier
-  statement: a decision that cannot say what would prove it wrong is not reviewable, and does not belong on the list
-  force: hard
-  status: active
+- id: fact-structure
+  statement: |
+    Facts MUST have the following data at a minimum:
+  
+      - stable id to reference
+      - a statement detailing the fact
+      - how the fact was verified, confirmed, derived, etc. (directly tested, read from documentation, assumed via experience, etc.);
+        different mechanisms may not all carry equal weight
+      - whether the fact holds or has been disproven/superseded
+      - sources, which may be either:
+        - a description of the mechanism by which the fact was determined, or 
+        - a URL reference to an online source (documentation, test results, etc.), which must also include a direct quote and pointer to the relevant section(s) of the source
+
+- id: requirement-structure
+  statement: |
+    Requirements MUST have the following data at a minimum:
+  
+      - stable id to reference
+      - a statement describing the requirement
+      - whether the item is a non-negotiable or hard requirement, or expresses a preference that can bend if justified 
+        (defaults to hard requirement)
+      - an optional rationale clarifying the intent or importance of the requirement
+
+- id: decision-structure
+  statement: |
+    Decisions MUST have the following data at a minimum:
+  
+      - stable id to reference
+      - a statement detailing the decision
+      - conditions which, if true, would invalidate the decision or require it to be revised
+      - status of the decision: 
+        - proposed: created (by an agent, presumably) but not yet ratified
+        - accepted: an agreed part of the design which future iterations should maintain
+        - rejected: considered, but turned down
+
+- id: foundation-default-fields
+  statement: |
+    The structure of facts, requirements, and decisions should favor brevity when possible. Schemas for these types SHOULD
+    provide default values for any fields where a logical default exists, allowing them to be omitted from documents.
+  force: soft
+
+- id: foundations-enter-settled
+  statement: |
+    facts and requirements are inputs to a design rather than products of it: a design may
+    apply them, or find it cannot satisfy them, but does not reopen them as matters of
+    opinion. A fact yields to evidence; a requirement yields to the owner
   rationale: |
-    Promoted from decision D7. Asking an agent to justify a choice invites confident
-    nonsense; asking what would falsify it invites something checkable. A decision with no
-    statable falsifier is not understood well enough to keep.
+    Without this the review has no floor. If every fact and requirement is arguable while
+    the design is being argued, there is nothing to stand on and review becomes an unbounded
+    negotiation. Evidence can still kill a fact and the owner can still change a requirement; 
+    but neither happens because a design found it inconvenient.
 
-- id: evidence-is-verbatim
-  statement: support for a claim is quoted from its source, never summarized
-  force: hard
-  status: active
+- id: decisions-belong-to-their-design
+  statement: |
+    a decision is scoped to the design that makes it — reopened freely while that design is
+    still being worked out, gone when it is thrown away, and never binding on another design
+    facing the same question
   rationale: |
-    Promoted from decision D11. A paraphrase is the agent's voice, which is the exact thing
-    the citation is supposed to guard against — and it adds a second thing to distrust. A
-    verbatim span is checkable at a glance. Being made to produce the passage corrected two
-    claims in this repo that plain reading had left standing.
+    Two competent designs can answer the same question differently and both be right, which
+    is what separates a decision from a requirement. Treating decisions as durable would
+    quietly convert one design's judgement into everyone's constraint.
 
-- id: facts-are-confirmed-not-believed
-  statement: the facts file holds what was confirmed, not what is believed; a fact killed by new evidence is marked superseded and kept, never deleted
-  force: hard
-  status: active
+- id: claims-can-cite-foundations
+  statement: |
+    a claim in the prose can point at the foundation it rests on, and that pointer resolves
+    to exactly one entry without the reader having to search for it
   rationale: |
-    From the "a bad base doesn't get better" problem in docs/vision.md. Retraction is the
-    most-skipped part of keeping facts: an append-only file with no retraction becomes
-    confidently wrong, and keeping the dead entry is what lets me trace what leaned on it.
-
-- id: designs-live-in-git
-  statement: a design is a file in git, iterated on with commits; it settles by review as a pull request
-  force: hard
-  status: active
-  rationale: |
-    Promoted from decision D1, chosen for what the medium affords rather than for git
-    itself — an exact line to point at, an edit history attached to the reasoning, and a
-    review surface an agent can use on the same terms I do.
-
-    Narrowed 2026-07-22 from "reviewed as a pull request" to "settles by review as a pull
-    request". Review is how a design becomes safe to build on, not how it earns the right
-    to exist, so a design that settles nothing and licenses nothing can land without one.
-
-- id: shelved-work-is-not-active-work
-  statement: a design nobody is working on must be distinguishable from one in progress, and that distinction must be derivable from the designs themselves rather than maintained by hand
-  force: hard
-  status: active
-  rationale: |
-    Decided 2026-07-22. Shelved ideas belong in the repo but must not read as in-flight
-    work; a hand-kept index of what is active would be the stored rollup this design
-    refuses elsewhere.
+    The affordance, not the obligation. How much of a design must be cited is a question
+    about how the format gets used, and belongs to process and authoring; this requires only
+    that citing be possible and unambiguous when someone does it.

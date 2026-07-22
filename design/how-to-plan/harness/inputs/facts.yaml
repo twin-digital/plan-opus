@@ -4,7 +4,6 @@
 - id: claude-code-hooks
   claim: hooks run a shell command, HTTP endpoint, or LLM prompt automatically on a lifecycle event; a hook is deterministic only if what it runs is
   backing: documented
-  status: active
   sources:
     - url: https://code.claude.com/docs/en/hooks
       where: opening definition
@@ -15,7 +14,6 @@
 - id: hook-events
   claim: there are 30 hook events; PostToolUse fires after a tool call succeeds and Stop when Claude finishes responding, and FileChanged, TaskCompleted, and SubagentStop also exist
   backing: documented
-  status: active
   sources:
     - url: https://code.claude.com/docs/en/hooks
       where: §Hook events, and the per-event reference below it
@@ -27,7 +25,6 @@
 - id: skills-are-the-command-unit
   claim: a skill is the unit for anything invoked by name, template or scripted; a flat file in commands/ is the legacy form
   backing: documented
-  status: active
   sources:
     - url: https://code.claude.com/docs/en/plugins
       where: §Plugin structure overview, directory table, commands/ row
@@ -38,7 +35,6 @@
 - id: template-skills-opt-out-of-model-invocation
   claim: a skill that sets disable-model-invocation in its frontmatter fires only when invoked as /name, not when the model judges it relevant
   backing: documented
-  status: active
   sources:
     - url: https://code.claude.com/docs/en/plugins
       where: §Quickstart, "Add a skill", SKILL.md frontmatter
@@ -49,7 +45,6 @@
 - id: subagents-get-their-own-context
   claim: a subagent runs in its own context window with its own system prompt, tool access, and permissions
   backing: documented
-  status: active
   sources:
     - url: https://code.claude.com/docs/en/sub-agents
       where: opening section, third paragraph
@@ -60,7 +55,6 @@
 - id: claude-code-plugins
   claim: a plugin bundles skills, agents, hooks, MCP and LSP servers, background monitors, executables, and default settings into one installable unit
   backing: documented
-  status: active
   sources:
     - url: https://code.claude.com/docs/en/plugins
       where: §Plugin structure overview, directory table
@@ -72,7 +66,6 @@
 - id: plugins-have-no-conventions-slot
   claim: a plugin has no component directory for a CLAUDE.md template, so conventions cannot ride along in one
   backing: assumed
-  status: active
   risk: inferred from an absence — the directory table lists no slot for instructions, but docs omitting a thing is not the docs denying it
   sources:
     - url: https://code.claude.com/docs/en/plugins
@@ -84,7 +77,6 @@
 - id: docs-recommend-standalone-before-plugin
   claim: the documented recommendation is to iterate in .claude/ and package a plugin only when ready to share
   backing: documented
-  status: active
   sources:
     - url: https://code.claude.com/docs/en/plugins
       where: §When to use plugins vs standalone configuration, closing tip
@@ -95,7 +87,6 @@
 - id: background-agents-open-prs
   claim: a background session that isolated its changes in a worktree commits, pushes, and opens a draft PR unasked; it skips the PR when the repo has no remote, and never pushes to main
   backing: documented
-  status: active
   sources:
     - url: https://code.claude.com/docs/en/agent-view
       where: §Pull request status
@@ -119,7 +110,6 @@
 - id: llm-cannot-pattern-match-architecture
   claim: design incoherence is not detectable by pattern-matching a diff; it needs a semantic reader
   backing: assumed
-  status: active
-  risk: weakest load-bearing claim here — C6 exists only because of it, and the argument is an appeal to absence of evidence
+  risk: the weakest claim here that anything rests on — C5 exists only because of it, and the argument is an appeal to absence of evidence
   sources:
     - description: my own experience reviewing agent output; asserted, not measured

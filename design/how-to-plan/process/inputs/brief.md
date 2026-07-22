@@ -8,15 +8,17 @@ first and an agent is handed as standing instructions.
 
 ## In scope
 
-- The loop, and why its order is load-bearing.
+- The loop, and why its order matters.
 - The knowledge model: what kinds of thing a project knows, and what settles each.
 - The autonomy rule — build freely on, decide alone, stop and ask.
 - Which calls are the agent's, and the exceptions.
 - Abort: when, and whose call it is.
+- Where a design lives, how it is reviewed, and what makes it settled.
 
 ## Out of scope
 
 - The shape of the artifacts the protocol produces — that is `doc-structure`.
+- What good content looks like inside them — that is `authoring`.
 - The tooling that enforces any of it — that is `harness`.
 
 ## Done looks like

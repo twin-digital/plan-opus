@@ -1,0 +1,12 @@
+# Facts discovered while working on the authoring design.
+# Promote to design/how-to-plan/facts.yaml when a second design in this area depends on one.
+
+- id: falsifiers-are-writable-for-boundaries
+  claim: a useful falsifier can be stated for a boundary decision, not only for capacity and performance ones
+  backing: assumed
+  risk: one design's worth of evidence, written by the same person who wrote the rule requiring it — the decisions here mostly did yield conditions, but "components are routinely split or merged mid-implementation" is a weaker instrument than "sustained writes exceed 10k/s"
+  sources:
+    - description: |
+        observed while writing the how-to-plan designs — every decision carries a
+        falsified_if, and none of them felt like filler at the time. Confirmed or killed
+        by writing several designs and seeing which conditions ever actually fire.

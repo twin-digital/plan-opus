@@ -4,14 +4,12 @@
 - id: agents-have-git-identities
   claim: my agents commit and comment under their own git identities, like any other contributor
   backing: tested
-  status: active
   sources:
     - description: observed directly — agent commits and PR comments land under the agent's own identity, via per-org GitHub App tokens vended at /creds/github/<org>
 
 - id: no-inline-styles-in-gfm
   claim: GitHub strips the style attribute and the <style> element when rendering markdown, so inline CSS cannot change how a document renders
   backing: documented
-  status: active
   risk: the primary source is a community-maintained reference, not GitHub's own docs, and it disagrees with the sanitizer allowlist on a neighbouring claim (it says id is stripped; the allowlist permits id) — corroborating, not authoritative
   sources:
     - url: https://github.com/RichLewis007/HTML-Tags-Supported-in-GitHub-Flavored-Markdown-Documents#-whats-not-allowed
@@ -26,14 +24,3 @@
         The main sanitization allowlist. Only these elements and attributes are
         allowed through by default.
       checked: 2026-07-22
-
-- id: falsifiers-are-writable-for-boundaries
-  claim: a useful falsifier can be stated for a boundary decision, not only for capacity and performance ones
-  backing: assumed
-  status: active
-  risk: one design's worth of evidence, written by the same person who wrote the rule requiring it — the decisions here mostly did yield conditions, but "components are routinely split or merged mid-implementation" is a weaker instrument than "sustained writes exceed 10k/s"
-  sources:
-    - description: |
-        observed while writing the how-to-plan designs — every decision carries a
-        falsified_if, and none of them felt like filler at the time. Confirmed or killed
-        by writing several designs and seeing which conditions ever actually fire.

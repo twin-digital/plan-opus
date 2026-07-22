@@ -15,7 +15,8 @@ runs, what it may decide, and what it must only report.
 
 ## Out of scope
 
-- What the rules *are* — those belong to `doc-structure`; this design enforces them.
+- What the rules *are* — structural ones belong to `doc-structure`, content ones to
+  `authoring`; this design enforces what can be enforced and reports the rest.
 - Judgement calls the machine may not make. Abort stays mine.
 
 ## Done looks like
@@ -26,6 +27,7 @@ flags is either actionable or evidence the rule was wrong.
 ## Known tensions
 
 - Two rules already have no mechanical backstop — whether a citation is apt, and whether a
-  deferred unknown is genuine or a dodged gate. More may accumulate.
+  deferred unknown is genuine or a dodged gate. Nearly all of `authoring` is in that
+  category by construction, so the reviewers carry more of the load than the checker does.
 - Building the harness before running the loop by hand is the premature-structure mistake
   this project is against.

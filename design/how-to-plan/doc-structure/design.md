@@ -38,7 +38,7 @@ Carved out of the original how-to-plan design: the artifact — how designs are 
   falsified_if: two consecutive designs need a field the schema lacks
   status: proposed
 
-# D7 promoted to req:claims-state-their-falsifier. Id not reused.
+# D7 promoted to req:decisions-state-their-falsifier. Id not reused.
 
 - id: D8
   choice: load-bearing prose claims carry [[tokens]] pointing inward at ids or outward at facts and requirements
@@ -57,10 +57,7 @@ Carved out of the original how-to-plan design: the artifact — how designs are 
 
 # D11 promoted to req:evidence-is-verbatim. Id not reused.
 
-- id: D12
-  choice: anything a verification turns up becomes its own entry, never an annotation on another
-  falsified_if: entry count grows faster than I can review it, without the extra entries changing a decision
-  status: proposed
+# D12 moved to the authoring design. Id not reused.
 
 - id: D13
   choice: a quote is always a block scalar, unconditionally
@@ -77,13 +74,10 @@ Carved out of the original how-to-plan design: the artifact — how designs are 
   falsified_if: I need a design's state somewhere the repo isn't at hand, often enough that reading the tree isn't enough
   status: proposed
 
-- id: D16
-  choice: an unknown is filed by when it can be answered — a gate, a revisit on the decision, or an assumed fact
-  falsified_if: revisit becomes where I park questions I could have answered by reading
-  status: proposed
+# D16 moved to the authoring design. Id not reused.
 
 - id: D15
-  choice: a decision has three statuses; promotion deletes the entry and records provenance on the target
+  choice: a decision has three statuses; promotion deletes the entry outright and records nothing
   falsified_if: I want to know what a design decided after the fact and the git history is too coarse to answer it
   status: proposed
 ```
@@ -150,8 +144,8 @@ all.
 
 ### Repo layout
 
-Design docs live as files, edited with commits, reviewed as PRs
-[[req:designs-live-in-git]]. That's the setup
+Design docs live as files, edited with commits, reviewed as PRs — the process design owns
+that choice; what follows is what it means for the tree. It's the setup
 that lets me point at an exact line, lets the agent and me both edit, keeps the reasoning
 attached, and keeps each round cheap. My agents have their own git identities, so they can
 commit and comment like any other contributor [[fact:agents-have-git-identities]].
@@ -196,6 +190,10 @@ designs — `planning`, `sync`, `billing` — and owns what those designs share.
 documentation about the project — it *is* the project. `docs/` keeps the meta material:
 the vision, contributing guide, policies.
 
+Facts and requirements arrive already settled [[req:foundations-enter-settled]] — a design
+applies them or discovers it cannot, but does not argue them back open. That is what gives
+the review a floor to stand on, and it is why they live in `inputs/` rather than in the doc.
+
 A bare citation resolves nearest-first: the design's own files, then its area's, then
 global. A slug defined at more than one tier is an error, not a shadow, because silent
 shadowing is exactly the drift this is meant to prevent.
@@ -238,7 +236,7 @@ means exploring — an idea captured, nothing settled, nothing licensed. A `desi
 branch means draft, under review. A `design.md` on `main` means settled, and only that
 licenses building on it [[req:only-settled-work-licenses-building]]. So shelved work sits
 in the repo without ever reading as in-flight, and no hand-kept index of what is active can
-drift from what is actually there [[req:shelved-work-is-not-active-work]]. This is also
+drift from what is actually there. This is also
 what lets an idea be captured the moment it appears: the facts and requirements found while
 designing something else get a folder and stop being at risk
 [[req:enable-easy-capture]].
@@ -266,16 +264,33 @@ Frontmatter holds one hand-written field:
 status: draft            # exploring | draft | settled
 ```
 
-**The schemas are fixed — these fields, nothing freeform** [[D6]].
+The format carries three kinds of foundation, and fixes what each must record
+[[req:foundations-are-expressible]]. That is the whole of what this design promises about
+them: the kinds exist, the fields are known, and a reader can tell at a glance which kind
+they are looking at. Whether an author had to write one, and whether what they wrote is any
+good, are questions for the process and authoring designs.
 
-A *decision* has `id` (a short handle unique within the design; cited as `[[D1]]`), `choice`
-(one line, what was decided), `falsified_if` (the condition that would prove it wrong), and
-`status`, one of three:
+The schemas favour brevity, and a field with a sensible default may be omitted rather than
+restated on every entry [[req:foundation-default-fields]]: a requirement is `force: hard`
+and `status: active` unless it says otherwise, and a fact is `status: active`. A decision's
+`status` has no default — where it sits in review is the thing being tracked, so leaving it
+implicit would defeat the point. **Nothing else is optional, and nothing is freeform**
+[[D6]].
+
+A *decision* records what was chosen, what would overturn it, and how far it has got
+through review [[req:decision-structure]]: `id` (a short handle unique within the design;
+cited as `[[D1]]`), `choice` (one line, what was decided), `falsified_if` (the condition
+that would prove it wrong), and `status`, one of three:
 
 - `proposed` — not reviewed yet, and not safe to build on.
 - `accepted` — reviewed and safe to build on, but still a decision: scoped to this design,
   disposable with it, and it keeps its falsifier.
 - `rejected` — considered and turned down.
+
+None of them outlives the design [[req:decisions-belong-to-their-design]]. A decision is
+this design's answer to a question another design might answer differently and just as
+well, which is exactly what makes it a decision and not a requirement — and what makes the
+whole design cheap to throw away.
 
 **A promoted decision is deleted, not marked** [[D15]]. When a choice outgrows the design —
 I adopt it as a requirement, or I test it into a fact — the knowledge moves to
@@ -285,11 +300,11 @@ behind is an entry nothing points at, sitting in the one list I read end to end 
 time. So it goes, leaving a comment line and an unreused id — the same treatment a dead
 question gets, for the same reason.
 
-Provenance rides on the *target*, not the source: a requirement promoted out of a design
-carries an attested source reading `promoted from the how-to-plan design, decision D1`. That
-points in the direction that survives — the requirement outlives the design, the decision
-doesn't — and it avoids storing a `promoted_to` pointer, which would be a hand-maintained
-copy of a relationship [[D9]].
+Nothing records the promotion. Not a `promoted_to` pointer on the decision, and not a
+provenance line on the requirement — both are hand-maintained copies of something git
+already knows [[D9]], and neither changes what the requirement means. If a requirement
+needs its origin story to be understood, the statement is inadequate and the fix is to
+rewrite it, not to annotate it.
 
 `rejected` is the exception that stays. Unlike a promoted decision, a rejected one's content
 exists nowhere else; deleting it loses the fact that the option was ever weighed, and I'd
@@ -300,35 +315,13 @@ An incomplete promotion is caught mechanically: delete the decision without rewr
 citations and the leftover `[[D1]]` is an unresolved inward token.
 
 If I can't state a falsifier, I don't understand the decision well enough to keep it
-[[req:claims-state-their-falsifier]]. Whether that holds for boundary decisions as well as
-it does for capacity ones is
-still an assumption rather than a finding [[fact:falsifiers-are-writable-for-boundaries]].
+— what makes a falsifier real rather than a filled-in field is the authoring design's
+question, not this one's. Whether it holds for boundary decisions as well as it does for
+capacity ones is
+still an assumption rather than a finding, recorded in the authoring design's facts.
 
 An *open question* has `id` (cited as ``), `q` (the question), and optionally
 `blocks`, a list of ids it gates. Omit `blocks` if it gates nothing specific.
-
-**An open question is a gate, and gates must be answerable now** [[D16]]. Putting an
-unknown here asserts two things: that investigation could settle it today, and that
-something is waiting on the answer. `blocks` is what makes the second half real — the
-checker treats a gated decision as not-safe-to-build-on.
-
-That contract is why not every unknown belongs here. An unknown that only *use* can settle
-— whether a component stays PR-sized, whether hand-editing a fenced block stays tolerable —
-cannot be answered by any amount of design-time work. Filing it as a gate is a deadlock: the
-decision it blocks can never clear review, so the design can never settle, and the checker
-will enforce that forever. Such an unknown attaches instead to the decision it might
-overturn, as a `revisit` condition.
-
-A third kind is about the method rather than the artifact — *can a useful falsifier be
-written at all?* That is a claim about whether this way of working works, confirmed or
-killed by evidence, which is precisely a fact with `backing: assumed` and a `risk` line. It
-needs no bucket of its own.
-
-The triage is one question: **could I answer this before I build?** Yes, and something rests
-on it — open question. No, only building tells me — `revisit` on the decision. No, and it's
-about whether the process itself works — an assumed fact. All three of this design's
-original questions answered *no* while sitting in the *yes* bucket, which is what made them
-feel unanswerable.
 
 A question that dies — answered, cut, folded into a sharper one, or re-filed as a revisit or
 a fact — is deleted, leaving a comment line where it stood and its id unreused. That's deliberately weaker than how a fact
@@ -355,17 +348,22 @@ holds), and optionally `excludes` (the nearby responsibility it deliberately doe
 and decisions it inherits). Components are the decomposition [[D10]]; what happens to one after that — that it becomes
 a single PR, and a single unit of abort — is the process design's business, not this one's.
 
-A *fact* has `id` (cited as `[[fact:cursor-pagination]]`), `claim` (one line, small enough
-to verify on its own), `backing` (`tested | documented | assumed`), and `status`
-(`active | stale | superseded`). A fact records what was confirmed, never what is believed,
-and a fact that new evidence kills is marked rather than removed
-[[req:facts-are-confirmed-not-believed]] — an append-only file with no retraction becomes
-confidently wrong. Optionally it has `sources`, `risk` (one line: why this
-one might not hold), and `test` (the path to the test that enforces it). `superseded_by` is
-required once status is `superseded`.
+A *fact* records its claim, how that claim came to be believed, whether it still holds, and
+what backs it [[req:fact-structure]]. Concretely: `id` (cited as
+`[[fact:cursor-pagination]]`), `claim` (one line, small enough to verify on its own),
+`backing` (`tested | documented | assumed`), `status` (`active | stale | superseded`), and
+`sources` — every fact says how it came to be believed, even if that is only "observed in
+my own setup". A fact that new evidence kills is marked rather than removed: an append-only
+file with no retraction becomes confidently wrong, and keeping the dead entry is what lets
+me trace what leaned on it. Optionally it has `risk` (one line: why this one might not
+hold) and `test` (the path to the test that enforces it). `superseded_by` is required once
+status is `superseded`.
 
-A *requirement* has `id` (cited as `[[req:offline-first]]`), `statement`, `force`
-(`hard | soft`), and `status` (`active | retired`), plus optional `sources`.
+A *requirement* records what is required, how firmly, and whether it still binds
+[[req:requirement-structure]]: `id` (cited as `[[req:offline-first]]`), `statement`, `force`
+(`hard | soft`), and `status` (`active | retired`), plus an optional `rationale`. It takes
+no sources — a requirement is decided rather than discovered, so there is nothing to cite;
+the rationale explains it instead.
 
 **A source comes in two shapes**, and they're near mirror images:
 
@@ -404,12 +402,6 @@ page the link already goes to is noise, and it's recoverable by fetching the url
 rule that keeps derived rollups out of the frontmatter [[D9]] applies to a source's own
 metadata.
 
-**Absence of documentation is not `documented` backing.** A fact inferred from what a page
-*doesn't* say is `assumed`, however carefully the page was read, because a doc omitting
-something is not the doc denying it. `plugins-have-no-conventions-slot` is the example in
-this design's own facts file: a real quote, a real locator, and `backing: assumed`, because
-the quote bounds where the thing would have been rather than establishing it isn't there.
-
 **`stale` is what happens when evidence evaporates.** Re-checking a source and no longer
 finding the passage doesn't make the claim false — it makes it unsupported. The fact goes
 to `status: stale`, `checked` gets the new date, and the claim stays put with its footing
@@ -417,38 +409,10 @@ gone. That distinguishes the two failure modes retraction has to tell apart: `su
 means I learned something better, `stale` means I lost the thing I knew it by. Building on
 a stale fact is a flag, not an error, but it is never silent.
 
-**Evidence is a quote, never a summary** [[req:evidence-is-verbatim]]. A source field that invites prose gets
-prose, and agent prose is exactly the confident-flat-text this whole system exists to
-stop — so the file holding the anchors would grow the same disease it was built to cure. A
-verbatim span is trap-resistant in a way a paraphrase can't be: it isn't in the agent's
-voice, and it's checkable at a glance. It also beats a summary at the practical job — a
-bare link to a thirty-section page proves nothing, because re-verifying means re-reading
-the page, and a paraphrase just adds a second thing to distrust. A quote plus `where` is
-jumpable.
-
-That constraint is also the forcing function. Made to produce the actual passage, this
-design's own sources corrected themselves twice: quoting the hooks page is what exposed
-that a hook is no longer necessarily deterministic, and the claim that background
-subagents open PRs turned out to have no citable page at all — it now sits in this
-design's facts file as `subagents-open-prs`, superseded, named here in plain text rather
-than cited, because citing a retracted fact is precisely what the checker forbids. Neither
-correction came from writing notes. Both came from being asked to show the quote.
-
-**There is no freeform field, anywhere** [[D6]]. That's load-bearing rather than
-minimalist, because the absence is what routes things to their proper home. When checking
-a source turns something up that won't fit `quote` / `where` / `risk` / `superseded_by`,
-that's the signal:
-
-- A correction that narrows the truth belongs *in the claim*. If a fact needs a paragraph
-  beside it to be read correctly, it isn't atomic yet — that's a rewrite, not an annotation.
-- A retraction belongs in `status: superseded` plus `superseded_by`, keeping the dead entry
-  so I can trace what leaned on it.
-- A calibration ("this is the weakest thing here") belongs in `risk`, in one line. How to
-  *test* it is an open question, not a note.
-- **Anything newly discovered becomes its own entry** [[D12]]. Verification generates
-  knowledge, and that knowledge has to graduate to a first-class fact or open question —
-  buried in another entry's margin, it will never reach the decisions-and-questions review,
-  which is the one place I actually look.
+**There is no freeform field, anywhere** [[D6]]. That is deliberate rather than
+minimalist: the absence is what forces an observation to its proper home instead of letting
+it accumulate in a margin. Which home, for which kind of observation, is the authoring
+design's rule rather than this one's.
 
 Together those make retraction possible. When a fact dies, its sources are how I find out
 whether the page moved, whether I misread it, or whether it was never load-bearing to
@@ -480,8 +444,9 @@ The corollary is that facts and requirements are *not* fenced — they're plain 
 end to end, so wrapping it in markdown would add a parse step and a second way to be
 malformed for no gain.
 
-**How to read the `[[tokens]]`** [[D8]]. Every load-bearing claim in the prose carries one,
-and it points in one of two directions:
+**How to read the `[[tokens]]`** [[D8]]. A token is how a claim points at the foundation it
+rests on, and it resolves to exactly one entry [[req:claims-can-cite-foundations]] — no
+searching, no interpretation. It points in one of two directions:
 
 - **Inward** — `[[D1]]`, ``, `[[C1]]` point at an entry declared in this same file.
   Hit `[[D1]]`, scroll up to the Decisions block for the actual choice and its falsifier.
@@ -542,41 +507,3 @@ demand, outside the doc.
 What the checker does *not* do is evaluate a `falsified_if`. That condition is natural
 language about the world; deciding whether it has come true is a review question, and the
 checker's job is to put it in front of me, not to answer it.
-
-**What the checker structurally cannot verify**. Every rule above is about a
-citation's *shape* — that it resolves, that its target is active, that its source is
-locatable. None of them touch whether the thing cited actually supports the sentence it's
-attached to. Three failures live entirely outside the checker's reach:
-
-- **Overreach** — the token resolves, but the prose asserts more than the source establishes.
-  The fact `subagents-open-prs` in this design's own history is the example: it claimed
-  background subagents open PRs, where the source says a *worktree-isolated background
-  session* does, and only against a remote. Both the claim and its citation were perfectly
-  well-formed.
-- **Adjacency** — the quote is real and lands near the claim without grounding it.
-  `plugins-have-no-conventions-slot` is exactly that: its quote bounds the region where a
-  conventions slot would appear, but never establishes that none exists. It carries
-  `backing: assumed` for that reason, and only because I happened to look.
-- **Absence** — a load-bearing claim carrying no token at all. This is the one that matters
-  most, and the checker is structurally blind to it: it validates what is on the page and
-  has no way to know what should be there and isn't. Only a reader finds a missing citation
-  [[req:explicit-intent]].
-
-So citation aptness gets its own component , separate from the checker and separate
-from the coherence reviewer  — different input, different cadence, different failure
-mode, and by this design's own rule that makes it a different boundary [[D10]].
-
-Two constraints keep it honest. It **reports and never edits**, like every other reviewer
-here — a reviewer that silently "fixes" a citation is
-manufacturing the exact confidence this whole system exists to strip out. And its findings
-are **spans, not essays**: quote the prose, quote the source, name one verdict from a fixed
-set. That's `[[req:evidence-is-verbatim]]` turned back on the reviewer itself — an auditor allowed to write
-paragraphs about why a citation feels weak is the confident-prose problem one level up,
-wearing a badge. Whether it can actually tell apt from adjacent often enough to be worth
-reading is unsettled.
-
-Only tag claims that carry weight — resting on a fact, meeting a requirement, or following
-from a decision [[req:weight-must-be-visible]]. If every sentence sprouts a token, the
-wall-of-equal-weight problem comes back with brackets on it, and a doc where everything is
-marked load-bearing signals exactly as much as one where nothing is. The test: *would it
-matter if this claim were wrong?*

@@ -26,6 +26,14 @@ const loadScope = (dir, tier, scope) => {
     for (const e of loadYaml(f)) {
       if (ent[e.id]) add("slug at two tiers", `${e.id} (${ent[e.id].scope} + ${scope})`);
       const isFact = kind === "facts";
+      // defaults (foundation-default-fields): omit a field whose value is the common case
+      e.status ??= "active";
+      if (!isFact) e.force ??= "hard";
+      for (const f of isFact ? ["id", "claim", "backing", "status"] : ["id", "statement", "force", "status"])
+        if (e[f] === undefined) add("missing required field", `${scope} ${e.id}.${f}`);
+      if (!isFact && e.force === "hard" && /^\s*force:\s*hard\s*$/m.test(fs.readFileSync(f, "utf8")
+            .split(new RegExp(`^- id: ${e.id}$`, "m"))[1]?.split(/^- id: /m)[0] ?? ""))
+        add("default stated explicitly", `${scope} ${e.id}.force`);
       ent[e.id] = { tier, scope, kind: isFact ? "fact" : "req", status: e.status };
       if (!isFact) {
         if (e.sources !== undefined) add("requirement with sources", e.id);
@@ -54,8 +62,11 @@ for (const a of areas) {
 
 // ---- per-design citation checks -------------------------------------------
 const reached = new Set();
+const exploring = new Set();
 for (const d of designs) {
-  if (!fs.existsSync(d.md)) { add("design.md missing", d.dir); continue; }
+  // no design.md = exploring: inputs captured, nothing argued yet. Its entries are
+  // exempt from reachability, since there is no prose to cite them from. (D17)
+  if (!fs.existsSync(d.md)) { exploring.add(`${d.area}/${d.name}`); continue; }
   const src = fs.readFileSync(d.md, "utf8");
   const tag = `${d.area}/${d.name}`;
   const block = (n) => {
@@ -108,17 +119,19 @@ for (const d of designs) {
 // ---- reachability: design + area must be consumed; global exempt ----------
 for (const [id, v] of Object.entries(ent)) {
   if (v.tier === "global") continue;
+  if (exploring.has(v.scope)) continue;
   if (["superseded", "stale", "retired"].includes(v.status)) continue;
   if (!reached.has(id)) add(`unreachable (${v.tier})`, `${v.scope} ${id}`);
 }
 
-const CHECKS = ["yaml parse", "design.md missing", "missing required field", "slug at two tiers",
+const CHECKS = ["yaml parse", "missing required field", "slug at two tiers",
   "url without where", "source with no locator", "quote not a block scalar", "requirement with sources", "rationale not a block scalar", "unresolved inward",
   "unreferenced D/Q/C", "unresolved outward", "unresolved grounds", "wrong token kind",
   "dead entry cited", "cites another design's entry", "cites another area's entry",
   "malformed revisit", "unresolved blocks", "unresolved depends_on", "unreachable (design)", "unreachable (area)"];
 for (const c of CHECKS) console.log(`${fail[c] ? "FAIL" : "ok  "}  ${c}: ${fail[c]?.join("; ") ?? "—"}`);
 const tiers = Object.values(ent).reduce((a, v) => (a[v.tier] = (a[v.tier] ?? 0) + 1, a), {});
-console.log(`\n${designs.length} designs: ${designs.map((d) => `${d.area}/${d.name}`).join(", ")}`);
+console.log(`\n${designs.length} designs: ${designs.map((d) =>
+  `${d.area}/${d.name}${exploring.has(`${d.area}/${d.name}`) ? " (exploring)" : ""}`).join(", ")}`);
 console.log(`entries by tier: ${JSON.stringify(tiers)}`);
 process.exit(Object.keys(fail).length ? 1 : 0);

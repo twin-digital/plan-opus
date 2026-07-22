@@ -92,6 +92,9 @@ prose.
 8. **When it feels off, cut the component** [[D4]]. It's cheap, because it's local. Save what
    you learned into the facts file, and restart. Don't band-aid a bad base.
 
+Steps 4 and 5 happen in a pull request [[req:designs-live-in-git]], and the design settles
+when it merges — that is what makes the review a gate rather than a conversation.
+
 The order is the point [[D1]]. Every step is cheap only because the one before it happened:
 decomposition is cheap because the facts are already down, review is cheap because the
 decomposition is small, and aborting is cheap because the component is one PR. Run the steps
