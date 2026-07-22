@@ -1,0 +1,3 @@
+# Global Facts
+
+None yet.
