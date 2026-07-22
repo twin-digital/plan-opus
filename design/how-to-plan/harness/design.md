@@ -13,6 +13,8 @@ Carved out of the original how-to-plan design: the machinery — the checker, th
   choice: a decision is grounded if its citing paragraph also cites a fact or requirement; ungrounded ones form the agent-decision view
   falsified_if: paragraph scope produces enough false flags that I stop reading the view
   status: proposed
+  revisit:
+    after: the view has run against three designs
 
 - id: D2
   choice: the quality harness for this repo is a schema and citation checker, not lint and typecheck
@@ -28,14 +30,14 @@ Carved out of the original how-to-plan design: the machinery — the checker, th
   choice: whether a citation supports the claim it sits on is audited by a reader, in a component separate from the checker
   falsified_if: its findings are mostly false positives, or duplicate what the checker already caught
   status: proposed
+  revisit:
+    after: the auditor has reviewed one design end to end
 ```
 
 ## Open questions
 
 ```yaml
-- id: Q1
-  q: does paragraph-scoped grounding produce an agent-decision view I actually trust?
-  blocks: [D1]
+# Q1 was deferred, not a gate — it became the revisit condition on D1. Id not reused.
 
 - id: Q2
   q: how do the conventions travel to a new repo, given a plugin has no slot for a CLAUDE.md template?
@@ -49,9 +51,7 @@ Carved out of the original how-to-plan design: the machinery — the checker, th
   q: which hook event should the checker hang off — Stop, or the narrower FileChanged and TaskCompleted?
   blocks: [C3, D2]
 
-- id: Q5
-  q: can a reader reliably tell an apt citation from an adjacent one, or does it flag too much to read?
-  blocks: [C7, D4]
+# Q5 was deferred, not a gate — it became the revisit condition on D4. Id not reused.
 ```
 
 ## Components
@@ -113,7 +113,8 @@ decision cited in a paragraph that carries no fact or requirement beside it, mea
 outside the agent's own say-so holds it up [[D1]]. Paragraph scope is a heuristic, narrower
 than a section and wider than a sentence, and it is the part of this design most likely to
 be wrong in practice: too coarse and everything looks grounded, too fine and every decision
-gets flagged [[Q1]].
+gets flagged. Only running it over several designs will tell, so [[D1]] carries a revisit
+condition rather than blocking settlement now.
 
 Everything the checker does is about *shape* — that a citation resolves, that its target is
 active, that its source is locatable. Whether the thing cited actually supports the sentence
@@ -123,7 +124,8 @@ different cadence (design review, not implementation), different failure mode. I
 are spans and a verdict from a fixed set, never an essay — an auditor free to write
 paragraphs about why a citation feels weak reintroduces exactly the confident prose the
 citations exist to prevent. Whether it can tell an apt citation from a merely adjacent one
-often enough to be worth reading is unsettled [[Q5]].
+often enough to be worth reading cannot be known until it has read one, so [[D4]] defers
+that judgement rather than gating on it.
 
 ### Catching ruts automatically
 

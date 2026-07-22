@@ -29,6 +29,8 @@ prose.
   choice: an agent decides freely within a proposal, and stops when a fact meets a requirement
   falsified_if: agents stop so often the loop stalls, or fudge the collision anyway
   status: proposed
+  revisit:
+    when: I find myself restating the autonomy rule mid-session
 
 - id: D4
   choice: aborting a component is the default response to feeling off, not a last resort
@@ -39,6 +41,8 @@ prose.
   choice: one component is one PR is one unit of abort
   falsified_if: components are routinely split or merged mid-implementation
   status: proposed
+  revisit:
+    after: five components have shipped
 
 - id: D5
   choice: mechanical signals flag a design for my attention; the abort decision stays mine
@@ -53,9 +57,7 @@ prose.
   q: does a design with no components need the block at all, or does its absence mean this isn't a design?
   blocks: [D1]
 
-- id: Q2
-  q: is the autonomy rule legible enough that an agent applies it without me restating it each session?
-  blocks: [D3]
+# Q2 was deferred, not a gate — it became the revisit condition on D3. Id not reused.
 ```
 
 ## Design
@@ -156,8 +158,8 @@ decide and when it has to stop and ask. The test is: *who settles a dispute here
   sitting in a "not safe yet" bucket.
 
 That test is the whole autonomy rule [[D3]], and it only works if an agent can apply it
-unprompted — if I have to restate it every session it has failed, whatever the doc says
-[[Q2]].
+unprompted — if I have to restate it every session it has failed, whatever the doc says,
+which is the revisit condition on [[D3]].
 
 The one to get right: a requirement that runs into a contradicting fact — "must work
 offline" meets "the login provider needs a connection." Reality wins on what's *true*, but

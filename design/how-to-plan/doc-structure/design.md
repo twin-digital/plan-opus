@@ -25,6 +25,8 @@ Carved out of the original how-to-plan design: the artifact — how designs are 
   choice: structured data lives in fenced blocks inside design.md, not a sibling data file
   falsified_if: the blocks are edited by tooling more often than they are read beside the prose
   status: proposed
+  revisit:
+    when: hand-editing a block is painful enough that I reach for a generator
 
 - id: D5
   choice: facts and requirements are plain YAML files, not YAML fenced inside markdown
@@ -70,6 +72,11 @@ Carved out of the original how-to-plan design: the artifact — how designs are 
   falsified_if: I routinely add a citation only to satisfy the check, rather than because the claim rests on it
   status: proposed
 
+- id: D16
+  choice: an unknown is filed by when it can be answered — a gate, a revisit on the decision, or an assumed fact
+  falsified_if: revisit becomes where I park questions I could have answered by reading
+  status: proposed
+
 - id: D15
   choice: a decision has three statuses; promotion deletes the entry and records provenance on the target
   falsified_if: I want to know what a design decided after the fact and the git history is too coarse to answer it
@@ -79,16 +86,13 @@ Carved out of the original how-to-plan design: the artifact — how designs are 
 ## Open questions
 
 ```yaml
-- id: Q1
-  q: at real size, does a component stay small enough to be one reviewable PR?
-  blocks: [D10, D2]
+# Q1 was deferred, not a gate — it became a revisit on the process design's D6,
+# which now owns "one component is one PR". Id not reused.
 
-- id: Q2
-  q: is a fenced-YAML design.md pleasant to hand-edit, or does it need generation and formatting to be tolerable?
-  blocks: [D4]
+# Q2 was deferred, not a gate — it became the revisit condition on D4. Id not reused.
 
-- id: Q3
-  q: can a useful falsifier be written for boundary decisions, or only for capacity and performance ones?
+# Q3 was a bet about the method, not this artifact — it is now
+# fact:falsifiers-are-writable-for-boundaries. Id not reused.
 
 # Q5 folded into Q8 once fact:hook-events named the actual events. Id not reused.
 ```
@@ -122,7 +126,8 @@ abortability are the same thing: boundaries become PR boundaries become the comp
 abort, which is why the decomposition is the main artifact and gets a schema of
 its own rather than a paragraph. Get the boundaries right and the big-PR problem and the
 abort problem both shrink at once. Whether a component stays small enough for that to
-hold at real size is not yet confirmed [[Q1]].
+hold at real size is not something this design can settle; it is a condition the process
+design watches.
 
 **Cheap to spot: chunky prose anchored to small kernels.** Good boundaries make a wrong
 component cheap to remove. They do nothing to help me *find* it — a cleanly-decomposed
@@ -219,7 +224,7 @@ The doc itself is `design.md`, inside the design's folder. It holds two kinds of
 design argument that references them). Keep them physically separate inside the file — the
 data in fenced blocks a script can parse, the prose in plain markdown a person can read
 [[D4]]. Whether that stays pleasant to hand-edit is one of the things the shakedown is
-meant to find out [[Q2]].
+meant to find out, which is why [[D4]] carries a revisit condition rather than a gate.
 
 The section order is fixed: frontmatter, `## Decisions`, `## Open questions`,
 `## Components`, `## Design`. Structured content comes first because that's the review
@@ -267,17 +272,52 @@ citations and the leftover `[[D1]]` is an unresolved inward token.
 If I can't state a falsifier, I don't understand the decision well enough to keep it
 [[req:claims-state-their-falsifier]]. Whether that holds for boundary decisions as well as
 it does for capacity ones is
-still open [[Q3]].
+still an assumption rather than a finding [[fact:falsifiers-are-writable-for-boundaries]].
 
 An *open question* has `id` (cited as ``), `q` (the question), and optionally
 `blocks`, a list of ids it gates. Omit `blocks` if it gates nothing specific.
 
-A question that dies — answered, cut, or folded into a sharper one — is deleted, leaving a
-comment line where it stood and its id unreused. That's deliberately weaker than how a fact
+**An open question is a gate, and gates must be answerable now** [[D16]]. Putting an
+unknown here asserts two things: that investigation could settle it today, and that
+something is waiting on the answer. `blocks` is what makes the second half real — the
+checker treats a gated decision as not-safe-to-build-on.
+
+That contract is why not every unknown belongs here. An unknown that only *use* can settle
+— whether a component stays PR-sized, whether hand-editing a fenced block stays tolerable —
+cannot be answered by any amount of design-time work. Filing it as a gate is a deadlock: the
+decision it blocks can never clear review, so the design can never settle, and the checker
+will enforce that forever. Such an unknown attaches instead to the decision it might
+overturn, as a `revisit` condition.
+
+A third kind is about the method rather than the artifact — *can a useful falsifier be
+written at all?* That is a claim about whether this way of working works, confirmed or
+killed by evidence, which is precisely a fact with `backing: assumed` and a `risk` line. It
+needs no bucket of its own.
+
+The triage is one question: **could I answer this before I build?** Yes, and something rests
+on it — open question. No, only building tells me — `revisit` on the decision. No, and it's
+about whether the process itself works — an assumed fact. All three of this design's
+original questions answered *no* while sitting in the *yes* bucket, which is what made them
+feel unanswerable.
+
+A question that dies — answered, cut, folded into a sharper one, or re-filed as a revisit or
+a fact — is deleted, leaving a comment line where it stood and its id unreused. That's deliberately weaker than how a fact
 retracts. A superseded fact keeps a full entry because things were *built* on it and I need
 to trace what leaned on the claim; an open question is by definition something nothing has
 been built on, so there's no downstream to trace. A tombstone would just pad the one list
 I'm supposed to read end to end at review time.
+
+A decision may also carry `revisit`, a mapping with exactly one of `after` (a milestone —
+`five components have shipped`) or `when` (an observed condition — `hand-editing a block is
+painful enough that I reach for a generator`). It is `falsified_if`'s active twin:
+`falsified_if` names what would make the decision wrong, `revisit` names the moment to go
+look. A decision needs one only when it rests on something use will settle; most don't.
+
+The failure mode is obvious and unpoliceable: `revisit` becomes a snooze button for
+questions I could have answered by reading. The checker cannot tell a genuine deferred
+unknown from a dodged gate — both are well-formed. Only the honest answer to *could I have
+settled this today?* separates them, which makes this one of the few rules here that has no
+mechanical backstop at all.
 
 A *component* has `id` (cited as `[[C1]]`), `name`, `owns` (one line: the responsibility it
 holds), and optionally `excludes` (the nearby responsibility it deliberately doesn't hold),
@@ -453,7 +493,8 @@ demand, outside the doc.
   precisely the case retraction exists to catch. A `stale` one is a flag: the claim may
   still hold, but nothing currently backs it.
 - Every source is locatable: `url` implies `where`, and a source with neither `url` nor
-  `description` fails. Every `quote` is a block scalar.
+  `description` fails.
+- Every `revisit` carries exactly one of `after` or `when`. Every `quote` is a block scalar.
 - Every declared decision and component is referenced at least once in the prose — an
   unreferenced one is either dead (cut it) or a hidden dependency the prose never admitted.
 - Every *active* entry is reachable from within its own scope: a design-scoped one from its
