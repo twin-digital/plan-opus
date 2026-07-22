@@ -164,10 +164,10 @@ without being asked [[fact:skills-are-the-command-unit]].
 | Piece | Building block | Notes |
 |---|---|---|
 | Conventions, exemplars, rules of engagement | **CLAUDE.md** [[C1]] | Read every session; where the autonomy rule and citation rule become ambient |
-| Quality harness | **Hooks** [[C3]] | `PostToolUse` on `Edit\|Write` and `Stop` run the checker. Deterministic, can't hallucinate |
+| Quality harness | **Hooks** [[C3]] | A hook fires a command on a lifecycle event without being asked [[fact:claude-code-hooks]] — which is the point: a check I have to remember to run is a check I will skip |
 | Facts + requirements | **plain YAML**  | Not a Claude feature, just disciplined files. Must-pass ones become real tests |
 | Design doc authoring | **skill** `/design-new` [[C4]] | Scaffolds the folder + template. A template-only skill sets `disable-model-invocation`, so it fires when I ask and not otherwise [[fact:template-skills-opt-out-of-model-invocation]] |
-| Schema + citation checker | **Node script** [[C2]] | Runs from hooks and from CI. The deterministic half of the review |
+| Schema + citation checker | **Node script** [[C2]] | Node because tooling here is Node unless something forces otherwise [[req:node-for-tooling]]. Runs from hooks and from CI — the deterministic half of the review |
 | Citation audit | **subagent** [[C7]] | Reads each cited claim against its source; reports overreach, adjacency, and uncited claims. Advisory |
 | Coherence / consistency review | **subagent** [[C5]] | Its own context window [[fact:subagents-get-their-own-context]], with facts + requirements loaded; also the semantic smoke reviewer |
 | Component implementation | **subagents** | A worktree-isolated background session commits, pushes, and opens a draft PR unasked [[fact:background-agents-open-prs]]. One validated component → one background session → one draft PR |
@@ -190,7 +190,7 @@ there's something worth sharing.
 
 ### Bootstrap
 
-Stand up ``, `[[C1]]`, `[[C2]]`, `[[C3]]`, and `[[C4]]` — and nothing else:
+Stand up `[[C1]]`, `[[C2]]`, `[[C3]]`, and `[[C4]]` — and nothing else:
 
 1. Scaffold the tree: `design/`, with `facts.yaml` and `requirements.yaml` at its root.
 2. Write `CLAUDE.md` with the conventions and the rules of engagement (the autonomy rule,

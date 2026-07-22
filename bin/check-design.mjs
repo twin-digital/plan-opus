@@ -78,6 +78,10 @@ for (const d of designs) {
   for (const [n, pfx] of [["Decisions", "D"], ["Open questions", "Q"], ["Components", "C"]]) {
     const b = block(n);
     if (b === null) continue;                       // block is optional
+    if (!Array.isArray(b)) {                        // format this checker predates
+      add("unrecognised block shape", `${tag} §${n} — expected a list of entries`);
+      continue;
+    }
     for (const e of b) {
       ids.add(e.id);
       for (const f of REQUIRED[pfx]) if (e[f] === undefined) add("missing required field", `${tag} ${e.id}.${f}`);
@@ -93,17 +97,13 @@ for (const d of designs) {
   const toks = [...prose.matchAll(/\[\[([^\]]+)\]\]/g)].map((m) => m[1]);
   const inward = new Set(toks.filter((t) => !t.includes(":")));
   const outward = new Set(toks.filter((t) => t.includes(":")));
-  const grounds = new Set();
-  const comps = block("Components") ?? [];
-  for (const c of comps) for (const g of c.grounds ?? []) grounds.add(g);
 
   for (const t of inward) if (!ids.has(t)) add("unresolved inward", `${tag} ${t}`);
   for (const [n, f] of [["Open questions", "blocks"], ["Components", "depends_on"]])
-    for (const e of block(n) ?? [])
+    for (const e of (Array.isArray(block(n)) ? block(n) : []))
       for (const r of e[f] ?? []) if (!ids.has(r)) add(`unresolved ${f}`, `${tag} ${e.id} -> ${r}`);
   for (const i of ids) if (!inward.has(i)) add("unreferenced D/Q/C", `${tag} ${i}`);
-  for (const t of [...outward, ...grounds]) {
-    if (!t.includes(":")) { if (!ids.has(t)) add("unresolved grounds", `${tag} ${t}`); continue; }
+  for (const t of outward) {
     const [k, id] = t.split(":");
     const e = ent[id];
     if (!e) { add("unresolved outward", `${tag} ${t}`); continue; }
@@ -124,9 +124,9 @@ for (const [id, v] of Object.entries(ent)) {
   if (!reached.has(id)) add(`unreachable (${v.tier})`, `${v.scope} ${id}`);
 }
 
-const CHECKS = ["yaml parse", "missing required field", "slug at two tiers",
+const CHECKS = ["yaml parse", "unrecognised block shape", "missing required field", "slug at two tiers",
   "url without where", "source with no locator", "quote not a block scalar", "requirement with sources", "rationale not a block scalar", "unresolved inward",
-  "unreferenced D/Q/C", "unresolved outward", "unresolved grounds", "wrong token kind",
+  "unreferenced D/Q/C", "unresolved outward", "wrong token kind",
   "dead entry cited", "cites another design's entry", "cites another area's entry",
   "malformed revisit", "unresolved blocks", "unresolved depends_on", "unreachable (design)", "unreachable (area)"];
 for (const c of CHECKS) console.log(`${fail[c] ? "FAIL" : "ok  "}  ${c}: ${fail[c]?.join("; ") ?? "—"}`);

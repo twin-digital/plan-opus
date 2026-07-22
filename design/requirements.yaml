@@ -1,6 +1,7 @@
 # Global requirements — owner fiat, true across the whole project.
-# Schema: id, statement, force (hard|soft), status (active|retired), sources (optional).
-# A source needs exactly one locator: url + where, or description. See design #0.
+# Schema: id, statement, force (hard|soft), status (active|retired), rationale (optional).
+# rationale is always a block scalar. Requirements take no sources: they are decided,
+# not discovered, so there is nothing to cite.
 # Cited from prose as [[req:<id>]].
 #
 # Empty: nothing has earned promotion yet. An entry graduates from an area to here

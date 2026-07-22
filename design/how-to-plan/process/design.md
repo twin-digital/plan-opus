@@ -70,9 +70,11 @@ prose.
 ### The loop
 
 1. **Capture first.** Write down the facts, requirements, and open questions before
-   designing, so the design stands on solid ground and treats the rest as unsettled.
-   Design-specific ones go in the design's folder; promote up a tier when a second consumer
-   depends on them.
+   designing, so the design stands on solid ground and treats the rest as unsettled
+   [[req:easily-reviewable-foundations]]. Whatever turns up goes somewhere the moment it is
+   found rather than waiting for the design that will use it
+   [[req:enable-easy-capture]]; design-specific entries go in the design's folder, and
+   promote up a tier when a second consumer depends on them.
 2. **Design the boundaries first.** The decomposition is the main artifact. Boundaries
    become PRs become abort units.
 3. **Write the design doc with citations.** Every load-bearing claim cites a fact or
@@ -82,8 +84,10 @@ prose.
    lists are the entire place a bad base can hide; facts and requirements already have
    someone standing behind them. Handle each: accept, adopt, test, or reject.
 5. **Clear the review before building on it** [[D2]]. A decision I haven't accepted, or an
-   open question I haven't answered, isn't safe to build the dependent components on yet.
-   Clearing the list *is* validating the boundaries.
+   open question I haven't answered, isn't safe to build the dependent components on yet
+   [[req:only-settled-work-licenses-building]] — clearing the list is what makes a design
+   settled, and only a settled design licenses building. Clearing it *is* validating the
+   boundaries.
 6. **Build one component at a time.** One component, one PR, one thing to throw away
    [[D6]]. The agent owns all the tactical
    calls; the harness guards quality [[req:invariants-are-enforced-or-marked]].
@@ -209,6 +213,13 @@ boundaries and behavior — I just skim past what the linter already blessed.
   Ask what it depends on and what would prove it wrong.
 - Don't decide feasibility by fiat. Requirements rule the design, not the world.
 - Don't over-cite. Load-bearing claims only.
+- Cut anything that costs more attention than it saves [[req:must-beat-doing-it-myself]].
+  That applies to this protocol as much as to the work it governs: a step nobody skips
+  because it is load-bearing is worth keeping, and a step nobody skips because it is
+  ceremonial is worth deleting.
+- An entry that is promoted, answered, or cut is deleted rather than parked in a closed
+  state [[req:dead-entries-leave-a-marker]] — a comment marks where it stood, and its id is
+  never reused.
 - Don't automate the abort decision [[D5]]. Churn, a climbing revision count, a diff that
   grows while tests stay flat — those track with the band-aid spiral, so they flag a design
   for my attention. They don't decide. Make aborting cheap instead.
