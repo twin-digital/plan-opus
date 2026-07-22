@@ -1,0 +1,74 @@
+# Area requirements — owner fiat binding every design in the planning area.
+# Schema: id, statement, force (hard|soft), status (active|retired), rationale (optional).
+# rationale is always a block scalar. Requirements take no sources: they are decided,
+# not discovered, so there is nothing to cite.
+# Cited from prose as [[req:<id>]] — resolved after the design's own file.
+#
+# An entry promotes here when a second design in this area depends on it.
+
+- id: easily-reviewable-foundations
+  statement: |
+    All design docs should be built on a concrete list of concise, easily-reviewable foundations: 
+      
+      - facts: things known (or reasonably assumed) to be true, with supporting evidence
+      - requirements: invariants which must be maintained due to system owner fiat
+      - decisions: details litigated during the design process; may not contradict facts or requirements
+  rationale: |
+    - Evidence requirements avoids false LLM confidence
+    - Easier to review short list of items than volume of design prose or dozens of source files
+    - Supports vision.md §Principles (1) and (2)
+
+- id: explicit-intent
+  statement: |
+    a claim states what it rests on — a fact, requirement, or decision — whenever some
+    decision, component, or other claim in the design would have to change were it false.
+    Every citation in a design must belong to such a claim.
+  rationale: |
+    Supports vision.md §Principles (3)
+
+    Both directions matter. Citing every sentence satisfies the first half and destroys the
+    point: a document where every claim is cited signals as much as one where none is, and a
+    citation on filler is a false signal rather than extra rigour.
+
+    That test is what the requirement turns on, so it sits in the statement. Motivation,
+    illustration, restatement of something already cited, and editorial asides all fail the
+    test. When it is genuinely unclear, cut the sentence and see whether the argument has a
+    hole or merely less colour. Citation is the obligation, not the notation — how the
+    pointer is written is a separate choice.
+
+- id: enable-easy-capture
+  statement: |
+    a fact or requirement discovered outside the scope of the design that will use it keeps a home in the repo; knowledge 
+    is never parked on a branch or in my head for want of somewhere to put it
+  rationale: |
+    Enabling easy capture of good ideas or future requirements prevents losing good ideas without forcing frequent
+    context switches to act on them.
+
+- id: only-settled-work-licenses-building
+  statement: |
+    nothing is built on a design that has not cleared review; a design's status says what it
+    licenses, and only settled licenses construction. A design cannot be settled while it
+    holds an open question or a decision still proposed; a rejected decision blocks nothing,
+    being a record of an option considered rather than something the design holds
+
+- id: invariants-are-enforced-or-marked
+  statement: |
+    every invariant a design states is either enforced by the harness, or carries an
+    explicit note that it has no mechanical backstop; nothing the harness enforces is
+    also reviewed by hand
+  rationale: |
+    The concrete obligation behind vision.md §Principles (4). "Let machines catch what they
+    can" is a principle, not something a design can satisfy or fail; this is the version
+    with a testable edge — read any stated invariant and ask which of the two it is. An
+    invariant that is neither enforced nor marked is the gap, and the marked ones are worth
+    counting — a format that keeps growing unbacked rules has outrun what can be checked.
+
+- id: must-beat-doing-it-myself
+  statement: |
+    the process must cost less attention than working without it; a rule, a field, or an
+    artifact that cannot show it earns its keep is cut rather than kept
+  rationale: |
+    The vision's last complaint — that none of this is obviously faster than doing it myself
+    — is the only one nothing else here answers. Stated as a standing licence to cut, since
+    whether it will be cheaper is a bet about reality and only the cutting is mine to decide.
+

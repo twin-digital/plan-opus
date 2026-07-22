@@ -1,0 +1,13 @@
+# Requirements scoped to the harness design.
+# Schema: id, statement, force (hard|soft), status (active|retired), rationale (optional).
+# rationale is always a block scalar. Requirements take no sources.
+# Promote to design/how-to-plan/requirements.yaml when a second design depends on one.
+
+- id: node-for-tooling
+  statement: permanent scripts and tooling are written in Node.js unless the task requires otherwise
+  force: soft
+  rationale: |
+    A standing personal convention applied across all projects. Bash only where no Node
+    runtime is available or the task strongly favours it; another language only when Node
+    genuinely cannot do the job. Applies to permanent tooling — one-off agent scripting is
+    unconstrained.

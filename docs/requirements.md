@@ -1,3 +1,0 @@
-# Global Requirements
-
-None yet.

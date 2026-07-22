@@ -1,0 +1,26 @@
+# Facts discovered while working on the doc-structure design.
+# Promote to design/how-to-plan/facts.yaml when a second design in this area depends on one.
+
+- id: agents-have-git-identities
+  claim: my agents commit and comment under their own git identities, like any other contributor
+  backing: tested
+  sources:
+    - description: observed directly — agent commits and PR comments land under the agent's own identity, via per-org GitHub App tokens vended at /creds/github/<org>
+
+- id: no-inline-styles-in-gfm
+  claim: GitHub strips the style attribute and the <style> element when rendering markdown, so inline CSS cannot change how a document renders
+  backing: documented
+  caveat: the primary source is a community-maintained reference, not GitHub's own docs, and it disagrees with the sanitizer allowlist on a neighbouring claim (it says id is stripped; the allowlist permits id) — corroborating, not authoritative
+  sources:
+    - url: https://github.com/RichLewis007/HTML-Tags-Supported-in-GitHub-Flavored-Markdown-Documents#-whats-not-allowed
+      where: "§❌ What's NOT Allowed"
+      quote: |
+        `<script>`, `<style>`, `<iframe>`, `<embed>`, `<object>` → stripped
+        Inline CSS styles (`style="..."`) and `class`/`id` → stripped
+      checked: 2026-07-22
+    - url: https://github.com/gjtorikian/html-pipeline/blob/main/lib/html_pipeline/sanitization_filter.rb
+      where: DEFAULT_CONFIG — the comment above it, plus the attributes map, which lists no style anywhere
+      quote: |
+        The main sanitization allowlist. Only these elements and attributes are
+        allowed through by default.
+      checked: 2026-07-22
