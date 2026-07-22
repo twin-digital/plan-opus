@@ -140,8 +140,9 @@ the review fatigue, the "I can't see the intent," the wheel-spinning where I can
 what's off.
 
 The fix is that chunky prose is only as trustworthy as the small, verifiable kernels it's
-anchored to [[req:explicit-intent]]. The facts file holds the kernels — small claims I can
-check one at a time. Citations are the anchors [[D8]]. The prose is allowed to be big and
+anchored to [[req:explicit-intent]]. Facts and requirements are those kernels, and they are
+what a design is built on rather than the argument that cites them
+[[req:easily-reviewable-foundations]] — small claims I can check one at a time. Citations are the anchors [[D8]]. The prose is allowed to be big and
 in-flux precisely *because* every load-bearing part of it points at something small I can
 verify on its own. That's what lets me review one claim without holding the whole design
 doc in my head, which is the actual answer to the fatigue — boundaries don't touch that at
@@ -240,7 +241,7 @@ in the repo without ever reading as in-flight, and no hand-kept index of what is
 drift from what is actually there [[req:shelved-work-is-not-active-work]]. This is also
 what lets an idea be captured the moment it appears: the facts and requirements found while
 designing something else get a folder and stop being at risk
-[[req:capture-outlives-its-design]].
+[[req:enable-easy-capture]].
 
 The `status` field in the frontmatter stays, but it is now a description rather than a
 record — generated to match what the tree already says, and kept only so the file still
@@ -385,7 +386,8 @@ escaping.
 That points at the general trade in choosing YAML at all: it's the most pleasant of the
 structured formats to read and the least forgiving to write. That's an acceptable bargain
 only because a malformed file fails loudly at the checker  rather than rotting quietly
-[[req:machine-holds-the-line]]. Without the checker I'd want a format with fewer sharp
+[[req:invariants-are-enforced-or-marked]]. Without the checker I'd want a format with
+fewer sharp
 edges.
 
 **Every source needs exactly one locator.** A `url` obliges a `where`: a link to a
@@ -565,7 +567,7 @@ from the coherence reviewer  — different input, different cadence, different f
 mode, and by this design's own rule that makes it a different boundary [[D10]].
 
 Two constraints keep it honest. It **reports and never edits**, like every other reviewer
-here [[req:owner-decides-abort]] — a reviewer that silently "fixes" a citation is
+here — a reviewer that silently "fixes" a citation is
 manufacturing the exact confidence this whole system exists to strip out. And its findings
 are **spans, not essays**: quote the prose, quote the source, name one verdict from a fixed
 set. That's `[[req:evidence-is-verbatim]]` turned back on the reviewer itself — an auditor allowed to write

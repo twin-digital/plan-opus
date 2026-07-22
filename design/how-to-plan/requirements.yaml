@@ -1,4 +1,4 @@
-# Area requirements — owner fiat binding every design in the how-to-plan area.
+# Area requirements — owner fiat binding every design in the planning area.
 # Schema: id, statement, force (hard|soft), status (active|retired), rationale (optional).
 # rationale is always a block scalar. Requirements take no sources: they are decided,
 # not discovered, so there is nothing to cite.
@@ -6,66 +6,54 @@
 #
 # An entry promotes here when a second design in this area depends on it.
 
-- id: sort-by-reversal-cost
-  statement: attention is allocated by how expensive a mistake is to undo, not by how visible it is
+- id: easily-reviewable-foundations
   force: hard
   status: active
+  statement: |
+    All design docs should be built on a concrete list of concise, easily-reviewable foundations: 
+      
+      - facts: things known (or reasonably assumed) to be true, with supporting evidence
+      - requirements: invariants which must be maintained due to system owner fiat
   rationale: |
-    Stated in docs/vision.md §Principles 1. Attention is the scarce resource, and spending
-    it evenly means spending most of it guarding the cheapest mistakes. Architecture is
-    expensive to unwind and earns scrutiny; a parameter default is not and does not.
-
-- id: review-at-the-coherence-level
-  statement: I review design coherence and behavior; I do not hand-review what a machine can check
-  force: hard
-  status: active
-  rationale: |
-    Stated in docs/vision.md §Principles 2. The bad-base problem lives at the level of
-    design coherence, so that is the level worth reading at — not the prose around it, and
-    not the details a linter already settled.
+    - Evidence requirements avoids false LLM confidence
+    - Easier to review short list of items than volume of design prose or dozens of source files
+    - Supports vision.md §Principles (1) and (2)
 
 - id: explicit-intent
-  statement: every load-bearing claim in a design states what it rests on
+  statement: |
+    every load-bearing claim in a design states what it rests on (a fact, requirement, or decision)
   force: hard
   status: active
   rationale: |
-    Stated in docs/vision.md §Principles 3. Reasoning that stays in the agent's head cannot
-    be reviewed; the answer to "I can't see why it did that" is to make every claim name
-    its footing.
+    Supports vision.md §Principles (3)
 
-- id: machine-holds-the-line
-  statement: anything types, tests, or checkers can enforce is enforced there and not reviewed by hand
+- id: enable-easy-capture
+  statement: |
+    a fact or requirement discovered outside the scope of the design that will use it keeps a home in the repo; knowledge 
+    is never parked on a branch or in my head for want of somewhere to put it
   force: hard
   status: active
   rationale: |
-    Stated in docs/vision.md §Principles 4. Machines don't get tired and don't miss the
-    80th case. It compounds too: once the machine enforces something, agents build to pass
-    it, so the quality I stopped hand-checking goes up rather than down.
-
-- id: owner-decides-abort
-  statement: the decision to abort a component is mine; tooling may flag, never decide
-  force: hard
-  status: active
-  rationale: |
-    Aborting is the highest-judgment call in the loop, and it is hard because of sunk cost
-    — handing it to a classifier stacks a bad decision on top of the pull I already feel.
-    The fix is to make aborting cheap, not to automate the call. Motivated by the
-    "aborting is painful, so I don't do it enough" problem in docs/vision.md.
-
-- id: capture-outlives-its-design
-  statement: a fact or requirement discovered before the design that will use it keeps a home in the repo; knowledge is never parked on a branch or in my head for want of somewhere to put it
-  force: hard
-  status: active
-  rationale: |
-    Decided 2026-07-22 while working out how to shelve an idea not being pursued yet. The
-    salvage is the point — facts and requirements already found are valid whether or not
-    the design is ever written, and they are the expensive part to rediscover.
+    Enabling easy capture of good ideas or future requirements prevents losing good ideas without forcing frequent
+    context switches to act on them.
 
 - id: only-settled-work-licenses-building
-  statement: nothing is built on a design that has not cleared review; a design's status says what it licenses, and only settled licenses construction
+  statement: |
+    nothing is built on a design that has not cleared review; a design's status says what it licenses, and only settled licenses construction
+  force: hard
+  status: active
+
+- id: invariants-are-enforced-or-marked
+  statement: |
+    every invariant a design states is either enforced by the harness, or carries an
+    explicit note that it has no mechanical backstop; nothing the harness enforces is
+    also reviewed by hand
   force: hard
   status: active
   rationale: |
-    Decided 2026-07-22. This is what makes the status field load-bearing rather than
-    decorative: exploring and draft both license nothing, which is precisely why an
-    unfinished design can be committed without endangering anything downstream.
+    The concrete obligation behind vision.md §Principles (4). "Let machines catch what they
+    can" is a principle, not something a design can satisfy or fail; this is the version
+    with a testable edge — read any stated invariant and ask which of the two it is. An
+    invariant that is neither enforced nor marked is the gap, and the marked ones are worth
+    counting: two rules here already have no backstop, and a third would be a signal that
+    the format has outrun what can be checked.

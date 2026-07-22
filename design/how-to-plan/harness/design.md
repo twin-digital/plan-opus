@@ -61,7 +61,7 @@ Carved out of the original how-to-plan design: the machinery — the checker, th
   name: conventions
   owns: CLAUDE.md — the autonomy rule, the citation rule, and the tactics boundary
   excludes: anything a script can enforce, which belongs to C2
-  grounds: [req:explicit-intent, req:machine-holds-the-line]
+  grounds: [req:explicit-intent, req:invariants-are-enforced-or-marked]
 
 - id: C2
   name: checker
@@ -144,7 +144,7 @@ What does work, in two pieces:
   boundaries, or is it thrashing?" Run in CI, advisory only. The Action is fine as the
   trigger; it just can't be the judge.
 
-Keep the abort *decision* mine [[req:owner-decides-abort]]. It's the highest-judgment call
+Keep the abort *decision* mine — the process design owns that call. It's the highest-judgment call
 in the loop, and it's hard *because* of sunk cost — handing it to a dumb classifier doesn't
 fix that, it just stacks a bad decision on top of the pull I already feel. The real fix is
 making abort cheap (good boundaries, small components) so the call is easy. Attack the cost,

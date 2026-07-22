@@ -22,7 +22,7 @@ written down," not "how do I work" and not "what enforces it."
 
 ## Done looks like
 
-An agent handed only this design's inputs can write a valid `design.md` for some other
+An agent handed only a design's inputs can write a valid `design.md` for some other
 subject without asking me how the format works, and a reader can tell whether a claim is
 load-bearing without reading the whole document.
 

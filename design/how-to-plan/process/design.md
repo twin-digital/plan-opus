@@ -37,6 +37,11 @@ prose.
   falsified_if: I abort components that a small fix would have saved, repeatedly
   status: proposed
 
+- id: D7
+  choice: how much scrutiny a choice gets is set by what it costs to undo, not by how visible it is
+  falsified_if: the mistakes that actually hurt turn out not to correlate with reversal cost
+  status: proposed
+
 - id: D6
   choice: one component is one PR is one unit of abort
   falsified_if: components are routinely split or merged mid-implementation
@@ -81,9 +86,9 @@ prose.
    Clearing the list *is* validating the boundaries.
 6. **Build one component at a time.** One component, one PR, one thing to throw away
    [[D6]]. The agent owns all the tactical
-   calls; the harness guards quality [[req:machine-holds-the-line]].
+   calls; the harness guards quality [[req:invariants-are-enforced-or-marked]].
 7. **Review only two things:** does it fit the agreed boundaries, and do the tests check the
-   *right* behavior. Skim the rest [[req:review-at-the-coherence-level]].
+   *right* behavior. Skim the rest.
 8. **When it feels off, cut the component** [[D4]]. It's cheap, because it's local. Save what
    you learned into the facts file, and restart. Don't band-aid a bad base.
 
@@ -91,7 +96,7 @@ The order is the point [[D1]]. Every step is cheap only because the one before i
 decomposition is cheap because the facts are already down, review is cheap because the
 decomposition is small, and aborting is cheap because the component is one PR. Run the steps
 out of order and each one gets more expensive, which is the failure this whole thing exists
-to prevent [[req:sort-by-reversal-cost]].
+to prevent.
 
 ### A design with no components
 
@@ -112,7 +117,7 @@ I don't get a vote. Each one should be small enough to verify on its own, and ta
 how I know it: *tested* beats *documented* beats *assumed*. New facts get added freely.
 *Changing or removing* a fact is the moment that needs review, because things were built
 on it. Facts the final system must satisfy should become real tests, so they fail loudly
-instead of sitting in a doc I have to trust [[req:machine-holds-the-line]].
+instead of sitting in a doc I have to trust [[req:invariants-are-enforced-or-marked]].
 
 **Requirements** — things I decide by fiat as the owner. No amount of testing overrules
 them; I do. Tag them by force: a hard gate vs. a soft preference. One trap: I can only
@@ -172,7 +177,7 @@ always.
 
 Param defaults, parameter objects vs. lists, fixture and test-double design — these are
 cheap to reverse, so they're implementation-time calls and the agent makes them freely
-[[req:sort-by-reversal-cost]]. They stay *off* the decisions list; flagging them would bury
+[[D7]]. They stay *off* the decisions list; flagging them would bury
 the list in noise. Persistent tactical preferences ("param objects over long lists") live in
 the conventions layer and get cited, not re-decided C2.
 
