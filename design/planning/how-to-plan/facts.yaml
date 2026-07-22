@@ -1,0 +1,151 @@
+# Facts discovered while working on the how-to-plan design.
+# Graduate to docs/facts.yaml if one turns out broadly true.
+
+- id: claude-code-hooks
+  claim: hooks run a shell command, HTTP endpoint, or LLM prompt automatically on a lifecycle event; a hook is deterministic only if what it runs is
+  backing: documented
+  status: active
+  sources:
+    - url: https://code.claude.com/docs/en/hooks
+      where: opening definition
+      quote: |
+        Hooks are user-defined shell commands, HTTP endpoints, or LLM prompts that execute automatically at specific points in Claude Code's lifecycle.
+      checked: 2026-07-22
+
+- id: hook-events
+  claim: there are 30 hook events; PostToolUse fires after a tool call succeeds and Stop when Claude finishes responding, and FileChanged, TaskCompleted, and SubagentStop also exist
+  backing: documented
+  status: active
+  sources:
+    - url: https://code.claude.com/docs/en/hooks
+      where: §Hook events, and the per-event reference below it
+      quote: |
+        PostToolUse — "After a tool call succeeds"
+        Stop — "When Claude finishes responding"
+      checked: 2026-07-22
+
+- id: skills-are-the-command-unit
+  claim: a skill is the unit for anything invoked by name, template or scripted; a flat file in commands/ is the legacy form
+  backing: documented
+  status: active
+  sources:
+    - url: https://code.claude.com/docs/en/plugins
+      where: §Plugin structure overview, directory table, commands/ row
+      quote: |
+        Skills as flat Markdown files. Use `skills/` for new plugins
+      checked: 2026-07-22
+
+- id: template-skills-opt-out-of-model-invocation
+  claim: a skill that sets disable-model-invocation in its frontmatter fires only when invoked as /name, not when the model judges it relevant
+  backing: documented
+  status: active
+  sources:
+    - url: https://code.claude.com/docs/en/plugins
+      where: §Quickstart, "Add a skill", SKILL.md frontmatter
+      quote: |
+        disable-model-invocation: true
+      checked: 2026-07-22
+
+- id: subagents-get-their-own-context
+  claim: a subagent runs in its own context window with its own system prompt, tool access, and permissions
+  backing: documented
+  status: active
+  sources:
+    - url: https://code.claude.com/docs/en/sub-agents
+      where: opening section, third paragraph
+      quote: |
+        Each subagent runs in its own context window with a custom system prompt, specific tool access, and independent permissions.
+      checked: 2026-07-22
+
+- id: claude-code-plugins
+  claim: a plugin bundles skills, agents, hooks, MCP and LSP servers, background monitors, executables, and default settings into one installable unit
+  backing: documented
+  status: active
+  sources:
+    - url: https://code.claude.com/docs/en/plugins
+      where: §Plugin structure overview, directory table
+      quote: |
+        .claude-plugin/ | skills/ | commands/ | agents/ | hooks/ | .mcp.json |
+        .lsp.json | monitors/ | bin/ | settings.json
+      checked: 2026-07-22
+
+- id: plugins-have-no-conventions-slot
+  claim: a plugin has no component directory for a CLAUDE.md template, so conventions cannot ride along in one
+  backing: assumed
+  status: active
+  risk: inferred from an absence — the directory table lists no slot for instructions, but docs omitting a thing is not the docs denying it
+  sources:
+    - url: https://code.claude.com/docs/en/plugins
+      where: §Plugin structure overview — the directory table, which enumerates the plugin components
+      quote: |
+        Don't put `commands/`, `agents/`, `skills/`, or `hooks/` inside the `.claude-plugin/` directory. Only `plugin.json` goes inside `.claude-plugin/`.
+      checked: 2026-07-22
+
+- id: docs-recommend-standalone-before-plugin
+  claim: the documented recommendation is to iterate in .claude/ and package a plugin only when ready to share
+  backing: documented
+  status: active
+  sources:
+    - url: https://code.claude.com/docs/en/plugins
+      where: §When to use plugins vs standalone configuration, closing tip
+      quote: |
+        Start with standalone configuration in `.claude/` for quick iteration, then convert to a plugin when you're ready to share.
+      checked: 2026-07-22
+
+- id: background-agents-open-prs
+  claim: a background session that isolated its changes in a worktree commits, pushes, and opens a draft PR unasked; it skips the PR when the repo has no remote, and never pushes to main
+  backing: documented
+  status: active
+  sources:
+    - url: https://code.claude.com/docs/en/agent-view
+      where: §Pull request status
+      quote: |
+        A background session that isolated its code changes in a worktree also commits,
+        pushes its own branch, and opens a draft pull request without stopping to ask.
+        [...] It never pushes to `main` or `master`, never force-pushes or merges, and
+        it skips the pull request when you told it not to open one or the repository
+        has no remote.
+      checked: 2026-07-22
+
+- id: subagents-open-prs
+  claim: background subagents can commit, push, and open a draft PR when they finish
+  backing: assumed
+  status: superseded
+  superseded_by: background-agents-open-prs
+  sources:
+    - description: attributed to Claude Code v2.1.198; no page or release note was ever cited
+      checked: 2026-07-22
+
+- id: llm-cannot-pattern-match-architecture
+  claim: design incoherence is not detectable by pattern-matching a diff; it needs a semantic reader
+  backing: assumed
+  status: active
+  risk: weakest load-bearing claim here — C6 exists only because of it, and the argument is an appeal to absence of evidence
+  sources:
+    - description: my own experience reviewing agent output; asserted, not measured
+
+- id: agents-have-git-identities
+  claim: my agents commit and comment under their own git identities, like any other contributor
+  backing: tested
+  status: active
+  sources:
+    - description: observed directly — agent commits and PR comments land under the agent's own identity, via per-org GitHub App tokens vended at /creds/github/<org>
+
+- id: no-inline-styles-in-gfm
+  claim: GitHub strips the style attribute and the <style> element when rendering markdown, so inline CSS cannot change how a document renders
+  backing: documented
+  status: active
+  risk: the primary source is a community-maintained reference, not GitHub's own docs, and it disagrees with the sanitizer allowlist on a neighbouring claim (it says id is stripped; the allowlist permits id) — corroborating, not authoritative
+  sources:
+    - url: https://github.com/RichLewis007/HTML-Tags-Supported-in-GitHub-Flavored-Markdown-Documents#-whats-not-allowed
+      where: "§❌ What's NOT Allowed"
+      quote: |
+        `<script>`, `<style>`, `<iframe>`, `<embed>`, `<object>` → stripped
+        Inline CSS styles (`style="..."`) and `class`/`id` → stripped
+      checked: 2026-07-22
+    - url: https://github.com/gjtorikian/html-pipeline/blob/main/lib/html_pipeline/sanitization_filter.rb
+      where: DEFAULT_CONFIG — the comment above it, plus the attributes map, which lists no style anywhere
+      quote: |
+        The main sanitization allowlist. Only these elements and attributes are
+        allowed through by default.
+      checked: 2026-07-22
