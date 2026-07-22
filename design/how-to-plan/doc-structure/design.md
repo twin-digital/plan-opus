@@ -39,10 +39,7 @@ Carved out of the original how-to-plan design: the artifact — how designs are 
   falsified_if: two consecutive designs need a field the schema lacks
   status: proposed
 
-- id: D7
-  choice: every decision must state a falsifier
-  falsified_if: I routinely write untestable filler to satisfy the field
-  status: proposed
+# D7 promoted to req:claims-state-their-falsifier. Id not reused.
 
 - id: D8
   choice: load-bearing prose claims carry [[tokens]] pointing inward at ids or outward at facts and requirements
@@ -59,10 +56,7 @@ Carved out of the original how-to-plan design: the artifact — how designs are 
   falsified_if: components are routinely split or merged mid-implementation
   status: proposed
 
-- id: D11
-  choice: a source records a verbatim quote and a locator, never a summary; url+where or description, exactly one
-  falsified_if: the sources I actually need turn out to be things with no quotable text
-  status: proposed
+# D11 promoted to req:evidence-is-verbatim. Id not reused.
 
 - id: D12
   choice: anything a verification turns up becomes its own entry, never an annotation on another
@@ -274,7 +268,8 @@ An incomplete promotion is caught mechanically: delete the decision without rewr
 citations and the leftover `[[D1]]` is an unresolved inward token.
 
 If I can't state a falsifier, I don't understand the decision well enough to keep it
-[[D7]]. Whether that holds for boundary decisions as well as it does for capacity ones is
+[[req:claims-state-their-falsifier]]. Whether that holds for boundary decisions as well as
+it does for capacity ones is
 still open [[Q3]].
 
 An *open question* has `id` (cited as ``), `q` (the question), and optionally
@@ -295,7 +290,10 @@ implementation PR [[D10]].
 
 A *fact* has `id` (cited as `[[fact:cursor-pagination]]`), `claim` (one line, small enough
 to verify on its own), `backing` (`tested | documented | assumed`), and `status`
-(`active | stale | superseded`). Optionally it has `sources`, `risk` (one line: why this
+(`active | stale | superseded`). A fact records what was confirmed, never what is believed,
+and a fact that new evidence kills is marked rather than removed
+[[req:facts-are-confirmed-not-believed]] — an append-only file with no retraction becomes
+confidently wrong. Optionally it has `sources`, `risk` (one line: why this
 one might not hold), and `test` (the path to the test that enforces it). `superseded_by` is
 required once status is `superseded`.
 
@@ -351,7 +349,7 @@ gone. That distinguishes the two failure modes retraction has to tell apart: `su
 means I learned something better, `stale` means I lost the thing I knew it by. Building on
 a stale fact is a flag, not an error, but it is never silent.
 
-**Evidence is a quote, never a summary** [[D11]]. A source field that invites prose gets
+**Evidence is a quote, never a summary** [[req:evidence-is-verbatim]]. A source field that invites prose gets
 prose, and agent prose is exactly the confident-flat-text this whole system exists to
 stop — so the file holding the anchors would grow the same disease it was built to cure. A
 verbatim span is trap-resistant in a way a paraphrase can't be: it isn't in the agent's
@@ -503,11 +501,13 @@ Two constraints keep it honest. It **reports and never edits**, like every other
 here [[req:owner-decides-abort]] — a reviewer that silently "fixes" a citation is
 manufacturing the exact confidence this whole system exists to strip out. And its findings
 are **spans, not essays**: quote the prose, quote the source, name one verdict from a fixed
-set. That's `[[D11]]` turned back on the reviewer itself — an auditor allowed to write
+set. That's `[[req:evidence-is-verbatim]]` turned back on the reviewer itself — an auditor allowed to write
 paragraphs about why a citation feels weak is the confident-prose problem one level up,
 wearing a badge. Whether it can actually tell apt from adjacent often enough to be worth
 reading is unsettled.
 
 Only tag claims that carry weight — resting on a fact, meeting a requirement, or following
-from a decision. If every sentence sprouts a token, the wall-of-equal-weight problem comes
-back with brackets on it. The test: *would it matter if this claim were wrong?*
+from a decision [[req:weight-must-be-visible]]. If every sentence sprouts a token, the
+wall-of-equal-weight problem comes back with brackets on it, and a doc where everything is
+marked load-bearing signals exactly as much as one where nothing is. The test: *would it
+matter if this claim were wrong?*

@@ -1,4 +1,46 @@
 # Requirements scoped to the doc-structure design.
 # Promote to design/how-to-plan/requirements.yaml when a second design depends on one.
 
-[]
+- id: weight-must-be-visible
+  statement: the artifact must distinguish load-bearing claims from everything else; uniform emphasis is a defect, not a style
+  force: hard
+  status: active
+  sources:
+    - url: docs/vision.md
+      where: §The Problem, "Reviewing fries my brain"
+      quote: |
+        The output is fluent and confident everywhere, so every sentence reads as equally
+        important. I end up parsing all of it at full attention, and the wrong parts hide
+        at the same weight as the right ones.
+
+- id: claims-state-their-falsifier
+  statement: a decision that cannot say what would prove it wrong is not reviewable, and does not belong on the list
+  force: hard
+  status: active
+  sources:
+    - description: promoted from the doc-structure design, decision D7
+    - url: docs/vision.md
+      where: §The Problem, "I can't see the intent"
+      quote: |
+        I have no idea *why* the agent made the choices it did. There's no reasoning to
+        review, just code.
+
+- id: evidence-is-verbatim
+  statement: support for a claim is quoted from its source, never summarized
+  force: hard
+  status: active
+  sources:
+    - description: promoted from the doc-structure design, decision D11
+    - description: observed while writing this design — being made to produce the passage corrected two claims that reads had left standing
+
+- id: facts-are-confirmed-not-believed
+  statement: the facts file holds what was confirmed, not what is believed; a fact killed by new evidence is marked superseded and kept, never deleted
+  force: hard
+  status: active
+  sources:
+    - url: docs/vision.md
+      where: §The Problem, "A bad base doesn't get better"
+      quote: |
+        When something feels off, it's usually wrong at the core, not the surface. But the
+        agent just keeps patching — dozens of little band-aid revisions — and it never comes
+        together, because the foundation was wrong the whole time.
