@@ -35,6 +35,11 @@ prose.
   falsified_if: I abort components that a small fix would have saved, repeatedly
   status: proposed
 
+- id: D6
+  choice: one component is one PR is one unit of abort
+  falsified_if: components are routinely split or merged mid-implementation
+  status: proposed
+
 - id: D5
   choice: mechanical signals flag a design for my attention; the abort decision stays mine
   falsified_if: a mechanical signal predicts my abort calls well enough that deferring to it would have been right
@@ -72,7 +77,8 @@ prose.
 5. **Clear the review before building on it** [[D2]]. A decision I haven't accepted, or an
    open question I haven't answered, isn't safe to build the dependent components on yet.
    Clearing the list *is* validating the boundaries.
-6. **Build one component at a time.** One component, one PR. The agent owns all the tactical
+6. **Build one component at a time.** One component, one PR, one thing to throw away
+   [[D6]]. The agent owns all the tactical
    calls; the harness guards quality [[req:machine-holds-the-line]].
 7. **Review only two things:** does it fit the agreed boundaries, and do the tests check the
    *right* behavior. Skim the rest [[req:review-at-the-coherence-level]].

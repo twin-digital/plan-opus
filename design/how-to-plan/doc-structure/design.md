@@ -9,10 +9,7 @@ Carved out of the original how-to-plan design: the artifact — how designs are 
 ## Decisions
 
 ```yaml
-- id: D1
-  choice: design docs are files in git, iterated on and reviewed as pull requests
-  falsified_if: I stop opening PRs for designs, or a round trip costs more than editing in chat
-  status: proposed
+# D1 promoted to req:designs-live-in-git. Id not reused.
 
 - id: D2
   choice: one folder per design, holding the doc and everything scoped to it
@@ -52,8 +49,8 @@ Carved out of the original how-to-plan design: the artifact — how designs are 
   status: proposed
 
 - id: D10
-  choice: components are structured entries, and one component is one PR is one abort unit
-  falsified_if: components are routinely split or merged mid-implementation
+  choice: the decomposition is carried as structured component entries, not as prose
+  falsified_if: the fields go unread and the decomposition is understood from the prose anyway
   status: proposed
 
 # D11 promoted to req:evidence-is-verbatim. Id not reused.
@@ -92,7 +89,6 @@ Carved out of the original how-to-plan design: the artifact — how designs are 
 
 - id: Q3
   q: can a useful falsifier be written for boundary decisions, or only for capacity and performance ones?
-  blocks: [D7]
 
 # Q5 folded into Q8 once fact:hook-events named the actual events. Id not reused.
 ```
@@ -123,7 +119,7 @@ fix touches all five, and none of them comes out clean. That's the band-aid spir
 Good boundaries do the opposite. When they're in the right place, a wrong component is
 wrong *by itself*, and I can cut just that piece out. So decomposition quality and
 abortability are the same thing: boundaries become PR boundaries become the components I
-abort [[D10]], which is why the decomposition is the main artifact and gets a schema of
+abort, which is why the decomposition is the main artifact and gets a schema of
 its own rather than a paragraph. Get the boundaries right and the big-PR problem and the
 abort problem both shrink at once. Whether a component stays small enough for that to
 hold at real size is not yet confirmed [[Q1]].
@@ -145,7 +141,8 @@ all.
 
 ### Repo layout
 
-Design docs live as files, edited with commits, reviewed as PRs [[D1]]. That's the setup
+Design docs live as files, edited with commits, reviewed as PRs
+[[req:designs-live-in-git]]. That's the setup
 that lets me point at an exact line, lets the agent and me both edit, keeps the reasoning
 attached, and keeps each round cheap. My agents have their own git identities, so they can
 commit and comment like any other contributor [[fact:agents-have-git-identities]].
@@ -285,8 +282,8 @@ I'm supposed to read end to end at review time.
 A *component* has `id` (cited as `[[C1]]`), `name`, `owns` (one line: the responsibility it
 holds), and optionally `excludes` (the nearby responsibility it deliberately doesn't hold),
 `depends_on` (component ids that must land first), and `grounds` (the facts, requirements,
-and decisions it inherits). Components are the decomposition, and each one becomes one
-implementation PR [[D10]].
+and decisions it inherits). Components are the decomposition [[D10]]; what happens to one after that — that it becomes
+a single PR, and a single unit of abort — is the process design's business, not this one's.
 
 A *fact* has `id` (cited as `[[fact:cursor-pagination]]`), `claim` (one line, small enough
 to verify on its own), `backing` (`tested | documented | assumed`), and `status`
