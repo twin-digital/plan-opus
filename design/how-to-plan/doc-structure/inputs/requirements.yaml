@@ -1,0 +1,64 @@
+# Requirements scoped to the doc-structure design.
+# Schema: id, statement, force (hard|soft), status (active|retired), rationale (optional).
+# rationale is always a block scalar. Requirements take no sources.
+# Promote to design/how-to-plan/requirements.yaml when a second design depends on one.
+
+- id: weight-must-be-visible
+  statement: the artifact must distinguish load-bearing claims from everything else; uniform emphasis is a defect, not a style
+  force: hard
+  status: active
+  rationale: |
+    From the "reviewing fries my brain" problem in docs/vision.md: output that is fluent
+    and confident everywhere reads as uniformly important, so the wrong parts hide at the
+    same weight as the right ones. If the artifact does not mark what carries weight, the
+    reader has to treat everything as load-bearing, which is the fatigue this exists to end.
+
+- id: claims-state-their-falsifier
+  statement: a decision that cannot say what would prove it wrong is not reviewable, and does not belong on the list
+  force: hard
+  status: active
+  rationale: |
+    Promoted from decision D7. Asking an agent to justify a choice invites confident
+    nonsense; asking what would falsify it invites something checkable. A decision with no
+    statable falsifier is not understood well enough to keep.
+
+- id: evidence-is-verbatim
+  statement: support for a claim is quoted from its source, never summarized
+  force: hard
+  status: active
+  rationale: |
+    Promoted from decision D11. A paraphrase is the agent's voice, which is the exact thing
+    the citation is supposed to guard against — and it adds a second thing to distrust. A
+    verbatim span is checkable at a glance. Being made to produce the passage corrected two
+    claims in this repo that plain reading had left standing.
+
+- id: facts-are-confirmed-not-believed
+  statement: the facts file holds what was confirmed, not what is believed; a fact killed by new evidence is marked superseded and kept, never deleted
+  force: hard
+  status: active
+  rationale: |
+    From the "a bad base doesn't get better" problem in docs/vision.md. Retraction is the
+    most-skipped part of keeping facts: an append-only file with no retraction becomes
+    confidently wrong, and keeping the dead entry is what lets me trace what leaned on it.
+
+- id: designs-live-in-git
+  statement: a design is a file in git, iterated on with commits; it settles by review as a pull request
+  force: hard
+  status: active
+  rationale: |
+    Promoted from decision D1, chosen for what the medium affords rather than for git
+    itself — an exact line to point at, an edit history attached to the reasoning, and a
+    review surface an agent can use on the same terms I do.
+
+    Narrowed 2026-07-22 from "reviewed as a pull request" to "settles by review as a pull
+    request". Review is how a design becomes safe to build on, not how it earns the right
+    to exist, so a design that settles nothing and licenses nothing can land without one.
+
+- id: shelved-work-is-not-active-work
+  statement: a design nobody is working on must be distinguishable from one in progress, and that distinction must be derivable from the designs themselves rather than maintained by hand
+  force: hard
+  status: active
+  rationale: |
+    Decided 2026-07-22. Shelved ideas belong in the repo but must not read as in-flight
+    work; a hand-kept index of what is active would be the stored rollup this design
+    refuses elsewhere.

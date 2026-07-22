@@ -1,6 +1,7 @@
-# Area requirements — owner fiat binding every design in the planning area.
-# Schema: id, statement, force (hard|soft), status (active|retired), sources (optional).
-# A source needs exactly one locator: url + where, or description. See design #0.
+# Area requirements — owner fiat binding every design in the how-to-plan area.
+# Schema: id, statement, force (hard|soft), status (active|retired), rationale (optional).
+# rationale is always a block scalar. Requirements take no sources: they are decided,
+# not discovered, so there is nothing to cite.
 # Cited from prose as [[req:<id>]] — resolved after the design's own file.
 #
 # An entry promotes here when a second design in this area depends on it.
@@ -9,48 +10,62 @@
   statement: attention is allocated by how expensive a mistake is to undo, not by how visible it is
   force: hard
   status: active
-  sources:
-    - url: docs/vision.md
-      where: §Principles, 1
-      quote: |
-        Decide how much care something gets by how expensive it is to be wrong and undo it.
+  rationale: |
+    Stated in docs/vision.md §Principles 1. Attention is the scarce resource, and spending
+    it evenly means spending most of it guarding the cheapest mistakes. Architecture is
+    expensive to unwind and earns scrutiny; a parameter default is not and does not.
 
 - id: review-at-the-coherence-level
   statement: I review design coherence and behavior; I do not hand-review what a machine can check
   force: hard
   status: active
-  sources:
-    - url: docs/vision.md
-      where: §Principles, 2
-      quote: |
-        The bad-base problem lives at the level of design coherence. That's what I need to look at — not the prose around it.
+  rationale: |
+    Stated in docs/vision.md §Principles 2. The bad-base problem lives at the level of
+    design coherence, so that is the level worth reading at — not the prose around it, and
+    not the details a linter already settled.
 
 - id: explicit-intent
   statement: every load-bearing claim in a design states what it rests on
   force: hard
   status: active
-  sources:
-    - url: docs/vision.md
-      where: §Principles, 3
-      quote: |
-        Every claim in a design should say what it rests on — a known fact, a requirement, or a decision the agent made.
+  rationale: |
+    Stated in docs/vision.md §Principles 3. Reasoning that stays in the agent's head cannot
+    be reviewed; the answer to "I can't see why it did that" is to make every claim name
+    its footing.
 
 - id: machine-holds-the-line
   statement: anything types, tests, or checkers can enforce is enforced there and not reviewed by hand
   force: hard
   status: active
-  sources:
-    - url: docs/vision.md
-      where: §Principles, 4
-      quote: |
-        Anything they can enforce, I stop reviewing by hand.
+  rationale: |
+    Stated in docs/vision.md §Principles 4. Machines don't get tired and don't miss the
+    80th case. It compounds too: once the machine enforces something, agents build to pass
+    it, so the quality I stopped hand-checking goes up rather than down.
 
 - id: owner-decides-abort
   statement: the decision to abort a component is mine; tooling may flag, never decide
   force: hard
   status: active
-  sources:
-    - url: docs/vision.md
-      where: §The Problem, fourth bullet — the motivation, not the fiat
-      quote: |
-        Throwing the work out feels worse than patching, even when patching is the slower path. So I patch.
+  rationale: |
+    Aborting is the highest-judgment call in the loop, and it is hard because of sunk cost
+    — handing it to a classifier stacks a bad decision on top of the pull I already feel.
+    The fix is to make aborting cheap, not to automate the call. Motivated by the
+    "aborting is painful, so I don't do it enough" problem in docs/vision.md.
+
+- id: capture-outlives-its-design
+  statement: a fact or requirement discovered before the design that will use it keeps a home in the repo; knowledge is never parked on a branch or in my head for want of somewhere to put it
+  force: hard
+  status: active
+  rationale: |
+    Decided 2026-07-22 while working out how to shelve an idea not being pursued yet. The
+    salvage is the point — facts and requirements already found are valid whether or not
+    the design is ever written, and they are the expensive part to rediscover.
+
+- id: only-settled-work-licenses-building
+  statement: nothing is built on a design that has not cleared review; a design's status says what it licenses, and only settled licenses construction
+  force: hard
+  status: active
+  rationale: |
+    Decided 2026-07-22. This is what makes the status field load-bearing rather than
+    decorative: exploring and draft both license nothing, which is precisely why an
+    unfinished design can be committed without endangering anything downstream.

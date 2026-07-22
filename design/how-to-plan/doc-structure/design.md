@@ -12,8 +12,8 @@ Carved out of the original how-to-plan design: the artifact — how designs are 
 # D1 promoted to req:designs-live-in-git. Id not reused.
 
 - id: D2
-  choice: one folder per design, holding the doc and everything scoped to it
-  falsified_if: designs routinely accumulate no scoped facts, requirements, or artifacts
+  choice: a design folder separates durable inputs from the regenerable doc — everything under inputs/, design.md beside it
+  falsified_if: regenerating from inputs alone produces a doc I cannot work from, meaning the boundary sits in the wrong place
   status: proposed
 
 - id: D3
@@ -72,6 +72,11 @@ Carved out of the original how-to-plan design: the artifact — how designs are 
   falsified_if: I routinely add a citation only to satisfy the check, rather than because the claim rests on it
   status: proposed
 
+- id: D17
+  choice: a design's state is read from which artifacts exist and where, not from a field I maintain
+  falsified_if: I need a design's state somewhere the repo isn't at hand, often enough that reading the tree isn't enough
+  status: proposed
+
 - id: D16
   choice: an unknown is filed by when it can be answered — a gate, a revisit on the decision, or an assumed fact
   falsified_if: revisit becomes where I park questions I could have answered by reading
@@ -93,8 +98,6 @@ Carved out of the original how-to-plan design: the artifact — how designs are 
 
 # Q3 was a bet about the method, not this artifact — it is now
 # fact:falsifiers-are-writable-for-boundaries. Id not reused.
-
-# Q5 folded into Q8 once fact:hook-events named the actual events. Id not reused.
 ```
 
 ## Components
@@ -156,8 +159,8 @@ It's just a doc, reviewed as a PR, merged when it's settled — no approvals, no
 no assigned reviewers. The only things that matter: a dedicated home, PRs as the review
 surface, and the habit of resolving designs instead of letting them pile up.
 
-Each design gets its own folder, so the doc and everything scoped to it live together
-[[D2]]:
+Each design gets its own folder, split between the inputs I maintain and the doc generated
+from them [[D2]]:
 
 ```
 repo/  (a dedicated design repo, OR design/ inside the code repo)
@@ -169,10 +172,12 @@ repo/  (a dedicated design repo, OR design/ inside the code repo)
 │       ├── facts.yaml             # facts shared across THIS area
 │       ├── requirements.yaml      # requirements binding THIS area
 │       └── offline-sync/          # one folder per proposal / design
-│           ├── design.md          # the proposal → design doc itself
-│           ├── facts.yaml         # facts discovered while working on THIS design
-│           ├── requirements.yaml  # requirements scoped to THIS design
-│           └──...                # supporting artifacts (sketches, data, notes)
+│           ├── inputs/            # what I maintain; what a rebuild reads
+│           │   ├── brief.md       # what this design is for, in and out of scope
+│           │   ├── facts.yaml     # facts discovered while working on THIS design
+│           │   ├── requirements.yaml   # requirements scoped to THIS design
+│           │   └── ...            # sketches, data, notes
+│           └── design.md          # the doc — absent until a PR opens
 ├── docs/                          # meta: vision, CONTRIBUTING, policies
 ├──.claude/
 │   ├── skills/                    # skills (authoring, pre-review)
@@ -212,10 +217,34 @@ Standing this tree up — the directories, the empty global and area files, and 
 entries — is a single component [[C1]], and the only one this design owns; everything that
 *reads* the tree belongs to the harness.
 
-A design starts as a folder added in a PR, with `status: draft`. I iterate on the PR, merge
-it when it settles (or to keep a living design around), and abandon it by closing the PR.
-"Settled" is just `status: settled` on a merged folder — there's no separate directory to
-move things into.
+**The `inputs/` boundary is what makes restarting possible.** A design doc that has been
+patched past the point of coherence is the same failure as a component that has been
+band-aided, and it gets the same treatment: throw it out and rebuild rather than patch
+again. That only works if everything needed to rebuild sits somewhere the rebuild can't
+destroy — so `design.md` is the one file in the folder that is safe to delete, and
+`inputs/` is everything a fresh agent needs to write it again. Hand-editing the doc between
+rebuilds is expected and fine; it is an artifact I work on, not a build product. The
+directory boundary also keeps the instruction stable: *read `inputs/`, write `design.md`*
+stays correct as inputs grow, where a list of filenames in a prompt would be one more
+hand-maintained rollup [[D9]].
+
+`inputs/` appears at the design level and nowhere else, which looks inconsistent until you
+notice it only separates something where there is an output to separate it from. Area and
+global scopes hold inputs and nothing else, so a folder there would divide nothing.
+
+**A design's state is read off the tree, not stored** [[D17]]. Inputs with no `design.md`
+means exploring — an idea captured, nothing settled, nothing licensed. A `design.md` on a
+branch means draft, under review. A `design.md` on `main` means settled, and only that
+licenses building on it [[req:only-settled-work-licenses-building]]. So shelved work sits
+in the repo without ever reading as in-flight, and no hand-kept index of what is active can
+drift from what is actually there [[req:shelved-work-is-not-active-work]]. This is also
+what lets an idea be captured the moment it appears: the facts and requirements found while
+designing something else get a folder and stop being at risk
+[[req:capture-outlives-its-design]].
+
+The `status` field in the frontmatter stays, but it is now a description rather than a
+record — generated to match what the tree already says, and kept only so the file still
+answers the question when it is read outside the repo.
 
 ### The design doc
 
