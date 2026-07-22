@@ -11,15 +11,9 @@ Carved out of the original how-to-plan design: the artifact — how designs are 
 ```yaml
 # D1 promoted to req:designs-live-in-git. Id not reused.
 
-- id: D2
-  choice: a design folder separates durable inputs from the regenerable doc — everything under inputs/, design.md beside it
-  falsified_if: regenerating from inputs alone produces a doc I cannot work from, meaning the boundary sits in the wrong place
-  status: proposed
+# D2 promoted to req:inputs-outputs-split. Id not reused.
 
-- id: D3
-  choice: facts and requirements exist at three scopes — design, area, global — resolved nearest-first
-  falsified_if: nothing ever graduates past its design, or the area tier stays empty across several areas
-  status: proposed
+# D3 promoted to req:three-tier-scopes. Id not reused.
 
 - id: D4
   choice: structured data lives in fenced blocks inside design.md, not a sibling data file
@@ -69,10 +63,7 @@ Carved out of the original how-to-plan design: the artifact — how designs are 
   falsified_if: I routinely add a citation only to satisfy the check, rather than because the claim rests on it
   status: proposed
 
-- id: D17
-  choice: a design's state is read from which artifacts exist and where, not from a field I maintain
-  falsified_if: I need a design's state somewhere the repo isn't at hand, often enough that reading the tree isn't enough
-  status: proposed
+# D17 promoted to req:design-status-enum. Id not reused.
 
 # D16 moved to the authoring design. Id not reused.
 
@@ -101,7 +92,6 @@ Carved out of the original how-to-plan design: the artifact — how designs are 
   name: repo scaffold
   owns: the docs tree, the global facts and requirements files, and their seeded entries
   excludes: any design content beyond this one
-  grounds: [D2, D3, D5]
 ```
 
 ## Design
@@ -155,7 +145,7 @@ no assigned reviewers. The only things that matter: a dedicated home, PRs as the
 surface, and the habit of resolving designs instead of letting them pile up.
 
 Each design gets its own folder, split between the inputs I maintain and the doc generated
-from them [[D2]]:
+from them [[req:inputs-outputs-split]]:
 
 ```
 repo/  (a dedicated design repo, OR design/ inside the code repo)
@@ -182,7 +172,7 @@ repo/  (a dedicated design repo, OR design/ inside the code repo)
 └── tests/                         # must-pass validations, as real tests
 ```
 
-**Facts and requirements come in three scopes** [[D3]]. A *design* owns what was
+**Facts and requirements come in three scopes** [[req:three-tier-scopes]]. A *design* owns what was
 discovered or decided while working on it. An **area** is a directory grouping related
 designs — `planning`, `sync`, `billing` — and owns what those designs share. **Global**
 (`design/facts.yaml`, `design/requirements.yaml`) owns what holds across everything.
@@ -195,8 +185,10 @@ applies them or discovers it cannot, but does not argue them back open. That is 
 the review a floor to stand on, and it is why they live in `inputs/` rather than in the doc.
 
 A bare citation resolves nearest-first: the design's own files, then its area's, then
-global. A slug defined at more than one tier is an error, not a shadow, because silent
-shadowing is exactly the drift this is meant to prevent.
+global. An id defined at more than one tier is an error rather than an override
+[[req:ids-unique-per-kind]] — shadowing would make a citation mean different things
+depending on where it was written, and it makes resolution order a performance detail
+instead of a semantic one, since at most one scope can ever match.
 
 The middle tier is what makes splitting a design tractable. Designs in the same area
 inevitably share vocabulary, and without an area scope the only ways to share are
@@ -231,7 +223,7 @@ hand-maintained rollup [[D9]].
 notice it only separates something where there is an output to separate it from. Area and
 global scopes hold inputs and nothing else, so a folder there would divide nothing.
 
-**A design's state is read off the tree, not stored** [[D17]]. Inputs with no `design.md`
+**A design's state is read off the tree, not stored** [[req:design-status-enum]]. Inputs with no `design.md`
 means exploring — an idea captured, nothing settled, nothing licensed. A `design.md` on a
 branch means draft, under review. A `design.md` on `main` means settled, and only that
 licenses building on it [[req:only-settled-work-licenses-building]]. So shelved work sits
@@ -320,8 +312,15 @@ question, not this one's. Whether it holds for boundary decisions as well as it 
 capacity ones is
 still an assumption rather than a finding, recorded in the authoring design's facts.
 
-An *open question* has `id` (cited as ``), `q` (the question), and optionally
-`blocks`, a list of ids it gates. Omit `blocks` if it gates nothing specific.
+An *open question* records the question and the kind of foundation that would close it
+[[req:question-structure]]. It has `id` (cited as `[[Q1]]`), `q` (the question), `needs`
+(`fact | requirement | decision` — what closing it would produce), and optionally `blocks`,
+a list of ids it gates. Omit `blocks` if it gates nothing specific.
+
+A question is a hole, not something a claim can rest on, so nothing cites one. Without that
+rule a citation to a question becomes a way to acknowledge an uncertainty and call the
+citing done — the claim still rests on nothing, but now looks as though it rests on
+something.
 
 A question that dies — answered, cut, folded into a sharper one, or re-filed as a revisit or
 a fact — is deleted, leaving a comment line where it stood and its id unreused. That's deliberately weaker than how a fact
@@ -342,9 +341,10 @@ unknown from a dodged gate — both are well-formed. Only the honest answer to *
 settled this today?* separates them, which makes this one of the few rules here that has no
 mechanical backstop at all.
 
-A *component* has `id` (cited as `[[C1]]`), `name`, `owns` (one line: the responsibility it
-holds), and optionally `excludes` (the nearby responsibility it deliberately doesn't hold),
-`depends_on` (component ids that must land first), and `grounds` (the facts, requirements,
+A *component* records what it is responsible for, and optionally what it deliberately is
+not, what must precede it, and what it inherits [[req:component-structure]]: `id` (cited as
+`[[C1]]`), `name`, `owns` (one line: the responsibility it holds), and optionally `excludes` (the nearby responsibility it deliberately doesn't hold),
+`depends_on` (component ids that must land first), and `constrained_by` (the facts, requirements,
 and decisions it inherits). Components are the decomposition [[D10]]; what happens to one after that — that it becomes
 a single PR, and a single unit of abort — is the process design's business, not this one's.
 
@@ -355,7 +355,7 @@ what backs it [[req:fact-structure]]. Concretely: `id` (cited as
 `sources` — every fact says how it came to be believed, even if that is only "observed in
 my own setup". A fact that new evidence kills is marked rather than removed: an append-only
 file with no retraction becomes confidently wrong, and keeping the dead entry is what lets
-me trace what leaned on it. Optionally it has `risk` (one line: why this one might not
+me trace what leaned on it. Optionally it has `caveat` (one line: why this one might not
 hold) and `test` (the path to the test that enforces it). `superseded_by` is required once
 status is `superseded`.
 
@@ -371,7 +371,7 @@ the rationale explains it instead.
   the claim against it.
 - *Attested* — `description` + `checked`. It names something that can't be linked or quoted
   — an email exchange, a conversation with a vendor's engineer, my own testing on a staging
-  box. The strength rides entirely on `backing` and whatever `risk` is attached.
+  box. The strength rides entirely on `backing` and whatever `caveat` is attached.
 
 **A `quote` is always a block scalar** — `quote: |` on its own line, text indented beneath,
 even for a single line [[D13]]. This is the one place the format bends to the data instead
@@ -394,7 +394,7 @@ than merely present. When there's no url, `description` becomes required and *is
 locator — "email exchange with the maintainer, 2026-06" is the only handle that source has.
 A source with neither is unlocatable and fails the check. A url pointing inside this repo is
 written from the repo root rather than relative to the file holding it, so an entry survives
-being moved between scopes [[D3]] — a relative path rots silently the moment a fact
+being moved between scopes — a relative path rots silently the moment a fact
 graduates.
 
 Which is why `description` is omitted whenever a `url` is present. A title restating the
@@ -418,7 +418,7 @@ Together those make retraction possible. When a fact dies, its sources are how I
 whether the page moved, whether I misread it, or whether it was never load-bearing to
 begin with.
 
-Components carry `grounds` while decisions deliberately carry no backing field. The
+Components carry `constrained_by` while decisions deliberately carry no backing field. The
 difference is real: a decision's backing is *argued*, in the prose that cites it, and a
 stored copy would just drift from the argument. A component's backing is *inherited* — it's
 the brief you hand an implementer, and it needs to travel with the component rather than be
@@ -448,7 +448,7 @@ malformed for no gain.
 rests on, and it resolves to exactly one entry [[req:claims-can-cite-foundations]] — no
 searching, no interpretation. It points in one of two directions:
 
-- **Inward** — `[[D1]]`, ``, `[[C1]]` point at an entry declared in this same file.
+- **Inward** — `[[D1]]` and `[[C1]]` point at an entry declared in this same file.
   Hit `[[D1]]`, scroll up to the Decisions block for the actual choice and its falsifier.
 - **Outward** — `[[fact:cursor-pagination]]` and `[[req:offline-first]]` point at an entry
   in a `facts.yaml` or `requirements.yaml` — this design's own, or the global one. Hit
@@ -482,7 +482,7 @@ demand, outside the doc.
 
 - Every block parses, and every entry matches its schema exactly — required fields present,
   enums in range, no unknown fields.
-- Every inward token (`[[D1]]`, ``, `[[C1]]`) matches a declared entry in the file.
+- Every inward token (`[[D1]]`, `[[C1]]`) matches a declared entry in the file.
 - Every outward token (`[[fact:*]]` / `[[req:*]]`) matches an entry in a facts or
   requirements file in scope, resolving design → area → global, and no slug is defined at
   more than one tier. A token resolving to a `superseded` fact is an error — that's
@@ -493,11 +493,11 @@ demand, outside the doc.
 - Every `revisit` carries exactly one of `after` or `when`. Every `quote` is a block scalar.
 - Every declared decision and component is referenced at least once in the prose — an
   unreferenced one is either dead (cut it) or a hidden dependency the prose never admitted.
-- Every *active* entry is reachable from within its own scope: a design-scoped one from its
-  design, an area-scoped one from at least one design in that area — cited in the prose or
-  named in a component's `grounds`. An entry nothing points at is either orphaned research or
-  a claim something quietly depends on without saying so [[D14]]. Global entries are exempt;
-  they exist independently of any one area, and may be waiting on a consumer not yet written.
+- Every live entry is reachable from within its own scope — a design-scoped one from its
+  design, an area-scoped one from at least one design in that area, cited in the prose or
+  named in a component's `constrained_by` [[req:foundations-are-reachable]] [[D14]]. Global entries
+  are exempt, as are the entries of a design still in `exploring`: it has inputs and no
+  document to cite them from, and demanding otherwise would forbid capture outright.
 - Every `depends_on` and `blocks` id resolves, and `depends_on` has no cycles.
 - A decision gated by an unanswered open question via `blocks` is flagged as
   not-safe-to-build-on.

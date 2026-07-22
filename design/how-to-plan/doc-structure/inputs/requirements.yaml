@@ -9,9 +9,8 @@
     decisions — each expressible in a fixed form a reader can recognise without being told
     which kind they are looking at
   rationale: |
-    The general capability everything else rests on. What each kind must carry is refined by
-    fact-structure, requirement-structure, and decision-structure; this one fixes that there
-    are three, that the set is closed, and that they are distinguishable on sight.
+    Says the kinds exist and what each records; it does not say when an author must write
+    one, or whether what they wrote is any good.
 
 - id: fact-structure
   statement: |
@@ -21,7 +20,10 @@
       - a statement detailing the fact
       - how the fact was verified, confirmed, derived, etc. (directly tested, read from documentation, assumed via experience, etc.);
         different mechanisms may not all carry equal weight
-      - whether the fact holds or has been disproven/superseded
+      - whether the fact holds or has been disproven/superseded, and if superseded, which
+        fact replaced it
+      - an optional caveat: why this fact might not hold despite its backing — an argument
+        from absence, a single source, evidence gathered by the person it suits
       - sources, which may be either:
         - a description of the mechanism by which the fact was determined, or 
         - a URL reference to an online source (documentation, test results, etc.), which must also include a direct quote and pointer to the relevant section(s) of the source
@@ -41,7 +43,7 @@
     Decisions MUST have the following data at a minimum:
   
       - stable id to reference
-      - a statement detailing the decision
+      - a single-line statement naming what was chosen — not why, and not what it entails
       - list of conditions which, if true, would invalidate the decision or require it to be revised
       - status of the decision: 
         - proposed: created (by an agent, presumably) but not yet ratified
@@ -60,10 +62,8 @@
     apply them, or find it cannot satisfy them, but does not reopen them as matters of
     opinion. A fact yields to evidence; a requirement yields to the owner
   rationale: |
-    Without this the review has no floor. If every fact and requirement is arguable while
-    the design is being argued, there is nothing to stand on and review becomes an unbounded
-    negotiation. Evidence can still kill a fact and the owner can still change a requirement; 
-    but neither happens because a design found it inconvenient.
+    Without this the review has no floor: if every fact and requirement is arguable while the
+    design is being argued, there is nothing to stand on.
 
 - id: decisions-belong-to-their-design
   statement: |
@@ -71,15 +71,83 @@
     still being worked out, gone when it is thrown away, and never binding on another design
     facing the same question
   rationale: |
-    Two competent designs can answer the same question differently and both be right, which
-    is what separates a decision from a requirement. Treating decisions as durable would
-    quietly convert one design's judgement into everyone's constraint.
+    Two competent designs can answer the same question differently and both be right, which is
+    what separates a decision from a requirement. It is also what makes a design safe to throw
+    away.
 
 - id: claims-can-cite-foundations
   statement: |
     a claim in the prose can point at the foundation it rests on, and that pointer resolves
     to exactly one entry without the reader having to search for it
   rationale: |
-    The affordance, not the obligation. How much of a design must be cited is a question
-    about how the format gets used, and belongs to process and authoring; this requires only
-    that citing be possible and unambiguous when someone does it.
+    The affordance, not the obligation — how much of a design must be cited belongs to process
+    and authoring. "Resolves to exactly one entry" carries the weight: a pointer that needs
+    interpretation cannot be checked.
+
+- id: three-tier-scopes
+  statement: |
+    exactly three scopes hold foundations — global, area, and design — each a directory
+    holding at most a requirements.yaml and a facts.yaml. There is no fourth tier and areas
+    do not nest
+  rationale: |
+    Two tiers cannot express "shared by these designs but not by everything"; a fourth invites
+    a hierarchy that will grow unwieldly
+
+- id: inputs-outputs-split
+  statement: |
+    a design directory separates inputs/ from the document beside it. Facts and requirements
+    live only under inputs/ or a wider scope; decisions, components, and open questions live
+    only in the document
+
+- id: ids-unique-per-kind
+  statement: |
+    within a kind an id is unique across all three scopes; an id repeated at a nearer scope
+    is an error rather than an override. An entry whose meaning changes gets a new id rather
+    than a rewritten one
+  rationale: |
+    Shadowing would make a citation mean different things depending on where it was written.
+    Stability is the half no machine can check — a rename and a replacement are the same diff.
+
+- id: design-status-enum
+  statement: |
+    a design is in one of three states — exploring, draft, or settled — and the state is
+    derivable from what exists in the tree rather than stored beside it. Which transitions
+    are legal, and who makes them, belongs to process
+  rationale: |
+    Reading the state off the artifacts keeps it from drifting the way a stored copy would.
+
+- id: component-structure
+  statement: |
+    Components MUST have the following data at a minimum:
+
+      - stable id to reference
+      - one line naming the responsibility it holds
+
+    and MAY additionally carry the nearby responsibility it deliberately does not hold, and
+    the components that must land before it
+  rationale: |
+    What a component excludes is the cheapest way to state a boundary, since a boundary is
+    defined by its far side. Anything else belongs in the argument that introduces it.
+
+- id: question-structure
+  statement: |
+    Open questions MUST have the following data at a minimum:
+
+      - stable id to reference
+      - the question
+      - which kind of foundation would close it — a fact, a requirement, or a decision
+
+    and MAY additionally carry the decisions it gates. A question is not a foundation: no
+    claim may rest on one
+  rationale: |
+    Naming the foundation that would close it turns a question into work with a known shape.
+    Citing one would otherwise let an author acknowledge an uncertainty and call the citing done.
+
+- id: foundations-are-reachable
+  statement: |
+    every live foundation is cited from within its own scope — a design-scoped entry by its
+    own design, an area-scoped entry by at least one design in that area. Global entries,
+    entries of a design still exploring, and superseded or retired entries are exempt
+  rationale: |
+    An entry nothing points at is either orphaned research or a dependency the design never
+    admitted. The exemptions cover the cases where nothing could point at it yet.
