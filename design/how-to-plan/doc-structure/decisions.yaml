@@ -1,0 +1,98 @@
+# Decisions produced by the doc-structure design.
+# Schema: id, choice (one line), invalidated_when (list, >=1), status
+# (proposed|accepted|rejected, default proposed). Cited from prose as [[d:<id>]].
+# The why for each lives in design.md at the claim that cites it.
+
+- id: scope-tree-paths
+  choice: the three scopes map to design/ (global), design/<area>/ (area), and design/<area>/<design>/ (design), with design-scope inputs under inputs/
+  invalidated_when:
+    - a real design cannot be placed by the flat area/design mapping
+    - a design needs to belong to two areas at once
+
+- id: brief-in-inputs
+  choice: every design's inputs include a prose brief.md alongside the two foundation files
+  invalidated_when:
+    - briefs prove stale or unread at review time
+    - an owner requirement fixes the brief's contract differently
+
+- id: foundation-file-shape
+  choice: every foundation file is a single top-level YAML list, [] when empty, with kebab-case ids
+  invalidated_when:
+    - a scope accumulates enough entries that one flat list stops being reviewable at a glance
+
+- id: fact-fields
+  choice: a fact is id, claim, backing (tested|documented|assumed), sources, caveat, status, reason, superseded_by
+  invalidated_when:
+    - a recurring fact cannot be recorded without abusing caveat or sources
+
+- id: source-locator-shape
+  choice: a source carries exactly one locator — description, or url with where and quote plus optional checked date — with in-repo urls repo-root-relative
+  invalidated_when:
+    - a real source fits neither a description nor a url with a quotable section
+
+- id: requirement-fields
+  choice: a requirement is id, statement, force, status, rationale, with no sources field
+  invalidated_when:
+    - the owner repeatedly needs data the schema cannot hold without overloading rationale
+
+- id: decision-fields
+  choice: a decision is id, choice, invalidated_when, status, with no rationale field
+  invalidated_when:
+    - the why of decisions proves unrecoverable from the prose that cites them
+
+- id: component-fields
+  choice: a component is id, responsibility, optional excludes, optional needs
+  invalidated_when:
+    - boundaries routinely need more than a one-line excludes to state
+
+- id: question-fields
+  choice: an open question is id, question, closes_with (fact|requirement|decision), optional gates
+  invalidated_when:
+    - a question arises that no foundation kind could close
+
+- id: omit-defaults
+  choice: defaulted fields are omitted — status active for facts and requirements, proposed for decisions, force hard
+  invalidated_when:
+    - omitted defaults cause misreads in review, showing explicitness was worth the bulk
+
+- id: citation-token-grammar
+  choice: citation tokens are [[f:<id>]], [[r:<id>]], and [[d:<id>]], with f/r resolving design then area then global and d resolving only in the sibling decisions.yaml
+  invalidated_when:
+    - the double-bracket form collides with markdown or YAML syntax somewhere it must render
+    - a fourth citable kind appears
+
+- id: citation-sites
+  choice: citation tokens are legal in prose and in decision entries; component and question blocks carry none
+  invalidated_when:
+    - an entry's boundary cannot be justified from the prose that introduces it
+
+- id: citable-status
+  choice: a citation must land on an active fact or requirement, or a proposed or accepted decision
+  invalidated_when:
+    - review shows claims legitimately need to rest on retired entries, e.g. during a migration window
+
+- id: fenced-entry-blocks
+  choice: components and open questions are YAML inside fenced blocks whose info strings are exactly components and open-questions; any other fence is inert
+  invalidated_when:
+    - a renderer or tool in actual use mishandles the reserved info strings
+    - reviewers demonstrably skip the YAML blocks, breaking the legibility half of the bet
+
+- id: document-order
+  choice: design.md is a title, the prose argument, then Components, then Open Questions, with empty trailing sections omitted
+  invalidated_when:
+    - the fixed trailing order forces repetition or forward references bad enough to hurt review
+
+- id: state-derivation
+  choice: exploring means no design.md; draft means design.md with an open question or a proposed decision; settled means design.md with neither
+  invalidated_when:
+    - a state is needed that the tree cannot encode, such as abandoned as distinct from exploring
+
+- id: live-means
+  choice: for reachability, live means an active fact or requirement or a proposed or accepted decision; rejected decisions are exempt like retired entries
+  invalidated_when:
+    - unreachable rejected decisions accumulate in ways that mislead review
+
+- id: soft-departure-token
+  choice: a decision that bends a soft requirement embeds that requirement's "[[r:<id>]]" token in its choice line
+  invalidated_when:
+    - tokens in choice lines break single-line legibility or tooling
