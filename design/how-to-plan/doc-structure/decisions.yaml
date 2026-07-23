@@ -141,8 +141,10 @@
 
 - id: defaults-are-omitted
   statement: every field with a sensible default is optional and omitted when it takes that
-    default
+    default, except a decision's status, which is always written even at proposed
   status: accepted
   falsifiers:
     - a default proves wrong often enough that omission reads as an oversight rather than
       an assertion
+    - the always-written decision status proves to be noise more often than it is edited, so
+      omitting proposed would read cleaner

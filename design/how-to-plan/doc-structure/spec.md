@@ -128,8 +128,8 @@ left.
 ## Entry shapes
 
 Every entry has a kebab-case `id` and one field carrying its substance. Every field with a
-sensible default is optional and omitted at that default, so a typical entry is three or four
-lines [[r:foundation-default-fields]] [[d:defaults-are-omitted]].
+sensible default is optional and omitted at that default — a decision's `status` aside — so a
+typical entry is three or four lines [[r:foundation-default-fields]] [[d:defaults-are-omitted]].
 
 No entry carries an author, a date, or a revision number. Agents commit under their own git
 identities like any other contributor [[f:agents-have-git-identities]], so authorship and
@@ -194,15 +194,17 @@ requirement rather than amending the requirement or hanging an exception field o
 [[r:soft-departures-are-decisions]] — the bend has a reason and a falsifier, which makes it a
 decision, and it belongs with the design's other reasoning.
 
-**Decisions** [[r:decision-structure]] — `id`, `statement`, `falsifiers`; optional `status`
-(`proposed` | `accepted` | `tolerated` | `rejected`, default `proposed`). They live in `decisions.yaml`
+**Decisions** [[r:decision-structure]] — `id`, `statement`, `falsifiers`, and a required
+`status` (`proposed` | `accepted` | `tolerated` | `rejected`). They live in `decisions.yaml`
 [[r:citable-entries-are-foundations]].
 
 The statement is one line naming the choice, not the reasoning and not the consequences —
 those are the argument's job, and a decision list where each entry is a paragraph is a second
-copy of the design rather than an index into it. `proposed` is the default because an agent
-writing a design produces proposals; acceptance is an act performed on the document by someone
-with the standing to perform it. A decision clears review as `accepted` or `tolerated`, and both
+copy of the design rather than an index into it. A new decision is written `proposed` — an agent
+produces proposals — and unlike other defaulted fields the `status` line is always present, never
+omitted, because that value has to change for the design to settle and the line is where a
+reviewer changes it. Acceptance is an act performed on the document by someone with the standing
+to perform it. A decision clears review as `accepted` or `tolerated`, and both
 let a design settle and are cited like any live foundation — they differ only in the owner's
 stake. `accepted` endorses the choice as a position later iterations should keep; `tolerated`
 records that it does not contradict the vision and the owner does not mind whether it stays,
