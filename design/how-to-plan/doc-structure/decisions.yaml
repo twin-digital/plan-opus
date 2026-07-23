@@ -1,0 +1,151 @@
+# Decisions for the doc-structure design.
+# Schema: id, statement, falsifiers (>=1), status (proposed|accepted|rejected, default proposed).
+# Lives beside design.md and shares its lifecycle; cited from prose as [[d:<id>]].
+
+- id: yaml-entries-markdown-prose
+  statement: entries are YAML; the argument around them is ordinary markdown
+  status: accepted
+  falsifiers:
+    - an entry kind needs a field that YAML cannot carry legibly at one entry per screen
+    - authors routinely hand-edit blocks into invalid YAML, making the artifact unreadable
+      by the harness more often than it is readable
+
+- id: one-block-per-kind
+  statement: components and open questions each appear in exactly one fenced block in a
+    design.md
+  status: accepted
+  falsifiers:
+    - a design grows a block long enough that reading it top to bottom stops being the
+      cheapest way to review it
+    - two adjacent designs need to interleave entries with the prose to be comprehensible
+      at all
+
+- id: blocks-are-keyed-mappings
+  statement: each fenced block in a design.md is a YAML mapping with exactly one top-level
+    key naming its kind
+  status: accepted
+  falsifiers:
+    - tagging the fence itself with the kind is made to coexist with yaml syntax
+      highlighting, removing the wrapper key's only remaining advantage over a fence tag
+    - the extra indentation measurably hurts entry legibility in review
+
+- id: fixed-outer-sections
+  statement: a design.md opens with Summary then Open questions and closes with Components,
+    with the argument free-form in between; decisions sit in decisions.yaml, not in the
+    document
+  status: accepted
+  falsifiers:
+    - reviewers consistently read the argument before the open-question and decision lists,
+      making the order an obstacle rather than an aid
+    - a design needs a required section this order has no slot for
+
+- id: decisions-precede-the-argument
+  statement: the decision list is placed before the prose that argues for it
+  status: rejected
+  falsifiers:
+    - a decision statement turns out to be unintelligible before its argument, so readers
+      must jump forward and back to use the list
+
+- id: citation-token-grammar
+  statement: a citation is `[[<k>:<id>]]` with a single-letter kind — `f` fact, `r`
+    requirement, `d` decision
+  status: accepted
+  falsifiers:
+    - the token collides with syntax GitHub renders specially in the surrounding prose
+    - a fourth citable kind appears and the letters run out of unambiguous choices
+
+- id: resolution-is-scope-blind
+  statement: a token resolves by matching its id against every entry of that kind in all
+    three scopes; exactly one match is required and any other count is an error
+  status: accepted
+  falsifiers:
+    - ids stop being unique per kind, at which point resolution needs a precedence rule
+
+- id: ids-unique-repo-wide
+  statement: an id is unique per kind across the whole repository, not merely across the
+    three scopes one design can see
+  status: accepted
+  falsifiers:
+    - the repository grows enough designs that repo-wide id collisions become routine
+      friction rather than a rare rename
+
+- id: no-authorship-fields
+  statement: no entry carries an author, date, or revision field
+  status: accepted
+  falsifiers:
+    - entries start arriving through a path that version control does not record
+    - a rule needs an entry's age, and reading it from history proves impractical
+
+- id: structure-in-plain-text
+  statement: all structure is carried by markdown text — fences, headings, and bracket
+    tokens — with no HTML or styling
+  status: accepted
+  falsifiers:
+    - the artifact stops being read on GitHub, and the renderer that replaces it supports
+      richer markup
+
+- id: facts-require-a-source
+  statement: every fact carries at least one source, and each source uses exactly one
+    locator form — a mechanism description, or a URL with section and quote
+  status: accepted
+  falsifiers:
+    - a class of fact appears whose backing cannot be written as either form without
+      inventing a fiction
+
+- id: repo-relative-source-paths
+  statement: a source URL that points inside this repository is written relative to the
+    repo root, not relative to the file that holds it
+  status: accepted
+  falsifiers:
+    - sources stop ever pointing inside the repo, so there is no in-repo path to anchor
+    - the repo gains a tool that rewrites relative source paths on move, making the rule
+      unnecessary
+
+- id: quote-is-block-scalar
+  statement: |
+    a source `quote` is always written as a block scalar (`quote: |`), even for a single line
+  status: accepted
+  falsifiers:
+    - a quote form appears that a block scalar cannot hold faithfully
+    - inline scalars are shown to escape source text reliably enough that the unconditional
+      rule buys nothing
+
+- id: decisions-require-a-falsifier
+  statement: a decision must list at least one falsifier
+  status: accepted
+  falsifiers:
+    - a decision arrives that is genuinely unfalsifiable and still worth recording, rather
+      than being a restatement of a requirement
+
+- id: status-derived-from-content
+  statement: a design's state is computed from its own artifacts — no design.md is
+    exploring, a proposed decision in decisions.yaml or an open question in design.md means
+    draft, and anything else is settled
+  status: accepted
+  falsifiers:
+    - a design needs to be held out of settled for a reason that leaves no trace in its own
+      artifacts
+    - the owner wants a design settled while an open question stands
+
+- id: rejected-decisions-are-closed
+  statement: a rejected decision is retained as a record, blocks nothing, and may not be
+    cited
+  status: accepted
+  falsifiers:
+    - rejected entries accumulate to the point that they crowd the list a reviewer is
+      meant to read
+
+- id: brief-is-required
+  statement: a design directory must hold `inputs/brief.md`
+  status: rejected
+  falsifiers:
+    - a design appears whose subject is fully determined by its requirements, making the
+      brief pure restatement
+
+- id: defaults-are-omitted
+  statement: every field with a sensible default is optional and omitted when it takes that
+    default
+  status: accepted
+  falsifiers:
+    - a default proves wrong often enough that omission reads as an oversight rather than
+      an assertion
