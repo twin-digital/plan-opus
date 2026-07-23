@@ -118,16 +118,20 @@ spec is *well-formed*, not that it is *well-built*; green is the floor, not the 
 
 ## Hand back
 
-Push the branch and open a pull request against `main`. **The PR body is your handoff** — write
-it for the owner's review:
+Commit the two files, push the branch, and open a pull request against `main`. The spec and its
+`decisions.yaml` are in the diff, so the PR body does not re-list the decisions or the open
+questions — the reviewer reads those in the files. The PR body orients the reviewer and points at
+what to weigh:
 
-1. **Decisions you made that the inputs did not determine** — for each, what you chose and
-   what input would have settled it. These are the choices the owner most needs to look at:
-   each is a candidate to accept as written, or to lift into a requirement.
-2. **Requirements you could not satisfy**, and why.
-3. **Inputs that went unused** — a requirement or fact you found no use for. Either it is not
-   needed here, or you missed something it implies.
-4. **Open questions you recorded**, and why the inputs cannot yet close them.
+- **What this spec designs** — a couple of sentences: the thing being specified and the shape you
+  landed on, so the reviewer knows what they are about to read.
+- **Where it is most contestable** — the decisions a different competent agent might have made
+  differently, and for each, the input that would settle it. This is where review time should go:
+  each is a candidate to accept as written or to lift into a requirement.
+- **What you could not resolve** — any requirement you could not satisfy and why; any input that
+  went unused (either unneeded, or a sign you missed something); any unknown you had to leave as
+  an open question rather than settle.
 
-The design is a **draft** when you hand it over: every decision is `proposed` and any open
-question is unanswered, so nothing may be built on it until review clears the list.
+Keep it short — the spec carries the design, the PR body carries your judgement about it. The
+design lands as a **draft**: decisions are `proposed` and any open question is still open, so
+nothing is built on it until review clears the list.
