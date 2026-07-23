@@ -1,0 +1,85 @@
+# Decisions made while writing the authoring design.
+# Schema: id, statement, falsifiers (>=1); optional status (proposed|accepted|rejected, default proposed).
+# Every decision is proposed until the owner accepts it in review.
+
+- id: guidance-is-reviewer-tests
+  statement: every authoring rule is written as a test a reviewer applies to a finished
+    passage; a rule that cannot be is either mechanizable, and belongs to the harness, or
+    cosmetic, and is cut
+  falsifiers:
+    - a rule proves real and useful yet cannot be phrased as a check a reader runs against a
+      finished design
+    - a rule stated here as a reader's test turns out to be one the harness could enforce
+      mechanically, so it should never have been an authoring rule
+
+- id: consistency-from-shared-derivation
+  statement: cross-author consistency is produced by every design deriving the same kinds of
+    claim from its foundations in the same argument shape, not by a prescribed vocabulary,
+    tone, or template
+  falsifiers:
+    - two designs each built faithfully from their foundations still read as though written
+      by different authors, so shared structure is not enough and a style layer is needed
+    - the shared shape has to be broken for a design whose subject does not fit it, often
+      enough that the shape is the exception rather than the rule
+
+- id: weight-reduces-to-a-visible-foundation
+  statement: a claim that carries weight rests on a fact, requirement, or decision visible in
+    the design's three scopes; when it rests on anything else that thing is first captured as
+    a foundation, or the claim is cut — there is no weight-bearing claim that cites nothing
+  falsifiers:
+    - a claim that genuinely carries weight appears that rests on something no fact can
+      capture and no decision can hold, so it can neither be cited nor honestly cut
+    - authors routinely capture throwaway background as facts solely to license a sentence,
+      inflating the foundation list faster than it informs
+
+- id: mechanism-descriptions-are-authors-voice
+  statement: the verbatim-evidence rule binds sources that quote something outside the author;
+    a mechanism description backing an assumed fact is the author's own assertion, and its
+    honesty comes from the assumed backing that labels it as such, not from a quotation it
+    cannot have
+  falsifiers:
+    - a mechanism description is found smuggling an unquoted external claim that should have
+      carried a quote and a stronger backing
+    - authors routinely dress opinion as mechanism, so mechanism descriptions need an
+      evidentiary rule of their own rather than the backing label
+
+- id: real-falsifier-observable-contingent-decisive
+  statement: a falsifier is real when it names a later observation that is observable, not
+    already settled either way, and decisive for this decision specifically; a statement
+    failing any of the three is filler however confidently written
+  falsifiers:
+    - a falsifier passes all three tests yet reviewers still judge it filler, showing the
+      three are not sufficient
+    - a falsifier that reviewers accept as real and useful fails one of the three, showing a
+      test is too strict
+
+- id: unknowns-routed-by-what-unblocks-them
+  statement: an unknown becomes an open question when it blocks a decision from being made at
+    all, a decision's falsifier when the decision can be made now but a nameable later event
+    should overturn it, and an assumed fact when the design must rest on it and the assumption
+    is defensible and caveated
+  falsifiers:
+    - a design records an unknown as an assumed fact under this rule and later has to be torn
+      down because that assumption was the thing that should have gated it
+    - an unknown recurs that fits none of the three routes, or two of them equally with no
+      basis to choose
+
+- id: argument-is-a-derivation
+  statement: the argument is ordered as a derivation, each claim resting on ground already
+    laid and leading from the design's fixed foundations to the choices they force; a passage
+    that only restates an input is cut
+  falsifiers:
+    - a design's honest reasoning cannot be linearized this way because two choices depend on
+      each other with no defensible first
+    - readers report that the derived order obscures the design's actual shape rather than
+      revealing it
+
+- id: summary-orients-before-rules
+  statement: the Summary names what the design is and the single constraint that most shapes
+    it, before any rule or schema, so each later choice can be read against the pressure that
+    produced it
+  falsifiers:
+    - a design has no single dominant constraint, so naming one in the Summary misleads more
+      than it orients
+    - reviewers find the orienting Summary redundant with the argument's opening and skip
+      straight past it
