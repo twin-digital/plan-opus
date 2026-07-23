@@ -97,7 +97,7 @@ function checkEntry(kind, e, scope, file) {
   if (kind === "d") {
     for (const f of ["id", "statement"]) if (e[f] === undefined) add("missing required field", `${tag}.${f}`);
     if (e.status !== "rejected" && (!Array.isArray(e.falsifiers) || e.falsifiers.length < 1)) add("decision without a falsifier", tag);
-    if (e.status !== undefined && !["proposed", "accepted", "rejected"].includes(e.status)) add("bad decision status", tag);
+    if (e.status !== undefined && !["proposed", "accepted", "tolerated", "rejected"].includes(e.status)) add("bad decision status", tag);
     if (literalHas(file, e.id, "status") && e.status === "proposed") add("default stated explicitly", `${tag}.status`);
   }
 }
@@ -166,7 +166,7 @@ for (const d of designs) {
   }
 
   // settle gate (rule 14): a settle-eligible design cannot settle while a live design-scoped
-  // requirement or an accepted decision it holds goes uncited; an uncited one keeps it draft.
+  // requirement or an accepted/tolerated decision it holds goes uncited; a rejected one is exempt.
   if (d.state === "settled") {
     const uncited = [];
     for (const x of decs) {

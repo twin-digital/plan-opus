@@ -195,14 +195,19 @@ requirement rather than amending the requirement or hanging an exception field o
 decision, and it belongs with the design's other reasoning.
 
 **Decisions** [[r:decision-structure]] — `id`, `statement`, `falsifiers`; optional `status`
-(`proposed` | `accepted` | `rejected`, default `proposed`). They live in `decisions.yaml`
+(`proposed` | `accepted` | `tolerated` | `rejected`, default `proposed`). They live in `decisions.yaml`
 [[r:citable-entries-are-foundations]].
 
 The statement is one line naming the choice, not the reasoning and not the consequences —
 those are the argument's job, and a decision list where each entry is a paragraph is a second
 copy of the design rather than an index into it. `proposed` is the default because an agent
 writing a design produces proposals; acceptance is an act performed on the document by someone
-with the standing to perform it.
+with the standing to perform it. A decision clears review as `accepted` or `tolerated`, and both
+let a design settle and are cited like any live foundation — they differ only in the owner's
+stake. `accepted` endorses the choice as a position later iterations should keep; `tolerated`
+records that it does not contradict the vision and the owner does not mind whether it stays,
+leaving a later author free to rework it without re-litigation. `rejected` is turned down, kept as
+a record, and never cited.
 
 At least one falsifier is required [[d:decisions-require-a-falsifier]]. A decision without one
 cannot be revisited deliberately: nothing tells a later reader what to watch for, so the
@@ -276,12 +281,12 @@ than stored beside them [[r:design-status-enum]] [[d:status-derived-from-content
 |---|---|
 | exploring | no `spec.md` |
 | draft | a `spec.md` exists but the design is not yet settled |
-| settled | merged to `main`, with no open questions, no proposed decisions, and every live design-scoped requirement and accepted decision it holds cited |
+| settled | merged to `main`, with no open questions, no proposed decisions, and every live design-scoped requirement and accepted-or-tolerated decision it holds cited |
 
 A stored status is a claim about the artifacts that can be wrong; a derived one cannot drift.
 The content conditions fall out of the area's constraints on settling: a design cannot settle
 while it holds an open question or an unaccepted decision [[r:only-settled-work-licenses-building]],
-nor while a live design-scoped requirement or an accepted decision it holds goes uncited
+nor while a live design-scoped requirement or an accepted-or-tolerated decision it holds goes uncited
 [[r:settled-design-cites-what-it-keeps]]. The remaining condition, being merged to `main`, is
 what separates a design that *could* settle from one that has: an unmerged branch meeting the
 content conditions is ready to settle but not settled, and naming that intermediate state
@@ -297,7 +302,7 @@ format guarantees is that the answer is a function of the tree.
 
 The citation gate is the condition with teeth, and it is what forces the argument to actually
 be the argument. A settled design must cite every live design-scoped requirement and every
-accepted decision it holds; an uncited one keeps the design in draft
+accepted or tolerated decision it holds; an uncited one keeps the design in draft
 [[r:settled-design-cites-what-it-keeps]]. A requirement the design never invokes was ignored or
 misfiled, and a decision no claim rests on is a decision the design does not need. Facts carry
 no such obligation, nor do requirements at a wider scope: an uncited fact is available knowledge
@@ -330,7 +335,7 @@ decides what enforces them [[r:invariants-are-enforced-or-marked]].
 | 11 | Every citation token is well formed and resolves to exactly one entry. | checkable |
 | 12 | No citation resolves to a question, a component, a rejected decision, a retired requirement, or a retired fact. | checkable |
 | 13 | A `[[d:...]]` resolves within its own design; a `gates` entry names a decision in the same design. | checkable |
-| 14 | A design offered as settled cites every live design-scoped requirement and every accepted decision it holds. | checkable |
+| 14 | A design offered as settled cites every live design-scoped requirement and every accepted or tolerated decision it holds. | checkable |
 | 15 | Every citation belongs to a claim that would have to change were its target false. | **none** — the test is semantic |
 | 16 | A design's state equals the derivation above (settled reads the presence of the design on `main`). | checkable |
 
