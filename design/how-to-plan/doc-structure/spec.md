@@ -188,7 +188,9 @@ on it. Collapsing the three would hide which of those jobs a retired fact create
 Requirements carry no sources. They are decided rather than discovered, so there is nothing to
 cite; a requirement that needed evidence would be a fact wearing the wrong hat. `rationale` is
 optional because fiat needs no justification to bind, and useful because the design that has
-to bend around a requirement is easier to write when the intent is visible. A `soft` requirement
+to bend around a requirement is easier to write when the intent is visible; when present it is a
+block scalar (`rationale: |`), like a fact's `quote` and for the same reason — free prose an
+inline scalar would break on a stray colon or `#`. A `soft` requirement
 can be bent, and when a design bends one it records the departure as a decision citing that
 requirement rather than amending the requirement or hanging an exception field on it
 [[r:soft-departures-are-decisions]] — the bend has a reason and a falsifier, which makes it a
@@ -228,6 +230,57 @@ uncertainty into work with a known shape and a known owner: a fact means go and 
 requirement means ask the owner, a decision means argue it here. A question is not a
 foundation and nothing may rest on one [[r:question-structure]] — otherwise citing an
 acknowledged uncertainty would look like discharging it.
+
+## Examples
+
+One entry of each kind, in the form it takes on disk. Facts, requirements, and decisions are
+items in the bare sequence their file holds — `facts.yaml`, `requirements.yaml`,
+`decisions.yaml`. Components and open questions are items inside the single fenced YAML block
+that carries their kind in a `spec.md`; the block wrapper is shown here, without the fence.
+
+A fact, in `facts.yaml`:
+
+    - id: upstream-rate-limits-at-100rps
+      claim: the upstream orders API rejects requests above 100 per second with HTTP 429
+      backing: documented
+      sources:
+        - url: https://api.example.com/docs/limits
+          where: Rate limits
+          checked: 2026-07-23
+          quote: |
+            Requests are limited to 100 per second per token; excess requests receive 429.
+
+A requirement, in `requirements.yaml` — `force` and `status` omitted at their defaults, and
+`rationale` a block scalar:
+
+    - id: no-dropped-writes
+      statement: every accepted user write is durably recorded or surfaces an error; none is silently dropped
+      rationale: |
+        Lost writes are invisible and unrecoverable — the worst failure class for this system.
+
+A decision, in `decisions.yaml` — `status` omitted, defaulting to `proposed`:
+
+    - id: bounded-queue-over-inline-retry
+      statement: buffer over-limit writes in a bounded on-disk queue rather than retrying inline
+      falsifiers:
+        - sustained write bursts never approach the rate limit in production, so the queue is dead weight
+        - the queue's footprint grows faster than it drains, threatening the host
+
+A component, in the `components` block of a `spec.md`:
+
+    components:
+      - id: write-queue
+        responsibility: buffer over-limit writes and drain them upstream at the allowed rate
+        excludes: the backoff policy for 429s, which the retry-worker owns
+        after:
+          - upstream-client
+
+An open question, in the `questions` block of a `spec.md`:
+
+    questions:
+      - id: queue-durability-target
+        question: must the queue survive a host restart, or is in-memory acceptable for a first cut
+        closes: requirement
 
 ## Citations
 
@@ -323,7 +376,7 @@ decides what enforces them [[r:invariants-are-enforced-or-marked]].
 | 4 | Every entry has a kebab-case `id`, unique within its kind across the repository. | checkable |
 | 5 | An entry whose meaning changes takes a new id. | **none** — a rename and a replacement are the same diff |
 | 6 | Every entry carries its required fields and no unknown ones. | checkable |
-| 7 | Every fact has at least one source, each source has exactly one locator form, every in-repo `url` is repo-root-relative, and every `quote` is a block scalar. | checkable |
+| 7 | Every fact has at least one source, each source has exactly one locator form, every in-repo `url` is repo-root-relative, and every verbatim free-text field — a source `quote`, and a requirement's `rationale` when present — is a block scalar. | checkable |
 | 8 | A retired fact names a reason; one retired as superseded names an existing, different fact as its replacement, with no cycles. | checkable |
 | 9 | Every decision lists at least one falsifier. | checkable |
 | 10 | A `spec.md` has Summary and the argument in order; the Open questions and Components sections appear at most once each, in position, and only with a non-empty block. | checkable |
