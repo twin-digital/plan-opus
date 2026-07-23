@@ -65,6 +65,22 @@
         typo rejected by the attribute-id union, and a bare id rejected in canonical position.
         An unused expect-error directive fails the build, so all three probes genuinely error.
 
+- id: server-classes-are-structurally-assignable
+  claim: |
+    The classes `@minecraft/server` 2.8.0 declares carry no private members or brand fields: a
+    value exposing only a class's public shape is assignable to the class type. A library class
+    can therefore satisfy Entity, Player, EntityComponent, EntityHealthComponent, World,
+    Dimension, Effect, EffectType, and the event signal classes structurally, and its instances
+    pass where the real type is expected without casts.
+  backing: tested
+  sources:
+    - description: |
+        design/minecraft/test-lib/artifacts/assignability-probe.ts compiles clean (tsc
+        --noEmit, strict; `npm run check` in that folder) against @minecraft/server 2.8.0: a
+        mapped public-shape value is accepted for all nine classes, and a @ts-expect-error
+        negative control missing one member genuinely errors, so a clean compile is a real
+        positive.
+
 - id: vanilla-data-provides-prefixed-id-constants
   claim: |
     `@minecraft/vanilla-data`, unlike `@minecraft/server`, ships runtime JavaScript: named

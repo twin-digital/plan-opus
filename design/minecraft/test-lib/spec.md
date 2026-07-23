@@ -15,20 +15,6 @@ invalidated references that throw on member access, non-uniformly; ids that may 
 `minecraft:` prefix — and where a behaviour has no reference to be faithful to, the fake fails
 loudly rather than inventing a value.
 
-## Open questions
-
-```yaml
-questions:
-  - id: real-classes-structurally-implementable
-    question: can library classes be declared to structurally satisfy the classes
-      `@minecraft/server` 2.x declares (Entity, EntityComponent, World, the event signal
-      classes), or does any carry a private member or brand field that defeats structural
-      assignability? Settle by compiling one probe class per faked type against the pinned
-      `.d.ts`.
-    closes: fact
-    gates: [fakes-implement-real-types]
-```
-
 ## Object-granular substitution
 
 There is no module to replace: `@minecraft/server` resolves to type declarations with no
@@ -40,7 +26,9 @@ direct module import is outside its reach; making helpers take their world and e
 parameters is the consumer's side of the contract.
 
 Fake classes are declared against the real types, so a fake is accepted anywhere the real type
-is expected, without casts [[d:fakes-implement-real-types]]. The test and the code under test
+is expected, without casts [[d:fakes-implement-real-types]] — available because the declared
+classes carry no private members or brand fields to defeat structural typing
+[[f:server-classes-are-structurally-assignable]]. The test and the code under test
 then share one `Entity` type, and every read goes through the genuine API
 [[r:no-shadowing-of-real-api]].
 
