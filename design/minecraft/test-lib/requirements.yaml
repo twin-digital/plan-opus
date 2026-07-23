@@ -52,6 +52,38 @@
     absence-by-default removes. Opt-in bases give the same convenience without the surprise: a
     test that wants a living mob names the base that makes one.
 
+- id: object-substitution-not-module-mocking
+  statement: |
+    the library substitutes fake objects passed into code under test; it does not replace or
+    intercept the `@minecraft/server` module import. Code that can only reach the engine
+    through a direct module import is outside its reach.
+  rationale: |
+    This is the consumer contract: pack helpers receive their world and entities as
+    parameters, and every consumer test is written against that assumption. A later
+    module-shim story would invalidate whole suites, so the stance is fiat rather than a
+    choice left open to a better argument.
+
+- id: target-server-version
+  statement: |
+    the library targets the stable `@minecraft/server` 2.x line, pinned at 2.8.0 and declared
+    as the peer range a consumer must satisfy; every derivation, guard list, and behaviour
+    reading is taken from the pinned version's declarations.
+  rationale: |
+    The pin advances with the stable line; it names the declarations all fidelity claims are
+    checked against, so a version bump re-runs the derivations rather than silently shifting
+    their meaning.
+
+- id: fakes-never-fabricate
+  statement: |
+    a fake never fabricates: a member whose behaviour has no fidelity reference, and a read
+    of state the test never supplied where the engine could not lack it, fail loudly with a
+    distinctive error rather than returning an invented value. Absence the engine can exhibit
+    is not fabrication, and reads back as the engine reports it.
+  rationale: |
+    A fabricated return is a false pass waiting to ship; a loud throw is a bug report. Making
+    this fiat keeps a future regeneration from trading loudness for convenience — the exact
+    trade the library exists to prevent.
+
 - id: no-shadowing-of-real-api
   statement: |
     a fake exposes no member that duplicates a real one; it adds only what the real surface

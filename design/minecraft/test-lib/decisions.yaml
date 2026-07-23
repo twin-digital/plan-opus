@@ -1,13 +1,6 @@
 # Decisions scoped to the minecraft/test-lib design.
 # Schema: id, statement, falsifiers, status (proposed|accepted|rejected, default proposed).
 
-- id: object-substitution-not-module-mocking
-  statement: the library substitutes fake objects passed into code under test; it does not
-    replace or intercept the `@minecraft/server` module import
-  falsifiers:
-    - consumer packs prove unable to make their helpers parameter-injectable, leaving direct
-      `world` imports as the only seam and forcing the library to ship a module-shim story
-
 - id: fakes-implement-real-types
   statement: fake classes are declared to structurally satisfy the real declared types, so a
     fake is assignable where the real type is expected, with no cast
@@ -44,13 +37,6 @@
   falsifiers:
     - either source is found to contradict actual engine behaviour, demoting documentation to
       a hint that requires in-engine verification
-
-- id: unverified-members-throw
-  statement: a member on a faked surface whose behaviour has no documented reference throws a
-    distinctive not-implemented error instead of returning a fabricated value
-  falsifiers:
-    - the throws fire so often on incidental reads that suites drown in stubs, showing the
-      surface was faked at the wrong granularity
 
 - id: canonical-prefixed-storage
   statement: every id-taking input accepts bare or prefixed ids, normalizes on entry, and
@@ -105,14 +91,6 @@
     - the first consumer pack's tests are found to need a different slice first
 
 # Round 1 cold-builder review — decisions closing the gaps it surfaced.
-
-- id: pinned-server-version
-  statement: the library targets `@minecraft/server` 2.8.0 — the version its facts were
-    established against — declared as the peer range a consumer must satisfy; every
-    derivation, guard list, and behaviour reading is taken from that version's declarations
-  falsifiers:
-    - the first consumer pack compiles against a different line (beta, or a later stable) and
-      the derived surface diverges
 
 - id: full-shape-with-stubs
   statement: a fake declares the complete public shape of its class — members outside the
@@ -182,14 +160,6 @@
   falsifiers:
     - a consumer needs a world without them, or with custom dimensions, making the fixed trio
       a constraint rather than a convenience
-
-- id: unstaged-state-throws
-  statement: reading state the test never supplied and whose absence the engine cannot
-    exhibit — a spawned entity's location or dimension — throws `NotImplementedError` naming
-    the missing spec field; absence the engine can exhibit reads back as the engine reports it
-  falsifiers:
-    - the throws prove frequent enough on incidental reads that requiring the fields at spawn,
-      or defaulting them, is the lesser evil
 
 # Round 2 cold-builder review — decisions closing the gaps it surfaced.
 

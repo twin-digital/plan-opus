@@ -21,7 +21,7 @@ There is no module to replace: `@minecraft/server` resolves to type declarations
 runtime entry point [[f:server-package-ships-types-only]]. The library therefore substitutes at
 object granularity — it constructs fake entities, worlds, and signals for the test to pass into
 the code under test, and takes no position on module aliasing or import interception
-[[d:object-substitution-not-module-mocking]]. Code that can only reach the engine through a
+[[r:object-substitution-not-module-mocking]]. Code that can only reach the engine through a
 direct module import is outside its reach; making helpers take their world and entities as
 parameters is the consumer's side of the contract.
 
@@ -33,11 +33,11 @@ then share one `Entity` type, and every read goes through the genuine API
 [[r:no-shadowing-of-real-api]]. Assignability admits nothing less than the full class shape,
 so a fake declares every public member, those outside the built surface present as
 not-implemented stubs — unfaked access throws rather than reading `undefined`
-[[d:full-shape-with-stubs]].
+[[d:full-shape-with-stubs]] [[r:fakes-never-fabricate]].
 
 The pinned version is `@minecraft/server` 2.8.0, declared as the peer range a consumer must
 satisfy; every derivation, guard list, and behaviour reading below is taken from that
-version's declarations [[d:pinned-server-version]]. And because the package's enums have
+version's declarations [[r:target-server-version]]. And because the package's enums have
 types but no values [[f:server-package-ships-types-only]], the library exports runtime
 mirrors of the enum values its surface needs, each type-checked against the declared enum so
 drift fails the build [[d:runtime-enum-mirrors]] — for the first surface,
@@ -81,13 +81,13 @@ types, which the spawn-spec type enforces at compile time
 [[d:absence-is-answerable-for-any-id]]. Effects replace unconditionally: `addEffect` on an
 effect already present overwrites its amplifier and duration [[d:effect-add-replaces]], and
 `Effect.displayName`, a localized string no fake can produce, stays a not-implemented stub
-[[d:unverified-members-throw]].
+[[r:fakes-never-fabricate]].
 
 The fidelity reference is the pinned version's own documentation: the TSDoc in the exact
 `.d.ts` the consumer compiles against, backed by the official script API docs
 [[d:tsdoc-is-fidelity-authority]]. Where both are silent the fake does not guess — a member
 whose behaviour is unverified throws a distinctive not-implemented error, trading a false pass
-for a visible gap [[d:unverified-members-throw]] [[r:faithful-to-observable-api]].
+for a visible gap [[r:fakes-never-fabricate]] [[r:faithful-to-observable-api]].
 
 ## Ids: accept both forms, store one
 
@@ -145,7 +145,7 @@ full value set — current, default, min, and max; no bound is derived from anot
 rarely write them out. State the spec never supplied stays loud rather than fabricated:
 reading what the engine could not lack — a spawned entity's location or dimension — throws
 `NotImplementedError` naming the missing field, while absence the engine can exhibit, like a
-missing component, reads back exactly as the engine reports it [[d:unstaged-state-throws]]
+missing component, reads back exactly as the engine reports it [[r:fakes-never-fabricate]]
 [[r:faithful-to-observable-api]].
 
 ## The control plane
