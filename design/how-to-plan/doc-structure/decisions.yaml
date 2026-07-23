@@ -116,7 +116,7 @@
 - id: status-derived-from-content
   statement: a design's state is computed from its artifacts — no spec.md is exploring; a
     spec.md with a proposed decision, an open question, or an uncited live design-scoped
-    requirement or accepted decision is draft; a design merged to main with none of those is
+    requirement or accepted-or-tolerated decision is draft; a design merged to main with none of those is
     settled
   status: accepted
   falsifiers:
@@ -141,8 +141,10 @@
 
 - id: defaults-are-omitted
   statement: every field with a sensible default is optional and omitted when it takes that
-    default
+    default, except a decision's status, which is always written even at proposed
   status: accepted
   falsifiers:
     - a default proves wrong often enough that omission reads as an oversight rather than
       an assertion
+    - the always-written decision status proves to be noise more often than it is edited, so
+      omitting proposed would read cleaner
