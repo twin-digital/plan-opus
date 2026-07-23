@@ -1,0 +1,64 @@
+- id: fakes-behave-not-record
+  statement: |
+    the doubles hold real state and mutate it as their methods are called; a test asserts on
+    the resulting state (an entity's current health, the effect it now carries) rather than on
+    which methods were invoked with which arguments.
+  rationale: |
+    - State assertions survive a refactor of *how* a helper achieves its effect; call-record
+      assertions break on it, pinning the implementation instead of the behaviour.
+    - This is the reason the library exists rather than a bag of `vi.fn()` spies.
+
+- id: no-test-framework-dependency
+  statement: |
+    the library depends on no test framework at runtime; the fakes are plain objects a caller
+    can wrap with their own spy library if they must, and they behave identically under any
+    runner.
+  rationale: |
+    A published double library that pulls in vitest (or jest, or node:test) forces that choice
+    on every consumer and every consumer's consumer. State assertions need no such dependency,
+    so nothing justifies incurring it.
+
+- id: faithful-to-observable-api
+  statement: |
+    a fake reproduces the observable behaviour of the real `@minecraft/server` object it
+    stands in for, including quirks a naive double would smooth over — namespace-optional ids,
+    methods whose return value encodes success or failure, and values that read back exactly as
+    the engine would report them.
+  rationale: |
+    A double is only worth trusting to the extent a test passing against it predicts the same
+    code passing against the engine. Every unfaithful convenience is a false pass waiting to
+    ship.
+
+- id: invalidation-is-modeled
+  statement: |
+    a fake can be put into the unloaded/invalid state in which the real API leaves a stale
+    reference — member access throws, per the engine's actual (non-uniform) behaviour — and
+    the transition can happen mid-test on a reference a test already holds.
+  rationale: |
+    Behaviour-pack code runs inside event handlers, and the hit that fires an event is
+    routinely the hit that unloaded the entity; the try/catch guarding every such helper is
+    untestable without this. It is the single quirk that most distinguishes the library from a
+    hand-rolled double, and the hardest to get right, so it stands as its own invariant rather
+    than folding into [[r:faithful-to-observable-api]].
+
+- id: no-implicit-defaults
+  statement: |
+    constructing a fake adds nothing the caller did not ask for — a bare entity has no
+    components — but reusable default bases may be provided and opted into explicitly, and
+    composed. Absence is the default; a populated starting point is a choice the test makes.
+  rationale: |
+    An implicit default (every entity has 20 health) privileges one shape, hides state a test
+    depends on inside the constructor, and reintroduces the "cancel the default" idiom that
+    absence-by-default removes. Opt-in bases give the same convenience without the surprise: a
+    test that wants a living mob names the base that makes one.
+
+- id: no-shadowing-of-real-api
+  statement: |
+    a fake exposes no member that duplicates a real one; it adds only what the real surface
+    cannot express, and every read a test needs goes through the genuine API (or a
+    free-function selector over it) so nothing on the fake competes with the real access path.
+  rationale: |
+    A fake-only shortcut that mirrors a real getter drifts from it, and teaches a test an
+    access pattern that does not exist against the engine. Every candidate shortcut examined so
+    far turned out to be derivable from the real surface, so the bar is: add a member only when
+    it is provably inexpressible otherwise.
