@@ -20,8 +20,9 @@
       - a statement detailing the fact
       - how the fact was verified, confirmed, derived, etc. (directly tested, read from documentation, assumed via experience, etc.);
         different mechanisms may not all carry equal weight
-      - whether the fact holds or has been disproven/superseded, and if superseded, which
-        fact replaced it
+      - a status of active or retired (default active); a retired fact names why it was
+        retired — superseded (a better fact replaced it, which it names), disproven (shown
+        false), or stale (its evidence no longer holds up)
       - an optional caveat: why this fact might not hold despite its backing — an argument
         from absence, a single source, evidence gathered by the person it suits
       - sources, which may be either:
@@ -84,6 +85,17 @@
     and authoring. "Resolves to exactly one entry" carries the weight: a pointer that needs
     interpretation cannot be checked.
 
+- id: citable-entries-are-foundations
+  statement: |
+    only the three foundation kinds — facts, requirements, and decisions — may be cited by a
+    claim, and each lives in a YAML file: facts and requirements under inputs/ or a wider
+    scope, decisions in a decisions.yaml beside the design document. Components and open
+    questions live in the document but are never cited
+  rationale: |
+    Citing only foundations keeps a citation meaning "this rests on something settled", and
+    keeping every citable kind in a YAML file means every citation resolves the same way —
+    to an entry in a file — rather than some pointing into the prose and some out of it.
+
 - id: three-tier-scopes
   statement: |
     exactly three scopes hold foundations — global, area, and design — each a directory
@@ -95,9 +107,10 @@
 
 - id: inputs-outputs-split
   statement: |
-    a design directory separates inputs/ from the document beside it. Facts and requirements
-    live only under inputs/ or a wider scope; decisions, components, and open questions live
-    only in the document
+    a design directory separates its durable inputs from its regenerable outputs. Facts and
+    requirements are inputs and live only under inputs/ or a wider scope; decisions,
+    components, and open questions are outputs, produced by the design and never in inputs/,
+    whether written into the design document or a sibling file it owns
 
 - id: ids-unique-per-kind
   statement: |
@@ -147,7 +160,16 @@
   statement: |
     every live foundation is cited from within its own scope — a design-scoped entry by its
     own design, an area-scoped entry by at least one design in that area. Global entries,
-    entries of a design still exploring, and superseded or retired entries are exempt
+    entries of a design still exploring, and retired entries are exempt
   rationale: |
     An entry nothing points at is either orphaned research or a dependency the design never
     admitted. The exemptions cover the cases where nothing could point at it yet.
+
+- id: soft-departures-are-decisions
+  statement: |
+    a design that departs from a soft requirement records the departure as a decision citing
+    that requirement; the requirement is not amended and carries no exception field
+  rationale: |
+    Bending a soft requirement is a design choice with a reason and a falsifier — exactly a
+    decision — so it belongs with the design's other reasoning, not annotated onto the fiat.
+

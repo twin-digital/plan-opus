@@ -58,8 +58,11 @@ requirements, or decisions.
 
 ## What to produce
 
-A single self-contained markdown file at
-`design/how-to-plan/doc-structure/design.candidate.md`. Nothing else.
+The design's outputs: `design.md` (prose and citations) and, beside it, `decisions.yaml`
+(the decisions the argument cites). Facts and requirements are inputs — never write them.
+Components and open questions live in `design.md`; decisions live only in `decisions.yaml`.
+When testing a regeneration against an existing design, write to `design.candidate.md` and a
+`decisions.candidate.yaml` rather than overwriting the originals.
 
 **How that document is organised is your decision, not mine.** Its structure, how the
 decisions and unknowns are recorded, how a claim points at what it rests on — all of that is

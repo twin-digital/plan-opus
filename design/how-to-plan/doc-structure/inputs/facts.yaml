@@ -24,3 +24,14 @@
         The main sanitization allowlist. Only these elements and attributes are
         allowed through by default.
       checked: 2026-07-22
+
+- id: fence-info-string-is-raw-text
+  claim: a fenced block's info string is literal text on the opening fence line in the raw markdown, so any tool reading the source can identify the block by it regardless of how a renderer displays the block
+  backing: documented
+  sources:
+    - url: https://spec.commonmark.org/0.31.2/
+      where: §4.5 Fenced code blocks — definition of the info string
+      quote: |
+        The line with the opening code fence may optionally contain some text following the
+        code fence; this is trimmed of leading and trailing spaces or tabs and called the
+        info string.

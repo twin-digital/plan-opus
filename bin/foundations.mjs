@@ -4,7 +4,7 @@
 //   node bin/foundations.mjs <design>            e.g. doc-structure, how-to-plan/harness
 //   node bin/foundations.mjs <design> --full     include rationale, caveats and sources
 //
-// Superseded, stale, and retired entries are omitted: they are kept in the files so their
+// Retired entries are omitted: they are kept in the files so their
 // history survives, but they are not something a design may stand on.
 import fs from "fs";
 import path from "path";
@@ -33,7 +33,7 @@ if (matches.length !== 1) {
 }
 const target = matches[0];
 
-const DEAD = ["superseded", "stale", "retired"];
+const DEAD = ["retired", "rejected"];  // two-state: a retired fact/req or a rejected decision
 const read = (file) => {
   if (!fs.existsSync(file)) return [];
   return (YAML.parse(fs.readFileSync(file, "utf8")) ?? []).filter((e) => !DEAD.includes(e.status));
@@ -53,8 +53,7 @@ const quote = (s, prefix = "") => {
 
 const out = [];
 out.push(`# Foundations in scope — ${target.area}/${target.name}`, "");
-out.push(`Everything this design may cite, nearest scope first. Superseded, stale, and`,
-         `retired entries are omitted.`, "");
+out.push(`Everything this design may cite, nearest scope first. Retired entries are omitted.`, "");
 
 let totals = { req: 0, fact: 0 };
 for (const [kind, file, heading] of [["req", "requirements.yaml", "Requirements"],
