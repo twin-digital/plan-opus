@@ -6,20 +6,10 @@ This design fixes the artifact: where a design's material sits on disk, what a `
 contains and in what order, what shape each entry takes, and what a citation token points at.
 It specifies what the format can express.
 
-## Open questions
-
-Placed up front, next to the decision list in `decisions.yaml`, so a reviewer can scan both
-before reading the argument and raise anything that would invalidate the rest of the document
-early [[d:fixed-outer-sections]]. None are open.
-
-```yaml
-questions: []
-```
-
 ## Three kinds and nothing else
 
-A design here stands on facts, requirements, and decisions, and the split is load-bearing
-rather than taxonomic [[r:foundations-are-expressible]] [[r:easily-reviewable-foundations]].
+A design here stands on facts, requirements, and decisions, and the split does real work
+rather than merely sorting entries into bins [[r:foundations-are-expressible]] [[r:easily-reviewable-foundations]].
 Each kind yields to something different: a fact yields to evidence, a requirement yields to
 the owner, and a decision yields to a better argument from anyone working the design
 [[r:foundations-enter-settled]] [[r:decisions-belong-to-their-design]]. That is why they
@@ -111,21 +101,22 @@ appearance, and every structural signal has to survive as plain text
 [[d:structure-in-plain-text]]. Fences and bracket tokens are what is left, and both render
 identically in a terminal, a diff, and a browser.
 
-Required sections of `design.md`, in order [[d:fixed-outer-sections]]:
+Sections of `design.md`, in order [[d:fixed-outer-sections]]:
 
 | # | heading | contents |
 |---|---|---|
 | 1 | `# <design name>` | H1, once |
 | 2 | `## Summary` | a paragraph or two, no citations |
-| 3 | `## Open questions` | the `questions` block |
+| 3 | `## Open questions` | the `questions` block — present only when the design has open questions |
 | — | any H2 sections | the argument; the only place citations appear |
-| n | `## Components` | the `components` block |
+| n | `## Components` | the `components` block — present only when the design has components |
 
-Open questions sit at the top, right beside the decision list in `decisions.yaml`
-[[d:fixed-outer-sections]]. A reviewer reading for a wrong foundation wants the short lists
-first and the prose as supporting material, which is the same reason the lists exist at all
-[[r:easily-reviewable-foundations]]; questions in particular can invalidate the rest of the
-document, so they belong where they are seen before the argument is read, not after.
+Open questions and Components are omitted when the design has none, so a settled design — which
+has no open questions by definition — carries neither, and a `design.md` narrows to Summary and
+the argument. When a design does have open questions, that section sits just after the Summary
+[[d:fixed-outer-sections]], so the questions and the `decisions.yaml` list can be taken in
+before the argument is read and anything that would invalidate it flagged early — the same
+reason the lists exist at all [[r:easily-reviewable-foundations]].
 
 Each in-document block is a fenced YAML mapping with one top-level key — `components` or
 `questions` — and exactly one block per kind per document
@@ -228,7 +219,8 @@ decision either stands forever or gets overturned on taste. Whether a written fa
 real one is a question of content, and belongs to authoring.
 
 **Components** [[r:component-structure]] — `id`, `responsibility` (one line); optional
-`excludes` and `after`.
+`excludes` and `after`. A component is a unit of implementation the design commits to — sized
+to be built and reviewed on its own.
 
 `excludes` names the nearby responsibility the component deliberately does not hold, which is
 the cheapest possible statement of a boundary — boundaries are only visible from their far
@@ -292,14 +284,16 @@ than stored beside them [[r:design-status-enum]] [[d:status-derived-from-content
 | state | condition |
 |---|---|
 | exploring | no `design.md` |
-| draft | a proposed decision in `decisions.yaml`, or an open question in `design.md` |
-| settled | `design.md` present, no open questions, no proposed decisions |
+| draft | a `design.md` exists but the design is not yet settled |
+| settled | the design is merged to `main` with no open questions and no proposed decisions |
 
 A stored status is a claim about the artifacts that can be wrong; a derived one cannot drift.
-The rule falls almost entirely out of the area's constraint that a design cannot be settled
-while it holds an open question or an unaccepted decision
-[[r:only-settled-work-licenses-building]] — that requirement names precisely the two
-conditions, so the state is exactly the absence of both.
+The two content conditions fall almost entirely out of the area's constraint that a design
+cannot be settled while it holds an open question or an unaccepted decision
+[[r:only-settled-work-licenses-building]] — that requirement names precisely them. The third,
+being merged to `main`, is what separates a design that *could* settle from one that has: an
+unmerged branch meeting the content conditions is ready to settle but not settled, and naming
+that intermediate state belongs to process, not here.
 
 Rejected decisions do not block settling and need no citation [[d:rejected-decisions-are-closed]].
 A rejected decision is not held by the design; it is a record that the option was considered,
@@ -318,8 +312,8 @@ fires on exactly that. Global entries, entries of a design still exploring, and 
 entries are exempt, which covers every case where nothing could point at the entry yet.
 
 Reachability pushes toward citing more and [[r:explicit-intent]] pushes toward citing only
-load-bearing claims. They meet at the argument: if a decision cannot be reached without
-attaching a citation to filler, the decision is not doing any work.
+the claims that actually rest on something. They meet at the argument: if a decision cannot be
+reached without attaching a citation to filler, the decision is not doing any work.
 
 ## Invariants
 
@@ -337,13 +331,13 @@ decides what enforces them [[r:invariants-are-enforced-or-marked]].
 | 7 | Every fact has at least one source, each source has exactly one locator form, every in-repo `url` is repo-root-relative, and every `quote` is a block scalar. | checkable |
 | 8 | A retired fact names a reason; one retired as superseded names an existing, different fact as its replacement, with no cycles. | checkable |
 | 9 | Every decision lists at least one falsifier. | checkable |
-| 10 | A `design.md` has its required sections in order, with exactly one `components` block and one `questions` block. | checkable |
+| 10 | A `design.md` has Summary and the argument in order; the Open questions and Components sections appear at most once each, in position, and only with a non-empty block. | checkable |
 | 11 | Every citation token is well formed and resolves to exactly one entry. | checkable |
 | 12 | No citation resolves to a question, a component, a rejected decision, a retired requirement, or a retired fact. | checkable |
 | 13 | A `[[d:...]]` resolves within its own design; a `gates` entry names a decision in the same design. | checkable |
 | 14 | Every live foundation is cited from within its own scope, exemptions aside. | checkable |
 | 15 | Every citation belongs to a claim that would have to change were its target false. | **none** — the test is semantic |
-| 16 | A design's state equals the derivation above. | checkable |
+| 16 | A design's state equals the derivation above (settled reads the presence of the design on `main`). | checkable |
 
 Two rules have no mechanical backstop, and both are the same kind of thing: a judgement about
 meaning rather than form. Rule 9 is checkable only as presence — whether a falsifier is a real
@@ -351,40 +345,3 @@ one is authoring's problem, and so is the content half of rule 15. If a third un
 appears, the format has outrun what can be checked and should lose a rule rather than gain a
 convention.
 
-## Components
-
-```yaml
-components:
-  - id: tree-layout
-    responsibility: where scopes, designs, inputs, and the output files sit on disk
-    excludes: which of those files an author must write, and when
-
-  - id: entry-schemas
-    responsibility: the fields, types, and defaults of each of the five entry kinds
-    excludes: whether the value in a field is true, honest, or useful
-
-  - id: document-skeleton
-    responsibility: the required sections of a design.md, their order, the fenced blocks,
-      and the decisions.yaml beside it
-    excludes: how the argument between those sections is written
-    after: [entry-schemas]
-
-  - id: citation-grammar
-    responsibility: the token form and which kinds may be cited
-    excludes: which claims are obliged to carry one
-
-  - id: reference-resolver
-    responsibility: turning a token into exactly one live entry, or into a named error
-    after: [tree-layout, entry-schemas, citation-grammar]
-
-  - id: status-derivation
-    responsibility: computing exploring, draft, or settled from a design directory
-    excludes: which transitions are permitted and who may make them
-    after: [document-skeleton]
-
-  - id: invariant-set
-    responsibility: the checkable statement of every rule above, and the mark on the two that
-      cannot be checked
-    after: [tree-layout, entry-schemas, document-skeleton, citation-grammar,
-            reference-resolver, status-derivation]
-```

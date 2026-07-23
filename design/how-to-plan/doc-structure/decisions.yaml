@@ -26,14 +26,14 @@
     - the extra indentation measurably hurts entry legibility in review
 
 - id: fixed-outer-sections
-  statement: a design.md opens with Summary then Open questions and closes with Components,
-    with the argument free-form in between; decisions sit in decisions.yaml, not in the
-    document
+  statement: a design.md opens with Summary then the argument; an Open questions section
+    (just after Summary) and a Components section (at the end) appear only when the design has
+    entries of that kind; decisions sit in decisions.yaml, not in the document
   status: accepted
   falsifiers:
     - reviewers consistently read the argument before the open-question and decision lists,
-      making the order an obstacle rather than an aid
-    - a design needs a required section this order has no slot for
+      making the up-front order an obstacle rather than an aid
+    - a kind of section this layout has no slot for turns out to be required
 
 - id: decisions-precede-the-argument
   statement: the decision list is placed before the prose that argues for it
@@ -114,13 +114,13 @@
       than being a restatement of a requirement
 
 - id: status-derived-from-content
-  statement: a design's state is computed from its own artifacts — no design.md is
-    exploring, a proposed decision in decisions.yaml or an open question in design.md means
-    draft, and anything else is settled
+  statement: a design's state is computed from its artifacts — no design.md is exploring; a
+    design.md with a proposed decision or an open question is draft; a design merged to main
+    with neither is settled
   status: accepted
   falsifiers:
-    - a design needs to be held out of settled for a reason that leaves no trace in its own
-      artifacts
+    - a design needs to be held out of settled for a reason that leaves no trace in its
+      artifacts or its merge state
     - the owner wants a design settled while an open question stands
 
 - id: rejected-decisions-are-closed

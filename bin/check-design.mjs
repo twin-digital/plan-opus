@@ -133,8 +133,8 @@ for (const d of designs) {
   }
   const questions = Array.isArray(blocks.questions) ? blocks.questions : [];
   const components = Array.isArray(blocks.components) ? blocks.components : [];
-  if (!("questions" in blocks)) add("missing questions block", tag);   // rule 10
-  if (!("components" in blocks)) add("missing components block", tag); // rule 10
+  if ("questions" in blocks && questions.length === 0) add("empty questions block", tag);   // rule 10 — omit the section when empty
+  if ("components" in blocks && components.length === 0) add("empty components block", tag); // rule 10 — omit the section when empty
 
   for (const c of components) {
     if (!c.id) { add("component missing id", tag); continue; }
@@ -191,7 +191,7 @@ const ORDER = [
   "decision without a falsifier", "requirement with sources", "rationale not a block scalar",
   "fact without a source", "source has both url and description", "source has no locator",
   "url without where", "in-repo url not repo-root-relative", "quote not a block scalar",
-  "default stated explicitly", "missing questions block", "missing components block",
+  "default stated explicitly", "empty questions block", "empty components block",
   "component missing id", "component missing responsibility", "component after unresolved",
   "question missing id", "question missing text", "question closes bad kind",
   "question gates non-local decision", "malformed citation token", "citation unresolved",
