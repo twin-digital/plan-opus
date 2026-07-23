@@ -22,7 +22,7 @@ The three kinds also differ in where they may appear, and that is what makes the
 real rather than declared. Facts and requirements arrive as inputs and sit in files a design
 does not write; decisions, components, and open questions are products and sit on the output
 side of the design [[r:inputs-outputs-split]]. An agent working inside `spec.md` therefore
-cannot edit a requirement in the course of arguing with it — not because it is forbidden in
+cannot edit a requirement in the course of working against it — not because it is forbidden in
 prose, but because the requirement is not in the file it is editing.
 
 Nothing about this makes an entry good. A fact with a fabricated source and a decision with a
@@ -99,14 +99,14 @@ Sections of `spec.md`, in order [[d:fixed-outer-sections]]:
 | 1 | `# <design name>` | H1, once |
 | 2 | `## Summary` | a paragraph or two, no citations |
 | 3 | `## Open questions` | the `questions` block — present only when the design has open questions |
-| — | any H2 sections | the argument; the only place citations appear |
+| — | any H2 sections | the specification; the only place citations appear |
 | n | `## Components` | the `components` block — present only when the design has components |
 
 Open questions and Components are omitted when the design has none, so a settled design — which
 has no open questions by definition — carries neither, and a `spec.md` narrows to Summary and
-the argument. When a design does have open questions, that section sits just after the Summary
+the specification. When a design does have open questions, that section sits just after the Summary
 [[d:fixed-outer-sections]], so the questions and the `decisions.yaml` list can be taken in
-before the argument is read and anything that would invalidate it flagged early — the same
+before the specification is read and anything that would invalidate it flagged early — the same
 reason the lists exist at all [[r:easily-reviewable-foundations]].
 
 Each in-document block is a fenced YAML mapping with one top-level key — `components` or
@@ -201,7 +201,7 @@ decision, and it belongs with the design's other reasoning.
 [[r:citable-entries-are-foundations]].
 
 The statement is one line naming the choice, not the reasoning and not the consequences —
-those are the argument's job, and a decision list where each entry is a paragraph is a second
+those are the specification's job, and a decision list where each entry is a paragraph is a second
 copy of the design rather than an index into it. A new decision is written `proposed` — an agent
 produces proposals — and unlike other defaulted fields the `status` line is always present, never
 omitted, because that value has to change for the design to settle and the line is where a
@@ -356,9 +356,9 @@ would force a design to delete its own history in order to settle.
 Which transitions are legal and who performs them is process's, not this design's. What the
 format guarantees is that the answer is a function of the tree.
 
-The citation gate is the condition with teeth, and it is what forces the argument to actually
-be the argument. A settled design must cite every live design-scoped requirement and every
-accepted or tolerated decision it holds; an uncited one keeps the design in draft
+The citation gate is the condition with teeth, and it is what forces the specification to
+actually rest on the foundations it keeps. A settled design must cite every live design-scoped
+requirement and every accepted or tolerated decision it holds; an uncited one keeps the design in draft
 [[r:settled-design-cites-what-it-keeps]]. A requirement the design never invokes was ignored or
 misfiled, and a decision no claim rests on is a decision the design does not need. Facts carry
 no such obligation, nor do requirements at a wider scope: an uncited fact is available knowledge
@@ -368,7 +368,7 @@ design used what it kept.
 
 The gate meets [[r:explicit-intent]] from the far side. Explicit intent pushes toward citing
 only the claims that rest on something; the gate pushes toward leaving no kept requirement or
-decision uncited. They meet at the argument: if a requirement or decision cannot be reached
+decision uncited. They meet in the specification: if a requirement or decision cannot be reached
 without pinning a citation to filler, it was not doing any work.
 
 ## Invariants
@@ -387,7 +387,7 @@ decides what enforces them [[r:invariants-are-enforced-or-marked]].
 | 7 | Every fact has at least one source, each source has exactly one locator form, every in-repo `url` is repo-root-relative, and every verbatim free-text field — a source `quote`, and a requirement's `rationale` when present — is a block scalar. | checkable |
 | 8 | A retired fact names a reason; one retired as superseded names an existing, different fact as its replacement, with no cycles. | checkable |
 | 9 | Every decision lists at least one falsifier. | checkable |
-| 10 | A `spec.md` has Summary and the argument in order; the Open questions and Components sections appear at most once each, in position, and only with a non-empty block. | checkable |
+| 10 | A `spec.md` has Summary and the specification in order; the Open questions and Components sections appear at most once each, in position, and only with a non-empty block. | checkable |
 | 11 | Every citation token is well formed and resolves to exactly one entry. | checkable |
 | 12 | No citation resolves to a question, a component, a rejected decision, a retired requirement, or a retired fact. | checkable |
 | 13 | A `[[d:...]]` resolves within its own design; a `gates` entry names a decision in the same design. | checkable |
