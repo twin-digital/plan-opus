@@ -46,6 +46,7 @@ design/
       facts.yaml
       decisions.yaml
       spec.md
+      artifacts/             optional; design-specific files, not foundations
 ```
 
 An area is a directory directly under `design/`; a design is a directory directly under an
@@ -60,6 +61,12 @@ the inputs; `spec.md` and its `decisions.yaml` are the outputs, and they are the
 a rebuild removes and rewrites. Naming the outputs keeps the regeneration instruction stable:
 *read the design's inputs, write the two outputs* stays correct as the inputs grow, where a list
 of filenames in a prompt would be one more hand-maintained rollup that rots.
+
+A design may also carry an optional `artifacts/` directory for design-specific supporting files —
+test evidence a fact's source points at, a generated bundle, or a payload some requirement
+references. Its layout is the design's own; nothing under `artifacts/` is a foundation, so nothing
+there is cited with a `[[…]]` token. It is neither input nor output in the regeneration sense: a
+rebuild leaves it alone unless the design says otherwise.
 
 `brief.md` is owner prose stating what the design is for and where its edges are. It is
 optional: a design whose subject is fully pinned down by its requirements needs no brief, and
@@ -379,7 +386,7 @@ decides what enforces them [[r:invariants-are-enforced-or-marked]].
 | # | invariant | backstop |
 |---|---|---|
 | 1 | An area sits directly under `design/`, a design directly under an area, and neither nests further. | checkable |
-| 2 | A design directory holds at most `brief.md`, `requirements.yaml`, `facts.yaml`, one `decisions.yaml`, and one `spec.md`. | checkable |
+| 2 | A design directory holds at most `brief.md`, `requirements.yaml`, `facts.yaml`, one `decisions.yaml`, one `spec.md`, and an optional `artifacts/` directory of design-specific files. | checkable |
 | 3 | Facts and requirements appear only in scope YAML files; decisions only in `decisions.yaml`; components and questions only in a `spec.md`. | checkable |
 | 4 | Every entry has a kebab-case `id`, unique within its kind across the repository. | checkable |
 | 5 | An entry whose meaning changes takes a new id. | **none** — a rename and a replacement are the same diff |
