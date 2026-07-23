@@ -80,18 +80,10 @@ promotes on the argument that it feels general; it promotes when a second design
 ## The document
 
 The design's output is two files: `decisions.yaml` and the `spec.md` beside it. Decisions
-live in their own file [[r:citable-entries-are-foundations]], which also keeps `spec.md`
-readable to an audience arriving long after the choices were litigated — once a design is
-settled, its argument is what people return to, and a settled decision list is reference
-material, not part of the read. The two files share one lifecycle: they are written together,
-thrown away together, and regenerated together.
-
-Everything else is `spec.md`: markdown with fenced YAML blocks inside it
-[[d:yaml-entries-markdown-prose]]. That split is a bet, not a settled result: prose is what a
-person reviews and YAML is what a machine reads, and the format asks the author to write both
-rather than choosing. The cost is real — an entry's statement often repeats a sentence of the
-argument — and the alternative of pure prose with tagged sentences would halve the writing at
-the price of every mechanical check below.
+live in their own file [[r:citable-entries-are-foundations]], which keeps `spec.md` clean as
+the document a builder actually builds from — a settled decision list is a crib extracted
+alongside it, not part of the build read. The two files share one lifecycle: they are written
+together, thrown away together, and regenerated together. Everything else is `spec.md`: markdown with fenced YAML blocks inside it [[d:yaml-entries-markdown-prose]].
 
 GitHub is where these documents are read, and it strips `style` attributes and `<style>`
 elements when rendering markdown [[f:no-inline-styles-in-gfm]]. So there is no styling route

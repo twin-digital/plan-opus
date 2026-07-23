@@ -81,18 +81,15 @@
 
 - id: derived-implementer-view
   statement: |
-    the artifact handed to a spec's implementers is a view mechanically derived from the spec,
-    not authored or stored beside it. It carries the components, the statements of the accepted
-    decisions, and the statements of the requirements the spec is bound by — citation-free, and
-    without the justification layer: no facts, no falsifiers, no rationale, no argument prose
+    the artifact a spec's implementers build from is derived from the spec, not authored
+    separately: the spec.md itself with its inline citation tokens stripped, augmented by a
+    streamlined extraction of the decisions and requirements the spec is bound by. The spec's
+    prose is the primary source — it tells the builder what to build and how; the extraction is
+    a crib for the key commitments, and the facts and citation tokens are left out
   rationale: |
-    Implementers receive only this view, never the spec's inputs, so it must stand alone — but
-    standing alone is not carrying everything. The area's context-cost facts say more is not
-    free: irrelevant or excess material degrades an implementing model, relevance beats volume,
-    and under-supplying hurts too. So the view is complete on what to build and the constraints
-    it must honour, and silent on why. It is derived, not hand-authored, because a second copy
-    maintained by hand drifts from its spec. The build-facing entries carry no citations to
-    begin with — tokens live only in the argument — so dropping the argument makes the view
-    citation-free without a stripping pass. Whether any of the justification layer would help
-    an implementer is unsettled, so the whole layer stays out until evidence says otherwise.
-
+    The spec is the primary build document, so the builder reads it in full — minus the citation 
+    tokens, which point at sources the builder does not have and exist only to check that 
+    foundations were incorporated. The decisions and requirements are
+    also pulled into a streamlined list. Facts stay out — they
+    are the evidence behind the claims, a review concern, not a build input. The view is derived
+    rather than hand-authored so it cannot drift from its spec.

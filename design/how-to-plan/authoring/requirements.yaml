@@ -16,14 +16,28 @@
 
 - id: evidence-is-verbatim
   statement: |
-    evidence is reproduced, never summarized — a fact's source carries the verbatim passage
-    its claim rests on, and anything offered in support of a claim anywhere else is a
-    quotation rather than a paraphrase
+    evidence quoted from a source outside the author is reproduced, never summarized — a fact
+    backed by such a source carries the verbatim passage its claim rests on, and any support
+    drawn from it is a quotation rather than a paraphrase. An assumed fact, backed by the
+    author's own experience, instead carries a description of its mechanism
   rationale: |
     A paraphrase is the agent's voice, which is the exact thing a citation is supposed to
     guard against. A verbatim span is not in anyone's voice and is checkable at a glance. It
     also beats a summary at the practical job: a bare link to a long page proves nothing,
-    because re-verifying means re-reading the page.
+    because re-verifying means re-reading the page. The rule is a forcing function, not
+    bookkeeping — being made to produce the passage helps resist hallucinations or overstating
+    what a source actually says.
 
-    The rule is a forcing function, not bookkeeping. Being made to produce the passage
-    helps resist hallucinations or overstating what a source actually says.
+- id: answerable-unknowns-are-resolved-now
+  statement: |
+    a design does not defer an unknown it could resolve now. If an unknown can be settled at
+    authoring time — by finding the fact, deciding it, or raising it as an open question to the
+    owner — it is settled then, not parked as an assumed fact or a decision's falsifier. Those
+    carry only the unknowns that genuinely cannot be resolved yet
+  rationale: |
+    Deferral is the easy dodge: an assumption or a falsifier can make an open question look
+    handled when it was only postponed. An open question is itself a resolve-now tool — an
+    implicit ask to the owner that a design cannot settle around — so raising one is a form of
+    answering now, not deferring. Only what genuinely cannot be settled at authoring time earns
+    a falsifier (the decision stands now, a named later event reopens it) or an assumed fact
+    (the design must rest on it and it cannot be cheaply verified).
