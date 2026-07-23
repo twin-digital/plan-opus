@@ -190,3 +190,90 @@
   falsifiers:
     - the throws prove frequent enough on incidental reads that requiring the fields at spawn,
       or defaulting them, is the lesser evil
+
+# Round 2 cold-builder review — decisions closing the gaps it surfaced.
+
+- id: damage-event-dispatch-order
+  statement: applyDamage dispatches entityHurt, then entityHealthChanged, then entityDie;
+    entityHealthChanged fires only when the value changed; the fired damageSource carries the
+    caller's options, with cause `none` when no options were given
+  falsifiers:
+    - in-engine verification shows a different delivery order or default cause
+
+- id: health-writes-fire-health-changed
+  statement: every modeled write that changes current health — applyDamage, setCurrentValue,
+    the reset methods — fires entityHealthChanged; the event is keyed to the change, not the
+    path that made it
+  falsifiers:
+    - in-engine verification shows non-damage health writes firing nothing
+
+- id: death-does-not-auto-invalidate
+  statement: a behaving death — health reaching its minimum — fires entityDie and leaves the
+    reference valid; despawn timing is not modeled, and a test that wants the dead entity
+    gone calls invalidate itself
+  falsifiers:
+    - in-engine verification shows references already invalid when entityDie handlers run
+
+- id: remove-and-kill-behave
+  statement: remove() invalidates the record and fires no death event; kill() drives health
+    to its minimum and the death cascade with it, leaving the reference valid
+  falsifiers:
+    - in-engine verification shows different event or invalidation behaviour for either
+
+- id: ids-auto-assigned-typeid-required
+  statement: spawnFake requires a typeId and assigns each entity a unique opaque id,
+    overridable in the spec — in the engine, too, the spawner never chooses the id
+  falsifiers:
+    - a consumer suite asserts on engine-shaped ids in a way the synthetic scheme fails to
+      satisfy
+
+- id: absence-is-answerable-for-any-id
+  statement: getComponent returns undefined and hasComponent false for every component id an
+    entity lacks, modeled or not; presence is expressible only for modeled types, which the
+    spawn-spec type enforces at compile time
+  falsifiers:
+    - a consumer false pass is traced to undefined standing in for a component the engine
+      would have supplied, showing loudness should beat faithful absence here
+
+- id: validity-guard-runs-first
+  statement: on a member carrying both guards, validity is checked before staging — an
+    invalid entity throws InvalidEntityError even where unstaged state would throw
+    NotImplementedError
+  falsifiers:
+    - staging-first diagnostics prove materially better at pointing a failing test at its
+      actual mistake
+
+- id: generic-throws-members-follow-owner
+  statement: attribute members whose `@throws` names no error are guarded like the
+    InvalidEntityError-annotated ones — they throw when their owner is invalid
+  falsifiers:
+    - in-engine verification shows a generic-`@throws` member that keeps answering on an
+      invalid owner
+
+- id: first-surface-world-members
+  statement: the behaving world surface is world.getDimension, world.getEntity, and
+    dimension.getEntities without filter options; a spawned entity joins its staged
+    dimension's entity set, and passing query options throws NotImplementedError
+  falsifiers:
+    - the first consumer pack reaches entities through members outside this list
+
+- id: enum-mirrors-named-as-declared
+  statement: the first surface mirrors EntityComponentTypes and EntityDamageCause, exported
+    as const objects named exactly as the declared enums with identical keys and values
+  falsifiers:
+    - the first consumer needs values from enums outside the pair
+    - sharing the declared name between mirror value and imported type proves confusing
+      enough to warrant a distinct convention
+
+- id: no-tick-clock
+  statement: the fake world has no clock; nothing time-dependent advances, and an effect's
+    duration reads exactly as staged or set
+  falsifiers:
+    - consumer tests need duration progression, warranting an explicit control-plane tick
+
+- id: effect-add-replaces
+  statement: addEffect on an effect already present replaces its amplifier and duration
+    unconditionally
+  falsifiers:
+    - the engine's replacement rule is verified to be conditional and a consumer test can
+      observe the difference

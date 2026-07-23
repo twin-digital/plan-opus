@@ -40,7 +40,9 @@ satisfy; every derivation, guard list, and behaviour reading below is taken from
 version's declarations [[d:pinned-server-version]]. And because the package's enums have
 types but no values [[f:server-package-ships-types-only]], the library exports runtime
 mirrors of the enum values its surface needs, each type-checked against the declared enum so
-drift fails the build [[d:runtime-enum-mirrors]].
+drift fails the build [[d:runtime-enum-mirrors]] — for the first surface,
+`EntityComponentTypes` and `EntityDamageCause`, exported as const objects named exactly as
+the declared enums [[d:enum-mirrors-named-as-declared]].
 
 The published package has no runtime dependencies [[d:zero-runtime-dependencies]]:
 `@minecraft/server` contributes only types, and no test framework is required or referenced —
@@ -54,7 +56,8 @@ All fake state hangs off a world the test creates; the library keeps no module-l
 rather than a reset hook a framework would have to run [[r:no-test-framework-dependency]]. A
 created world carries the three vanilla dimensions, since a world without them is not a state
 the engine can exhibit [[r:faithful-to-observable-api]] [[d:worlds-carry-vanilla-dimensions]];
-everything else starts empty.
+everything else starts empty. The world has no clock: nothing time-dependent advances, and an
+effect's duration reads exactly as the test staged or set it [[d:no-tick-clock]].
 
 Entity and component fakes are thin handles over records the world owns
 [[d:entities-are-handles]]. Methods mutate the record, and every handle to the same entity
@@ -71,6 +74,14 @@ the real API encodes in return values are encoded the same way — `getComponent
 entity returns `undefined`, not a throw and not a default [[r:fakes-behave-not-record]]
 [[r:faithful-to-observable-api]]. Nothing records call arguments; a caller who wants spies
 wraps the fakes with their own library.
+
+Absence is answerable for every component id, modeled or not — `getComponent` returns
+`undefined` and `hasComponent` `false` — while presence is expressible only for modeled
+types, which the spawn-spec type enforces at compile time
+[[d:absence-is-answerable-for-any-id]]. Effects replace unconditionally: `addEffect` on an
+effect already present overwrites its amplifier and duration [[d:effect-add-replaces]], and
+`Effect.displayName`, a localized string no fake can produce, stays a not-implemented stub
+[[d:unverified-members-throw]].
 
 The fidelity reference is the pinned version's own documentation: the TSDoc in the exact
 `.d.ts` the consumer compiles against, backed by the official script API docs
@@ -99,13 +110,24 @@ and `nameTag` keep answering — `isValid` is the probe and does not throw — a
 handle follows its owner, its own `isValid` and `typeId` readable while `entity` throws
 [[f:invalidation-throws-non-uniformly]] [[d:per-member-guards]]. Reading the guard list off the
 same `@throws` annotations that document the behaviour copies the non-uniformity instead of
-approximating it [[r:faithful-to-observable-api]].
+approximating it [[r:faithful-to-observable-api]]. The derivation is mechanical: in the pinned
+declarations every Entity `@throws` names `InvalidEntityError`, and the six members without
+one — `id`, `typeId`, `isValid`, `nameTag`, `isSneaking`, `scoreboardIdentity` — carry no
+`@throws` at all [[f:invalidation-throws-are-mechanically-derivable]]. Attribute members whose
+`@throws` names no error are guarded the same way, an invalid owner being the only failure a
+fake can exhibit there [[d:generic-throws-members-follow-owner]]. Where a member carries both
+guards, validity is checked first: an invalid entity throws `InvalidEntityError` even where
+unstaged state would throw `NotImplementedError` [[d:validity-guard-runs-first]].
 
 What a guard throws is the library's own exported `InvalidEntityError`, matching the declared
 name and shape — extends `Error`, carrying the invalid entity's `id` and `type`
 [[f:invalid-entity-error-shape]] — because the package's class is types-only and cannot be
 imported at runtime [[d:library-defined-error-classes]]. The not-implemented throw is likewise
 the exported `NotImplementedError`, so a test can catch either by class.
+
+The real removal members behave: `remove()` invalidates the record and fires no death event;
+`kill()` drives health to its minimum and the death cascade with it, leaving the reference
+valid [[d:remove-and-kill-behave]].
 
 ## Construction: nothing unasked
 
@@ -114,8 +136,11 @@ A factory adds nothing the caller did not specify — a bare entity has no compo
 objects a test merges in explicitly (`spawnFake(world, { ...livingMob, typeId })`), composable
 because they are data [[d:bases-are-data]]. A factory never applies a base on its own.
 
-An attribute component in a spawn spec names its full value set — current, default, min, and
-max; no bound is derived from another [[d:attribute-init-is-explicit]]
+`spawnFake` requires a `typeId` and assigns each entity a unique opaque id, overridable in
+the spec — in the engine, too, the spawner never chooses the id
+[[d:ids-auto-assigned-typeid-required]]. An attribute component in a spawn spec names its
+full value set — current, default, min, and max; no bound is derived from another
+[[d:attribute-init-is-explicit]]
 [[r:no-implicit-defaults]] — and the shipped bases carry the vanilla-typical sets so tests
 rarely write them out. State the spec never supplied stays loud rather than fabricated:
 reading what the engine could not lack — a spawned entity's location or dimension — throws
@@ -139,7 +164,14 @@ sources. A behaving method synchronously dispatches the after-events its real co
 causes — `applyDamage` fires `entityHurt` and `entityHealthChanged`, health reaching its
 minimum fires `entityDie`; a cascade the fidelity sources leave unknown fires nothing, and
 the test stages it instead [[d:behaving-methods-fire-their-events]]
-[[r:faithful-to-observable-api]]. The control-plane emit covers events whose engine-side
+[[r:faithful-to-observable-api]]. Dispatch order is fixed — `entityHurt`, then
+`entityHealthChanged`, then `entityDie` — `entityHealthChanged` fires only on an actual
+change, and the fired `damageSource` carries the caller's options, its cause `none` when no
+options were given [[d:damage-event-dispatch-order]]. The rule is keyed to the change, not
+the path: `setCurrentValue` and the resets fire `entityHealthChanged` just as damage does
+[[d:health-writes-fire-health-changed]]. A behaving death leaves the reference valid —
+despawn timing is not modeled, and a test that wants the dead entity gone calls `invalidate`
+itself [[d:death-does-not-auto-invalidate]]. The control-plane emit covers events whose engine-side
 cause lies outside the faked surface: it delivers a payload typed from the signal's handler
 parameter and mutates nothing [[d:emit-delivers-only]] — including delivery to an entity the
 same staged hit has already invalidated, the case the library exists to make testable
@@ -151,7 +183,10 @@ The initial build covers the slice the motivating tests exercise: the entity cor
 attribute-shaped components with health first, effects, the damage-related event signals, and
 the minimum of world and dimension needed to hold them [[d:initial-surface-damage-path]]. The
 signals are exactly `world.afterEvents.entityHurt`, `entityHealthChanged`, and `entityDie` —
-no others, and no beforeEvents [[d:first-signals-list]]. Everything further waits for a
+no others, and no beforeEvents [[d:first-signals-list]]. Of the world surface,
+`world.getDimension`, `world.getEntity`, and `dimension.getEntities` behave — a spawned
+entity joins its staged dimension's entity set — and passing query options throws
+`NotImplementedError` [[d:first-surface-world-members]]. Everything further waits for a
 consumer test that needs it.
 
 ## Components

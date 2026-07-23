@@ -32,6 +32,24 @@
       quote: |
         This property is accessible even if @minecraft/server.Entity.isValid is false.
 
+- id: invalidation-throws-are-mechanically-derivable
+  claim: |
+    In `@minecraft/server` 2.8.0 the invalidation guard list is mechanically derivable from
+    the declarations: every Entity member carrying `@throws` names InvalidEntityError in its
+    TSDoc (56 members), and the six without — `id`, `isSneaking`, `isValid`, `nameTag`,
+    `scoreboardIdentity`, `typeId` — carry no `@throws` at all, so no Entity member is
+    ambiguous. The attribute component classes are coarser: `setCurrentValue` names
+    InvalidEntityError while the value getters and reset methods carry only a generic
+    `@throws` naming no error.
+  backing: tested
+  sources:
+    - description: |
+        design/minecraft/test-lib/artifacts/throws-annotation-probe.mjs pairs each declared
+        member of Entity, Component, EntityComponent, EntityAttributeComponent, and
+        EntityHealthComponent with its TSDoc block and splits members by whether the block
+        names InvalidEntityError; committed output in
+        design/minecraft/test-lib/artifacts/throws-annotation-probe.out.txt.
+
 - id: invalid-entity-error-shape
   claim: |
     `@minecraft/server` 2.8.0 declares `InvalidEntityError` as an exported class extending
