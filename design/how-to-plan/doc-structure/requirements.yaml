@@ -162,3 +162,44 @@
     Bending a soft requirement is a design choice with a reason and a falsifier — exactly a
     decision — so it belongs with the design's other reasoning, not annotated onto the fiat.
 
+- id: enable-easy-capture
+  statement: |
+    a fact or requirement discovered outside the scope of the design that will use it keeps a home in the repo; knowledge 
+    is never parked on a branch or in my head for want of somewhere to put it
+  rationale: |
+    Enabling easy capture of good ideas or future requirements prevents losing good ideas without forcing frequent
+    context switches to act on them.
+
+- id: only-settled-work-licenses-building
+  statement: |
+    nothing is built on a design that has not cleared review; a design's status says what it
+    licenses, and only settled licenses construction. A design cannot be settled while it
+    holds an open question or a decision still proposed; a rejected decision blocks nothing,
+    being a record of an option considered rather than something the design holds
+
+- id: invariants-are-enforced-or-marked
+  statement: |
+    every invariant a design states is either enforced by the harness, or carries an
+    explicit note that it has no mechanical backstop; nothing the harness enforces is
+    also reviewed by hand
+  rationale: |
+    The concrete obligation behind vision.md §Principles (4). "Let machines catch what they
+    can" is a principle, not something a design can satisfy or fail; this is the version
+    with a testable edge — read any stated invariant and ask which of the two it is. An
+    invariant that is neither enforced nor marked is the gap, and the marked ones are worth
+    counting — a format that keeps growing unbacked rules has outrun what can be checked.
+
+- id: settled-design-cites-what-it-keeps
+  statement: |
+    a design cannot be settled while a live design-scoped requirement, or an accepted or
+    tolerated decision, has no claim in the design citing it. Facts, and requirements at wider
+    scopes, carry no such obligation
+  rationale: |
+    Replaces the standing reachability check, which fought enable-easy-capture by rejecting
+    any foundation nothing cited yet. Capture is now free at every scope and at any time; the
+    only citation obligation is at settle, and only for the two things a settled design must
+    actually stand on — its own requirements and the decisions it kept. Design-scoped only,
+    because a requirement at a wider scope may be honoured by a sibling design rather than
+    this one; facts are exempt because an uncited fact is available knowledge, not an ignored
+    obligation. A departed-from soft requirement is still cited, by the decision that records
+    the departure.
