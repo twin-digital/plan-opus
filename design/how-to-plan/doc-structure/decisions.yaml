@@ -1,5 +1,5 @@
 - id: yaml-entries-markdown-prose
-  statement: entries are YAML; the argument around them is ordinary markdown
+  statement: entries are YAML; the prose around them is ordinary markdown
   status: accepted
   falsifiers:
     - an entry kind needs a field that YAML cannot carry legibly at one entry per screen
@@ -26,21 +26,21 @@
     - the extra indentation measurably hurts entry legibility in review
 
 - id: fixed-outer-sections
-  statement: a spec.md opens with Summary then the argument; an Open questions section
+  statement: a spec.md opens with Summary then the specification; an Open questions section
     (just after Summary) and a Components section (at the end) appear only when the design has
     entries of that kind; decisions sit in decisions.yaml, not in the document
   status: accepted
   falsifiers:
-    - reviewers consistently read the argument before the open-question and decision lists,
+    - reviewers consistently read the specification before the open-question and decision lists,
       making the up-front order an obstacle rather than an aid
     - a kind of section this layout has no slot for turns out to be required
 
-- id: decisions-precede-the-argument
-  statement: the decision list is placed before the prose that argues for it
+- id: decisions-precede-the-spec
+  statement: the decision list is placed before the prose that draws on it
   status: rejected
   falsifiers:
-    - a decision statement turns out to be unintelligible before its argument, so readers
-      must jump forward and back to use the list
+    - a decision statement turns out to be unintelligible before the prose that uses it, so
+      readers must jump forward and back to use the list
 
 - id: citation-token-grammar
   statement: a citation is `[[<k>:<id>]]` with a single-letter kind — `f` fact, `r`
