@@ -1,0 +1,58 @@
+# Decisions made while authoring this design. status is required on every entry.
+# Schema: id, statement (one line), status (proposed|accepted|tolerated|rejected), falsifiers (>=1 unless rejected).
+
+- id: reason-only-where-a-builder-needs-it
+  statement: the spec states what to build and how, and gives the reason a constraint exists
+    only where a builder would otherwise build the wrong thing
+  status: accepted
+  falsifiers:
+    - builders repeatedly implement a constraint wrong, and supplying the reason that was cut
+      is what corrects it
+    - reviewers cannot judge a design's coherence because the reasoning a claim turns on was
+      omitted as surplus
+
+- id: quote-is-the-shortest-carrying-span
+  statement: a fact's evidence is quoted as the shortest verbatim span that carries the claim,
+    not the section around it
+  status: tolerated
+  falsifiers:
+    - claims routinely rest on spans long enough that the shortest carrying quote reproduces
+      most of the source rather than pointing into it
+    - a short span is shown to misrepresent a source by dropping the context that qualifies it
+
+- id: falsifier-names-a-firing-condition
+  statement: a falsifier is real only when it names a concrete condition that could actually
+    occur and would retire the decision; the decision's negation restated is not one
+  status: accepted
+  falsifiers:
+    - a recurring class of worthwhile decision admits no statable firing condition, forcing a
+      fabricated falsifier or the loss of a decision worth keeping
+
+- id: a-convention-decision-fires-on-its-own-cost
+  statement: a decision fixing a necessary but arbitrary convention states as its falsifier
+    the cost that would retire it — a collision, churn, or tooling friction the convention
+    creates — not a restatement that the choice might be wrong
+  status: accepted
+  falsifiers:
+    - a convention arrives whose costs are themselves unobservable, so even its
+      cost-exceeds-benefit condition names nothing to watch for
+
+- id: components-cut-at-dispatchable-boundaries
+  statement: a responsibility is one component when it can be built against its stated interface
+    without reading another component's internals; it is split when it hides an interface
+    another component must build to, and not split past the point where the pieces could not be
+    built in parallel anyway
+  status: tolerated
+  falsifiers:
+    - components drawn to this test still cannot be dispatched in parallel, because the real
+      interfaces between them were not visible when the boundaries were drawn
+    - the test yields so many components that their interfaces, not their responsibilities,
+      carry the design
+
+- id: a-failed-inherited-fact-is-raised-not-repaired
+  statement: when the audit finds an inherited fact that fails the evidence rules, the spec
+    author raises an open question against it rather than repair it
+  status: rejected
+  falsifiers:
+    - inherited facts fail the evidence rules so routinely that raising each one floods the
+      design with open questions and stalls it
