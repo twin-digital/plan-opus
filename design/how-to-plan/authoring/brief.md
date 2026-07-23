@@ -5,7 +5,7 @@
 Specify what makes the *content* of a design acceptable, as distinct from its shape. The
 format says a decision has a `falsified_if` field; this says what makes the value in that
 field real rather than filler. An agent handed `doc-structure` can write a well-formed
-design.md; it needs this one to write a good one.
+spec.md; it needs this one to write a good one.
 
 ## In scope
 

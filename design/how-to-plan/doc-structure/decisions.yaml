@@ -8,7 +8,7 @@
 
 - id: one-block-per-kind
   statement: components and open questions each appear in exactly one fenced block in a
-    design.md
+    spec.md
   status: accepted
   falsifiers:
     - a design grows a block long enough that reading it top to bottom stops being the
@@ -17,7 +17,7 @@
       at all
 
 - id: blocks-are-keyed-mappings
-  statement: each fenced block in a design.md is a YAML mapping with exactly one top-level
+  statement: each fenced block in a spec.md is a YAML mapping with exactly one top-level
     key naming its kind
   status: accepted
   falsifiers:
@@ -26,7 +26,7 @@
     - the extra indentation measurably hurts entry legibility in review
 
 - id: fixed-outer-sections
-  statement: a design.md opens with Summary then the argument; an Open questions section
+  statement: a spec.md opens with Summary then the argument; an Open questions section
     (just after Summary) and a Components section (at the end) appear only when the design has
     entries of that kind; decisions sit in decisions.yaml, not in the document
   status: accepted
@@ -114,9 +114,10 @@
       than being a restatement of a requirement
 
 - id: status-derived-from-content
-  statement: a design's state is computed from its artifacts — no design.md is exploring; a
-    design.md with a proposed decision or an open question is draft; a design merged to main
-    with neither is settled
+  statement: a design's state is computed from its artifacts — no spec.md is exploring; a
+    spec.md with a proposed decision, an open question, or an uncited live design-scoped
+    requirement or accepted decision is draft; a design merged to main with none of those is
+    settled
   status: accepted
   falsifiers:
     - a design needs to be held out of settled for a reason that leaves no trace in its
@@ -132,7 +133,7 @@
       meant to read
 
 - id: brief-is-required
-  statement: a design directory must hold `inputs/brief.md`
+  statement: a design directory must hold `brief.md`
   status: rejected
   falsifiers:
     - a design appears whose subject is fully determined by its requirements, making the

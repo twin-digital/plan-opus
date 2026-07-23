@@ -39,7 +39,7 @@ const read = (file) => {
   return (YAML.parse(fs.readFileSync(file, "utf8")) ?? []).filter((e) => !DEAD.includes(e.status));
 };
 const scopes = [
-  { label: `design — ${target.name}`, dir: path.join(target.dir, "inputs") },
+  { label: `design — ${target.name}`, dir: target.dir },
   { label: `area — ${target.area}`,    dir: path.join(ROOT, target.area) },
   { label: "global",                   dir: ROOT },
 ];

@@ -83,8 +83,8 @@
 - id: citable-entries-are-foundations
   statement: |
     only the three foundation kinds — facts, requirements, and decisions — may be cited by a
-    claim, and each lives in a YAML file: facts and requirements under inputs/ or a wider
-    scope, decisions in a decisions.yaml beside the design document. Components and open
+    claim, and each lives in a YAML file: facts and requirements in a design's own dir or a
+    wider scope, decisions in a decisions.yaml beside the spec.md. Components and open
     questions live in the document but are never cited
   rationale: |
     Citing only foundations keeps a citation meaning "this rests on something settled", and
@@ -102,10 +102,11 @@
 
 - id: inputs-outputs-split
   statement: |
-    a design directory separates its durable inputs from its regenerable outputs. Facts and
-    requirements are inputs and live only under inputs/ or a wider scope; decisions,
-    components, and open questions are outputs, produced by the design and never in inputs/,
-    whether written into the design document or a sibling file it owns
+    a design directory separates its durable inputs from its regenerable outputs by file, not
+    by folder. Facts and requirements are inputs and live in a design's own requirements.yaml
+    and facts.yaml or a wider scope; decisions, components, and open questions are outputs,
+    produced by the design and written only into its decisions.yaml or its spec.md, never into
+    an input file
 
 - id: ids-unique-per-kind
   statement: |
@@ -150,15 +151,6 @@
   rationale: |
     Naming the foundation that would close it turns a question into work with a known shape.
     Citing one would otherwise let an author acknowledge an uncertainty and call the citing done.
-
-- id: foundations-are-reachable
-  statement: |
-    every live foundation is cited from within its own scope — a design-scoped entry by its
-    own design, an area-scoped entry by at least one design in that area. Global entries,
-    entries of a design still exploring, and retired entries are exempt
-  rationale: |
-    An entry nothing points at is either orphaned research or a dependency the design never
-    admitted. The exemptions cover the cases where nothing could point at it yet.
 
 - id: soft-departures-are-decisions
   statement: |

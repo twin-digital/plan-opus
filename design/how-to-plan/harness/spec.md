@@ -65,7 +65,7 @@ Carved out of the original how-to-plan design: the machinery — the checker, th
 
 - id: C2
   name: checker
-  owns: parsing design.md blocks and YAML files, validating schemas and source shape, resolving every token, emitting the agent-decision view
+  owns: parsing spec.md blocks and YAML files, validating schemas and source shape, resolving every token, emitting the agent-decision view
   excludes: judging whether a design is any good
   grounds: [D1, D2, req:node-for-tooling]
 
