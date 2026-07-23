@@ -1,0 +1,78 @@
+- id: server-package-ships-types-only
+  claim: |
+    `@minecraft/server` ships type declarations with no runtime JavaScript — its published
+    package is `index.d.ts`, `package.json`, and a README. The engine supplies the
+    implementation at runtime, so in a test process there is nothing importable to construct or
+    module-mock, and enum members such as `EntityComponentTypes.Health` have a type but no
+    usable value.
+  backing: tested
+  sources:
+    - description: |
+        Inspected the installed package at
+        node_modules/.pnpm/@minecraft+server@2.8.0/node_modules/@minecraft/server — its only
+        files are index.d.ts, package.json, and README.md; no .js entry point exists. Confirmed
+        indirectly by a require() of the package path failing to resolve any runtime module.
+
+- id: invalidation-throws-non-uniformly
+  claim: |
+    Once an entity reference becomes invalid (unloaded or removed), member access throws
+    `InvalidEntityError` — but not uniformly. `id`, `typeId`, `isValid`, and `nameTag` stay
+    readable; `isValid` never throws, as it is the safe validity probe. A component follows its
+    owner: `Component.isValid` and `typeId` stay readable while `EntityComponent.entity` throws.
+  backing: documented
+  sources:
+    - description: |
+        @minecraft/server 2.8.0 index.d.ts: nearly every Entity member carries an
+        `@throws … InvalidEntityError` TSDoc annotation, while id, typeId, isValid, and nameTag
+        carry none. The Component / EntityComponent declarations show the same split — isValid
+        and typeId unannotated, entity annotated `@throws InvalidEntityError`.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/entity
+      where: Properties — id, typeId, isValid
+      checked: 2026-07-23
+      quote: |
+        This property is accessible even if @minecraft/server.Entity.isValid is false.
+
+- id: namespace-prefix-is-optional
+  claim: |
+    Identifiers in the `minecraft:` namespace may be written with or without the prefix; when a
+    namespace is omitted, `minecraft:` is assumed. The rule is uniform across component ids,
+    effect types, entity events, and entity types — not a per-surface convention — and the
+    canonical (engine-reported) form is the prefixed one.
+  backing: documented
+  sources:
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/entity
+      where: Methods — getComponent, componentId parameter
+      checked: 2026-07-23
+      quote: |
+        If no namespace prefix is specified, 'minecraft:' is assumed.
+    - description: |
+        EntityComponentTypeMap in index.d.ts 2.8.0 carries every component id in both bare and
+        prefixed form (136 keys = 68 components x 2). Prefixed is canonical: the
+        @minecraft/vanilla-data constants report the prefixed form — see
+        [[f:vanilla-data-provides-prefixed-id-constants]].
+
+- id: component-ids-are-derivable-from-types
+  claim: |
+    The finite id sets are computable from `@minecraft/server`'s own types rather than
+    transcribed: `keyof EntityComponentTypeMap` yields every component id, `` `${EntityComponentTypes}` ``
+    the canonical prefixed ids, and a conditional mapping over the type map the attribute-shaped
+    subset. The derivation tracks version bumps for free.
+  backing: tested
+  sources:
+    - description: |
+        A scratch .ts derivation compiled clean via `tsc --noEmit` against @minecraft/server
+        2.8.0, including three `@ts-expect-error` negative probes — a non-attribute id and a
+        typo rejected by the attribute-id union, and a bare id rejected in canonical position.
+        An unused expect-error directive fails the build, so all three probes genuinely error.
+
+- id: vanilla-data-provides-prefixed-id-constants
+  claim: |
+    `@minecraft/vanilla-data`, unlike `@minecraft/server`, ships runtime JavaScript: named
+    constants whose values are the canonical prefixed id strings. Code or tests referencing
+    these constants deal in prefixed ids.
+  backing: tested
+  sources:
+    - description: |
+        Required node_modules/.pnpm/@minecraft+vanilla-data@1.26.33/node_modules/@minecraft/vanilla-data/lib/index.js
+        at runtime and evaluated members: MinecraftEffectTypes.Resistance === 'minecraft:resistance',
+        MinecraftEntityTypes.Villager === 'minecraft:villager'.
