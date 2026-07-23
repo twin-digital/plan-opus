@@ -44,12 +44,13 @@ rests on whenever some decision, component, or other claim would have to change 
 false, and no other claim may carry a citation [[r:explicit-intent]]. What authoring supplies is
 the reading that makes the test decidable at a single sentence.
 
-A claim that carries weight rests on a fact, a requirement, or a decision — and that foundation
-must be visible in the design's three scopes, or be made visible. When a weight-bearing claim
-leans on something not yet in the tree, the move is to capture that thing as a foundation and
-cite it, or to cut the claim. What is not allowed is a weight-bearing claim that points at
-nothing and asks to be trusted [[d:weight-reduces-to-a-visible-foundation]]. The uncited
-sentences that remain are the argument's connective tissue — motivation, illustration,
+A claim that carries weight rests on a fact, a requirement, or a decision, and every citation
+must resolve to a real entry. So when a weight-bearing claim leans on something not yet in the
+tree, only two moves are open: capture that thing as a foundation and cite it, or cut the claim
+— there is no third move where the claim points at nothing and asks to be trusted. Capture is
+the cheaper of the two by design, because a fact found while writing gets a home the moment it
+is found rather than being parked for want of somewhere to put it [[r:enable-easy-capture]]. The
+uncited sentences that remain are the argument's connective tissue — motivation, illustration,
 restatement of something already cited — and a citation on one of those is a false signal
 rather than added rigour [[r:explicit-intent]]. For the genuinely unclear sentence the test is
 subtraction: cut it and see whether the argument develops a hole or merely loses colour.
@@ -77,10 +78,10 @@ wrong one.
 A decision must say what would prove it wrong, because a decision that cannot is not understood
 well enough to keep and cannot be retired on purpose, only abandoned by accident
 [[r:decisions-state-their-falsifier]]. Structure can require the field; only a reader can tell
-whether its contents could ever fire. A real falsifier names a later observation that is
-observable — someone could tell whether it happened — not already settled either way, so it
-might come out for or against — and decisive for this decision in particular rather than for any
-decision at all. A statement missing any of the three is filler, however confidently it is
+whether its contents could ever fire. A real falsifier names a later development that someone
+could observe — someone could tell whether it happened — that is not already settled either way,
+so it might come out for or against, and that is decisive for this decision in particular rather
+than for any decision at all. A statement missing any of the three is filler, however confidently it is
 written [[d:real-falsifier-observable-contingent-decisive]]. The common failures each drop one
 property: "falsified if this is the wrong call" restates the decision and observes nothing; "if
 YAML ceases to exist" can never come true; "if priorities change" would retire every decision in
