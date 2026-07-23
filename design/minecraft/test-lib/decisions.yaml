@@ -103,3 +103,90 @@
     dimension
   falsifiers:
     - the first consumer pack's tests are found to need a different slice first
+
+# Round 1 cold-builder review — decisions closing the gaps it surfaced.
+
+- id: pinned-server-version
+  statement: the library targets `@minecraft/server` 2.8.0 — the version its facts were
+    established against — declared as the peer range a consumer must satisfy; every
+    derivation, guard list, and behaviour reading is taken from that version's declarations
+  falsifiers:
+    - the first consumer pack compiles against a different line (beta, or a later stable) and
+      the derived surface diverges
+
+- id: full-shape-with-stubs
+  statement: a fake declares the complete public shape of its class — members outside the
+    built surface present as not-implemented stubs — so assignability never narrows and
+    unfaked access throws instead of reading `undefined`
+  falsifiers:
+    - maintaining the stub set across version bumps proves heavier than exporting a narrowed
+      type and asking consumers to cast
+
+- id: attribute-init-is-explicit
+  statement: an attribute component in a spawn spec names its full value set — current,
+    default, min, and max; no bound is derived from another
+  falsifiers:
+    - the full set proves noisy enough that even base users hand-edit it, showing a
+      derive-bounds-from-one-value rule is the lesser evil
+
+- id: behaving-methods-fire-their-events
+  statement: a behaving method synchronously dispatches the after-events its real counterpart
+    causes — applyDamage fires entityHurt and entityHealthChanged, health reaching its
+    minimum fires entityDie; a cascade the fidelity sources leave unknown fires nothing and
+    the test stages it with emit
+  falsifiers:
+    - in-engine verification shows a different event set or ordering for a faked method
+    - synchronous delivery diverges observably from the engine's tick-boundary delivery in
+      ways consumer tests can detect
+
+- id: emit-delivers-only
+  statement: emit delivers an event object to a signal's subscribers and mutates nothing; its
+    payload parameter is typed from the signal's handler parameter, so every signal's emit is
+    fully typed without per-signal helpers
+  falsifiers:
+    - staging state and payload separately proves repetitive enough that mutating per-event
+      helpers are warranted
+
+- id: runtime-enum-mirrors
+  statement: the library exports runtime constants for the declared enums its surface needs,
+    each type-checked against the declared enum so drift fails the build
+  falsifiers:
+    - every needed value turns out to be reachable through `@minecraft/vanilla-data` constants
+      or string literals the parameter types already accept, leaving the mirrors redundant
+
+- id: first-signals-list
+  statement: the first surface ships `world.afterEvents.entityHurt`, `entityHealthChanged`,
+    and `entityDie`; no other signals and no beforeEvents
+  falsifiers:
+    - the first consumer pack subscribes to a signal outside the list
+
+- id: library-defined-error-classes
+  statement: the library defines and exports its own error classes — `InvalidEntityError`
+    matching the declared name and shape, and `NotImplementedError` for unfaked or unstaged
+    access — and fakes throw these
+  falsifiers:
+    - the engine's thrown errors are observed to differ from the declared shape in ways tests
+      can detect, misleading suites that assert on them
+
+- id: control-plane-component-mutation
+  statement: the control plane includes component add and remove over a live entity, since
+    the real API reshapes an entity's components only through data-driven paths the fakes do
+    not model
+  falsifiers:
+    - mid-test component mutation lets suites stage states the engine cannot reach, producing
+      false passes a construction-time-only rule would have prevented
+
+- id: worlds-carry-vanilla-dimensions
+  statement: a created world always carries the three vanilla dimensions; everything else
+    about it starts empty
+  falsifiers:
+    - a consumer needs a world without them, or with custom dimensions, making the fixed trio
+      a constraint rather than a convenience
+
+- id: unstaged-state-throws
+  statement: reading state the test never supplied and whose absence the engine cannot
+    exhibit — a spawned entity's location or dimension — throws `NotImplementedError` naming
+    the missing spec field; absence the engine can exhibit reads back as the engine reports it
+  falsifiers:
+    - the throws prove frequent enough on incidental reads that requiring the fields at spawn,
+      or defaulting them, is the lesser evil

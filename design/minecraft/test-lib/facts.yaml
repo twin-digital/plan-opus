@@ -32,6 +32,20 @@
       quote: |
         This property is accessible even if @minecraft/server.Entity.isValid is false.
 
+- id: invalid-entity-error-shape
+  claim: |
+    `@minecraft/server` 2.8.0 declares `InvalidEntityError` as an exported class extending
+    Error, carrying `readonly id: string` and `readonly type: string` — the id and type of the
+    entity that became invalid. Like every class in the package the declaration is types-only,
+    so a test process cannot import the real class; only its declared shape is available.
+  backing: documented
+  sources:
+    - description: |
+        @minecraft/server 2.8.0 index.d.ts declares `export class InvalidEntityError extends
+        Error` with a private constructor and readonly `id` and `type` members, each annotated
+        as belonging to "the entity that is now invalid". Runtime absence follows from
+        [[f:server-package-ships-types-only]].
+
 - id: namespace-prefix-is-optional
   claim: |
     Identifiers in the `minecraft:` namespace may be written with or without the prefix; when a
