@@ -265,10 +265,11 @@ A requirement, in `requirements.yaml` — `force` and `status` omitted at their 
       rationale: |
         Lost writes are invisible and unrecoverable — the worst failure class for this system.
 
-A decision, in `decisions.yaml` — `status` omitted, defaulting to `proposed`:
+A decision, in `decisions.yaml` — `status` is required and always written:
 
     - id: bounded-queue-over-inline-retry
       statement: buffer over-limit writes in a bounded on-disk queue rather than retrying inline
+      status: proposed
       falsifiers:
         - sustained write bursts never approach the rate limit in production, so the queue is dead weight
         - the queue's footprint grows faster than it drains, threatening the host
