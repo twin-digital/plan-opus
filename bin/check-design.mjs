@@ -2,9 +2,9 @@
 // Run from the repo root:  node bin/check-design.mjs
 //
 // Foundations (facts, requirements, decisions) are the citable entries. Facts and
-// requirements live in YAML files at three scopes — design (under inputs/), area, global;
-// decisions live in a decisions.yaml beside a design's design.md. Components and open
-// questions live in design.md and are never cited. Citations are [[k:id]] with k in f/r/d.
+// requirements live in YAML files at three scopes — design (in the design's own dir), area,
+// global; decisions live in a decisions.yaml beside a design's spec.md. Components and open
+// questions live in spec.md and are never cited. Citations are [[k:id]] with k in f/r/d.
 //
 // The rule numbers in comments map to the Invariants table in the doc-structure design.
 import fs from "fs";
@@ -54,11 +54,11 @@ for (const a of areas) {
   loadScope(path.join(ROOT, a.name), "area", a.name);
   for (const d of fs.readdirSync(path.join(ROOT, a.name), { withFileTypes: true }).filter((x) => x.isDirectory())) {
     const dir = path.join(ROOT, a.name, d.name), scope = `${a.name}/${d.name}`;
-    loadScope(path.join(dir, "inputs"), "design", scope);
+    loadScope(dir, "design", scope);
     const decFile = path.join(dir, "decisions.yaml");
     if (fs.existsSync(decFile))
       for (const e of loadYaml(decFile)) { declare(e.id, { kind: "d", tier: "design", scope, e, file: decFile }); checkEntry("d", e, scope, decFile); }
-    designs.push({ area: a.name, name: d.name, dir, scope, md: path.join(dir, "design.md"), decFile });
+    designs.push({ area: a.name, name: d.name, dir, scope, md: path.join(dir, "spec.md"), decFile });
   }
 }
 
@@ -116,7 +116,6 @@ function checkSources(e, tag) { // rule 7
 }
 
 // ---- per-design document checks ---------------------------------------------
-const cited = new Set();
 for (const d of designs) {
   const tag = d.scope, hasDoc = fs.existsSync(d.md), hasDec = fs.existsSync(d.decFile);
   d.state = !hasDoc ? "exploring" : null;
@@ -162,24 +161,24 @@ for (const d of designs) {
     if (t.kind !== k) add("citation kind mismatch", `${tag} [[${k}:${id}]] is ${t.kind}`);
     if (isDead(t.e)) add("citation of dead entry", `${tag} [[${k}:${id}]] (${t.e.status})`); // rule 12
     if (k === "d" && t.scope !== d.scope) add("decision cited across designs", `${tag} [[d:${id}]] (${t.scope})`); // rule 13
-    if (t.tier === "design" && t.scope !== d.scope) add("cites another design's entry", `${tag} [[${k}:${id}]]`); // rule 14
+    if (t.tier === "design" && t.scope !== d.scope) add("cites another design's entry", `${tag} [[${k}:${id}]]`); // scope visibility
     if (t.tier === "area" && t.scope !== d.area) add("cites another area's entry", `${tag} [[${k}:${id}]]`);
-    cited.add(id);
   }
 
-  for (const x of decs) { // every live decision cited by its own prose
-    if (isDead(x) || (x.status ?? "proposed") === "rejected") continue;
-    if (!toks.some(([, k, id]) => k === "d" && id === x.id)) add("decision never cited", `${tag} d:${x.id}`);
+  // settle gate (rule 14): a settle-eligible design cannot settle while a live design-scoped
+  // requirement or an accepted decision it holds goes uncited; an uncited one keeps it draft.
+  if (d.state === "settled") {
+    const uncited = [];
+    for (const x of decs) {
+      if (isDead(x) || (x.status ?? "proposed") === "rejected") continue;
+      if (!toks.some(([, k, id]) => k === "d" && id === x.id)) uncited.push(`d:${x.id}`);
+    }
+    for (const [id, r] of Object.entries(ent)) {
+      if (r.kind !== "r" || r.tier !== "design" || r.scope !== d.scope || isDead(r.e)) continue;
+      if (!toks.some(([, k, i]) => k === "r" && i === id)) uncited.push(`r:${id}`);
+    }
+    if (uncited.length) { d.state = "draft"; for (const u of uncited) add("uncited at settle", `${tag} ${u}`); }
   }
-}
-
-// ---- reachability (rule 14) -------------------------------------------------
-for (const [id, r] of Object.entries(ent)) {
-  if (r.tier === "global" || isDead(r.e)) continue;
-  const untested = (st) => st === "exploring" || st === "legacy"; // no parseable prose to cite from
-  if (r.tier === "design" && untested(designs.find((d) => d.scope === r.scope)?.state)) continue;
-  if (r.tier === "area" && designs.some((d) => d.area === r.scope && untested(d.state))) continue;
-  if (!cited.has(id)) add(`unreachable (${r.tier})`, `${r.scope} ${id}`);
 }
 
 // ---- report -----------------------------------------------------------------
@@ -197,7 +196,7 @@ const ORDER = [
   "question gates non-local decision", "malformed citation token", "citation unresolved",
   "citation kind mismatch", "citation of dead entry", "citation of non-foundation kind",
   "decision cited across designs", "cites another design's entry", "cites another area's entry",
-  "decision never cited", "unreachable (design)", "unreachable (area)",
+  "uncited at settle",
 ];
 for (const k of Object.keys(fail)) if (!ORDER.includes(k)) ORDER.push(k);
 for (const c of ORDER) {

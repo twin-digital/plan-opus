@@ -2,15 +2,15 @@
 
 ## What this design is for
 
-Specify the artifact. Where designs live on disk, what a `design.md` contains, what shape
+Specify the artifact. Where designs live on disk, what a `spec.md` contains, what shape
 every entry takes, and what a citation means. Everything here answers "what can the format
 express," not "how do I work," not "what makes the contents good," and not "what enforces
 it."
 
 ## In scope
 
-- The on-disk tree: scopes, areas, the inputs/output split.
-- The `design.md` format: section order, the fenced data blocks, the prose.
+- The on-disk tree: scopes, areas, the input/output split.
+- The `spec.md` format: section order, the fenced data blocks, the prose.
 - Schemas for decisions, open questions, components, facts, and requirements.
 - Citation tokens: what they point at, and how a pointer resolves.
 - The invariants an entry must satisfy, stated so a machine could check them.
@@ -27,7 +27,7 @@ it."
 
 ## Done looks like
 
-An agent handed only a design's inputs can write a well-formed `design.md` for some other
+An agent handed only a design's inputs can write a well-formed `spec.md` for some other
 subject without asking me how the format works — and a design that is well-formed but empty
 of substance fails somewhere else, not here.
 

@@ -2,7 +2,7 @@
 
 ## Summary
 
-This design fixes the artifact: where a design's material sits on disk, what a `design.md`
+This design fixes the artifact: where a design's material sits on disk, what a `spec.md`
 contains and in what order, what shape each entry takes, and what a citation token points at.
 It specifies what the format can express.
 
@@ -21,7 +21,7 @@ retired on purpose, only abandoned by accident.
 The three kinds also differ in where they may appear, and that is what makes the yielding
 real rather than declared. Facts and requirements arrive as inputs and sit in files a design
 does not write; decisions, components, and open questions are products and sit on the output
-side of the design [[r:inputs-outputs-split]]. An agent working inside `design.md` therefore
+side of the design [[r:inputs-outputs-split]]. An agent working inside `spec.md` therefore
 cannot edit a requirement in the course of arguing with it — not because it is forbidden in
 prose, but because the requirement is not in the file it is editing.
 
@@ -41,28 +41,27 @@ design/
     requirements.yaml        area scope
     facts.yaml
     <design>/
-      inputs/
-        brief.md             optional
-        requirements.yaml    design scope
-        facts.yaml
+      brief.md               optional
+      requirements.yaml      design scope
+      facts.yaml
       decisions.yaml
-      design.md
+      spec.md
 ```
 
 An area is a directory directly under `design/`; a design is a directory directly under an
 area; neither nests further. Directory names and entry ids are kebab-case.
 
-The design scope's two input files sit under `inputs/`, and the reason is stronger than the
-tree merely reading well. A `design.md` must be safe to delete. When a document has been
-patched past coherence, the move is the same as for a band-aided component: throw it out and
-rebuild rather than patch again. That only works if everything the rebuild needs lives
-somewhere the rebuild cannot destroy — and `inputs/` is that place. `design.md` and its
-`decisions.yaml` are the two files in the directory you can remove and regenerate without
-losing anything the rebuild depends on. The split also keeps the regeneration instruction
-stable: *read `inputs/`, write the document* stays correct as the inputs grow, where a list
+The split between a design's inputs and its outputs is by file, not by folder. A `spec.md` must
+be safe to delete: when a document has been patched past coherence, the move is the same as for
+a band-aided component — throw it out and rebuild rather than patch again. That only works if
+everything the rebuild needs survives the delete, so the two regenerable outputs are named
+rather than the durable inputs fenced off. `brief.md`, `requirements.yaml`, and `facts.yaml` are
+the inputs; `spec.md` and its `decisions.yaml` are the outputs, and they are the only two files
+a rebuild removes and rewrites. Naming the outputs keeps the regeneration instruction stable:
+*read the design's inputs, write the two outputs* stays correct as the inputs grow, where a list
 of filenames in a prompt would be one more hand-maintained rollup that rots.
 
-`inputs/brief.md` is owner prose stating what the design is for and where its edges are. It is
+`brief.md` is owner prose stating what the design is for and where its edges are. It is
 optional: a design whose subject is fully pinned down by its requirements needs no brief, and
 requiring one there would only invite restatement. It is free prose with no required sections —
 a schema on top of it would be premature structure over a document whose whole value is that
@@ -80,19 +79,11 @@ promotes on the argument that it feels general; it promotes when a second design
 
 ## The document
 
-The design's output is two files: `decisions.yaml` and the `design.md` beside it. Decisions
-live in their own file [[r:citable-entries-are-foundations]], which also keeps `design.md`
-readable to an audience arriving long after the choices were litigated — once a design is
-settled, its argument is what people return to, and a settled decision list is reference
-material, not part of the read. The two files share one lifecycle: they are written together,
-thrown away together, and regenerated together.
-
-Everything else is `design.md`: markdown with fenced YAML blocks inside it
-[[d:yaml-entries-markdown-prose]]. That split is a bet, not a settled result: prose is what a
-person reviews and YAML is what a machine reads, and the format asks the author to write both
-rather than choosing. The cost is real — an entry's statement often repeats a sentence of the
-argument — and the alternative of pure prose with tagged sentences would halve the writing at
-the price of every mechanical check below.
+The design's output is two files: `decisions.yaml` and the `spec.md` beside it. Decisions
+live in their own file [[r:citable-entries-are-foundations]], which keeps `spec.md` clean as
+the document a builder actually builds from — a settled decision list is a crib extracted
+alongside it, not part of the build read. The two files share one lifecycle: they are written
+together, thrown away together, and regenerated together. Everything else is `spec.md`: markdown with fenced YAML blocks inside it [[d:yaml-entries-markdown-prose]].
 
 GitHub is where these documents are read, and it strips `style` attributes and `<style>`
 elements when rendering markdown [[f:no-inline-styles-in-gfm]]. So there is no styling route
@@ -101,7 +92,7 @@ appearance, and every structural signal has to survive as plain text
 [[d:structure-in-plain-text]]. Fences and bracket tokens are what is left, and both render
 identically in a terminal, a diff, and a browser.
 
-Sections of `design.md`, in order [[d:fixed-outer-sections]]:
+Sections of `spec.md`, in order [[d:fixed-outer-sections]]:
 
 | # | heading | contents |
 |---|---|---|
@@ -112,7 +103,7 @@ Sections of `design.md`, in order [[d:fixed-outer-sections]]:
 | n | `## Components` | the `components` block — present only when the design has components |
 
 Open questions and Components are omitted when the design has none, so a settled design — which
-has no open questions by definition — carries neither, and a `design.md` narrows to Summary and
+has no open questions by definition — carries neither, and a `spec.md` narrows to Summary and
 the argument. When a design does have open questions, that section sits just after the Summary
 [[d:fixed-outer-sections]], so the questions and the `decisions.yaml` list can be taken in
 before the argument is read and anything that would invalidate it flagged early — the same
@@ -276,24 +267,25 @@ Citation targets must be live. A retired requirement, a retired fact — whateve
 and a rejected decision may not be cited: each records something the design no longer stands
 on, and a claim resting on one is a claim resting on nothing.
 
-## Status and reachability
+## Status and settling
 
 A design is `exploring`, `draft`, or `settled`, and the state is read off the artifacts rather
 than stored beside them [[r:design-status-enum]] [[d:status-derived-from-content]]:
 
 | state | condition |
 |---|---|
-| exploring | no `design.md` |
-| draft | a `design.md` exists but the design is not yet settled |
-| settled | the design is merged to `main` with no open questions and no proposed decisions |
+| exploring | no `spec.md` |
+| draft | a `spec.md` exists but the design is not yet settled |
+| settled | merged to `main`, with no open questions, no proposed decisions, and every live design-scoped requirement and accepted decision it holds cited |
 
 A stored status is a claim about the artifacts that can be wrong; a derived one cannot drift.
-The two content conditions fall almost entirely out of the area's constraint that a design
-cannot be settled while it holds an open question or an unaccepted decision
-[[r:only-settled-work-licenses-building]] — that requirement names precisely them. The third,
-being merged to `main`, is what separates a design that *could* settle from one that has: an
-unmerged branch meeting the content conditions is ready to settle but not settled, and naming
-that intermediate state belongs to process, not here.
+The content conditions fall out of the area's constraints on settling: a design cannot settle
+while it holds an open question or an unaccepted decision [[r:only-settled-work-licenses-building]],
+nor while a live design-scoped requirement or an accepted decision it holds goes uncited
+[[r:settled-design-cites-what-it-keeps]]. The remaining condition, being merged to `main`, is
+what separates a design that *could* settle from one that has: an unmerged branch meeting the
+content conditions is ready to settle but not settled, and naming that intermediate state
+belongs to process, not here.
 
 Rejected decisions do not block settling and need no citation [[d:rejected-decisions-are-closed]].
 A rejected decision is not held by the design; it is a record that the option was considered,
@@ -303,17 +295,20 @@ would force a design to delete its own history in order to settle.
 Which transitions are legal and who performs them is process's, not this design's. What the
 format guarantees is that the answer is a function of the tree.
 
-Every live foundation must be cited from within its own scope: a design-scoped fact or
-requirement by its own design, an area-scoped one by at least one design in the area, and a
-decision by the prose of the document that holds it [[r:foundations-are-reachable]]. That last
-case is the one with teeth here, and it is what forces the argument to actually be the
-argument: a decision no claim rests on is a decision the design does not need, and the check
-fires on exactly that. Global entries, entries of a design still exploring, and retired
-entries are exempt, which covers every case where nothing could point at the entry yet.
+The citation gate is the condition with teeth, and it is what forces the argument to actually
+be the argument. A settled design must cite every live design-scoped requirement and every
+accepted decision it holds; an uncited one keeps the design in draft
+[[r:settled-design-cites-what-it-keeps]]. A requirement the design never invokes was ignored or
+misfiled, and a decision no claim rests on is a decision the design does not need. Facts carry
+no such obligation, nor do requirements at a wider scope: an uncited fact is available knowledge
+rather than an ignored fiat, and an area or global requirement may be answered by a sibling
+design instead of this one. Capture stays free at every scope; only settling asserts that the
+design used what it kept.
 
-Reachability pushes toward citing more and [[r:explicit-intent]] pushes toward citing only
-the claims that actually rest on something. They meet at the argument: if a decision cannot be
-reached without attaching a citation to filler, the decision is not doing any work.
+The gate meets [[r:explicit-intent]] from the far side. Explicit intent pushes toward citing
+only the claims that rest on something; the gate pushes toward leaving no kept requirement or
+decision uncited. They meet at the argument: if a requirement or decision cannot be reached
+without pinning a citation to filler, it was not doing any work.
 
 ## Invariants
 
@@ -323,19 +318,19 @@ decides what enforces them [[r:invariants-are-enforced-or-marked]].
 | # | invariant | backstop |
 |---|---|---|
 | 1 | An area sits directly under `design/`, a design directly under an area, and neither nests further. | checkable |
-| 2 | A design directory holds at most `inputs/brief.md`, `inputs/requirements.yaml`, `inputs/facts.yaml`, one `decisions.yaml`, and one `design.md`. | checkable |
-| 3 | Facts and requirements appear only in scope YAML files; decisions only in `decisions.yaml`; components and questions only in a `design.md`. | checkable |
+| 2 | A design directory holds at most `brief.md`, `requirements.yaml`, `facts.yaml`, one `decisions.yaml`, and one `spec.md`. | checkable |
+| 3 | Facts and requirements appear only in scope YAML files; decisions only in `decisions.yaml`; components and questions only in a `spec.md`. | checkable |
 | 4 | Every entry has a kebab-case `id`, unique within its kind across the repository. | checkable |
 | 5 | An entry whose meaning changes takes a new id. | **none** — a rename and a replacement are the same diff |
 | 6 | Every entry carries its required fields and no unknown ones. | checkable |
 | 7 | Every fact has at least one source, each source has exactly one locator form, every in-repo `url` is repo-root-relative, and every `quote` is a block scalar. | checkable |
 | 8 | A retired fact names a reason; one retired as superseded names an existing, different fact as its replacement, with no cycles. | checkable |
 | 9 | Every decision lists at least one falsifier. | checkable |
-| 10 | A `design.md` has Summary and the argument in order; the Open questions and Components sections appear at most once each, in position, and only with a non-empty block. | checkable |
+| 10 | A `spec.md` has Summary and the argument in order; the Open questions and Components sections appear at most once each, in position, and only with a non-empty block. | checkable |
 | 11 | Every citation token is well formed and resolves to exactly one entry. | checkable |
 | 12 | No citation resolves to a question, a component, a rejected decision, a retired requirement, or a retired fact. | checkable |
 | 13 | A `[[d:...]]` resolves within its own design; a `gates` entry names a decision in the same design. | checkable |
-| 14 | Every live foundation is cited from within its own scope, exemptions aside. | checkable |
+| 14 | A design offered as settled cites every live design-scoped requirement and every accepted decision it holds. | checkable |
 | 15 | Every citation belongs to a claim that would have to change were its target false. | **none** — the test is semantic |
 | 16 | A design's state equals the derivation above (settled reads the presence of the design on `main`). | checkable |
 

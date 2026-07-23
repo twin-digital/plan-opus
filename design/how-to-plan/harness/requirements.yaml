@@ -1,0 +1,22 @@
+- id: node-for-tooling
+  statement: permanent scripts and tooling are written in Node.js unless the task requires otherwise
+  force: soft
+  rationale: |
+    A standing personal convention applied across all projects. Bash only where no Node
+    runtime is available or the task strongly favours it; another language only when Node
+    genuinely cannot do the job. Applies to permanent tooling — one-off agent scripting is
+    unconstrained.
+
+- id: settle-publishes-a-versioned-bundle
+  statement: |
+    when a settled spec is merged to main, the harness publishes that spec's builder bundle —
+    the derived-implementer-view — and records a semantic-version tag for that spec. Each spec
+    carries its own version line; there is no single repo-wide version
+  rationale: |
+    Implementers build against the derived view, not the spec, so they need a stable, versioned
+    artifact to pin to — and the moment a spec settles is the moment it licenses building, which
+    makes it the natural trigger to publish the bundle and stamp a version. Per-spec versioning
+    because specs settle and change independently; one repo-wide version would churn every
+    spec's pin whenever any single spec moved. The bundle's contents are fixed by
+    derived-implementer-view; the version-bump policy, the tag format, and where the bundle is
+    published are this design's to settle.

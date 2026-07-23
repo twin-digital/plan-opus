@@ -1,0 +1,43 @@
+# Requirements scoped to the authoring design.
+# Schema: id, statement, force (hard|soft), status (active|retired), rationale (optional).
+# rationale is always a block scalar. Requirements take no sources.
+# Promote to design/how-to-plan/requirements.yaml when a second design depends on one.
+
+- id: decisions-state-their-falsifier
+  statement: a decision that cannot say what would prove it wrong is not reviewable, and does not belong on the list
+  rationale: |
+    Asking an agent to justify a choice invites confident nonsense; asking what would
+    falsify it invites something checkable. A decision with no statable falsifier is not
+    understood well enough to keep.
+
+    The format can only require that the field be filled in. Whether what is in it could
+    ever actually fire is a judgement, which is why this is an authoring requirement rather
+    than a structural one.
+
+- id: evidence-is-verbatim
+  statement: |
+    evidence quoted from a source outside the author is reproduced, never summarized — a fact
+    backed by such a source carries the verbatim passage its claim rests on, and any support
+    drawn from it is a quotation rather than a paraphrase. An assumed fact, backed by the
+    author's own experience, instead carries a description of its mechanism
+  rationale: |
+    A paraphrase is the agent's voice, which is the exact thing a citation is supposed to
+    guard against. A verbatim span is not in anyone's voice and is checkable at a glance. It
+    also beats a summary at the practical job: a bare link to a long page proves nothing,
+    because re-verifying means re-reading the page. The rule is a forcing function, not
+    bookkeeping — being made to produce the passage helps resist hallucinations or overstating
+    what a source actually says.
+
+- id: answerable-unknowns-are-resolved-now
+  statement: |
+    a design does not defer an unknown it could resolve now. If an unknown can be settled at
+    authoring time — by finding the fact, deciding it, or raising it as an open question to the
+    owner — it is settled then, not parked as an assumed fact or a decision's falsifier. Those
+    carry only the unknowns that genuinely cannot be resolved yet
+  rationale: |
+    Deferral is the easy dodge: an assumption or a falsifier can make an open question look
+    handled when it was only postponed. An open question is itself a resolve-now tool — an
+    implicit ask to the owner that a design cannot settle around — so raising one is a form of
+    answering now, not deferring. Only what genuinely cannot be settled at authoring time earns
+    a falsifier (the decision stands now, a named later event reopens it) or an assumed fact
+    (the design must rest on it and it cannot be cheaply verified).
