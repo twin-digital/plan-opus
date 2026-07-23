@@ -1,0 +1,105 @@
+# Decisions scoped to the minecraft/test-lib design.
+# Schema: id, statement, falsifiers, status (proposed|accepted|rejected, default proposed).
+
+- id: object-substitution-not-module-mocking
+  statement: the library substitutes fake objects passed into code under test; it does not
+    replace or intercept the `@minecraft/server` module import
+  falsifiers:
+    - consumer packs prove unable to make their helpers parameter-injectable, leaving direct
+      `world` imports as the only seam and forcing the library to ship a module-shim story
+
+- id: fakes-implement-real-types
+  statement: fake classes are declared to structurally satisfy the real declared types, so a
+    fake is assignable where the real type is expected, with no cast
+  falsifiers:
+    - a faked class in a supported `@minecraft/server` version carries a private member or
+      brand field that a structural implementation cannot satisfy
+
+- id: zero-runtime-dependencies
+  statement: the published package has no runtime dependencies; `@minecraft/server` and
+    `@minecraft/vanilla-data` are type- and dev-time references only
+  falsifiers:
+    - a fidelity behaviour turns out to need engine data too large or too churn-prone to
+      derive from types or vendor by hand, making a runtime data dependency the honest choice
+
+- id: instance-scoped-world
+  statement: all fake state belongs to a world instance a test creates; the library holds no
+    module-level mutable state
+  falsifiers:
+    - a real-API behaviour proves impossible to reproduce without process-global state
+    - per-test world plumbing proves heavier in real suites than the reset hooks it replaces
+
+- id: entities-are-handles
+  statement: entity and component fakes are handles over records owned by their world; state
+    and validity live in the record
+  falsifiers:
+    - a faithful behaviour is found to depend on state attached to handle identity rather
+      than the backing record
+    - standalone entities with no world turn out to be the common test case, making the world
+      dependency pure friction
+
+- id: tsdoc-is-fidelity-authority
+  statement: observable behaviour is implemented from the pinned version's `.d.ts` TSDoc and
+    the official script API docs, in that order
+  falsifiers:
+    - either source is found to contradict actual engine behaviour, demoting documentation to
+      a hint that requires in-engine verification
+
+- id: unverified-members-throw
+  statement: a member on a faked surface whose behaviour has no documented reference throws a
+    distinctive not-implemented error instead of returning a fabricated value
+  falsifiers:
+    - the throws fire so often on incidental reads that suites drown in stubs, showing the
+      surface was faked at the wrong granularity
+
+- id: canonical-prefixed-storage
+  statement: every id-taking input accepts bare or prefixed ids, normalizes on entry, and
+    stores and reports the canonical `minecraft:`-prefixed form
+  falsifiers:
+    - a surface is found where the engine reports the bare form, breaking uniform
+      canonicalization
+
+- id: ids-derived-not-transcribed
+  statement: id unions and per-id component typings are derived from `@minecraft/server`'s
+    type declarations, not hand-transcribed
+  falsifiers:
+    - a supported version removes or reshapes the type maps the derivation reads, leaving
+      transcription as the only source
+
+- id: per-member-guards
+  statement: validity is enforced by an explicit guard in each throwing member, the guard
+    list per class read off the `.d.ts` `@throws` annotations
+  falsifiers:
+    - the annotations are shown to diverge from engine behaviour on members the target tests
+      touch, so guard placement needs per-member verification instead
+    - missed guards ship often enough that uniform interception with an allowlist proves the
+      safer construction
+
+- id: proxy-invalidation
+  status: rejected
+  statement: enforce validity with a Proxy trap on every access, with an allowlist for the
+    members that stay readable
+  falsifiers:
+    - hand-written guards prove error-prone enough in practice that uniform interception is
+      worth the debugging opacity a Proxy brings
+
+- id: bases-are-data
+  statement: default bases are exported partial-spec objects a test opts into by explicit
+    merge; factories never apply one unasked
+  falsifiers:
+    - a needed base cannot be expressed as inert data — it requires ordered mutations against
+      a live world — forcing bases to become functions
+
+- id: control-plane-is-free-functions
+  statement: everything the real API cannot express — construction, invalidation, event
+    emission — is exported as free functions over the fakes, not as members on them
+  falsifiers:
+    - a control affordance appears that a free function cannot provide without publicly
+      exposing world internals better kept private
+
+- id: initial-surface-damage-path
+  statement: the first built surface is the damage path — entity core, attribute components
+    with health first, effects, the damage-related event signals, and minimal world and
+    dimension
+  falsifiers:
+    - the first consumer pack's tests are found to need a different slice first
