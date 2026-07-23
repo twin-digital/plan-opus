@@ -20,3 +20,27 @@
     spec's pin whenever any single spec moved. The bundle's contents are fixed by
     derived-implementer-view; the version-bump policy, the tag format, and where the bundle is
     published are this design's to settle.
+
+- id: in-repo-source-urls-resolve
+  statement: |
+    a fact source whose url is an in-repo path — one carrying no external scheme — must point
+    at a file that exists in the repository; the checker rejects a source url that resolves to
+    no file
+  rationale: |
+    An in-repo source is only evidence if the file is actually there. Unlike an external link,
+    an in-repo path can be resolved for free at check time, so a dead one is a hard error rather
+    than a silently weaker fact.
+
+- id: in-repo-quotes-match-their-source
+  statement: |
+    where an in-repo fact source carries a quote, that quote must be found in the referenced
+    file, matching the file's text up to whitespace and line breaks; the checker rejects a quote
+    its source does not contain
+  rationale: |
+    This is what keeps a cross-design dependency expressed as a quote-fact from drifting: when an
+    upstream spec's wording changes, the stale quote fails the check in the same change that broke
+    it, rather than lingering as a confident but false claim. It is the extra strength an in-repo
+    source has over an external one that cannot be fetched at check time — the quote is verified,
+    not trusted. Matching is up to whitespace and line breaks because a block scalar and a
+    line-wrapped source hold the same text differently; how tolerant to be is this design's to
+    settle.
