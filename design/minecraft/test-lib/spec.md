@@ -17,43 +17,47 @@ loudly rather than inventing a value.
 
 ## Open questions
 
-The probe pack in `artifacts/engine-probe-pack/` was run against a real Bedrock world
-(1.26.31.1, `@minecraft/server` 2.8.0; raw log and provenance in
-`artifacts/mctest-engine-probe-results.md`), and its observations are recorded as the
-engine-run facts in `facts.yaml`. Most answers confirmed the design; the questions that remain
-are the ones whose answers *contradict* a proposed decision. Each names the fact that falsifies
-it and gates the decision it unseats until that decision is re-argued.
+The probe pack in `artifacts/engine-probe-pack/` was run against a real Bedrock world in two
+passes — `mctest:run` then the `mctest:deep` follow-ups (1.26.31.1, `@minecraft/server` 2.8.0;
+raw log and provenance in `artifacts/mctest-engine-probe-results.md`) — and every observation
+is recorded as an engine-run fact in `facts.yaml`. Most answers confirmed the design. The four
+questions that remain are the ones whose answers *contradict* a proposed decision; the engine
+behaviour behind each is now fully measured, so each is a fully-informed decision — should the
+fake match the engine, or keep a deliberate simplification — naming the facts and gating the
+decision it unseats.
 
 ```yaml
 questions:
   - id: effect-replacement-rule
-    question: the engine does not replace an active effect unconditionally — a weaker re-add
-      (lower amplifier, shorter duration) left the stronger effect in place (fact
-      effect-readd-not-unconditional), so effect-add-replaces is false as stated. Only that
-      one case was observed; the rule the fake should model — which amplifier and duration
-      combinations replace — needs deciding and probably a further probe.
+    question: the engine's re-add rule is now fully measured — replaces iff higher amplifier,
+      or same amplifier and longer-or-equal duration; lower amplifier never replaces (fact
+      effect-replacement-rule-observed), so effect-add-replaces (unconditional) is false.
+      Should the fake model the amplifier-first, duration-tiebreak rule?
     closes: decision
     gates: [effect-add-replaces]
   - id: invalidation-guard-source
-    question: nameTag and isSneaking throw InvalidEntityError on an invalid entity despite
-      carrying no @throws annotation (fact invalidation-guards-observed), so the per-member
-      guard list cannot be read off annotations alone. What should source the guard list
-      instead — the probe results, or a hand-verified list per class?
+    question: the complete guard list is now known off the engine (fact
+      invalidation-guard-list-complete) — only id, isValid, typeId, and scoreboardIdentity
+      read on an invalid entity, every other member throws InvalidEntityError, nameTag and
+      isSneaking included despite no @throws annotation. Should the fake's guard list and
+      never-throw set come from this measured list rather than the annotations?
     closes: decision
     gates: [per-member-guards]
   - id: kill-event-set
-    question: kill() fires entityHurt with cause selfDestruct before entityHealthChanged and
-      entityDie, and a component write to the minimum reports cause override (facts
-      kill-and-remove-cascades, component-health-writes-cascade); the first build modeled
-      kill as firing no entityHurt with cause none. Should the fake reproduce the engine's
-      event set and its damage causes?
+    question: kill() fires entityHurt then entityHealthChanged then entityDie (cause
+      selfDestruct) on a health entity, and only entityDie (selfDestruct) on a health-less
+      one; a component write to the minimum reports cause override (facts
+      kill-and-remove-cascades, kill-no-health-behaviour, component-health-writes-cascade).
+      The first build modeled kill as firing no entityHurt with cause none. Should the fake
+      reproduce the engine's event set and its damage causes?
     closes: decision
     gates: [remove-and-kill-behave, damage-event-dispatch-order]
   - id: after-event-delivery-model
-    question: the engine delivers after-events deferred at a later tick, not synchronously in
-      the causing call (fact after-events-deferred); the build dispatches synchronously. Keep
-      synchronous dispatch as a deliberate, documented simplification, or model tick-boundary
-      delivery?
+    question: after-events are deferred past the mutating call's return but delivered within
+      the same game tick — neither synchronous in the call nor postponed to a later tick
+      (facts after-events-deferred, after-event-deferral-subtick). Keep synchronous dispatch
+      as a deliberate simplification (a tickless fake has no tick boundary to honour), or
+      model same-tick-deferred delivery?
     closes: decision
     gates: [behaving-methods-fire-their-events]
 ```

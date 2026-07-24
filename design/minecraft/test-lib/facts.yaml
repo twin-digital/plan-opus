@@ -349,3 +349,71 @@
         getComponent, and location all threw InvalidEntityError with
         instanceofInvalidEntityError=true. (The nameTag engine message reads "Failed to set
         property" even though the probe performed a read.)
+
+# Facts from the mctest:deep follow-up run (same server session family: Bedrock 1.26.31.1,
+# @minecraft/server 2.8.0), recorded in the "Deep run" section of
+# artifacts/mctest-engine-probe-results.md. These close the factual half of the four
+# decision-gating questions; whether the fake should match the engine is the residual decision.
+
+- id: effect-replacement-rule-observed
+  claim: |
+    addEffect on an already-present effect replaces it iff the re-add has a higher amplifier,
+    or the same amplifier and a longer (or equal) duration; a lower amplifier never replaces
+    regardless of duration, and the same amplifier with a shorter duration does not replace.
+    The rule is amplifier-first with a duration tiebreak — not unconditional.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-engine-probe-results.md, Deep run, `effect-replacement-matrix` lines
+        over a base of amplifier 1 / duration 300: higher-amp (shorter or longer) replaced;
+        same-amp/longer replaced; same-amp/shorter, lower-amp/shorter, and lower-amp/longer
+        did not (read back the base amp1 dur300). Read synchronously, so a non-replacement
+        reads the untouched base and a replacement reads the new values exactly.
+
+- id: invalidation-guard-list-complete
+  claim: |
+    On a removed entity exactly four members stay readable: `id`, `isValid`, `typeId`, and
+    `scoreboardIdentity` (which reads `undefined`). Every other enumerated member throws
+    `InvalidEntityError` — all twelve remaining properties (including `nameTag` and
+    `isSneaking`, which carry no `@throws` annotation) and all eleven zero-argument getters.
+    The engine guard list is therefore not derivable from the `.d.ts` `@throws` annotations,
+    which under-report it.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-engine-probe-results.md, Deep run, `invalidation-guard-enumeration`
+        lines: id/isValid/typeId read ok and scoreboardIdentity read undefined; dimension,
+        isClimbing, isFalling, isInWater, isOnGround, isSleeping, isSneaking, isSprinting,
+        isSwimming, localizationKey, location, nameTag, and all zero-arg getters
+        (getAABB, getComponents, getEffects, getHeadLocation, getRotation, getTags,
+        getVelocity, getViewDirection, getDynamicPropertyIds, getDynamicPropertyTotalByteCount)
+        threw InvalidEntityError with instanceofInvalidEntityError=true.
+
+- id: kill-no-health-behaviour
+  claim: |
+    `kill()` on an entity that has no health component (an arrow) returns true and fires only
+    `entityDie` with cause `selfDestruct` — no `entityHurt`, no `entityHealthChanged` — and the
+    entity is immediately invalid afterward, unlike a killed mob whose corpse stays valid for
+    several ticks. Post-death validity is not a uniform grace period; despawn timing varies by
+    entity.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-engine-probe-results.md, Deep run, `kill-no-health-and-repeat` line:
+        arrow healthComponent=undefined, kill returned true, sequence=[die(cause=selfDestruct)],
+        stillValid=false after 4 ticks. Contrast the first run's sheep corpse
+        (death-invalidation-window) which stayed valid ~7 ticks.
+
+- id: after-event-deferral-subtick
+  claim: |
+    An after-event is deferred past the mutating call's return but delivered within the same
+    game tick: applyDamage was called, returned, and its entityHurt handler ran all at
+    `system.currentTick` 72309 (delay 0 ticks), while no event had been delivered before
+    applyDamage returned. Delivery is same-tick-deferred, neither synchronous within the call
+    nor postponed to a later tick.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-engine-probe-results.md, Deep run, `after-event-tick-delay` line
+        (called-at=72309 returned-at=72309 delivered-at=72309 delay-ticks=0), read with the
+        first run's after-events-deferred (events-delivered-before-applyDamage-returned=0).
