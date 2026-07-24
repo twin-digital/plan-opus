@@ -315,3 +315,12 @@
     only a new self-facing rule needs adding, and those are rare. Draws the line the growing
     requirement set had blurred: the format rules this spec documents for its readers, versus the
     requirements on this document's own construction (its copyable examples and layout tree).
+
+- id: entry-schemas-are-closed
+  statement: |
+    each entry kind's field set is closed: a fact, requirement, decision, component, or open
+    question carries only the fields its schema defines, and a field outside that set is an
+    error rather than silently ignored
+  rationale: |
+    The field names are the format's public interface, so a stray or misspelled field — a stray
+    `checked:`, a typo'd key — should be a caught error, not dead weight a lenient reader skips.
