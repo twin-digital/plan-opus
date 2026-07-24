@@ -198,20 +198,6 @@
         lines: setCurrentValue(3) → [health(8->3)]; resetToMaxValue → [health(3->8)];
         resetToMinValue → [health(8->0), die(cause=override)].
 
-- id: effect-readd-not-unconditional
-  claim: |
-    `addEffect` on an effect already present does not replace unconditionally: re-adding
-    `speed` at 100 ticks/amplifier 0 over an active 600 ticks/amplifier 2 left the original
-    in place (read back one tick later as duration=599 amplifier=2, the original ticking
-    down). The full replacement rule — which combinations of amplifier and duration do take —
-    is unmeasured.
-  backing: tested
-  sources:
-    - description: |
-        artifacts/mctest-engine-probe-results.md, `effect-replace-unconditional` line
-        `after-lower-readd duration=599 amplifier=2`, with the reading in the file's
-        "Reading the log" section.
-
 - id: effect-amplifier-defaults-to-zero
   claim: |
     An effect added with no amplifier option carries amplifier 0.
@@ -364,7 +350,24 @@
         (called-at=72309 returned-at=72309 delivered-at=72309 delay-ticks=0), read with the
         first run's after-events-deferred (events-delivered-before-applyDamage-returned=0).
 
-# Retired: superseded by the deep-run guard enumeration. Kept for the record.
+# Retired: superseded by the deep-run measurements. Kept for the record.
+
+- id: effect-readd-not-unconditional
+  status: retired
+  reason: superseded
+  superseded_by: effect-replacement-rule-observed
+  claim: |
+    `addEffect` on an effect already present does not replace unconditionally: re-adding
+    `speed` at 100 ticks/amplifier 0 over an active 600 ticks/amplifier 2 left the original
+    in place (read back one tick later as duration=599 amplifier=2, the original ticking
+    down). The full replacement rule — which combinations of amplifier and duration do take —
+    is unmeasured.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-engine-probe-results.md, `effect-replace-unconditional` line
+        `after-lower-readd duration=599 amplifier=2`, with the reading in the file's
+        "Reading the log" section.
 
 - id: invalidation-guards-observed
   status: retired

@@ -25,6 +25,13 @@ questions:
       projectile options form in the built surface at all until then?
     closes: requirement
     gates: [applydamage-mirrors-observed-cascade]
+  - id: applydamage-on-an-entity-without-health
+    question: >-
+      no observation records what applyDamage does to an entity carrying no health component
+      (an arrow, an item frame) — the recorded no-health path is kill(), which fires a bare
+      death event; does applyDamage fire the same bare death event, fire nothing, or throw?
+    closes: fact
+    gates: [applydamage-mirrors-observed-cascade]
   - id: post-death-invalidation-without-ticks
     question: >-
       the engine invalidates some entities immediately on death and keeps others valid for
@@ -56,11 +63,10 @@ declarations fails the build the moment a member is missing. The pin is a single
 every behaviour reading [[r:target-server-version]], and published as a range a consumer's own
 install must satisfy [[d:peer-range-admits-2x-minors]].
 
-Every fake's state hangs off a world instance a test constructs, with nothing at module level
-[[r:instance-scoped-world]], so suites running in one process cannot leak into each other and no
-reset step exists to forget. Nothing in the package imports a runner or an assertion library
-[[r:no-test-framework-dependency]]: what a test observes is state it reads back off the fakes
-[[r:fakes-behave-not-record]].
+Suites sharing a process cannot leak into each other and no reset step exists to forget, because
+every fake's state hangs off the world instance a test constructs [[r:instance-scoped-world]]; and
+with no runner or assertion library imported [[r:no-test-framework-dependency]], a test's only
+observation channel is state it reads back off the fakes [[r:fakes-behave-not-record]].
 
 ## The built surface and its edge
 
@@ -83,6 +89,13 @@ never a method bolted onto one [[r:only-real-members-free-functions]]. Those fun
 control plane, and this is its published surface:
 
 ```ts
+// ids, derived from the pinned declarations rather than transcribed
+type EntityComponentId = keyof EntityComponentTypeMap;
+type FakedComponentId = {
+  [K in EntityComponentId]: EntityComponentTypeMap[K] extends EntityAttributeComponent ? K : never;
+}[EntityComponentId];
+type EntityTypeId = string;     // namespaced entity id; bare or prefixed on entry
+
 // construction; presets are applied in array order
 function createWorldFake(options?: { presets?: WorldPreset[] }): World;
 function spawnFake(dimension: Dimension, typeId: EntityTypeId, options?: SpawnFakeOptions): Entity;
@@ -96,29 +109,54 @@ interface SpawnFakeOptions {
 type WorldPreset = (world: World) => void;
 type EntityPreset = (entity: Entity) => void;
 
-// component mutation, which no real member performs
-function addComponentFake<K extends EntityComponentId>(
+// component mutation, which no real member performs; every faked component is attribute-shaped
+interface AttributeState {
+  currentValue?: number;
+  defaultValue?: number;
+  effectiveMin?: number;
+  effectiveMax?: number;
+}
+type ComponentStateOf<K extends FakedComponentId> =
+  EntityComponentTypeMap[K] extends EntityAttributeComponent ? AttributeState : never;
+
+function addComponentFake<K extends FakedComponentId>(
   entity: Entity,
   componentId: K,
   state?: ComponentStateOf<K>,
 ): EntityComponentTypeMap[K];
-function removeComponentFake(entity: Entity, componentId: EntityComponentId): boolean;
+function removeComponentFake(entity: Entity, componentId: FakedComponentId): boolean;
 
 // the invalid transition; nothing else performs it
 function invalidateFake(target: Entity | Effect): void;
 
-// an event with no fake-side cause
+// events with no fake-side cause: the accessor recovers the fake signal behind a declared-typed
+// world, and emission goes through that handle
+interface FakeAfterSignal<E> {
+  subscribe(handler: (event: E) => void): (event: E) => void;
+  unsubscribe(handler: (event: E) => void): void;
+}
+type AfterEventOf<S> = S extends { subscribe(handler: (event: infer E) => void): unknown }
+  ? E
+  : never;
+
+function afterSignalFake<K extends keyof WorldAfterEvents>(
+  world: World,
+  event: K,
+): FakeAfterSignal<AfterEventOf<WorldAfterEvents[K]>>;
 function emitFake<E>(signal: FakeAfterSignal<E>, event: E): void;
 ```
 
 `removeComponentFake` answers whether the entity carried the component; `invalidateFake` on an
-entity carries its components and effects with it.
+entity carries its components and effects with it. A test never reaches an emittable signal through
+`world.afterEvents`, whose declared member type says nothing of emission: `afterSignalFake` takes
+the declared-typed world the constructor returned and the event name, and hands back the fake
+signal behind it — so emitting costs no cast at the call site and the fakes stay assignable
+[[r:structural-full-shape-fakes]].
 
 ## Identity, construction, and starting state
 
-Every id-taking parameter accepts the bare or the prefixed spelling and stores the prefixed one
-[[r:canonical-prefixed-storage]], normalizing once on entry so that no read has to compare both
-forms. Which ids are accepted is not a list the library keeps: the component and attribute id types
+Ids normalize once, on entry [[r:canonical-prefixed-storage]], so no read downstream compares two
+spellings. Which ids are accepted is not a list the library keeps: the component and attribute id types
 come out of the engine's own type map and enums [[d:id-unions-derived-from-declarations]], which
 carry exactly that information already [[f:component-ids-are-derivable-from-types]] and carry both
 spellings of every component id [[f:namespace-prefix-is-optional]]. An entity type id has no such
@@ -129,24 +167,26 @@ prefixed form the `@minecraft/vanilla-data` constants a test holds already repor
 Spawning takes a type id and returns an entity carrying an id the caller did not choose
 [[r:ids-auto-assigned-typeid-required]], shaped like the engine's — a sequential negative integer,
 never reissued within a world [[d:engine-shaped-auto-ids]] [[f:entity-ids-not-reused]]. What the new
-entity holds is only what was asked for [[r:no-implicit-defaults]]; a bare entity has no health, no
-effects, and no tags, and a populated one is built by naming presets at construction
-[[d:opt-in-presets-compose]]. The world is the exception: its three vanilla dimensions exist from
-construction with no opt-in [[d:vanilla-dimensions-on-every-world]]. That trio is read off the
-declarations, not off an engine run — which dimensions a script actually sees is the open question
-above, and it gates the decision. An id naming none of them fails exactly as the engine fails it
+entity holds is what a preset put there and nothing besides [[r:no-implicit-defaults]], presets
+being named at construction and applied in order [[d:opt-in-presets-compose]]. The world is the
+exception: its three vanilla dimensions exist from construction with no opt-in
+[[d:vanilla-dimensions-on-every-world]]. The trio's membership rests on the pinned declarations —
+the `@minecraft/server` dimension ids read off the 2.8.0 `.d.ts` — and on no engine observation. An
+id naming none of them fails exactly as the engine fails it
 [[f:get-dimension-unknown-id-error]].
 
 ## Behaviour taken from the engine
 
-The fakes reproduce what the engine was observed to do, quirks included, rather than the tidier
-behaviour a hand-rolled double would implement [[r:fakes-match-observed-engine-behaviour]]. Three
-clusters carry most of that weight.
+Three clusters carry most of the weight of matching observed behaviour rather than the tidier
+behaviour a hand-rolled double would implement [[r:fakes-match-observed-engine-behaviour]].
 
 *Damage and death.* A damaging call fires its events in the observed order with the requested amount
 in the payload, and drives health past its minimum into negative values rather than clamping
 [[d:applydamage-mirrors-observed-cascade]] [[f:damage-cascade-order-and-payload]]
-[[f:health-not-clamped-at-minimum]] [[f:applydamage-cause-defaults]]. Killing is a different path
+[[f:health-not-clamped-at-minimum]]; called with no options it carries the default cause `none`
+[[f:applydamage-cause-defaults]]. On an entity carrying no health component there is no cascade to
+run and none observed, so the call throws the not-implemented error until an observation says
+otherwise, rather than guessing a sequence [[r:fakes-never-fabricate]]. Killing is a different path
 with a different cause and a different landing point, is idempotent on an already-dead entity, and
 degrades to a bare death event when there is no health component to drive
 [[f:kill-and-remove-cascades]] [[f:kill-no-health-behaviour]]; removal fires nothing at all.
@@ -160,16 +200,16 @@ themselves are inclusive [[f:set-current-value-bounds-observed]].
 [[f:addeffect-returns-the-effect]], defaults its amplifier [[f:effect-amplifier-defaults-to-zero]],
 and replaces an effect already present only under the observed amplifier-first rule — so a re-add
 that loses the comparison leaves the original ticking untouched, which is the case a naive double
-gets wrong [[f:effect-replacement-rule-observed]] [[f:effect-readd-not-unconditional]]. The
+gets wrong [[f:effect-replacement-rule-observed]]. The
 amplifier is the only default: no observation records what a duration falls back to, so the fake
 supplies none and every entry point that creates an effect requires one from the caller and stores
 it as passed [[r:fakes-never-fabricate]].
 
 ## Validity
 
-A test can put an entity into the state a stale engine reference is in, at any point, on a reference
-the test is already holding, and only the control plane's call performs that transition
-[[r:invalidation-is-modeled]] [[d:invalidation-only-through-the-control-plane]]. What that state does is not uniform and
+The invalid state is reachable mid-test, on a reference the test already holds, and only through the
+control plane's call [[r:invalidation-is-modeled]]
+[[d:invalidation-only-through-the-control-plane]]. What that state does is not uniform and
 is not readable off the declarations, whose annotations under-report which members throw: the guard
 table is transcribed from the observed enumeration and everything outside it throws
 [[d:observed-guard-table-not-annotations]] [[f:invalidation-guard-list-complete]]. Owned objects
@@ -189,23 +229,21 @@ text sees what production would show it.
 
 ## Events
 
-After-events are delivered inline, within the call that caused them, and a test reads the event and
-the resulting state with no tick to wait for [[r:synchronous-event-delivery]]. This is the design's
-one deliberate departure from the engine, which defers delivery past the mutating call's return but
-still inside the tick [[f:after-events-deferred]] [[f:after-event-deferral-subtick]]; a fake with no
-tick loop has nothing to defer into, and the cost is that code following a mutating call runs after
-its handlers rather than before them. Registration and ordering are not departures — the fake
-matches the engine there [[d:synchronous-dispatch-in-subscription-order]]
-[[f:subscription-semantics-observed]]. A handler that throws takes the dispatching call down with it
-[[d:handler-exceptions-propagate]].
+Inline delivery is this design's one deliberate departure from the engine
+[[r:synchronous-event-delivery]], which defers past the mutating call's return but stays inside the
+tick [[f:after-events-deferred]] [[f:after-event-deferral-subtick]]. Registration and ordering are
+not departures — the fake matches the engine there
+[[d:synchronous-dispatch-in-subscription-order]] [[f:subscription-semantics-observed]] — and a
+throwing handler is not isolated, so the events later in a cascade go undelivered and the mutating
+call itself throws [[d:handler-exceptions-propagate]].
 
 ## Components
 
 ```yaml
 components:
   - id: package-scaffold
-    responsibility: the package, its build and type configuration, the pinned peer dependency, and the compile-only conformance suite that proves each fake assignable to its declared type
-    excludes: any faked behaviour of its own
+    responsibility: the package, its build and type configuration, and the pinned peer dependency
+    excludes: any faked behaviour of its own, and the export barrel naming what ships
   - id: engine-errors
     responsibility: runtime error classes and message builders mirroring the engine's throws, plus the not-implemented thrower every stub member calls
     excludes: deciding which members throw
@@ -215,7 +253,7 @@ components:
     excludes: validating that an id names something the fake world holds
     after: [package-scaffold]
   - id: event-signals
-    responsibility: the after-event signal classes, subscription registration, and inline dispatch in subscription order
+    responsibility: the after-event signal classes in their full declared shape — subscription registration, inline dispatch in subscription order, and the stub members of each signal
     excludes: knowing which state change emits which event
     after: [package-scaffold]
   - id: validity-guard
@@ -223,19 +261,19 @@ components:
     excludes: exposing the transition to tests
     after: [engine-errors]
   - id: world-and-dimension
-    responsibility: the world and dimension fakes, the entity registry, id assignment, and dimension resolution
-    excludes: entity behaviour beyond registration
+    responsibility: the world and dimension fakes in their full declared shape — the entity registry, id assignment, dimension resolution, the WorldAfterEvents shape wiring each signal onto the world, and both classes' stub surface
+    excludes: entity behaviour beyond registration, and the dispatch semantics of the signals it hangs
     after: [id-normalization, event-signals]
   - id: entity-fake
-    responsibility: the entity and player fakes — stored state, component lookup, and the full stub surface
-    excludes: attribute and effect semantics
+    responsibility: the entity and player fakes — stored state including the dead/alive flag, component lookup, and the full stub surface
+    excludes: attribute and effect semantics, and every rule for when the flag flips
     after: [validity-guard, world-and-dimension]
   - id: attribute-components
-    responsibility: the attribute component fakes, bounds enforcement, and the events a health write emits
+    responsibility: the attribute component fakes, bounds enforcement, and the events a health write emits — including the write that reaches the minimum, which sets the entity's dead flag
     excludes: the damage path
     after: [entity-fake]
   - id: effect-model
-    responsibility: the effect and effect-type fakes, the amplifier default, caller-supplied durations, and the replacement rule
+    responsibility: the effect and effect-type fakes in their full declared shape — the amplifier default, caller-supplied durations, the replacement rule, and both classes' stub surface
     excludes: effect-driven attribute changes
     after: [entity-fake]
   - id: lifecycle-cascades
@@ -243,7 +281,11 @@ components:
     excludes: bounds enforcement and the events a direct attribute write emits
     after: [attribute-components]
   - id: control-plane
-    responsibility: the exported free functions — world construction, spawning, presets, component add and remove, invalidation, and event emission
+    responsibility: the exported free functions — world construction, spawning, presets, component add and remove, invalidation, signal lookup, and event emission
     excludes: any behaviour reachable through a real member
     after: [entity-fake, attribute-components, effect-model, lifecycle-cascades]
+  - id: public-surface
+    responsibility: the export barrel naming everything the package ships, and the compile-only conformance suite that proves each fake assignable to its declared type
+    excludes: any faked behaviour of its own
+    after: [control-plane, world-and-dimension]
 ```

@@ -111,8 +111,9 @@
     subscribers once apiece in subscription order
   status: proposed
   falsifiers:
-    - a consumer relies on a mutating call returning before its handlers run, so inline delivery
-      inverts the order its production code depends on
+    - a later engine run shows dispatch is not once-apiece in subscription order — a closure
+      subscribed twice receiving two deliveries, or subscribers called in another order — so the
+      single-run reading the fake transcribes is wrong
     - a cascade's own handler mutates the same entity and inline delivery re-enters the mutation
       in a way the engine's deferral cannot produce
 
@@ -133,9 +134,6 @@
     requested damage amount and the observed default cause, and never clamps at the minimum
   status: proposed
   falsifiers:
-    - applyDamage is called on a fake carrying no health component — an arrow, an item frame —
-      and the transcribed cascade has no health to drive, so damage needs a second path this
-      one sequence does not describe
     - a later engine run shows the sequence or the payload differs by damage cause or by entity
       type, so one transcribed cascade cannot cover them
 
