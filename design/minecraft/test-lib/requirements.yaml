@@ -1,3 +1,43 @@
+# Requirements scoped to the minecraft/test-lib design. Owner-fiat inputs the spec is built to
+# satisfy. Behavioural fidelity is one general requirement, not a per-behaviour list: the fake
+# reproduces what the engine was observed to do (the facts), and the spec/builder derive the
+# specific behaviours from those facts.
+
+# Fidelity and behaviour
+
+- id: fakes-match-observed-engine-behaviour
+  statement: |
+    for every faked member, the fake reproduces the behaviour the engine is observed to exhibit
+    on the pinned `@minecraft/server` version — the engine-run facts — including the quirks a
+    naive double would smooth over: namespace-optional ids, methods whose return value encodes
+    success or failure, non-uniform invalidation, and values that read back exactly as the engine
+    reports them. It does not substitute a convenient approximation. A fake departs from observed
+    behaviour only where a requirement listed here documents the departure; the spec and builder
+    take the specific behaviours (effect replacement, the invalidation guard list, the kill
+    cascade, damage causes, and the rest) from the facts rather than from a per-behaviour
+    requirement. Current departures: [[r:synchronous-event-delivery]].
+  rationale: |
+    A double is worth only what a passing test predicts about the engine, so observed behaviour
+    is the default and every simplification must be a named, owner-approved exception rather than
+    a silent one; the explicit departures list is the complete set of places the fake is
+    knowingly unfaithful. Stating fidelity once, and pointing at the probe facts for the details,
+    keeps the requirement set small and lets a behaviour the facts establish bind the fake
+    without its own entry.
+
+- id: synchronous-event-delivery
+  statement: |
+    the fake dispatches a behaving method's after-events synchronously, within the causing
+    call, rather than same-tick-deferred as the engine does; a test observes the event and the
+    resulting state immediately, with no tick to await.
+  rationale: |
+    The engine defers after-events to a point later in the same tick
+    [[f:after-events-deferred]] [[f:after-event-deferral-subtick]], but a fake has no tick loop
+    to defer within, so reproducing the deferral would need a scheduler and force every consumer
+    test to await a flush for no fidelity a tickless test can detect. The one observable
+    difference — code after the mutating call running before, not after, the handlers — is the
+    accepted cost, and this is the sole departure [[r:fakes-match-observed-engine-behaviour]]
+    lists today.
+
 - id: fakes-behave-not-record
   statement: |
     the doubles hold real state and mutate it as their methods are called; a test asserts on
@@ -8,26 +48,18 @@
       assertions break on it, pinning the implementation instead of the behaviour.
     - This is the reason the library exists rather than a bag of `vi.fn()` spies.
 
-- id: no-test-framework-dependency
+- id: fakes-never-fabricate
   statement: |
-    the library depends on no test framework at runtime; the fakes are plain objects a caller
-    can wrap with their own spy library if they must, and they behave identically under any
-    runner.
+    a fake never fabricates: a member whose behaviour has no fidelity reference, and a read
+    of state the test never supplied where the engine could not lack it, fail loudly with a
+    distinctive error rather than returning an invented value. Absence the engine can exhibit
+    is not fabrication, and reads back as the engine reports it. This is a default: where a more
+    specific requirement documents an observed engine behaviour for such a member, that
+    requirement takes precedence and states the override explicitly.
   rationale: |
-    A published double library that pulls in vitest (or jest, or node:test) forces that choice
-    on every consumer and every consumer's consumer. State assertions need no such dependency,
-    so nothing justifies incurring it.
-
-- id: faithful-to-observable-api
-  statement: |
-    a fake reproduces the observable behaviour of the real `@minecraft/server` object it
-    stands in for, including quirks a naive double would smooth over — namespace-optional ids,
-    methods whose return value encodes success or failure, and values that read back exactly as
-    the engine would report them.
-  rationale: |
-    A double is only worth trusting to the extent a test passing against it predicts the same
-    code passing against the engine. Every unfaithful convenience is a false pass waiting to
-    ship.
+    A fabricated return is a false pass waiting to ship; a loud throw is a bug report. Making
+    this fiat keeps a future regeneration from trading loudness for convenience — the exact
+    trade the library exists to prevent.
 
 - id: invalidation-is-modeled
   statement: |
@@ -39,7 +71,76 @@
     routinely the hit that unloaded the entity; the try/catch guarding every such helper is
     untestable without this. It is the single quirk that most distinguishes the library from a
     hand-rolled double, and the hardest to get right, so it stands as its own invariant rather
-    than folding into [[r:faithful-to-observable-api]].
+    than folding into [[r:fakes-match-observed-engine-behaviour]].
+
+# Substitution, typing, and surface
+
+- id: object-substitution-not-module-mocking
+  statement: |
+    the library substitutes fake objects passed into code under test; it does not replace or
+    intercept the `@minecraft/server` module import. Code that can only reach the engine
+    through a direct module import is outside its reach.
+  rationale: |
+    This is the consumer contract: pack helpers receive their world and entities as
+    parameters, and every consumer test is written against that assumption. A later
+    module-shim story would invalidate whole suites, so the stance is fiat rather than a
+    choice left open to a better argument.
+
+- id: structural-full-shape-fakes
+  statement: |
+    fake classes are complete structural implementations of the real declared types: a fake is
+    assignable where the real type is expected with no cast, and it declares the full public
+    shape of its class, so assignability never narrows. Members outside the built surface
+    present as not-implemented stubs — unfaked access throws rather than reading `undefined`.
+  rationale: |
+    The test and the code under test must share one real type and read through the genuine API;
+    a cast at every boundary, or a narrowed type that dropped members, would teach tests an
+    access pattern that does not exist against the engine, and a member reading `undefined` is a
+    silent false pass while a loud stub is a bug report. Available because the declared classes
+    carry no private members or brand fields [[f:server-classes-are-structurally-assignable]];
+    pairs with [[r:fakes-never-fabricate]].
+
+- id: only-real-members-free-functions
+  statement: |
+    a fake exposes no member that duplicates or shadows a real one; everything the real API
+    cannot express — constructing worlds and entities, invalidation, event emission, and any
+    read the real surface has no member for — is an exported free function over the fakes, not
+    a fake-only member.
+  rationale: |
+    A fake-only shortcut that mirrors a real getter drifts from it and teaches a test an access
+    pattern that does not exist against the engine; every read a test needs goes through the
+    genuine API or a free-function selector over it. Adding a member is justified only when it
+    is provably inexpressible otherwise.
+
+- id: no-test-framework-dependency
+  statement: |
+    the library depends on no test framework at runtime; the fakes are plain objects a caller
+    can wrap with their own spy library if they must, and they behave identically under any
+    runner.
+  rationale: |
+    A published double library that pulls in vitest (or jest, or node:test) forces that choice
+    on every consumer and every consumer's consumer. State assertions need no such dependency,
+    so nothing justifies incurring it.
+
+- id: target-server-version
+  statement: |
+    the library targets the stable `@minecraft/server` 2.x line, pinned at 2.8.0 and declared
+    as the peer range a consumer must satisfy; every derivation, guard list, and behaviour
+    reading is taken from the pinned version's declarations.
+  rationale: |
+    The pin advances with the stable line; it names the declarations all fidelity claims are
+    checked against, so a version bump re-runs the derivations rather than silently shifting
+    their meaning.
+
+# Construction, ids, and the control plane
+
+- id: instance-scoped-world
+  statement: |
+    all fake state belongs to a world instance a test creates; the library holds no
+    module-level mutable state.
+  rationale: |
+    Isolation between tests is object lifetime — make a new world — rather than a reset hook a
+    framework would have to run. Module-global state would leak across tests and defeat that.
 
 - id: no-implicit-defaults
   statement: |
@@ -52,13 +153,28 @@
     absence-by-default removes. Opt-in bases give the same convenience without the surprise: a
     test that wants a living mob names the base that makes one.
 
-- id: no-shadowing-of-real-api
+- id: ids-auto-assigned-typeid-required
   statement: |
-    a fake exposes no member that duplicates a real one; it adds only what the real surface
-    cannot express, and every read a test needs goes through the genuine API (or a
-    free-function selector over it) so nothing on the fake competes with the real access path.
+    spawnFake requires a typeId and assigns each entity a unique opaque id, overridable in the
+    spec — in the engine, too, the spawner never chooses the id.
   rationale: |
-    A fake-only shortcut that mirrors a real getter drifts from it, and teaches a test an
-    access pattern that does not exist against the engine. Every candidate shortcut examined so
-    far turned out to be derivable from the real surface, so the bar is: add a member only when
-    it is provably inexpressible otherwise.
+    A factory adds nothing the caller did not specify, and an engine-shaped synthetic id keeps
+    tests from depending on a value the spawner would not let them choose.
+
+- id: control-plane-component-mutation
+  statement: |
+    the control plane includes component add and remove over a live entity, since the real API
+    reshapes an entity's components only through data-driven paths the fakes do not model.
+  rationale: |
+    Consumer helpers reshape components mid-test; without a control affordance a test could not
+    stage the state a real behaviour pack reaches, and putting it on the fake would shadow the
+    real surface [[r:only-real-members-free-functions]].
+
+- id: canonical-prefixed-storage
+  statement: |
+    every id-taking input accepts bare or prefixed ids, normalizes on entry, and stores and
+    reports the canonical `minecraft:`-prefixed form.
+  rationale: |
+    The engine applies the namespace-optional rule uniformly and reports the prefixed form
+    [[f:namespace-prefix-is-optional]], so reads compare equal against the `@minecraft/vanilla-data`
+    constants a test typically holds.

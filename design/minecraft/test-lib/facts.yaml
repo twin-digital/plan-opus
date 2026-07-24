@@ -32,6 +32,38 @@
       quote: |
         This property is accessible even if @minecraft/server.Entity.isValid is false.
 
+- id: invalidation-throws-are-mechanically-derivable
+  claim: |
+    In `@minecraft/server` 2.8.0 the invalidation guard list is mechanically derivable from
+    the declarations: every Entity member carrying `@throws` names InvalidEntityError in its
+    TSDoc (56 members), and the six without — `id`, `isSneaking`, `isValid`, `nameTag`,
+    `scoreboardIdentity`, `typeId` — carry no `@throws` at all, so no Entity member is
+    ambiguous. The attribute component classes are coarser: `setCurrentValue` names
+    InvalidEntityError while the value getters and reset methods carry only a generic
+    `@throws` naming no error.
+  backing: tested
+  sources:
+    - description: |
+        design/minecraft/test-lib/artifacts/type-probes/throws-annotation-probe.mjs pairs each declared
+        member of Entity, Component, EntityComponent, EntityAttributeComponent, and
+        EntityHealthComponent with its TSDoc block and splits members by whether the block
+        names InvalidEntityError; committed output in
+        design/minecraft/test-lib/artifacts/type-probes/throws-annotation-probe.out.txt.
+
+- id: invalid-entity-error-shape
+  claim: |
+    `@minecraft/server` 2.8.0 declares `InvalidEntityError` as an exported class extending
+    Error, carrying `readonly id: string` and `readonly type: string` — the id and type of the
+    entity that became invalid. Like every class in the package the declaration is types-only,
+    so a test process cannot import the real class; only its declared shape is available.
+  backing: documented
+  sources:
+    - description: |
+        @minecraft/server 2.8.0 index.d.ts declares `export class InvalidEntityError extends
+        Error` with a private constructor and readonly `id` and `type` members, each annotated
+        as belonging to "the entity that is now invalid". Runtime absence follows from
+        [[f:server-package-ships-types-only]].
+
 - id: namespace-prefix-is-optional
   claim: |
     Identifiers in the `minecraft:` namespace may be written with or without the prefix; when a
@@ -65,6 +97,22 @@
         typo rejected by the attribute-id union, and a bare id rejected in canonical position.
         An unused expect-error directive fails the build, so all three probes genuinely error.
 
+- id: server-classes-are-structurally-assignable
+  claim: |
+    The classes `@minecraft/server` 2.8.0 declares carry no private members or brand fields: a
+    value exposing only a class's public shape is assignable to the class type. A library class
+    can therefore satisfy Entity, Player, EntityComponent, EntityHealthComponent, World,
+    Dimension, Effect, EffectType, and the event signal classes structurally, and its instances
+    pass where the real type is expected without casts.
+  backing: tested
+  sources:
+    - description: |
+        design/minecraft/test-lib/artifacts/type-probes/assignability-probe.ts compiles clean (tsc
+        --noEmit, strict; `npm run check` in that folder) against @minecraft/server 2.8.0: a
+        mapped public-shape value is accepted for all nine classes, and a @ts-expect-error
+        negative control missing one member genuinely errors, so a clean compile is a real
+        positive.
+
 - id: vanilla-data-provides-prefixed-id-constants
   claim: |
     `@minecraft/vanilla-data`, unlike `@minecraft/server`, ships runtime JavaScript: named
@@ -76,3 +124,296 @@
         Required node_modules/.pnpm/@minecraft+vanilla-data@1.26.33/node_modules/@minecraft/vanilla-data/lib/index.js
         at runtime and evaluated members: MinecraftEffectTypes.Resistance === 'minecraft:resistance',
         MinecraftEntityTypes.Villager === 'minecraft:villager'.
+
+# Facts transcribed from the committed engine-probe run: Bedrock dedicated 1.26.31.1,
+# @minecraft/server 2.8.0, single run (n=1) of artifacts/engine-probe-pack, raw log and run
+# provenance in artifacts/mctest-engine-probe-results.md. Each source names the [mctest]
+# lines it rests on.
+
+- id: addeffect-returns-the-effect
+  claim: |
+    `Entity.addEffect` returns the `Effect` object on success — both when adding a new effect
+    and when updating one already present — resolving the pinned TSDoc's self-contradiction
+    ("Returns nothing if the effect was added or updated successfully" vs the declared
+    `Effect | undefined`) in favour of the signature.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-engine-probe-results.md, `addeffect-success-return` lines: add and
+        update both report `ok value=object(Effect)`; the returned object reads
+        typeId=minecraft:speed duration=200 amplifier=1.
+
+- id: effect-members-throw-plain-error
+  claim: |
+    On a removed effect, and equally on an effect whose owner has been unloaded, the `Effect`
+    value members `amplifier`, `duration`, `typeId`, and `displayName` throw a plain `Error`
+    (name and constructor `Error`, message `Failed to get property '<member>'.`) — not
+    `InvalidEntityError` — while `isValid` stays readable and answers false.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-engine-probe-results.md, `effect-member-guard-derivation` lines:
+        all four members threw name=Error ctor=Error instanceofInvalidEntityError=false in
+        both the removed-effect and invalid-owner variants; isValid read `false` in both.
+
+- id: damage-cascade-order-and-payload
+  claim: |
+    `applyDamage` fires `entityHurt`, then `entityHealthChanged`, then — on a killing hit —
+    `entityDie`, and `entityHurt.damage` carries the requested amount even when it exceeds
+    remaining health (damage=100 against 8 health).
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-engine-probe-results.md, `damage-event-order-in-engine` and
+        `clamped-hit-damage-payload` lines: nonlethal sequence
+        [hurt(damage=2), health(8->6)]; lethal sequences
+        [hurt(damage=98), health(6->-92), die] and [hurt(damage=100), health(8->-92), die].
+
+- id: health-not-clamped-at-minimum
+  claim: |
+    A killing `applyDamage` drives `currentValue` below `effectiveMin` — the engine does not
+    clamp: 100 damage against 8/[0,8] health leaves −92, and `entityHealthChanged` reports
+    the negative value. By contrast `kill()` and `resetToMinValue` land exactly at the
+    minimum (8->0).
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-engine-probe-results.md: `health(6->-92)` and `health(8->-92)` from
+        lethal applyDamage; `health(8->0)` from kill-cascade and from resetToMinValue in
+        component-health-writes-fire-events.
+
+- id: applydamage-cause-defaults
+  claim: |
+    `applyDamage` with no options fires `damageSource.cause` `none`. With the projectile
+    options form (which has no cause field) the engine derives cause `projectile` itself,
+    and adjusts the damage: a requested 1 arrived as 1.045823097229004 from a real arrow, so
+    the projectile-path damage is velocity-dependent, not the requested constant.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-engine-probe-results.md, `damage-default-cause` lines: no-options
+        sequence [hurt(damage=1,cause=none), health(8->7)]; projectile-options sequence
+        [hurt(damage=1.045823097229004,cause=projectile), health(7->5.954176902770996)].
+        Single run — the adjusted damage value itself is nondeterministic.
+
+- id: kill-and-remove-cascades
+  claim: |
+    `kill()` fires the full damage cascade — `entityHurt` with damage equal to current
+    health and cause `selfDestruct`, then `entityHealthChanged` to exactly the minimum, then
+    `entityDie` with cause `selfDestruct` — and returns true; on the still-valid corpse a
+    second `kill()` returns true and fires nothing. `remove()` fires no event at all.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-engine-probe-results.md, `kill-cascade` lines: first kill returned
+        true with sequence [hurt(damage=8,cause=selfDestruct), health(8->0),
+        die(cause=selfDestruct)]; second kill returned true with sequence []; and
+        `remove-fires-no-death-event` reported sequence [].
+
+- id: death-invalidation-window
+  claim: |
+    Inside an `entityDie` handler the dead entity's reference is still valid — `isValid`
+    reads true and guarded members answer — and it stays valid for at least ~7 ticks after
+    `kill()`, turning invalid by ~27 ticks when the corpse despawns. The exact boundary is
+    unmeasured.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-engine-probe-results.md, `death-invalidation-timing` lines with the
+        tick-offset mapping in its "Reading the log" section: inside-die-handler isValid true
+        and hasTag answering; after-wait samples at ~2/7/27/67 ticks reading
+        true/true/false/false.
+
+- id: component-health-writes-cascade
+  claim: |
+    Health writes through the component fire `entityHealthChanged` — `setCurrentValue` and
+    the resets alike, with no `entityHurt` — and a write that reaches the effective minimum
+    fires `entityDie` with cause `override`.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-engine-probe-results.md, `component-health-writes-fire-events`
+        lines: setCurrentValue(3) → [health(8->3)]; resetToMaxValue → [health(3->8)];
+        resetToMinValue → [health(8->0), die(cause=override)].
+
+- id: effect-readd-not-unconditional
+  claim: |
+    `addEffect` on an effect already present does not replace unconditionally: re-adding
+    `speed` at 100 ticks/amplifier 0 over an active 600 ticks/amplifier 2 left the original
+    in place (read back one tick later as duration=599 amplifier=2, the original ticking
+    down). The full replacement rule — which combinations of amplifier and duration do take —
+    is unmeasured.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-engine-probe-results.md, `effect-replace-unconditional` line
+        `after-lower-readd duration=599 amplifier=2`, with the reading in the file's
+        "Reading the log" section.
+
+- id: effect-amplifier-defaults-to-zero
+  claim: |
+    An effect added with no amplifier option carries amplifier 0.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-engine-probe-results.md, `effect-amplifier-default` line
+        `amplifier=0`.
+
+- id: attribute-guard-classes-observed
+  claim: |
+    On an invalid owner, the attribute members whose `@throws` names no error — the value
+    getters and the resets — do throw, but a plain `Error` (`Failed to get property
+    '<internal name>'.` / `Failed to call function '<name>'.`), while the members whose
+    `@throws` names `InvalidEntityError` — `setCurrentValue` and `entity` — throw
+    `InvalidEntityError`. `isValid` (false) and `typeId` stay readable. The declared error
+    classes in `@throws` annotations are therefore exact, including their absence.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-engine-probe-results.md, `attribute-generic-throws-on-invalid-owner`
+        lines: currentValue/defaultValue/effectiveMax/effectiveMin/resetToDefaultValue threw
+        name=Error; setCurrentValue(1) and entity threw InvalidEntityError with
+        instanceofInvalidEntityError=true; isValid read false and typeId read
+        minecraft:health.
+
+- id: set-current-value-bounds-observed
+  claim: |
+    `setCurrentValue` accepts values exactly at `effectiveMin` and `effectiveMax` and throws
+    `ArgumentOutOfBoundsError` (that name and constructor) outside them, its message naming
+    the value and the bounds: "Unsupported or out of bounds value passed to function
+    argument [0]: value, Value: 1008, Argument bounds: [0, 8]".
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-engine-probe-results.md, `set-current-value-bounds` lines: at-max
+        and at-min returned true; above-max and below-min threw
+        name=ArgumentOutOfBoundsError with the quoted message shape.
+
+- id: get-dimension-unknown-id-error
+  claim: |
+    `world.getDimension` with an id that names no dimension throws a plain `Error` with
+    message "Dimension '<id>' is invalid.".
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-engine-probe-results.md, `get-dimension-invalid-id-error` line:
+        threw name=Error ctor=Error message="Dimension 'mctest:nope' is invalid.".
+
+- id: after-events-deferred
+  claim: |
+    After-events are not delivered synchronously inside the causing call: zero events had
+    been delivered when `applyDamage` returned, and both events of the hit arrived within
+    the following 4 ticks. Handlers observe post-write state — an
+    `entityHealthChanged(8->6)` handler read `currentValue` 6 at delivery.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-engine-probe-results.md, `after-event-delivery-timing` lines:
+        events-delivered-before-applyDamage-returned=0, total-after-4-ticks=2,
+        handler-observed event(8->6) componentReadsNow=6.
+
+- id: subscription-semantics-observed
+  claim: |
+    Subscribing the same closure twice delivers an event once — registration is
+    set-shaped — and distinct subscribers are called in subscription order.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-engine-probe-results.md, `duplicate-subscription-delivery` lines:
+        same-closure-subscribed-twice deliveries=1; subscription-order=[first, second].
+
+- id: entity-ids-not-reused
+  claim: |
+    Entity ids are monotonically sequential opaque negative integers and are not reissued
+    after removal: three spawned-then-removed sheep took -47244640214..-47244640212 and the
+    next three spawns continued at -47244640211..-47244640209 with no overlap (single run,
+    six ids).
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-engine-probe-results.md, `entity-id-reuse` line with both id lists
+        and reused=[].
+
+- id: invalidation-guards-observed
+  claim: |
+    On an invalidated entity the engine keeps `id`, `typeId`, `isValid`, and
+    `scoreboardIdentity` answering, and throws `InvalidEntityError` from annotated members
+    (`hasTag`, `getComponent`, `location`) — but also from `nameTag` and `isSneaking`, which
+    carry no `@throws` annotation at all. The declaration-derived never-throw set is
+    therefore wrong for those two members: annotations under-report the guard.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-engine-probe-results.md, `invalidation-nonuniformity-in-engine`
+        lines: id/typeId/isValid/scoreboardIdentity read ok; nameTag, isSneaking, hasTag,
+        getComponent, and location all threw InvalidEntityError with
+        instanceofInvalidEntityError=true. (The nameTag engine message reads "Failed to set
+        property" even though the probe performed a read.)
+
+# Facts from the mctest:deep follow-up run (same server session family: Bedrock 1.26.31.1,
+# @minecraft/server 2.8.0), recorded in the "Deep run" section of
+# artifacts/mctest-engine-probe-results.md. These close the factual half of the four
+# decision-gating questions; whether the fake should match the engine is the residual decision.
+
+- id: effect-replacement-rule-observed
+  claim: |
+    addEffect on an already-present effect replaces it iff the re-add has a higher amplifier,
+    or the same amplifier and a longer (or equal) duration; a lower amplifier never replaces
+    regardless of duration, and the same amplifier with a shorter duration does not replace.
+    The rule is amplifier-first with a duration tiebreak — not unconditional.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-engine-probe-results.md, Deep run, `effect-replacement-matrix` lines
+        over a base of amplifier 1 / duration 300: higher-amp (shorter or longer) replaced;
+        same-amp/longer replaced; same-amp/shorter, lower-amp/shorter, and lower-amp/longer
+        did not (read back the base amp1 dur300). Read synchronously, so a non-replacement
+        reads the untouched base and a replacement reads the new values exactly.
+
+- id: invalidation-guard-list-complete
+  claim: |
+    On a removed entity exactly four members stay readable: `id`, `isValid`, `typeId`, and
+    `scoreboardIdentity` (which reads `undefined`). Every other enumerated member throws
+    `InvalidEntityError` — all twelve remaining properties (including `nameTag` and
+    `isSneaking`, which carry no `@throws` annotation) and all eleven zero-argument getters.
+    The engine guard list is therefore not derivable from the `.d.ts` `@throws` annotations,
+    which under-report it.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-engine-probe-results.md, Deep run, `invalidation-guard-enumeration`
+        lines: id/isValid/typeId read ok and scoreboardIdentity read undefined; dimension,
+        isClimbing, isFalling, isInWater, isOnGround, isSleeping, isSneaking, isSprinting,
+        isSwimming, localizationKey, location, nameTag, and all zero-arg getters
+        (getAABB, getComponents, getEffects, getHeadLocation, getRotation, getTags,
+        getVelocity, getViewDirection, getDynamicPropertyIds, getDynamicPropertyTotalByteCount)
+        threw InvalidEntityError with instanceofInvalidEntityError=true.
+
+- id: kill-no-health-behaviour
+  claim: |
+    `kill()` on an entity that has no health component (an arrow) returns true and fires only
+    `entityDie` with cause `selfDestruct` — no `entityHurt`, no `entityHealthChanged` — and the
+    entity is immediately invalid afterward, unlike a killed mob whose corpse stays valid for
+    several ticks. Post-death validity is not a uniform grace period; despawn timing varies by
+    entity.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-engine-probe-results.md, Deep run, `kill-no-health-and-repeat` line:
+        arrow healthComponent=undefined, kill returned true, sequence=[die(cause=selfDestruct)],
+        stillValid=false after 4 ticks. Contrast the first run's sheep corpse
+        (death-invalidation-window) which stayed valid ~7 ticks.
+
+- id: after-event-deferral-subtick
+  claim: |
+    An after-event is deferred past the mutating call's return but delivered within the same
+    game tick: applyDamage was called, returned, and its entityHurt handler ran all at
+    `system.currentTick` 72309 (delay 0 ticks), while no event had been delivered before
+    applyDamage returned. Delivery is same-tick-deferred, neither synchronous within the call
+    nor postponed to a later tick.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-engine-probe-results.md, Deep run, `after-event-tick-delay` line
+        (called-at=72309 returned-at=72309 delivered-at=72309 delay-ticks=0), read with the
+        first run's after-events-deferred (events-delivered-before-applyDamage-returned=0).
