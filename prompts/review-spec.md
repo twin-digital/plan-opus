@@ -46,6 +46,13 @@ gate until it is verified (below).
 7. **Buildability** — could a competent builder build from this alone? Is each component a
    dispatchable unit with an interface pinned enough for parallel build? Is anything left
    underspecified for a real build choice?
+8. **Cross-design dependency** — does every reliance on another design's output appear as a
+   **fact** in this design's or a shared scope, sourced to the upstream `spec.md` by
+   repo-relative url and verbatim quote — never as a direct citation of another design's
+   decisions or invariants, and never left implicit in prose? Each such quote must appear
+   verbatim at its source; a paraphrase, or a quote that has drifted from the upstream text, is a
+   finding. This is the check that keeps a published interface's consumers from silently
+   depending on a version that has moved.
 
 ---
 
