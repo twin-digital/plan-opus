@@ -121,14 +121,23 @@ for (const d of designs) {
   if (!hasDoc) continue;
 
   const src = fs.readFileSync(d.md, "utf8");
-  const legacy = /\[\[[DQC]\d+\]\]/.test(src) || /^```yaml\n- id:/m.test(src);
-  if (legacy) { add("legacy format — regenerate", tag); d.state = "legacy"; continue; }
+  if (/\[\[[DQC]\d+\]\]/.test(src)) { add("legacy format — regenerate", tag); d.state = "legacy"; continue; }
+
+  // Live blocks are read only from their fixed H2 section; yaml blocks elsewhere are
+  // illustrative examples and ignored. Section titles: "Components", "Open questions".
+  const headings = [...src.matchAll(/^## (.+?)[ \t]*$/gm)].map((h) => ({ at: h.index, title: h[1].trim() }));
+  const sectionOf = (pos) => { let t = null; for (const h of headings) { if (h.at < pos) t = h.title; else break; } return t; };
+  const LIVE = new Set(["Components", "Open questions"]);
 
   const blocks = {};
+  let legacy = false;
   for (const m of src.matchAll(/```yaml\n([\s\S]*?)\n```/g)) {
+    if (!LIVE.has(sectionOf(m.index))) continue;         // illustrative example, not a live block
+    if (/^- id:/m.test(m[1])) { legacy = true; break; }  // old foundations-in-spec sequence under a live section
     let parsed; try { parsed = YAML.parse(m[1]); } catch (e) { add("yaml parse", `${tag} block: ${e.message}`); continue; }
     if (parsed && typeof parsed === "object") for (const key of Object.keys(parsed)) blocks[key] = parsed[key];
   }
+  if (legacy) { add("legacy format — regenerate", tag); d.state = "legacy"; continue; }
   const questions = Array.isArray(blocks.questions) ? blocks.questions : [];
   const components = Array.isArray(blocks.components) ? blocks.components : [];
   if ("questions" in blocks && questions.length === 0) add("empty questions block", tag);   // rule 10 — omit the section when empty
