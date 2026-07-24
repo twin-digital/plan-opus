@@ -1,0 +1,103 @@
+=== environment
+repo=/workspace/opus ref=archive/minecraft-prototype (4e731f5b)
+workspace globs: nodejs/*/*, tooling/scripts, tooling/renovate-tools
+workspace packages: 41
+ground truth packs: @twin-digital/hello-world, @twin-digital/village-guard
+
+=== strategies (selected / missed truth / false positives)
+
+committed pack/manifest.json
+  selected(2): @twin-digital/hello-world, @twin-digital/village-guard
+  missed: none
+  false positives: none
+
+committed pack/manifest.json with a header.uuid
+  selected(2): @twin-digital/hello-world, @twin-digital/village-guard
+  missed: none
+  false positives: none
+
+manifest with a script or data module (behavior, not resource)
+  selected(2): @twin-digital/hello-world, @twin-digital/village-guard
+  missed: none
+  false positives: none
+
+any manifest.json anywhere in the package
+  selected(2): @twin-digital/hello-world, @twin-digital/village-guard
+  missed: none
+  false positives: none
+
+devDependency on @twin-digital/mc-pack-config
+  selected(2): @twin-digital/hello-world, @twin-digital/village-guard
+  missed: none
+  false positives: none
+
+any dependency on @minecraft/server
+  selected(3): @twin-digital/hello-world, @twin-digital/mc-scripting-core, @twin-digital/village-guard
+  missed: none
+  false positives: @twin-digital/mc-scripting-core
+
+repo-kit-written tsdown.config.d/bedrock-pack.ts
+  selected(2): @twin-digital/hello-world, @twin-digital/village-guard
+  missed: none
+  false positives: none
+
+release-assets script = mcpack-assets
+  selected(2): @twin-digital/hello-world, @twin-digital/village-guard
+  missed: none
+  false positives: none
+
+has both build and watch scripts
+  selected(5): @twin-digital/bookify, @twin-digital/bookify-cli, @twin-digital/bookify-render-api, @twin-digital/hello-world, @twin-digital/village-guard
+  missed: none
+  false positives: @twin-digital/bookify, @twin-digital/bookify-cli, @twin-digital/bookify-render-api
+
+package.json keywords contain a pack keyword
+  selected(0): (none)
+  missed: @twin-digital/hello-world, @twin-digital/village-guard
+  false positives: none
+
+explicit package.json marker field (minecraft/mcpack/bedrock key)
+  selected(0): (none)
+  missed: @twin-digital/hello-world, @twin-digital/village-guard
+  false positives: none
+
+directory convention: nodejs/minecraft/*
+  selected(5): @twin-digital/dev-bedrock-server, @twin-digital/hello-world, @twin-digital/mc-pack-config, @twin-digital/mc-scripting-core, @twin-digital/village-guard
+  missed: none
+  false positives: @twin-digital/dev-bedrock-server, @twin-digital/mc-pack-config, @twin-digital/mc-scripting-core
+
+package name matches /pack/
+  selected(1): @twin-digital/mc-pack-config
+  missed: @twin-digital/hello-world, @twin-digital/village-guard
+  false positives: @twin-digital/mc-pack-config
+
+=== exact matches (no misses, no false positives)
+  committed pack/manifest.json
+  committed pack/manifest.json with a header.uuid
+  manifest with a script or data module (behavior, not resource)
+  any manifest.json anywhere in the package
+  devDependency on @twin-digital/mc-pack-config
+  repo-kit-written tsdown.config.d/bedrock-pack.ts
+  release-assets script = mcpack-assets
+
+=== per-package evidence for the minecraft area
+  @twin-digital/dev-bedrock-server
+    pack/manifest.json: false  module types: []  header.version: null
+    deps: mc-pack-config=false @minecraft/server=false  scripts: build=- watch=-
+  @twin-digital/hello-world
+    pack/manifest.json: true  module types: ["script"]  header.version: null
+    deps: mc-pack-config=true @minecraft/server=true  scripts: build=build watch=watch
+  @twin-digital/mc-pack-config
+    pack/manifest.json: false  module types: []  header.version: null
+    deps: mc-pack-config=false @minecraft/server=false  scripts: build=build watch=-
+  @twin-digital/mc-scripting-core
+    pack/manifest.json: false  module types: []  header.version: null
+    deps: mc-pack-config=false @minecraft/server=true  scripts: build=build watch=-
+  @twin-digital/village-guard
+    pack/manifest.json: true  module types: ["script"]  header.version: null
+    deps: mc-pack-config=true @minecraft/server=true  scripts: build=build watch=watch
+
+=== built-output strategy, checked on disk (dist/ is gitignored, so it needs a build first)
+  @twin-digital/hello-world: dist/manifest.json present — header.version=[0,1,0] modules=["script"]
+  @twin-digital/village-guard: dist/manifest.json present — header.version=[0,1,0] modules=["script"]
+  packages with a built manifest on disk: 2 of 41

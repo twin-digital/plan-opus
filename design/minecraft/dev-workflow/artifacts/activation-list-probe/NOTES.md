@@ -20,3 +20,14 @@ Cases and results, all in `OUTPUT.txt`:
 
 A fresh world directory holds only `db`, `level.dat`, `level.dat_old`, `levelname.txt` — the
 server neither creates the activation list nor rewrote the one the probe installed.
+
+## Why this was probed rather than read
+
+Documentation research was tried first and failed. Searching for the file and its fields returns
+game-hosting knowledge-base articles (BisectHosting, Sparked Host, XGamingServer and similar),
+which agree with each other and with the result above but are third-party support pages, not a
+specification — and Microsoft's creator documentation covers add-on authoring and the
+`manifest.json`, not the dedicated server's per-world activation file. Rather than quote a
+support page as if it were authoritative, or paraphrase one, the claim was settled against a
+real server. Anyone who later finds first-party documentation for this file should add it as a
+second source on the fact.

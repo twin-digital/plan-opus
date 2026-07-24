@@ -2,7 +2,7 @@
   statement: |
     the harness pushes built packs into the server container itself with docker compose cp; the
     compose project declares no develop.watch rules
-  status: proposed
+  status: tolerated
   falsifiers:
     - a compose cp of a typical rebuilt pack against a remote daemon costs more than the
       few-second edit-to-live budget
@@ -11,7 +11,7 @@
 - id: watch-built-output-not-sources
   statement: |
     the harness watches each discovered pack's built-output directory and never its sources
-  status: proposed
+  status: accepted
   falsifiers:
     - a pack's build writes its output non-atomically often enough that debounced deploys
       routinely ship a half-written pack
@@ -20,7 +20,7 @@
   statement: |
     reconcile reads the deployed state from the running container — the pool listing and the
     world's activation list — rather than from a cache kept on the host
-  status: proposed
+  status: tolerated
   falsifiers:
     - inspecting the container over a remote daemon costs more per deploy than the edit-to-live
       budget allows
@@ -30,7 +30,7 @@
     each deployed pack directory holds a stamp file naming, per refresh class, the content hash of
     the build it came from — one hash over the pack's reload-safe content, one over its manifest
     identity and definition content — and up-to-dateness is a stamp comparison
-  status: proposed
+  status: tolerated
   falsifiers:
     - the server rejects or misreads a pack directory containing a file its manifest does not
       declare
@@ -41,7 +41,7 @@
     reconcile classifies each deploy and restarts the server only when the pack set, a pack's
     manifest identity, the activation list, or a non-script definition changed; everything else
     ends in a live reload
-  status: proposed
+  status: accepted
   falsifiers:
     - an edit class the harness routes to reload is observed not to take effect until a restart
     - a pack's build rewrites its manifest or definition files on every run, so the restart-class
@@ -51,10 +51,19 @@
   statement: |
     a workspace package declares itself a behavior pack with a field in its package.json naming
     its pack type and its built-output directory
+  status: rejected
+
+- id: pack-identified-by-a-committed-behavior-manifest
+  statement: |
+    a workspace package is a behavior pack when it holds a committed pack/manifest.json carrying
+    a header uuid and at least one script or data module
   status: proposed
   falsifiers:
+    - packs stop committing a source manifest because a generator assembles the whole manifest at
+      build time, leaving no pre-build evidence to discover
     - a pack has to ship from a directory that is not a workspace package
-    - a generator owns pack package.json files and cannot be made to emit the field
+    - a non-pack package commits a pack/manifest.json — a fixture or a vendored sample — and is
+      picked up as a pack
 
 - id: detach-on-interrupt-teardown-on-command
   statement: |
@@ -82,14 +91,6 @@
     - the server image drops or renames the helper
     - a reload issued through the console is observed to miss script changes a client-issued
       /reload picks up
-
-- id: one-compose-project-one-world
-  statement: |
-    the harness manages exactly one compose project holding one server and one world, with the
-    world selected by the server's level-name property
-  status: proposed
-  falsifiers:
-    - an author needs two worlds up at once, for comparison or for a second pack set
 
 - id: server-data-in-a-named-volume
   statement: |

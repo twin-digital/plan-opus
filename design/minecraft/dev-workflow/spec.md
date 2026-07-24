@@ -13,19 +13,6 @@ semantics, so the harness's real work is telling the cheap change from the expen
 paying only for what changed. The constraint that shapes every transport choice below is that the
 Docker engine may be on another host, so nothing may travel through a shared filesystem.
 
-## Open questions
-
-```yaml
-questions:
-  - id: resource-packs-in-scope
-    question: must the harness deploy and activate resource packs too, or are behavior packs the whole surface?
-    closes: requirement
-  - id: concurrent-dev-worlds
-    question: does an author ever need two dev servers, and so two worlds, running at once?
-    closes: requirement
-    gates: [one-compose-project-one-world]
-```
-
 ## The loop and its lifetime
 
 The harness exposes two commands. The first is the whole loop — discover, build, start, deploy,
@@ -39,9 +26,23 @@ logs, and build and deploy events from the harness, tagged by pack.
 ## Discovering and building packs
 
 The pack set is whatever the workspace holds. Discovery enumerates the workspace's packages and
-keeps those whose own `package.json` declares a pack type and a built-output directory
-[[d:pack-declared-by-a-package-manifest-field]], so adding or renaming a pack is a change to that
-package alone [[r:packs-discovered-from-workspace]]. A pack's contract stops at producing that
+keeps those holding a committed pack manifest that names a header uuid and a script or data module
+[[d:pack-identified-by-a-committed-behavior-manifest]], so adding or renaming a pack is a change to
+that package alone [[r:packs-discovered-from-workspace]]. That rule is the one the monorepo
+already runs on rather than a new marker to maintain — the tooling defines a pack by exactly this
+file, and the other traits a pack carries are written *from* it
+[[f:monorepo-defines-a-pack-by-a-committed-manifest]]. It is also the only candidate rule that is
+both exact against the real workspace and independent of what the tooling generates: keying on a
+Minecraft dependency or on where a package sits picks up the shared library and the harness itself
+[[f:pack-detection-rules-scored-against-the-monorepo]]. The module-type test carries the scope
+line: behavior packs are what the harness owes, other addon content is optional
+[[r:behavior-packs-required-other-content-optional]], and a resource pack's manifest looks the same
+until its modules are read — so reading them is what keeps one from being deployed into the
+behavior pool rather than recognised and skipped. A manifest with no header uuid fails discovery
+outright, since that uuid is what the activation list names
+[[f:bedrock-activation-entry-is-header-uuid-and-version]]. The detection rules considered, their
+measured scores, and why this one was chosen are kept beside the design in
+`artifacts/pack-detection/ADDENDUM.md`. A pack's contract stops at producing that
 built output and watching its own sources [[r:deployment-is-not-a-pack-concern]]: the harness runs
 each pack's declared build and watch scripts and then observes the output directories itself
 [[d:watch-built-output-not-sources]], which keeps the trigger for a deploy — a changed artifact —
@@ -61,8 +62,9 @@ makes a remote engine work at all, since it needs no bind mount and no shared pa
 and daemon [[f:compose-cp-copies-without-bind-mounts]] [[r:remote-docker-supported]]. The same
 reasoning covers the server's own state: its data directory lives in a named volume rather than a
 host directory [[d:server-data-in-a-named-volume]], and the world inside it is the single world
-the server instance hosts, named by its level property [[f:bedrock-server-hosts-one-world]]
-[[d:one-compose-project-one-world]] — which is what makes the activation list have exactly one
+the server instance hosts, named by its level property [[f:bedrock-server-hosts-one-world]]. One
+world at a time is the harness's whole scope [[r:single-world-scope]], so the pair — one compose
+project, one server — needs no arbitration between worlds, and the activation list has exactly one
 unambiguous destination.
 
 ## Reconciling to the built packs
@@ -87,6 +89,8 @@ since a pack in the pool that the world does not list is not loaded at all
 [[f:bedrock-activation-list-read-only-at-world-load]]. Each entry is read out of the built pack's
 own manifest — the header uuid and the header version, the two fields an entry carries, both of
 which must match the pack sitting in the pool [[f:bedrock-activation-entry-is-header-uuid-and-version]].
+The built manifest, specifically: the committed one a pack is discovered by carries no version at
+all, since the build injects it [[f:pack-version-comes-from-the-built-manifest]].
 That the list is derived from the manifests every time, rather than amended in place, is what
 keeps a mismatch from surviving a deploy: a wrong uuid or a stale version is not an error the
 server reports, only a pack that silently fails to load.
