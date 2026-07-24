@@ -53,6 +53,13 @@ does, so nothing touches the main checkout. Do all reading, writing, and `npm ru
   gets to decree — "the server keeps running after Ctrl+C". A claim about what is *possible* —
   "one box serves a million users" — is not a requirement, it is a bet about reality, and it
   becomes a **fact to establish** or an open question, never a requirement.
+- **Keep a requirement bare.** A `statement`, and a `rationale` only when the statement's intent is
+  genuinely non-obvious — then **one line**. Omit it by default: the schema allows it and the
+  checker won't ask for it, and a bloated rationale is the most common way these inputs rot. When
+  tempted to write one, run the three-way test: if it *restates* the statement, delete it; if it is
+  *load-bearing*, fold it into the statement; if it is an *argument* — a because, a trade-off, a
+  what-happens-if-wrong — then what you are writing is a decision, not a requirement, and it does
+  not belong in the inputs at all — leave it for the design.
 - **Facts are held on evidence**, ranked `tested` > `documented` > `assumed`. A tested fact commits
   its evidence: put the scripts, inputs, and recorded outputs under the design's `artifacts/`
   subfolder and name them in the source. A documented fact carries a `url` with `where` and a
