@@ -42,6 +42,15 @@
   rationale: |
     Keeps packs interchangeable and the deploy transport free to change in one place.
 
+- id: behavior-packs-required-other-content-optional
+  statement: |
+    the harness must build, deploy, and activate behavior packs. Support for other kinds of addon
+    content — resource packs among them — is optional, at the builder's or designer's discretion.
+
+- id: single-world-scope
+  statement: |
+    the harness serves one world at a time. Running two dev worlds concurrently is out of scope.
+
 - id: remote-docker-supported
   statement: |
     any component of the solution which requires a Docker service must function even when the Docker
