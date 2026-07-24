@@ -62,6 +62,30 @@ on it until the owner clears the list.
 
 ---
 
+## After hand-off — owner feedback
+
+Once the draft is in review the owner will respond, and each response routes by what it reaches —
+the same test throughout: **inputs outrank the comment, and both outrank the document.**
+
+- **A comment about the document** — unclear argument, a decision to accept or reject, a section in
+  the wrong place, an uncited claim. Dispatch `process-review-comments.md`; the artifact is
+  disposable and revised freely. No input changes, no regeneration.
+- **A change to an input** — a requirement added or reworded, a fact corrected, a decision the owner
+  lifts into fiat. You apply the owner's change to the input file, then **amend the draft to
+  realign** by dispatching `amend-design-doc.md` — preferably by **resuming the original author**,
+  whose context keeps the edit coherent. Amendment is the default; it is cheaper than regeneration
+  and does not throw away the draft's coherence over one changed requirement.
+- **Regeneration is the reserved fallback**, not the response to routine input changes. Reach for a
+  full rebuild (`write-design-doc.md`) only when the owner calls for it — because input drift is
+  large or structural, or enough amend turns have passed that a fresh context is warranted.
+  Recommend it when you see those conditions; the choice is the owner's.
+
+Before any amend, reconcile the branch: the owner may have edited it directly while agents worked,
+so integrate those edits first rather than clobbering them. Re-run the review loop after a
+material amend — a realigned draft still has to pass the same bar.
+
+---
+
 ## Orchestrator discipline
 
 - **Dispatch, don't do.** You never write or review a spec yourself; you spawn the agent that
