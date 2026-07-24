@@ -14,7 +14,7 @@ your context filling.
 ## Set up
 
 Confirm the three input files are present. Give yourself a worktree and branch off `origin/main`
-(the workspace step in `prompts/write-design-doc.md`). Every sub-agent works in that worktree, on
+(the workspace step in `write-design-doc.md`). Every sub-agent works in that worktree, on
 that branch.
 
 ---
@@ -22,7 +22,7 @@ that branch.
 ## Wave 1 — generate
 
 Dispatch a **writer** sub-agent to produce `spec.md` + `decisions.yaml` by following
-`prompts/write-design-doc.md` for the target — conforming to `doc-structure` (format) and
+`write-design-doc.md` for the target — conforming to `doc-structure` (format) and
 `authoring` (content). It returns only once `npm run check` is green. From it you keep the branch
 state and a one-paragraph summary of what it produced; you do not read the spec yourself.
 
@@ -32,7 +32,7 @@ state and a one-paragraph summary of what it produced; you do not read the spec 
 
 Loop, up to **3 rounds**:
 
-1. **Review.** Dispatch the review in `prompts/review-spec.md` against the target. Collect its
+1. **Review.** Dispatch the review in `review-spec.md` against the target. Collect its
    verdict and its verified findings, split into *spec-level* and *design-level*.
 2. **Clean?** If the verdict is clean, stop the loop.
 3. **Revise.** Dispatch a **reviser** sub-agent with the confirmed *spec-level* findings only. It
