@@ -99,7 +99,7 @@ appearance, and every structural signal has to survive as plain text
 [[d:structure-in-plain-text]]. Fences and bracket tokens are what is left, and both render
 identically in a terminal, a diff, and a browser.
 
-Sections of `spec.md`, in order [[d:fixed-outer-sections]]:
+Sections of `spec.md`, in order [[r:fixed-outer-sections]]:
 
 | # | heading | contents |
 |---|---|---|
@@ -112,13 +112,13 @@ Sections of `spec.md`, in order [[d:fixed-outer-sections]]:
 Open questions and Components are omitted when the design has none, so a settled design — which
 has no open questions by definition — carries neither, and a `spec.md` narrows to Summary and
 the specification. When a design does have open questions, that section sits just after the Summary
-[[d:fixed-outer-sections]], so the questions and the `decisions.yaml` list can be taken in
+[[r:fixed-outer-sections]], so the questions and the `decisions.yaml` list can be taken in
 before the specification is read and anything that would invalidate it flagged early — the same
 reason the lists exist at all [[r:easily-reviewable-foundations]].
 
 Each in-document block is a fenced YAML mapping with one top-level key — `components` or
 `questions` — and exactly one block per kind per document
-[[d:one-block-per-kind]] [[d:blocks-are-keyed-mappings]]. The wrapper key means a block
+[[r:one-block-per-kind]] [[r:blocks-are-keyed-mappings]]. The wrapper key means a block
 declares its own kind, so a parser finds entries by scanning fences rather than by trusting a
 heading, and a renamed heading cannot silently orphan a block. The scope YAML files and
 `decisions.yaml` carry bare sequences instead, because there the filename already names the
@@ -128,15 +128,14 @@ The kind need not ride inside the block: a fence's info string is literal text i
 source [[f:fence-info-string-is-raw-text]], so a tool could read the kind off the fence itself
 (```` ```questions ````) with no wrapper key at all. The wrapper key is kept anyway because
 tagging the fence that way costs the `yaml` info string that drives syntax highlighting, and
-one extra level of indentation is the cheaper price. That trade is the decision's live
-falsifier: make a fence tag coexist with highlighting and the wrapper key has no advantage
-left.
+one extra level of indentation is the cheaper price. That trade is the wrapper key's whole
+justification: make a fence tag coexist with highlighting and it has no advantage left.
 
 ## Entry shapes
 
 Every entry has a kebab-case `id` and one field carrying its substance. Every field with a
 sensible default is optional and omitted at that default — a decision's `status` aside — so a
-typical entry is three or four lines [[r:foundation-default-fields]] [[d:defaults-are-omitted]].
+typical entry is three or four lines [[r:foundation-default-fields]] [[r:defaults-are-omitted]].
 
 No entry carries an author, a date, or a revision number. Agents commit under their own git
 identities like any other contributor [[f:agents-have-git-identities]], so authorship and
@@ -153,17 +152,17 @@ evidence, readable at a glance across a whole file, and the second is the eviden
 Sorting a file by backing tells a reviewer where to spend attention; sources tell them what to
 check when they get there. Every fact needs at least one source, and each source takes exactly
 one locator form — a `description` of the mechanism, or a `url` with `where` and `quote`
-[[d:facts-require-a-source]]. An assumption from experience is a mechanism and gets a
+[[r:facts-require-a-source]]. An assumption from experience is a mechanism and gets a
 description; a claim about someone else's system is not and needs the quote. Requiring the
 quote inline means a reviewer can judge a source without following it, and a dead link
 degrades to a weaker fact instead of an unverifiable one.
 
 Two rules keep the source field from rotting under the operations this format designs for. A
 `url` that points inside the repository is written relative to the repo root, not to the file
-that holds it [[d:repo-relative-source-paths]] — an entry is expected to move between scopes,
+that holds it [[r:repo-relative-source-paths]] — an entry is expected to move between scopes,
 and a path relative to its current file breaks silently on the `git mv` that promotes it,
 because the citation still resolves while pointing at a file that has moved. And a `quote` is
-always a block scalar (`quote: |`), even for one line [[d:quote-is-block-scalar]]: a quote is
+always a block scalar (`quote: |`), even for one line [[r:quote-is-block-scalar]]: a quote is
 verbatim text from a source the author does not control, exactly where a stray colon, `#`, or
 leading dash lives, any of which breaks an inline YAML scalar. Making the block scalar
 unconditional takes the escaping judgement out of the one field that most invites it, and it
@@ -220,7 +219,7 @@ records that it does not contradict the vision and the owner does not mind wheth
 leaving a later author free to rework it without re-litigation. `rejected` is turned down, kept as
 a record, and never cited.
 
-At least one falsifier is required [[d:decisions-require-a-falsifier]]. A decision without one
+At least one falsifier is required [[r:decisions-require-a-falsifier]]. A decision without one
 cannot be revisited deliberately: nothing tells a later reader what to watch for, so the
 decision either stands forever or gets overturned on taste. Whether a written falsifier is a
 real one is a question of content, and belongs to authoring.
@@ -301,7 +300,7 @@ An open question, in the `questions` block of a `spec.md`:
 
 A claim in the prose points at the foundation it rests on with `[[f:<id>]]`, `[[r:<id>]]`, or
 `[[d:<id>]]` — a single-letter kind for a fact, a requirement, or a decision
-[[r:claims-can-cite-foundations]] [[d:citation-token-grammar]]. The short prefix keeps a token
+[[r:claims-can-cite-foundations]] [[r:citation-token-grammar]]. The short prefix keeps a token
 from bulking up the sentence it sits in, which matters because a citation is meant to annotate
 a claim, not interrupt it. The obligation to cite — which claims need one, and the equally
 important rule that filler must not carry one — is the area's [[r:explicit-intent]]; what this
@@ -313,11 +312,11 @@ depend on a boundary depends on the decision that drew the boundary, and citing 
 says more.
 
 A token resolves by matching its id against every entry of that kind in all three visible
-scopes [[d:resolution-is-scope-blind]]. There is no precedence rule and no nearest-wins
+scopes [[r:resolution-is-scope-blind]]. There is no precedence rule and no nearest-wins
 search, because an id repeated at a nearer scope is an error rather than an override
 [[r:ids-unique-per-kind]]. Zero matches is a dangling citation; two is a duplicate id; one is
 the only healthy outcome. Uniqueness is enforced per kind across the entire repository, not
-just across the three scopes a given design can see [[d:ids-unique-repo-wide]] — a stricter
+just across the three scopes a given design can see [[r:ids-unique-repo-wide]] — a stricter
 rule than required, and it buys two things: promotion between scopes never has to check for a
 collision at the destination, and any id is greppable to exactly one definition.
 
@@ -338,7 +337,7 @@ on, and a claim resting on one is a claim resting on nothing.
 ## Status and settling
 
 A design is `exploring`, `draft`, or `settled`, and the state is read off the artifacts rather
-than stored beside them [[r:design-status-enum]] [[d:status-derived-from-content]]:
+than stored beside them [[r:design-status-enum]] [[r:status-derived-from-content]]:
 
 | state | condition |
 |---|---|
@@ -355,7 +354,7 @@ what separates a design that *could* settle from one that has: an unmerged branc
 content conditions is ready to settle but not settled, and naming that intermediate state
 belongs to process, not here.
 
-Rejected decisions do not block settling and need no citation [[d:rejected-decisions-are-closed]].
+Rejected decisions do not block settling and need no citation [[r:rejected-decisions-are-closed]].
 A rejected decision is not held by the design; it is a record that the option was considered,
 which is worth keeping for the same reason a falsifier is. Reading "not accepted" to include it
 would force a design to delete its own history in order to settle.
