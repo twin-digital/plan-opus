@@ -373,3 +373,18 @@ should know they are buying a label, not a mechanism.
 - **Blockbench**, and any tool that might consume a multi-pack workspace. No primary source
   reached for Blockbench; the "no tool models a multi-pack workspace" finding is a survey result,
   an absence of evidence rather than a proof of absence.
+
+## Outcome
+
+The owner settled this by fiat, in `requirements.yaml`: `pack-source-layout-is-fixed` pins the
+source layout to `pack/manifest.json` for a package holding one pack and
+`packs/<name>/manifest.json` for a package holding several, and
+`built-output-assembly-is-the-package-s-concern` leaves how a package assembles its built output
+to the package. Kind still comes from the manifest's module types, never from a directory name.
+
+That is candidate E — kind-agnostic `packs/*` — with a singular `pack/` form added for the
+one-pack case. The versioning fork this analysis surfaced (what a *package* is; E and its
+neighbours versus D, composition by dependency) was not part of the question and remains open.
+
+The analysis above is left as it was written, argument-against included, so a later reader can see
+what was weighed rather than only what was chosen.

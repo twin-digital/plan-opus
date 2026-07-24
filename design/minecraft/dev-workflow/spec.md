@@ -13,6 +13,15 @@ semantics, so the harness's real work is telling the cheap change from the expen
 paying only for what changed. The constraint that shapes every transport choice below is that the
 Docker engine may be on another host, so nothing may travel through a shared filesystem.
 
+## Open questions
+
+```yaml
+questions:
+  - id: locating-built-packs
+    question: how does the harness find each built pack inside a package's output, now that assembly is the package's own business and only the source layout is fixed?
+    closes: requirement
+```
+
 ## The loop and its lifetime
 
 The harness exposes two commands. The first is the whole loop — discover, build, start, deploy,
@@ -27,16 +36,23 @@ harness, tagged by pack.
 ## Discovering and building packs
 
 The pack set is whatever the workspace holds. Discovery enumerates the workspace's packages and
-asks each one the question the add-on format already answers: a pack is what its own
-`manifest.json` says it is, identified by the header uuid and typed by its modules
-[[f:bedrock-manifest-declares-pack-identity-and-kind]]. A package carrying such a manifest with a
-data or script module is a behavior pack and nothing else needs to declare it
-[[d:pack-identified-by-a-committed-behavior-manifest]], so adding or renaming a pack is a change to
-that package alone [[r:packs-discovered-from-workspace]]. Reading the manifest is not merely the
-tidiest rule available, it is the only one that is about packs: rules that guess from a dependency,
-a script, a name, or a directory diverge from the format's own answer on a real workspace — picking
-up a library that scripts against the server API, or selecting nothing at all until every pack is
-edited to carry a marker [[f:content-independent-pack-heuristics-misfire]]. The module type also
+looks in the two fixed places a pack's manifest may sit — `pack/manifest.json` in a package that
+holds one, `packs/<name>/manifest.json` in a package that holds several
+[[r:pack-source-layout-is-fixed]] — so adding or renaming a pack is a change to that package alone
+[[r:packs-discovered-from-workspace]]. A package is therefore not the unit of deployment: one
+package may contribute several packs, each with its own identity, its own pool directory, and its
+own activation entry.
+
+What each manifest found there means is the add-on format's answer: a pack is identified by its
+header uuid and typed by its modules [[f:bedrock-manifest-declares-pack-identity-and-kind]]. The
+harness treats a manifest as a deployable behavior pack only when it carries that uuid and a data
+or script module, and recognises anything else as a pack of a kind it does not handle
+[[d:pack-identified-by-a-committed-behavior-manifest]]. Reading the manifest for this is not merely
+the tidiest rule available, it is the only one that is about packs: rules that guess from a
+dependency, a script, a name, or a directory diverge from the format's own answer on a real
+workspace — picking up a library that scripts against the server API, or selecting nothing at all
+until every pack is edited to carry a marker [[f:content-independent-pack-heuristics-misfire]].
+The module type also
 carries the scope line: behavior packs are what the harness owes and other addon content is
 optional [[r:behavior-packs-required-other-content-optional]], and since a resource pack is
 distinguished from a behavior pack by module type alone
@@ -45,11 +61,17 @@ deployed into the behavior pool instead of recognised and skipped. A manifest wi
 fails discovery outright, since that uuid is what the activation list names
 [[f:bedrock-activation-entry-is-header-uuid-and-version]]. The rules considered, what each scored,
 and why this one was chosen are kept beside the design in
-`artifacts/pack-detection/ADDENDUM.md`. A pack's contract stops at producing that
-built output and watching its own sources [[r:deployment-is-not-a-pack-concern]]: the harness runs
-each pack's declared build and watch scripts and then observes the output directories itself
+`artifacts/pack-detection/ADDENDUM.md`.
+
+The source layout is the only thing fixed on a package's side. A package builds its packs however
+it likes, and what the harness deploys is the built output that comes out
+[[r:built-output-assembly-is-the-package-s-concern]]; the harness runs each package's declared
+build and watch scripts and then observes the built output itself
 [[d:watch-built-output-not-sources]], which keeps the trigger for a deploy — a changed artifact —
-the same thing the deploy actually ships, and keeps every pack ignorant of the server.
+the same thing the deploy actually ships. These two boundaries are different cuts and do not
+collide: assembly is the package's, transport is the harness's, and a pack carries no deploy or
+publish scripts [[r:deployment-is-not-a-pack-concern]] precisely so the harness can change how a
+built pack travels without touching a package.
 
 Compose's own file-watching cannot stand in for that. Its watch rules take a literal directory
 path that exists when the watcher starts; a glob or a symlinked directory is accepted and then
@@ -73,7 +95,10 @@ unambiguous destination.
 ## Reconciling to the built packs
 
 One operation runs at startup and after every observed build, and it is a reconcile, not an
-incremental patch [[r:deploy-reconciles-to-built-packs]]. It reads the current state from the
+incremental patch [[r:deploy-reconciles-to-built-packs]]. Its unit throughout is the pack, never
+the package: a package holding several packs [[r:pack-source-layout-is-fixed]] contributes a pool
+directory and an activation entry for each, and one build of that package can change several of
+them at once, each classified on its own. It reads the current state from the
 server itself — what sits in the pool, what the world's activation list names
 [[d:server-is-the-deploy-state-of-record]] — because that is the state the server will actually
 load, and it survives a container the author restarted or a deploy that died halfway. Comparing
@@ -138,10 +163,10 @@ of flags, built in one place.
 ```yaml
 components:
   - id: pack-discovery
-    responsibility: enumerate workspace packages and return the declared behavior packs with their build script, watch script, and output directory
+    responsibility: enumerate workspace packages, read the manifests at the two fixed source forms — pack/manifest.json and packs/<name>/manifest.json — and return each behavior pack with its identity, its owning package, and that package's build and watch scripts
     excludes: running any build or reading built output
   - id: pack-build-runner
-    responsibility: run each pack's build and watch scripts, observe its output directory, and emit a debounced built-output-changed event per pack
+    responsibility: run each owning package's build and watch scripts, observe the built output, and emit a debounced changed event naming the packs that package produces
     excludes: knowing that a server exists
     after: [pack-discovery]
   - id: server-session
