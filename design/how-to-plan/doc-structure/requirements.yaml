@@ -303,3 +303,15 @@
   statement: |
     the doc-structure spec depicts the on-disk directory layout as a visual tree, not prose
     alone — the three scope tiers and the input-vs-output files shown as a labelled tree
+
+- id: instructs-readers-to-follow-the-format-rules
+  statement: |
+    a reader following this spec produces specifications that adhere to every reader-facing rule
+    this design records — all of its requirements and decisions except those that govern
+    doc-structure's own document rather than the specs its readers write:
+    r:spec-shows-copyable-type-examples and r:spec-shows-layout-as-tree
+  rationale: |
+    Stated as a carveout, not an enumeration, so a new reader-facing rule joins it with no edit;
+    only a new self-facing rule needs adding, and those are rare. Draws the line the growing
+    requirement set had blurred: the format rules this spec documents for its readers, versus the
+    requirements on this document's own construction (its copyable examples and layout tree).
