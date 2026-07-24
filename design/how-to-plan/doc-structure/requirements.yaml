@@ -9,44 +9,59 @@
 
 - id: fact-structure
   statement: |
-    Facts MUST have the following data at a minimum:
-  
-      - stable id to reference
-      - a statement detailing the fact
-      - how the fact was verified, confirmed, derived, etc. (directly tested, read from documentation, assumed via experience, etc.);
-        different mechanisms may not all carry equal weight
-      - a status of active or retired (default active); a retired fact names why it was
-        retired — superseded (a better fact replaced it, which it names), disproven (shown
-        false), or stale (its evidence no longer holds up)
-      - an optional caveat: why this fact might not hold despite its backing — an argument
-        from absence, a single source, evidence gathered by the person it suits
-      - sources, which may be either:
-        - a description of the mechanism by which the fact was determined, or 
-        - a URL reference to an online source (documentation, test results, etc.), which must also include a direct quote and pointer to the relevant section(s) of the source
+    Facts MUST carry these fields:
+
+      - a stable, kebab-case `id`
+      - a `claim` stating the fact
+      - a `backing` naming how the fact was established — exactly one of
+        `tested` | `documented` | `assumed`; the three may not carry equal weight
+      - `sources`, at least one, each in exactly one locator form:
+        - a `description` of the mechanism by which the fact was determined, or
+        - a `url` to an online source, which must also carry `where` (a pointer to the
+          relevant section) and a verbatim `quote`
+
+    and MAY carry:
+
+      - a `status` of `active` | `retired` (default `active`); a retired fact adds a
+        `reason` of `superseded` | `disproven` | `stale`, and a superseded one names its
+        replacement in `superseded_by`
+      - a `caveat`: why the fact might not hold despite its backing — an argument from
+        absence, a single source, evidence gathered by the party it suits
+  rationale: |
+    Field names and enum values are the format's public interface. The spec's Entry shapes
+    and Examples sections show each field in the form it takes on disk.
 
 - id: requirement-structure
   statement: |
-    Requirements MUST have the following data at a minimum:
-  
-      - stable id to reference
-      - a statement describing the requirement
-      - whether the item is a non-negotiable or hard requirement, or expresses a preference that can bend if justified 
-        (defaults to hard requirement)
-      - an optional rationale clarifying the intent or importance of the requirement
+    Requirements MUST carry:
+
+      - a stable, kebab-case `id`
+      - a `statement` describing the requirement
+
+    and MAY carry:
+
+      - a `force` of `hard` | `soft` (default `hard`): a hard requirement is
+        non-negotiable, a soft one a preference that can bend if justified
+      - a `status` of `active` | `retired` (default `active`)
+      - a `rationale` clarifying the requirement's intent or importance
+  rationale: |
+    Field names and enum values are the format's public interface. The spec's Entry shapes
+    and Examples sections show each field in the form it takes on disk.
 
 - id: decision-structure
   statement: |
-    Decisions MUST have the following data at a minimum:
-  
-      - stable id to reference
-      - a single-line statement naming what was chosen — not why, and not what it entails
-      - list of conditions which, if true, would invalidate the decision or require it to be revised
-      - status of the decision: 
-        - proposed: created (by an agent, presumably) but not yet ratified
-        - accepted: an agreed part of the design which future iterations should maintain
-        - tolerated: cleared to proceed but not endorsed — the owner does not object and does not
+    Decisions MUST carry:
+
+      - a stable, kebab-case `id`
+      - a single-line `statement` naming what was chosen — not why, and not what it entails
+      - `falsifiers`: a list of conditions which, if true, would invalidate the decision or
+        require it to be revised (a rejected decision needs none)
+      - a `status`, exactly one of:
+        - `proposed`: created (by an agent, presumably) but not yet ratified
+        - `accepted`: an agreed part of the design which future iterations should maintain
+        - `tolerated`: cleared to proceed but not endorsed — the owner does not object and does not
           mind whether it stays, so a later author may rework it freely
-        - rejected: considered, but turned down
+        - `rejected`: considered, but turned down
 
 - id: foundation-default-fields
   statement: |
@@ -203,3 +218,61 @@
     this one; facts are exempt because an uncited fact is available knowledge, not an ignored
     obligation. A departed-from soft requirement is still cited, by the decision that records
     the departure.
+
+- id: citation-token-grammar
+  statement: a citation is `[[<k>:<id>]]` with a single-letter kind — `f` fact, `r`
+    requirement, `d` decision
+
+- id: fixed-outer-sections
+  statement: a spec.md opens with Summary then the specification; an Open questions section
+    (just after Summary) and a Components section (at the end) appear only when the design has
+    entries of that kind; decisions sit in decisions.yaml, not in the document
+
+- id: one-block-per-kind
+  statement: components and open questions each appear in exactly one fenced block in a
+    spec.md
+
+- id: blocks-are-keyed-mappings
+  statement: each fenced block in a spec.md is a YAML mapping with exactly one top-level
+    key naming its kind
+
+- id: resolution-is-scope-blind
+  statement: a token resolves by matching its id against every entry of that kind in all
+    three scopes; exactly one match is required and any other count is an error
+  rationale: |
+    Scope-blind resolution holds only while ids stay unique per kind; without that
+    guarantee it would need a precedence rule.
+
+- id: ids-unique-repo-wide
+  statement: an id is unique per kind across the whole repository, not merely across the
+    three scopes one design can see
+
+- id: facts-require-a-source
+  statement: every fact carries at least one source, and each source uses exactly one
+    locator form — a mechanism description, or a URL with section and quote
+
+- id: repo-relative-source-paths
+  statement: a source URL that points inside this repository is written relative to the
+    repo root, not relative to the file that holds it
+
+- id: quote-is-block-scalar
+  statement: |
+    a source `quote` is always written as a block scalar (`quote: |`), even for a single line
+
+- id: status-derived-from-content
+  statement: |
+    a design's state is computed from its artifacts — no spec.md is exploring; a
+    spec.md with a proposed decision, an open question, or an uncited live design-scoped
+    requirement or accepted-or-tolerated decision is draft; a design merged to main with none of those is
+    settled
+
+- id: decisions-require-a-falsifier
+  statement: a decision must list at least one falsifier
+
+- id: defaults-are-omitted
+  statement: every field with a sensible default is optional and omitted when it takes that
+    default, except a decision's status, which is always written even at proposed
+
+- id: rejected-decisions-are-closed
+  statement: a rejected decision is retained as a record, blocks nothing, and may not be
+    cited
