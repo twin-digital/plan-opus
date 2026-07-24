@@ -296,22 +296,6 @@
         artifacts/mctest-engine-probe-results.md, `entity-id-reuse` line with both id lists
         and reused=[].
 
-- id: invalidation-guards-observed
-  claim: |
-    On an invalidated entity the engine keeps `id`, `typeId`, `isValid`, and
-    `scoreboardIdentity` answering, and throws `InvalidEntityError` from annotated members
-    (`hasTag`, `getComponent`, `location`) — but also from `nameTag` and `isSneaking`, which
-    carry no `@throws` annotation at all. The declaration-derived never-throw set is
-    therefore wrong for those two members: annotations under-report the guard.
-  backing: tested
-  sources:
-    - description: |
-        artifacts/mctest-engine-probe-results.md, `invalidation-nonuniformity-in-engine`
-        lines: id/typeId/isValid/scoreboardIdentity read ok; nameTag, isSneaking, hasTag,
-        getComponent, and location all threw InvalidEntityError with
-        instanceofInvalidEntityError=true. (The nameTag engine message reads "Failed to set
-        property" even though the probe performed a read.)
-
 # Facts from the mctest:deep follow-up run (same server session family: Bedrock 1.26.31.1,
 # @minecraft/server 2.8.0), recorded in the "Deep run" section of
 # artifacts/mctest-engine-probe-results.md. These close the factual half of the four
@@ -381,6 +365,25 @@
         first run's after-events-deferred (events-delivered-before-applyDamage-returned=0).
 
 # Retired: superseded by the deep-run guard enumeration. Kept for the record.
+
+- id: invalidation-guards-observed
+  status: retired
+  reason: superseded
+  superseded_by: invalidation-guard-list-complete
+  claim: |
+    On an invalidated entity the engine keeps `id`, `typeId`, `isValid`, and
+    `scoreboardIdentity` answering, and throws `InvalidEntityError` from annotated members
+    (`hasTag`, `getComponent`, `location`) — but also from `nameTag` and `isSneaking`, which
+    carry no `@throws` annotation at all. The declaration-derived never-throw set is
+    therefore wrong for those two members: annotations under-report the guard.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-engine-probe-results.md, `invalidation-nonuniformity-in-engine`
+        lines: id/typeId/isValid/scoreboardIdentity read ok; nameTag, isSneaking, hasTag,
+        getComponent, and location all threw InvalidEntityError with
+        instanceofInvalidEntityError=true. (The nameTag engine message reads "Failed to set
+        property" even though the probe performed a read.)
 
 - id: invalidation-throws-non-uniformly
   status: retired

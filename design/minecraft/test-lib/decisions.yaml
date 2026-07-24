@@ -23,8 +23,9 @@
   falsifiers:
     - a consumer suite cannot be written without a member no fact pins, so the bar blocks the
       library's purpose more often than it catches a fabricated behaviour
-    - capturing an engine observation per member becomes the dominant cost of adding one, so
-      the surface stops growing at the pace consumers need
+    - the code under test catches broadly around a member the fake stubs, so the stub's throw
+      is swallowed as an ordinary engine failure and the suite passes on a path the library
+      never faked — the throw stops being the loud failure it was chosen to be
 
 - id: id-unions-derived-from-declarations
   statement: |
@@ -39,8 +40,8 @@
 
 - id: engine-shaped-auto-ids
   statement: |
-    an auto-assigned entity id is a decreasing negative integer rendered as a string, unique
-    for the life of the world instance that issued it
+    an auto-assigned entity id is a sequential negative integer rendered as a string, never
+    reissued for the life of the world instance that issued it
   status: proposed
   falsifiers:
     - the engine is observed to issue ids in another shape, so code that parses or pattern-matches
@@ -54,7 +55,9 @@
   status: proposed
   falsifiers:
     - a test needs a world carrying a custom or absent dimension to exercise its code
-    - the engine is observed to expose a different dimension set to a script, so three is wrong
+    - the engine is observed to resolve dimension ids the fixed trio does not carry — an
+      alternate spelling, or a dimension another pack registered — so a three-entry table
+      rejects ids the engine answers
 
 - id: opt-in-presets-compose
   statement: |
@@ -86,8 +89,9 @@
   falsifiers:
     - a member outside the enumeration is observed to stay readable on an invalid owner, so
       default-throw makes the fake stricter than the engine
-    - the enumeration cannot be re-run cheaply on a version bump, so the table goes stale with
-      no way to notice
+    - the guard turns out to depend on how the reference went invalid — a removed entity and an
+      unloaded one answering different members — so one transcribed table cannot represent both
+      states
 
 - id: invalidation-only-through-the-control-plane
   statement: |
@@ -97,8 +101,9 @@
   falsifiers:
     - suites routinely invalidate immediately after removing an entity, so the explicit call is
       ceremony rather than a choice
-    - a consumer bug class that production hits — touching a reference the engine invalidated on
-      removal — passes against the fake because removal left it valid
+    - the code under test is itself a teardown or cleanup helper whose contract is that a
+      reference reads invalid after `remove()`; with removal leaving it valid the helper cannot
+      be exercised at all
 
 - id: synchronous-dispatch-in-subscription-order
   statement: |
@@ -128,8 +133,9 @@
     requested damage amount and the observed default cause, and never clamps at the minimum
   status: proposed
   falsifiers:
-    - the projectile options form is licensed to adjust the requested amount, so the payload is
-      no longer what the caller asked for
+    - applyDamage is called on a fake carrying no health component — an arrow, an item frame —
+      and the transcribed cascade has no health to drive, so damage needs a second path this
+      one sequence does not describe
     - a later engine run shows the sequence or the payload differs by damage cause or by entity
       type, so one transcribed cascade cannot cover them
 
