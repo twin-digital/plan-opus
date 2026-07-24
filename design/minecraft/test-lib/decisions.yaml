@@ -6,7 +6,7 @@
 - id: instance-scoped-world
   statement: all fake state belongs to a world instance a test creates; the library holds no
     module-level mutable state
-  status: proposed
+  status: accepted
   falsifiers:
     - a real-API behaviour proves impossible to reproduce without process-global state
     - per-test world plumbing proves heavier in real suites than the reset hooks it replaces
@@ -14,7 +14,7 @@
 - id: entities-are-handles
   statement: entity and component fakes are handles over records owned by their world; state
     and validity live in the record
-  status: proposed
+  status: tolerated
   falsifiers:
     - a faithful behaviour is found to depend on state attached to handle identity rather
       than the backing record
@@ -24,7 +24,7 @@
 - id: fakes-implement-real-types
   statement: fake classes are declared to structurally satisfy the real declared types, so a
     fake is assignable where the real type is expected, with no cast
-  status: proposed
+  status: accepted
   falsifiers:
     - a faked class in a supported `@minecraft/server` version carries a private member or
       brand field that a structural implementation cannot satisfy
@@ -33,7 +33,7 @@
   statement: a fake declares the complete public shape of its class — members outside the
     built surface present as not-implemented stubs — so assignability never narrows and
     unfaked access throws instead of reading `undefined`
-  status: proposed
+  status: accepted
   falsifiers:
     - maintaining the stub set across version bumps proves heavier than exporting a narrowed
       type and asking consumers to cast
@@ -41,7 +41,7 @@
 - id: zero-runtime-dependencies
   statement: the published package has no runtime dependencies; `@minecraft/server` and
     `@minecraft/vanilla-data` are type- and dev-time references only
-  status: proposed
+  status: tolerated
   falsifiers:
     - a fidelity behaviour turns out to need engine data too large or too churn-prone to
       derive from types or vendor by hand, making a runtime data dependency the honest choice
@@ -182,7 +182,7 @@
 - id: control-plane-is-free-functions
   statement: everything the real API cannot express — construction, invalidation, event
     emission — is exported as free functions over the fakes, not as members on them
-  status: proposed
+  status: accepted
   falsifiers:
     - a control affordance appears that a free function cannot provide without publicly
       exposing world internals better kept private
@@ -206,7 +206,7 @@
 - id: ids-auto-assigned-typeid-required
   statement: spawnFake requires a typeId and assigns each entity a unique opaque id,
     overridable in the spec — in the engine, too, the spawner never chooses the id
-  status: proposed
+  status: accepted
   falsifiers:
     - a consumer suite asserts on engine-shaped ids in a way the synthetic scheme fails to
       satisfy
@@ -215,7 +215,7 @@
   statement: the control plane includes component add and remove over a live entity, since
     the real API reshapes an entity's components only through data-driven paths the fakes do
     not model
-  status: proposed
+  status: accepted
   falsifiers:
     - mid-test component mutation lets suites stage states the engine cannot reach, producing
       false passes a construction-time-only rule would have prevented
@@ -233,7 +233,7 @@
 - id: canonical-prefixed-storage
   statement: every id-taking input accepts bare or prefixed ids, normalizes on entry, and
     stores and reports the canonical `minecraft:`-prefixed form
-  status: proposed
+  status: accepted
   falsifiers:
     - a surface is found where the engine reports the bare form, breaking uniform
       canonicalization
