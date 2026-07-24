@@ -91,6 +91,27 @@ putList("world_behavior_packs.json", [{ pack_id: BP.header.uuid, version: BP.hea
 putList("world_resource_packs.json", [{ pack_id: RP.header.uuid, version: RP.header.version }]);
 log(restartAndReadStacks().join("\n").trim());
 
+log("\n=== case 4: the behavior pack placed in the resource pool and listed as a resource pack");
+log("(does the pool decide a pack's kind, or does its manifest?)");
+rm(`${BP_POOL}/probe-bp`);
+put("bp", `${RP_POOL}/probe-bp`);
+putList("world_behavior_packs.json", []);
+putList("world_resource_packs.json", [
+  { pack_id: RP.header.uuid, version: RP.header.version },
+  { pack_id: BP.header.uuid, version: BP.header.version },
+]);
+log(restartAndReadStacks().join("\n").trim());
+
+log("\n=== case 5: pack directories renamed to names that contradict their manifests");
+log("(is a source or pool directory name ever read as a declaration of kind?)");
+rm(`${RP_POOL}/probe-bp`);
+rm(`${RP_POOL}/probe-rp`);
+put("bp", `${BP_POOL}/resource_pack_totally`);
+put("rp", `${RP_POOL}/behavior_pack_honest`);
+putList("world_behavior_packs.json", [{ pack_id: BP.header.uuid, version: BP.header.version }]);
+putList("world_resource_packs.json", [{ pack_id: RP.header.uuid, version: RP.header.version }]);
+log(restartAndReadStacks().join("\n").trim());
+
 log("\n=== how the pools look after the run");
 log(compose("exec", "-T", "bedrock", "find", BP_POOL, RP_POOL, "-maxdepth", "2").trim());
 log("\n=== done");

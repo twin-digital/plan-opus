@@ -15,6 +15,9 @@ later reader can see what was considered and dropped.
   `resource_packs/<name>/`; source layout equals deployed pool layout, no transform.
 - **F — composition by dependency.** Packs are packages; an addon package holds no pack source at
   all, only dependencies naming its member pack packages, resolved at assembly time.
+- **E — kind-agnostic `packs/*`.** One `packs/` root, one directory per pack,
+  `packs/<name>/manifest.json`, kind read from the manifest's module types rather than from a
+  directory name. Shortlisted; see ADDENDUM.md.
 - **G — tool-canonical project.** Whatever the dominant ecosystem tool fixes (e.g. `packs/BP`,
   `packs/RP` per project).
 - **H — free source, canonical build output.** Source layout unconstrained; the build emits
