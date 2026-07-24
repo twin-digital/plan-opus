@@ -1,5 +1,12 @@
 # mctest engine probe results
 
+Two runs: the initial 18-probe `mctest:run` set, then the 4-probe `mctest:deep` set added in
+pack 0.2.0.
+
+---
+
+# Initial run (`mctest:run`)
+
 Observed output from running `engine-probe-pack` against a real Bedrock dedicated server.
 Each `[mctest] <question-id> :: …` line is evidence for the `spec.md` question of the same
 name. The probes report what the engine did; nothing here is an assertion about what it
@@ -119,4 +126,121 @@ Verbatim, in delivery order, with server timestamps.
 [2026-07-24 18:56:31.907] [mctest] invalidation-nonuniformity-in-engine :: getComponent threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to call function 'getComponent' due to Entity being invalid (has the Entity been removed?)."
 [2026-07-24 18:56:31.907] [mctest] invalidation-nonuniformity-in-engine :: location threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to get property 'location' due to Entity being invalid (has the Entity been removed?)."
 [2026-07-24 18:56:32.007] [mctest] run complete — copy every [mctest] line into the design as the answer record
+```
+
+---
+
+# Deep run (`mctest:deep`)
+
+The four follow-up probes added in `engine-probe-pack` 0.2.0, resolving residuals the first
+run left open.
+
+## Run provenance
+
+| | |
+|---|---|
+| Date | 2026-07-24 |
+| Server | `itzg/minecraft-bedrock-server`, Bedrock dedicated **1.26.31.1** |
+| `@minecraft/server` | **2.8.0** |
+| Pack | `engine-probe-pack` **0.2.0**, uuid `ef5201d2-38eb-4f29-8bc2-e84414de8837` |
+| Trigger | `execute as @e[type=armor_stand,c=1] run scriptevent mctest:deep` from the console |
+| Coverage | 4/4 probes, single run, no `PROBE CRASHED` lines |
+
+Run against a summoned armor stand on a stone platform at `8 101 8`, inside a ticking area
+added at spawn — an isolated flat anchor rather than the player's spawn used in the first
+run. Same world and volume as the first run.
+
+## What the deep probes settled
+
+- **`effect-replacement-matrix` — the rule is amplifier-first, duration-tiebreak.** A re-add
+  replaces iff it has a **higher amplifier**, or the **same amplifier and a longer duration**.
+  A lower amplifier never replaces, regardless of duration:
+
+  | re-add vs. base (amp1, dur300) | replaced |
+  |---|---|
+  | higher amp, shorter dur | ✅ |
+  | higher amp, longer dur | ✅ |
+  | same amp, shorter dur | ❌ |
+  | same amp, longer dur | ✅ |
+  | lower amp, shorter dur | ❌ |
+  | lower amp, longer dur | ❌ |
+
+  This confirms and generalizes the first run's `effect-replace-unconditional` result:
+  replacement is conditional, and unconditional-replace semantics in a fake are wrong.
+
+- **`invalidation-guard-enumeration` — the complete guard list**, read off the engine rather
+  than off `@throws` annotations (which the first run showed under-report it). On a removed
+  entity, exactly four members still read: `id`, `isValid`, `typeId`, and
+  `scoreboardIdentity` (which returns `undefined`). **Every other enumerated member throws
+  `InvalidEntityError`** — all 12 remaining properties and all 11 zero-arg getters. Note
+  `localizationKey`'s message reads `Failed to call function` despite being accessed as a
+  property.
+
+- **`kill-no-health-and-repeat` — `kill()` on a health-less entity.** An arrow has
+  `healthComponent=undefined`; `kill()` still returns `true` and fires **only**
+  `die(cause=selfDestruct)` — no `entityHurt`, no `entityHealthChanged`. It is also
+  **immediately invalid** (`stillValid=false`), unlike the sheep corpse in the first run that
+  stayed valid ~7 ticks. So post-death validity is not a uniform grace period.
+
+- **`after-event-tick-delay` — the deferral is sub-tick, not cross-tick.**
+  `called-at=72309 returned-at=72309 delivered-at=72309`, so **`delay-ticks=0`**. Combined
+  with the first run's `events-delivered-before-applyDamage-returned=0`, the model is: the
+  after-event is deferred past the mutating call's return but delivered **within the same
+  tick**. A fake that defers to the next tick is wrong in the other direction.
+
+## Operational notes for re-running the pack
+
+Two things bit this run and will bite the next one:
+
+- **A new custom command cannot be registered by `/reload`.** Shipping 0.2.0 over 0.1.0 and
+  reloading fails with `CustomCommandError: Custom Command reload failed, cannot change
+  parameters for 'mctest:deep' during reload.` A full server restart is required whenever the
+  registered command set changes.
+- **The manifest version bump must be mirrored in `world_behavior_packs.json`.** 0.2.0 bumped
+  `header.version`, and the world's activation entry still pinned `[0, 1, 0]`, so the server
+  logged `Configured pack (id: ef5201d2-…, version: 0.1.0) was not found and was ignored` and
+  booted **without the probe pack** — no error beyond that one line. Worth checking the
+  `Pack Stack` lines on boot before trusting a run.
+- The `/mctest:deep` slash command is again unexercised; the `scriptevent` fallback was used.
+- Bedrock selectors use `c=1`, not `limit=1`.
+
+## Raw log
+
+```
+[2026-07-24 19:26:01.298] [mctest] deep start — 4 probe(s), @minecraft/server 2.8.0 expected
+[2026-07-24 19:26:01.298] [mctest] effect-replacement-matrix :: base(amp1,dur300) readd(amp2,dur100) [higher-amp/shorter] -> readback(amp2,dur100) replaced=true
+[2026-07-24 19:26:01.299] [mctest] effect-replacement-matrix :: base(amp1,dur300) readd(amp2,dur600) [higher-amp/longer] -> readback(amp2,dur600) replaced=true
+[2026-07-24 19:26:01.299] [mctest] effect-replacement-matrix :: base(amp1,dur300) readd(amp1,dur100) [same-amp/shorter] -> readback(amp1,dur300) replaced=false
+[2026-07-24 19:26:01.299] [mctest] effect-replacement-matrix :: base(amp1,dur300) readd(amp1,dur600) [same-amp/longer] -> readback(amp1,dur600) replaced=true
+[2026-07-24 19:26:01.300] [mctest] effect-replacement-matrix :: base(amp1,dur300) readd(amp0,dur100) [lower-amp/shorter] -> readback(amp1,dur300) replaced=false
+[2026-07-24 19:26:01.300] [mctest] effect-replacement-matrix :: base(amp1,dur300) readd(amp0,dur600) [lower-amp/longer] -> readback(amp1,dur300) replaced=false
+[2026-07-24 19:26:01.476] [mctest] invalidation-guard-enumeration :: prop dimension threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to get property 'dimension' due to Entity being invalid (has the Entity been removed?)."
+[2026-07-24 19:26:01.476] [mctest] invalidation-guard-enumeration :: prop id ok value=string:-60129542137
+[2026-07-24 19:26:01.476] [mctest] invalidation-guard-enumeration :: prop isClimbing threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to get property 'isClimbing' due to Entity being invalid (has the Entity been removed?)."
+[2026-07-24 19:26:01.476] [mctest] invalidation-guard-enumeration :: prop isFalling threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to get property 'isFalling' due to Entity being invalid (has the Entity been removed?)."
+[2026-07-24 19:26:01.476] [mctest] invalidation-guard-enumeration :: prop isInWater threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to get property 'isInWater' due to Entity being invalid (has the Entity been removed?)."
+[2026-07-24 19:26:01.477] [mctest] invalidation-guard-enumeration :: prop isOnGround threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to get property 'isOnGround' due to Entity being invalid (has the Entity been removed?)."
+[2026-07-24 19:26:01.477] [mctest] invalidation-guard-enumeration :: prop isSleeping threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to get property 'isSleeping' due to Entity being invalid (has the Entity been removed?)."
+[2026-07-24 19:26:01.477] [mctest] invalidation-guard-enumeration :: prop isSneaking threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to get property 'isSneaking' due to Entity being invalid (has the Entity been removed?)."
+[2026-07-24 19:26:01.477] [mctest] invalidation-guard-enumeration :: prop isSprinting threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to get property 'isSprinting' due to Entity being invalid (has the Entity been removed?)."
+[2026-07-24 19:26:01.477] [mctest] invalidation-guard-enumeration :: prop isSwimming threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to get property 'isSwimming' due to Entity being invalid (has the Entity been removed?)."
+[2026-07-24 19:26:01.477] [mctest] invalidation-guard-enumeration :: prop isValid ok value=boolean:false
+[2026-07-24 19:26:01.477] [mctest] invalidation-guard-enumeration :: prop localizationKey threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to call function 'localizationKey' due to Entity being invalid (has the Entity been removed?)."
+[2026-07-24 19:26:01.477] [mctest] invalidation-guard-enumeration :: prop location threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to get property 'location' due to Entity being invalid (has the Entity been removed?)."
+[2026-07-24 19:26:01.477] [mctest] invalidation-guard-enumeration :: prop nameTag threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to set property 'nameTag' due to Entity being invalid (has the Entity been removed?)."
+[2026-07-24 19:26:01.477] [mctest] invalidation-guard-enumeration :: prop scoreboardIdentity ok value=undefined
+[2026-07-24 19:26:01.477] [mctest] invalidation-guard-enumeration :: prop typeId ok value=string:minecraft:sheep
+[2026-07-24 19:26:01.477] [mctest] invalidation-guard-enumeration :: method getAABB() threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to call function 'getAABB' due to Entity being invalid (has the Entity been removed?)."
+[2026-07-24 19:26:01.477] [mctest] invalidation-guard-enumeration :: method getComponents() threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to call function 'getComponents' due to Entity being invalid (has the Entity been removed?)."
+[2026-07-24 19:26:01.477] [mctest] invalidation-guard-enumeration :: method getEffects() threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to call function 'getEffects' due to Entity being invalid (has the Entity been removed?)."
+[2026-07-24 19:26:01.477] [mctest] invalidation-guard-enumeration :: method getHeadLocation() threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to call function 'getHeadLocation' due to Entity being invalid (has the Entity been removed?)."
+[2026-07-24 19:26:01.477] [mctest] invalidation-guard-enumeration :: method getRotation() threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to call function 'getRotation' due to Entity being invalid (has the Entity been removed?)."
+[2026-07-24 19:26:01.477] [mctest] invalidation-guard-enumeration :: method getTags() threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to call function 'getTags' due to Entity being invalid (has the Entity been removed?)."
+[2026-07-24 19:26:01.477] [mctest] invalidation-guard-enumeration :: method getVelocity() threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to call function 'getVelocity' due to Entity being invalid (has the Entity been removed?)."
+[2026-07-24 19:26:01.477] [mctest] invalidation-guard-enumeration :: method getViewDirection() threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to call function 'getViewDirection' due to Entity being invalid (has the Entity been removed?)."
+[2026-07-24 19:26:01.477] [mctest] invalidation-guard-enumeration :: method getDynamicPropertyIds() threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to call function 'getDynamicPropertyIds' due to Entity being invalid (has the Entity been removed?)."
+[2026-07-24 19:26:01.477] [mctest] invalidation-guard-enumeration :: method getDynamicPropertyTotalByteCount() threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to call function 'getDynamicPropertyTotalByteCount' due to Entity being invalid (has the Entity been removed?)."
+[2026-07-24 19:26:01.776] [mctest] kill-no-health-and-repeat :: arrow healthComponent=undefined kill ok value=boolean:true sequence=[die(cause=selfDestruct)] stillValid=false
+[2026-07-24 19:26:02.171] [mctest] after-event-tick-delay :: called-at=72309 returned-at=72309 delivered-at=72309 delay-ticks=0
+[2026-07-24 19:26:02.276] [mctest] deep complete — copy every [mctest] line into the design as the answer record
 ```
