@@ -17,9 +17,6 @@ Docker engine may be on another host, so nothing may travel through a shared fil
 
 ```yaml
 questions:
-  - id: activation-list-entry-shape
-    question: what fields does an entry in a world's behavior-pack activation list carry, and where in a built pack does each come from?
-    closes: fact
   - id: resource-packs-in-scope
     question: must the harness deploy and activate resource packs too, or are behavior packs the whole surface?
     closes: requirement
@@ -87,20 +84,28 @@ and would leave behind files the build has since dropped, at the cost of one ext
 round-trip per changed pack — delete the pool directories no longer in the pack set, and write the
 activation list so it names exactly the deployed packs, into the world directory specifically,
 since a pack in the pool that the world does not list is not loaded at all
-[[f:bedrock-activation-list-read-only-at-world-load]].
+[[f:bedrock-activation-list-read-only-at-world-load]]. Each entry is read out of the built pack's
+own manifest — the header uuid and the header version, the two fields an entry carries, both of
+which must match the pack sitting in the pool [[f:bedrock-activation-entry-is-header-uuid-and-version]].
+That the list is derived from the manifests every time, rather than amended in place, is what
+keeps a mismatch from surviving a deploy: a wrong uuid or a stale version is not an error the
+server reports, only a pack that silently fails to load.
 
 On a fresh volume none of that can run yet: the world directory reconcile writes into, and the
 console it later issues commands to, exist only after the server has booted and opened its world.
 Startup therefore brings the server up, waits on the log stream for the world to open, and runs the
-first reconcile only then — a run that finds an empty pool, so it ends in the restart that
-activating a pack costs anyway [[f:bedrock-activation-list-read-only-at-world-load]].
+first reconcile only then — a run that finds an empty pool and no activation list at all, since
+the server creates neither [[f:bedrock-activation-entry-is-header-uuid-and-version]], so it ends
+in the restart that activating a pack costs anyway
+[[f:bedrock-activation-list-read-only-at-world-load]].
 
 ## Reload, and when a restart is the price
 
 What a deploy costs depends on what changed. Reconcile classifies its own diff on the line an
 in-game reload draws [[f:bedrock-reload-updates-scripts-not-pool-or-manifest]] — with a newly
-activated pack falling on the restart side of it [[f:bedrock-activation-list-read-only-at-world-load]]
-— and restarts the container only for the restart class
+activated pack falling on the restart side of it [[f:bedrock-activation-list-read-only-at-world-load]],
+and a bumped manifest version with it, since the activation list names the version a pack must
+have [[f:bedrock-activation-entry-is-header-uuid-and-version]] — and restarts the container only for the restart class
 [[d:restart-only-for-identity-and-activation-changes]], which is what keeps the ordinary
 case — an author editing a script and saving — inside the requirement's few seconds with nobody
 kicked [[r:edit-to-live-without-disconnect]]. The reload itself is issued into the running

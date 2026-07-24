@@ -1,0 +1,13 @@
+name: bp-activation-probe
+services:
+  bedrock:
+    image: itzg/minecraft-bedrock-server
+    environment:
+      EULA: "TRUE"
+      LEVEL_NAME: dev
+      SERVER_NAME: bp-activation-probe
+      GAMEMODE: creative
+    volumes:
+      - data:/data
+volumes:
+  data:

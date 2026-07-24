@@ -1,0 +1,46 @@
+=== environment
+Docker Compose version v5.2.0
+DOCKER_HOST=ssh://prod-development-docker
+header uuid = b1a7d0c2-3f4e-4a5b-8c9d-0e1f2a3b4c5d
+module uuid = c2b8e1d3-4a5f-4b6c-9d0e-1f2a3b4c5d6e
+manifest version = [1,0,0]
+
+=== world directory before any deploy
+db
+level.dat
+level.dat_old
+levelname.txt
+
+=== pack copied into the pool, world not told about it
+/data/development_behavior_packs/probe-pack/functions/probe.mcfunction
+/data/development_behavior_packs/probe-pack/manifest.json
+[2026-07-24 21:30:04:703 INFO] Pack Stack - None
+
+=== activation list with header uuid and matching version
+  wrote /data/worlds/dev/world_behavior_packs.json = [{"pack_id":"b1a7d0c2-3f4e-4a5b-8c9d-0e1f2a3b4c5d","version":[1,0,0]}]
+[2026-07-24 21:30:08:734 INFO] Pack Stack - [00] activation probe pack (id: b1a7d0c2-3f4e-4a5b-8c9d-0e1f2a3b4c5d, version: 1.0.0) @ development_behavior_packs/probe-pack
+file as the server left it:
+[
+  {
+    "pack_id": "b1a7d0c2-3f4e-4a5b-8c9d-0e1f2a3b4c5d",
+    "version": [
+      1,
+      0,
+      0
+    ]
+  }
+]
+
+=== activation list with the module uuid instead
+  wrote /data/worlds/dev/world_behavior_packs.json = [{"pack_id":"c2b8e1d3-4a5f-4b6c-9d0e-1f2a3b4c5d6e","version":[1,0,0]}]
+[2026-07-24 21:30:13:721 INFO] Pack Stack - None
+
+=== activation list with header uuid but a version the pack does not have
+  wrote /data/worlds/dev/world_behavior_packs.json = [{"pack_id":"b1a7d0c2-3f4e-4a5b-8c9d-0e1f2a3b4c5d","version":[9,9,9]}]
+[2026-07-24 21:30:18:066 INFO] Pack Stack - None
+
+=== back to header uuid and matching version
+  wrote /data/worlds/dev/world_behavior_packs.json = [{"pack_id":"b1a7d0c2-3f4e-4a5b-8c9d-0e1f2a3b4c5d","version":[1,0,0]}]
+[2026-07-24 21:30:22:364 INFO] Pack Stack - [00] activation probe pack (id: b1a7d0c2-3f4e-4a5b-8c9d-0e1f2a3b4c5d, version: 1.0.0) @ development_behavior_packs/probe-pack
+
+=== done

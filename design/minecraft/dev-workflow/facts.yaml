@@ -131,3 +131,25 @@
         boot — "[INFO] Level Name: dev" and "Opening level 'worlds/dev/db'" — and the world files
         (including world_behavior_packs.json) lived under /data/worlds/<level-name>. One instance
         served one world; no configuration produced two active worlds in one container.
+
+- id: bedrock-activation-entry-is-header-uuid-and-version
+  claim: |
+    A world's activation list, `<world>/world_behavior_packs.json`, is a JSON array of entries
+    with exactly two fields: `pack_id`, the uuid from the pack manifest's *header* — a module
+    uuid does not work — and `version`, the header's three-number version array, which must
+    match the pack in the pool. A wrong uuid or a mismatched version loads nothing and reports
+    no error beyond "Pack Stack - None". The server does not create the file for a new world and
+    does not rewrite one it is given.
+  backing: tested
+  sources:
+    - description: |
+        Ran design/minecraft/dev-workflow/artifacts/activation-list-probe/run.mjs against a
+        remote daemon (DOCKER_HOST=ssh://…, no bind mount) under Compose v5.2.0; captured stdout
+        is OUTPUT.txt there and the probe pack is pack/manifest.json. With the pack in the pool
+        and no list, the world load logged "Pack Stack - None"; with
+        [{"pack_id": "<header uuid>", "version": [1,0,0]}] it logged "Pack Stack - [00]
+        activation probe pack (id: b1a7d0c2-3f4e-4a5b-8c9d-0e1f2a3b4c5d, version: 1.0.0) @
+        development_behavior_packs/probe-pack"; substituting the data module's uuid, and then a
+        version of [9,9,9], each returned "Pack Stack - None". A fresh world directory contained
+        only db, level.dat, level.dat_old and levelname.txt, and the installed file read back
+        byte-for-byte as written.
