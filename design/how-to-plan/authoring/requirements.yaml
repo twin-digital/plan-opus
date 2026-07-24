@@ -30,9 +30,13 @@
 
 - id: answerable-unknowns-are-resolved-now
   statement: |
-    a design does not defer an unknown it could resolve now. If an unknown can be settled at
-    authoring time — by finding the fact, deciding it, or raising it as an open question to the
-    owner — it is settled then, not parked as an assumed fact or a decision's falsifier. Those
+    a design does not defer an unknown it could resolve now. An unknown is resolvable now when
+    the evidence in hand determines the answer — not merely because a plausible choice could be
+    written down; a choice fabricated ahead of its evidence is not a
+    resolution. If an unknown can be settled at authoring time — by finding the fact, deciding
+    it, or raising it as an open question to the owner — it is settled then, not parked as an
+    assumed fact or a decision's falsifier. A choice only experience of running the thing would
+    settle is raised as an open question naming that experience. Assumed facts and falsifiers
     carry only the unknowns that genuinely cannot be resolved yet
   rationale: |
     Deferral is the easy dodge: an assumption or a falsifier can make an open question look
@@ -40,4 +44,125 @@
     implicit ask to the owner that a design cannot settle around — so raising one is a form of
     answering now, not deferring. Only what genuinely cannot be settled at authoring time earns
     a falsifier (the decision stands now, a named later event reopens it) or an assumed fact
-    (the design must rest on it and it cannot be cheaply verified).
+    (the design must rest on it and it cannot be cheaply verified). The "evidence determines it"
+    test is what separates settling an unknown from fabricating a decision ahead of its evidence.
+
+- id: guidance-is-tests-not-templates
+  statement: |
+    authoring's rules are stated as questions a reviewer asks of a spec, not as prose patterns
+    an author fills in
+
+- id: summary-names-subject-product-and-problem
+  statement: |
+    the Summary names three things and stops: what the design is, what it produces, and the
+    problem or need it addresses. It also names the constraint that most shapes the design when
+    a single constraint dominates. It carries no citations
+  rationale: |
+    Subject and product tell a reviewer what they are
+    about to read; the problem it addresses is what orients them to why it takes the shape it
+    does, and it is the one element every design has. The dominant shaping constraint is named 
+    when one clearly leads, since it is the big rock a reviewer wants early; where several bind 
+    about equally they belong in the specification rather than crowded into the opening. No citation, 
+    because doc-structure forbids a token in the Summary.
+
+- id: specification-does-not-restate-entries
+  statement: |
+    the specification — the H2 sections of a spec.md, meaning everything after the Summary that is
+    not the Open questions or Components block, and the only place citations appear — carries no
+    sentence whose whole content restates an extracted fact, requirement, or decision. The
+    concluding test checklist is the one exception, since gathering the tests in one place is
+    exactly its job
+  rationale: |
+    "The specification" is pinned to the H2 prose sections doc-structure defines, so the rule names
+    what it governs. The extracted lists are
+    already read on their own and drawn into the builder's crib, so a sentence that only restates
+    an entry adds nothing; what the prose owes is the connective work the lists cannot show. The
+    concluding checklist is exempt: it is a deliberate summary artifact, not specification prose that
+    failed to add anything.
+
+- id: resting-on-an-assumed-fact-is-an-answerable-unknown
+  statement: |
+    before a design rests a component or decision on an assumed fact, its author re-judges that
+    fact's resolvability as if meeting it fresh, and raises an open question rather than build on
+    it when it could be verified or decided now at a cost small beside building on the fact and
+    being wrong
+  rationale: |
+    The resolve-now duty reaches inherited facts, not
+    only unknowns the author meets fresh: an assumed fact a design leans on is exactly where a
+    deferred-but-answerable question hides. "Cheap" is measured against the cost of building on
+    the fact and being wrong.
+
+- id: facts-proven-wrong-are-corrected
+  statement: |
+    when a spec author finds an inherited fact is wrong, or its evidence does not support its
+    claim, the author corrects it — recording a new, properly-evidenced fact and superseding the
+    one it contradicts — rather than citing it as-is or merely flagging it
+  rationale: |
+    Facts are objective, not opinion, so a wrong one is repaired. A spec is not built on a fact 
+    known to be wrong.
+
+- id: foundational-discoveries-are-recorded-as-facts
+  statement: |
+    a discovery an author makes while writing a spec that a decision or component comes to rest
+    on is recorded as a fact meeting the evidence bar, not left implicit in the prose
+  rationale: |
+    A foundation a design stands on belongs on the reviewable list, not
+    buried in prose where no one can check or reuse it; recording it as a fact keeps intent
+    explicit and lets a sibling design find it. Only foundational discoveries — those something
+    rests on — earn a fact; passing observations do not.
+
+- id: components-map-to-dispatchable-build-units
+  statement: |
+    each component is a unit of work that can be dispatched and built on its own — one buildable
+    task
+
+- id: a-rule-binds-the-writer-of-what-it-governs
+  statement: |
+    a content rule binds whoever writes the entry it governs: the evidence rules bind a fact's
+    author when the fact is captured, while the citation, restatement, Summary, and falsifier
+    rules bind the author of the spec and its decisions. A spec author builds on facts already
+    held to the evidence rules rather than re-deriving them
+  rationale: |
+    Facts are inputs, written before and outside the spec that leans on them, so the rule that
+    governs a fact binds its capture, not the later spec author who only consumes it.
+
+- id: cross-design-dependency-is-cited-as-a-fact
+  statement: |
+    a design depending on another design's output re-expresses each upstream commitment it relies
+    on as a fact in its own or a shared scope, sourced by repo-relative url and verbatim quote to
+    the upstream's pinned artifact — its requirement — rather than to its spec.md, whose prose is
+    regenerable; the spec is a fallback only where no upstream requirement pins the claim. It never
+    cites another design's decisions or invariants directly, and its own requirements or decisions
+    carry what it does about them
+  rationale: |
+    A cross-design decision citation is an error and an invariant has no citation token, so a
+    downstream claim resting on an upstream rule has nothing to cite. Recording the rule as a
+    documented fact makes the dependency first-class with existing notation and keeps it out of
+    the builder view, since facts are excluded from it, while staying honest: the design records
+    that the rule exists, it does not re-fiat it. The source is the upstream's requirement — its
+    pinned, stable interface — not its spec.md prose, which is regenerable and would drift out
+    from under the quote; the spec is a fallback only where no requirement pins the claim. Drift
+    is detectable when the quote is re-checked; only if upstream requirements churn faster than
+    that would a real cross-design citation form earn its complexity.
+
+- id: conclude-with-test-summary
+  statement: |
+    The 'authoring' spec itself should conclude with a table or list enumerating all tests defined or
+    implied by the preceding content. This can serve as a checklist for authors and reviewers
+    to assess whether a spec meets all of the authoring requirements or not.
+  rationale: |
+    Relates to `guidance-is-tests-not-templates`, providing an easy way to consume/use the content
+    produced by this spec.
+
+- id: instructs-readers-to-follow-the-spec-rules
+  statement: |
+    a reader following this spec produces specifications that adhere to every reader-facing rule
+    this design records — all of its requirements and decisions except the three that govern
+    authoring's own document rather than the specs its readers write:
+    r:guidance-is-tests-not-templates, r:conclude-with-test-summary, and
+    r:a-rule-binds-the-writer-of-what-it-governs
+  rationale: |
+    Stated as a carveout, not an enumeration, so a new reader-facing rule joins it with no edit;
+    only a new self-facing rule needs adding, and those are rare. Decisions are named collectively
+    and never by id, so this input does not pin which decisions the spec must record — the author
+    proposes those.
