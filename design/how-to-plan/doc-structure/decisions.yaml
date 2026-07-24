@@ -6,7 +6,7 @@
   statement: |
     in-document components and open questions live in `yaml`-fenced blocks each under a
     single kind-naming key; the standalone foundation files are bare top-level sequences
-  status: proposed
+  status: tolerated
   falsifiers:
     - a foundation file grows a need for file-level metadata beside its entries, so a bare
       sequence can no longer hold everything the file must carry
@@ -18,7 +18,7 @@
   statement: |
     an on-disk shape shown only for illustration in a spec is written in a fenced block whose
     info string is not `yaml`
-  status: proposed
+  status: rejected
   falsifiers:
     - a spec must display a live, machine-read block and an illustrative example of the same
       kind such that no info-string convention can tell them apart
@@ -29,7 +29,7 @@
   statement: |
     a spec.md's three fixed sections are the H2 headings `## Summary`, `## Open questions`, and
     `## Components`, with Open questions right after Summary and Components last
-  status: proposed
+  status: tolerated
   falsifiers:
     - a design needs its open questions or components somewhere other than these fixed slots for
       the document to read well, so the fixed placement fights legibility
