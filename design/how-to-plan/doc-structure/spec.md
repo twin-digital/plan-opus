@@ -1,4 +1,4 @@
-# Doc-structure
+# Design Document Structure
 
 ## Summary
 
