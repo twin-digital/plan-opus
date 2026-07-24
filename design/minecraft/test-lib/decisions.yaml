@@ -1,0 +1,144 @@
+# Decisions proposed for the minecraft/test-lib design.
+# Schema: id, statement, status (proposed|accepted|tolerated|rejected), falsifiers.
+# status is required and always written. At least one falsifier per live decision.
+
+- id: implements-enforces-the-declared-shape
+  statement: |
+    fake classes declare `implements` against the pinned declarations and a compile-only
+    conformance suite holds them there; no source is generated from the `.d.ts`
+  status: proposed
+  falsifiers:
+    - a class the library must fake carries a member a hand-written class cannot satisfy — an
+      index signature, an overload set, or a non-public brand — so `implements` cannot be
+      declared without a cast
+    - a pinned-version bump churns enough stub members that hand-maintaining the shape costs
+      more per release than a generator would
+
+- id: fact-backed-surface-with-not-implemented-stubs
+  statement: |
+    a member behaves only where an active fact pins its behaviour or where the member is plain
+    storage the test supplied; every other declared member is a stub that throws a
+    not-implemented error naming it
+  status: proposed
+  falsifiers:
+    - a consumer suite cannot be written without a member no fact pins, so the bar blocks the
+      library's purpose more often than it catches a fabricated behaviour
+    - capturing an engine observation per member becomes the dominant cost of adding one, so
+      the surface stops growing at the pace consumers need
+
+- id: id-unions-derived-from-declarations
+  statement: |
+    the library's accepted id types are derived from `@minecraft/server`'s own type map and
+    enums rather than transcribed into a list the library maintains
+  status: proposed
+  falsifiers:
+    - a derived union produces a compile error too opaque for a test author to act on, so a
+      transcribed list with a readable name would serve better
+    - a version bump changes the type map's shape and the conditional derivations stop
+      compiling, making the derivation more brittle than a transcription
+
+- id: engine-shaped-auto-ids
+  statement: |
+    an auto-assigned entity id is a decreasing negative integer rendered as a string, unique
+    for the life of the world instance that issued it
+  status: proposed
+  falsifiers:
+    - the engine is observed to issue ids in another shape, so code that parses or pattern-matches
+      an id passes against the fake and fails in production
+    - a consumer needs ids stable across two independently constructed worlds and the
+      per-world counter cannot give them
+
+- id: vanilla-dimensions-on-every-world
+  statement: |
+    every fake world exposes the three vanilla dimensions and no others, with no opt-in
+  status: proposed
+  falsifiers:
+    - a test needs a world carrying a custom or absent dimension to exercise its code
+    - the engine is observed to expose a different dimension set to a script, so three is wrong
+
+- id: opt-in-presets-compose
+  statement: |
+    a reusable starting point ships as a named preset function applied at construction and
+    composed in order, not as a constructor option object or a fake subclass
+  status: proposed
+  falsifiers:
+    - two presets must write the same state and last-applied-wins confuses authors more than
+      composition helps them
+    - nearly every construction in a consumer suite needs the same preset, so the explicit call
+      is noise rather than a choice
+
+- id: reimplemented-engine-errors
+  statement: |
+    the library ships its own runtime error classes and message strings mirroring the observed
+    engine throws, and throws a bare `Error` wherever the engine throws one
+  status: proposed
+  falsifiers:
+    - a test asserts on error state the declarations do not expose, so a reimplementation cannot
+      be made indistinguishable from the engine's
+    - the real error classes become importable at runtime, so two same-named classes are worse
+      than one shared import
+
+- id: observed-guard-table-not-annotations
+  statement: |
+    the invalidation guard table is transcribed from the observed member enumeration, and any
+    member outside that enumeration throws when its owner is invalid
+  status: proposed
+  falsifiers:
+    - a member outside the enumeration is observed to stay readable on an invalid owner, so
+      default-throw makes the fake stricter than the engine
+    - the enumeration cannot be re-run cheaply on a version bump, so the table goes stale with
+      no way to notice
+
+- id: invalidation-only-through-the-control-plane
+  statement: |
+    no fake operation invalidates a reference on its own — kill and remove leave it valid — and
+    only the control plane's invalidation call makes the transition
+  status: proposed
+  falsifiers:
+    - suites routinely invalidate immediately after removing an entity, so the explicit call is
+      ceremony rather than a choice
+    - a consumer bug class that production hits — touching a reference the engine invalidated on
+      removal — passes against the fake because removal left it valid
+
+- id: synchronous-dispatch-in-subscription-order
+  statement: |
+    a behaving method delivers its after-events inline before it returns, each signal calling its
+    subscribers once apiece in subscription order
+  status: proposed
+  falsifiers:
+    - a consumer relies on a mutating call returning before its handlers run, so inline delivery
+      inverts the order its production code depends on
+    - a cascade's own handler mutates the same entity and inline delivery re-enters the mutation
+      in a way the engine's deferral cannot produce
+
+- id: handler-exceptions-propagate
+  statement: |
+    an exception thrown by a subscribed handler propagates out of the call that dispatched the
+    event; the fake neither swallows it nor isolates the remaining subscribers
+  status: proposed
+  falsifiers:
+    - the engine is observed to isolate a throwing handler, so a suite green against the fake
+      breaks in production
+    - a test cannot exercise a cascade's later events at all once an earlier handler throws, and
+      that combination is the normal case rather than the exception
+
+- id: applydamage-mirrors-observed-cascade
+  statement: |
+    applyDamage fires the observed hurt, health-changed, and death sequence carrying the
+    requested damage amount and the observed default cause, and never clamps at the minimum
+  status: proposed
+  falsifiers:
+    - the projectile options form is licensed to adjust the requested amount, so the payload is
+      no longer what the caller asked for
+    - a later engine run shows the sequence or the payload differs by damage cause or by entity
+      type, so one transcribed cascade cannot cover them
+
+- id: peer-range-admits-2x-minors
+  statement: |
+    the package declares `@minecraft/server` as a peer of `^2.8.0` and develops against exactly
+    2.8.0
+  status: proposed
+  falsifiers:
+    - a 2.x minor changes a behaviour the fakes reproduce, so the range admits a version the
+      library is wrong for
+    - a 2.x minor changes a declaration such that the fake classes no longer compile against it
