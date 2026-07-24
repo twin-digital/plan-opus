@@ -1,0 +1,39 @@
+# Decisions proposed for the authoring design.
+# Schema: id, statement, status (proposed|accepted|tolerated|rejected), falsifiers.
+# status is required and always written. At least one falsifier per live decision.
+
+- id: minimum-sufficient-specification
+  statement: |
+    a spec states everything a builder needs to build the thing correctly and nothing else —
+    a why is included only where its absence would cause a wrong build, not to justify a choice
+    to a reviewer
+  status: proposed
+  falsifiers:
+    - builders routinely produce the wrong artifact at a point the spec left unexplained, showing
+      the trimmed why was needed rather than surplus
+    - specs written to this bar routinely carry passages a builder never reads to build, so
+      "minimum sufficient" did not actually bound what goes in
+
+- id: real-falsifier-names-a-condition-that-can-fire
+  statement: |
+    a falsifier counts as real only when it names a concrete condition that could actually arise
+    in building or running the thing and that would reverse the decision if it did; a restated
+    negation of the choice, or a condition nothing could observe, does not count
+  status: proposed
+  falsifiers:
+    - authors routinely pass this test with conditions that never fire, so it fails to separate
+      real falsifiers from ticked boxes
+    - a class of sound decision arises whose genuine reversal condition cannot be written as an
+      observable, so the test rejects decisions worth keeping
+
+- id: well-drawn-component-is-a-parallel-buildable-unit
+  statement: |
+    a component is well-drawn when its responsibility is a single dispatchable build task and its
+    interface to its siblings — all it carries in responsibility, excludes, and after — is pinned
+    tightly enough to build in parallel without reading a sibling's internals
+  status: proposed
+  falsifiers:
+    - components drawn to this test routinely need a sibling's internals to build, so the three
+      boundary fields cannot carry enough interface for parallel build
+    - the test admits components too large to build or review as one task, so "single dispatchable
+      task" did not bound size

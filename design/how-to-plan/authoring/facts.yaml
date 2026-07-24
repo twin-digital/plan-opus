@@ -10,3 +10,149 @@
         observed while writing the how-to-plan designs — every decision carries a
         falsified_if, and none of them felt like filler at the time. Confirmed or killed
         by writing several designs and seeing which conditions ever actually fire.
+
+- id: context-is-not-free
+  claim: |
+    adding context to an LLM is not costless — accuracy falls when irrelevant
+    material is present, when the input grows long, and when the needed information sits
+    in the middle rather than at the ends
+  backing: documented
+  caveat: |
+    Measured on question-answering, arithmetic reasoning, and retrieval, not on code
+    implementation. The direction is expected to carry to a build agent but has not been
+    measured on one.
+  sources:
+    - url: https://arxiv.org/abs/2307.03172
+      where: Abstract (Liu et al., Lost in the Middle, TACL 2023)
+      checked: 2026-07-23
+      quote: |
+        performance is often highest when relevant information occurs at the beginning or end of the input context, and significantly degrades when models must access relevant information in the middle of long contexts, even for explicitly long-context models
+    - url: https://arxiv.org/abs/2302.00093
+      where: Abstract (Shi et al., GSM-IC, ICML 2023)
+      checked: 2026-07-23
+      quote: |
+        the model performance is dramatically decreased when irrelevant information is included
+    - url: https://arxiv.org/abs/2502.05167
+      where: Abstract (Modarressi et al., NoLiMa, ICML 2025)
+      checked: 2026-07-23
+      quote: |
+        performance degrades significantly as context length increases. At 32K, for instance, 11 models drop below 50% of their strong short-length baselines.
+
+- id: relevance-not-volume-improves-output
+  claim: |
+    it is the relevance of context, not its volume, that improves output — grounding
+    a model in curated relevant documents raises factuality and task accuracy
+  backing: documented
+  sources:
+    - url: https://arxiv.org/abs/2005.11401
+      where: Abstract (Lewis et al., RAG, NeurIPS 2020)
+      checked: 2026-07-23
+      quote: |
+        RAG models generate more specific, diverse and factual language than a state-of-the-art parametric-only seq2seq baseline
+
+- id: underspecified-requirements-degrade-code
+  claim: |
+    ambiguous or under-specified requirements consistently lower the correctness of LLM-generated code
+  backing: documented
+  sources:
+    - url: https://arxiv.org/abs/2604.21505
+      where: Abstract (Yang et al., Orchid benchmark, 2026)
+      checked: 2026-07-23
+      quote: |
+        ambiguity consistently degrades the performance of all evaluated LLMs, with the most pronounced negative effects observed in highly advanced models
+    - url: https://arxiv.org/abs/2604.24712
+      where: Abstract (Akli et al., 2026)
+      checked: 2026-07-23
+      quote: |
+        small changes in natural language prompts, particularly under-specification can substantially reduce code correctness
+
+- id: over-specification-also-degrades-code
+  claim: |
+    more detail is not monotonically better — a model's adherence falls as the number
+    of constraints rises, and stripping specification can even raise correctness by removing
+    misleading cues; structural redundancy matters more than raw completeness
+  backing: documented
+  sources:
+    - url: https://arxiv.org/abs/2602.00066
+      where: Abstract (Fang et al., IntentCoding, 2026)
+      checked: 2026-07-23
+      quote: |
+        Model performance deteriorates quickly as the number of constraints in the user intent increases
+    - url: https://arxiv.org/abs/2604.24712
+      where: Abstract (Akli et al., 2026)
+      checked: 2026-07-23
+      quote: |
+        structurally rich task descriptions can substantially mitigate the negative effects of under-specification and, in some cases, even enhance correctness
+
+# Cross-design dependencies on doc-structure, recorded as facts per
+# r:cross-design-dependency-is-cited-as-a-fact. Each quote is verbatim from the upstream
+# doc-structure design — preferring its requirements.yaml (stable) over its spec.md
+# (regenerable), and falling back to spec.md only where no requirement pins the claim.
+
+- id: summary-carries-no-citation
+  claim: the Summary section of a spec.md carries no citation token
+  backing: documented
+  sources:
+    - url: design/how-to-plan/doc-structure/spec.md
+      where: The document (sections table)
+      quote: |
+        `## Summary` | a paragraph or two, no citations
+
+- id: foundations-extracted-into-lists
+  claim: a design's facts, requirements, and decisions live as entries in their own list files, not in the spec.md prose
+  backing: documented
+  sources:
+    - url: design/how-to-plan/doc-structure/requirements.yaml
+      where: citable-entries-are-foundations
+      quote: |
+        each lives in a YAML file: facts and requirements in a design's own dir or a
+        wider scope, decisions in a decisions.yaml beside the spec.md
+
+- id: fact-source-is-quote-or-mechanism
+  claim: a fact's evidence takes exactly one locator form — a url with a verbatim quote, or a description of the mechanism
+  backing: documented
+  sources:
+    - url: design/how-to-plan/doc-structure/requirements.yaml
+      where: facts-require-a-source
+      quote: |
+        every fact carries at least one source, and each source uses exactly one
+        locator form — a mechanism description, or a URL with section and quote
+
+- id: in-repo-source-url-is-repo-relative
+  claim: a fact source url pointing inside the repository is written relative to the repo root
+  backing: documented
+  sources:
+    - url: design/how-to-plan/doc-structure/requirements.yaml
+      where: repo-relative-source-paths
+      quote: |
+        a source URL that points inside this repository is written relative to the
+        repo root, not relative to the file that holds it
+
+- id: component-interface-fields
+  claim: a component requires an id and a one-line responsibility, and may additionally name the nearby responsibility it does not hold and the components that must land before it — and nothing else
+  backing: documented
+  sources:
+    - url: design/how-to-plan/doc-structure/requirements.yaml
+      where: component-structure
+      quote: |
+        Components MUST have the following data at a minimum:
+
+          - stable id to reference
+          - one line naming the responsibility it holds
+
+        and MAY additionally carry the nearby responsibility it deliberately does not hold, and
+        the components that must land before it
+
+- id: decision-carries-a-falsifier
+  claim: doc-structure requires each decision to state at least one falsifier, leaving whether it is a real one to authoring
+  backing: documented
+  sources:
+    - url: design/how-to-plan/doc-structure/requirements.yaml
+      where: decisions-require-a-falsifier
+      quote: |
+        a decision must list at least one falsifier
+    - url: design/how-to-plan/doc-structure/spec.md
+      where: Entry shapes (Decisions)
+      quote: |
+        Whether a written falsifier is a
+        real one is a question of content, and belongs to authoring.
