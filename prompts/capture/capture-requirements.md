@@ -17,7 +17,7 @@ You will be told the name, or you will propose one and confirm it.
 
 ## Set up an isolated workspace first
 
-Give yourself a worktree and branch off `origin/main`, exactly as `prompts/write-design-doc.md`
+Give yourself a worktree and branch off `origin/main`, exactly as `prompts/design/write-design-doc.md`
 does, so nothing touches the main checkout. Do all reading, writing, and `npm run check` there.
 
 ---
