@@ -14,18 +14,29 @@ real engine. Each probe is named after the question id it answers and emits obse
 
 ## Run
 
-As a player in the world:
+There are two commands. `mctest:run` answers the original question set; `mctest:deep` runs the
+follow-up probes that resolve the residuals the first run left open (the full effect-replacement
+matrix, the complete member-by-member invalidation guard list, the kill edges, and the exact
+after-event tick delay). As a player in the world:
 
 ```
 /mctest:run
+/mctest:deep
 ```
 
 or, from the server console / as a fallback (optionally naming a single probe):
 
 ```
 /scriptevent mctest:run
-/scriptevent mctest:run kill-cascade
+/scriptevent mctest:deep
+/scriptevent mctest:deep effect-replacement-matrix
 ```
+
+The first run's results are recorded in `../mctest-engine-probe-results.md`; record the
+`mctest:deep` output the same way. A deep probe answers a follow-up that a proposed decision in
+`spec.md` now gates — it measures what the engine does; whether the fake should *match* that
+(versus keep a deliberate simplification, e.g. synchronous dispatch) is a design decision the
+probe cannot make.
 
 The probes spawn a few sheep (and one arrow) near the triggering player, exercise them, and
 remove them afterward. Output lines look like:
