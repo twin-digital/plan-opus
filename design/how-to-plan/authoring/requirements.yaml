@@ -129,17 +129,21 @@
 - id: cross-design-dependency-is-cited-as-a-fact
   statement: |
     a design depending on another design's output re-expresses each upstream commitment it relies
-    on as a fact in its own or a shared scope, sourced to the upstream spec.md by repo-relative
-    url and verbatim quote; it never cites another design's decisions or invariants directly, and
-    its own requirements or decisions carry what it does about them
+    on as a fact in its own or a shared scope, sourced by repo-relative url and verbatim quote to
+    the upstream's pinned artifact — its requirement — rather than to its spec.md, whose prose is
+    regenerable; the spec is a fallback only where no upstream requirement pins the claim. It never
+    cites another design's decisions or invariants directly, and its own requirements or decisions
+    carry what it does about them
   rationale: |
     A cross-design decision citation is an error and an invariant has no citation token, so a
     downstream claim resting on an upstream rule has nothing to cite. Recording the rule as a
-    documented fact — evidenced by the upstream spec itself — makes the dependency first-class
-    with existing notation and keeps it out of the builder view, since facts are excluded from it,
-    while staying honest: the design records that the rule exists, it does not re-fiat it. Drift
-    is detectable when the quote is re-checked; only if upstream specs churn faster than that
-    would a real cross-design citation form earn its complexity.
+    documented fact makes the dependency first-class with existing notation and keeps it out of
+    the builder view, since facts are excluded from it, while staying honest: the design records
+    that the rule exists, it does not re-fiat it. The source is the upstream's requirement — its
+    pinned, stable interface — not its spec.md prose, which is regenerable and would drift out
+    from under the quote; the spec is a fallback only where no requirement pins the claim. Drift
+    is detectable when the quote is re-checked; only if upstream requirements churn faster than
+    that would a real cross-design citation form earn its complexity.
 
 - id: conclude-with-test-summary
   statement: |
