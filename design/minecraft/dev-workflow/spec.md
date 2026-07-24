@@ -17,11 +17,12 @@ Docker engine may be on another host, so nothing may travel through a shared fil
 
 The harness exposes two commands. The first is the whole loop — discover, build, start, deploy,
 watch, stream [[r:one-command-dev-loop]] — and it is idempotent at every stage, so running it
-against an already-running server reattaches rather than rebuilding the world. Everything it owns
-in the foreground is disposable; the server and its world are not
-[[r:server-lifecycle-outlives-the-foreground]] [[d:detach-on-interrupt-teardown-on-command]].
-The stream the author reads is one interleaved channel: server console lines from the container's
-logs, and build and deploy events from the harness, tagged by pack.
+against an already-running server reattaches rather than rebuilding the world. The foreground
+process owns the builds, the watchers, and the log stream, and nothing else: an interrupt ends
+those three and the server keeps running, while the second command is what stops it
+[[r:server-lifecycle-outlives-the-foreground]]. The stream the author reads is one interleaved
+channel: server console lines from the container's logs, and build and deploy events from the
+harness, tagged by pack.
 
 ## Discovering and building packs
 

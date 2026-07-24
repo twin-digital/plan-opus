@@ -1,0 +1,58 @@
+=== environment
+Docker Compose version v5.2.0
+DOCKER_HOST=ssh://prod-development-docker
+behavior pack uuid=d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f modules=["data"]
+resource pack uuid=f5ebc4c3-7d8a-4e9f-0a1b-2c3d4e5f6a7b modules=["resources"]
+
+server ready: true
+
+=== the server's own pack directories, before anything is deployed
+Dedicated_Server.txt
+allowlist.json
+bedrock_server-1.26.34.3
+bedrock_server_how_to.html
+behavior_packs
+config
+data
+definitions
+development_behavior_packs
+development_resource_packs
+development_skin_packs
+minecraftpe
+packetlimitconfig.json
+permissions.json
+premium_cache
+profanity_filter.wlist
+release-notes.txt
+resource_packs
+server.properties
+treatments
+world_templates
+worlds
+
+=== case 1: each pack in its own pool, each listed in its own world list
+  world_behavior_packs.json = [{"pack_id":"d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f","version":[1,0,0]}]
+  world_resource_packs.json = [{"pack_id":"f5ebc4c3-7d8a-4e9f-0a1b-2c3d4e5f6a7b","version":[1,0,0]}]
+[2026-07-24 22:45:34:354 INFO] Pack Stack - [00] layout probe behavior pack (id: d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f, version: 1.0.0) @ development_behavior_packs/probe-bp
+
+=== case 2: the resource pack placed in the behavior pool and listed as a behavior pack
+  world_behavior_packs.json = [{"pack_id":"d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f","version":[1,0,0]},{"pack_id":"f5ebc4c3-7d8a-4e9f-0a1b-2c3d4e5f6a7b","version":[1,0,0]}]
+  world_resource_packs.json = []
+[2026-07-24 22:45:40:042 INFO] Pack Stack - [00] layout probe behavior pack (id: d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f, version: 1.0.0) @ development_behavior_packs/probe-bp
+
+=== case 3: back to correct pools, behavior pack only listed
+  world_behavior_packs.json = [{"pack_id":"d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f","version":[1,0,0]}]
+  world_resource_packs.json = [{"pack_id":"f5ebc4c3-7d8a-4e9f-0a1b-2c3d4e5f6a7b","version":[1,0,0]}]
+[2026-07-24 22:45:45:745 INFO] Pack Stack - [00] layout probe behavior pack (id: d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f, version: 1.0.0) @ development_behavior_packs/probe-bp
+
+=== how the pools look after the run
+/data/development_behavior_packs
+/data/development_behavior_packs/probe-bp
+/data/development_behavior_packs/probe-bp/functions
+/data/development_behavior_packs/probe-bp/manifest.json
+/data/development_resource_packs
+/data/development_resource_packs/probe-rp
+/data/development_resource_packs/probe-rp/manifest.json
+/data/development_resource_packs/probe-rp/textures
+
+=== done

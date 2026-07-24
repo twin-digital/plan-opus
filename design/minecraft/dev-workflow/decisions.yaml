@@ -65,19 +65,11 @@
     - a non-pack package commits a pack manifest — a fixture, a test input, or a vendored sample —
       and is picked up as a pack
 
-- id: detach-on-interrupt-teardown-on-command
-  statement: |
-    interrupting the foreground command stops the builds, watchers, and log stream only; a
-    separate down command stops the server and removes its project
-  status: proposed
-  falsifiers:
-    - detached servers are routinely left running on a shared host until they exhaust it
-
 - id: compose-invoked-with-explicit-env-file
   statement: |
     the harness invokes compose with an explicit -f compose file and an explicit --env-file at the
     repo root, never with --project-directory
-  status: proposed
+  status: tolerated
   falsifiers:
     - the compose file grows a relative path that must resolve against the repo root rather than
       its own directory
@@ -86,7 +78,7 @@
   statement: |
     the harness triggers an in-game reload by executing the server image's console-command helper
     inside the running container
-  status: proposed
+  status: tolerated
   falsifiers:
     - the server image drops or renames the helper
     - a reload issued through the console is observed to miss script changes a client-issued
@@ -96,6 +88,6 @@
   statement: |
     the server's data directory, worlds included, lives in a named docker volume that the down
     command removes
-  status: proposed
+  status: tolerated
   falsifiers:
     - an author needs to read or edit world files directly from the host between runs
