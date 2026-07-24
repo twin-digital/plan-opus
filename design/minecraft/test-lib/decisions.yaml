@@ -1,0 +1,289 @@
+# Decisions scoped to the minecraft/test-lib design, grouped by topic, most impactful first.
+# Schema: id, statement, falsifiers, status (proposed|accepted|tolerated|rejected; always written).
+
+# Architecture and typing
+
+- id: instance-scoped-world
+  statement: all fake state belongs to a world instance a test creates; the library holds no
+    module-level mutable state
+  status: proposed
+  falsifiers:
+    - a real-API behaviour proves impossible to reproduce without process-global state
+    - per-test world plumbing proves heavier in real suites than the reset hooks it replaces
+
+- id: entities-are-handles
+  statement: entity and component fakes are handles over records owned by their world; state
+    and validity live in the record
+  status: proposed
+  falsifiers:
+    - a faithful behaviour is found to depend on state attached to handle identity rather
+      than the backing record
+    - standalone entities with no world turn out to be the common test case, making the world
+      dependency pure friction
+
+- id: fakes-implement-real-types
+  statement: fake classes are declared to structurally satisfy the real declared types, so a
+    fake is assignable where the real type is expected, with no cast
+  status: proposed
+  falsifiers:
+    - a faked class in a supported `@minecraft/server` version carries a private member or
+      brand field that a structural implementation cannot satisfy
+
+- id: full-shape-with-stubs
+  statement: a fake declares the complete public shape of its class — members outside the
+    built surface present as not-implemented stubs — so assignability never narrows and
+    unfaked access throws instead of reading `undefined`
+  status: proposed
+  falsifiers:
+    - maintaining the stub set across version bumps proves heavier than exporting a narrowed
+      type and asking consumers to cast
+
+- id: zero-runtime-dependencies
+  statement: the published package has no runtime dependencies; `@minecraft/server` and
+    `@minecraft/vanilla-data` are type- and dev-time references only
+  status: proposed
+  falsifiers:
+    - a fidelity behaviour turns out to need engine data too large or too churn-prone to
+      derive from types or vendor by hand, making a runtime data dependency the honest choice
+
+# Behaviour and events
+
+- id: tsdoc-is-fidelity-authority
+  statement: observable behaviour is implemented from the pinned version's `.d.ts` TSDoc and
+    the official script API docs, in that order
+  status: proposed
+  falsifiers:
+    - either source is found to contradict actual engine behaviour, demoting documentation to
+      a hint that requires in-engine verification
+
+- id: behaving-methods-fire-their-events
+  statement: a behaving method synchronously dispatches the after-events its real counterpart
+    causes — applyDamage fires entityHurt and entityHealthChanged, health reaching its
+    minimum fires entityDie; a cascade the fidelity sources leave unknown fires nothing and
+    the test stages it with emit
+  status: proposed
+  falsifiers:
+    - in-engine verification shows a different event set or ordering for a faked method
+    - synchronous delivery diverges observably from the engine's tick-boundary delivery in
+      ways consumer tests can detect
+
+- id: emit-delivers-only
+  statement: emit delivers an event object to a signal's subscribers and mutates nothing; its
+    payload parameter is typed from the signal's handler parameter, so every signal's emit is
+    fully typed without per-signal helpers
+  status: proposed
+  falsifiers:
+    - staging state and payload separately proves repetitive enough that mutating per-event
+      helpers are warranted
+
+- id: death-does-not-auto-invalidate
+  statement: a behaving death — health reaching its minimum — fires entityDie and leaves the
+    reference valid; despawn timing is not modeled, and a test that wants the dead entity
+    gone calls invalidate itself
+  status: proposed
+  falsifiers:
+    - in-engine verification shows references already invalid when entityDie handlers run
+
+- id: remove-and-kill-behave
+  statement: remove() invalidates the record and fires no death event; kill() drives health
+    to its minimum and the death cascade with it, leaving the reference valid
+  status: proposed
+  falsifiers:
+    - in-engine verification shows different event or invalidation behaviour for either
+
+- id: damage-event-dispatch-order
+  statement: applyDamage dispatches entityHurt, then entityHealthChanged, then entityDie;
+    entityHealthChanged fires only when the value changed; the fired damageSource carries the
+    caller's options, with cause `none` when no options were given
+  status: proposed
+  falsifiers:
+    - in-engine verification shows a different delivery order or default cause
+
+- id: health-writes-fire-health-changed
+  statement: every modeled write that changes current health — applyDamage, setCurrentValue,
+    the reset methods — fires entityHealthChanged; the event is keyed to the change, not the
+    path that made it
+  status: proposed
+  falsifiers:
+    - in-engine verification shows non-damage health writes firing nothing
+
+- id: absence-is-answerable-for-any-id
+  statement: getComponent returns undefined and hasComponent false for every component id an
+    entity lacks, modeled or not; presence is expressible only for modeled types, which the
+    spawn-spec type enforces at compile time
+  status: proposed
+  falsifiers:
+    - a consumer false pass is traced to undefined standing in for a component the engine
+      would have supplied, showing loudness should beat faithful absence here
+
+- id: no-tick-clock
+  statement: the fake world has no clock; nothing time-dependent advances, and an effect's
+    duration reads exactly as staged or set
+  status: proposed
+  falsifiers:
+    - consumer tests need duration progression, warranting an explicit control-plane tick
+
+- id: effect-add-replaces
+  statement: addEffect on an effect already present replaces its amplifier and duration
+    unconditionally
+  status: proposed
+  falsifiers:
+    - the engine's replacement rule is verified to be conditional and a consumer test can
+      observe the difference
+
+# Invalidation and errors
+
+- id: per-member-guards
+  statement: validity is enforced by an explicit guard in each throwing member, the guard
+    list per class read off the `.d.ts` `@throws` annotations
+  status: proposed
+  falsifiers:
+    - the annotations are shown to diverge from engine behaviour on members the target tests
+      touch, so guard placement needs per-member verification instead
+    - missed guards ship often enough that uniform interception with an allowlist proves the
+      safer construction
+
+- id: generic-throws-members-follow-owner
+  statement: attribute members whose `@throws` names no error are guarded like the
+    InvalidEntityError-annotated ones — they throw when their owner is invalid
+  status: proposed
+  falsifiers:
+    - in-engine verification shows a generic-`@throws` member that keeps answering on an
+      invalid owner
+
+- id: validity-guard-runs-first
+  statement: on a member carrying both guards, validity is checked before staging — an
+    invalid entity throws InvalidEntityError even where unstaged state would throw
+    NotImplementedError
+  status: proposed
+  falsifiers:
+    - staging-first diagnostics prove materially better at pointing a failing test at its
+      actual mistake
+
+- id: library-defined-error-classes
+  statement: the library defines and exports its own error classes — `InvalidEntityError`
+    matching the declared name and shape, and `NotImplementedError` for unfaked or unstaged
+    access — and fakes throw these
+  status: proposed
+  falsifiers:
+    - the engine's thrown errors are observed to differ from the declared shape in ways tests
+      can detect, misleading suites that assert on them
+
+- id: proxy-invalidation
+  status: rejected
+  statement: enforce validity with a Proxy trap on every access, with an allowlist for the
+    members that stay readable
+  falsifiers:
+    - hand-written guards prove error-prone enough in practice that uniform interception is
+      worth the debugging opacity a Proxy brings
+
+# Construction and the control plane
+
+- id: control-plane-is-free-functions
+  statement: everything the real API cannot express — construction, invalidation, event
+    emission — is exported as free functions over the fakes, not as members on them
+  status: proposed
+  falsifiers:
+    - a control affordance appears that a free function cannot provide without publicly
+      exposing world internals better kept private
+
+- id: bases-are-data
+  statement: default bases are exported partial-spec objects a test opts into by explicit
+    merge; factories never apply one unasked
+  status: proposed
+  falsifiers:
+    - a needed base cannot be expressed as inert data — it requires ordered mutations against
+      a live world — forcing bases to become functions
+
+- id: attribute-init-is-explicit
+  statement: an attribute component in a spawn spec names its full value set — current,
+    default, min, and max; no bound is derived from another
+  status: proposed
+  falsifiers:
+    - the full set proves noisy enough that even base users hand-edit it, showing a
+      derive-bounds-from-one-value rule is the lesser evil
+
+- id: ids-auto-assigned-typeid-required
+  statement: spawnFake requires a typeId and assigns each entity a unique opaque id,
+    overridable in the spec — in the engine, too, the spawner never chooses the id
+  status: proposed
+  falsifiers:
+    - a consumer suite asserts on engine-shaped ids in a way the synthetic scheme fails to
+      satisfy
+
+- id: control-plane-component-mutation
+  statement: the control plane includes component add and remove over a live entity, since
+    the real API reshapes an entity's components only through data-driven paths the fakes do
+    not model
+  status: proposed
+  falsifiers:
+    - mid-test component mutation lets suites stage states the engine cannot reach, producing
+      false passes a construction-time-only rule would have prevented
+
+- id: worlds-carry-vanilla-dimensions
+  statement: a created world always carries the three vanilla dimensions; everything else
+    about it starts empty
+  status: proposed
+  falsifiers:
+    - a consumer needs a world without them, or with custom dimensions, making the fixed trio
+      a constraint rather than a convenience
+
+# Ids, enums, and type derivation
+
+- id: canonical-prefixed-storage
+  statement: every id-taking input accepts bare or prefixed ids, normalizes on entry, and
+    stores and reports the canonical `minecraft:`-prefixed form
+  status: proposed
+  falsifiers:
+    - a surface is found where the engine reports the bare form, breaking uniform
+      canonicalization
+
+- id: ids-derived-not-transcribed
+  statement: id unions and per-id component typings are derived from `@minecraft/server`'s
+    type declarations, not hand-transcribed
+  status: proposed
+  falsifiers:
+    - a supported version removes or reshapes the type maps the derivation reads, leaving
+      transcription as the only source
+
+- id: runtime-enum-mirrors
+  statement: the library exports runtime constants for the declared enums its surface needs,
+    each type-checked against the declared enum so drift fails the build
+  status: proposed
+  falsifiers:
+    - every needed value turns out to be reachable through `@minecraft/vanilla-data` constants
+      or string literals the parameter types already accept, leaving the mirrors redundant
+
+- id: enum-mirrors-named-as-declared
+  statement: the first surface mirrors EntityComponentTypes and EntityDamageCause, exported
+    as const objects named exactly as the declared enums with identical keys and values
+  status: proposed
+  falsifiers:
+    - the first consumer needs values from enums outside the pair
+    - sharing the declared name between mirror value and imported type proves confusing
+      enough to warrant a distinct convention
+
+# First surface
+
+- id: initial-surface-damage-path
+  statement: the first built surface is the damage path — entity core, attribute components
+    with health first, effects, the damage-related event signals, and minimal world and
+    dimension
+  status: proposed
+  falsifiers:
+    - the first consumer pack's tests are found to need a different slice first
+
+- id: first-signals-list
+  statement: the first surface ships `world.afterEvents.entityHurt`, `entityHealthChanged`,
+    and `entityDie`; no other signals and no beforeEvents
+  status: proposed
+  falsifiers:
+    - the first consumer pack subscribes to a signal outside the list
+
+- id: first-surface-world-members
+  statement: the behaving world surface is world.getDimension, world.getEntity, and
+    dimension.getEntities without filter options; a spawned entity joins its staged
+    dimension's entity set, and passing query options throws NotImplementedError
+  status: proposed
+  falsifiers:
+    - the first consumer pack reaches entities through members outside this list

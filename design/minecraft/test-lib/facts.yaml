@@ -32,6 +32,38 @@
       quote: |
         This property is accessible even if @minecraft/server.Entity.isValid is false.
 
+- id: invalidation-throws-are-mechanically-derivable
+  claim: |
+    In `@minecraft/server` 2.8.0 the invalidation guard list is mechanically derivable from
+    the declarations: every Entity member carrying `@throws` names InvalidEntityError in its
+    TSDoc (56 members), and the six without — `id`, `isSneaking`, `isValid`, `nameTag`,
+    `scoreboardIdentity`, `typeId` — carry no `@throws` at all, so no Entity member is
+    ambiguous. The attribute component classes are coarser: `setCurrentValue` names
+    InvalidEntityError while the value getters and reset methods carry only a generic
+    `@throws` naming no error.
+  backing: tested
+  sources:
+    - description: |
+        design/minecraft/test-lib/artifacts/throws-annotation-probe.mjs pairs each declared
+        member of Entity, Component, EntityComponent, EntityAttributeComponent, and
+        EntityHealthComponent with its TSDoc block and splits members by whether the block
+        names InvalidEntityError; committed output in
+        design/minecraft/test-lib/artifacts/throws-annotation-probe.out.txt.
+
+- id: invalid-entity-error-shape
+  claim: |
+    `@minecraft/server` 2.8.0 declares `InvalidEntityError` as an exported class extending
+    Error, carrying `readonly id: string` and `readonly type: string` — the id and type of the
+    entity that became invalid. Like every class in the package the declaration is types-only,
+    so a test process cannot import the real class; only its declared shape is available.
+  backing: documented
+  sources:
+    - description: |
+        @minecraft/server 2.8.0 index.d.ts declares `export class InvalidEntityError extends
+        Error` with a private constructor and readonly `id` and `type` members, each annotated
+        as belonging to "the entity that is now invalid". Runtime absence follows from
+        [[f:server-package-ships-types-only]].
+
 - id: namespace-prefix-is-optional
   claim: |
     Identifiers in the `minecraft:` namespace may be written with or without the prefix; when a
@@ -64,6 +96,22 @@
         2.8.0, including three `@ts-expect-error` negative probes — a non-attribute id and a
         typo rejected by the attribute-id union, and a bare id rejected in canonical position.
         An unused expect-error directive fails the build, so all three probes genuinely error.
+
+- id: server-classes-are-structurally-assignable
+  claim: |
+    The classes `@minecraft/server` 2.8.0 declares carry no private members or brand fields: a
+    value exposing only a class's public shape is assignable to the class type. A library class
+    can therefore satisfy Entity, Player, EntityComponent, EntityHealthComponent, World,
+    Dimension, Effect, EffectType, and the event signal classes structurally, and its instances
+    pass where the real type is expected without casts.
+  backing: tested
+  sources:
+    - description: |
+        design/minecraft/test-lib/artifacts/assignability-probe.ts compiles clean (tsc
+        --noEmit, strict; `npm run check` in that folder) against @minecraft/server 2.8.0: a
+        mapped public-shape value is accepted for all nine classes, and a @ts-expect-error
+        negative control missing one member genuinely errors, so a clean compile is a real
+        positive.
 
 - id: vanilla-data-provides-prefixed-id-constants
   claim: |
