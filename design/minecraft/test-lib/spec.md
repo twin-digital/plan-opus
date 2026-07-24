@@ -17,96 +17,45 @@ loudly rather than inventing a value.
 
 ## Open questions
 
-Every question below is answerable by running the probe pack in
-`artifacts/engine-probe-pack/` against a real Bedrock world on the pinned `@minecraft/server`
-version and transcribing its output; each answer lands as a fact the gated decisions can then
-rest on or fall to.
+The probe pack in `artifacts/engine-probe-pack/` was run against a real Bedrock world
+(1.26.31.1, `@minecraft/server` 2.8.0; raw log and provenance in
+`artifacts/mctest-engine-probe-results.md`), and its observations are recorded as the
+engine-run facts in `facts.yaml`. Most answers confirmed the design; the questions that remain
+are the ones whose answers *contradict* a proposed decision. Each names the fact that falsifies
+it and gates the decision it unseats until that decision is re-argued.
 
 ```yaml
 questions:
-  - id: addeffect-success-return
-    question: what does Entity.addEffect return on a successful add or update — the pinned
-      TSDoc prose says nothing is returned while the signature says Effect | undefined, and
-      both fidelity sources repeat the contradiction
-    closes: fact
-  - id: effect-member-guard-derivation
-    question: which Effect members throw once the effect is removed or its owner unloaded,
-      and with what error class — the committed @throws probe covers the entity and component
-      classes but not Effect
-    closes: fact
-    gates: [generic-throws-members-follow-owner]
-  - id: damage-event-order-in-engine
-    question: does applyDamage fire entityHurt, entityHealthChanged, and entityDie in that
-      order, with entityHealthChanged firing only on an actual value change
-    closes: fact
-    gates: [damage-event-dispatch-order, behaving-methods-fire-their-events]
-  - id: damage-default-cause
-    question: what damageSource.cause does the engine report for applyDamage with no options,
-      and for the projectile options form that carries no cause field
-    closes: fact
-    gates: [damage-event-dispatch-order]
-  - id: clamped-hit-damage-payload
-    question: does entityHurt.damage carry the requested amount or the applied (clamped)
-      amount when a hit exceeds remaining health
-    closes: fact
-  - id: kill-cascade
-    question: which events kill() fires and with what damage source, and what it returns on
-      an already-dead entity
-    closes: fact
-    gates: [remove-and-kill-behave]
-  - id: remove-fires-no-death-event
-    question: does remove() fire no entityDie
-    closes: fact
-    gates: [remove-and-kill-behave]
-  - id: death-invalidation-timing
-    question: is the entity reference still valid inside entityDie handlers, and for how many
-      ticks after death before despawn invalidates it
-    closes: fact
-    gates: [death-does-not-auto-invalidate]
-  - id: component-health-writes-fire-events
-    question: do setCurrentValue and the reset methods fire entityHealthChanged, and does
-      driving health to its minimum through the component fire entityDie
-    closes: fact
-    gates: [health-writes-fire-health-changed]
-  - id: effect-replace-unconditional
-    question: does addEffect on an already-present effect overwrite amplifier and duration
-      unconditionally, including with lower values
-    closes: fact
+  - id: effect-replacement-rule
+    question: the engine does not replace an active effect unconditionally — a weaker re-add
+      (lower amplifier, shorter duration) left the stronger effect in place (fact
+      effect-readd-not-unconditional), so effect-add-replaces is false as stated. Only that
+      one case was observed; the rule the fake should model — which amplifier and duration
+      combinations replace — needs deciding and probably a further probe.
+    closes: decision
     gates: [effect-add-replaces]
-  - id: effect-amplifier-default
-    question: what amplifier does an effect carry when addEffect options omit it
-    closes: fact
-  - id: attribute-generic-throws-on-invalid-owner
-    question: do the attribute members whose @throws names no error — the value getters and
-      the resets — throw on an invalid owner, and with what class
-    closes: fact
-    gates: [generic-throws-members-follow-owner, per-member-guards]
-  - id: set-current-value-bounds
-    question: what does setCurrentValue throw for an out-of-bounds value, and are values
-      exactly at the effective bounds accepted
-    closes: fact
-  - id: get-dimension-invalid-id-error
-    question: what does world.getDimension throw for an id that names no dimension
-    closes: fact
-  - id: after-event-delivery-timing
-    question: are after-events delivered deferred at a tick boundary or synchronously within
-      the causing call, and do handlers observe post-write state
-    closes: fact
-    gates: [behaving-methods-fire-their-events]
-  - id: duplicate-subscription-delivery
-    question: does subscribing the same closure twice deliver an event once or twice, and are
-      subscribers called in subscription order
-    closes: fact
-  - id: entity-id-reuse
-    question: can an unloaded entity's id ever be reissued to a later spawn within the same
-      session
-    closes: fact
-    gates: [ids-auto-assigned-typeid-required]
-  - id: invalidation-nonuniformity-in-engine
-    question: do the annotation-derived guards match engine behaviour — id, typeId, isValid,
-      and nameTag readable on an invalid entity while guarded members throw InvalidEntityError
-    closes: fact
+  - id: invalidation-guard-source
+    question: nameTag and isSneaking throw InvalidEntityError on an invalid entity despite
+      carrying no @throws annotation (fact invalidation-guards-observed), so the per-member
+      guard list cannot be read off annotations alone. What should source the guard list
+      instead — the probe results, or a hand-verified list per class?
+    closes: decision
     gates: [per-member-guards]
+  - id: kill-event-set
+    question: kill() fires entityHurt with cause selfDestruct before entityHealthChanged and
+      entityDie, and a component write to the minimum reports cause override (facts
+      kill-and-remove-cascades, component-health-writes-cascade); the first build modeled
+      kill as firing no entityHurt with cause none. Should the fake reproduce the engine's
+      event set and its damage causes?
+    closes: decision
+    gates: [remove-and-kill-behave, damage-event-dispatch-order]
+  - id: after-event-delivery-model
+    question: the engine delivers after-events deferred at a later tick, not synchronously in
+      the causing call (fact after-events-deferred); the build dispatches synchronously. Keep
+      synchronous dispatch as a deliberate, documented simplification, or model tick-boundary
+      delivery?
+    closes: decision
+    gates: [behaving-methods-fire-their-events]
 ```
 
 ## Object-granular substitution
