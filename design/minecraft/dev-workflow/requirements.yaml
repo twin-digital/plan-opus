@@ -4,9 +4,6 @@
     deployed and watched — it builds the packs, starts the server, deploys the current build, and
     begins watching for changes — with the server's output and the build/deploy activity shown in
     one interleaved stream.
-  rationale: |
-    The loop competes with editing files by hand and restarting a server; if standing it up is a
-    multi-step ritual, an author won't use it. One command in, live iteration out.
 
 - id: server-lifecycle-outlives-the-foreground
   statement: |
@@ -15,18 +12,13 @@
     the server and tears it down. Detaching the watchers and stopping the server are distinct
     acts.
   rationale: |
-    In the prototype the server routinely ran for hours across many attach/detach cycles; binding
-    the server's life to the foreground loop meant every Ctrl+C rebuilt the world and kicked
-    anyone connected. The world is the expensive, long-lived thing; the watchers are disposable.
+    The world is the expensive, long-lived thing; the watchers are disposable.
 
 - id: packs-discovered-from-workspace
   statement: |
     the set of packs the loop builds, deploys, and activates is discovered from the workspace —
     every package that declares itself a behavior pack is included — with no hand-maintained list
     anywhere. Adding, removing, or renaming a pack requires no edit to the harness.
-  rationale: |
-    A monorepo grows packs; any list that must be edited in lockstep will drift and silently drop
-    a pack. Discovery keeps "what exists" and "what the loop touches" the same set by construction.
 
 - id: deploy-reconciles-to-built-packs
   statement: |
@@ -34,21 +26,12 @@
     present and up to date, packs no longer in the set removed from the server, and the world's
     activation list matching the deployed packs. The operation is idempotent — re-running with no
     change is a no-op — and is the same operation at startup and on file change.
-  rationale: |
-    The failure the prototype kept hitting was partial state: a renamed pack left a stale
-    duplicate the server preferred, or an activation list drifted from what was deployed. Defining
-    deploy as "make the server match the built packs" rather than "apply this change" removes the
-    whole class.
 
 - id: edit-to-live-without-disconnect
   statement: |
     a saved change to a pack's source is reflected in the running server within a few seconds and
     without disconnecting a connected client, whenever the change is one the server can apply
     without a restart.
-  rationale: |
-    This is the entire point of the harness — the short edit→see cycle. The restart-only cases
-    (new pack, manifest or activation change) are understood and accepted as slower; everything
-    else must be fast and non-disruptive.
 
 - id: deployment-is-not-a-pack-concern
   statement: |
@@ -57,6 +40,4 @@
     harness's and the pipeline's concern, not the pack's. A pack carries no deploy or publish
     scripts.
   rationale: |
-    Per-pack deploy scripts were duplicated boilerplate that coupled every pack to the dev
-    server's mechanics. Keeping deploy out of the pack keeps packs interchangeable and the
-    transport free to change in one place.
+    Keeps packs interchangeable and the deploy transport free to change in one place.
