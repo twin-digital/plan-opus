@@ -1,0 +1,97 @@
+- id: push-deploy-over-compose-watch
+  statement: |
+    the harness pushes built packs into the server container itself with docker compose cp; the
+    compose project declares no develop.watch rules
+  status: proposed
+  falsifiers:
+    - a compose cp of a typical rebuilt pack against a remote daemon costs more than the
+      few-second edit-to-live budget
+    - compose gains a watch path form that matches packs discovered after the watcher starts
+
+- id: watch-built-output-not-sources
+  statement: |
+    the harness watches each discovered pack's built-output directory and never its sources
+  status: proposed
+  falsifiers:
+    - a pack's build writes its output non-atomically often enough that debounced deploys
+      routinely ship a half-written pack
+
+- id: server-is-the-deploy-state-of-record
+  statement: |
+    reconcile reads the deployed state from the running container — the pool listing and the
+    world's activation list — rather than from a cache kept on the host
+  status: proposed
+  falsifiers:
+    - inspecting the container over a remote daemon costs more per deploy than the edit-to-live
+      budget allows
+
+- id: deployed-pack-carries-a-content-stamp
+  statement: |
+    each deployed pack directory holds a stamp file naming the content hash of the build it came
+    from, and up-to-dateness is a stamp comparison
+  status: proposed
+  falsifiers:
+    - the server rejects or misreads a pack directory containing a file its manifest does not
+      declare
+    - hashing a build costs more than re-copying it wholesale
+
+- id: restart-only-for-identity-and-activation-changes
+  statement: |
+    reconcile classifies each deploy and restarts the server only when the pack set, a pack's
+    manifest identity, the activation list, or a non-script definition changed; everything else
+    ends in a live reload
+  status: proposed
+  falsifiers:
+    - an edit class the harness routes to reload is observed not to take effect until a restart
+    - the classification cannot be computed from the built output without reading the server
+
+- id: pack-declared-by-a-package-manifest-field
+  statement: |
+    a workspace package declares itself a behavior pack with a field in its package.json naming
+    its pack type and its built-output directory
+  status: proposed
+  falsifiers:
+    - a pack has to ship from a directory that is not a workspace package
+    - a generator owns pack package.json files and cannot be made to emit the field
+
+- id: detach-on-interrupt-teardown-on-command
+  statement: |
+    interrupting the foreground command stops the builds, watchers, and log stream only; a
+    separate down command stops the server and removes its project
+  status: proposed
+  falsifiers:
+    - detached servers are routinely left running on a shared host until they exhaust it
+
+- id: compose-invoked-with-explicit-env-file
+  statement: |
+    the harness invokes compose with an explicit -f compose file and an explicit --env-file at the
+    repo root, never with --project-directory
+  status: proposed
+  falsifiers:
+    - the compose file grows a relative path that must resolve against the repo root rather than
+      its own directory
+
+- id: reload-issued-through-the-container-console
+  statement: |
+    the harness triggers an in-game reload by executing the server image's console-command helper
+    inside the running container
+  status: proposed
+  falsifiers:
+    - the server image drops or renames the helper
+    - the helper cannot be driven non-interactively against a remote daemon
+
+- id: one-compose-project-one-world
+  statement: |
+    the harness manages exactly one compose project holding one server and one world, with the
+    world selected by the server's level-name property
+  status: proposed
+  falsifiers:
+    - an author needs two worlds up at once, for comparison or for a second pack set
+
+- id: server-data-in-a-named-volume
+  statement: |
+    the server's data directory, worlds included, lives in a named docker volume that the down
+    command removes
+  status: proposed
+  falsifiers:
+    - an author needs to read or edit world files directly from the host between runs
