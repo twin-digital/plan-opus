@@ -20,6 +20,20 @@
     every package that declares itself a behavior pack is included — with no hand-maintained list
     anywhere. Adding, removing, or renaming a pack requires no edit to the harness.
 
+- id: pack-source-layout-is-fixed
+  statement: |
+    a package's packs are found at a fixed source layout: `pack/manifest.json` for a package holding
+    one pack, or `packs/<name>/manifest.json` for a package holding several. Both forms are
+    recognised. The source layout is what discovery reads, and it is not configurable.
+  rationale: |
+    The one-pack form keeps a single-pack package (an `.mcpack`) simple; the many-pack form covers a
+    package that ships several. Detection needs one fixed place to look.
+
+- id: built-output-assembly-is-the-package-s-concern
+  statement: |
+    the dev server deploys a package's built output, and how a package assembles that output from
+    its source is the package's own business. Only the source layout is fixed.
+
 - id: deploy-reconciles-to-built-packs
   statement: |
     after any deploy the server's pack state equals the current built output: every current pack
