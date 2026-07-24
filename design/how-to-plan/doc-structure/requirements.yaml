@@ -142,6 +142,17 @@
   rationale: |
     Reading the state off the artifacts keeps it from drifting the way a stored copy would.
 
+- id: publication-is-a-separate-axis
+  statement: |
+    publication is tracked separately from the derived state: a design is published when it is
+    settled and merged to main. It is a boolean status, not a fourth state — the three-state
+    enum stays derivable from tree content, while publication additionally depends on git ref
+    status (merge to main), which no artifact in the tree records
+  rationale: |
+    Keeps design-status-enum honest. State reads off tree content, so merge status — a git-ref
+    property, not tree content — cannot join the same enum without reintroducing the drift the
+    enum exists to avoid. Settled means review-clean; published means settled and released.
+
 - id: component-structure
   statement: |
     Components MUST have the following data at a minimum:
@@ -185,12 +196,13 @@
     Enabling easy capture of good ideas or future requirements prevents losing good ideas without forcing frequent
     context switches to act on them.
 
-- id: only-settled-work-licenses-building
+- id: only-published-work-licenses-building
   statement: |
-    nothing is built on a design that has not cleared review; a design's status says what it
-    licenses, and only settled licenses construction. A design cannot be settled while it
-    holds an open question or a decision still proposed; a rejected decision blocks nothing,
-    being a record of an option considered rather than something the design holds
+    nothing is built on a design until it is published — settled and merged to main. A
+    design's status says what it licenses: settled means it has cleared review, published means
+    it is on main for others to build against. A design cannot be settled while it holds an open
+    question or a decision still proposed; a rejected decision blocks nothing, being a record of
+    an option considered rather than something the design holds
 
 - id: invariants-are-enforced-or-marked
   statement: |
@@ -263,7 +275,7 @@
   statement: |
     a design's state is computed from its artifacts — no spec.md is exploring; a
     spec.md with a proposed decision, an open question, or an uncited live design-scoped
-    requirement or accepted-or-tolerated decision is draft; a design merged to main with none of those is
+    requirement or accepted-or-tolerated decision is draft; a spec.md with none of those is
     settled
 
 - id: decisions-require-a-falsifier
@@ -276,3 +288,19 @@
 - id: rejected-decisions-are-closed
   statement: a rejected decision is retained as a record, blocks nothing, and may not be
     cited
+
+- id: spec-shows-copyable-type-examples
+  statement: |
+    the doc-structure spec shows, for every entry kind it defines (fact, requirement,
+    decision, component, open question) and for a spec.md fenced block, a concrete example of
+    its on-disk shape that an agent can copy as a starting point. Examples are shown as
+    illustrations, not live entries, so they are not parsed as real blocks
+  rationale: |
+    The types are defined here and nowhere else, so this is where an agent writing any spec
+    goes to see the shape. A copyable example is faster and less error-prone to work from than
+    a field list alone.
+
+- id: spec-shows-layout-as-tree
+  statement: |
+    the doc-structure spec depicts the on-disk directory layout as a visual tree, not prose
+    alone — the three scope tiers and the input-vs-output files shown as a labelled tree
