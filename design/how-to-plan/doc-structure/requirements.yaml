@@ -241,12 +241,14 @@
     entries of that kind; decisions sit in decisions.yaml, not in the document
 
 - id: one-block-per-kind
-  statement: components and open questions each appear in exactly one fenced block in a
-    spec.md
+  statement: a design's live components and open questions each appear in exactly one fenced
+    block — the single yaml block under its fixed section (`## Components`, `## Open questions`);
+    a yaml block outside those sections is illustrative, not live
 
 - id: blocks-are-keyed-mappings
-  statement: each fenced block in a spec.md is a YAML mapping with exactly one top-level
-    key naming its kind
+  statement: a live block — the yaml block under its fixed section — is a YAML mapping with
+    exactly one top-level key naming its kind; a yaml block elsewhere is an illustrative example
+    and need not take that shape
 
 - id: resolution-is-scope-blind
   statement: a token resolves by matching its id against every entry of that kind in all
