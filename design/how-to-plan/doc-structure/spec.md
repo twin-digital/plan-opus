@@ -71,10 +71,12 @@ entry in one file — and keeps a citation meaning "this rests on something sett
 ## Entry shapes
 
 Every field name and enum value below is the format's public interface; the shapes are shown as they
-sit on disk. A field with a sensible default is omitted when it takes that default, so a document
-carries only what departs from the norm [[r:foundation-default-fields]] [[r:defaults-are-omitted]] —
-the sole exception is a decision's `status`, always written even at `proposed`. Every id is
-kebab-case.
+sit on disk. Each kind's field set is closed — a field outside its schema is an error, not a note the
+format silently keeps [[r:entry-schemas-are-closed]]; rejecting unknown fields is enforcement still to
+land in the harness, not something the checker does today. A field with a sensible default is omitted
+when it takes that default, so a document carries only what departs from the norm
+[[r:foundation-default-fields]] [[r:defaults-are-omitted]] — the sole exception is a decision's
+`status`, always written even at `proposed`. Every id is kebab-case.
 
 **Fact** [[r:fact-structure]]. Required: `id`; `claim`, stating the fact; `backing`, exactly one of
 `tested` | `documented` | `assumed`, the three not equal in weight; and `sources`, at least one.
@@ -84,8 +86,8 @@ verbatim `quote` [[r:facts-require-a-source]]. A `url` pointing inside this repo
 relative to the repo root, not to the file holding it [[r:repo-relative-source-paths]], and a
 `quote` is always a block scalar even when one line [[r:quote-is-block-scalar]]. Optional: a `status`
 of `active` | `retired` (default `active`) — a retired fact adds a `reason` of `superseded` |
-`disproven` | `stale`, and a superseded one names its replacement in `superseded_by` — and a
-`caveat` recording why the fact might not hold despite its backing.
+`disproven` | `stale`, and a superseded one names its replacement in `superseded_by` as a bare fact
+id, not a citation token — and a `caveat` recording why the fact might not hold despite its backing.
 
 **Requirement** [[r:requirement-structure]]. Required: `id` and a `statement`. Optional: a `force`
 of `hard` | `soft` (default `hard`) — a hard requirement is non-negotiable, a soft one a preference
@@ -247,8 +249,9 @@ and every `after` resolves to a sibling; an open question carries `id`, `questio
 enum, and gates only local decisions; a conditional block present but empty is an error. For
 citations: every token matches the grammar,
 resolves to exactly one live entry of the named kind, points at no other design's entry and no
-decision outside the citing design. At settle: no live design-scoped requirement and no
-accepted-or-tolerated decision goes uncited.
+decision outside the citing design. A live entry is an active fact or requirement, or a decision that
+is not rejected; a retired fact or requirement and a rejected decision are dead and may not be cited.
+At settle: no live design-scoped requirement and no accepted-or-tolerated decision goes uncited.
 
 Marked as having no mechanical backstop — the checker cannot see these, so a reviewer must:
 
