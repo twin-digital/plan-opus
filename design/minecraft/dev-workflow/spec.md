@@ -26,22 +26,24 @@ logs, and build and deploy events from the harness, tagged by pack.
 ## Discovering and building packs
 
 The pack set is whatever the workspace holds. Discovery enumerates the workspace's packages and
-keeps those holding a committed pack manifest that names a header uuid and a script or data module
+asks each one the question the add-on format already answers: a pack is what its own
+`manifest.json` says it is, identified by the header uuid and typed by its modules
+[[f:bedrock-manifest-declares-pack-identity-and-kind]]. A package carrying such a manifest with a
+data or script module is a behavior pack and nothing else needs to declare it
 [[d:pack-identified-by-a-committed-behavior-manifest]], so adding or renaming a pack is a change to
-that package alone [[r:packs-discovered-from-workspace]]. That rule is the one the monorepo
-already runs on rather than a new marker to maintain — the tooling defines a pack by exactly this
-file, and the other traits a pack carries are written *from* it
-[[f:monorepo-defines-a-pack-by-a-committed-manifest]]. It is also the only candidate rule that is
-both exact against the real workspace and independent of what the tooling generates: keying on a
-Minecraft dependency or on where a package sits picks up the shared library and the harness itself
-[[f:pack-detection-rules-scored-against-the-monorepo]]. The module-type test carries the scope
-line: behavior packs are what the harness owes, other addon content is optional
-[[r:behavior-packs-required-other-content-optional]], and a resource pack's manifest looks the same
-until its modules are read — so reading them is what keeps one from being deployed into the
-behavior pool rather than recognised and skipped. A manifest with no header uuid fails discovery
-outright, since that uuid is what the activation list names
-[[f:bedrock-activation-entry-is-header-uuid-and-version]]. The detection rules considered, their
-measured scores, and why this one was chosen are kept beside the design in
+that package alone [[r:packs-discovered-from-workspace]]. Reading the manifest is not merely the
+tidiest rule available, it is the only one that is about packs: rules that guess from a dependency,
+a script, a name, or a directory diverge from the format's own answer on a real workspace — picking
+up a library that scripts against the server API, or selecting nothing at all until every pack is
+edited to carry a marker [[f:content-independent-pack-heuristics-misfire]]. The module type also
+carries the scope line: behavior packs are what the harness owes and other addon content is
+optional [[r:behavior-packs-required-other-content-optional]], and since a resource pack is
+distinguished from a behavior pack by module type alone
+[[f:bedrock-manifest-declares-pack-identity-and-kind]], reading it is what keeps one from being
+deployed into the behavior pool instead of recognised and skipped. A manifest with no header uuid
+fails discovery outright, since that uuid is what the activation list names
+[[f:bedrock-activation-entry-is-header-uuid-and-version]]. The rules considered, what each scored,
+and why this one was chosen are kept beside the design in
 `artifacts/pack-detection/ADDENDUM.md`. A pack's contract stops at producing that
 built output and watching its own sources [[r:deployment-is-not-a-pack-concern]]: the harness runs
 each pack's declared build and watch scripts and then observes the output directories itself
@@ -89,8 +91,9 @@ since a pack in the pool that the world does not list is not loaded at all
 [[f:bedrock-activation-list-read-only-at-world-load]]. Each entry is read out of the built pack's
 own manifest — the header uuid and the header version, the two fields an entry carries, both of
 which must match the pack sitting in the pool [[f:bedrock-activation-entry-is-header-uuid-and-version]].
-The built manifest, specifically: the committed one a pack is discovered by carries no version at
-all, since the build injects it [[f:pack-version-comes-from-the-built-manifest]].
+The built manifest is what reconcile reads, not the one discovery found: what the entry has to
+agree with is the pack in the pool, and the pool holds built output. Discovery's manifest is
+consulted for identity and kind only [[d:pack-identified-by-a-committed-behavior-manifest]].
 That the list is derived from the manifests every time, rather than amended in place, is what
 keeps a mismatch from surviving a deploy: a wrong uuid or a stale version is not an error the
 server reports, only a pack that silently fails to load.

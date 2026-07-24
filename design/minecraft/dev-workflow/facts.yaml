@@ -154,64 +154,62 @@
         only db, level.dat, level.dat_old and levelname.txt, and the installed file read back
         byte-for-byte as written.
 
-- id: monorepo-defines-a-pack-by-a-committed-manifest
+- id: bedrock-manifest-declares-pack-identity-and-kind
   claim: |
-    The monorepo already has a convention for what makes a package a Bedrock behavior pack: a
-    committed `pack/manifest.json`. repo-kit's `bedrock-pack` feature fires on exactly that
-    condition and then writes the rest of a pack's shape — the shared tsdown fragment, the
-    `mc-pack-config` devDependency, the `release-assets` script — so those are derived from the
-    manifest rather than independent evidence of a pack.
+    A Bedrock add-on pack is defined by its own `manifest.json`: the header's `uuid` uniquely
+    identifies the pack and the header's `version` is the pack version, while the `modules`
+    array's `type` states what kind of pack it is — `data` for behavior content, `script` for
+    scripting, `resources` for a resource pack. A pack's own content therefore states both that
+    it is a pack and which kind, with no reference to how it is stored or built.
   backing: documented
   sources:
-    - url: https://github.com/twin-digital/opus/blob/archive/minecraft-prototype/nodejs/minecraft/README.md
-      where: closing paragraph of the overview
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/manifestreference/packmanifestdocument
+      where: opening paragraph — the root structure of a manifest.json
       quote: |
-        A pack is any package with a committed `pack/manifest.json`; repo-kit's `bedrock-pack`
-        feature wires up its build config and keeps the manifest identity in sync with
-        `package.json`. Releases attach an installable `.mcpack` to the pack's GitHub release.
-    - url: https://github.com/twin-digital/opus/blob/archive/minecraft-prototype/.repo-kit.yml
-      where: features — the bedrock-pack feature's conditions
+        The root structure of a manifest.json file that defines an add-on pack. Every behavior
+        pack and resource pack requires a manifest with a unique UUID, version info, and module
+        declarations. This is the entry point Minecraft uses to identify and load your content.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/manifestreference/packmanifestdocument
+      where: 3.0.0.Module — what a module declares
       quote: |
-        - name: bedrock-pack
-          # A Bedrock behavior pack (any package with a pack/manifest.json) keeps its
-          # manifest identity in sync with package.json — the single source of truth.
-          conditions:
-            - exists: pack/manifest.json
+        Declares a module within the pack. Modules define what the pack contains: 'data' for
+        behavior packs, 'resources' for resource packs, or 'script' for packs with
+        JavaScript/TypeScript code. Script modules require an entry point file path.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
+      where: Properties — header — uuid
+      quote: |
+        This is a special type of identifier that uniquely identifies this pack from any other
+        pack. UUIDs are written in the format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx where each x
+        is a hexadecimal value (0-9 or a-f).
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
+      where: Properties — header — version
+      quote: |
+        This is the version of your pack in the format [majorVersion, minorVersion, revision].
+        The version number is used when importing a pack that has been imported before. The new
+        pack will replace the old one if the version is higher, and ignored if it's the same or
+        lower.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
+      where: modules — type
+      quote: |
+        This is the type of the module. Can be any of the following: `resources`, `data`,
+        `world_template` or `script`.
 
-- id: pack-detection-rules-scored-against-the-monorepo
+- id: content-independent-pack-heuristics-misfire
   claim: |
-    Scored against the monorepo's 41 workspace packages, a committed `pack/manifest.json`
-    selects exactly the two behavior packs, as do the rules derived from it (the
-    `mc-pack-config` devDependency, the repo-kit tsdown fragment, the `release-assets` script).
-    Heuristics that are not derived from it are wrong: a dependency on `@minecraft/server` also
-    selects the shared library, and the `nodejs/minecraft/*` directory also selects the library,
-    the build config, and the harness. No package carries an explicit pack marker field or a
-    pack keyword today, so both of those rules select nothing.
+    Detection rules that do not read a pack's manifest misclassify real workspaces. Scored
+    against a 41-package monorepo holding two behavior packs, a dependency on the Minecraft
+    scripting API also selects a shared library that scripts against that API without being a
+    pack; the presence of build and watch scripts selects three unrelated packages; and living
+    under a `minecraft/` directory also selects a build config and the dev harness itself. A
+    package.json marker field or pack keyword selects nothing, because no package carries one
+    until every pack is edited to add it.
   backing: tested
   sources:
     - description: |
-        Ran design/minecraft/dev-workflow/artifacts/pack-detection/detect-probe.mjs against
-        twin-digital/opus at archive/minecraft-prototype (4e731f5b); captured stdout is
-        OUTPUT.txt beside it and the scoring is summarised in ADDENDUM.md. Ground truth is the
-        two packs the repo's README names. Exact matches: committed pack/manifest.json, the same
-        plus header.uuid, the same plus a script-or-data module, any manifest.json in the
-        package, the mc-pack-config devDependency, tsdown.config.d/bedrock-pack.ts, and the
-        mcpack-assets release-assets script. False positives: @minecraft/server dependency
-        (mc-scripting-core); nodejs/minecraft/* (dev-bedrock-server, mc-pack-config,
-        mc-scripting-core); build+watch scripts (three bookify packages). Selecting nothing:
-        marker field, pack keyword.
-
-- id: pack-version-comes-from-the-built-manifest
-  claim: |
-    A pack's committed source manifest carries no `header.version` — the version is injected at
-    build time from the package's `package.json` version, so only the built `dist/manifest.json`
-    carries the version the activation list has to name. The built manifest is also the only
-    manifest present when `dist/` is the deploy source, since `dist/` is gitignored.
-  backing: tested
-  sources:
-    - description: |
-        Observed by design/minecraft/dev-workflow/artifacts/pack-detection/detect-probe.mjs
-        against twin-digital/opus at archive/minecraft-prototype (4e731f5b); see OUTPUT.txt
-        beside it. Both packs' committed pack/manifest.json reported "header.version: null",
-        while their built dist/manifest.json on disk reported header.version=[0,1,0], matching
-        each package's package.json version of 0.1.0.
+        Ran design/minecraft/dev-workflow/artifacts/pack-detection/detect-probe.mjs against a
+        41-package pnpm workspace (twin-digital/opus at archive/minecraft-prototype, 4e731f5b);
+        captured stdout is OUTPUT.txt beside it. Ground truth is derived from pack content under
+        the add-on format — a committed manifest.json with a header uuid and a data or script
+        module — and yielded two packs. Divergences observed: @minecraft/server dependency, 1
+        false positive; build+watch scripts, 3 false positives; minecraft/ directory location, 3
+        false positives; marker field and pack keyword, 0 selected and both packs missed.

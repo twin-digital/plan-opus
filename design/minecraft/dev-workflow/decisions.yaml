@@ -55,15 +55,15 @@
 
 - id: pack-identified-by-a-committed-behavior-manifest
   statement: |
-    a workspace package is a behavior pack when it holds a committed pack/manifest.json carrying
-    a header uuid and at least one script or data module
+    a workspace package is a behavior pack when its committed sources hold a pack manifest with a
+    header uuid and at least one data or script module
   status: proposed
   falsifiers:
     - packs stop committing a source manifest because a generator assembles the whole manifest at
       build time, leaving no pre-build evidence to discover
     - a pack has to ship from a directory that is not a workspace package
-    - a non-pack package commits a pack/manifest.json — a fixture or a vendored sample — and is
-      picked up as a pack
+    - a non-pack package commits a pack manifest — a fixture, a test input, or a vendored sample —
+      and is picked up as a pack
 
 - id: detach-on-interrupt-teardown-on-command
   statement: |

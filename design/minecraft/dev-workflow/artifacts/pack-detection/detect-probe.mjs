@@ -20,8 +20,12 @@ const log = (s = "") => { process.stdout.write(s + "\n"); fs.appendFileSync(OUT,
 const git = (...a) => execFileSync("git", ["-C", REPO, ...a], { encoding: "utf8", maxBuffer: 256 << 20 });
 const show = (p) => { try { return git("show", `${REF}:${p}`); } catch { return null; } };
 
-// ground truth, per the repo's own README (quoted in NOTES.md)
-const TRUTH = new Set(["@twin-digital/hello-world", "@twin-digital/village-guard"]);
+// Ground truth is derived from pack content under the Bedrock add-on format — a committed
+// manifest.json with a header uuid and a module of type `data` or `script` — never from any
+// convention of the repo it happens to be scored against.
+const isBehaviorManifest = (m) =>
+  typeof m?.header?.uuid === "string" &&
+  (m.modules ?? []).some((x) => x.type === "data" || x.type === "script");
 
 const files = git("ls-tree", "-r", "--name-only", REF).split("\n").filter(Boolean);
 
@@ -40,62 +44,69 @@ const pkgs = pkgDirs.map((dir) => {
   const own = files.filter((f) => f.startsWith(dir + "/"))
     .map((f) => f.slice(dir.length + 1))
     .filter((f) => !f.includes("node_modules/"));
-  const manifest = own.includes("pack/manifest.json") ? JSON.parse(show(`${dir}/pack/manifest.json`)) : null;
+  const manifestPaths = own.filter((f) => path.basename(f) === "manifest.json");
+  const manifests = manifestPaths.map((f) => { try { return JSON.parse(show(`${dir}/${f}`)); } catch { return null; } });
   const deps = { ...json.dependencies, ...json.devDependencies, ...json.peerDependencies };
-  return { dir, name: json.name, json, own, manifest, deps };
+  return { dir, name: json.name, json, own, manifestPaths, manifests, deps };
 });
 
+// kind: "format"    — reads the pack's own manifest; this is what the format itself says
+//       "heuristic" — content-independent guess, scored to show how far it diverges
+//       "external"  — a convention of the surrounding repo; excluded from the choice by fiat,
+//                     reported only to show it carries no information the format does not
 const STRATEGIES = [
-  ["committed pack/manifest.json", (p) => p.own.includes("pack/manifest.json")],
-  ["committed pack/manifest.json with a header.uuid", (p) => typeof p.manifest?.header?.uuid === "string"],
-  ["manifest with a script or data module (behavior, not resource)", (p) =>
-    (p.manifest?.modules ?? []).some((m) => m.type === "script" || m.type === "data")],
-  ["any manifest.json anywhere in the package", (p) => p.own.some((f) => path.basename(f) === "manifest.json")],
-  ["devDependency on @twin-digital/mc-pack-config", (p) => "@twin-digital/mc-pack-config" in p.deps],
-  ["any dependency on @minecraft/server", (p) => "@minecraft/server" in p.deps],
-  ["repo-kit-written tsdown.config.d/bedrock-pack.ts", (p) => p.own.includes("tsdown.config.d/bedrock-pack.ts")],
-  ["release-assets script = mcpack-assets", (p) => p.json.scripts?.["release-assets"] === "mcpack-assets"],
-  ["has both build and watch scripts", (p) => !!(p.json.scripts?.build && p.json.scripts?.watch)],
-  ["package.json keywords contain a pack keyword", (p) =>
+  ["format", "manifest.json with a header uuid and a data or script module", (p) => p.manifests.some(isBehaviorManifest)],
+  ["format", "any manifest.json in the package, unexamined", (p) => p.manifestPaths.length > 0],
+  ["heuristic", "any dependency on @minecraft/server", (p) => "@minecraft/server" in p.deps],
+  ["heuristic", "has both build and watch scripts", (p) => !!(p.json.scripts?.build && p.json.scripts?.watch)],
+  ["heuristic", "package.json keywords contain a pack keyword", (p) =>
     (p.json.keywords ?? []).some((k) => /pack|bedrock|minecraft/i.test(k))],
-  ["explicit package.json marker field (minecraft/mcpack/bedrock key)", (p) =>
+  ["heuristic", "explicit package.json marker field (minecraft/mcpack/bedrock key)", (p) =>
     ["minecraft", "mcpack", "bedrock", "minecraftPack"].some((k) => k in p.json)],
-  ["directory convention: nodejs/minecraft/*", (p) => p.dir.startsWith("nodejs/minecraft/")],
-  ["package name matches /pack/", (p) => /pack/.test(p.name)],
+  ["heuristic", "package name matches /pack/", (p) => /pack/.test(p.name)],
+  ["external", "directory location under a minecraft/ folder", (p) => /(^|\/)minecraft\//.test(p.dir + "/")],
+  ["external", "devDependency on the repo's shared pack build config", (p) => "@twin-digital/mc-pack-config" in p.deps],
+  ["external", "a build-tool fragment the repo's sync tool writes", (p) => p.own.includes("tsdown.config.d/bedrock-pack.ts")],
+  ["external", "the repo's release-assets script", (p) => p.json.scripts?.["release-assets"] === "mcpack-assets"],
 ];
+
+const TRUTH = new Set(pkgs.filter((p) => p.manifests.some(isBehaviorManifest)).map((p) => p.name));
 
 log(`=== environment`);
 log(`repo=${REPO} ref=${REF} (${git("rev-parse", "--short", REF).trim()})`);
 log(`workspace globs: ${globs.join(", ")}`);
 log(`workspace packages: ${pkgs.length}`);
-log(`ground truth packs: ${[...TRUTH].join(", ")}`);
 
-log(`\n=== strategies (selected / missed truth / false positives)`);
+log(`\n=== ground truth, derived from pack content under the add-on format`);
+log(`test: a committed manifest.json with header.uuid and a module of type data or script`);
+for (const p of pkgs.filter((x) => x.manifestPaths.length)) {
+  p.manifestPaths.forEach((f, i) => {
+    const m = p.manifests[i];
+    log(`  ${p.name}  ${f}  header.uuid=${JSON.stringify(m?.header?.uuid ?? null)}` +
+        ` modules=${JSON.stringify((m?.modules ?? []).map((x) => x.type))}` +
+        ` -> behavior pack: ${isBehaviorManifest(m)}`);
+  });
+}
+log(`  packs: ${[...TRUTH].join(", ") || "(none)"}`);
+
+log(`\n=== rules (selected / missed / false positives)`);
+log(`format rules restate the ground-truth test, so agreement is definitional, not evidence.`);
+log(`heuristic and external rules are scored to show how far each diverges from the format.`);
 const rows = [];
-for (const [name, pred] of STRATEGIES) {
+for (const [kind, name, pred] of STRATEGIES) {
   const sel = pkgs.filter(pred).map((p) => p.name);
   const missed = [...TRUTH].filter((t) => !sel.includes(t));
   const fp = sel.filter((s) => !TRUTH.has(s));
-  rows.push({ name, n: sel.length, missed, fp });
-  log(`\n${name}`);
+  rows.push({ kind, name, n: sel.length, missed, fp });
+  log(`\n[${kind}] ${name}`);
   log(`  selected(${sel.length}): ${sel.join(", ") || "(none)"}`);
   log(`  missed: ${missed.join(", ") || "none"}`);
   log(`  false positives: ${fp.join(", ") || "none"}`);
 }
 
-log(`\n=== exact matches (no misses, no false positives)`);
-for (const r of rows) if (!r.missed.length && !r.fp.length) log(`  ${r.name}`);
-
-log(`\n=== per-package evidence for the minecraft area`);
-for (const p of pkgs.filter((x) => x.dir.startsWith("nodejs/minecraft/"))) {
-  log(`  ${p.name}`);
-  log(`    pack/manifest.json: ${p.own.includes("pack/manifest.json")}` +
-      `  module types: ${JSON.stringify((p.manifest?.modules ?? []).map((m) => m.type))}` +
-      `  header.version: ${JSON.stringify(p.manifest?.header?.version ?? null)}`);
-  log(`    deps: mc-pack-config=${"@twin-digital/mc-pack-config" in p.deps}` +
-      ` @minecraft/server=${"@minecraft/server" in p.deps}` +
-      `  scripts: build=${p.json.scripts?.build ?? "-"} watch=${p.json.scripts?.watch ?? "-"}`);
-}
+log(`\n=== rules that diverge from the format's own answer`);
+for (const r of rows) if (r.kind !== "format" && (r.missed.length || r.fp.length))
+  log(`  [${r.kind}] ${r.name}: missed=${r.missed.length} falsePositives=${r.fp.length}`);
 
 log(`\n=== built-output strategy, checked on disk (dist/ is gitignored, so it needs a build first)`);
 for (const p of pkgs) {
