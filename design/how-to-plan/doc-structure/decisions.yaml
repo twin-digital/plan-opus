@@ -35,3 +35,14 @@
       the document to read well, so the fixed placement fights legibility
     - tooling comes to key on heading text that differs from these exact strings, forcing a
       rename across every spec
+
+- id: live-blocks-identified-by-section
+  statement: |
+    a spec.md's live component and open-question blocks are the `yaml` blocks under the fixed
+    `## Components` and `## Open questions` H2s; a `yaml` block anywhere else is illustrative
+  status: proposed
+  falsifiers:
+    - a design needs a live component or question block outside the two fixed sections for the
+      document to read well, so section placement cannot mark what is live
+    - authors routinely need an illustrative block that must itself sit under a fixed section,
+      so section is not enough to separate an example from a live entry

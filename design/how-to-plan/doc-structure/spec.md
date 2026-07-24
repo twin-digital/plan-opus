@@ -25,7 +25,22 @@ one: its `requirements.yaml` and `facts.yaml` are durable inputs, while its `dec
 `spec.md` are outputs the design produces and nothing upstream may write into [[r:inputs-outputs-split]].
 Because inputs and outputs are separated only by which file holds them, a fact or requirement can be
 dropped into whatever scope it belongs to the moment it is found, without first knowing which design
-will consume it — knowledge is never stranded for want of a home [[r:enable-easy-capture]].
+will consume it — knowledge is never stranded for want of a home [[r:enable-easy-capture]]. Laid out
+on disk, the three tiers and the input/output split take this shape [[r:spec-shows-layout-as-tree]]:
+
+```text
+design/
+├── requirements.yaml            global-scope inputs
+├── facts.yaml
+└── how-to-plan/                 an area
+    ├── requirements.yaml        area-scope inputs
+    ├── facts.yaml
+    └── doc-structure/           a design
+        ├── requirements.yaml    design inputs (durable)
+        ├── facts.yaml
+        ├── decisions.yaml       design outputs (regenerable)
+        └── spec.md
+```
 
 An id is the handle everything else resolves through, so within a kind it is unique across the whole
 repository, not merely across the three scopes one design can see [[r:ids-unique-repo-wide]]; a
@@ -72,17 +87,6 @@ of `active` | `retired` (default `active`) — a retired fact adds a `reason` of
 `disproven` | `stale`, and a superseded one names its replacement in `superseded_by` — and a
 `caveat` recording why the fact might not hold despite its backing.
 
-```text
-- id: fence-info-string-is-raw-text
-  claim: a fenced block's info string is literal text on the opening fence line ...
-  backing: documented
-  sources:
-    - url: https://spec.commonmark.org/0.31.2/
-      where: §4.5 Fenced code blocks — definition of the info string
-      quote: |
-        The line with the opening code fence may optionally contain some text ...
-```
-
 **Requirement** [[r:requirement-structure]]. Required: `id` and a `statement`. Optional: a `force`
 of `hard` | `soft` (default `hard`) — a hard requirement is non-negotiable, a soft one a preference
 that may bend with justification — a `status` of `active` | `retired` (default `active`), and a
@@ -109,6 +113,62 @@ which kind of foundation would close it, a `fact`, `requirement`, or `decision`.
 the decisions it blocks. A question is not a foundation and no claim may rest on one; naming the
 foundation that would close it turns the question into work with a known shape.
 
+A copyable example of each kind — and of the two live blocks a `spec.md` carries — follows, so an
+author of any spec starts from a concrete shape rather than the field lists alone
+[[r:spec-shows-copyable-type-examples]]. The blocks below sit outside the fixed `## Components` and
+`## Open questions` sections, so they are read as illustration and never as live entries (below).
+
+A fact, a requirement, and a decision, as they sit in a `facts.yaml`, `requirements.yaml`, and
+`decisions.yaml` — each file a bare sequence:
+
+```yaml
+- id: fence-info-string-is-raw-text
+  claim: a fenced block's info string is literal text on the opening fence line
+  backing: documented
+  sources:
+    - url: https://spec.commonmark.org/0.31.2/
+      where: §4.5 Fenced code blocks — definition of the info string
+      quote: |
+        The line with the opening code fence may optionally contain some text following the
+        code fence; this is trimmed of leading and trailing spaces or tabs and called the
+        info string.
+```
+
+```yaml
+- id: three-tier-scopes
+  statement: exactly three scopes hold foundations — global, area, and design
+  force: soft
+  rationale: |
+    Two tiers cannot express "shared by these designs but not everything".
+```
+
+```yaml
+- id: block-and-file-encoding
+  statement: live blocks are yaml-fenced keyed mappings; foundation files are bare sequences
+  status: proposed
+  falsifiers:
+    - a foundation file grows a need for file-level metadata beside its entries
+```
+
+A component block and an open-question block, in the form each takes inside a `spec.md` — the
+keyed-mapping shape a live block uses:
+
+```yaml
+components:
+  - id: citation-resolver
+    responsibility: resolve one citation token to exactly one entry
+    excludes: rendering the prose around the token
+    after: [entry-loader]
+```
+
+```yaml
+questions:
+  - id: precedence-across-tiers
+    question: should a nearer scope ever override a wider one?
+    closes: decision
+    gates: [block-and-file-encoding]
+```
+
 ## The spec.md document
 
 A `spec.md` opens with a Summary and then the specification — its remaining prose sections, where
@@ -119,19 +179,20 @@ instead [[r:fixed-outer-sections]]. Those three fixed sections are the H2 headin
 `## Open questions`, and `## Components` [[d:fixed-section-headings]].
 
 Components and open questions are the only structured data the document itself carries, and each
-appears in exactly one fenced block [[r:one-block-per-kind]]: a single fenced block whose body is a
-YAML mapping with exactly one top-level key naming its kind — `components` or `questions` —
-mapping to the sequence of entries [[r:blocks-are-keyed-mappings]] [[d:block-and-file-encoding]]. A
-block's info string is `yaml`, so the same block a renderer displays verbatim is read from the raw
-source by any tool: a fenced block's info string is literal text on the opening fence line
-regardless of how a renderer shows the block [[f:fence-info-string-is-raw-text]], and GitHub strips
-styling from rendered markdown, so a block's identity can only be its raw fence and info string,
-never anything a stylesheet imposes [[f:no-inline-styles-in-gfm]]. This is the legibility-versus-
-parseability bet the whole format turns on. The self-reference it creates — a spec about the format
-must show on-disk shapes that are themselves YAML — is resolved by writing every illustrative snippet
-in a fenced block whose info string is not `yaml`, so a tool reading data blocks never mistakes an
-example for a live one [[d:examples-fenced-as-non-yaml]]; the snippets above use exactly that
-convention.
+appears in exactly one fenced block [[r:one-block-per-kind]] whose body is a YAML mapping with
+exactly one top-level key naming its kind — `components` or `questions` — mapping to the sequence of
+entries [[r:blocks-are-keyed-mappings]] [[d:block-and-file-encoding]]. A block's info string is
+`yaml`, so the same block a renderer displays verbatim is read from the raw source by any tool: a
+fenced block's info string is literal text on the opening fence line regardless of how a renderer
+shows the block [[f:fence-info-string-is-raw-text]], and GitHub strips styling from rendered
+markdown, so a block's identity can only be its raw fence, never anything a stylesheet imposes
+[[f:no-inline-styles-in-gfm]]. This is the legibility-versus-parseability bet the whole format turns
+on. What makes a block *live* is where it sits, not its key: a `components` or `questions` block
+counts only under the fixed `## Components` or `## Open questions` H2, and a `yaml` block anywhere
+else is read as illustration and ignored [[d:live-blocks-identified-by-section]]. That is what lets a
+spec about the format print real block shapes inline — the examples above included — without a tool
+mistaking one for a live entry, and it is what makes the fixed section headings part of the
+machine-read contract rather than cosmetic [[d:fixed-section-headings]].
 
 ## Citations and resolution
 
@@ -153,12 +214,17 @@ A design is in one of three states — `exploring`, `draft`, or `settled` — an
 from what exists in the tree, never stored beside it, so it cannot drift from the artifacts the way a
 stored copy would [[r:design-status-enum]]. The reading is mechanical: no `spec.md` is `exploring`;
 a `spec.md` carrying a proposed decision, an open question, or an uncited live design-scoped
-requirement or accepted-or-tolerated decision is `draft`; a design merged to main with none of those
-is `settled` [[r:status-derived-from-content]]. State is what a design licenses: only `settled`
-licenses building on it, and a design holding an open question or a still-proposed decision cannot be
-settled — a rejected decision blocks nothing, being the record of an option considered rather than
-something the design holds [[r:only-settled-work-licenses-building]]. The last bar on settling is a
-citation bar: a design cannot settle while a live design-scoped requirement, or an accepted or
+requirement or accepted-or-tolerated decision is `draft`; a `spec.md` with none of those is
+`settled`, review-clean on its own content with no appeal to where it sits in git
+[[r:status-derived-from-content]]. Building waits on more than that: nothing is built on a design
+until it is published — settled and merged to main — where settled means it has cleared review and
+published means it is on main for siblings to build against, and a design holding an open question or
+a still-proposed decision cannot be settled in the first place [[r:only-published-work-licenses-building]].
+Publication is a second axis, not a fourth state: the three states stay computable from tree content,
+while merge-to-main is a git-ref property no artifact in the tree records, so it is tracked as a
+boolean beside the state rather than folded into the enum [[r:publication-is-a-separate-axis]]. The
+last bar on settling is a citation bar: a design cannot settle while a live design-scoped
+requirement, or an accepted or
 tolerated decision it holds, has no claim citing it — the two things a settled design must actually
 stand on. Facts, and requirements at wider scopes, carry no such obligation, so capture stays free
 everywhere and the only citation debt falls due at settle [[r:settled-design-cites-what-it-keeps]].
@@ -177,9 +243,11 @@ written repo-relative, and every `quote` a block scalar; a requirement carries `
 a `force` and `status` in their enums, and no `sources`; a decision carries `id`, `statement`, and a
 written `status` in its enum, plus at least one falsifier unless rejected; any field at its default is
 omitted; a retired fact carries a valid `reason` and, if superseded, a resolvable `superseded_by`. In
-the document: a component carries `id` and `responsibility` and every `after` resolves to a sibling; an
-open question carries `id`, `question`, a `closes` in the enum, and gates only local decisions; a
-conditional block present but empty is an error. For citations: every token matches the grammar,
+the document: a live block is recognised only under its fixed `## Components` or `## Open questions`
+section, a `yaml` block elsewhere being illustrative; a component carries `id` and `responsibility`
+and every `after` resolves to a sibling; an open question carries `id`, `question`, a `closes` in the
+enum, and gates only local decisions; a conditional block present but empty is an error. For
+citations: every token matches the grammar,
 resolves to exactly one live entry of the named kind, points at no other design's entry and no
 decision outside the citing design. At settle: no live design-scoped requirement and no
 accepted-or-tolerated decision goes uncited.
