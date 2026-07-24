@@ -1,0 +1,13 @@
+# Probe: a directory watch path with sync+exec. Expected to work.
+name: probe-dir-sync
+services:
+  app:
+    image: alpine:3
+    command: sleep 300
+    develop:
+      watch:
+        - path: ./data
+          target: /synced
+          action: sync+exec
+          exec:
+            command: touch /tmp/exec-ran
