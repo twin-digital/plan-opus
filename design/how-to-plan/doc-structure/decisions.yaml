@@ -1,36 +1,37 @@
-- id: yaml-entries-markdown-prose
-  statement: entries are YAML; the prose around them is ordinary markdown
-  status: accepted
-  falsifiers:
-    - an entry kind needs a field that YAML cannot carry legibly at one entry per screen
-    - authors routinely hand-edit blocks into invalid YAML, making the artifact unreadable
-      by the harness more often than it is readable
+# Decisions proposed for the doc-structure design.
+# Schema: id, statement, status (proposed|accepted|tolerated|rejected), falsifiers.
+# status is required and always written. At least one falsifier per live decision.
 
-- id: decisions-precede-the-spec
-  statement: the decision list is placed before the prose that draws on it
-  status: rejected
+- id: block-and-file-encoding
+  statement: |
+    in-document components and open questions live in `yaml`-fenced blocks each under a
+    single kind-naming key; the standalone foundation files are bare top-level sequences
+  status: proposed
   falsifiers:
-    - a decision statement turns out to be unintelligible before the prose that uses it, so
-      readers must jump forward and back to use the list
+    - a foundation file grows a need for file-level metadata beside its entries, so a bare
+      sequence can no longer hold everything the file must carry
+    - the renderer or parser the format targets stops round-tripping the `yaml` info string or
+      the in-document block, so a block can no longer be both shown to a person and read by a
+      machine from one source
 
-- id: no-authorship-fields
-  statement: no entry carries an author, date, or revision field
-  status: accepted
+- id: examples-fenced-as-non-yaml
+  statement: |
+    an on-disk shape shown only for illustration in a spec is written in a fenced block whose
+    info string is not `yaml`
+  status: proposed
   falsifiers:
-    - entries start arriving through a path that version control does not record
-    - a rule needs an entry's age, and reading it from history proves impractical
+    - a spec must display a live, machine-read block and an illustrative example of the same
+      kind such that no info-string convention can tell them apart
+    - readers or tooling come to depend on `yaml` highlighting for illustrative snippets, so
+      withholding the info string from examples costs more than the disambiguation is worth
 
-- id: structure-in-plain-text
-  statement: all structure is carried by markdown text — fences, headings, and bracket
-    tokens — with no HTML or styling
-  status: accepted
+- id: fixed-section-headings
+  statement: |
+    a spec.md's three fixed sections are the H2 headings `## Summary`, `## Open questions`, and
+    `## Components`, with Open questions right after Summary and Components last
+  status: proposed
   falsifiers:
-    - the artifact stops being read on GitHub, and the renderer that replaces it supports
-      richer markup
-
-- id: brief-is-required
-  statement: a design directory must hold `brief.md`
-  status: rejected
-  falsifiers:
-    - a design appears whose subject is fully determined by its requirements, making the
-      brief pure restatement
+    - a design needs its open questions or components somewhere other than these fixed slots for
+      the document to read well, so the fixed placement fights legibility
+    - tooling comes to key on heading text that differs from these exact strings, forcing a
+      rename across every spec
