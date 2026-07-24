@@ -34,9 +34,8 @@ questions:
 The harness exposes two commands. The first is the whole loop — discover, build, start, deploy,
 watch, stream [[r:one-command-dev-loop]] — and it is idempotent at every stage, so running it
 against an already-running server reattaches rather than rebuilding the world. Everything it owns
-in the foreground is disposable; the server and its world are not, which is why interrupting it
-stops the builds, watchers, and log stream and nothing else, and why a separate command is what
-stops the server [[r:server-lifecycle-outlives-the-foreground]] [[d:detach-on-interrupt-teardown-on-command]].
+in the foreground is disposable; the server and its world are not
+[[r:server-lifecycle-outlives-the-foreground]] [[d:detach-on-interrupt-teardown-on-command]].
 The stream the author reads is one interleaved channel: server console lines from the container's
 logs, and build and deploy events from the harness, tagged by pack.
 
@@ -55,8 +54,7 @@ Compose's own file-watching cannot stand in for that. Its watch rules take a lit
 path that exists when the watcher starts; a glob or a symlinked directory is accepted and then
 silently never syncs [[f:compose-watch-path-constraints]], so a watch-based deploy would need one
 rule per pack generated ahead of time — the hand-maintained list the discovery requirement exists
-to abolish — and the actions that would carry a reload alongside the copy gate on recent Compose
-releases besides [[f:compose-watch-actions-and-versions]].
+to abolish [[r:packs-discovered-from-workspace]].
 
 ## Getting a pack onto the server
 
@@ -79,23 +77,36 @@ server itself — what sits in the pool, what the world's activation list names
 load, and it survives a container the author restarted or a deploy that died halfway. Comparing
 built content against deployed content needs a cheap equality test that a directory listing cannot
 give, so each deployed pack carries a stamp of the build it came from and reconcile compares
-stamps [[d:deployed-pack-carries-a-content-stamp]]. The difference drives three actions: copy the
-packs whose stamp differs or is missing, delete the pool directories no longer in the pack set,
-and write the activation list so it names exactly the deployed packs — the last of these into the
-world directory specifically, since a pack in the pool that the world does not list is not loaded
-at all [[f:bedrock-activation-list-read-only-at-world-load]].
+stamps [[d:deployed-pack-carries-a-content-stamp]]. The stamp holds one hash per refresh class
+rather than one for the pack, so a difference says which class changed and not merely that
+something did — with one hash the classification below would need a host-side memory of the last
+build, which reading state from the server forbids [[d:server-is-the-deploy-state-of-record]].
+The difference drives three actions: replace the pool directory of every pack whose stamp differs
+or is missing — removed first and then copied, because a copy into a surviving directory merges
+and would leave behind files the build has since dropped, at the cost of one extra server
+round-trip per changed pack — delete the pool directories no longer in the pack set, and write the
+activation list so it names exactly the deployed packs, into the world directory specifically,
+since a pack in the pool that the world does not list is not loaded at all
+[[f:bedrock-activation-list-read-only-at-world-load]].
+
+On a fresh volume none of that can run yet: the world directory reconcile writes into, and the
+console it later issues commands to, exist only after the server has booted and opened its world.
+Startup therefore brings the server up, waits on the log stream for the world to open, and runs the
+first reconcile only then — a run that finds an empty pool, so it ends in the restart that
+activating a pack costs anyway [[f:bedrock-activation-list-read-only-at-world-load]].
 
 ## Reload, and when a restart is the price
 
-What a deploy costs depends on what changed. Script, function, and loot content goes live through
-an in-game reload without dropping a connected client, while a pack that is new, renamed,
-newly activated, or changed in its manifest or its entity, item, and block definitions is only
-picked up when the server loads again [[f:bedrock-reload-updates-scripts-not-pool-or-manifest]].
-Reconcile classifies its own diff on that line and restarts the container only for the second
-class [[d:restart-only-for-identity-and-activation-changes]], which is what keeps the ordinary
+What a deploy costs depends on what changed. Reconcile classifies its own diff on the line an
+in-game reload draws [[f:bedrock-reload-updates-scripts-not-pool-or-manifest]] — with a newly
+activated pack falling on the restart side of it [[f:bedrock-activation-list-read-only-at-world-load]]
+— and restarts the container only for the restart class
+[[d:restart-only-for-identity-and-activation-changes]], which is what keeps the ordinary
 case — an author editing a script and saving — inside the requirement's few seconds with nobody
 kicked [[r:edit-to-live-without-disconnect]]. The reload itself is issued into the running
-container through the server image's console helper [[d:reload-issued-through-the-container-console]],
+container through the server image's console helper, which takes a command non-interactively over
+the Docker API [[f:bedrock-image-exposes-a-noninteractive-console-helper]]
+[[d:reload-issued-through-the-container-console]],
 so the harness needs no in-game client and no network path to the server beyond the Docker API it
 already uses. A restart is announced on the stream with the reason, because it is the expensive
 outcome and the author should learn which edits cause it.
@@ -121,14 +132,14 @@ components:
     excludes: knowing that a server exists
     after: [pack-discovery]
   - id: server-session
-    responsibility: wrap one compose project — up, down, restart, log stream, file copy, and console command — behind flag handling the rest of the harness never repeats
-    excludes: any notion of packs, pools, or activation
+    responsibility: wrap one compose project — up, down, restart, log stream, file copy, console command, and a world-opened readiness signal — behind flag handling the rest of the harness never repeats, and resolve from the project's env the level name and the in-container pool and world paths its callers address
+    excludes: any notion of packs or activation-list content
   - id: deploy-reconciler
     responsibility: diff built packs against the server's pool and activation list, apply copies, deletions, and the activation list, and decide reload versus restart
     excludes: deciding when to run; it is called
     after: [pack-discovery, server-session]
   - id: dev-cli
-    responsibility: the two commands, the startup sequence, signal handling, and the single interleaved output stream
+    responsibility: the two commands, the startup sequence — up, wait for the world-opened signal, first reconcile, then watch — signal handling, and the single interleaved output stream
     excludes: any deploy or build logic of its own
     after: [pack-build-runner, deploy-reconciler]
 ```

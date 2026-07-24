@@ -104,6 +104,21 @@
         client; whereas adding a pack or changing the activation list only took effect after a
         container restart. Consistent with the community-documented scope of /reload.
 
+- id: bedrock-image-exposes-a-noninteractive-console-helper
+  claim: |
+    The Bedrock server image used by the prototype (itzg/minecraft-bedrock-server) ships a
+    `send-command` helper that writes a command to the running server's console. It is driven
+    non-interactively from `docker compose exec` — no attached TTY, no in-game client — and so
+    works against a remote daemon, since exec travels over the Docker API like any other call.
+  backing: tested
+  sources:
+    - description: |
+        Observed in the same prototype run recorded by
+        bedrock-reload-updates-scripts-not-pool-or-manifest and
+        compose-cp-copies-without-bind-mounts, whose daemon ran on another host: `send-command
+        reload`, executed inside the running container with no interactive session attached,
+        produced "Function and script files have been reloaded" on the server console.
+
 - id: bedrock-server-hosts-one-world
   claim: |
     A Bedrock dedicated server hosts a single active world per instance, selected by the

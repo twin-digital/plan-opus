@@ -27,8 +27,9 @@
 
 - id: deployed-pack-carries-a-content-stamp
   statement: |
-    each deployed pack directory holds a stamp file naming the content hash of the build it came
-    from, and up-to-dateness is a stamp comparison
+    each deployed pack directory holds a stamp file naming, per refresh class, the content hash of
+    the build it came from — one hash over the pack's reload-safe content, one over its manifest
+    identity and definition content — and up-to-dateness is a stamp comparison
   status: proposed
   falsifiers:
     - the server rejects or misreads a pack directory containing a file its manifest does not
@@ -43,7 +44,8 @@
   status: proposed
   falsifiers:
     - an edit class the harness routes to reload is observed not to take effect until a restart
-    - the classification cannot be computed from the built output without reading the server
+    - a pack's build rewrites its manifest or definition files on every run, so the restart-class
+      hash moves on an ordinary script edit and routine edits restart the server
 
 - id: pack-declared-by-a-package-manifest-field
   statement: |
@@ -78,7 +80,8 @@
   status: proposed
   falsifiers:
     - the server image drops or renames the helper
-    - the helper cannot be driven non-interactively against a remote daemon
+    - a reload issued through the console is observed to miss script changes a client-issued
+      /reload picks up
 
 - id: one-compose-project-one-world
   statement: |
