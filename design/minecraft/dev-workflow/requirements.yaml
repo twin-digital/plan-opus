@@ -41,3 +41,9 @@
     scripts.
   rationale: |
     Keeps packs interchangeable and the deploy transport free to change in one place.
+
+- id: remote-docker-supported
+  statement: |
+    any component of the solution which requires a Docker service must function even when the Docker
+    engine is running on a remote host (e.g., bind mounts must not be required)
+
