@@ -144,14 +144,11 @@
 
 - id: publication-is-a-separate-axis
   statement: |
-    publication is tracked separately from the derived state: a design is published when it is
-    settled and merged to main. It is a boolean status, not a fourth state — the three-state
-    enum stays derivable from tree content, while publication additionally depends on git ref
-    status (merge to main), which no artifact in the tree records
+    a design is published when it is both settled and merged to main. `published` is a boolean 
+    status, not a fourth state — the design status enum stays derivable from tree content, 
+    while publication additionally depends on git ref status (merge to main)
   rationale: |
-    Keeps design-status-enum honest. State reads off tree content, so merge status — a git-ref
-    property, not tree content — cannot join the same enum without reintroducing the drift the
-    enum exists to avoid. Settled means review-clean; published means settled and released.
+    Settled means review-clean; published means settled and released.
 
 - id: component-structure
   statement: |
