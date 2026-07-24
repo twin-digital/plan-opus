@@ -37,11 +37,12 @@ what the design is, what it produces, and the problem it addresses — the three
 before any detail — plus, when a single constraint clearly dominates, that constraint named up
 front [[r:summary-names-subject-product-and-problem]]. A Summary carrying a fourth kind of
 content, or a citation token, has overstepped: it is the one section `doc-structure` bars a token
-from, so anything that would need one belongs below it.
+from [[f:summary-carries-no-citation]], so anything that would need one belongs below it.
 
 ## Saying it once
 
-The foundations are already pulled into their own lists for review and for the builder's crib, so
+The foundations are already pulled into their own lists for review and for the builder's crib
+[[f:foundations-extracted-into-lists]], so
 the specification's prose owes the connective work those lists cannot show, not a second telling
 of them. The test: strike any sentence whose whole content is an extracted fact, requirement, or
 decision restated, and the specification loses nothing
@@ -66,7 +67,7 @@ them rather than re-deriving each [[r:a-rule-binds-the-writer-of-what-it-governs
 at the source: open what a fact cites, and for evidence drawn from outside the author the words it
 rests on are there on the page, verbatim — a paraphrase fails because it is the agent's voice
 standing where the source's should be, and an assumed fact instead carries the mechanism it rests
-on [[r:evidence-is-verbatim]]. A spec author's own duties toward inherited facts are three further
+on [[f:fact-source-is-quote-or-mechanism]] [[r:evidence-is-verbatim]]. A spec author's own duties toward inherited facts are three further
 tests a reviewer runs against the prose. First: no claim rests on a fact the author has found
 wrong — one shown false, or unsupported by its own evidence, is corrected in place by a new
 evidenced fact that supersedes it, not cited as-is or merely flagged
@@ -75,13 +76,14 @@ buried in prose — a discovery the design comes to stand on is recorded as a fa
 evidence bar, where it can be checked and reused, while a passing observation is not
 [[r:foundational-discoveries-are-recorded-as-facts]]. Third: a reliance on another design's output
 appears as a fact in this design's own or a shared scope, sourced to the upstream `spec.md` by
-repo-relative url and verbatim quote, never as a direct citation of that design's decisions or
+repo-relative url and verbatim quote [[f:in-repo-source-url-is-repo-relative]]
+[[f:fact-source-is-quote-or-mechanism]], never as a direct citation of that design's decisions or
 invariants [[r:cross-design-dependency-is-cited-as-a-fact]].
 
 ## Falsifiers that can fire
 
 A decision that cannot say what would prove it wrong is not understood well enough to keep, and
-the format can only check that the field is filled — whether what fills it is real is this design's
+the format can only check that the field is filled [[f:decision-carries-a-falsifier]] — whether what fills it is real is this design's
 test [[r:decisions-state-their-falsifier]]. That test: a falsifier is real when it names a concrete
 condition that could actually arise in building or running the thing and that would reverse the
 decision if it did; a restated negation of the choice, or a condition nothing could observe, is a
@@ -97,7 +99,7 @@ A component is a unit of work an agent can be handed and build on its own — on
 task [[r:components-map-to-dispatchable-build-units]]. Where a boundary falls is the author's
 judgement, and the test of a well-drawn one is whether its responsibility is a single such task
 and whether its interface to its siblings — all it carries in `responsibility`, `excludes`, and
-`after` — is pinned tightly enough to build in parallel without reading a sibling's internals, with
+`after` [[f:component-interface-fields]] — is pinned tightly enough to build in parallel without reading a sibling's internals, with
 the set small enough to review at once and its serial dependencies marked
 [[d:well-drawn-component-is-a-parallel-buildable-unit]].
 

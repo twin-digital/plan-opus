@@ -83,3 +83,70 @@
       checked: 2026-07-23
       quote: |
         structurally rich task descriptions can substantially mitigate the negative effects of under-specification and, in some cases, even enhance correctness
+
+# Cross-design dependencies on doc-structure, recorded as facts per
+# r:cross-design-dependency-is-cited-as-a-fact. Each quote is verbatim from the
+# upstream design/how-to-plan/doc-structure/spec.md in this repo.
+
+- id: summary-carries-no-citation
+  claim: the Summary section of a spec.md carries no citation token
+  backing: documented
+  sources:
+    - url: design/how-to-plan/doc-structure/spec.md
+      where: The document (sections table)
+      quote: |
+        `## Summary` | a paragraph or two, no citations
+
+- id: foundations-extracted-into-lists
+  claim: a design's facts, requirements, and decisions live as entries in their own list files, not in the spec.md prose
+  backing: documented
+  sources:
+    - url: design/how-to-plan/doc-structure/spec.md
+      where: Invariants (rule 3)
+      quote: |
+        Facts and requirements appear only in scope YAML files; decisions only in `decisions.yaml`; components and questions only in a `spec.md`.
+
+- id: fact-source-is-quote-or-mechanism
+  claim: a fact's evidence takes exactly one locator form — a url with a verbatim quote, or a description of the mechanism
+  backing: documented
+  sources:
+    - url: design/how-to-plan/doc-structure/spec.md
+      where: Entry shapes (Facts)
+      quote: |
+        each source takes exactly
+        one locator form — a `description` of the mechanism, or a `url` with `where` and `quote`
+
+- id: in-repo-source-url-is-repo-relative
+  claim: a fact source url pointing inside the repository is written relative to the repo root
+  backing: documented
+  sources:
+    - url: design/how-to-plan/doc-structure/spec.md
+      where: Entry shapes (Facts)
+      quote: |
+        A
+        `url` that points inside the repository is written relative to the repo root, not to the file
+        that holds it
+
+- id: component-interface-fields
+  claim: a component's fields are id and responsibility, with optional excludes and after — and nothing else
+  backing: documented
+  sources:
+    - url: design/how-to-plan/doc-structure/spec.md
+      where: Entry shapes (Components)
+      quote: |
+        `id`, `responsibility` (one line); optional
+        `excludes` and `after`
+
+- id: decision-carries-a-falsifier
+  claim: doc-structure requires each decision to state at least one falsifier, leaving whether it is a real one to authoring
+  backing: documented
+  sources:
+    - url: design/how-to-plan/doc-structure/spec.md
+      where: Entry shapes (Decisions)
+      quote: |
+        At least one falsifier is required
+    - url: design/how-to-plan/doc-structure/spec.md
+      where: Entry shapes (Decisions)
+      quote: |
+        Whether a written falsifier is a
+        real one is a question of content, and belongs to authoring.
