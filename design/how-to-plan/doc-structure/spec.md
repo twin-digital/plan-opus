@@ -187,12 +187,9 @@ fenced block's info string is literal text on the opening fence line regardless 
 shows the block [[f:fence-info-string-is-raw-text]], and GitHub strips styling from rendered
 markdown, so a block's identity can only be its raw fence, never anything a stylesheet imposes
 [[f:no-inline-styles-in-gfm]]. This is the legibility-versus-parseability bet the whole format turns
-on. What makes a block *live* is where it sits, not its key: a `components` or `questions` block
-counts only under the fixed `## Components` or `## Open questions` H2, and a `yaml` block anywhere
-else is read as illustration and ignored [[d:live-blocks-identified-by-section]]. That is what lets a
-spec about the format print real block shapes inline — the examples above included — without a tool
-mistaking one for a live entry, and it is what makes the fixed section headings part of the
-machine-read contract rather than cosmetic [[d:fixed-section-headings]].
+on. A block is live only under its fixed `## Components` or `## Open questions` H2; a `yaml` block
+elsewhere — the examples above included — is illustrative, not a live entry
+[[d:live-blocks-identified-by-section]].
 
 ## Citations and resolution
 
