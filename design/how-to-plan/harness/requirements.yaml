@@ -71,3 +71,14 @@
     Nor does it make sense to add hard gates on citations. But as an input for reviewers to
     consider it makes sense. And the automation opens the gate to building baselines to compare
     against.
+
+- id: check-identifies-blocks-by-section
+  statement: |
+    the checker identifies a spec.md's live component and open-question blocks by their
+    containing fixed section (`## Components`, `## Open questions`); a yaml block outside those
+    sections is not a live entry, so an illustrative example placed elsewhere is ignored rather
+    than parsed
+  rationale: |
+    Lets a spec show copyable on-disk examples of its own block kinds without the checker
+    mistaking them for real entries, and gives the fixed section headings a mechanical job
+    instead of leaving them cosmetic.

@@ -142,6 +142,14 @@
   rationale: |
     Reading the state off the artifacts keeps it from drifting the way a stored copy would.
 
+- id: publication-is-a-separate-axis
+  statement: |
+    a design is published when it is both settled and merged to main. `published` is a boolean 
+    status, not a fourth state — the design status enum stays derivable from tree content, 
+    while publication additionally depends on git ref status (merge to main)
+  rationale: |
+    Settled means review-clean; published means settled and released.
+
 - id: component-structure
   statement: |
     Components MUST have the following data at a minimum:
@@ -185,12 +193,13 @@
     Enabling easy capture of good ideas or future requirements prevents losing good ideas without forcing frequent
     context switches to act on them.
 
-- id: only-settled-work-licenses-building
+- id: only-published-work-licenses-building
   statement: |
-    nothing is built on a design that has not cleared review; a design's status says what it
-    licenses, and only settled licenses construction. A design cannot be settled while it
-    holds an open question or a decision still proposed; a rejected decision blocks nothing,
-    being a record of an option considered rather than something the design holds
+    nothing is built on a design until it is published — settled and merged to main. A
+    design's status says what it licenses: settled means it has cleared review, published means
+    it is on main for others to build against. A design cannot be settled while it holds an open
+    question or a decision still proposed; a rejected decision blocks nothing, being a record of
+    an option considered rather than something the design holds
 
 - id: invariants-are-enforced-or-marked
   statement: |
@@ -229,12 +238,14 @@
     entries of that kind; decisions sit in decisions.yaml, not in the document
 
 - id: one-block-per-kind
-  statement: components and open questions each appear in exactly one fenced block in a
-    spec.md
+  statement: a design's live components and open questions each appear in exactly one fenced
+    block — the single yaml block under its fixed section (`## Components`, `## Open questions`);
+    a yaml block outside those sections is illustrative, not live
 
 - id: blocks-are-keyed-mappings
-  statement: each fenced block in a spec.md is a YAML mapping with exactly one top-level
-    key naming its kind
+  statement: a live block — the yaml block under its fixed section — is a YAML mapping with
+    exactly one top-level key naming its kind; a yaml block elsewhere is an illustrative example
+    and need not take that shape
 
 - id: resolution-is-scope-blind
   statement: a token resolves by matching its id against every entry of that kind in all
@@ -263,7 +274,7 @@
   statement: |
     a design's state is computed from its artifacts — no spec.md is exploring; a
     spec.md with a proposed decision, an open question, or an uncited live design-scoped
-    requirement or accepted-or-tolerated decision is draft; a design merged to main with none of those is
+    requirement or accepted-or-tolerated decision is draft; a spec.md with none of those is
     settled
 
 - id: decisions-require-a-falsifier
@@ -276,3 +287,40 @@
 - id: rejected-decisions-are-closed
   statement: a rejected decision is retained as a record, blocks nothing, and may not be
     cited
+
+- id: spec-shows-copyable-type-examples
+  statement: |
+    the doc-structure spec shows, for every entry kind it defines (fact, requirement,
+    decision, component, open question) and for a spec.md fenced block, a concrete example of
+    its on-disk shape that an agent can copy as a starting point. Examples are shown as
+    illustrations, not live entries, so they are not parsed as real blocks
+  rationale: |
+    The types are defined here and nowhere else, so this is where an agent writing any spec
+    goes to see the shape. A copyable example is faster and less error-prone to work from than
+    a field list alone.
+
+- id: spec-shows-layout-as-tree
+  statement: |
+    the doc-structure spec depicts the on-disk directory layout as a visual tree, not prose
+    alone — the three scope tiers and the input-vs-output files shown as a labelled tree
+
+- id: instructs-readers-to-follow-the-format-rules
+  statement: |
+    a reader following this spec produces specifications that adhere to every reader-facing rule
+    this design records — all of its requirements and decisions except those that govern
+    doc-structure's own document rather than the specs its readers write:
+    r:spec-shows-copyable-type-examples and r:spec-shows-layout-as-tree
+  rationale: |
+    Stated as a carveout, not an enumeration, so a new reader-facing rule joins it with no edit;
+    only a new self-facing rule needs adding, and those are rare. Draws the line the growing
+    requirement set had blurred: the format rules this spec documents for its readers, versus the
+    requirements on this document's own construction (its copyable examples and layout tree).
+
+- id: entry-schemas-are-closed
+  statement: |
+    each entry kind's field set is closed: a fact, requirement, decision, component, or open
+    question carries only the fields its schema defines, and a field outside that set is an
+    error rather than silently ignored
+  rationale: |
+    The field names are the format's public interface, so a stray or misspelled field — a stray
+    `checked:`, a typo'd key — should be a caught error, not dead weight a lenient reader skips.

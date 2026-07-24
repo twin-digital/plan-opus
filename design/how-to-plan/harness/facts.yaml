@@ -6,7 +6,6 @@
       where: opening definition
       quote: |
         Hooks are user-defined shell commands, HTTP endpoints, or LLM prompts that execute automatically at specific points in Claude Code's lifecycle.
-      checked: 2026-07-22
 
 - id: hook-events
   claim: there are 30 hook events; PostToolUse fires after a tool call succeeds and Stop when Claude finishes responding, and FileChanged, TaskCompleted, and SubagentStop also exist
@@ -17,7 +16,6 @@
       quote: |
         PostToolUse — "After a tool call succeeds"
         Stop — "When Claude finishes responding"
-      checked: 2026-07-22
 
 - id: skills-are-the-command-unit
   claim: a skill is the unit for anything invoked by name, template or scripted; a flat file in commands/ is the legacy form
@@ -27,7 +25,6 @@
       where: §Plugin structure overview, directory table, commands/ row
       quote: |
         Skills as flat Markdown files. Use `skills/` for new plugins
-      checked: 2026-07-22
 
 - id: template-skills-opt-out-of-model-invocation
   claim: a skill that sets disable-model-invocation in its frontmatter fires only when invoked as /name, not when the model judges it relevant
@@ -37,7 +34,6 @@
       where: §Quickstart, "Add a skill", SKILL.md frontmatter
       quote: |
         disable-model-invocation: true
-      checked: 2026-07-22
 
 - id: subagents-get-their-own-context
   claim: a subagent runs in its own context window with its own system prompt, tool access, and permissions
@@ -47,7 +43,6 @@
       where: opening section, third paragraph
       quote: |
         Each subagent runs in its own context window with a custom system prompt, specific tool access, and independent permissions.
-      checked: 2026-07-22
 
 - id: claude-code-plugins
   claim: a plugin bundles skills, agents, hooks, MCP and LSP servers, background monitors, executables, and default settings into one installable unit
@@ -58,7 +53,6 @@
       quote: |
         .claude-plugin/ | skills/ | commands/ | agents/ | hooks/ | .mcp.json |
         .lsp.json | monitors/ | bin/ | settings.json
-      checked: 2026-07-22
 
 - id: plugins-have-no-conventions-slot
   claim: a plugin has no component directory for a CLAUDE.md template, so conventions cannot ride along in one
@@ -69,7 +63,6 @@
       where: §Plugin structure overview — the directory table, which enumerates the plugin components
       quote: |
         Don't put `commands/`, `agents/`, `skills/`, or `hooks/` inside the `.claude-plugin/` directory. Only `plugin.json` goes inside `.claude-plugin/`.
-      checked: 2026-07-22
 
 - id: docs-recommend-standalone-before-plugin
   claim: the documented recommendation is to iterate in .claude/ and package a plugin only when ready to share
@@ -79,7 +72,6 @@
       where: §When to use plugins vs standalone configuration, closing tip
       quote: |
         Start with standalone configuration in `.claude/` for quick iteration, then convert to a plugin when you're ready to share.
-      checked: 2026-07-22
 
 - id: background-agents-open-prs
   claim: a background session that isolated its changes in a worktree commits, pushes, and opens a draft PR unasked; it skips the PR when the repo has no remote, and never pushes to main
@@ -93,7 +85,6 @@
         [...] It never pushes to `main` or `master`, never force-pushes or merges, and
         it skips the pull request when you told it not to open one or the repository
         has no remote.
-      checked: 2026-07-22
 
 - id: subagents-open-prs
   claim: background subagents can commit, push, and open a draft PR when they finish
@@ -103,7 +94,6 @@
   superseded_by: background-agents-open-prs
   sources:
     - description: attributed to Claude Code v2.1.198; no page or release note was ever cited
-      checked: 2026-07-22
 
 - id: llm-cannot-pattern-match-architecture
   claim: design incoherence is not detectable by pattern-matching a diff; it needs a semantic reader

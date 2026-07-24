@@ -1,9 +1,3 @@
-- id: agents-have-git-identities
-  claim: my agents commit and comment under their own git identities, like any other contributor
-  backing: tested
-  sources:
-    - description: observed directly — agent commits and PR comments land under the agent's own identity, via per-org GitHub App tokens vended at /creds/github/<org>
-
 - id: no-inline-styles-in-gfm
   claim: GitHub strips the style attribute and the <style> element when rendering markdown, so inline CSS cannot change how a document renders
   backing: documented
@@ -14,13 +8,11 @@
       quote: |
         `<script>`, `<style>`, `<iframe>`, `<embed>`, `<object>` → stripped
         Inline CSS styles (`style="..."`) and `class`/`id` → stripped
-      checked: 2026-07-22
     - url: https://github.com/gjtorikian/html-pipeline/blob/main/lib/html_pipeline/sanitization_filter.rb
       where: DEFAULT_CONFIG — the comment above it, plus the attributes map, which lists no style anywhere
       quote: |
         The main sanitization allowlist. Only these elements and attributes are
         allowed through by default.
-      checked: 2026-07-22
 
 - id: fence-info-string-is-raw-text
   claim: a fenced block's info string is literal text on the opening fence line in the raw markdown, so any tool reading the source can identify the block by it regardless of how a renderer displays the block
