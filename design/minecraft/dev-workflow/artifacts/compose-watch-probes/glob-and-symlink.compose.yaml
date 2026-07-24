@@ -1,0 +1,17 @@
+# Probe: a glob watch path and a symlinked-directory watch path.
+# Expected (per the observed result) to be silently ignored.
+# Setup used: ./packs-real/{alpha,beta}/dist real dirs, and ./links/{alpha,beta}
+# each a symlink to the matching ../packs-real/*/dist.
+name: probe-glob-symlink
+services:
+  app:
+    image: alpine:3
+    command: sleep 300
+    develop:
+      watch:
+        - path: ./packs-real/*/dist
+          target: /globbed
+          action: sync
+        - path: ./links
+          target: /linked
+          action: sync

@@ -1,0 +1,14 @@
+# Probe: a single-file watch path (not a directory).
+# Expected (per the observed result) never to fire.
+name: probe-single-file
+services:
+  app:
+    image: alpine:3
+    command: sleep 300
+    develop:
+      watch:
+        - path: ./gen.json
+          target: /tmp/gen.json
+          action: sync+exec
+          exec:
+            command: touch /tmp/exec2-ran

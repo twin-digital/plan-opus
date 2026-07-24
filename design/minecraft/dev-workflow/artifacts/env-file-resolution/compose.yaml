@@ -1,0 +1,10 @@
+# Probe: where does compose read its default .env from when invoked with -f?
+# A repo-root .env sets MINECRAFT_SERVER_NAME; the value only substitutes if that
+# .env was actually loaded.
+name: probe-env-file
+services:
+  bedrock:
+    image: alpine:3
+    command: sleep 1
+    environment:
+      SERVER_NAME: "${MINECRAFT_SERVER_NAME:-dev-behavior-packs}"
