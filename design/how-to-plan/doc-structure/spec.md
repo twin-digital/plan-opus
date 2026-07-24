@@ -231,7 +231,8 @@ Which of these transitions are legal, and who performs them, is process's to say
 
 Every invariant here is either enforced by the harness or marked as having no mechanical backstop;
 nothing enforced is also reviewed by hand [[r:invariants-are-enforced-or-marked]]. The list is what
-a well-formed spec passes — green is the floor, not proof the design is any good.
+a well-formed spec passes — green is the floor, not proof the design is any good. A reader who writes
+to this format throughout produces a conforming spec [[r:instructs-readers-to-follow-the-spec-rules]].
 
 Mechanically enforced, entry by entry: every id is kebab-case and unique per kind repo-wide; a fact
 carries `id`, `claim`, and a `backing` in the enum, plus at least one source in exactly one locator
