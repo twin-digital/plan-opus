@@ -28,28 +28,42 @@ state and a one-paragraph summary of what it produced; you do not read the spec 
 
 ---
 
-## Waves 2..n — review, then revise
+## Wave 2 — panel review, triage, revise
 
-Loop, up to **3 rounds**:
+**One panel review, not a loop to clean.** Eight adversarial reviewers always return findings; a
+second panel spends most of its budget reviewing the churn the first one caused, and the third
+finds wording. Run the panel once, act on it, then move to the capstone.
 
-1. **Review.** Dispatch the review in `review-spec.md` against the target. Collect its
-   verdict and its verified findings, split into *spec-level* and *design-level*.
-2. **Clean?** If the verdict is clean, stop the loop.
-3. **Revise.** Dispatch a **reviser** sub-agent with the confirmed *spec-level* findings only. It
-   applies each fix and returns with `npm run check` green again. It must **not** silently touch a
-   *design-level* finding — a wrong requirement, accepted decision, or fact is the owner's to
-   settle.
-4. **Escalate and stop on design-level findings.** If review surfaces a design-level finding, have
-   the reviser record it as an **open question** in the spec — `closes` naming the kind of input
-   that would settle it, `gates` naming any decision resting on it — then stop the loop and hand
-   off with it flagged. The question is what blocks the design from settling; the inputs need the
-   owner before regeneration is worth another round. Recording the question is not fixing the
-   input: it states that the input is in doubt and leaves the repair to the owner.
-5. Re-review.
+1. **Review.** Dispatch `review-spec.md` against the target. It returns **blocking** findings, split
+   *spec-level* and *design-level*, and a separate **caveat** list.
+2. **Triage the caveats.** Dispatch `triage-caveats.md` with the caveat list. This must be a
+   **third agent** — not a reviewer that produced them, not the writer or reviser of this spec.
+   Both have a stake in whether a caveat matters. It records most as `caveat` lines on the entries
+   they concern, hands back anything it promotes as blocking, and drops the rest. Its input edits go
+   in the PR body for the owner.
+3. **Revise.** Dispatch a **reviser** sub-agent with the blocking *spec-level* findings, plus
+   anything triage promoted. It applies each fix and returns with `npm run check` green. It must
+   **not** silently touch a *design-level* finding — a wrong requirement, accepted decision, or fact
+   is the owner's to settle.
+4. **Record design-level findings as open questions.** Have the reviser write each as an open
+   question — `closes` naming the kind of input that would settle it, `gates` naming any decision
+   resting on it. That is what blocks the design from settling. Recording the question is not fixing
+   the input: it states that the input is in doubt and leaves the repair to the owner.
 
-If spec-level findings still stand after the round cap, **stop and hand off with them listed.** Do
-not loop forever, and never lower the bar or delete a foundation to force a pass — a spec that
-cannot pass honestly is a finding, not a failure to hide.
+Never lower the bar or delete a foundation to force a pass — a spec that cannot pass honestly is a
+finding, not a failure to hide.
+
+---
+
+## Wave 3 — capstone
+
+Dispatch `capstone-review.md` once, to an agent that has seen none of the above. It reads the whole
+spec as its builder and answers what a dimension panel cannot: is this buildable end to end, does it
+cohere, would a simpler design do, what is most likely to be wrong. It reports at most five blocking
+findings and always names the weakest part, so silence costs it something.
+
+If the capstone blocks, fix what it names and ship. **Do not send its output back through the
+panel** — that restarts the loop this structure exists to end.
 
 ---
 
@@ -57,8 +71,10 @@ cannot pass honestly is a finding, not a failure to hide.
 
 Open a pull request against `main` per `write-design-doc.md`'s hand-back — the PR body is the
 writer's hand-off (what the spec designs, the decisions made and what would settle each, anything
-underspecified, open questions). Append a short **review log**: the rounds run, what each
-surfaced, and which findings were fixed.
+underspecified, open questions). Append a short **review log**: what the panel blocked on and what
+was fixed, how many caveats triage recorded, and the capstone's recommendation and weakest-part
+call. Caveats are not listed in the body — they live on the entries they concern — but the input
+edits triage made are called out for the owner, as any input change is.
 
 The review log does not re-list the design-level findings. Each is an open question in the spec by
 now, which is where the owner answers it and where it does its blocking work; restating them in the
@@ -89,8 +105,10 @@ the same test throughout: **inputs outrank the comment, and both outrank the doc
   Recommend it when you see those conditions; the choice is the owner's.
 
 Before any amend, reconcile the branch: the owner may have edited it directly while agents worked,
-so integrate those edits first rather than clobbering them. Re-run the review loop after a
-material amend — a realigned draft still has to pass the same bar.
+so integrate those edits first rather than clobbering them. After a material amend, re-run the
+**capstone** — a realigned draft still has to hold together. Re-run the panel only when the amend
+reached enough of the spec that it is effectively new; an amend touching one section does not earn
+eight reviewers.
 
 ---
 
@@ -100,5 +118,9 @@ material amend — a realigned draft still has to pass the same bar.
   does and keep its verdict.
 - **Carry verdicts, not content.** Across rounds you hold the finding summaries and the
   pass/fail, not the spec text. Each sub-agent's detailed context dies with it.
-- **One writer, N reviewers, one reviser per round.** The reviewers fan out (they are independent
-  by design); the reviser is single so the fixes stay coherent.
+- **One writer, N reviewers, one triager, one reviser, one capstone.** The reviewers fan out (they
+  are independent by design); the reviser is single so the fixes stay coherent; the triager and the
+  capstone are separate agents because their value is in not having been either of the others.
+- **Judge the review by what it changed, not by what it found.** A round that returns four findings
+  a builder would act on has done more than one that returns thirty. If most of a round's output is
+  caveats, the spec is close to done and the next round is not worth running.

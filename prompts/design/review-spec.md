@@ -64,15 +64,43 @@ fits. Discard the plausible-but-wrong; a review that cries wolf is worse than a 
 
 ---
 
+## Classify by build impact
+
+Every verified finding is **blocking** or a **caveat**, and the test is one question: *would a
+builder do something different if this were fixed?*
+
+- **Blocking** — it changes what gets built, or it would send a builder the wrong way: an
+  unassigned responsibility, an interface two components would fill differently, a claim that
+  misstates the thing being built, a decision no falsifier can reverse, a foundation the design
+  rests on that is wrong.
+- **Caveat** — true, and nothing downstream moves: a source that states more than its captured
+  output carries, a count off by one in a description, a quote whose claim sits in the source
+  rather than the claim, a real fact whose provenance is thin. Worth recording. Not worth a round
+  trip.
+
+Only blocking findings gate. Caveats are reported in their own list and go to triage, never to the
+reviser: see `triage-caveats.md`. Do not upgrade a caveat by arguing it *could* matter — say what a
+builder would do differently, or call it a caveat.
+
+This classification is the reviewer's discipline against its own machinery. Eight adversarial
+reviewers will always return findings; that is what they are for. Volume is not a signal of spec
+quality, and a review that reports thirty equal-weight findings has done less work than one that
+reports the four that matter and says so.
+
+---
+
 ## Report
 
-- **Verdict** — clean, or findings remain.
-- **Findings**, most-severe first. Each names its dimension, the rule or foundation it violates,
-  the location, and either the fix or the question it raises.
-- **Split them.** A **spec-level** finding is fixable in the spec (a missing citation, a weak
-  falsifier, a bloated section). A **design-level** finding means an *input* is wrong — a settled
-  requirement, an accepted decision, a fact — and it goes to the owner, never fixed silently. Say
-  which each is.
+- **Verdict** — clean of blocking findings, or blocking findings remain. Caveats never make a
+  verdict dirty.
+- **Blocking findings**, most-severe first. Each names its dimension, the rule or foundation it
+  violates, the location, what a builder would do differently, and either the fix or the question
+  it raises.
+- **Caveats**, listed separately and briefly — one line each, with the location.
+- **Split the blocking ones.** A **spec-level** finding is fixable in the spec (a missing citation,
+  a weak falsifier, a bloated section). A **design-level** finding means an *input* is wrong — a
+  settled requirement, an accepted decision, a fact — and it goes to the owner, never fixed
+  silently. Say which each is.
 
 **A design-level finding is recorded as an open question in the spec**, with `closes` naming the
 kind of input that would settle it and `gates` naming any decision that rests on it. That is what
