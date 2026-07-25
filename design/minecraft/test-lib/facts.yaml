@@ -29,12 +29,20 @@
 
 - id: namespace-prefix-is-optional
   claim: |
-    Identifiers in the `minecraft:` namespace may be written with or without the prefix; when a
-    namespace is omitted, `minecraft:` is assumed. The rule is uniform across component ids,
-    effect types, entity events, and entity types — not a per-surface convention — and the
-    canonical (engine-reported) form is the prefixed one.
-  backing: documented
+    Whether the `minecraft:` prefix may be omitted is per-surface, not a uniform rule. Bare and
+    prefixed ids are both accepted by `addEffect`, `getEffect`, `spawnEntity`, and
+    `getComponent`; `Entity.triggerEvent` rejects the bare form and requires the prefix. The
+    canonical (engine-reported) form is the prefixed one on every surface tried.
+  backing: tested
   sources:
+    - description: |
+        artifacts/mctest-resting-state-probe-results.md, `namespace-prefix-other-surfaces`
+        lines: addEffect("speed"/"minecraft:speed"), getEffect("speed"/"minecraft:speed"),
+        spawnEntity("sheep"/"minecraft:sheep"), and getComponent("health"/"minecraft:health")
+        all ok, each reporting the prefixed typeId; triggerEvent("entity_born") and
+        triggerEvent("ageable_grow_up") threw name=InvalidArgumentError ("The event
+        <name> does not exist on minecraft:sheep") while the `minecraft:`-prefixed forms of
+        both returned ok.
     - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/entity
       where: Methods — getComponent, componentId parameter
       quote: |
@@ -107,16 +115,20 @@
 
 - id: effect-members-throw-plain-error
   claim: |
-    On a removed effect, and equally on an effect whose owner has been unloaded, the `Effect`
-    value members `amplifier`, `duration`, `typeId`, and `displayName` throw a plain `Error`
-    (name and constructor `Error`, message `Failed to get property '<member>'.`) — not
-    `InvalidEntityError` — while `isValid` stays readable and answers false.
+    On a removed effect, and equally on an effect whose owner entity has been removed, the
+    `Effect` value members `amplifier`, `duration`, `typeId`, and `displayName` throw a plain
+    `Error` (name and constructor `Error`, message `Failed to get property '<member>'.`) — not
+    `InvalidEntityError` — while `isValid` stays readable and answers false. Only `remove()`
+    invalidation was exercised; chunk unloading is untested.
   backing: tested
   sources:
     - description: |
         artifacts/mctest-engine-probe-results.md, `effect-member-guard-derivation` lines:
         all four members threw name=Error ctor=Error instanceofInvalidEntityError=false in
-        both the removed-effect and invalid-owner variants; isValid read `false` in both.
+        both the removed-effect and invalid-owner variants; isValid read `false` in both. The
+        probe produced the invalid owner by calling `orphan.remove()`
+        (artifacts/engine-probe-pack/scripts/main.js, `effect-member-guard-derivation`), so
+        the observation covers removal, not unloading.
 
 - id: damage-cascade-order-and-payload
   claim: |
@@ -163,14 +175,26 @@
     `kill()` fires the full damage cascade — `entityHurt` with damage equal to current
     health and cause `selfDestruct`, then `entityHealthChanged` to exactly the minimum, then
     `entityDie` with cause `selfDestruct` — and returns true; on the still-valid corpse a
-    second `kill()` returns true and fires nothing. `remove()` fires no event at all.
+    second `kill()` returns true and fires nothing. `remove()` fires no *death* event, but it
+    is not event-free: with all 55 `world.afterEvents` signals subscribed, `remove()` was
+    followed by five delivered events — one `entitySpawn`, three `dataDrivenEntityTrigger`,
+    and one `entityRemove`.
   backing: tested
   sources:
     - description: |
         artifacts/mctest-engine-probe-results.md, `kill-cascade` lines: first kill returned
         true with sequence [hurt(damage=8,cause=selfDestruct), health(8->0),
         die(cause=selfDestruct)]; second kill returned true with sequence []; and
-        `remove-fires-no-death-event` reported sequence [].
+        `remove-fires-no-death-event` reported sequence [] over the death-event subset it
+        subscribed.
+    - description: |
+        artifacts/mctest-resting-state-probe-results.md, `remove-event-sweep` lines:
+        subscribed=55 skipped=0, then after remove() fired=[entitySpawn, dataDrivenEntityTrigger
+        x3, entityRemove] count=5. The `(other)` tag on each line is a probe artefact (the
+        payload-matching helper reads an id that is unreadable post-remove) and is not evidence
+        of foreign provenance; attribution to the probe's own entity rests on the run holding
+        only stationary armor stands besides it, per the file's "Reading the log" section.
+        Single run.
 
 - id: death-invalidation-window
   claim: |
@@ -209,12 +233,13 @@
 
 - id: attribute-guard-classes-observed
   claim: |
-    On an invalid owner, the attribute members whose `@throws` names no error — the value
-    getters and the resets — do throw, but a plain `Error` (`Failed to get property
-    '<internal name>'.` / `Failed to call function '<name>'.`), while the members whose
-    `@throws` names `InvalidEntityError` — `setCurrentValue` and `entity` — throw
-    `InvalidEntityError`. `isValid` (false) and `typeId` stay readable. The declared error
-    classes in `@throws` annotations are therefore exact, including their absence.
+    On an invalid owner, the attribute members whose `@throws` names no error — the four value
+    getters and all three resets (`resetToDefaultValue`, `resetToMaxValue`, `resetToMinValue`) —
+    do throw, but a plain `Error` (`Failed to get property '<internal name>'.` / `Failed to
+    call function '<name>'.`), while the members whose `@throws` names `InvalidEntityError` —
+    `setCurrentValue` and `entity` — throw `InvalidEntityError`. `isValid` (false) and `typeId`
+    stay readable. Across the attribute members observed, the error class matches the
+    annotation, including where the annotation names none.
   backing: tested
   sources:
     - description: |
@@ -223,6 +248,11 @@
         name=Error; setCurrentValue(1) and entity threw InvalidEntityError with
         instanceofInvalidEntityError=true; isValid read false and typeId read
         minecraft:health.
+    - description: |
+        artifacts/mctest-resting-state-probe-results.md, `attribute-reset-guards` lines: all
+        three resets threw name=Error ctor=Error instanceofInvalidEntityError=false, message
+        "Failed to call function '<name>'." — extending the single reset of the earlier run to
+        the whole reset trio.
 
 - id: set-current-value-bounds-observed
   claim: |
@@ -246,6 +276,10 @@
     - description: |
         artifacts/mctest-engine-probe-results.md, `get-dimension-invalid-id-error` line:
         threw name=Error ctor=Error message="Dimension 'mctest:nope' is invalid.".
+    - description: |
+        artifacts/mctest-resting-state-probe-results.md, `vanilla-dimensions` unknown-id line
+        reproduces it on a second run: threw name=Error ctor=Error
+        instanceofInvalidEntityError=false message="Dimension 'mctest2:nope' is invalid.".
 
 - id: after-events-deferred
   claim: |
@@ -290,11 +324,20 @@
 - id: effect-replacement-rule-observed
   claim: |
     addEffect on an already-present effect replaces it iff the re-add has a higher amplifier,
-    or the same amplifier and a longer (or equal) duration; a lower amplifier never replaces
-    regardless of duration, and the same amplifier with a shorter duration does not replace.
-    The rule is amplifier-first with a duration tiebreak — not unconditional.
+    or the same amplifier and a duration at least as long as the one originally applied; a
+    lower amplifier never replaces regardless of duration, and the same amplifier with a
+    shorter duration does not replace. The rule is amplifier-first with a duration tiebreak —
+    not unconditional. At equal duration specifically, replacement takes at a higher or equal
+    amplifier and not at a lower one.
   backing: tested
   sources:
+    - description: |
+        artifacts/mctest-resting-state-probe-results.md, `effect-equal-duration-replacement`
+        lines, which discriminate by decay (readback duration 300 = fresh application, 290 =
+        the decayed base survived) over a base of amp1/dur300 decayed to dur290: re-add
+        amp2/dur300 read back amp2/dur300 replaced=true; re-add amp1/dur300 read back
+        amp1/dur300 replaced=true; re-add amp0/dur300 read back amp1/dur290 replaced=false.
+        Single run, and the decayed durations are nondeterministic.
     - description: |
         artifacts/mctest-engine-probe-results.md, Deep run, `effect-replacement-matrix` lines
         over a base of amplifier 1 / duration 300: higher-amp (shorter or longer) replaced;
@@ -304,19 +347,39 @@
 
 - id: invalidation-guard-list-complete
   claim: |
-    On a removed entity exactly four members stay readable: `id`, `isValid`, `typeId`, and
-    `scoreboardIdentity` (which reads `undefined`). Every other enumerated member throws
-    `InvalidEntityError` — all twelve remaining properties (including `nameTag` and
-    `isSneaking`, which carry no `@throws` annotation) and all eleven zero-argument getters.
-    The engine guard list is therefore not derivable from the `.d.ts` `@throws` annotations,
-    which under-report it.
+    A reflective sweep of the `Entity` prototype after `remove()` enumerated 62 members — 16
+    properties and 46 methods invoked with no arguments — and found exactly four properties
+    still readable: `id`, `isValid`, `typeId`, and `scoreboardIdentity` (which reads
+    `undefined`). Every other property throws `InvalidEntityError`, including `nameTag` and
+    `isSneaking`, which carry no `@throws` annotation. The engine guard list is therefore not
+    derivable from the `.d.ts` `@throws` annotations, which under-report it. The methods split:
+    the 19 that a no-argument call reached threw `InvalidEntityError`, while 27 threw a
+    `TypeError` on arity before the validity guard ran — for those, the guard is unobserved
+    rather than shown absent [[f:arity-checked-before-validity-guard]].
   backing: tested
   sources:
+    - description: |
+        artifacts/mctest-resting-state-probe-results.md, `invalidation-guard-reflected` lines:
+        enumerated=62 properties=16 zeroArgMethods=46 argMethods=0, then
+        readable-properties-after-remove=4 (id="-68719476721", isValid=false,
+        scoreboardIdentity=undefined, typeId="minecraft:sheep"); the other 12 properties
+        threw name=InvalidEntityError instanceofInvalidEntityError=true (the sweep writes the
+        property it enumerates, so its nameTag line reports a set, not a get; the read is
+        covered by the engine-probe source below). Of the 46 methods,
+        those reaching the guard (clearDynamicProperties, clearVelocity, extinguishFire,
+        getAABB, getAllBlocksStandingOn, getBlockFromViewDirection, getBlockStandingOn,
+        getComponents, getDynamicPropertyIds, getDynamicPropertyTotalByteCount, getEffects,
+        getEntitiesFromViewDirection, getHeadLocation, getRotation, getTags, getVelocity,
+        getViewDirection, kill, remove) threw InvalidEntityError; the rest threw
+        name=TypeError "Incorrect number of arguments to function." Per the file's "Reading
+        the log" section, argMethods=0 means the probe's partition failed to identify
+        argument-taking methods, so those never reached the guard. Single run; the entity id
+        is nondeterministic.
     - description: |
         artifacts/mctest-engine-probe-results.md, Deep run, `invalidation-guard-enumeration`
         lines: id/isValid/typeId read ok and scoreboardIdentity read undefined; dimension,
         isClimbing, isFalling, isInWater, isOnGround, isSleeping, isSneaking, isSprinting,
-        isSwimming, localizationKey, location, nameTag, and all zero-arg getters
+        isSwimming, localizationKey, location, nameTag, and the zero-arg getters it enumerated
         (getAABB, getComponents, getEffects, getHeadLocation, getRotation, getTags,
         getVelocity, getViewDirection, getDynamicPropertyIds, getDynamicPropertyTotalByteCount)
         threw InvalidEntityError with instanceofInvalidEntityError=true.
@@ -325,9 +388,10 @@
   claim: |
     `kill()` on an entity that has no health component (an arrow) returns true and fires only
     `entityDie` with cause `selfDestruct` — no `entityHurt`, no `entityHealthChanged` — and the
-    entity is immediately invalid afterward, unlike a killed mob whose corpse stays valid for
-    several ticks. Post-death validity is not a uniform grace period; despawn timing varies by
-    entity.
+    entity reads invalid synchronously, in the same statement sequence as the `kill()` call and
+    before the next tick, staying invalid through at least tick+5. A killed mob's corpse by
+    contrast stays valid for several ticks: post-death validity is not a uniform grace period;
+    despawn timing varies by entity.
   backing: tested
   sources:
     - description: |
@@ -335,6 +399,11 @@
         arrow healthComponent=undefined, kill returned true, sequence=[die(cause=selfDestruct)],
         stillValid=false after 4 ticks. Contrast the first run's sheep corpse
         (death-invalidation-window) which stayed valid ~7 ticks.
+    - description: |
+        artifacts/mctest-resting-state-probe-results.md,
+        `kill-no-health-invalidation-timing` lines: before-kill isValid=true
+        healthComponent=undefined; kill ok true with synchronous-isValid=false on the same
+        line; isValid read false again at tick+1 through tick+5.
 
 - id: after-event-deferral-subtick
   claim: |
@@ -349,6 +418,130 @@
         artifacts/mctest-engine-probe-results.md, Deep run, `after-event-tick-delay` line
         (called-at=72309 returned-at=72309 delivered-at=72309 delay-ticks=0), read with the
         first run's after-events-deferred (events-delivered-before-applyDamage-returned=0).
+
+# Facts from the resting-state run (Bedrock 1.26.31.1, @minecraft/server 2.8.0, single run of
+# artifacts/resting-state-probe-pack), raw log and provenance in
+# artifacts/mctest-resting-state-probe-results.md. These record what a freshly created engine
+# object already holds before any test writes to it.
+
+- id: fresh-entity-is-never-component-empty
+  claim: |
+    A freshly spawned entity always arrives carrying components — every type tried reported
+    `zeroComponents=false`, with a floor of one: sheep 14, armor_stand 5, arrow 1
+    (`minecraft:projectile`), xp_orb 1 (`minecraft:type_family`). The set is type-dependent
+    rather than a shared baseline plus extras: a connected player carries 16 components, seven
+    of which no sheep has, while the sheep carries five the player lacks. There is no empty or
+    common starting set an engine entity rests at.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-resting-state-probe-results.md, `resting-entity-fields`
+        (componentCount=14 for minecraft:sheep) and `component-poor-entities` lines
+        (minecraft:arrow count=1 components=[minecraft:projectile]; minecraft:armor_stand
+        count=5; minecraft:xp_orb count=1 components=[minecraft:type_family]; all
+        zeroComponents=false), with `resting-player-fields` rerun as a player
+        (componentCount=16, player-only=[equippable, ender_inventory, cursor_inventory,
+        inventory, player.exhaustion, player.hunger, player.saturation],
+        sheep-only=[movement.basic, navigation.walk, leashable, color, is_dyeable]).
+        `minecraft:item` is not spawnable via spawnEntity (threw InvalidArgumentError), so its
+        component count is unanswered.
+
+- id: fresh-entity-resting-field-values
+  claim: |
+    A freshly spawned entity's own fields are populated before any test writes to it, and the
+    values are not all empty: `nameTag` is the empty string (length 0), `localizationKey` is
+    populated (`entity.sheep.name` on a sheep), `location` and `dimension.id` are real,
+    `getRotation()` and `getVelocity()` read all-zero vectors, `getTags()` is empty, and
+    `isValid` is true.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-resting-state-probe-results.md, `resting-entity-fields` lines on a
+        never-written minecraft:sheep: nameTag string length=0; localizationKey
+        "entity.sheep.name"; location {x:38.17…, y:62.67…, z:22.78…}; dimension.id
+        "minecraft:overworld"; getRotation() {x:0,y:0}; getVelocity() {x:0,y:0,z:0};
+        getTags() []; isValid true; typeId "minecraft:sheep".
+
+- id: fresh-health-component-values-populated
+  claim: |
+    A freshly spawned entity's health component answers all four of its values before any
+    write: on a sheep, currentValue 8, defaultValue 8, effectiveMin 0, effectiveMax 8. No
+    attribute value rests undefined awaiting a write.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-resting-state-probe-results.md, `resting-entity-fields` lines
+        health.currentValue=8, health.defaultValue=8, health.effectiveMin=0,
+        health.effectiveMax=8 on a never-written minecraft:sheep.
+
+- id: vanilla-dimensions-resolve-with-populated-fields
+  claim: |
+    `world.getDimension` resolves the three vanilla dimensions from either spelling — bare
+    `overworld` / `nether` / `the_end` and the `minecraft:`-prefixed forms all return a
+    Dimension reporting the prefixed `id` — and each carries a populated `heightRange`
+    (overworld −64..320, nether 0..128, the_end 0..256) and `localizationKey`
+    (`dimension.dimensionName0`/`1`/`2`). The spaced alias `"the end"` also resolves. An id
+    naming no dimension throws, per [[f:get-dimension-unknown-id-error]].
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-resting-state-probe-results.md, `vanilla-dimensions` lines: each of
+        the six requested ids ("overworld", "nether", "the_end" and their minecraft:-prefixed
+        forms) returned id="minecraft:overworld"/"minecraft:nether"/"minecraft:the_end" with
+        heightRange {min:-64,max:320} / {min:0,max:128} / {min:0,max:256} and localizationKey
+        "dimension.dimensionName0" / "…Name1" / "…Name2"; end-alias "the end" ok
+        value=object(Dimension).
+
+- id: world-resting-state-observed
+  claim: |
+    A world with no one connected answers every top-level member: `beforeEvents`,
+    `afterEvents`, `scoreboard`, and `gameRules` are objects, `isHardcore` is false, and `seed`
+    is a *string* (not a number). `afterEvents` exposes 55 event signals and `beforeEvents` 13.
+    Its collections are genuinely empty, not absent — `scoreboard.getObjectives()` and
+    `getAllPlayers()` both length 0 — so an empty collection is a real resting state for a
+    world rather than a sign of an unconfigured object.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-resting-state-probe-results.md, `resting-world-fields` lines:
+        beforeEvents/afterEvents/scoreboard/gameRules each ok as an object; isHardcore
+        boolean:false; seed string:"-4879002305207299781"; afterEvents signal count=55;
+        beforeEvents signal count=13; scoreboard.getObjectives().length=0;
+        getAllPlayers().length=0 (the run was driven from an armor stand with no player
+        connected); gameRules keys enumerated (36 names).
+
+- id: live-effect-fields-populated
+  claim: |
+    A live effect answers all its members with real values: on `speed` added at duration 400
+    amplifier 1, `typeId` `minecraft:speed`, `duration` 400, `amplifier` 1, `displayName`
+    "Speed II", `isValid` true. Notably `displayName` is a populated human-readable string
+    rather than an id or an empty placeholder.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-resting-state-probe-results.md, `resting-effect-fields` lines, after
+        the probe added speed at duration 400 amplifier 1
+        (artifacts/resting-state-probe-pack/scripts/main.js):
+        getEffect ok value=object(Effect); typeId "minecraft:speed"; duration 400; amplifier 1;
+        displayName "Speed II"; isValid true; getEffects()=[minecraft:speed].
+
+- id: arity-checked-before-validity-guard
+  claim: |
+    The engine checks a method's argument count before its validity guard: called with no
+    arguments on a removed entity, 27 of `Entity`'s 46 methods threw a `TypeError`
+    ("Incorrect number of arguments to function. Expected <n>, received 0") rather than the
+    `InvalidEntityError` the same call raises when the arity is right. Argument validation
+    therefore precedes the invalidation check.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-resting-state-probe-results.md, `invalidation-guard-reflected` method
+        lines on an entity removed beforehand: e.g. addEffect() threw name=TypeError
+        "Expected 2-3, received 0", getComponent() threw name=TypeError "Expected 1, received
+        0", while the zero-argument methods (getTags, getVelocity, kill, remove, …) threw
+        name=InvalidEntityError. Read with the file's "Reading the log" section, which records
+        argMethods=0 — the probe's partition failed to separate argument-taking methods, so
+        every method was invoked bare, which is what exposed the ordering.
 
 # Retired: superseded by the deep-run measurements. Kept for the record.
 
