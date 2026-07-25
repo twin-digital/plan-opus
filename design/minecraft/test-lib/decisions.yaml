@@ -6,9 +6,10 @@
   statement: |
     the built surface is World, Dimension, Entity and Player, Effect and EffectType, the
     behaving-member list the spec's built-surface section fixes for each of them, all 55
-    after-event signals and all 13 before-event signals as registrable objects — only an
-    after-event signal a modelled mutation emits ever delivers, and every signal's payload
-    class is complete — and all 68 entity component classes the type map names as attachable
+    after-event signals and all 13 before-event signals as registrable objects, of which only
+    the four a modelled mutation emits — entityHurt, entityHealthChanged, entityDie,
+    entityRemove — deliver and have their payload class built, the rest registering and staying
+    silent — and all 68 entity component classes the type map names as attachable
     objects answering their identity members, with the 7 attribute-shaped ones behaving in full;
     every member of a built class beyond that list is a not-implemented stub, while a class
     outside the surface ships not at all — the item and block layers being the increment expected
