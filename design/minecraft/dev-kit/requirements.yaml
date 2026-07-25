@@ -1,26 +1,43 @@
-# Requirements scoped to the minecraft/dev-kit design. Every entry here is DRAFTED by an agent
-# for the owner to accept, amend, or reject — none has been ratified. Each states an outcome the
-# owner gets to decree; the mechanism that delivers it is the design's to choose.
+# Requirements scoped to the minecraft/dev-kit design. Every entry is DRAFTED for the owner to
+# accept, amend, or reject — none has been ratified. The first three record decisions the owner
+# stated directly on the shape walkthrough; the rest are outcomes distilled from it.
 #
 # rationale is omitted unless the statement's intent is genuinely non-obvious.
 
+# Scope and membership
+
+- id: one-pack-of-each-kind-per-package
+  statement: |
+    a workspace package holds at most one behavior pack and at most one resource pack. A package
+    holding two packs of the same kind is out of scope, and nothing in the kit needs to express it.
+
+- id: membership-from-source-manifest-presence
+  statement: |
+    a workspace package is a pack-bearing package when its source holds `behavior_pack/manifest.json`
+    or `resource_pack/manifest.json`; presence of those source manifests is the whole membership
+    test. Both kinds are discovered. No marker field, keyword, or central list is required, and
+    adding, removing, or renaming a pack needs no edit anywhere but the package itself.
+
+- id: built-output-defaults-to-dist
+  statement: |
+    a pack's built output is found at `dist/` within its package unless the package specifies an
+    alternate location.
+
+# What the kit reports
+
 - id: packs-enumerable-without-a-build
   statement: |
-    the kit lists every pack in a workspace from a clean checkout, with no build having run and no
-    server running. Listing, validating, and reporting a pack's identity, version, and kind are all
-    available before any build step.
+    the kit reports every pack in a workspace — its owning package, its kind, its source location,
+    and the identity its source manifest declares — from a clean checkout, with no build having run
+    and no server running. What only a built pack settles, the version present in a server pool, is
+    not claimed before a build.
 
 - id: pack-identity-and-kind-declared-only-by-the-manifest
   statement: |
-    a pack's identity, version, and kind come from its own `manifest.json` and are stated nowhere
-    else. Anything else the workspace supplies about a pack — a package's declaration, a config
-    file, a directory name — may state only what the manifest cannot, and restating identity or
-    kind is an error rather than a redundancy the kit tolerates.
-
-- id: no-central-registry-of-what-exists
-  statement: |
-    the set of packs the kit reports is determined by the workspace itself. Adding, removing, or
-    renaming a pack requires no edit to any list held centrally by the kit or its consumers.
+    a pack's identity, version, and kind come from its own `manifest.json`. Where a convention
+    encodes kind — the `behavior_pack/` and `resource_pack/` directories membership is read from —
+    the manifest stays authoritative and a disagreement between the two is a reported error, never
+    a silent preference for one side.
 
 - id: selection-filters-the-discovered-set
   statement: |
@@ -30,7 +47,17 @@
 
 - id: unresolvable-packs-fail-loudly
   statement: |
-    a pack the kit cannot resolve — a source location that holds no pack, a manifest that cannot be
-    parsed, a missing or duplicated identity, an unsatisfiable dependency within the set — is
-    reported as a named error at the point the kit is asked for the pack set, not omitted from a
-    silently smaller result and not deferred to the server.
+    a pack the kit cannot resolve — a manifest that cannot be parsed, a missing or duplicated
+    identity, a manifest dependency on another pack that the set does not satisfy, or no built
+    output where the pack's output was expected — is reported as a named error identifying the
+    package and the path examined, not omitted from a silently smaller result and not deferred to
+    the server. A dependency naming a built-in scripting module is not a missing pack.
+
+# Release artifacts
+
+- id: release-archive-follows-pack-content
+  statement: |
+    a release archive follows what the package contains: a package holding one pack emits that
+    pack's `.mcpack`, and a package holding both kinds emits an `.mcaddon` holding the two
+    `.mcpack` files. Archive packaging is a release concern and no part of the dev loop, which
+    deploys pack directories into server pools and builds no archive.

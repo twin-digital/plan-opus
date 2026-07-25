@@ -1,9 +1,33 @@
-# Facts scoped to the minecraft/dev-kit design. Reality the kit is built against.
+# Facts scoped to the minecraft/dev-kit design. All are PROPOSED by an agent and await owner
+# review. The first-party quotes were captured through a fetch tool and are worth a spot-check
+# against the live page; the in-repo quotes point at evidence already committed under
+# design/minecraft/dev-workflow/artifacts/.
 #
-# The kit also stands on facts already held at design/minecraft/dev-workflow/ — the manifest's
-# declaration of pack identity and kind, and how content-independent detection heuristics misfire.
-# Those are not copied here; they are proposed for the design/minecraft/ area scope, since both
-# designs need them.
+# Two facts this design leans on live in design/minecraft/dev-workflow/ and are not copied here —
+# bedrock-manifest-declares-pack-identity-and-kind and content-independent-pack-heuristics-misfire.
+# Both bind this design as much as that one and belong at design/minecraft/ area scope.
+
+- id: pack-is-a-directory-with-a-manifest-at-its-root
+  claim: |
+    A Bedrock pack is a directory whose only required file is `manifest.json`, sitting at that
+    directory's root; everything else is optional content in format-named subfolders. A directory
+    holding a `manifest.json` at its root is therefore the format's own definition of a pack, with
+    nothing outside the directory needed to recognise it.
+  backing: documented
+  sources:
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/comprehensivepackcontents
+      where: intro, before "Comprehensive Behavior Pack"
+      quote: |
+        The only required file in either type of pack is manifest.json.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/behaviorpackfromscratch
+      where: opening paragraph
+      quote: |
+        A behavior pack is a folder structure that contains files that drive entity behaviors,
+        loot drops, spawn rules, items, recipes, and trade tables.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/behaviorpackfromscratch
+      where: '"Create the manifest file", step 1 — where the manifest goes'
+      quote: |
+        Create a new document in your My_BEHAVIOR_Pack folder and name it manifest.json.
 
 - id: pack-kind-mismatch-fails-silently-at-the-server
   claim: |
@@ -30,12 +54,20 @@
 
 - id: pack-directory-name-carries-no-meaning
   claim: |
-    Nothing reads a pack's directory name. A behavior pack deployed into a directory named
-    `resource_pack_totally` loads normally and the server prints that name back untroubled. Where a
-    pack's sources and built output sit, and what those directories are called, is therefore free
-    for a package to choose without affecting whether the pack loads.
+    Nothing reads a pack's directory name. The name is free by the format, and a behavior pack
+    deployed into a directory named `resource_pack_totally` loads normally, the server printing
+    that name back untroubled. Where a pack's sources and built output sit, and what those
+    directories are called, is therefore free to choose without affecting whether the pack loads —
+    and a directory name can never be relied on as a statement of what a pack is.
   backing: documented
   sources:
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/behaviorpackfromscratch
+      where: '"Create a folder" — naming the pack folder'
+      quote: |
+        In this section, you will create a folder called My_BEHAVIOR_Pack. Well, actually you
+        don't have to call it that. In fact, you can name this folder anything you want, but the
+        other folders have to be named exactly like this tutorial says so that Minecraft knows
+        where to look.
     - url: design/minecraft/dev-workflow/artifacts/pack-layout/probe/OUTPUT.txt
       where: case 5 — pack directories renamed to names that contradict their manifests
       quote: |
@@ -51,16 +83,43 @@
           `resource_pack_totally` loads, and the server prints that name back without complaint (case 5).
           Nothing reads it; the manifest is the only declaration of what a pack is.
 
-- id: ecosystem-pack-tooling-is-single-pack-per-kind
+- id: pack-dependencies-name-an-exact-uuid-and-version
   claim: |
-    Every pack config and build tool surveyed models a project as at most one pack per kind. The
-    Bedrock-OSS project config standard — shared by Regolith and bridge. — keys its `packs` map by
-    pack type with one path each, both tools let a pack's path move while the pack-type keys stay
-    fixed, and
-    Microsoft's `@minecraft/core-build-tasks` merges every listed source folder into one
-    `development_behavior_packs/<PROJECT_NAME>` directory. A workspace of many independent packs is
-    a shape no surveyed tool can express, so a per-pack declaration has no ecosystem schema to adopt
-    and gives up no compatibility by being house-defined.
+    A pack declares its dependencies on other packs in its manifest's `dependencies` array, each
+    entry naming the other pack's exact header uuid and an exact version. An entry may instead name
+    a built-in scripting module by `module_name`, so not every dependency entry resolves to a pack
+    in the workspace and validation cannot assume the set is closed.
+  backing: documented
+  sources:
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
+      where: Properties table — dependencies row
+      quote: |
+        Section containing definitions for any other packs that are required in order for this
+        manifest.json file to work.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
+      where: dependencies table — uuid row
+      quote: |
+        This is the unique identifier of the pack that this pack depends on. It needs to be the
+        exact same UUID that the pack has defined in the header section of its manifest file.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
+      where: dependencies table — version row
+      quote: |
+        This is the specific version of the pack that your pack depends on. Should match the
+        version the other pack has in its manifest file.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
+      where: dependencies table — module_name row
+      quote: |
+        For dependencies on built-in scripting modules, contains the name of the module. (for
+        example, @minecraft/server)
+
+- id: ecosystem-models-one-pack-per-kind-per-project
+  claim: |
+    Every pack config and build tool surveyed models a project as at most one pack of each kind.
+    The Bedrock-OSS project config standard — shared by Regolith and bridge. — keys its `packs` map
+    by pack type with one path each, both tools let a pack's path move while the pack-type keys
+    stay fixed, and Microsoft's `@minecraft/core-build-tasks` merges every listed source folder
+    into one `development_behavior_packs/<PROJECT_NAME>` directory. What no surveyed tool can
+    express is two packs of the *same* kind in one project.
   backing: documented
   sources:
     - url: design/minecraft/dev-workflow/artifacts/pack-layout/TOOLING-EVIDENCE.md
@@ -78,3 +137,32 @@
         Several source folders may be listed, but they are all copied into the *same*
         `development_behavior_packs/<PROJECT_NAME>` directory — they merge into one pack. Producing two
         packs needs two `PROJECT_NAME` values and two task chains.
+
+- id: release-archives-follow-pack-content
+  claim: |
+    The format's distribution archives follow what a project contains: an `.mcpack` is one zipped
+    resource or behavior pack, and an `.mcaddon` is a zip holding `.mcpack` or `.mcworld` files.
+    Microsoft's build tasks emit exactly that — `packBP` and `packRP` each produce an `.mcpack`,
+    and `packMcaddon` bundles the two. Nothing in the definition requires an `.mcaddon` to hold
+    more than one pack.
+  backing: documented
+  caveat: |
+    That a client imports a single-pack `.mcaddon` happily is not stated by any first-party source
+    found. It is structurally legal by the definition quoted here, and untested.
+  sources:
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/minecraftfileextensions
+      where: .mcaddon
+      quote: |
+        A zip file that contains .mcpack or .mcworld files to modify Minecraft (Bedrock Edition);
+        generally used to distribute Add-Ons to other users.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/minecraftfileextensions
+      where: .mcpack
+      quote: |
+        A zipped resource or behavior pack that modifies Minecraft: Bedrock Edition, typically used
+        to transfer resources between users.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/scripting/libraries
+      where: Core build tasks — Available tasks — packBP, packRP, packMcaddon
+      quote: |
+        **packBP**: creates an **.mcpack** file with your behavior packs. (Requires the `build` task to have been run first.)
+        **packRP**: creates an **.mcpack** file with your resource packs. (Requires the `build` task to have been run first.)
+        **packMcaddon**: creates an **.mcaddon** file with the packs previously created in `packBP` and `packRP`.
