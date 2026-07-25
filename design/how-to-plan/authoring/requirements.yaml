@@ -183,3 +183,15 @@
   statement: |
     a source quote states the claim the fact makes — a passage genuine and verbatim but not
     supporting the claim fails the evidence bar exactly as a paraphrase does
+
+- id: tested-facts-name-whose-test
+  statement: |
+    a fact backed `tested` whose test its author did not run says so in the source, naming whose
+    test it was and where the artifacts sit. Only a fact whose author ran the test, against
+    artifacts at the fact's own scope, is offered as the author's own. Where those artifacts are
+    held in this repository by another design, the remedy is to promote them to a scope both
+    designs share; disclosure alone carries a test run outside the repository, where there is
+    nothing to promote
+  rationale: |
+    Without it, "I ran this" and "someone else ran this" are the same entry, and the guarantee
+    that the author can re-run the evidence decays into a file existing somewhere.

@@ -327,5 +327,7 @@
 
 - id: artifact-sources-back-only-tested-facts
   statement: |
-    a source url pointing into a design's `artifacts/` directory is valid only on a fact backed
-    `tested`, where it names captured output of a test that was run
+    a source url pointing into an `artifacts/` directory is valid only on a fact backed
+    `tested`, where it names captured output of a test that was run, and only when that
+    directory sits at the fact's own scope or a wider one. A fact resting on artifacts held
+    by another design is an artifact to promote to a shared scope, not one to reach across for

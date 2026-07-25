@@ -84,11 +84,13 @@ Each source takes exactly one locator form — either a `description` of the mec
 established by, or a `url` that also carries `where` (a pointer to the relevant section) and a
 verbatim `quote` [[r:facts-require-a-source]]. A `url` pointing inside this repository is written
 relative to the repo root, not to the file holding it [[r:repo-relative-source-paths]], and a
-`quote` is always a block scalar even when one line [[r:quote-is-block-scalar]]. A `url` under a
-design's `artifacts/` directory is admissible only on a `tested` fact, where it names output a
-test actually produced [[r:artifact-sources-back-only-tested-facts]]; that is the one provenance
-rule with a mechanical shadow — which source is the right one for a given `backing` is authoring's
-to test, not this format's. Optional: a `status`
+`quote` is always a block scalar even when one line [[r:quote-is-block-scalar]]. A `url` under an
+`artifacts/` directory is admissible only on a `tested` fact, where it names output a test actually
+produced, and only where that directory sits at the fact's own scope or a wider one — artifacts
+another design holds are promoted to a shared scope rather than reached across for, the same
+visibility rule citations already obey [[r:artifact-sources-back-only-tested-facts]]. That is the
+one provenance rule with a mechanical shadow; which source is the right one for a given `backing`,
+and what a source must disclose about who produced it, are authoring's to test, not this format's. Optional: a `status`
 of `active` | `retired` (default `active`) — a retired fact adds a `reason` of `superseded` |
 `disproven` | `stale`, and a superseded one names its replacement in `superseded_by` as a bare fact
 id, not a citation token — and a `caveat` recording why the fact might not hold despite its backing.
@@ -243,7 +245,8 @@ to this format throughout produces a conforming spec [[r:instructs-readers-to-fo
 Mechanically enforced, entry by entry: every id is kebab-case and unique per kind repo-wide; a fact
 carries `id`, `claim`, and a `backing` in the enum, plus at least one source in exactly one locator
 form, a `url` never carrying a `description`, a `url` always carrying `where`, an in-repo `url`
-written repo-relative, an `artifacts/` url only on a `tested` fact, and every `quote` a block scalar; a requirement carries `id` and `statement`,
+written repo-relative, an `artifacts/` url only on a `tested` fact and only at that fact's own scope
+or wider, and every `quote` a block scalar; a requirement carries `id` and `statement`,
 a `force` and `status` in their enums, and no `sources`; a decision carries `id`, `statement`, and a
 written `status` in its enum, plus at least one falsifier unless rejected; any field at its default is
 omitted; a retired fact carries a valid `reason` and, if superseded, a resolvable `superseded_by`. In

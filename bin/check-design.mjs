@@ -81,7 +81,7 @@ function checkEntry(kind, e, scope, file) {
         else if (e.superseded_by === e.id) add("fact supersedes itself", tag);
       }
     }
-    checkSources(e, tag, e.backing);
+    checkSources(e, tag, e.backing, scope);
   }
 
   if (kind === "r") {
@@ -101,7 +101,7 @@ function checkEntry(kind, e, scope, file) {
   }
 }
 
-function checkSources(e, tag, backing) { // rule 7
+function checkSources(e, tag, backing, scope) { // rule 7
   const srcs = e.sources ?? [];
   if (!srcs.length) { add("fact without a source", tag); return; }
   for (const s of srcs) {
@@ -113,6 +113,9 @@ function checkSources(e, tag, backing) { // rule 7
     if (s.quote !== undefined && !/\n/.test(String(s.quote))) add("quote not a block scalar", tag);
     // an artifacts/ path is captured test output, so it backs only a tested fact
     if (hasUrl && backing !== "tested" && /(^|\/)artifacts\//.test(String(s.url))) add("artifact source on a non-tested fact", `${tag}: ${s.url}`);
+    // and only artifacts at the fact's own scope or wider — another design's are promoted, not reached across for
+    const owner = hasUrl && String(s.url).match(/^design\/(.*?)\/artifacts\//)?.[1];
+    if (owner && scope !== owner && !String(scope).startsWith(`${owner}/`)) add("artifact source outside the fact's scope", `${tag}: ${s.url}`);
   }
 }
 
@@ -200,7 +203,7 @@ const ORDER = [
   "decision without a falsifier", "requirement with sources", "rationale not a block scalar",
   "fact without a source", "source has both url and description", "source has no locator",
   "url without where", "in-repo url not repo-root-relative", "quote not a block scalar",
-  "artifact source on a non-tested fact",
+  "artifact source on a non-tested fact", "artifact source outside the fact's scope",
   "default stated explicitly", "empty questions block", "empty components block",
   "component missing id", "component missing responsibility", "component after unresolved",
   "question missing id", "question missing text", "question closes bad kind",

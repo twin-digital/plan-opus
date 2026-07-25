@@ -19,7 +19,10 @@ b. **Tested directly** — the agent ran the test itself, and the design's `arti
    subfolder holds the actual scripts and inputs used, plus their outputs when the test
    produces any. The fact's `sources` name those files and state the observed result. What
    an artifact contributes is captured output; a prose conclusion the agent wrote there is
-   interpretation, and a fact resting on it belongs under (a) or as an open question.
+   interpretation, and a fact resting on it belongs under (a) or as an open question. This bar
+   is claimed on your own behalf only: a test you did not run is disclosed per
+   `r:tested-facts-name-whose-test`, and artifacts another design holds are promoted to a shared
+   scope rather than cited where they sit.
 
 A fact meeting neither bar is recorded as an open question instead. Proposed facts are input
 changes and get owner review: the PR description must call each one out.
