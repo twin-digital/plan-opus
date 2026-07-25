@@ -4,9 +4,11 @@
 
 - id: built-surface-v1
   statement: |
-    the built surface is World, Dimension, Entity and Player, the entity component classes
-    with the attribute components behaving, Effect and EffectType, and the after-event
-    signals; every other declared class is out of the built surface
+    the built surface is World, Dimension, Entity and Player, Effect and EffectType, all 55
+    after-event signals as registrable objects of which only those a modelled mutation emits
+    ever deliver, and all 68 entity component classes as attachable objects answering their
+    identity members, with the 7 attribute-shaped ones behaving in full; every other declared
+    class, and every member of a built class beyond that list, is a not-implemented stub
   status: proposed
   falsifiers:
     - a consumer suite's helpers routinely take an ItemStack, Block, or BlockVolume parameter,
@@ -46,20 +48,23 @@
     the not-implemented error rather than a guessed engine error
   status: proposed
   falsifiers:
-    - a probe run covering the argument-taking Entity methods finds a member whose invalid-state
-      behaviour contradicts the class of the members already tabulated
+    - a probe run supplying valid arguments to the 27 arity-blocked Entity methods finds their
+      invalid-state behaviour matching the declarations' `@throws` annotations uniformly, so a
+      derivation from index.d.ts replaces the hand-maintained table
     - the not-implemented default fires so often on ordinary invalid-reference tests that callers
       cannot write the try/catch tests the table exists to support
 
 - id: invalidation-propagates-to-derived-objects
   statement: |
-    a component or effect reads its validity from the entity it was obtained from rather than
-    holding its own flag, so invalidating an entity invalidates everything derived from it
+    a component or effect carries its own validity flag and reads invalid when either that flag
+    or its owner entity's is set, so invalidating an entity invalidates everything derived from
+    it while a derived object can also be invalidated alone
   status: proposed
   falsifiers:
     - an engine observation shows a component or effect outliving its owner's invalidation
-    - a test needs to invalidate an effect while its owner stays valid, which the engine's
-      `remove()` on an effect already does
+    - no modelled path or control-plane function ever sets a derived object's own flag without
+      also invalidating its owner, so the second half of the OR is unreachable state the fakes
+      pay for on every read
 
 - id: one-mutation-pipeline-for-health
   statement: |
@@ -71,6 +76,19 @@
       branching inside the pipeline for most of its callers
     - a non-health attribute component turns out to fire its own events on write, so the
       pipeline is health-specific where it was meant to be attribute-general
+
+- id: corpse-stays-valid-except-on-the-no-health-path
+  statement: |
+    a killed fake that has a health component leaves a valid corpse until a test invalidates it
+    through the control plane, while `kill()` on a fake with no health component invalidates the
+    reference synchronously as the engine does
+  status: proposed
+  falsifiers:
+    - consumer tests routinely assert that a killed mob's reference has gone invalid without
+      touching the control plane, so the valid corpse makes the fake take a path the engine
+      would not
+    - the despawn boundary turns out to be pinned per entity type by a fact at this design's
+      scope, so the fake can model the grace period rather than pick one of its endpoints
 
 - id: dispatch-is-depth-first-at-mutation-end
   statement: |
@@ -127,14 +145,15 @@
 
 - id: control-plane-free-functions-take-the-fake-first
   statement: |
-    every control-plane operation is a free function exported from the package root whose first
-    argument is the fake it acts on
+    every control-plane operation is a free function exported from the package root, and one
+    acting on an existing fake takes that fake as its first argument; the constructing
+    functions — world creation and spawnFake — take their inputs instead
   status: proposed
   falsifiers:
     - the free-function set grows past what a consumer can discover from one export list, so a
       namespaced control object reads better than a flat surface
-    - an operation turns up that acts on no single fake, or on two equally, leaving its first
-      argument arbitrary
+    - an operation over existing fakes turns up that acts on two of them equally, leaving its
+      first argument arbitrary
 
 - id: vanilla-dimensions-is-the-only-preset
   statement: |
