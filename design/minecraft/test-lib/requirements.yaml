@@ -15,11 +15,27 @@
     on the pinned `@minecraft/server` version — the engine-run facts — including the quirks a
     naive double would smooth over: namespace-optional ids, methods whose return value encodes
     success or failure, non-uniform invalidation, and values that read back exactly as the engine
-    reports them. It does not substitute a convenient approximation. A fake departs from observed
-    behaviour only where a requirement listed here documents the departure; the spec and builder
-    take the specific behaviours (effect replacement, the invalidation guard list, the kill
-    cascade, damage causes, and the rest) from the facts rather than from a per-behaviour
-    requirement. Current departures: synchronous-event-delivery, zero-kinematics-at-spawn.
+    reports them. It does not substitute a convenient approximation. The spec and builder take the
+    specific behaviours (effect replacement, the invalidation guard list, the kill cascade, damage
+    causes, and the rest) from the facts rather than from a per-behaviour requirement.
+
+    Fidelity reaches as far as the fake can reach. Four bounds put a behaviour out of reach, and a
+    departure is licensed only by naming which bound applies and citing the fact that establishes
+    it:
+
+    a. elapsed ticks — the behaviour is a function of time passing, which a fake with no clock
+       cannot represent;
+    b. undetermined by evidence — the observation does not pin the rule, whether because the engine
+       draws it per run or because the runs recorded do not establish it. Reproducing it would be
+       fabricating it, which fakes-never-fabricate forbids;
+    c. outside the data this library holds — the behaviour is per-type vanilla data or a
+       pack-supplied definition, which presets-are-opt-in places in a package built on this one;
+    d. documented opaque — the API documents the value as carrying no meaning to be parsed or
+       interpreted, so no consumer contract may depend on its form.
+
+    A behaviour the fake could reproduce is not exempt because reproducing it is inconvenient. A
+    departure fitting none of these bounds is a defect, not a new bound: the bounds are settled
+    here and adding one is an amendment to this requirement.
 
 - id: synchronous-event-delivery
   statement: |
