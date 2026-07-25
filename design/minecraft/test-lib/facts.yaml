@@ -613,28 +613,6 @@
         the validity as 4/4, and explicitly retracts the contended runs' reading of an arrow
         invalidating within 2 ticks as contact with the seven co-located entities.
 
-- id: boat-spawn-location-offset
-  status: retired
-  superseded_by: boat-spawn-offset-magnitude-constant
-  claim: |
-    `spawnEntity` does not always place an entity on the requested point: `minecraft:boat`
-    lands `0.2` off it on both x and z, `delta={x:0.20000076293945312, y:0,
-    z:0.20000076293945312}` identical to the last digit in 4/4 runs from a fixed base. The
-    magnitude is constant and the sign tracks the spawn position, so this is a deterministic
-    placement adjustment rather than a random one. Every other type sampled lands exactly,
-    `delta={x:0, y:0, z:0}`, and the boat's offset is already present on its spawn frame.
-  backing: tested
-  sources:
-    - description: |
-        artifacts/mctest-resting-state-probe-results.md, `resting-kinematics-isolated`
-        minecraft:boat lines across runs 1–4 (n=4): requested-location {x:38.5, y:81, z:18.5},
-        location {"z":18.700000762939453,"y":81,"x":38.70000076293945},
-        delta={"x":0.20000076293945312,"y":0,"z":0.20000076293945312} at spawn frame, 2 ticks
-        and 22 ticks in every run; the seven other types read delta {"x":0,"y":0,"z":0}. The two
-        earlier contended `resting-kinematics` runs, from different bases, produced the same
-        magnitude with different signs — (+0.2, -0.2) at (24.5, 57, 24.5) and (+0.2, +0.2) at
-        (42.5, 81, 22.5).
-
 - id: boat-spawn-offset-magnitude-constant
   claim: |
     `spawnEntity` does not always place an entity on the requested point: `minecraft:boat`
@@ -745,6 +723,29 @@
         every method was invoked bare, which is what exposed the ordering.
 
 # Retired: superseded by the deep-run measurements. Kept for the record.
+
+- id: boat-spawn-location-offset
+  status: retired
+  reason: superseded
+  superseded_by: boat-spawn-offset-magnitude-constant
+  claim: |
+    `spawnEntity` does not always place an entity on the requested point: `minecraft:boat`
+    lands `0.2` off it on both x and z, `delta={x:0.20000076293945312, y:0,
+    z:0.20000076293945312}` identical to the last digit in 4/4 runs from a fixed base. The
+    magnitude is constant and the sign tracks the spawn position, so this is a deterministic
+    placement adjustment rather than a random one. Every other type sampled lands exactly,
+    `delta={x:0, y:0, z:0}`, and the boat's offset is already present on its spawn frame.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-resting-state-probe-results.md, `resting-kinematics-isolated`
+        minecraft:boat lines across runs 1–4 (n=4): requested-location {x:38.5, y:81, z:18.5},
+        location {"z":18.700000762939453,"y":81,"x":38.70000076293945},
+        delta={"x":0.20000076293945312,"y":0,"z":0.20000076293945312} at spawn frame, 2 ticks
+        and 22 ticks in every run; the seven other types read delta {"x":0,"y":0,"z":0}. The two
+        earlier contended `resting-kinematics` runs, from different bases, produced the same
+        magnitude with different signs — (+0.2, -0.2) at (24.5, 57, 24.5) and (+0.2, +0.2) at
+        (42.5, 81, 22.5).
 
 - id: fresh-entity-resting-field-values
   status: retired
