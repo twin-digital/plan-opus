@@ -6,7 +6,8 @@
   statement: |
     the built surface is World, Dimension, Entity and Player, Effect and EffectType, all 55
     after-event signals as registrable objects of which only those a modelled mutation emits
-    ever deliver, and all 68 entity component classes as attachable objects answering their
+    ever deliver — with the after-event payload class of each delivering signal behaving too —
+    and all 68 entity component classes as attachable objects answering their
     identity members, with the 7 attribute-shaped ones behaving in full; every other declared
     class, and every member of a built class beyond that list, is a not-implemented stub
   status: proposed
@@ -79,9 +80,10 @@
 
 - id: corpse-stays-valid-except-on-the-no-health-path
   statement: |
-    a killed fake that has a health component leaves a valid corpse until a test invalidates it
-    through the control plane, while `kill()` on a fake with no health component invalidates the
-    reference synchronously as the engine does
+    a killed fake that has a health component leaves a corpse valid indefinitely, departing from
+    the engine's ~27-tick despawn (death-invalidation-window) as the tickless model (no-clock)
+    entails, and only control-plane invalidation ends it; `kill()` on a fake with no health
+    component invalidates the reference synchronously as the engine does
   status: proposed
   falsifiers:
     - consumer tests routinely assert that a killed mob's reference has gone invalid without
