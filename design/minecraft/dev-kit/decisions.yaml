@@ -10,8 +10,6 @@
   falsifiers:
     - consumers routinely regroup the list by owning package to act on a package's packs as a unit,
       so the grouping the flat shape discards is rebuilt at every call site
-    - a consumer needs a field on a record that only a built or deployed pack settles, so a record
-      can no longer be produced from source alone
 
 - id: packages-come-from-the-workspace-definition
   statement: |
@@ -74,6 +72,8 @@
     `package.json`, and each pack's built directory is that root plus its kind-named subdirectory
   status: proposed
   falsifiers:
+    - a package's build emits a pack at the output root itself, with no kind-named subdirectory, so
+      the joined path names nothing that exists
     - a package's build emits its two packs to unrelated directories, so one root plus a fixed
       subdirectory cannot locate both
     - the output root must vary per invocation, by build target or configuration, so a single

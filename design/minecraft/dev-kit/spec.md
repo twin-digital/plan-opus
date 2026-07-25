@@ -29,6 +29,29 @@ questions:
       reported problem, or expected skew during development?
     closes: requirement
     gates: [dependency-checks-uuid-and-version]
+  - id: built-output-carries-the-kind-subdirectory
+    question: does a pack's built output sit in a kind-named subdirectory of the output root, or at
+      the root itself? The requirement names only `dist/`; the kind subdirectory is this design's
+      addition, and the one measured workspace emits `dist/manifest.json` flat for both of its packs
+      (design/minecraft/dev-kit/artifacts/pack-detection/OUTPUT.txt, the built-output section).
+    closes: requirement
+    gates: [output-root-overridden-in-package-json, built-output-checks-are-opt-in]
+  - id: facts-header-provenance-is-stale
+    question: the facts.yaml header justifies holding the pool-layout probe at area scope by
+      "minecraft/dev-server has a fact resting on the same probe", and no such design exists; three
+      places also call minecraft/dev-workflow "the design formerly named minecraft/dev-workflow"
+      while it is live under that name. What provenance should those records carry?
+    closes: fact
+  - id: heuristics-fact-under-reports-its-evidence
+    question: the heuristics fact names two false positives for the `minecraft/` directory rule where
+      the probe output and the fact's own quote both record three, and adds "because no package
+      carries one until every pack is edited to add it", a cause no captured output states. Should
+      the count be corrected and the causal clause dropped or attributed?
+    closes: fact
+  - id: directory-name-fact-states-more-than-it-shows
+    question: the directory-name fact opens "Nothing reads a pack's directory name" where its
+      evidence covers a pack's own directory name. Should the claim be narrowed to say so?
+    closes: fact
 ```
 
 ## The pack set
@@ -38,8 +61,8 @@ over it [[d:pack-set-is-a-flat-record-list]]. A package contributing two packs c
 records; nothing in the shape expresses an addon, a package grouping, or a pack of a kind the
 records cannot carry [[r:one-pack-of-each-kind-per-package]]. Consumers narrow with ordinary
 array filtering, so a selection is a value the caller holds rather than state the kit keeps, and no
-narrowing can change what a later call reports [[r:selection-filters-the-discovered-set]]. The
-records are data the consumer indexes and destructures, never text [[r:kit-is-consumed-as-a-library]].
+narrowing can change what a later call reports [[r:selection-filters-the-discovered-set]]
+[[r:kit-is-consumed-as-a-library]].
 
 Illustrative, not the API:
 
@@ -75,9 +98,6 @@ not its scripts, not its position in the tree. Each of those selects packages th
 misses packs that are [[f:content-independent-pack-heuristics-misfire]], and a wrong membership
 answer is the one error every capability downstream inherits.
 
-The two probe paths are a locating convention and carry no authority: they say where to look, never
-what was found [[f:pack-directory-name-carries-no-meaning]].
-
 ## Reading a pack
 
 A record's identity, version, and kind are read from the manifest at the probed path and nowhere
@@ -90,11 +110,12 @@ against the directory it was found in, and a disagreement is a problem naming bo
 directory is not corrected to match, and the manifest is not overruled.
 
 `outputDir` is `dist/` joined to the same kind-named subdirectory the source probe used, so a
-package's built layout mirrors its source layout [[r:built-output-defaults-to-dist]]. A package
-overrides the `dist/` root — never the subdirectory — with a `minecraft.outDir` key in its own
-`package.json` [[d:output-root-overridden-in-package-json]]. That key is read only for a package
-already known to bear packs; it is never a membership signal, which is exactly the reading that
-picks up nothing at all [[f:content-independent-pack-heuristics-misfire]].
+package's built layout mirrors its source layout [[r:built-output-defaults-to-dist]]
+[[d:output-root-overridden-in-package-json]]. Both halves of that path resolve from the owning
+package's own files, so a record can state where output is expected on a clean checkout, and the two
+packs of one package cannot be pointed at unrelated places. The `minecraft.outDir` key is read only
+for a package already known to bear packs; it is never a membership signal, which is exactly the
+reading that picks up nothing at all [[f:content-independent-pack-heuristics-misfire]].
 
 ## Validation
 
@@ -120,17 +141,16 @@ is a problem naming the package and that path; not asked for, its absence is not
 
 ## Building
 
-A build is delegated whole to the package that owns the pack: the kit invokes the package's own
-build script and reports every pack that package owns as affected, without inspecting what the
-build did [[d:build-is-delegated-per-package]] [[r:kit-stops-at-a-validated-pack-set]]. Per-package
-attribution is exact for the workspaces in scope, where a package's two packs are built by one
-script [[r:one-pack-of-each-kind-per-package]] [[f:ecosystem-models-one-pack-per-kind-per-project]],
-and it is what a watching consumer needs to know which deployed packs a rebuild invalidated. A
+Building a selection runs once per owning package, not once per pack, so a caller that selected one
+of a package's two packs gets both rebuilt and both reported as affected
+[[d:build-is-delegated-per-package]] [[r:kit-stops-at-a-validated-pack-set]]. That attribution is
+exact for the workspaces in scope, where a package's two packs are built by one script
+[[r:one-pack-of-each-kind-per-package]] [[f:ecosystem-models-one-pack-per-kind-per-project]]. A
 package with no build script to invoke is a problem, not a silent no-op.
 
 ## Where the kit stops
 
-The kit hands back a validated pack set and stops [[r:kit-stops-at-a-validated-pack-set]]. Deploying
+Deploying
 into a pool, activating, reloading, and the selection UX are the dev server's; release archives are a
 consumer's too, and a pack set is sufficient input for one, since an `.mcpack` is a single zipped
 pack and an `.mcaddon` a zip over those [[f:release-archives-follow-pack-content]]. What the kit
@@ -147,7 +167,8 @@ components:
     excludes: deciding which conditions raise a problem
   - id: workspace-scan
     responsibility: enumerate the workspace's packages and probe each for pack-bearing source
-      directories, yielding located pack directories
+      directories, yielding each located pack directory with the name and root of the package
+      owning it
     excludes: reading or parsing any manifest
     after: [problem-model]
   - id: manifest-model
@@ -161,8 +182,8 @@ components:
     excludes: validating the assembled set
     after: [workspace-scan, manifest-model]
   - id: validation
-    responsibility: the set-level rules — uuid uniqueness, kind/directory agreement, dependency
-      resolution, and the opt-in built-output check
+    responsibility: the validation rules — uuid uniqueness across the set, per-pack kind/directory
+      agreement, dependency resolution, and the opt-in built-output check
     after: [pack-set]
   - id: build-runner
     responsibility: invoke owning packages' build scripts for a selection and report the packs each
