@@ -23,22 +23,12 @@
 
 # Scope and membership
 
-- id: one-pack-of-each-kind-per-package
-  statement: |
-    a workspace package holds at most one behavior pack and at most one resource pack. A package
-    holding two packs of the same kind is out of scope, and nothing in the kit needs to express it.
-
 - id: membership-from-source-manifest-presence
   statement: |
     a workspace package is a pack-bearing package when its source holds `behavior_pack/manifest.json`
     or `resource_pack/manifest.json`; presence of those source manifests is the whole membership
     test. Both kinds are discovered. No marker field, keyword, or central list is required, and
     adding, removing, or renaming a pack needs no edit anywhere but the package itself.
-
-- id: built-output-defaults-to-dist
-  statement: |
-    a pack's built output is found at `dist/` within its package unless the package specifies an
-    alternate location.
 
 # What the kit reports
 
@@ -89,9 +79,10 @@
     passes through untouched. The injected `header.name` is the owning package's `package.json`
     `productName` when present, and otherwise the package name with its npm scope stripped —
     `@scope/mc-pack-1` becomes `mc-pack-1`. Completing all of this is the kit's job, not a
-    consumer's or a package build's, and no absence it fills in is ever reported as a problem. The
-    kit's product is therefore a validated, normalised pack set and, for each pack, its completed
-    manifest; it still performs no deployment and builds no release archive.
+    consumer's or a package build's, and no absence it fills in is ever reported as a problem.
+    Completion writes only into built output and never edits a source manifest, so source stays
+    partial. The kit's product is therefore a validated, normalised pack set and, for each pack,
+    its completed manifest; it still performs no deployment and builds no release archive.
   rationale: |
     Validation hinges on a manifest that is deliberately incomplete, so someone must populate it,
     and leaving that outside the kit would leak these rules into every consumer that wants a
@@ -103,14 +94,7 @@
     which is indistinguishable from an unresolved `pack.name` localization key, whose documented
     failure mode is rendering the raw string in that same UI.
 
-# Built output and workspace scope
-
-- id: built-output-mirrors-the-source-layout
-  statement: |
-    a package's output root always holds one kind-named subdirectory per pack — `behavior_pack`,
-    `resource_pack` — mirroring the source layout, however many packs the package has; a
-    single-pack package still nests. Packaging is a zip of that tree with no restructuring, so a
-    one-pack product ships a one-pack `.mcaddon`.
+# Workspace scope
 
 - id: workspace-definitions-are-npm-and-pnpm
   statement: |

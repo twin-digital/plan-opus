@@ -29,14 +29,6 @@ questions:
       version is injected, but not what that version is read from — the owning package's
       `package.json` `version` is the obvious candidate and is not stated.
     closes: requirement
-    gates: [completion-is-a-post-build-pass-over-the-output-tree]
-  - id: completion-outside-the-kit-build-entry-point
-    question: must a build run any way other than through the kit still produce completed manifests
-      — a package's own `npm run build`, or a watch process the dev server drives? If so the
-      completion rules cannot live only behind the kit's build call, and the kit needs a form a
-      package's own build can invoke.
-    closes: requirement
-    gates: [completion-is-a-post-build-pass-over-the-output-tree, build-is-delegated-per-package]
   - id: explicit-version-naming-a-workspace-pack
     question: a dependency entry carrying an explicit version whose uuid nonetheless matches a
       discovered pack contradicts itself — the version says external, the uuid says in-workspace.
@@ -149,21 +141,19 @@ anyway, and the version stamped into an unversioned dependency entry is the vers
 uuid resolved to during validation. Completion therefore consumes the validated pack set and
 re-reads nothing.
 
-Completion rewrites the manifest that sits under the package's output root, after the package's own
-build script has put it there, and leaves the source manifest untouched
-[[d:completion-is-a-post-build-pass-over-the-output-tree]]. Source therefore stays partial, which is
-what makes the same source tree buildable at more than one version, and the injected values never
-have to be reconciled with a copy of themselves on disk.
+Completion rewrites the manifest that sits under the package's output root and leaves the source
+manifest untouched [[r:kit-completes-partial-source-manifests]]. Source therefore stays partial,
+which is what makes the same source tree buildable at more than one version, and the injected values
+never have to be reconciled with a copy of themselves on disk.
 
-## Building
+## Builds happen elsewhere
 
-Building a selection runs once per owning package, not once per pack, so a caller that selected one
-of a package's two packs gets both rebuilt and both reported as affected, with completion run over
-that package's output root once the script returns [[d:build-is-delegated-per-package]]. The kit
-still defines nothing about how the package assembles its output; it only invokes the script and
-then fills in the fields the script left blank [[r:kit-completes-partial-source-manifests]]. That attribution
-is exact where a package's two packs are built by one script [[r:one-pack-of-each-kind-per-package]].
-A package with no build script to invoke is a problem, not a silent no-op.
+Producing built output is not this design's work. When a build runs, and where its tree lands,
+belong to `minecraft/build-kit`, which ships in the same package; what stays here is the rule for
+what a completed manifest contains [[r:kit-completes-partial-source-manifests]]. So the kit never
+invokes a build and never has to know one has happened: it completes the manifests in a tree that
+already exists, and treats an output directory with nothing in it as a finding only when a caller
+asks it to look [[d:built-output-checks-are-opt-in]].
 
 ## Where the kit stops
 
@@ -206,9 +196,4 @@ components:
       versions into the manifests under a package's output root
     excludes: producing the output tree those manifests sit in
     after: [validation]
-  - id: build-runner
-    responsibility: invoke owning packages' build scripts for a selection, run completion over each
-      package's output root, and report the packs each build affected
-    excludes: defining build semantics
-    after: [pack-set, manifest-completion]
 ```

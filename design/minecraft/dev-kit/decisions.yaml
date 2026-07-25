@@ -7,6 +7,11 @@
 # kind-derived-from-module-types), and their citations moved to [[r:...]]. A fourth,
 # membership-probed-at-fixed-package-root-paths, is gone because the requirements settle it —
 # see the requirements it cited in "Finding packs".
+#
+# Two more are gone with the arrival of minecraft/build-kit, which owns when a build runs and where
+# its output lands: this design no longer chooses how a build is invoked or when completion runs
+# relative to one. The guarantee that completion never edits a source manifest moved into
+# r:kit-completes-partial-source-manifests.
 
 - id: problems-returned-beside-the-pack-set
   statement: |
@@ -53,25 +58,3 @@
     - a pack must depend on an in-workspace pack at a version other than the one the workspace
       currently holds, which an absent version cannot express
 
-- id: completion-is-a-post-build-pass-over-the-output-tree
-  statement: |
-    the kit completes each manifest by rewriting it in place under the package's output root,
-    after the package's own build script has copied it there, and never edits a source manifest
-  status: proposed
-  falsifiers:
-    - a package's build reads, validates, or bundles the manifest it emits, so a pass that runs
-      after the build arrives too late to matter
-    - a package's build emits an archive or otherwise non-tree output, so there is no manifest
-      file in place to rewrite
-
-- id: build-is-delegated-per-package
-  statement: |
-    building a selection invokes the owning package's own build script once per package, with the
-    kit's completion pass run over that package's output root afterwards and every pack the
-    package owns reported as affected
-  status: proposed
-  falsifiers:
-    - a package's build can produce one of its packs without touching the other, so per-package
-      attribution over-reports what a watching consumer must redeploy
-    - a package's build cannot be reached through a package script and needs arguments or a
-      protocol the kit would have to define
