@@ -88,6 +88,8 @@ const recordEvents = (entityId) => {
 const makeContext = (dimension, location) => {
   const spawned = []
   return {
+    dimension,
+    location,
     spawn: (typeId = SHEEP) => {
       const entity = dimension.spawnEntity(typeId, location)
       spawned.push(entity)
@@ -459,6 +461,84 @@ const deepProbes = {
 
 let running = false
 
+// Chunk unloading cannot be forced from the script API, so these probes drive it the only way a
+// pack can: hold a far-away chunk with a ticking area, spawn there, then drop the area and let the
+// chunk fall out of simulation. Distance from the player is what makes the unload happen, so run
+// this from spawn and do not follow the entity.
+const UNLOAD_OFFSET = 20000 // blocks away, far outside any player's simulation distance
+
+const MEMBERS = ['amplifier', 'duration', 'typeId', 'displayName', 'isValid']
+
+/** Polls until the entity stops reading valid, or the budget runs out. Returns ticks waited. */
+const awaitUnload = async (entity, budgetTicks = 200) => {
+  for (let waited = 0; waited <= budgetTicks; waited += 10) {
+    const stillValid = attempt(() => entity.isValid)
+    if (stillValid.ok && stillValid.value === false) return waited
+    if (!stillValid.ok) return waited
+    await tick(10)
+  }
+  return -1
+}
+
+const unloadProbes = {
+  // Does an effect whose owner UNLOADED behave as one whose owner was REMOVED?
+  // effect-members-throw-plain-error rests on the removal path only; this is the untested half.
+  'effect-member-guard-on-unload': async (ctx) => {
+    const dimension = ctx.dimension
+    const far = { x: ctx.location.x + UNLOAD_OFFSET, y: ctx.location.y, z: ctx.location.z }
+    const area = `mctest_unload_${Date.now()}`
+
+    const added = attempt(() =>
+      dimension.runCommand(`tickingarea add ${far.x} ${far.y} ${far.z} ${far.x} ${far.y} ${far.z} ${area}`),
+    )
+    emit(`effect-member-guard-on-unload :: tickingarea-add ${show(added)}`)
+    if (!added.ok) return
+    await tick(20)
+
+    const spawned = attempt(() => dimension.spawnEntity(SHEEP, far))
+    emit(`effect-member-guard-on-unload :: spawn-far ${show(spawned)}`)
+    if (!spawned.ok) {
+      attempt(() => dimension.runCommand(`tickingarea remove ${area}`))
+      return
+    }
+    const sheep = spawned.value
+    const sheepId = safeId(sheep)
+    const effect = attempt(() => sheep.addEffect('speed', 20000, { amplifier: 1 }))
+    emit(`effect-member-guard-on-unload :: addEffect ${show(effect)}`)
+    if (!effect.ok) {
+      attempt(() => dimension.runCommand(`tickingarea remove ${area}`))
+      return
+    }
+    const held = effect.value
+
+    // Baseline while the chunk is still held: every member should read normally.
+    for (const member of MEMBERS) {
+      emit(`effect-member-guard-on-unload :: loaded ${member} ${show(attempt(() => held?.[member]))}`)
+    }
+
+    const removedArea = attempt(() => dimension.runCommand(`tickingarea remove ${area}`))
+    emit(`effect-member-guard-on-unload :: tickingarea-remove ${show(removedArea)}`)
+
+    const waited = await awaitUnload(sheep)
+    emit(
+      `effect-member-guard-on-unload :: unload-wait entityId=${sheepId} ticksWaited=${waited}` +
+        `${waited < 0 ? ' (BUDGET EXHAUSTED — entity still valid, treat the rest as inconclusive)' : ''}`,
+    )
+
+    // The comparison the fact needs: same five members, owner unloaded rather than removed.
+    emit(`effect-member-guard-on-unload :: owner-entity isValid ${show(attempt(() => sheep.isValid))}`)
+    for (const member of MEMBERS) {
+      emit(`effect-member-guard-on-unload :: unloaded-owner ${member} ${show(attempt(() => held?.[member]))}`)
+    }
+
+    // And the entity's own guard list, to compare against invalidation-guard-list-complete,
+    // which was also derived from the removal path.
+    for (const member of ['id', 'typeId', 'isValid', 'scoreboardIdentity', 'nameTag', 'location', 'dimension']) {
+      emit(`effect-member-guard-on-unload :: unloaded-entity ${member} ${show(attempt(() => sheep[member]))}`)
+    }
+  },
+}
+
 const runSet = async (set, setName, dimension, location, only) => {
   if (running) {
     emit('a run is already in progress')
@@ -518,6 +598,17 @@ system.beforeEvents.startup.subscribe((event) => {
       return { status: CustomCommandStatus.Success, message: 'mctest deep probes started' }
     },
   )
+  registry.registerCommand(
+    {
+      name: 'mctest:unload',
+      description: 'Run the chunk-unload probes (effect and entity guards when the owner unloads)',
+      permissionLevel: CommandPermissionLevel.GameDirectors,
+    },
+    (origin) => {
+      startFrom(origin.sourceEntity, unloadProbes, 'unload', undefined)
+      return { status: CustomCommandStatus.Success, message: 'mctest unload probes started — takes up to ~15s' }
+    },
+  )
 })
 
 // Fallback triggers:
@@ -528,5 +619,7 @@ system.afterEvents.scriptEventReceive.subscribe((event) => {
     startFrom(event.sourceEntity, probes, 'run', event.message.trim() || undefined)
   } else if (event.id === 'mctest:deep') {
     startFrom(event.sourceEntity, deepProbes, 'deep', event.message.trim() || undefined)
+  } else if (event.id === 'mctest:unload') {
+    startFrom(event.sourceEntity, unloadProbes, 'unload', event.message.trim() || undefined)
   }
 })
