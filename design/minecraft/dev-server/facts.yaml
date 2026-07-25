@@ -4,9 +4,9 @@
 # The first three facts are this design's dependency on minecraft/dev-kit, each sourced by
 # verbatim quote to the kit's requirements — its pinned artifact — per
 # r:cross-design-dependency-is-cited-as-a-fact. The rest are Compose and Bedrock mechanics that
-# only the server harness rests on. pack-kind-mismatch-fails-silently-at-the-server rests on the
-# pool-layout probe under design/minecraft/artifacts/, which sits at area scope rather than in
-# either design because minecraft/dev-kit has a fact resting on the same probe.
+# only the server harness rests on. server-load-output-reports-only-activated-behavior-packs rests
+# on the pool-layout probe under design/minecraft/artifacts/, which sits at area scope rather than
+# in either design because minecraft/dev-kit has a fact resting on the same probe.
 #
 # Where a tested fact rests on a test this file's author did not run, the source says so.
 
@@ -35,8 +35,9 @@
     Every pack the kit reports carries its owning package, its kind, its source location, and the
     identity its source manifest declares, and does so from a clean checkout with no build having
     run. Identity, version and kind come from the pack's own manifest. The harness can therefore
-    route a pack to a pool and write its activation entry from the pack set alone, without reading
-    a manifest or reading a directory name as a declaration of kind.
+    route a pack to a pool from the pack set alone, without reading a manifest or reading a
+    directory name as a declaration of kind. The version an activation entry carries is not in the
+    pack set: the kit declines to claim the version present in a server pool before a build.
   backing: documented
   sources:
     - url: design/minecraft/dev-kit/requirements.yaml
@@ -44,7 +45,8 @@
       quote: |
         the kit reports every pack in a workspace — its owning package, its kind, its source location,
         and the identity its source manifest declares — from a clean checkout, with no build having run
-        and no server running.
+        and no server running. What only a built pack settles, the version present in a server pool, is
+        not claimed before a build.
     - url: design/minecraft/dev-kit/requirements.yaml
       where: pack-identity-and-kind-declared-only-by-the-manifest
       quote: |
@@ -167,9 +169,11 @@
         container with `docker compose cp <dist>/. bedrock:<pool>/<pack>` against a daemon on
         another host (socket, no bind mount); the server subsequently reported the pack in its
         Pack Stack and `/reload` picked up script changes. Copy succeeded with no volume or mount
-        configured. The in-repo probes at design/minecraft/dev-server/artifacts/ and
-        design/minecraft/artifacts/pack-layout/probe/ all deploy this way against a remote daemon
-        and corroborate that `compose cp` needs no mount.
+        configured. Two in-repo probes corroborate it: every byte
+        design/minecraft/dev-server/artifacts/activation-list-probe/ and
+        design/minecraft/artifacts/pack-layout/probe/ put on the server — probe packs and world
+        activation lists alike — arrives by `docker compose cp` against a remote daemon with no
+        bind mount, and both runs' output shows the server reading what was copied.
 
 - id: compose-env-file-not-loaded-from-cwd
   claim: |
@@ -390,28 +394,70 @@
         design/minecraft/artifacts/pack-layout/probe/ both address exactly one world directory,
         /data/worlds/dev, and corroborate the deploy target being unambiguous.
 
-- id: pack-kind-mismatch-fails-silently-at-the-server
+- id: server-load-output-reports-only-activated-behavior-packs
   claim: |
-    A pack deployed into the pool for the other kind does not load, in either direction, and the
-    server reports nothing about it — a behavior pack in the resource pool leaves the world with
-    "Pack Stack - None", and a resource pack in the behavior pool is simply absent from the stack.
-    A pack's kind must therefore be right before anything is copied, and a wrong kind is not
-    observable from the server's output.
+    The only pack-related line a Bedrock server logs at world load is its "Pack Stack" line, and
+    that line names just the behavior packs the world's `world_behavior_packs.json` activated, each
+    with its manifest header identity and its pool path. A resource pack never appears on it —
+    neither when correctly pooled and listed, nor when placed in the behavior pool and listed as a
+    behavior pack — and neither misfiling direction draws an error or a warning naming the pack. A
+    pool directory whose name contradicts its manifest changes nothing: a behavior pack under
+    `development_behavior_packs/resource_pack_totally` loads and the server prints that name back.
+    The load output therefore tells the harness which behavior packs are live and nothing else; a
+    misfiled pack is indistinguishable from one the server does not report on.
   backing: tested
   sources:
     - description: |
         The pool-layout probe at design/minecraft/artifacts/pack-layout/probe/ drives a real
         itzg/minecraft-bedrock-server container: run.mjs deploys the probe packs (bp/, rp/, each a
         manifest and content) into the server's pools via the compose project in compose.yaml,
-        writes the world activation lists, and captures the server's load output. Case 2 places the
-        resource pack in the behavior pool and lists it as a behavior pack; case 4 places the
-        behavior pack in the resource pool and lists it as a resource pack. This probe was run by
-        the author of the design formerly named minecraft/dev-workflow, not by this fact's author.
+        writes the world activation lists, restarts the server, and captures from each fresh load
+        every log line matching both /pack|Pack/ and /Stack|error|Error|failed/ — so an error or a
+        failure naming a pack would have been captured, and across all five cases only Pack Stack
+        lines were. This probe was run by the author of the design formerly named
+        minecraft/dev-workflow, not by this fact's author.
     - url: design/minecraft/artifacts/pack-layout/probe/OUTPUT.txt
-      where: case 4 — the behavior pack placed in the resource pool and listed as a resource pack
+      where: cases 1 and 2 — the resource pack correctly filed, then in the behavior pool and behavior list
+      quote: |
+        === case 1: each pack in its own pool, each listed in its own world list
+          world_behavior_packs.json = [{"pack_id":"d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f","version":[1,0,0]}]
+          world_resource_packs.json = [{"pack_id":"f5ebc4c3-7d8a-4e9f-0a1b-2c3d4e5f6a7b","version":[1,0,0]}]
+        [2026-07-24 23:48:58:089 INFO] Pack Stack - [00] layout probe behavior pack (id: d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f, version: 1.0.0) @ development_behavior_packs/probe-bp
+
+        === case 2: the resource pack placed in the behavior pool and listed as a behavior pack
+          world_behavior_packs.json = [{"pack_id":"d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f","version":[1,0,0]},{"pack_id":"f5ebc4c3-7d8a-4e9f-0a1b-2c3d4e5f6a7b","version":[1,0,0]}]
+          world_resource_packs.json = []
+        [2026-07-24 23:49:03:808 INFO] Pack Stack - [00] layout probe behavior pack (id: d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f, version: 1.0.0) @ development_behavior_packs/probe-bp
+    - url: design/minecraft/artifacts/pack-layout/probe/OUTPUT.txt
+      where: cases 4 and 5 — the behavior pack in the resource pool, then pool directories named against their manifests
       quote: |
         === case 4: the behavior pack placed in the resource pool and listed as a resource pack
         (does the pool decide a pack's kind, or does its manifest?)
           world_behavior_packs.json = []
           world_resource_packs.json = [{"pack_id":"f5ebc4c3-7d8a-4e9f-0a1b-2c3d4e5f6a7b","version":[1,0,0]},{"pack_id":"d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f","version":[1,0,0]}]
         [2026-07-24 23:49:15:522 INFO] Pack Stack - None
+
+        === case 5: pack directories renamed to names that contradict their manifests
+        (is a source or pool directory name ever read as a declaration of kind?)
+          world_behavior_packs.json = [{"pack_id":"d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f","version":[1,0,0]}]
+          world_resource_packs.json = [{"pack_id":"f5ebc4c3-7d8a-4e9f-0a1b-2c3d4e5f6a7b","version":[1,0,0]}]
+        [2026-07-24 23:49:22:860 INFO] Pack Stack - [00] layout probe behavior pack (id: d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f, version: 1.0.0) @ development_behavior_packs/resource_pack_totally
+
+- id: pack-kind-mismatch-fails-silently-at-the-server
+  claim: |
+    A pack deployed into the pool for the other kind does not load, in either direction, and the
+    server reports nothing about it.
+  backing: tested
+  status: retired
+  reason: superseded
+  superseded_by: server-load-output-reports-only-activated-behavior-packs
+  caveat: |
+    The quoted case 4 output carries only half of this: its `world_behavior_packs.json` is empty,
+    so "Pack Stack - None" is explained by the activation list alone and isolates nothing about the
+    pool. The other direction, case 2, cannot isolate it either, since case 1 shows a correctly
+    pooled resource pack is likewise absent from the Pack Stack. The successor states what the
+    captured output does show.
+  sources:
+    - description: |
+        The pool-layout probe at design/minecraft/artifacts/pack-layout/probe/, run by the author
+        of the design formerly named minecraft/dev-workflow, not by this fact's author.

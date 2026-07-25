@@ -55,6 +55,19 @@
     - packs reach the wrong pool in practice, meaning the reported kind is not trustworthy on its
       own and the router needs a check of its own
 
+- id: activation-version-read-from-the-built-manifest
+  statement: |
+    an activation entry's version is read from the header of the `manifest.json` in the pack's
+    built output — the same bytes the copy places in the pool — not from the kit's pack set
+  status: proposed
+  falsifiers:
+    - the kit's pack set comes to carry the built pack's version, leaving the harness a second read
+      of the same value
+    - a package's build rewrites its manifest header after the harness reads it, so the version
+      written into the activation list can disagree with the one sitting in the pool
+    - a pack's built output holds no manifest at its root, leaving the harness nowhere local to
+      read the version from
+
 - id: live-reload-limited-to-active-behavior-pack-content
   statement: |
     only a content change inside a behavior pack already in the pool and already listed at the same

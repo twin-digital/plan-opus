@@ -26,7 +26,9 @@ questions:
       does a kit pack-set entry name the built output directory the harness copies from, and under
       what field and type?
     closes: fact
-    gates: [packages-rebuild-and-the-harness-watches-built-output]
+    gates:
+      - packages-rebuild-and-the-harness-watches-built-output
+      - activation-version-read-from-the-built-manifest
   - id: kit-build-invocation-in-watch-mode
     question: >-
       does the kit offer a way to run a package's build in watch mode, or does the harness spawn
@@ -39,30 +41,6 @@ questions:
       into the running world, or is a restart the only path?
     closes: fact
     gates: [live-reload-limited-to-active-behavior-pack-content]
-  - id: pack-kind-mismatch-evidence
-    question: >-
-      does a misfiled pack fail silently in both directions? The one quoted probe output is case 4,
-      where `world_behavior_packs.json` is empty — so "Pack Stack - None" is explained by the empty
-      activation list and isolates nothing about the pool — while the other direction is unquoted
-      and case 1 shows a correctly pooled resource pack is likewise absent from the Pack Stack. A
-      narrowed fact stating only what the output shows, or a controlled re-run, would close it.
-    closes: fact
-    gates: [both-pack-kinds-are-routed-by-declared-kind]
-  - id: where-the-harness-reads-the-activation-version
-    question: >-
-      where does the harness read the three-number version it writes into an activation list? The
-      kit reports manifest-declared identity from a clean checkout, but its requirement continues
-      that the version present in a server pool is not claimed before a build, and no component here
-      reads a built manifest. Closed by a corrected fact, or by settling where that version is read.
-    closes: fact
-    gates: [live-reload-limited-to-active-behavior-pack-content]
-  - id: compose-cp-corroborating-artifacts
-    question: >-
-      which in-repo probes corroborate that `docker compose cp` needs no mount? The fact's source
-      names all of this design's artifacts, but compose-watch-probes issues no `cp` and
-      env-file-resolution needs no daemon; only activation-list-probe and the area-scope
-      pack-layout probe deploy that way.
-    closes: fact
 ```
 
 ## The server the harness runs
@@ -118,12 +96,16 @@ because the activation list is keyed on exactly that identity.
 Desired state is therefore two things per kind: the pool contents, and the world's activation list
 for that kind. An activation entry is the manifest header's uuid and its three-number version, both
 of which must match the pack sitting in the pool — a module uuid or a stale version loads nothing
-and reports nothing [[f:bedrock-activation-entry-is-header-uuid-and-version]]; which artifact the
-harness reads that version out of is open above. Kind is what routes a pack to its pool and its
-list, and the server reports nothing when a pack is misfiled
-[[f:pack-kind-mismatch-fails-silently-at-the-server]] — the argument for routing on the kit-reported
-kind rather than on anything inferred at deploy time, though how far the probe output carries that
-claim is itself open above. Behavior packs are the required half and resource packs the optional one
+and reports nothing [[f:bedrock-activation-entry-is-header-uuid-and-version]]. The pack set carries
+the identity but not that version, the kit declining to claim a pool version before a build
+[[f:dev-kit-pack-set-entry-names-package-kind-source-and-identity]], so the harness reads it from the
+manifest in the pack's built output — the same bytes the copy puts in the pool, which is what the
+match is against [[d:activation-version-read-from-the-built-manifest]]. Kind is what routes a pack to
+its pool and its list, and nothing at the server will catch a misrouted one: the load output names
+the behavior packs that loaded, says nothing about a pack that did not, and reads no directory name
+as a declaration of kind [[f:server-load-output-reports-only-activated-behavior-packs]] — the
+argument for routing on the kit-reported kind rather than on anything inferred at deploy time.
+Behavior packs are the required half and resource packs the optional one
 [[r:behavior-packs-required-other-content-optional]]; carrying both costs one more pool and one more
 list once kind is already a routing key [[d:both-pack-kinds-are-routed-by-declared-kind]].
 
@@ -192,7 +174,7 @@ components:
     responsibility: import the kit, take the pack set it returns, and resolve the selection flags and named profiles against it
     excludes: discovering or validating packs, which the kit performs
   - id: desired-state
-    responsibility: map the selected packs to pool contents and per-kind activation-list entries
+    responsibility: map the selected packs to pool contents and per-kind activation-list entries, reading each pack's built manifest header for the version its entry carries
     excludes: reading or writing anything on the server
     after: [pack-selection, server-layout]
   - id: server-state-reader
