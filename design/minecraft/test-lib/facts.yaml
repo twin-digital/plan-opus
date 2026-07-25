@@ -53,6 +53,13 @@
     prefixed ids are both accepted by `addEffect`, `getEffect`, `spawnEntity`, and
     `getComponent`; `Entity.triggerEvent` rejects the bare form and requires the prefix. The
     canonical (engine-reported) form is the prefixed one on every surface tried.
+
+    The API reference states the opposite for `triggerEvent` — "If a namespace is not specified,
+    minecraft: is assumed" — and the observation overrides it. The probe ran matched pairs on one
+    sheep: the bare id threw while its `minecraft:`-prefixed twin fired the same event
+    successfully, and the error echoed the bare string back rather than a prefixed one, so the
+    engine looked up the literal argument without assuming a namespace. The reference carries
+    that sentence for `getComponent` as well, where it does hold.
   backing: tested
   sources:
     - description: |
@@ -67,6 +74,10 @@
       where: Methods — getComponent, componentId parameter
       quote: |
         If no namespace prefix is specified, 'minecraft:' is assumed.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/entity
+      where: Methods — triggerEvent, eventName parameter — contradicted by the observation above
+      quote: |
+        Name of the entity type event to trigger. If a namespace is not specified, minecraft: is assumed.
     - description: |
         EntityComponentTypeMap in index.d.ts 2.8.0 carries every component id in both bare and
         prefixed form (136 keys = 68 components x 2). Prefixed is canonical: the
