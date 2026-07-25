@@ -25,11 +25,27 @@
     so a test process cannot import the real class; only its declared shape is available.
   backing: documented
   sources:
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/invalidentityerror
+      where: Extends, and Properties — id and type
+      quote: |
+        The error called when an entity is invalid. This can occur when accessing components on
+        a removed entity.
+
+        ### **id**
+
+        `read-only id: string;`
+
+        The id of the entity that is now invalid.
+
+        ### **type**
+
+        `read-only type: string;`
+
+        The type of the entity that is now invalid.
     - description: |
-        @minecraft/server 2.8.0 index.d.ts declares `export class InvalidEntityError extends
-        Error` with a private constructor and readonly `id` and `type` members, each annotated
-        as belonging to "the entity that is now invalid". Runtime absence follows from
-        [[f:server-package-ships-types-only]].
+        Runtime absence follows from [[f:server-package-ships-types-only]]: the class is declared
+        in @minecraft/server 2.8.0's index.d.ts, which the package ships with no importable
+        runtime, so a test process has the declared shape and not the class.
 
 - id: namespace-prefix-is-optional
   claim: |
@@ -62,7 +78,8 @@
     The finite id sets are computable from `@minecraft/server`'s own types rather than
     transcribed: `keyof EntityComponentTypeMap` yields every component id, `` `${EntityComponentTypes}` ``
     the canonical prefixed ids, and a conditional mapping over the type map the attribute-shaped
-    subset. The derivation tracks version bumps for free.
+    subset. On 2.8.0 that is 68 component classes, each id in a bare and a prefixed form, of
+    which 7 are attribute-shaped. The derivation tracks version bumps for free.
   backing: tested
   sources:
     - description: |
@@ -72,7 +89,8 @@
         EntityComponentTypeMap and EntityComponentTypes, with three `@ts-expect-error` negative
         probes — a non-attribute id and a typo rejected by the derived unions, and a bare id
         rejected in canonical position. An unused expect-error directive fails the build, so all
-        three probes genuinely error.
+        three probes genuinely error. Output in component-ids-probe.tsc.out.txt: exit 0 with no
+        diagnostics, both for the file alone and for the whole-project run.
     - description: |
         design/minecraft/test-lib/artifacts/type-probes/component-ids-probe.mjs, output in
         component-ids-probe.out.txt, prints the same sets from the declarations: 136
@@ -149,6 +167,12 @@
         artifacts/mctest-engine-probe-results.md, `addeffect-success-return` lines: add and
         update both report `ok value=object(Effect)`; the returned object reads
         typeId=minecraft:speed duration=200 amplifier=1.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/entity
+      where: Methods — addEffect, signature and Returns
+      quote: |
+        `addEffect(effectType: EffectType | string, duration: number, options?: EntityEffectOptions): Effect | undefined`
+
+        **Returns**[*Effect*](effect) | *undefined* - Returns nothing if the effect was added or updated successfully. This can throw an error if the duration or amplifier are outside of the valid ranges, or if the effect does not exist.
 
 - id: effect-members-throw-plain-error
   claim: |

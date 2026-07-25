@@ -30,13 +30,6 @@ questions:
       the probe observation stand against the documentation, and what reconciles them?
     closes: fact
     gates: [ids-normalized-at-entry]
-  - id: invalid-entity-error-shape-unsourced
-    question: >-
-      `invalid-entity-error-shape` is backed `documented` but its only source is a description
-      paraphrasing the declarations — no url, no verbatim quote — which the evidence bar does not
-      admit; what primary source states the error's `id` and `type` properties?
-    closes: fact
-    gates: [library-owned-error-classes]
   - id: rewritten-facts-lack-a-supersession-record
     question: >-
       `namespace-prefix-is-optional` and `effect-members-throw-plain-error` had their meaning
@@ -45,27 +38,6 @@ questions:
       claim that was falsified and the one that replaced it?
     closes: fact
     gates: [ids-normalized-at-entry, invalidation-propagates-to-derived-objects]
-  - id: addeffect-tsdoc-quote-unsourced
-    question: >-
-      `addeffect-returns-the-effect` reproduces the declarations' TSDoc in its claim — "Returns
-      nothing if the effect was added or updated successfully" — but no source carries that text;
-      which source states it?
-    closes: fact
-  - id: component-ids-probe-output-uncommitted
-    question: >-
-      `component-ids-are-derivable-from-types` rests on a clean strict compile of
-      `component-ids-probe.ts`, but no output for that compile is committed beside the probe as
-      the evidence bar requires for a test that produces one; can the run be captured?
-    closes: fact
-    gates: [id-unions-derived-from-declarations]
-  - id: component-counts-absent-from-the-claim
-    question: >-
-      the count of entity component classes and of the attribute-shaped subset appears in
-      `component-ids-are-derivable-from-types`'s source text but not in its claim, so the spec
-      describes both surfaces qualitatively where a builder would rather have the numbers; should
-      the claim carry them?
-    closes: fact
-    gates: [built-surface-v1]
 ```
 
 ## What the library substitutes, and how it types itself
@@ -112,10 +84,10 @@ other after-event signal, and all 13
 before-event signals, stay silent rather than throwing, since a pack subscribing to a signal it
 never triggers is doing nothing wrong, and the fake models no before-phase to cancel from.
 
-Every entity component class the type map names [[f:component-ids-are-derivable-from-types]] can be
-attached to an entity and answer its identity members, so the control plane can shape any component
-set a test needs; only the attribute-shaped subset behaves beyond that, and a non-attribute
-component's other members throw not-implemented.
+All 68 entity component classes the type map names [[f:component-ids-are-derivable-from-types]] can
+be attached to an entity and answer their identity members, so the control plane can shape any
+component set a test needs; only the 7 attribute-shaped ones behave beyond that, and a
+non-attribute component's other members throw not-implemented.
 
 What that surface leaves out follows from the same reading: every behaviour the requirements name
 is a world's, an entity's, a component's, an effect's, or an event's
