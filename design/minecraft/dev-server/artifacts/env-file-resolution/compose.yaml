@@ -1,0 +1,19 @@
+# Probe: where does compose read its default .env from when invoked with -f, and what does
+# --project-directory rebase? SERVER_NAME shows which .env was loaded; the relative env_file,
+# volume source, and watch path show what a changed project directory moves.
+name: probe-env-file
+services:
+  bedrock:
+    image: alpine:3
+    command: sleep 1
+    env_file:
+      - ./svc-env/extra.env
+    environment:
+      SERVER_NAME: "${MINECRAFT_SERVER_NAME:-dev-behavior-packs}"
+    volumes:
+      - ./svc-env:/mounted
+    develop:
+      watch:
+        - path: ./svc-env
+          target: /watched
+          action: sync

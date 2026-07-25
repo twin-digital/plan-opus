@@ -1,0 +1,33 @@
+=== environment
+Docker Compose version v5.2.0
+server 29.5.3
+DOCKER_HOST=ssh://prod-development-docker
+
+=== directory path that exists when the watcher attaches (sync+exec)
+  watch rules: - path: ./data target: /synced action: sync+exec exec: command: touch /tmp/exec-ran
+  watcher output: ""
+  find /synced -> /synced
+/synced/two.txt
+/synced/one.txt
+  find /tmp/exec-ran -> /tmp/exec-ran
+
+=== directory path created AFTER the watcher attaches
+  watch rules: - path: ./late target: /late action: sync
+  watcher output: ""
+  find /late -> /late
+/late/appeared.txt
+/late/again.txt
+
+=== glob path and symlinked directory
+  watch rules: - path: ./packs-real/*/dist target: /globbed action: sync - path: ./links target: /linked action: sync
+  watcher output: ""
+  find /globbed -> find: /globbed: No such file or directory
+  find /linked -> find: /linked: No such file or directory
+
+=== single-file path (sync+exec)
+  watch rules: - path: ./gen.json target: /tmp/gen.json action: sync+exec exec: command: touch /tmp/exec2-ran
+  watcher output: ""
+  find /tmp/gen.json -> /tmp/gen.json
+  find /tmp/exec2-ran -> /tmp/exec2-ran
+
+=== done

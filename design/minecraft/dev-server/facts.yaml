@@ -1,0 +1,350 @@
+# Facts scoped to the minecraft/dev-server design — Compose and Bedrock mechanics that only
+# the server harness rests on. All are PROPOSED by an agent and await owner review.
+#
+# pack-kind-mismatch-fails-silently-at-the-server rests on the pool-layout probe under
+# design/minecraft/artifacts/, which sits at area scope rather than in either design because
+# minecraft/dev-kit has a fact resting on the same probe. What the kit hands this design — pack
+# identity and kind, already resolved — is the kit's published interface and is not restated here.
+#
+# Where a tested fact rests on a test this file's author did not run, the source says so.
+
+- id: compose-watch-actions-and-versions
+  claim: |
+    Docker Compose's `develop.watch` offers the actions a live deploy needs, but the two most
+    useful gate on recent Compose versions: `sync` copies changed files into the running
+    container; `sync+exec` copies then runs a command inside the container (e.g. a reload) and
+    needs Compose 2.32.0+; `restart` and `sync+restart` (copy then restart the container) need
+    2.32.0 and 2.23.0 respectively. `develop` itself is 2.22.0+.
+  backing: documented
+  sources:
+    - url: https://docs.docker.com/reference/compose-file/develop/
+      where: opening note on the develop section
+      quote: |
+        Develop is an optional part of the Compose Specification. It is available with Docker
+        Compose version 2.22.0 and later.
+    - url: https://docs.docker.com/reference/compose-file/develop/
+      where: watch — action — sync and sync+exec
+      quote: |
+        `sync`: Compose keeps the existing service container(s) running, but synchronizes source
+        files with container content according to the `target` attribute.
+        `sync+exec`: Compose synchronizes source files with container content according to the
+        `target` attribute, and then executes a command inside the container. Available with
+        Docker Compose version 2.32.0 and later.
+    - url: https://docs.docker.com/reference/compose-file/develop/
+      where: watch — action — restart and sync+restart
+      quote: |
+        `restart`: Compose restarts the service container. Available with Docker Compose version
+        2.32.0 and later.
+        `sync+restart`: Compose synchronizes source files with container content according to the
+        `target` attribute, and then restarts the container. Available with Docker Compose version
+        2.23.0 and later.
+
+- id: compose-watch-path-constraints
+  claim: |
+    A `develop.watch` rule's `path` must name a literal path. A glob path and a symlinked
+    directory are both accepted at parse time but never sync and emit no error. A literal
+    directory path syncs whether or not it exists when the watcher attaches, and a single-file
+    path syncs too. Compose therefore cannot discover packs on its own — each pack needs a
+    literal path rule enumerated ahead of time.
+  backing: tested
+  sources:
+    - description: |
+        Ran design/minecraft/dev-server/artifacts/compose-watch-probes/run.mjs under Compose
+        v5.2.0 against Docker Engine 29.5.3 on a remote daemon (DOCKER_HOST=ssh://…, no bind
+        mount). Each of four compose projects is brought up, `docker compose watch --no-up` is
+        attached, files are written under the watched path, and the container is then inspected
+        with `find`. Captured stdout is OUTPUT.txt beside the script; NOTES.md there records the
+        case table.
+    - url: design/minecraft/dev-server/artifacts/compose-watch-probes/OUTPUT.txt
+      where: the four cases — what reached the container under each path form
+      quote: |
+        === directory path that exists when the watcher attaches (sync+exec)
+          watch rules: - path: ./data target: /synced action: sync+exec exec: command: touch /tmp/exec-ran
+          watcher output: ""
+          find /synced -> /synced
+        /synced/two.txt
+        /synced/one.txt
+          find /tmp/exec-ran -> /tmp/exec-ran
+
+        === directory path created AFTER the watcher attaches
+          watch rules: - path: ./late target: /late action: sync
+          watcher output: ""
+          find /late -> /late
+        /late/appeared.txt
+        /late/again.txt
+
+        === glob path and symlinked directory
+          watch rules: - path: ./packs-real/*/dist target: /globbed action: sync - path: ./links target: /linked action: sync
+          watcher output: ""
+          find /globbed -> find: /globbed: No such file or directory
+          find /linked -> find: /linked: No such file or directory
+
+        === single-file path (sync+exec)
+          watch rules: - path: ./gen.json target: /tmp/gen.json action: sync+exec exec: command: touch /tmp/exec2-ran
+          watcher output: ""
+          find /tmp/gen.json -> /tmp/gen.json
+          find /tmp/exec2-ran -> /tmp/exec2-ran
+
+- id: compose-cp-copies-without-bind-mounts
+  claim: |
+    `docker compose cp` transfers files between host and container over the Docker API, so it
+    works against a remote daemon with no bind mount. This makes a direct push (cp the built
+    pack into the container, then issue a reload) a viable deploy transport independent of
+    `develop.watch`.
+  backing: tested
+  sources:
+    - description: |
+        Observed in the prototype by the author of the design formerly named
+        minecraft/dev-workflow, not by this fact's author, and outside this repository — there
+        are no artifacts to promote. Built pack directories were copied into a running Bedrock
+        container with `docker compose cp <dist>/. bedrock:<pool>/<pack>` against a daemon on
+        another host (socket, no bind mount); the server subsequently reported the pack in its
+        Pack Stack and `/reload` picked up script changes. Copy succeeded with no volume or mount
+        configured. The in-repo probes at design/minecraft/dev-server/artifacts/ and
+        design/minecraft/artifacts/pack-layout/probe/ all deploy this way against a remote daemon
+        and corroborate that `compose cp` needs no mount.
+
+- id: compose-env-file-not-loaded-from-cwd
+  claim: |
+    When compose is invoked with `-f <path>`, its default `.env` is resolved from the compose
+    file's directory, not the current working directory: a `.env` beside the compose file is
+    loaded even when one also sits in the cwd, and with none beside the compose file the value
+    falls through to its default rather than reaching into the cwd. A repo-root `.env` is
+    therefore ignored unless passed explicitly. `--project-directory .` loads it but also
+    rebases every relative path in the compose file onto that directory — `env_file`, volume
+    `source`, and `develop.watch` `path` alike — while `--env-file .env` loads it with no path
+    side effect.
+  backing: tested
+  sources:
+    - description: |
+        Ran design/minecraft/dev-server/artifacts/env-file-resolution/run.mjs under Compose
+        v5.2.0. The script builds a cwd and a separate compose-file directory, each holding a
+        `.env` and a `svc-env/` that a relative `env_file`, volume source and watch path all
+        name, then reports `docker compose config` under `-f` alone, `--project-directory .` and
+        `--env-file .env`, with a `.env` in both places (part A) and in the cwd only (part B).
+        Captured stdout is OUTPUT.txt beside the script.
+    - url: design/minecraft/dev-server/artifacts/env-file-resolution/OUTPUT.txt
+      where: part A — a .env beside the compose file and in the cwd, under each of the three invocations
+      quote: |
+        --- -f alone
+          argv: docker compose --ansi never -f <work>/project/compose.yaml config   (cwd = <work>/run-from)
+                  - path: <work>/project/svc-env
+                    target: /watched
+                SERVER_NAME: beside-compose
+                WHICH_ENV_FILE: beside-compose
+                  source: <work>/project/svc-env
+                  target: /mounted
+
+        --- --project-directory .
+          argv: docker compose --ansi never --project-directory . -f <work>/project/compose.yaml config   (cwd = <work>/run-from)
+                  - path: <work>/run-from/svc-env
+                    target: /watched
+                SERVER_NAME: from-cwd
+                WHICH_ENV_FILE: from-cwd
+                  source: <work>/run-from/svc-env
+                  target: /mounted
+
+        --- --env-file .env
+          argv: docker compose --ansi never --env-file .env -f <work>/project/compose.yaml config   (cwd = <work>/run-from)
+                  - path: <work>/project/svc-env
+                    target: /watched
+                SERVER_NAME: from-cwd
+                WHICH_ENV_FILE: beside-compose
+                  source: <work>/project/svc-env
+                  target: /mounted
+    - url: design/minecraft/dev-server/artifacts/env-file-resolution/OUTPUT.txt
+      where: part B — no .env beside the compose file, under -f alone
+      quote: |
+        === B. a .env sits only in the cwd (none beside the compose file)
+
+        --- -f alone
+          argv: docker compose --ansi never -f <work>/project/compose.yaml config   (cwd = <work>/run-from)
+                  - path: <work>/project/svc-env
+                    target: /watched
+                SERVER_NAME: dev-behavior-packs
+
+- id: bedrock-activation-list-read-only-at-world-load
+  claim: |
+    A behavior pack copied into a Bedrock server's `development_behavior_packs` pool is not
+    applied until it is listed in the world's `world_behavior_packs.json`, and that list is read
+    only when the world loads. Changing the activation list therefore requires a server restart to
+    take effect; the list must be installed into the specific world directory
+    (`/data/worlds/<level-name>`).
+  backing: tested
+  sources:
+    - description: |
+        design/minecraft/dev-server/artifacts/activation-list-probe/run.mjs restarts the server
+        between every activation-list change and reads the Pack Stack line the fresh world load
+        emits, which is what makes the list's effect observable at all; captured stdout is
+        OUTPUT.txt beside it. That probe was run by the author of the design formerly named
+        minecraft/dev-workflow, not by this fact's author. The half the probe does not cover —
+        that editing the list without a restart has no in-game effect — was observed in the same
+        author's prototype, outside this repository, where packs synced into the pool but absent
+        from the world list logged "Pack Stack - None" at load and only appeared after the list
+        was written and the container restarted.
+    - url: design/minecraft/dev-server/artifacts/activation-list-probe/OUTPUT.txt
+      where: pool-only versus listed — the same pack, before and after the world list names it
+      quote: |
+        === pack copied into the pool, world not told about it
+        /data/development_behavior_packs/probe-pack/functions/probe.mcfunction
+        /data/development_behavior_packs/probe-pack/manifest.json
+        [2026-07-24 21:30:04:703 INFO] Pack Stack - None
+
+        === activation list with header uuid and matching version
+          wrote /data/worlds/dev/world_behavior_packs.json = [{"pack_id":"b1a7d0c2-3f4e-4a5b-8c9d-0e1f2a3b4c5d","version":[1,0,0]}]
+        [2026-07-24 21:30:08:734 INFO] Pack Stack - [00] activation probe pack (id: b1a7d0c2-3f4e-4a5b-8c9d-0e1f2a3b4c5d, version: 1.0.0) @ development_behavior_packs/probe-pack
+
+- id: bedrock-activation-entry-is-header-uuid-and-version
+  claim: |
+    A world's activation list, `<world>/world_behavior_packs.json`, is a JSON array of entries
+    with exactly two fields: `pack_id`, the uuid from the pack manifest's *header* — a module
+    uuid does not work — and `version`, the header's three-number version array, which must
+    match the pack in the pool. A wrong uuid or a mismatched version loads nothing and reports
+    no error beyond "Pack Stack - None". The server does not create the file for a new world and
+    does not rewrite one it is given.
+  backing: tested
+  sources:
+    - description: |
+        design/minecraft/dev-server/artifacts/activation-list-probe/run.mjs was run against a
+        remote daemon (DOCKER_HOST=ssh://…, no bind mount) under Compose v5.2.0 by the author of
+        the design formerly named minecraft/dev-workflow, not by this fact's author; captured
+        stdout is OUTPUT.txt beside it and the probe pack is pack/manifest.json, whose header uuid
+        is b1a7d0c2-3f4e-4a5b-8c9d-0e1f2a3b4c5d and whose data module uuid is
+        c2b8e1d3-4a5f-4b6c-9d0e-1f2a3b4c5d6e.
+    - url: design/minecraft/dev-server/artifacts/activation-list-probe/OUTPUT.txt
+      where: the module uuid and the mismatched version, each in place of the working entry
+      quote: |
+        === activation list with the module uuid instead
+          wrote /data/worlds/dev/world_behavior_packs.json = [{"pack_id":"c2b8e1d3-4a5f-4b6c-9d0e-1f2a3b4c5d6e","version":[1,0,0]}]
+        [2026-07-24 21:30:13:721 INFO] Pack Stack - None
+
+        === activation list with header uuid but a version the pack does not have
+          wrote /data/worlds/dev/world_behavior_packs.json = [{"pack_id":"b1a7d0c2-3f4e-4a5b-8c9d-0e1f2a3b4c5d","version":[9,9,9]}]
+        [2026-07-24 21:30:18:066 INFO] Pack Stack - None
+    - url: design/minecraft/dev-server/artifacts/activation-list-probe/OUTPUT.txt
+      where: a fresh world directory, before any deploy — the server creates no activation list
+      quote: |
+        === world directory before any deploy
+        db
+        level.dat
+        level.dat_old
+        levelname.txt
+    - url: design/minecraft/dev-server/artifacts/activation-list-probe/OUTPUT.txt
+      where: the installed file read back off the server after a world load
+      quote: |
+        file as the server left it:
+        [
+          {
+            "pack_id": "b1a7d0c2-3f4e-4a5b-8c9d-0e1f2a3b4c5d",
+            "version": [
+              1,
+              0,
+              0
+            ]
+          }
+        ]
+
+- id: bedrock-reload-updates-scripts-not-pool-or-manifest
+  claim: |
+    The in-game `/reload` command reloads a behavior pack's function and script files in the
+    running world: a rebuilt script bundle pushed into the pool and then reloaded is live within
+    about a second, without disconnecting a connected client. It does not bring in a pack newly
+    added to the pool. Microsoft documents the wider picture by content type — scripts hot-reload,
+    block, entity and item definitions only partially, and textures, models and sounds not at all
+    — and documents a manifest change as needing the world exited and re-entered rather than
+    reloaded. This split is why a source edit can deploy in ~1s while identity or activation
+    changes cost a restart.
+  backing: tested
+  sources:
+    - description: |
+        Observed across many prototype iterations by the author of the design formerly named
+        minecraft/dev-workflow, not by this fact's author, and outside this repository — there
+        are no artifacts to promote. After `docker compose cp` of a rebuilt script bundle,
+        `send-command reload` produced "Function and script files have been reloaded" and the new
+        behavior was live within ~1s without disconnecting a connected client; whereas adding a
+        pack, or changing the activation list, only took effect after a container restart.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/commands/commands/reload
+      where: page lead sentence, above the Permission Level table
+      quote: |
+        Reloads all function and script files from all behavior packs.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/addondevelopmentworkflow
+      where: Step 3 "Build it (and test it)" — "Hot reloading", the paragraph and the content-type table
+      quote: |
+        You don't necessarily have to stop and restart Minecraft every time you make a change in your add-on. Some kinds of content support "hot reloading," which lets you use the `/reload` command within the game to reload them. For content types below that support (or partially support) hot reloading, use `/reload` when you make changes; for other kinds of content, like textures and models, you'll need to exit your world completely and restart it to see changes.
+
+        | Content Type       | Hot Reload |
+        |--------------------|------------|
+        | Block definitions  | Partial    |
+        | Entity definitions | Partial    |
+        | Item definitions   | Partial    |
+        | Scripts            | Yes        |
+        | Textures           | No         |
+        | Models             | No         |
+        | Sounds             | No         |
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/scripting/developer-tools
+      where: Troubleshooting common issues — "Script changes not taking effect", list items 1 and 2
+      quote: |
+        1. Run `/reload` to reload scripts without leaving the world.
+        2. Exit and re-enter the world for manifest changes.
+
+- id: bedrock-image-exposes-a-noninteractive-console-helper
+  claim: |
+    The Bedrock server image used by the prototype (itzg/minecraft-bedrock-server) ships a
+    `send-command` helper that writes a command to the running server's console. It is driven
+    non-interactively from `docker compose exec` — no attached TTY, no in-game client — and so
+    works against a remote daemon, since exec travels over the Docker API like any other call.
+  backing: tested
+  sources:
+    - description: |
+        Observed in the prototype by the author of the design formerly named
+        minecraft/dev-workflow, not by this fact's author, and outside this repository — there
+        are no artifacts to promote. It is the same run recorded by
+        bedrock-reload-updates-scripts-not-pool-or-manifest and
+        compose-cp-copies-without-bind-mounts, whose daemon ran on another host: `send-command
+        reload`, executed inside the running container with no interactive session attached,
+        produced "Function and script files have been reloaded" on the server console.
+
+- id: bedrock-server-hosts-one-world
+  claim: |
+    A Bedrock dedicated server hosts a single active world per instance, selected by the
+    `level-name` server property; running multiple worlds means running multiple server
+    instances. The deploy target for activation is therefore one unambiguous world directory.
+  backing: tested
+  sources:
+    - description: |
+        Observed in the prototype by the author of the design formerly named
+        minecraft/dev-workflow, not by this fact's author, and outside this repository — there
+        are no artifacts to promote. The itzg/minecraft-bedrock-server container logged a single
+        active world at boot — "[INFO] Level Name: dev" and "Opening level 'worlds/dev/db'" — and
+        the world files (including world_behavior_packs.json) lived under
+        /data/worlds/<level-name>. One instance served one world; no configuration produced two
+        active worlds in one container. The in-repo probes at
+        design/minecraft/dev-server/artifacts/activation-list-probe/ and
+        design/minecraft/artifacts/pack-layout/probe/ both address exactly one world directory,
+        /data/worlds/dev, and corroborate the deploy target being unambiguous.
+
+- id: pack-kind-mismatch-fails-silently-at-the-server
+  claim: |
+    A pack deployed into the pool for the other kind does not load, in either direction, and the
+    server reports nothing about it — a behavior pack in the resource pool leaves the world with
+    "Pack Stack - None", and a resource pack in the behavior pool is simply absent from the stack.
+    A pack's kind must therefore be right before anything is copied, and a wrong kind is not
+    observable from the server's output.
+  backing: tested
+  sources:
+    - description: |
+        The pool-layout probe at design/minecraft/artifacts/pack-layout/probe/ drives a real
+        itzg/minecraft-bedrock-server container: run.mjs deploys the probe packs (bp/, rp/, each a
+        manifest and content) into the server's pools via the compose project in compose.yaml,
+        writes the world activation lists, and captures the server's load output. Case 2 places the
+        resource pack in the behavior pool and lists it as a behavior pack; case 4 places the
+        behavior pack in the resource pool and lists it as a resource pack. This probe was run by
+        the author of the design formerly named minecraft/dev-workflow, not by this fact's author.
+    - url: design/minecraft/artifacts/pack-layout/probe/OUTPUT.txt
+      where: case 4 — the behavior pack placed in the resource pool and listed as a resource pack
+      quote: |
+        === case 4: the behavior pack placed in the resource pool and listed as a resource pack
+        (does the pool decide a pack's kind, or does its manifest?)
+          world_behavior_packs.json = []
+          world_resource_packs.json = [{"pack_id":"f5ebc4c3-7d8a-4e9f-0a1b-2c3d4e5f6a7b","version":[1,0,0]},{"pack_id":"d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f","version":[1,0,0]}]
+        [2026-07-24 23:49:15:522 INFO] Pack Stack - None
