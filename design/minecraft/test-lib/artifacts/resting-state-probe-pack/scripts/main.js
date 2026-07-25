@@ -365,6 +365,45 @@ const restingProbes = {
 // Group B — each probe closes a gap between an existing fact's claim and the observation it
 // rests on. The targeted fact is named above each probe.
 
+// Arguments for the Entity members that take them, used by `invalidation-guard-reflected`.
+// Function.length reads 0 for every engine binding, so the partition cannot be derived at
+// runtime. Values are chosen to be accepted on a valid entity, so that a throw on an invalid one
+// is the validity guard rather than argument validation.
+const ARGS = {
+  addEffect: ['minecraft:speed', 20],
+  addItem: [undefined],
+  addTag: ['mctest_tag'],
+  applyDamage: [1],
+  applyImpulse: [{ x: 0, y: 0.1, z: 0 }],
+  applyKnockback: [{ x: 0, z: 0 }, 0.1],
+  extinguishFire: [true],
+  getAllBlocksStandingOn: [undefined],
+  getBlockFromViewDirection: [undefined],
+  getBlockStandingOn: [undefined],
+  getComponent: ['minecraft:health'],
+  getDynamicProperty: ['mctest_prop'],
+  getEffect: ['minecraft:speed'],
+  getEntitiesFromViewDirection: [undefined],
+  getProperty: ['mctest_prop'],
+  hasComponent: ['minecraft:health'],
+  hasTag: ['mctest_tag'],
+  lookAt: [{ x: 0, y: 64, z: 0 }],
+  matches: [{ type: 'minecraft:sheep' }],
+  playAnimation: ['animation.humanoid.damage'],
+  removeEffect: ['minecraft:speed'],
+  removeTag: ['mctest_tag'],
+  resetProperty: ['mctest_prop'],
+  runCommand: ['say mctest'],
+  setDynamicProperties: [{ mctest_prop: 1 }],
+  setDynamicProperty: ['mctest_prop', 1],
+  setOnFire: [1, true],
+  setProperty: ['mctest_prop', 1],
+  setRotation: [{ x: 0, y: 0 }],
+  teleport: [{ x: 0, y: 64, z: 0 }],
+  triggerEvent: ['minecraft:entity_born'],
+  tryTeleport: [{ x: 0, y: 64, z: 0 }],
+}
+
 const gapProbes = {
   // fact: attribute-guard-classes-observed — claims "the resets" but only resetToDefaultValue ran.
   'attribute-reset-guards': async (ctx) => {
@@ -421,6 +460,10 @@ const gapProbes = {
 
   // fact: invalidation-guard-list-complete — the member list was hand-written and miscounted.
   // Enumerate the Entity prototype chain instead and partition it at runtime.
+  //
+  // Arguments for the members that take them, chosen to be accepted on a valid entity so that a
+  // throw on an invalid one is the validity guard and not argument validation. Extend this when
+  // a run reports an untabulated method or a TypeError.
   'invalidation-guard-reflected': async (ctx) => {
     const sheep = ctx.spawn()
     const members = chainMembers(sheep)
@@ -430,7 +473,10 @@ const gapProbes = {
     for (const name of members) {
       const probe = attempt(() => sheep[name])
       const value = probe.ok ? probe.value : undefined
-      if (typeof value === 'function') (value.length === 0 ? zeroArgMethods : argMethods).push(name)
+      // Function.length is 0 for every engine binding, so declared arity is not readable at
+      // runtime; ARGS is the hand-maintained partition. A method missing from it is called bare
+      // and reported as untabulated rather than counted as zero-arg.
+      if (typeof value === 'function') (name in ARGS ? argMethods : zeroArgMethods).push(name)
       else properties.push(name)
     }
     emit(
@@ -450,10 +496,14 @@ const gapProbes = {
     for (const name of zeroArgMethods) {
       emit(`invalidation-guard-reflected :: method ${name}() ${show(attempt(() => sheep[name]()))}`)
     }
-    // Called with no arguments: an argument error rather than InvalidEntityError means the
-    // engine validates arguments before the validity guard.
+    // Called with arguments the engine accepts, so an InvalidEntityError here is the guard
+    // firing rather than an arity complaint. A TypeError still means ARGS has the shape wrong.
     for (const name of argMethods) {
-      emit(`invalidation-guard-reflected :: argMethod ${name}(<no args>) ${show(attempt(() => sheep[name]()))}`)
+      const args = ARGS[name]
+      emit(
+        `invalidation-guard-reflected :: argMethod ${name}(${args.map((a) => JSON.stringify(a)).join(', ')}) ` +
+          `${show(attempt(() => sheep[name](...args)))}`,
+      )
     }
     emit(`invalidation-guard-reflected :: readable-properties-after-remove=${readable}`)
   },

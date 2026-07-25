@@ -28,6 +28,10 @@
     - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/invalidentityerror
       where: Extends, and Properties — id and type
       quote: |
+        ## Extends
+
+        - *Error*
+
         The error called when an entity is invalid. This can occur when accessing components on
         a removed entity.
 
@@ -52,7 +56,8 @@
     Whether the `minecraft:` prefix may be omitted is per-surface, not a uniform rule. Bare and
     prefixed ids are both accepted by `addEffect`, `getEffect`, `spawnEntity`, and
     `getComponent`; `Entity.triggerEvent` rejects the bare form and requires the prefix. The
-    canonical (engine-reported) form is the prefixed one on every surface tried.
+    canonical (engine-reported) form is the prefixed one on every surface that reports one —
+    `triggerEvent` returns `undefined` and reports no id at all.
 
     The API reference states the opposite for `triggerEvent` — "If a namespace is not specified,
     minecraft: is assumed" — and the observation overrides it. The probe ran matched pairs on one
@@ -242,6 +247,31 @@
         [hurt(damage=1.045823097229004,cause=projectile), health(7->5.954176902770996)].
         Single run — the adjusted damage value itself is nondeterministic.
 
+- id: entity-remove-after-event-shape
+  claim: |
+    `EntityRemoveAfterEvent` — the payload `world.afterEvents.entityRemove` hands a subscriber —
+    carries exactly two readonly string properties, named `removedEntityId` and `typeId`. It
+    carries no entity reference, which is what makes the payload readable after the entity it
+    describes is gone. The engine raises the event for unloading as well as for scripted removal.
+  backing: documented
+  sources:
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/entityremoveafterevent
+      where: Class summary, and Properties — removedEntityId and typeId
+      quote: |
+        Data for an event that happens when an entity is removed from the world (for example, the entity is unloaded because it is not close to players.)
+
+        ### **removedEntityId**
+
+        `read-only removedEntityId: string;`
+
+        Id of the entity that was removed.
+
+        ### **typeId**
+
+        `read-only typeId: string;`
+
+        Identifier of the type of the entity removed - for example, 'minecraft:skeleton'.
+
 - id: kill-and-remove-cascades
   claim: |
     `kill()` fires the full damage cascade — `entityHurt` with damage equal to current
@@ -277,10 +307,11 @@
   backing: tested
   sources:
     - description: |
-        artifacts/mctest-engine-probe-results.md, `death-invalidation-timing` lines with the
-        tick-offset mapping in its "Reading the log" section: inside-die-handler isValid true
-        and hasTag answering; after-wait samples at ~2/7/27/67 ticks reading
-        true/true/false/false.
+        artifacts/mctest-engine-probe-results.md, `death-invalidation-timing` lines:
+        inside-die-handler isValid true and hasTag answering, then four after-wait samples
+        reading true/true/false/false. The tick offsets come from the probe itself —
+        artifacts/engine-probe-pack/scripts/main.js waits 2 ticks after `kill()` and then loops
+        delays [0, 5, 20, 40], so the four samples sit at 2, 7, 27 and 67 ticks.
 
 - id: component-health-writes-cascade
   claim: |
@@ -398,8 +429,10 @@
   backing: documented
   sources:
     - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/entity
-      where: Properties — id
+      where: Properties — id, declaration line and description
       quote: |
+        `read-only id: string;`
+
         Unique identifier of the entity. This identifier is intended to be consistent across
         loads of a world instance. No meaning should be inferred from the value and structure
         of this unique identifier - do not parse or interpret it. This property is accessible
@@ -413,11 +446,17 @@
 - id: effect-replacement-rule-observed
   claim: |
     addEffect on an already-present effect replaces it iff the re-add has a higher amplifier,
-    or the same amplifier and a duration at least as long as the one originally applied; a
-    lower amplifier never replaces regardless of duration, and the same amplifier with a
-    shorter duration does not replace. The rule is amplifier-first with a duration tiebreak —
-    not unconditional. At equal duration specifically, replacement takes at a higher or equal
-    amplifier and not at a lower one.
+    or the same amplifier and a longer duration; a lower amplifier never replaces regardless of
+    duration, and the same amplifier with a shorter duration does not replace. The rule is
+    amplifier-first with a duration tiebreak — not unconditional. At equal duration
+    specifically, replacement takes at a higher or equal amplifier and not at a lower one.
+
+    An effect's duration decays with the tick while it is applied: a base applied at 300 read
+    back 290 once ticks had passed, which is how the probe told a surviving base from a fresh
+    replacement. Whether the duration comparison is against the duration originally applied or
+    the duration remaining is not discriminated by these runs — the one same-amplifier sample
+    re-applied 300 over a base that had decayed to 290, which satisfies both readings, and no
+    sample lies between.
   backing: tested
   sources:
     - description: |
@@ -452,9 +491,11 @@
         enumerated=62 properties=16 zeroArgMethods=46 argMethods=0, then
         readable-properties-after-remove=4 (id="-68719476721", isValid=false,
         scoreboardIdentity=undefined, typeId="minecraft:sheep"); the other 12 properties
-        threw name=InvalidEntityError instanceofInvalidEntityError=true (the sweep writes the
-        property it enumerates, so its nameTag line reports a set, not a get; the read is
-        covered by the engine-probe source below). Of the 46 methods,
+        threw name=InvalidEntityError instanceofInvalidEntityError=true (the sweep reads each
+        property — `attempt(() => sheep[name])` — and `nameTag` is reported as
+        `Failed to set property 'nameTag'`, which is the engine's wording on a read of that
+        member rather than evidence of a write; the engine-probe sweep, also a read, reports it
+        identically). Of the 46 methods,
         those reaching the guard (clearDynamicProperties, clearVelocity, extinguishFire,
         getAABB, getAllBlocksStandingOn, getBlockFromViewDirection, getBlockStandingOn,
         getComponents, getDynamicPropertyIds, getDynamicPropertyTotalByteCount, getEffects,
