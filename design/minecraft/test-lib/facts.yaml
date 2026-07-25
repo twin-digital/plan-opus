@@ -446,13 +446,17 @@
         `minecraft:item` is not spawnable via spawnEntity (threw InvalidArgumentError), so its
         component count is unanswered.
 
-- id: fresh-entity-resting-field-values
+- id: fresh-entity-spawn-frame-field-values
   claim: |
     A freshly spawned entity's own fields are populated before any test writes to it, and the
-    values are not all empty: `nameTag` is the empty string (length 0), `localizationKey` is
-    populated (`entity.sheep.name` on a sheep), `location` and `dimension.id` are real,
-    `getRotation()` and `getVelocity()` read all-zero vectors, `getTags()` is empty, and
-    `isValid` is true.
+    values are not all empty: on a never-written sheep `nameTag` is the empty string (length 0),
+    `localizationKey` is populated (`entity.sheep.name`), `location` and `dimension.id` are
+    real, `getTags()` is empty, `isValid` is true, and `getRotation()` and `getVelocity()` read
+    all-zero vectors. The zeroed rotation and velocity are a spawn-frame reading and hold for
+    most but not all entity types — `minecraft:xp_orb` spawns with neither
+    [[f:spawn-frame-kinematics-zero-except-xp-orb]] — and they are not a resting value either,
+    since an AI-driven mob may be moving a few ticks later
+    [[f:post-spawn-mob-motion-is-per-run-not-per-type]].
   backing: tested
   sources:
     - description: |
@@ -461,6 +465,132 @@
         "entity.sheep.name"; location {x:38.17…, y:62.67…, z:22.78…}; dimension.id
         "minecraft:overworld"; getRotation() {x:0,y:0}; getVelocity() {x:0,y:0,z:0};
         getTags() []; isValid true; typeId "minecraft:sheep".
+    - description: |
+        artifacts/mctest-resting-state-probe-results.md, `resting-kinematics-isolated`
+        spawn-frame lines, four runs: minecraft:sheep reads getRotation() {x:0,y:0} and
+        getVelocity() {x:0,y:0,z:0} in 4/4, so the sheep reading above reproduces; the same
+        section's minecraft:xp_orb lines are what bound its generality.
+
+# Facts from the `resting-kinematics-isolated` runs (pack 0.3.0, Bedrock 1.26.31.1,
+# @minecraft/server 2.8.0), each type spawned alone 4 blocks clear of the source and disposed
+# before the next, sampled on the spawn frame and again at 2 and 22 ticks; four consecutive runs
+# from a fixed source at (38.5, 81, 22.5). Raw logs and per-run tables in
+# artifacts/mctest-resting-state-probe-results.md. The contended `resting-kinematics` runs that
+# preceded them spawned all eight types at one point; that file retracts two of their readings
+# (an arrow that self-invalidated and a +0.455 upward velocity on sheep and cow), both artifacts
+# of overlap resolution, and neither is recorded here.
+
+- id: spawn-frame-kinematics-zero-except-xp-orb
+  claim: |
+    On its own spawn frame an entity reads `getRotation() = {x:0, y:0}` and
+    `getVelocity() = {x:0, y:0, z:0}` for seven of the eight types sampled — `sheep`, `cow`,
+    `chicken`, `zombie`, `armor_stand`, `arrow`, `boat` — bit-identical in 4/4 runs.
+    `minecraft:xp_orb` is the exception: it spawns with a randomized y-rotation and a nonzero
+    randomized velocity, drawn afresh per spawn (four runs, four distinct values, no repeats),
+    then decays to near-rest by 22 ticks. Zero rotation and velocity at spawn are therefore an
+    engine constant a fake may assume for most types, but not a universal one.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-resting-state-probe-results.md, `resting-kinematics-isolated`
+        [spawn-frame] lines across runs 1–4 (n=4): every one of sheep, cow, chicken, zombie,
+        armor_stand, arrow and boat reads getRotation() {"y":0,"x":0} and getVelocity()
+        {"z":0,"y":0,"x":0} in all four runs, as the file's "Deterministic — bit-identical in
+        4/4 runs" section records. minecraft:xp_orb reads rotation.y 325.0025939941406 /
+        37.7103385925293 / 191.06085205078125 / 61.451141357421875 in runs 1–4 with velocities
+        {x:0.0673, y:0.0970, z:-0.1841} / {x:-0.1899, y:0.1864, z:0.0300} /
+        {x:-0.0842, y:0.2846, z:-0.1761} / {x:-0.1481, y:0.0508, z:0.0354}; its y-rotation
+        spans the circle and every velocity component takes both signs. Its 22-tick velocity
+        falls to ~7e-6 (run 1) and ~5e-7 (run 4) after travelling ~0.5–2.4 blocks.
+    - description: |
+        artifacts/mctest-resting-state-probe-results.md, the two earlier contended
+        `resting-kinematics` runs, whose spawn-frame half is unaffected by the contention
+        (each entity is read before the next exists): the same seven types read zero rotation
+        and zero velocity, and xp_orb read rotation.y 69.07179260253906 and
+        288.386962890625 with nonzero velocities — two further distinct draws.
+
+- id: fresh-entity-nametag-is-empty-string
+  claim: |
+    `nameTag` on a freshly spawned entity is the empty string, not `undefined` and not a
+    type-derived name: it read `""` (`length=0`) for all eight types sampled — `sheep`, `cow`,
+    `chicken`, `zombie`, `armor_stand`, `xp_orb`, `arrow`, `boat` — in every run. The empty
+    string is the engine's representation of an unnamed entity, so a fake may treat it as a
+    universal starting value rather than a per-type one.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-resting-state-probe-results.md, `resting-kinematics-isolated` nameTag
+        lines, one per type per run across runs 1–4 (n=4): every one reads
+        `nameTag ok value=string: length=0`. The earlier contended `resting-kinematics` runs
+        report the same as a summary line, `nameTag uniform=true distinctValues=1 values=[""]`,
+        in both runs, and `resting-entity-fields` reads `nameTag ok value=string: (empty-string
+        check: length=0)` on a sheep.
+
+- id: post-spawn-mob-motion-is-per-run-not-per-type
+  claim: |
+    Whether an AI-driven mob has begun moving by 22 ticks after spawn is drawn per run, not
+    fixed per type. Across four runs of the same probe: `zombie` moved in 2/4, `sheep` in 1/4,
+    `cow` in 1/4, `chicken` in 0/4, and run 3 inverted run 1 (sheep moved while cow and zombie
+    stayed put). No AI-driven type is reliably still at 22 ticks and none reliably moves, so a
+    single run cannot tell the two apart and a fake cannot hardcode either. The non-AI types
+    are the contrast: `armor_stand`, `boat` and `arrow` read zero velocity and zero positional
+    delta at both the 2- and 22-tick samples in 4/4.
+  backing: tested
+  caveat: |
+    `chicken` at 0/4 is consistent with the same mechanism firing at a lower rate, not with a
+    stationary type; four runs cannot distinguish those. Only the presence of drift by 22 ticks
+    is reproducible — its direction, magnitude and timing are not.
+  sources:
+    - description: |
+        artifacts/mctest-resting-state-probe-results.md, `resting-kinematics-isolated`
+        [after-22-ticks] lines across runs 1–4 (n=4), tabulated in the file's "Whether a mob has
+        started moving by 22 ticks is per-run, not per-type" section: zombie moved in runs 1 and
+        2 (rotation.y -45.01167297363281 / -90.01869201660156), cow in run 1
+        (rotation.y -135.13467407226562, velocity ~0.060, delta ~0.41 on x and z), sheep in
+        run 3 (rotation.y 45.00886535644531, velocity ~0.0298, delta ~0.089), chicken in none;
+        in run 3 both cow and zombie read rotation {y:0,x:0}, velocity {0,0,0} and delta
+        {0,0,0}. armor_stand, boat and arrow read zero velocity and zero delta at both samples
+        in all four runs. The file records the chicken caveat above verbatim.
+
+- id: resting-arrow-turns-once-and-stays-valid
+  claim: |
+    A spawned `minecraft:arrow` left alone reads `getRotation() = {x:0, y:0}` on its spawn frame
+    and `{x:-72, y:0}` two ticks later, holding that value at 22 ticks — deterministic in 4/4
+    runs — while its velocity never leaves zero and it never moves from the spawn point. It also
+    stays valid: `isValid=true` at 2 and 22 ticks in 4/4. It is the one type sampled whose
+    rotation is not stable across the spawn frame, so a fake reading rotation back must decide
+    whether to model the settle.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-resting-state-probe-results.md, `resting-kinematics-isolated`
+        minecraft:arrow lines across runs 1–4 (n=4): [spawn-frame] getRotation()
+        {"y":0,"x":0}; [after-2-ticks] and [after-22-ticks] getRotation() {"y":0,"x":-72}, both
+        with getVelocity() {"z":0,"y":0,"x":0}, location unchanged at
+        {x:38.5, y:81, z:26.5} and delta {"x":0,"y":0,"z":0}, isValid=true throughout. The
+        file's "Deterministic — bit-identical in 4/4 runs" section records both the rotation and
+        the validity as 4/4, and explicitly retracts the contended runs' reading of an arrow
+        invalidating within 2 ticks as contact with the seven co-located entities.
+
+- id: boat-spawn-location-offset
+  claim: |
+    `spawnEntity` does not always place an entity on the requested point: `minecraft:boat`
+    lands `0.2` off it on both x and z, `delta={x:0.20000076293945312, y:0,
+    z:0.20000076293945312}` identical to the last digit in 4/4 runs from a fixed base. The
+    magnitude is constant and the sign tracks the spawn position, so this is a deterministic
+    placement adjustment rather than a random one. Every other type sampled lands exactly,
+    `delta={x:0, y:0, z:0}`, and the boat's offset is already present on its spawn frame.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-resting-state-probe-results.md, `resting-kinematics-isolated`
+        minecraft:boat lines across runs 1–4 (n=4): requested-location {x:38.5, y:81, z:18.5},
+        location {"z":18.700000762939453,"y":81,"x":38.70000076293945},
+        delta={"x":0.20000076293945312,"y":0,"z":0.20000076293945312} at spawn frame, 2 ticks
+        and 22 ticks in every run; the seven other types read delta {"x":0,"y":0,"z":0}. The two
+        earlier contended `resting-kinematics` runs, from different bases, produced the same
+        magnitude with different signs — (+0.2, -0.2) at (24.5, 57, 24.5) and (+0.2, +0.2) at
+        (42.5, 81, 22.5).
 
 - id: fresh-health-component-values-populated
   claim: |
@@ -544,6 +674,29 @@
         every method was invoked bare, which is what exposed the ordering.
 
 # Retired: superseded by the deep-run measurements. Kept for the record.
+
+- id: fresh-entity-resting-field-values
+  status: retired
+  reason: superseded
+  superseded_by: fresh-entity-spawn-frame-field-values
+  caveat: |
+    Written from a single sheep, so it stated the zeroed rotation and velocity as if they held
+    for any entity and at any moment after spawn. The kinematics runs show both readings are
+    spawn-frame readings, and that `minecraft:xp_orb` spawns with neither.
+  claim: |
+    A freshly spawned entity's own fields are populated before any test writes to it, and the
+    values are not all empty: `nameTag` is the empty string (length 0), `localizationKey` is
+    populated (`entity.sheep.name` on a sheep), `location` and `dimension.id` are real,
+    `getRotation()` and `getVelocity()` read all-zero vectors, `getTags()` is empty, and
+    `isValid` is true.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-resting-state-probe-results.md, `resting-entity-fields` lines on a
+        never-written minecraft:sheep: nameTag string length=0; localizationKey
+        "entity.sheep.name"; location {x:38.17…, y:62.67…, z:22.78…}; dimension.id
+        "minecraft:overworld"; getRotation() {x:0,y:0}; getVelocity() {x:0,y:0,z:0};
+        getTags() []; isValid true; typeId "minecraft:sheep".
 
 - id: effect-readd-not-unconditional
   status: retired
