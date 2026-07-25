@@ -1,0 +1,145 @@
+# Decisions proposed for the minecraft/dev-server design.
+# Schema: id, statement, status (proposed|accepted|tolerated|rejected), falsifiers.
+
+- id: deploy-transport-is-cp-and-console-exec
+  statement: |
+    built packs reach the server with `docker compose cp` and reloads are issued with
+    `docker compose exec` of the image's console helper; `develop.watch` is not used
+  status: proposed
+  falsifiers:
+    - copying a typical built pack in full takes long enough that a saved edit misses the
+      few-second budget, so a file-level sync path is needed after all
+    - the console helper driven over exec drops or silently ignores commands, leaving no
+      reliable way to trigger a live reload
+
+- id: generated-compose-file-is-fully-resolved
+  statement: |
+    the harness writes a generated compose file with every value already substituted and invokes
+    it by absolute `-f` path, passing neither `--project-directory` nor an env file
+  status: proposed
+  falsifiers:
+    - a setting the server needs can only be supplied at invocation time rather than at
+      generation time, forcing variable interpolation back into the file
+    - authors routinely hand-edit the generated file, which the next regeneration overwrites
+
+- id: server-image-pinned-with-console-helper
+  statement: |
+    the harness targets the itzg/minecraft-bedrock-server image, pinning the tag it generates and
+    exposing only that tag as configuration
+  status: proposed
+  falsifiers:
+    - the console helper, the pool paths, or the world-load log format changes across tags authors
+      must run, so pinning one tag cannot keep readiness and reload working
+    - authors need a server image without the helper (a vanilla or in-house build), which the
+      harness has no console path to
+
+- id: world-state-lives-in-a-named-volume
+  statement: |
+    the server's `/data` is a named Docker volume the harness creates and never removes except
+    under a reset flag on the stop command
+  status: proposed
+  falsifiers:
+    - authors routinely need the world's files on the host — backup, inspection, or seeding a
+      prepared world — which a named volume on a remote daemon does not give them
+    - a volume left by an earlier run carries state that makes a fresh run irreproducible often
+      enough that reseeding each time would cost less
+
+- id: both-pack-kinds-are-routed-by-declared-kind
+  statement: |
+    the harness deploys behavior and resource packs alike, routing each by the kind the kit reports
+    to that kind's pool and that kind's world activation list
+  status: proposed
+  falsifiers:
+    - resource packs prove to need a step outside the server the harness cannot perform, so the
+      resource path never works end to end
+    - packs reach the wrong pool in practice, meaning the reported kind is not trustworthy on its
+      own and the router needs a check of its own
+
+- id: live-reload-limited-to-active-behavior-pack-content
+  statement: |
+    only a content change inside a behavior pack already in the pool and already listed at the same
+    header identity is applied live; every other difference restarts the server
+  status: proposed
+  falsifiers:
+    - a pack newly added to the pool, which this rule sends to a restart, proves to come live under
+      a console command, making the restart needless in a common case
+    - a change this rule applies live leaves the world stale or inconsistent, so the live class is
+      drawn too wide
+
+- id: reconcile-reads-live-server-state
+  statement: |
+    each reconcile reads the pool contents and activation lists off the running container rather
+    than trusting a record of what the last deploy wrote
+  status: proposed
+  falsifiers:
+    - the read round-trips cost enough against a remote daemon to push a saved edit past the
+      few-second budget
+    - what the container reports cannot distinguish a half-copied pack from a complete one, so a
+      record of the last deploy is needed anyway
+
+- id: packages-rebuild-and-the-harness-watches-built-output
+  statement: |
+    the harness starts each selected package's own watch build and itself watches only the built
+    output directories, deploying on a debounced change there
+  status: proposed
+  falsifiers:
+    - a build writes its output non-atomically often enough that half-written packs deploy despite
+      the debounce window
+    - a pack package has no watch build of its own, leaving the harness nothing to start
+
+- id: readiness-is-the-world-load-pack-stack-line
+  statement: |
+    the server counts as ready when the container log emits the world-load line reporting the pack
+    stack, and that same line is read back as confirmation of what loaded
+  status: proposed
+  falsifiers:
+    - the line is emitted before the server accepts commands or connections, so readiness fires
+      early and the first deploy races the boot
+    - a server version stops emitting the line or changes its wording, leaving readiness with
+      nothing to match
+
+- id: selection-is-flags-with-workspace-profiles
+  statement: |
+    a run's selection is a repeatable `--pack` flag defaulting to every discovered pack, with
+    `--profile <name>` naming a list held in the harness's workspace config file
+  status: proposed
+  falsifiers:
+    - authors want selections a list of names cannot express — exclusions, patterns, or groups
+      defined per package
+    - profiles turn out to be per-author rather than per-workspace, so a checked-in config file is
+      the wrong home for them
+
+- id: command-surface-is-start-and-stop
+  statement: |
+    the harness exposes one default start-and-watch command and one explicit stop command, the
+    stop command carrying the reset flag that also removes the world volume
+  status: proposed
+  falsifiers:
+    - authors routinely need a deploy or a reload without a watch session — a one-shot push, or a
+      continuous-integration check — which neither verb offers
+    - stopping and resetting prove to need distinct verbs rather than a flag, because authors reach
+      for the destructive one by accident
+
+- id: activity-and-server-output-share-one-tagged-stream
+  statement: |
+    every line on the harness's stream is prefixed with a short source tag — the emitting package
+    for build output, `deploy` for the harness's own activity, `server` for container logs
+  status: proposed
+  falsifiers:
+    - a source the author must tell apart emits output the harness cannot attribute per line —
+      a build tool's ANSI progress redraw, or a multi-line server stack trace — so the prefix
+      mislabels or mangles it
+    - the prefix costs enough of the line width that server output wraps, leaving the tagged stream
+      harder to read than the untagged interleave it replaced
+
+- id: content-changes-are-recopied-not-compared
+  statement: |
+    the harness compares only pack presence and activation identity against the server; a pack's
+    file content is never read back, and a pack whose built output changed is re-copied in full
+  status: proposed
+  falsifiers:
+    - copying a pack's whole built output on every save costs enough against a remote daemon that
+      the edit misses the few-second budget, so only changed files can be sent
+    - re-copying and reloading a pack whose content did not really change disturbs the running
+      world — reset script state, respawned entities — often enough that the content has to be
+      compared to suppress it
