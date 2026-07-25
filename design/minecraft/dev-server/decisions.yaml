@@ -94,8 +94,6 @@
     reconcile, and starts the watch builds only after it
   status: proposed
   falsifiers:
-    - a pack package offers no one-shot build distinct from its watch build, leaving the start
-      sequence nothing it can run to completion
     - a cold build of a full selection takes long enough that authors would rather have the server
       up with packs arriving as each build finishes
 
@@ -155,10 +153,15 @@
 
 - id: activity-and-server-output-share-one-tagged-stream
   statement: |
-    every line on the harness's stream is prefixed with a short source tag — the emitting package
-    for build output, `deploy` for the harness's own activity, `server` for container logs
+    the harness has one output stream, owned solely by the command line and written to by every
+    other part only through it, and every line on it is prefixed with a short source tag — the
+    emitting package for build output, `deploy` for the harness's own activity, `server` for
+    container logs
   status: proposed
   falsifiers:
+    - a part of the harness cannot hand its output to the owner and writes to the terminal itself —
+      a build tool that opens the tty directly, or a prompt needing the terminal back — so the
+      single owner does not hold the stream in practice
     - a source the author must tell apart emits output the harness cannot attribute per line —
       a build tool's ANSI progress redraw, or a multi-line server stack trace — so the prefix
       mislabels or mangles it
