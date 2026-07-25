@@ -18,20 +18,6 @@ reproduces is transcribed from a recorded observation of one pinned engine versi
 engine's behaviour is per-tick or is per-type vanilla data, the library states the gap rather than
 inventing a plausible value.
 
-## Open questions
-
-```yaml
-questions:
-  - id: rewritten-facts-lack-a-supersession-record
-    question: >-
-      `namespace-prefix-is-optional` and `effect-members-throw-plain-error` had their meaning
-      changed in place under the same id rather than being superseded, so a citation written
-      against either now means something its author did not write; should each be split into the
-      claim that was falsified and the one that replaced it?
-    closes: fact
-    gates: [ids-normalized-at-entry, invalidation-propagates-to-derived-objects]
-```
-
 ## What the library substitutes, and how it types itself
 
 The library hands a test fake objects to pass into the code under test, and does nothing to the
