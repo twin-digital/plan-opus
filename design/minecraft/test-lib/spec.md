@@ -166,7 +166,7 @@ the three vanilla dimensions, whose ids resolve from either spelling, whose heig
 The rest of the engine's resting state is per-type vanilla data and belongs to a package built on
 this one. So does the engine's per-type spawn-frame behaviour: the fake places an entity exactly
 where asked and models neither the boat's constant 0.2 placement offset
-[[f:boat-spawn-location-offset]], nor the arrow's one-time rotation settle to −72
+[[f:boat-spawn-offset-magnitude-constant]], nor the arrow's one-time rotation settle to −72
 [[f:resting-arrow-turns-once-and-stays-valid]], nor post-spawn AI drift — which is drawn per run
 rather than fixed per type, so no fake could reproduce it deterministically anyway
 [[f:post-spawn-mob-motion-is-per-run-not-per-type]] [[d:per-type-spawn-quirks-not-modeled]].
