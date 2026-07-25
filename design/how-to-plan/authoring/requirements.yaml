@@ -166,3 +166,32 @@
     only a new self-facing rule needs adding, and those are rare. Decisions are named collectively
     and never by id, so this input does not pin which decisions the spec must record — the author
     proposes those.
+
+- id: documented-source-is-primary
+  statement: |
+    a fact backed `documented` cites the source that originates its claim: the upstream url,
+    with `where` and the verbatim passage as it appears at that url. A repository file that
+    transcribes, summarizes, or restates an outside source is a convenience copy and is never
+    the cited source — the fact points past it to the original. An in-repo url is the primary
+    source only where the repository file is itself the origin of the claim, as an upstream
+    design's requirement is
+  rationale: |
+    A citation of the author's own transcription reads as evidence while resting on the
+    author's output, and nothing in the repository can detect a drifted or invented quote.
+
+- id: quote-carries-the-claim
+  statement: |
+    a source quote states the claim the fact makes — a passage genuine and verbatim but not
+    supporting the claim fails the evidence bar exactly as a paraphrase does
+
+- id: tested-facts-name-whose-test
+  statement: |
+    a fact backed `tested` whose test its author did not run says so in the source, naming whose
+    test it was and where the artifacts sit. Only a fact whose author ran the test, against
+    artifacts at the fact's own scope, is offered as the author's own. Where those artifacts are
+    held in this repository by another design, the remedy is to promote them to a scope both
+    designs share; disclosure alone carries a test run outside the repository, where there is
+    nothing to promote
+  rationale: |
+    Without it, "I ran this" and "someone else ran this" are the same entry, and the guarantee
+    that the author can re-run the evidence decays into a file existing somewhere.

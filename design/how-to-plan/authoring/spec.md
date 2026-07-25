@@ -67,7 +67,21 @@ them rather than re-deriving each [[r:a-rule-binds-the-writer-of-what-it-governs
 at the source: open what a fact cites, and for evidence drawn from outside the author the words it
 rests on are there on the page, verbatim — a paraphrase fails because it is the agent's voice
 standing where the source's should be, and an assumed fact instead carries the mechanism it rests
-on [[f:fact-source-is-quote-or-mechanism]] [[r:evidence-is-verbatim]]. A spec author's own duties toward inherited facts are three further
+on [[f:fact-source-is-quote-or-mechanism]] [[r:evidence-is-verbatim]]. Two further tests run at
+that same source. The first is whose page it is: a `documented` fact cites the upstream original,
+and a repository file transcribing that original is a convenience copy the fact must point past —
+citing it instead makes the author's own output the evidence, and a drifted or invented quote
+becomes undetectable [[r:documented-source-is-primary]]. An in-repo url is primary only where the
+file is where the claim originates, which is why a cross-design dependency sources to the
+upstream's own requirement [[r:cross-design-dependency-is-cited-as-a-fact]]. The second is whether
+the quote does the work: a passage genuine, verbatim, and beside the point fails as surely as a
+paraphrase, and is the harder failure to see [[r:quote-carries-the-claim]]. A `tested` fact faces
+the parallel question of whose test it was: an entry that does not say reads as the author's own
+work, and the guarantee that whoever wrote the fact can re-run its evidence decays into a file
+existing somewhere. So a test the author did not run is disclosed as such in the source, named to
+whoever ran it; and where that test's artifacts are held in this repository by another design, they
+are promoted to a scope both designs share rather than cited where they sit — disclosure alone
+carries only a test run outside the repository [[r:tested-facts-name-whose-test]]. A spec author's own duties toward inherited facts are three further
 tests a reviewer runs against the prose. First: no claim rests on a fact the author has found
 wrong — one shown false, or unsupported by its own evidence, is corrected in place by a new
 evidenced fact that supersedes it, not cited as-is or merely flagged
@@ -134,6 +148,9 @@ aimed at whoever writes the entry it governs [[r:a-rule-binds-the-writer-of-what
 | 3 | specification prose | Does striking any sentence that merely restates an extracted entry leave the specification whole? (this checklist is exempt) |
 | 4 | citations | Does every claim that would change were a foundation false carry its token, and does no motivation or restatement carry one? |
 | 5 | evidence | Does each fact's outside evidence appear verbatim at its source, and each assumed fact carry its mechanism? |
+| 5a | evidence — provenance | Does each `documented` fact cite the upstream original rather than a repository file transcribing it, an in-repo source appearing only where that file originates the claim? |
+| 5b | evidence — fit | Does each quote state the claim its fact makes, rather than being genuine but beside the point? |
+| 5c | evidence — whose test | Does each `tested` fact its author did not run say so and name whose test it was, with in-repo artifacts another design holds promoted to a shared scope rather than cited across? |
 | 6 | inherited fact — wrong | Is every inherited fact the spec found wrong corrected by a superseding evidenced fact, not cited as-is or merely flagged? |
 | 7 | inherited fact — discovery | Is every discovery a decision or component rests on recorded as a fact, not left implicit in prose? |
 | 8 | cross-design dependency | Is each reliance on another design's output a sourced fact in this or a shared scope, not a direct citation of that design's decisions or invariants? |
