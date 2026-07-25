@@ -438,3 +438,122 @@ spawned. The spawn-frame section above is unaffected: each entity is read before
 [2026-07-25 03:22:17.670] [mctest] resting-kinematics-after-2-ticks :: minecraft:boat isValid=true getRotation() ok value={"y":0,"x":0} getVelocity() ok value={"z":0,"y":0,"x":0.049999237060546875} location ok value={"z":22.700000762939453,"y":81,"x":42.75} delta={"x":0.25,"y":0,"z":0.20000076293945312}
 [2026-07-25 03:22:17.770] [mctest] rest complete — copy every [mctest] line into the design as the answer record
 ```
+
+---
+
+# `resting-kinematics-isolated` (pack 0.3.0)
+
+The isolation-corrected companion to `resting-kinematics`: one type at a time, spawned 4 blocks
+clear of the source and removed before the next, sampled on the spawn frame and again at 2 and 22
+ticks. Every sample carries `neighboursWithin4`, so contention is visible in the log rather than
+assumed absent.
+
+## Run provenance
+
+| | |
+|---|---|
+| Date | 2026-07-25 |
+| Server | `itzg/minecraft-bedrock-server`, Bedrock dedicated **1.26.31.1** |
+| `@minecraft/server` | **2.8.0** |
+| Pack | `resting-state-probe-pack` **0.3.0**, uuid `6b1c9f2a-4d83-4a17-9c0e-1f5a7b3e2d84` (unchanged) |
+| Trigger | `execute as <armor stand> run scriptevent mctest2:rest resting-kinematics-isolated` |
+| Source | armor stand at `(38.5, 81, 22.5)`, centred on a placed 17×17 stone platform at `y=80` |
+| Coverage | 8/8 types, no `PROBE CRASHED` lines |
+
+## What changes when the sample is uncontended
+
+`neighboursWithin4` reads **1** for every type (the source armor stand, 4 blocks away and not in
+contact) against the seven co-located entities the original probe held live. Two results from the
+contended runs do not survive:
+
+- **The `+0.4550018310546875` upward velocity is gone.** Sheep reads exactly zero velocity and
+  zero positional delta at 2 *and* 22 ticks. It was overlap resolution, as the contended runs'
+  own armor-stand control suggested.
+- **`minecraft:arrow` does not self-invalidate.** It reads `isValid=true` at 2 and 22 ticks.
+  The earlier "invalid within 2 ticks, unprompted" reading is an **artifact of the pile** — the
+  arrow was spawned into seven other entities and consumed by contact. Nothing about a resting
+  arrow invalidates it.
+
+## What the corrected run shows
+
+**Spawn frame — unchanged from the contended runs**, which is expected since each entity is read
+before the next exists:
+
+- Seven of eight spawn `getRotation() = {x:0, y:0}` and `getVelocity() = {x:0, y:0, z:0}`;
+  `minecraft:xp_orb` spawns with a randomized y-rotation (`325.0026` this run) and a nonzero
+  randomized velocity.
+- `nameTag` is `""` for all eight.
+- `minecraft:boat` lands `0.2` off the requested point on x and z; every other type lands exactly.
+
+**Post-spawn — a resting entity is not uniformly still, and stillness is type-dependent:**
+
+| type | 2 ticks | 22 ticks |
+|---|---|---|
+| `sheep`, `chicken` | still | still |
+| `armor_stand`, `boat` | still | still |
+| `arrow` | still, rotation becomes `{x:-72, y:0}` | unchanged, still valid |
+| `cow` | still | rotation `-135.13`, velocity ~`0.06`, moved ~0.41 on x and z |
+| `zombie` | still | rotation `-45.01`, velocity ~`0.029`, moved ~0.078 |
+| `xp_orb` | self-propelled, moving | settled: velocity ~`7e-6`, ~1 block from spawn |
+
+Three distinct behaviours the spawn frame alone cannot distinguish: types that rest immediately
+and stay (`sheep`, `chicken`, `armor_stand`, `boat`); AI-driven types that are still on the spawn
+frame and start moving under their own control within ~22 ticks (`cow`, `zombie` — `sheep` and
+`chicken` share the mechanism and simply had not moved yet, so this is not a fixed per-type
+property); and `xp_orb`, which spawns with momentum and decays to rest.
+
+`minecraft:arrow` is the one type whose **rotation** is not stable across the spawn frame: it is
+`{x:0, y:0}` at spawn and `{x:-72, y:0}` two ticks later, with no velocity and no movement.
+
+## Run-validity notes
+
+- **`neighboursWithin4` counts entities within 4 blocks, not entities in contact.** The constant
+  `1` is the source armor stand at exactly the offset distance; `sheep` reads `2` because a second
+  entity was near the platform. Neither is in contact, so the samples are uncontended — but the
+  metric is a proximity bound, not a contact test.
+- **The platform is placed terrain.** A 17×17 stone slab at `y=80`, `x 30–46`, `z 14–30`, inside
+  the persisted `mctest` ticking area, so every offset lands on solid ground with open air above.
+- **`n = 1` for this configuration.** The AI-driven drift in `cow` and `zombie` is nondeterministic
+  in direction and timing; only its presence by 22 ticks is reproducible, not the values.
+- The source armor stand did not survive either contended run of `resting-kinematics`; a fresh one
+  was placed for this run. An armor-stand source is a poor choice for a probe that spawns an armor
+  stand at the source location.
+
+## Raw log
+
+```
+[2026-07-25 03:27:19.183] [mctest] rest start — 1 probe(s), @minecraft/server 2.8.0 expected
+[2026-07-25 03:27:19.183] [mctest] resting-kinematics-isolated :: minecraft:sheep requested-location={"x":42.5,"y":81,"z":22.5} nameTag ok value=string: length=0
+[2026-07-25 03:27:19.183] [mctest] resting-kinematics-isolated :: [spawn-frame] minecraft:sheep isValid=true getRotation() ok value={"y":0,"x":0} getVelocity() ok value={"z":0,"y":0,"x":0} location ok value={"z":22.5,"y":81,"x":42.5} delta={"x":0,"y":0,"z":0} neighboursWithin4=2
+[2026-07-25 03:27:19.288] [mctest] resting-kinematics-isolated :: [after-2-ticks] minecraft:sheep isValid=true getRotation() ok value={"y":0,"x":0} getVelocity() ok value={"z":0,"y":0,"x":0} location ok value={"z":22.5,"y":81,"x":42.5} delta={"x":0,"y":0,"z":0} neighboursWithin4=2
+[2026-07-25 03:27:20.287] [mctest] resting-kinematics-isolated :: [after-22-ticks] minecraft:sheep isValid=true getRotation() ok value={"y":0,"x":0} getVelocity() ok value={"z":0,"y":0,"x":0} location ok value={"z":22.5,"y":81,"x":42.5} delta={"x":0,"y":0,"z":0} neighboursWithin4=2
+[2026-07-25 03:27:20.383] [mctest] resting-kinematics-isolated :: minecraft:cow requested-location={"x":34.5,"y":81,"z":22.5} nameTag ok value=string: length=0
+[2026-07-25 03:27:20.383] [mctest] resting-kinematics-isolated :: [spawn-frame] minecraft:cow isValid=true getRotation() ok value={"y":0,"x":0} getVelocity() ok value={"z":0,"y":0,"x":0} location ok value={"z":22.5,"y":81,"x":34.5} delta={"x":0,"y":0,"z":0} neighboursWithin4=1
+[2026-07-25 03:27:20.487] [mctest] resting-kinematics-isolated :: [after-2-ticks] minecraft:cow isValid=true getRotation() ok value={"y":0,"x":0} getVelocity() ok value={"z":0,"y":0,"x":0} location ok value={"z":22.5,"y":81,"x":34.5} delta={"x":0,"y":0,"z":0} neighboursWithin4=1
+[2026-07-25 03:27:21.488] [mctest] resting-kinematics-isolated :: [after-22-ticks] minecraft:cow isValid=true getRotation() ok value={"y":-135.13467407226562,"x":0} getVelocity() ok value={"z":-0.06011009216308594,"y":0,"x":0.0598297119140625} location ok value={"z":22.095735549926758,"y":81,"x":34.90705871582031} delta={"x":0.4070587158203125,"y":0,"z":-0.4042644500732422} neighboursWithin4=1
+[2026-07-25 03:27:21.583] [mctest] resting-kinematics-isolated :: minecraft:chicken requested-location={"x":38.5,"y":81,"z":26.5} nameTag ok value=string: length=0
+[2026-07-25 03:27:21.583] [mctest] resting-kinematics-isolated :: [spawn-frame] minecraft:chicken isValid=true getRotation() ok value={"y":0,"x":0} getVelocity() ok value={"z":0,"y":0,"x":0} location ok value={"z":26.5,"y":81,"x":38.5} delta={"x":0,"y":0,"z":0} neighboursWithin4=1
+[2026-07-25 03:27:21.682] [mctest] resting-kinematics-isolated :: [after-2-ticks] minecraft:chicken isValid=true getRotation() ok value={"y":0,"x":0} getVelocity() ok value={"z":0,"y":0,"x":0} location ok value={"z":26.5,"y":81,"x":38.5} delta={"x":0,"y":0,"z":0} neighboursWithin4=1
+[2026-07-25 03:27:22.682] [mctest] resting-kinematics-isolated :: [after-22-ticks] minecraft:chicken isValid=true getRotation() ok value={"y":0,"x":0} getVelocity() ok value={"z":0,"y":0,"x":0} location ok value={"z":26.5,"y":81,"x":38.5} delta={"x":0,"y":0,"z":0} neighboursWithin4=1
+[2026-07-25 03:27:22.789] [mctest] resting-kinematics-isolated :: minecraft:zombie requested-location={"x":38.5,"y":81,"z":18.5} nameTag ok value=string: length=0
+[2026-07-25 03:27:22.790] [mctest] resting-kinematics-isolated :: [spawn-frame] minecraft:zombie isValid=true getRotation() ok value={"y":0,"x":0} getVelocity() ok value={"z":0,"y":0,"x":0} location ok value={"z":18.5,"y":81,"x":38.5} delta={"x":0,"y":0,"z":0} neighboursWithin4=1
+[2026-07-25 03:27:22.882] [mctest] resting-kinematics-isolated :: [after-2-ticks] minecraft:zombie isValid=true getRotation() ok value={"y":0,"x":0} getVelocity() ok value={"z":0,"y":0,"x":0} location ok value={"z":18.5,"y":81,"x":38.5} delta={"x":0,"y":0,"z":0} neighboursWithin4=1
+[2026-07-25 03:27:23.882] [mctest] resting-kinematics-isolated :: [after-22-ticks] minecraft:zombie isValid=true getRotation() ok value={"y":-45.01167297363281,"x":0} getVelocity() ok value={"z":0.029224395751953125,"y":0,"x":0.029232025146484375} location ok value={"z":18.57805061340332,"y":81,"x":38.577674865722656} delta={"x":0.07767486572265625,"y":0,"z":0.07805061340332031} neighboursWithin4=1
+[2026-07-25 03:27:23.988] [mctest] resting-kinematics-isolated :: minecraft:armor_stand requested-location={"x":42.5,"y":81,"z":22.5} nameTag ok value=string: length=0
+[2026-07-25 03:27:23.988] [mctest] resting-kinematics-isolated :: [spawn-frame] minecraft:armor_stand isValid=true getRotation() ok value={"y":0,"x":0} getVelocity() ok value={"z":0,"y":0,"x":0} location ok value={"z":22.5,"y":81,"x":42.5} delta={"x":0,"y":0,"z":0} neighboursWithin4=1
+[2026-07-25 03:27:24.082] [mctest] resting-kinematics-isolated :: [after-2-ticks] minecraft:armor_stand isValid=true getRotation() ok value={"y":0,"x":0} getVelocity() ok value={"z":0,"y":0,"x":0} location ok value={"z":22.5,"y":81,"x":42.5} delta={"x":0,"y":0,"z":0} neighboursWithin4=1
+[2026-07-25 03:27:25.082] [mctest] resting-kinematics-isolated :: [after-22-ticks] minecraft:armor_stand isValid=true getRotation() ok value={"y":0,"x":0} getVelocity() ok value={"z":0,"y":0,"x":0} location ok value={"z":22.5,"y":81,"x":42.5} delta={"x":0,"y":0,"z":0} neighboursWithin4=1
+[2026-07-25 03:27:25.182] [mctest] resting-kinematics-isolated :: minecraft:xp_orb requested-location={"x":34.5,"y":81,"z":22.5} nameTag ok value=string: length=0
+[2026-07-25 03:27:25.183] [mctest] resting-kinematics-isolated :: [spawn-frame] minecraft:xp_orb isValid=true getRotation() ok value={"y":325.0025939941406,"x":0} getVelocity() ok value={"z":-0.1840614527463913,"y":0.09695979207754135,"x":0.06731946766376495} location ok value={"z":22.5,"y":81,"x":34.5} delta={"x":0,"y":0,"z":0} neighboursWithin4=1
+[2026-07-25 03:27:25.287] [mctest] resting-kinematics-isolated :: [after-2-ticks] minecraft:xp_orb isValid=true getRotation() ok value={"y":325.0025939941406,"x":0} getVelocity() ok value={"z":-0.17677262425422668,"y":0.01550418883562088,"x":0.06465362012386322} location ok value={"z":22.13555908203125,"y":81.07278442382812,"x":34.6332893371582} delta={"x":0.13328933715820312,"y":0.072784423828125,"z":-0.36444091796875} neighboursWithin4=1
+[2026-07-25 03:27:26.287] [mctest] resting-kinematics-isolated :: [after-22-ticks] minecraft:xp_orb isValid=true getRotation() ok value={"y":325.0025939941406,"x":0} getVelocity() ok value={"z":-0.000007191361419245368,"y":0,"x":0.000002630200924613746} location ok value={"z":21.53832244873047,"y":81,"x":34.851722717285156} delta={"x":0.35172271728515625,"y":0,"z":-0.9616775512695312} neighboursWithin4=1
+[2026-07-25 03:27:26.382] [mctest] resting-kinematics-isolated :: minecraft:arrow requested-location={"x":38.5,"y":81,"z":26.5} nameTag ok value=string: length=0
+[2026-07-25 03:27:26.383] [mctest] resting-kinematics-isolated :: [spawn-frame] minecraft:arrow isValid=true getRotation() ok value={"y":0,"x":0} getVelocity() ok value={"z":0,"y":0,"x":0} location ok value={"z":26.5,"y":81,"x":38.5} delta={"x":0,"y":0,"z":0} neighboursWithin4=1
+[2026-07-25 03:27:26.488] [mctest] resting-kinematics-isolated :: [after-2-ticks] minecraft:arrow isValid=true getRotation() ok value={"y":0,"x":-72} getVelocity() ok value={"z":0,"y":0,"x":0} location ok value={"z":26.5,"y":81,"x":38.5} delta={"x":0,"y":0,"z":0} neighboursWithin4=1
+[2026-07-25 03:27:27.487] [mctest] resting-kinematics-isolated :: [after-22-ticks] minecraft:arrow isValid=true getRotation() ok value={"y":0,"x":-72} getVelocity() ok value={"z":0,"y":0,"x":0} location ok value={"z":26.5,"y":81,"x":38.5} delta={"x":0,"y":0,"z":0} neighboursWithin4=1
+[2026-07-25 03:27:27.582] [mctest] resting-kinematics-isolated :: minecraft:boat requested-location={"x":38.5,"y":81,"z":18.5} nameTag ok value=string: length=0
+[2026-07-25 03:27:27.582] [mctest] resting-kinematics-isolated :: [spawn-frame] minecraft:boat isValid=true getRotation() ok value={"y":0,"x":0} getVelocity() ok value={"z":0,"y":0,"x":0} location ok value={"z":18.700000762939453,"y":81,"x":38.70000076293945} delta={"x":0.20000076293945312,"y":0,"z":0.20000076293945312} neighboursWithin4=1
+[2026-07-25 03:27:27.682] [mctest] resting-kinematics-isolated :: [after-2-ticks] minecraft:boat isValid=true getRotation() ok value={"y":0,"x":0} getVelocity() ok value={"z":0,"y":0,"x":0} location ok value={"z":18.700000762939453,"y":81,"x":38.70000076293945} delta={"x":0.20000076293945312,"y":0,"z":0.20000076293945312} neighboursWithin4=1
+[2026-07-25 03:27:28.682] [mctest] resting-kinematics-isolated :: [after-22-ticks] minecraft:boat isValid=true getRotation() ok value={"y":0,"x":0} getVelocity() ok value={"z":0,"y":0,"x":0} location ok value={"z":18.700000762939453,"y":81,"x":38.70000076293945} delta={"x":0.20000076293945312,"y":0,"z":0.20000076293945312} neighboursWithin4=1
+[2026-07-25 03:27:28.882] [mctest] rest complete — copy every [mctest] line into the design as the answer record
+```

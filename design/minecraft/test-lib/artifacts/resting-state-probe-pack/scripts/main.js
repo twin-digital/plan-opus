@@ -216,6 +216,72 @@ const restingProbes = {
     }
   },
 
+  // `resting-kinematics` holds all eight types live at one point, so its post-spawn samples read
+  // the engine resolving overlap — with the source entity included in the pile. This spawns one
+  // type at a time, clear of the source, and removes it before the next. The neighbour count at
+  // each sample is emitted as the evidence that the reading was uncontended; a nonzero count
+  // means the sample is contended and the value should not be read as a resting one.
+  'resting-kinematics-isolated': async (ctx) => {
+    const types = [
+      'minecraft:sheep',
+      'minecraft:cow',
+      'minecraft:chicken',
+      'minecraft:zombie',
+      'minecraft:armor_stand',
+      'minecraft:xp_orb',
+      'minecraft:arrow',
+      'minecraft:boat',
+    ]
+    // Cycled so a slow removal cannot leave the previous sample where the next one lands.
+    const offsets = [
+      { x: 4, z: 0 },
+      { x: -4, z: 0 },
+      { x: 0, z: 4 },
+      { x: 0, z: -4 },
+    ]
+    const base = ctx.location
+
+    const neighbours = (entity, at) => {
+      const found = attempt(() =>
+        ctx.dimension.getEntities({ location: at, maxDistance: 4 }).filter((other) => safeId(other) !== safeId(entity)),
+      )
+      return found.ok ? found.value.length : `threw:${found.name}`
+    }
+
+    const sample = (label, typeId, entity, requested) => {
+      const rotation = attempt(() => entity.getRotation())
+      const velocity = attempt(() => entity.getVelocity())
+      const location = attempt(() => entity.location)
+      emit(
+        `resting-kinematics-isolated :: [${label}] ${typeId} isValid=${json(attempt(() => entity.isValid).value)} getRotation() ${showData(rotation)} getVelocity() ${showData(velocity)} location ${showData(location)} delta=${json(delta(requested, location.ok ? location.value : undefined))} neighboursWithin4=${location.ok ? neighbours(entity, location.value) : 'n/a'}`,
+      )
+    }
+
+    for (const [index, typeId] of types.entries()) {
+      const offset = offsets[index % offsets.length]
+      const requested = { x: base.x + offset.x, y: base.y, z: base.z + offset.z }
+      const spawn = attempt(() => ctx.dimension.spawnEntity(typeId, requested))
+      if (!spawn.ok) {
+        emit(`resting-kinematics-isolated :: ${typeId} spawn ${show(spawn)}`)
+        continue
+      }
+      const entity = spawn.value
+      emit(
+        `resting-kinematics-isolated :: ${typeId} requested-location=${json(requested)} nameTag ${show(attempt(() => entity.nameTag))} length=${json(attempt(() => entity.nameTag?.length).value)}`,
+      )
+      sample('spawn-frame', typeId, entity, requested)
+      await tick(2)
+      sample('after-2-ticks', typeId, entity, requested)
+      // Long enough for a falling or self-propelled type to separate from one that truly rests.
+      await tick(20)
+      sample('after-22-ticks', typeId, entity, requested)
+      if (attempt(() => entity.isValid).value === true) {
+        attempt(() => entity.remove())
+      }
+      await tick(2)
+    }
+  },
+
   // Open point: can a valid entity carry zero components at all?
   'component-poor-entities': async (ctx) => {
     for (const typeId of ['minecraft:arrow', 'minecraft:armor_stand', 'minecraft:xp_orb', 'minecraft:item']) {
