@@ -4,12 +4,14 @@
 
 - id: built-surface-v1
   statement: |
-    the built surface is World, Dimension, Entity and Player, Effect and EffectType, all 55
-    after-event signals as registrable objects of which only those a modelled mutation emits
-    ever deliver — with the after-event payload class of each delivering signal behaving too —
-    and all 68 entity component classes as attachable objects answering their
-    identity members, with the 7 attribute-shaped ones behaving in full; every other declared
-    class, and every member of a built class beyond that list, is a not-implemented stub
+    the built surface is World, Dimension, Entity and Player, Effect and EffectType, the
+    behaving-member list the spec's built-surface section fixes for each of them, all 55
+    after-event signals and all 13 before-event signals as registrable objects — only an
+    after-event signal a modelled mutation emits ever delivers, and every signal's payload
+    class is complete — and every entity component class the type map names as an attachable
+    object answering its identity members, with the attribute-shaped subset behaving in full;
+    every other declared class, and every member of a built class beyond that list, is a
+    not-implemented stub
   status: proposed
   falsifiers:
     - a consumer suite's helpers routinely take an ItemStack, Block, or BlockVolume parameter,
@@ -49,9 +51,9 @@
     the not-implemented error rather than a guessed engine error
   status: proposed
   falsifiers:
-    - a probe run supplying valid arguments to the 27 arity-blocked Entity methods finds their
-      invalid-state behaviour matching the declarations' `@throws` annotations uniformly, so a
-      derivation from index.d.ts replaces the hand-maintained table
+    - a pinned-version bump lands with no server available to re-probe, so the transcribed table
+      describes a version the library no longer targets, and a derivation from the `@throws`
+      annotations plus a short list of observed exceptions would at least track the declarations
     - the not-implemented default fires so often on ordinary invalid-reference tests that callers
       cannot write the try/catch tests the table exists to support
 
@@ -63,9 +65,9 @@
   status: proposed
   falsifiers:
     - an engine observation shows a component or effect outliving its owner's invalidation
-    - no modelled path or control-plane function ever sets a derived object's own flag without
-      also invalidating its owner, so the second half of the OR is unreachable state the fakes
-      pay for on every read
+    - a test needs a derived object's invalidation to be reversible — re-adding a removed effect
+      and expecting the handle it already holds to answer again — which an OR of two latched
+      flags cannot express without clearing rules the decision does not carry
 
 - id: one-mutation-pipeline-for-health
   statement: |
@@ -89,8 +91,9 @@
     - consumer tests routinely assert that a killed mob's reference has gone invalid without
       touching the control plane, so the valid corpse makes the fake take a path the engine
       would not
-    - the despawn boundary turns out to be pinned per entity type by a fact at this design's
-      scope, so the fake can model the grace period rather than pick one of its endpoints
+    - no-clock is reversed and the fake gains a notion of elapsed ticks, at which point the
+      observed grace period is modellable and an indefinitely valid corpse is a departure with
+      no reason left behind it
 
 - id: dispatch-is-depth-first-at-mutation-end
   statement: |
@@ -148,8 +151,8 @@
 - id: control-plane-free-functions-take-the-fake-first
   statement: |
     every control-plane operation is a free function exported from the package root, and one
-    acting on an existing fake takes that fake as its first argument; the constructing
-    functions — world creation and spawnFake — take their inputs instead
+    acting on an existing fake takes that fake as its first argument; `createWorld`, the only
+    operation with no existing fake to act on, takes its initializer instead
   status: proposed
   falsifiers:
     - the free-function set grows past what a consumer can discover from one export list, so a
