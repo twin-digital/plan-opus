@@ -120,8 +120,12 @@
 
 - id: canonical-prefixed-storage
   statement: |
-    every id-taking input accepts bare or prefixed ids, normalizes on entry, and stores and
-    reports the canonical `minecraft:`-prefixed form.
+    an id-taking input accepts bare or prefixed ids on the surfaces where the engine accepts
+    both — component ids, effect type ids, and entity type ids — normalizes on entry, and
+    stores and reports the canonical `minecraft:`-prefixed form. On an entity event id the
+    fake matches the engine instead: the prefixed form only, a bare id rejected as the engine
+    rejects it.
   rationale: |
-    The engine reports the prefixed form [[f:namespace-prefix-is-optional]], so reads compare
-    equal against the `@minecraft/vanilla-data` constants a test typically holds.
+    The engine reports the prefixed form, so reads compare equal against the
+    `@minecraft/vanilla-data` constants a test typically holds — but its tolerance of bare ids
+    is surface-dependent, not universal (namespace-prefix-is-optional).
