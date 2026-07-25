@@ -113,11 +113,7 @@
     a spawned entity's rotation and velocity start at zero (zero-kinematics-at-spawn). A
     populated starting point is otherwise a preset the test opts into (presets-are-opt-in).
   rationale: |
-    The engine populates heavily at construction and type-dependently: a sheep rests at 14
-    components, a player at 16 of which seven no sheep has, while the sheep carries five the
-    player lacks; health rests at 8/8/0/8 for a sheep alone. Reproducing that at construction
-    means shipping per-type vanilla data. Keeping construction empty puts fidelity in presets,
-    which can grow without reopening this rule.
+    Keeping construction empty puts fidelity in presets, which can grow without reopening this rule.
 
 - id: zero-kinematics-at-spawn
   statement: |
