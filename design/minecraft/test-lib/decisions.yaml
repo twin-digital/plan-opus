@@ -78,8 +78,8 @@
   falsifiers:
     - a further observed path needs an event order the per-path sequence cannot express without
       branching inside the pipeline for most of its callers
-    - a non-health attribute component turns out to fire its own events on write, so the
-      pipeline is health-specific where it was meant to be attribute-general
+    - a second attribute component enters the built surface and fires its own events on write, so
+      one health-scoped pipeline becomes a per-attribute pattern copied rather than shared
 
 - id: corpse-stays-valid-except-on-the-no-health-path
   statement: |
@@ -105,8 +105,8 @@
   falsifiers:
     - a realistic pack test produces a handler-caused cascade deep enough to exhaust the stack,
       so dispatch must become a queue drained at the outermost call
-    - a consumer needs two registrations of one closure to deliver twice, which set-shaped
-      registration cannot express
+    - an engine observation shows a closure subscribed twice delivering twice, so set-shaped
+      registration is the departure and not the match it was chosen to be
 
 - id: no-clock
   statement: |
@@ -146,8 +146,10 @@
     engine's negative-integer id form is not reproduced
   status: tolerated
   falsifiers:
-    - pack code under test parses an entity id as a number or depends on its sign or magnitude,
-      so a fake id that does not look like an engine id changes the code's behaviour
+    - a decimal counter string collides with an id a pack mints in its own namespace, so ids that
+      are unique per world are not unique within a test that holds more than one
+    - a suite holds two worlds and needs their ids distinguishable — the per-world counter issues
+      the same first id in each, so an id no longer identifies an entity within the test
 
 - id: control-plane-free-functions-take-the-fake-first
   statement: |

@@ -272,8 +272,8 @@ drives `currentValue` below `effectiveMin` and the change event reports the nega
 [[f:health-not-clamped-at-minimum]]. With no options the damage cause is `none`, and with the
 projectile options form the fake reports the cause `projectile` the engine derives from that form.
 On that path the fake applies exactly the amount asked for: the engine adjusted a requested 1 to
-1.045823097229004 from a real arrow, and the declarations and the API reference state the rule
-nowhere while one run pins nothing [[f:applydamage-cause-defaults]]. That is the fidelity rule's
+1.045823097229004 from a real arrow, a single sample that pins no rule
+[[f:applydamage-cause-defaults]]. That is the fidelity rule's
 undetermined-by-evidence bound [[r:fakes-match-observed-engine-behaviour]] — an adjusted number
 here would be an invented one [[r:fakes-never-fabricate]].
 
@@ -291,8 +291,10 @@ indefinitely, and a test that needs it gone invalidates it through the control p
 [[d:corpse-stays-valid-except-on-the-no-health-path]]. Writes through the health component fire
 `entityHealthChanged` with no `entityHurt`, and a write that reaches the effective minimum fires
 `entityDie` with cause `override` [[f:component-health-writes-cascade]]. `remove()` fires no death
-event. It fires `entityRemove`, whose payload is the removed entity's id and type — both still
-readable on a removed fake [[f:invalidation-guard-list-complete]] — and it reaches the signal the
+event. It fires `entityRemove` [[f:kill-and-remove-cascades]], whose payload carries exactly the
+two readonly strings `removedEntityId` and `typeId` and no entity reference
+[[f:entity-remove-after-event-shape]] — both values still readable on a removed fake
+[[f:invalidation-guard-list-complete]] — and it reaches the signal the
 way every other emitting member does, by handing off to the pipeline the entity fake holds rather
 than by reaching for the world itself. The four further deliveries the engine made after its own
 `remove()`, an `entitySpawn` and three `dataDrivenEntityTrigger` [[f:kill-and-remove-cascades]],
