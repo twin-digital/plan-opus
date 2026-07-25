@@ -29,7 +29,8 @@
   rationale: |
     The engine defers within the same tick [[f:after-events-deferred]]
     [[f:after-event-deferral-subtick]], but a tickless fake has none to defer within; the
-    accepted cost is that code after the mutating call runs before the handlers, not after.
+    accepted cost is that code after the mutating call runs after the handlers, not before,
+    so the engine's interleaving is not reproducible in a tickless fake.
 
 - id: fakes-behave-not-record
   statement: |
@@ -73,8 +74,8 @@
     shape of its class, so assignability never narrows. Members outside the built surface
     present as not-implemented stubs — unfaked access throws rather than reading `undefined`.
   rationale: |
-    Possible only because the declared classes carry no private members or brand fields
-    [[f:server-classes-are-structurally-assignable]].
+    Possible only because the declared classes carry no private instance members and no brand
+    fields (server-classes-are-structurally-assignable).
 
 - id: only-real-members-free-functions
   statement: |
@@ -140,8 +141,8 @@
 
 - id: ids-auto-assigned-typeid-required
   statement: |
-    spawnFake requires a typeId and assigns each entity a unique opaque id, overridable in the
-    spec — in the engine, too, the spawner never chooses the id.
+    spawnFake requires a typeId and assigns each entity a unique opaque id, which the caller may
+    override at spawn — in the engine, too, the spawner never chooses the id.
 
 - id: control-plane-component-mutation
   statement: |

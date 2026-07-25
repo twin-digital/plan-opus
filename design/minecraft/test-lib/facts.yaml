@@ -8,10 +8,14 @@
   backing: tested
   sources:
     - description: |
-        Inspected the installed package at
-        node_modules/.pnpm/@minecraft+server@2.8.0/node_modules/@minecraft/server — its only
-        files are index.d.ts, package.json, and README.md; no .js entry point exists. Confirmed
-        indirectly by a require() of the package path failing to resolve any runtime module.
+        design/minecraft/test-lib/artifacts/type-probes/package-contents-probe.mjs, output in
+        package-contents-probe.out.txt: the installed 2.8.0 package ships exactly three files —
+        index.d.ts (751641 bytes), package.json (384 bytes), README.md (278 bytes) — and zero
+        .js/.cjs/.mjs files. Its package.json declares no `main`, `module`, `types`, `typings`,
+        `exports`, or `files`; the only fields of interest are peerDependencies on
+        @minecraft/common and @minecraft/vanilla-data. `await import('@minecraft/server')` from a
+        plain node process threw Error code=ERR_MODULE_NOT_FOUND, resolving to a nonexistent
+        index.js.
 
 - id: invalid-entity-error-shape
   claim: |
@@ -62,38 +66,71 @@
   backing: tested
   sources:
     - description: |
-        A scratch .ts derivation compiled clean via `tsc --noEmit` against @minecraft/server
-        2.8.0, including three `@ts-expect-error` negative probes — a non-attribute id and a
-        typo rejected by the attribute-id union, and a bare id rejected in canonical position.
-        An unused expect-error directive fails the build, so all three probes genuinely error.
+        design/minecraft/test-lib/artifacts/type-probes/component-ids-probe.ts compiles clean
+        (tsc --noEmit, strict; `npm run check` in that folder) against @minecraft/server 2.8.0,
+        deriving ComponentId, CanonicalComponentId, and AttributeComponentId from
+        EntityComponentTypeMap and EntityComponentTypes, with three `@ts-expect-error` negative
+        probes — a non-attribute id and a typo rejected by the derived unions, and a bare id
+        rejected in canonical position. An unused expect-error directive fails the build, so all
+        three probes genuinely error.
+    - description: |
+        design/minecraft/test-lib/artifacts/type-probes/component-ids-probe.mjs, output in
+        component-ids-probe.out.txt, prints the same sets from the declarations: 136
+        EntityComponentTypeMap keys (68 bare, 68 `minecraft:`-prefixed, every bare key having a
+        prefixed twin), 68 EntityComponentTypes enum values, all prefixed and all of them type-map
+        keys, and 14 attribute-shaped ids (7 components x 2 forms) whose classes extend
+        EntityAttributeComponent.
 
 - id: server-classes-are-structurally-assignable
   claim: |
-    The classes `@minecraft/server` 2.8.0 declares carry no private members or brand fields: a
-    value exposing only a class's public shape is assignable to the class type. A library class
-    can therefore satisfy Entity, Player, EntityComponent, EntityHealthComponent, World,
-    Dimension, Effect, EffectType, and the event signal classes structurally, and its instances
-    pass where the real type is expected without casts.
+    The classes `@minecraft/server` 2.8.0 declares carry no private instance members and no brand
+    fields: a value exposing only a class's public shape is assignable to the class type. Nearly
+    every class declares a `private constructor()`, which blocks construction and subclassing but
+    adds no instance member, so it does not brand the instance type. A library class can therefore
+    satisfy Entity, Player, EntityComponent, EntityHealthComponent, World, Dimension, Effect,
+    EffectType, and the event signal classes structurally, and its instances pass where the real
+    type is expected without casts.
   backing: tested
   sources:
     - description: |
+        design/minecraft/test-lib/artifacts/type-probes/assignability-probe.mjs, output in
+        assignability-probe.out.txt: index.d.ts declares 439 exported classes and 425 `private`
+        declarations, all 425 of them `private constructor()` — zero private declarations that are
+        not constructors.
+    - description: |
         design/minecraft/test-lib/artifacts/type-probes/assignability-probe.ts compiles clean (tsc
-        --noEmit, strict; `npm run check` in that folder) against @minecraft/server 2.8.0: a
-        mapped public-shape value is accepted for all nine classes, and a @ts-expect-error
-        negative control missing one member genuinely errors, so a clean compile is a real
-        positive.
+        --noEmit, strict; `npm run check` in that folder, and re-run by assignability-probe.mjs
+        which reports exit 0 with no diagnostics) against @minecraft/server 2.8.0: a mapped
+        public-shape value is accepted for all nine classes, and a hand-written class with no
+        `extends` — never reaching the private constructor — is accepted as an EntityComponent.
+        Two @ts-expect-error negative controls, one mapped shape and one hand-written class each
+        missing a member, genuinely error, so a clean compile is a real positive.
 
 - id: vanilla-data-provides-prefixed-id-constants
   claim: |
     `@minecraft/vanilla-data`, unlike `@minecraft/server`, ships runtime JavaScript: named
-    constants whose values are the canonical prefixed id strings. Code or tests referencing
-    these constants deal in prefixed ids.
+    constants whose values are the canonical prefixed id strings. Every id namespace it exports
+    is fully prefixed — the one exception is `MinecraftPotionDeliveryTypes`, whose values are
+    unprefixed PascalCase names rather than ids. Code or tests referencing the id constants deal
+    in prefixed ids.
   backing: tested
   sources:
     - description: |
-        Required node_modules/.pnpm/@minecraft+vanilla-data@1.26.33/node_modules/@minecraft/vanilla-data/lib/index.js
-        at runtime and evaluated members: MinecraftEffectTypes.Resistance === 'minecraft:resistance',
-        MinecraftEntityTypes.Villager === 'minecraft:villager'.
+        design/minecraft/test-lib/artifacts/type-probes/vanilla-data-probe.mjs, output in
+        vanilla-data-probe.out.txt, against @minecraft/vanilla-data 1.26.33 installed as a
+        devDependency of that probe project: the package ships lib/index.js (217395 bytes) plus
+        .d.ts files, and its package.json `exports` is "./lib/index.js", so `await
+        import('@minecraft/vanilla-data')` resolves at runtime and yields 12 exported objects.
+        Eleven are entirely `minecraft:`-prefixed string constants — MinecraftBlockTypes 1342/1342,
+        MinecraftItemTypes 1518/1518, MinecraftEntityTypes 128/128, MinecraftEffectTypes 37/37,
+        MinecraftPotionEffectTypes 47/47, MinecraftEnchantmentTypes 42/42, MinecraftBiomeTypes
+        88/88, MinecraftFeatureTypes 17/17, MinecraftCameraPresetsTypes 7/7,
+        MinecraftCooldownCategoryTypes 6/6, MinecraftDimensionTypes 3/3. MinecraftPotionDeliveryTypes
+        is 0/3 prefixed (Consume, ThrownLingering, ThrownSplash). Spot checks:
+        MinecraftEffectTypes.Resistance === 'minecraft:resistance', MinecraftEntityTypes.Villager
+        === 'minecraft:villager', MinecraftEntityTypes.Sheep === 'minecraft:sheep',
+        MinecraftBlockTypes.Stone === 'minecraft:stone', MinecraftItemTypes.Apple ===
+        'minecraft:apple'.
 
 # Facts transcribed from the committed engine-probe run: Bedrock dedicated 1.26.31.1,
 # @minecraft/server 2.8.0, single run (n=1) of artifacts/engine-probe-pack, raw log and run
