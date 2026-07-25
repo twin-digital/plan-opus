@@ -19,7 +19,7 @@
     behaviour only where a requirement listed here documents the departure; the spec and builder
     take the specific behaviours (effect replacement, the invalidation guard list, the kill
     cascade, damage causes, and the rest) from the facts rather than from a per-behaviour
-    requirement. Current departures: [[r:synchronous-event-delivery]].
+    requirement. Current departures: synchronous-event-delivery, zero-kinematics-at-spawn.
 
 - id: synchronous-event-delivery
   statement: |
@@ -107,6 +107,18 @@
     constructing a fake adds nothing the caller did not ask for — a bare entity has no
     components — but reusable default bases may be provided and opted into explicitly, and
     composed. Absence is the default; a populated starting point is a choice the test makes.
+
+- id: zero-kinematics-at-spawn
+  statement: |
+    a spawned fake entity starts at zero rotation and zero velocity for every type, unless the
+    caller supplies otherwise. This is a documented departure from observed behaviour: the
+    engine spawns `minecraft:xp_orb` with a randomized y-rotation and a nonzero velocity drawn
+    per spawn, and the fake does not reproduce that draw.
+  rationale: |
+    Zero is what seven of the eight probed types do (spawn-frame-kinematics-zero-except-xp-orb),
+    and requiring every caller to supply two vectors to make a type-independent rule hold for one
+    outlier costs more than the outlier is worth. A test that cares about orbit kinematics
+    supplies the values.
 
 - id: ids-auto-assigned-typeid-required
   statement: |
