@@ -24,7 +24,7 @@
     each fake class carries an `implements` clause naming the real declared type and fills
     every member outside the built surface with a hand-written throwing stub, rather than
     generating members from index.d.ts or standing a Proxy in for the class
-  status: proposed
+  status: tolerated
   falsifiers:
     - a pinned-version bump adds or reshapes enough members that hand-maintaining the stub
       bodies costs more than parsing index.d.ts at build time would
@@ -37,7 +37,7 @@
     the library declares its own InvalidEntityError, ArgumentOutOfBoundsError, and
     NotImplementedError, and throws plain Errors carrying the engine's observed message text
     where the engine throws a plain Error
-  status: proposed
+  status: tolerated
   falsifiers:
     - consumer code under test discriminates engine errors by `instanceof` against a class it
       imports from somewhere real, so a library-declared class fails the check the pack makes
@@ -49,7 +49,7 @@
     per-member behaviour on an invalidated fake comes from a hand-maintained table transcribed
     from the engine probes, keyed by class and member; a member the table does not cover throws
     the not-implemented error rather than a guessed engine error
-  status: proposed
+  status: tolerated
   falsifiers:
     - a pinned-version bump lands with no server available to re-probe, so the transcribed table
       describes a version the library no longer targets, and a derivation from the `@throws`
@@ -62,7 +62,7 @@
     a component or effect carries its own validity flag and reads invalid when either that flag
     or its owner entity's is set, so invalidating an entity invalidates everything derived from
     it while a derived object can also be invalidated alone
-  status: proposed
+  status: tolerated
   falsifiers:
     - an engine observation shows a component or effect outliving its owner's invalidation
     - a test needs a derived object's invalidation to be reversible — re-adding a removed effect
@@ -73,7 +73,7 @@
   statement: |
     every health mutation — applyDamage, kill, setCurrentValue, and the three resets — runs
     through one pipeline that writes the value and then emits a per-path event sequence
-  status: proposed
+  status: tolerated
   falsifiers:
     - a further observed path needs an event order the per-path sequence cannot express without
       branching inside the pipeline for most of its callers
@@ -86,7 +86,7 @@
     the engine's ~27-tick despawn (death-invalidation-window) as the tickless model (no-clock)
     entails, and only control-plane invalidation ends it; `kill()` on a fake with no health
     component invalidates the reference synchronously as the engine does
-  status: proposed
+  status: tolerated
   falsifiers:
     - consumer tests routinely assert that a killed mob's reference has gone invalid without
       touching the control plane, so the valid corpse makes the fake take a path the engine
@@ -100,7 +100,7 @@
     after-events dispatch at the end of the causing call in subscription order, an event a
     handler causes dispatches inside that handler, and a closure subscribed twice is registered
     once
-  status: proposed
+  status: tolerated
   falsifiers:
     - a realistic pack test produces a handler-caused cascade deep enough to exhaust the stack,
       so dispatch must become a queue drained at the outermost call
@@ -111,7 +111,7 @@
   statement: |
     the library models no tick and no clock; effect durations and every other timed value are
     static until a test writes them
-  status: proposed
+  status: tolerated
   falsifiers:
     - consumer tests routinely need an effect to expire or a scheduled callback to run, so the
       behaviour under test cannot be reached without advancing time
@@ -122,7 +122,7 @@
   statement: |
     one normalizer runs at every id-taking entry point and stores the `minecraft:`-prefixed
     form, while the entity-event surface rejects a bare id instead of normalizing it
-  status: proposed
+  status: tolerated
   falsifiers:
     - a surface turns up on which the engine reports the bare form, so a single canonical
       storage form makes reads compare unequal against what the engine returns
@@ -133,7 +133,7 @@
   statement: |
     the component, effect, and entity type id types are derived from `@minecraft/server`'s own
     type maps and enums rather than transcribed into the library
-  status: proposed
+  status: accepted
   falsifiers:
     - a pinned-version bump reshapes EntityComponentTypeMap so the conditional derivation of the
       attribute subset no longer selects it
@@ -153,7 +153,7 @@
     every control-plane operation is a free function exported from the package root, and one
     acting on an existing fake takes that fake as its first argument; `createWorld`, the only
     operation with no existing fake to act on, takes its initializer instead
-  status: proposed
+  status: accepted
   falsifiers:
     - the free-function set grows past what a consumer can discover from one export list, so a
       namespaced control object reads better than a flat surface
@@ -164,7 +164,7 @@
   statement: |
     the library ships exactly one preset — the three vanilla dimensions with their observed
     height ranges and localization keys
-  status: proposed
+  status: tolerated
   falsifiers:
     - a second populated starting point is pinned by a fact at this design's scope, so the
       preset surface is a set rather than a single entry

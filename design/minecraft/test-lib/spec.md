@@ -31,28 +31,34 @@ questions:
     gates: [no-clock]
   - id: projectile-damage-adjustment
     question: >-
-      the engine adjusts projectile-path damage by a velocity-dependent amount that varies per
-      run, so the fake can only apply the requested damage; which requirement documents that
-      departure?
+      the engine adjusts projectile-path damage by an amount neither the declarations nor the
+      API reference states, observed once and not reproducible from one sample, so the fake
+      applies the requested damage; which requirement documents that departure?
     closes: requirement
     gates: [one-mutation-pipeline-for-health]
   - id: entity-id-form-departure
     question: >-
       the engine issues entity ids as negative integers and the fake issues decimal counter
-      strings; which requirement documents that departure?
+      strings; the API reference documents `Entity.id` as opaque and tells a reader not to
+      parse or interpret it, so the form may be a quirk no fake owes reproduction — does that
+      reading exempt the id from the observed-behaviour rule, or does a requirement document
+      the departure?
     closes: requirement
     gates: [sequential-opaque-entity-ids]
   - id: per-type-spawn-quirk-departure
     question: >-
       the engine's spawn frame carries per-type placement offsets and rotation settles the fake
-      does not apply; which requirement documents that departure, given a decision currently
-      carries it?
+      does not apply — boat, arrow and xp_orb among the eight types probed, with the set over
+      all entity types unknown; which requirement documents that departure, given a decision
+      currently carries it?
     closes: requirement
     gates: [per-type-spawn-quirks-not-modeled]
   - id: remove-side-effect-departure
     question: >-
-      the engine's `remove()` was followed by five unrelated after-event deliveries the fake
-      emits none of; which requirement documents that departure?
+      the engine's `remove()` was followed by five after-event deliveries the fake emits none
+      of, four of them data-driven and none of the five causally pinned by the run; which
+      requirement documents that departure, and should `entityRemove` — the one the fake could
+      populate — be emitted rather than carried as a departure?
     closes: requirement
   - id: corpse-despawn-departure
     question: >-
@@ -92,9 +98,10 @@ fakes hold and nothing more — identity, location and dimension, rotation and v
 methods, `getComponent`/`getComponents`/`hasComponent`, the four effect methods, `applyDamage`,
 `kill`, `remove`, and `Player.name`. `triggerEvent` rejects a bare id as the engine does and then
 throws not-implemented, because what a triggered event does is a data-driven definition the fake
-has none of. Teleportation and impulse, `runCommand`, the dynamic-property surface, and the
-view-direction and AABB queries are stubs: each needs world geometry or a command interpreter
-behind it, and a fake that answered them would be inventing.
+has none of. Teleportation and impulse, `runCommand`, and the view-direction and AABB queries are
+stubs: each needs world geometry or a command interpreter behind it, and a fake that answered them
+would be inventing. The dynamic-property surface is a stub for the plainer reason that no
+requirement names a consumer needing it.
 
 The event surface divides the same way. All 55 after-event signals and all 13 before-event signals
 [[f:world-resting-state-observed]] exist as objects a test can subscribe to, and every signal's
@@ -108,6 +115,24 @@ Every entity component class the type map names [[f:component-ids-are-derivable-
 attached to an entity and answer its identity members, so the control plane can shape any component
 set a test needs; only the attribute-shaped subset behaves beyond that, and a non-attribute
 component's other members throw not-implemented.
+
+What that surface leaves out follows from the same reading: every behaviour the requirements name
+is a world's, an entity's, a component's, an effect's, or an event's
+[[r:fakes-behave-not-record]] [[r:invalidation-is-modeled]] [[r:control-plane-component-mutation]],
+and every engine observation held here was taken on those objects, so v1 builds the classes those
+behaviours run through and stubs the other 400-odd the package declares
+[[f:server-classes-are-structurally-assignable]]. What is left out, and why:
+
+| omitted | what it is | why it stays out of v1 |
+|---|---|---|
+| `ItemStack`, `Container`, `ContainerSlot`, the item component classes | item stacks and the inventories holding them | no requirement names a consumer needing it; the decision's own falsifier makes a consumer suite passing an `ItemStack` the trigger to reopen |
+| `Block`, `BlockPermutation`, `BlockType` and `BlockStates`, `BlockVolume` and its iterators, the block component classes | the voxel layer and everything addressed by block position | answering any of it needs world geometry the fake has none of, so every answer would be invented [[r:fakes-never-fabricate]] |
+| `System` — `run`, `runTimeout`, `runInterval`, `currentTick` | tick scheduling and the tick counter | there is no tick to schedule against [[d:no-clock]] |
+| `EntityTypes`, `EffectTypes`, `ItemTypes`, `BlockTypes`, `Potions` and the other static registries | the engine's catalogues of what exists | their contents are per-type vanilla data, which belongs to a package built on this one [[r:presets-are-opt-in]] |
+| `StartupEvent`, `ShutdownEvent`, and the custom command and custom component registries | the startup phase where a pack registers its own commands and components | it is reached through the module's own lifecycle, not through objects a test passes in [[r:object-substitution-not-module-mocking]] |
+| `Camera`, `ScreenDisplay`, `PlayerAimAssist`, `InputInfo`, `LocatorBar` | what a connected client is shown and how it drives its player | no requirement names a consumer needing it, and there is no client behind the fake to answer from |
+| `Structure` and `StructureManager`, the loot table classes, `MolangVariableMap`, `Seat`, `FluidContainer`, and the remaining declared classes | world authoring, loot generation, and the long tail | no requirement names a consumer needing it |
+| `Scoreboard`, `ScoreboardObjective`, `ScoreboardIdentity`, `GameRules` | the objects a world's `scoreboard` and `gameRules` answer with | present because the world graph has to be callable [[f:world-resting-state-observed]], with their own members stubbed: nothing modelled reads or writes them |
 
 Id types are derived from the package's own declarations rather than transcribed
 [[f:component-ids-are-derivable-from-types]] [[d:id-unions-derived-from-declarations]]. The values
@@ -165,11 +190,16 @@ the three vanilla dimensions, whose ids resolve from either spelling, whose heig
 [[f:vanilla-dimensions-resolve-with-populated-fields]] [[d:vanilla-dimensions-is-the-only-preset]].
 The rest of the engine's resting state is per-type vanilla data and belongs to a package built on
 this one. So does the engine's per-type spawn-frame behaviour: the fake places an entity exactly
-where asked and models neither the boat's constant 0.2 placement offset
-[[f:boat-spawn-offset-magnitude-constant]], nor the arrow's one-time rotation settle to −72
-[[f:resting-arrow-turns-once-and-stays-valid]], nor post-spawn AI drift — which is drawn per run
-rather than fixed per type, so no fake could reproduce it deterministically anyway
-[[f:post-spawn-mob-motion-is-per-run-not-per-type]] [[d:per-type-spawn-quirks-not-modeled]].
+where asked and models neither the boat's 0.2 placement offset — constant in magnitude, but with a
+sign rule the observations do not establish, so reproducing it would mean guessing which way to
+push [[f:boat-spawn-offset-magnitude-constant]] — nor the arrow's one-time rotation settle to −72
+[[f:resting-arrow-turns-once-and-stays-valid]], nor post-spawn AI drift, which is drawn per run
+rather than fixed per type and so is not deterministically reproducible at all
+[[f:post-spawn-mob-motion-is-per-run-not-per-type]] [[d:per-type-spawn-quirks-not-modeled]]. Those
+three are what eight sampled types turned up, against the 128 entity types
+`@minecraft/vanilla-data` names [[f:vanilla-data-provides-prefixed-id-constants]]: a per-type table
+built from the sample would be a table of the types that happened to be probed, so which types
+carry a quirk is bounded only by what was probed.
 
 ## Identity and ids
 
@@ -256,8 +286,12 @@ path was observed to emit [[d:one-mutation-pipeline-for-health]] [[r:fakes-behav
 and the hurt payload carries the requested amount even when it exceeds remaining health
 [[f:damage-cascade-order-and-payload]]. The value is not clamped at the minimum: a killing hit
 drives `currentValue` below `effectiveMin` and the change event reports the negative number
-[[f:health-not-clamped-at-minimum]]. With no options the damage cause is `none`
-[[f:applydamage-cause-defaults]].
+[[f:health-not-clamped-at-minimum]]. With no options the damage cause is `none`, and with the
+projectile options form the fake reports the cause `projectile` the engine derives from that form.
+On that path the fake applies exactly the amount asked for: the engine adjusted a requested 1 to
+1.045823097229004 from a real arrow, an adjustment the declarations and the API reference state
+nowhere and one run cannot pin, so the requested amount is the only value the fake holds evidence
+for [[f:applydamage-cause-defaults]] [[r:fakes-never-fabricate]].
 
 `kill()` fires the full cascade — hurt for exactly the current health with cause `selfDestruct`,
 the health change to exactly the minimum, then die with the same cause — returns true, and returns
@@ -272,10 +306,16 @@ gone invalidates it through the control plane
 [[d:corpse-stays-valid-except-on-the-no-health-path]]. Writes through the health component fire
 `entityHealthChanged` with no `entityHurt`, and a write that reaches the effective minimum fires
 `entityDie` with cause `override` [[f:component-health-writes-cascade]]. `remove()` fires no death
-event and is the control plane's business rather than a modelled event cascade: the engine's own
-`remove()` was followed by five further deliveries — an `entitySpawn`, three
-`dataDrivenEntityTrigger`, and an `entityRemove` — which is engine bookkeeping a fake has no reason
-to reproduce [[f:kill-and-remove-cascades]].
+event, and the fake emits nothing else on that path either. The engine's own `remove()` was
+followed by five further deliveries — an `entitySpawn`, three `dataDrivenEntityTrigger`, and an
+`entityRemove` [[f:kill-and-remove-cascades]] — and two things keep them out of the fake. The run
+does not establish what caused which: it is a single run whose payload matching failed once the
+entity was gone, so the five are attributed to that entity by what else the world held rather than
+by their payloads. And four of the five are data-driven — a spawn and three definition-event
+triggers — arising from entity definitions the fake models none of, which is the same absence that
+makes `triggerEvent` throw; emitting them would mean inventing both the cause and the payload
+[[r:fakes-never-fabricate]]. `entityRemove` is the one delivery a fake could populate from what it
+holds, and it is what the open question on this departure turns on.
 
 ## The control plane
 
