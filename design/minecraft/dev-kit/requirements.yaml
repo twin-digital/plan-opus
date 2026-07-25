@@ -1,0 +1,74 @@
+# Requirements scoped to the minecraft/dev-kit design. Every entry is DRAFTED for the owner to
+# accept, amend, or reject — none has been ratified. The first three record decisions the owner
+# stated directly on the shape walkthrough; the rest are outcomes distilled from it.
+#
+# rationale is omitted unless the statement's intent is genuinely non-obvious.
+
+# Product and consumers
+
+- id: kit-is-consumed-as-a-library
+  statement: |
+    the kit's product is a typed library: a consumer imports it and receives the pack set as data,
+    not as text it must parse. A command-line interface over the same capabilities is intended and
+    is not specified here.
+
+- id: consumers-are-the-dev-server-and-ci
+  statement: |
+    the dev server and a continuous-integration check are both intended consumers. Validation
+    therefore reports a structured result naming every problem it found, consumable without a
+    human reading it.
+
+# Scope and membership
+
+- id: one-pack-of-each-kind-per-package
+  statement: |
+    a workspace package holds at most one behavior pack and at most one resource pack. A package
+    holding two packs of the same kind is out of scope, and nothing in the kit needs to express it.
+
+- id: membership-from-source-manifest-presence
+  statement: |
+    a workspace package is a pack-bearing package when its source holds `behavior_pack/manifest.json`
+    or `resource_pack/manifest.json`; presence of those source manifests is the whole membership
+    test. Both kinds are discovered. No marker field, keyword, or central list is required, and
+    adding, removing, or renaming a pack needs no edit anywhere but the package itself.
+
+- id: built-output-defaults-to-dist
+  statement: |
+    a pack's built output is found at `dist/` within its package unless the package specifies an
+    alternate location.
+
+# What the kit reports
+
+- id: packs-enumerable-without-a-build
+  statement: |
+    the kit reports every pack in a workspace — its owning package, its kind, its source location,
+    and the identity its source manifest declares — from a clean checkout, with no build having run
+    and no server running. What only a built pack settles, the version present in a server pool, is
+    not claimed before a build.
+
+- id: pack-identity-and-kind-declared-only-by-the-manifest
+  statement: |
+    a pack's identity, version, and kind come from its own `manifest.json`. Where a convention
+    encodes kind — the `behavior_pack/` and `resource_pack/` directories membership is read from —
+    the manifest stays authoritative and a disagreement between the two is a reported error, never
+    a silent preference for one side.
+
+- id: selection-filters-the-discovered-set
+  statement: |
+    which packs a consumer operates on is expressed as a filter over the discovered set, applied
+    per invocation; narrowing a selection never changes what the workspace contains, and the kit's
+    report of what exists is unaffected by it.
+
+- id: unresolvable-packs-fail-loudly
+  statement: |
+    a pack the kit cannot resolve — a manifest that cannot be parsed, a missing or duplicated
+    identity, a manifest dependency on another pack that the set does not satisfy, or no built
+    output where the pack's output was expected — is reported as a named error identifying the
+    package and the path examined, not omitted from a silently smaller result and not deferred to
+    the server. A dependency naming a built-in scripting module is not a missing pack.
+
+- id: kit-stops-at-a-validated-pack-set
+  statement: |
+    the kit's product is a validated, normalised pack set. It may invoke or configure a package's
+    build, but it defines no build semantics, performs no deployment, and builds no release
+    archive.

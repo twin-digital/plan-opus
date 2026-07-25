@@ -1,0 +1,70 @@
+=== environment
+Docker Compose version v5.2.0
+DOCKER_HOST=ssh://prod-development-docker
+behavior pack uuid=d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f modules=["data"]
+resource pack uuid=f5ebc4c3-7d8a-4e9f-0a1b-2c3d4e5f6a7b modules=["resources"]
+
+server ready: true
+
+=== the server's own pack directories, before anything is deployed
+Dedicated_Server.txt
+allowlist.json
+bedrock_server-1.26.34.3
+bedrock_server_how_to.html
+behavior_packs
+config
+data
+definitions
+development_behavior_packs
+development_resource_packs
+development_skin_packs
+minecraftpe
+packetlimitconfig.json
+permissions.json
+premium_cache
+profanity_filter.wlist
+release-notes.txt
+resource_packs
+server.properties
+treatments
+world_templates
+worlds
+
+=== case 1: each pack in its own pool, each listed in its own world list
+  world_behavior_packs.json = [{"pack_id":"d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f","version":[1,0,0]}]
+  world_resource_packs.json = [{"pack_id":"f5ebc4c3-7d8a-4e9f-0a1b-2c3d4e5f6a7b","version":[1,0,0]}]
+[2026-07-24 23:48:58:089 INFO] Pack Stack - [00] layout probe behavior pack (id: d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f, version: 1.0.0) @ development_behavior_packs/probe-bp
+
+=== case 2: the resource pack placed in the behavior pool and listed as a behavior pack
+  world_behavior_packs.json = [{"pack_id":"d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f","version":[1,0,0]},{"pack_id":"f5ebc4c3-7d8a-4e9f-0a1b-2c3d4e5f6a7b","version":[1,0,0]}]
+  world_resource_packs.json = []
+[2026-07-24 23:49:03:808 INFO] Pack Stack - [00] layout probe behavior pack (id: d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f, version: 1.0.0) @ development_behavior_packs/probe-bp
+
+=== case 3: back to correct pools, behavior pack only listed
+  world_behavior_packs.json = [{"pack_id":"d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f","version":[1,0,0]}]
+  world_resource_packs.json = [{"pack_id":"f5ebc4c3-7d8a-4e9f-0a1b-2c3d4e5f6a7b","version":[1,0,0]}]
+[2026-07-24 23:49:09:755 INFO] Pack Stack - [00] layout probe behavior pack (id: d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f, version: 1.0.0) @ development_behavior_packs/probe-bp
+
+=== case 4: the behavior pack placed in the resource pool and listed as a resource pack
+(does the pool decide a pack's kind, or does its manifest?)
+  world_behavior_packs.json = []
+  world_resource_packs.json = [{"pack_id":"f5ebc4c3-7d8a-4e9f-0a1b-2c3d4e5f6a7b","version":[1,0,0]},{"pack_id":"d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f","version":[1,0,0]}]
+[2026-07-24 23:49:15:522 INFO] Pack Stack - None
+
+=== case 5: pack directories renamed to names that contradict their manifests
+(is a source or pool directory name ever read as a declaration of kind?)
+  world_behavior_packs.json = [{"pack_id":"d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f","version":[1,0,0]}]
+  world_resource_packs.json = [{"pack_id":"f5ebc4c3-7d8a-4e9f-0a1b-2c3d4e5f6a7b","version":[1,0,0]}]
+[2026-07-24 23:49:22:860 INFO] Pack Stack - [00] layout probe behavior pack (id: d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f, version: 1.0.0) @ development_behavior_packs/resource_pack_totally
+
+=== how the pools look after the run
+/data/development_behavior_packs
+/data/development_behavior_packs/resource_pack_totally
+/data/development_behavior_packs/resource_pack_totally/functions
+/data/development_behavior_packs/resource_pack_totally/manifest.json
+/data/development_resource_packs
+/data/development_resource_packs/behavior_pack_honest
+/data/development_resource_packs/behavior_pack_honest/manifest.json
+/data/development_resource_packs/behavior_pack_honest/textures
+
+=== done
