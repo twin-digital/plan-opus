@@ -76,8 +76,8 @@ image ships [[d:server-image-pinned-with-console-helper]], which takes a command
 session attached [[f:bedrock-image-exposes-a-noninteractive-console-helper]]. Those two calls are the
 entire transport [[d:deploy-transport-is-cp-and-console-exec]].
 
-Compose's own file-sync feature is the road not taken, and for a structural reason rather than a
-version one: a watch rule's path must be literal, with globs and symlinks accepted at parse time and
+Compose's own file-sync feature is the road not taken: a watch rule's path must be literal, with
+globs and symlinks accepted at parse time and
 then silently never syncing [[f:compose-watch-path-constraints]], so the set of packs would have to
 be baked into the project file and the project regenerated and re-upped whenever a selection
 changed — losing the running world on every selection edit.

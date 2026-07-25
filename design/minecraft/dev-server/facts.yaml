@@ -2,8 +2,9 @@
 # review.
 #
 # The four dev-kit-* facts are this design's dependency on minecraft/dev-kit, each sourced by
-# verbatim quote to the kit's requirements — its pinned artifact — per
-# r:cross-design-dependency-is-cited-as-a-fact. The rest are Compose and Bedrock mechanics that
+# verbatim quote to the kit's requirements per r:cross-design-dependency-is-cited-as-a-fact.
+# Those requirements are drafts the kit's owner has not ratified, so all four rest on an upstream
+# input that may still change. The rest are Compose and Bedrock mechanics that
 # only the server harness rests on. server-load-output-reports-only-activated-behavior-packs rests
 # on the pool-layout probe under design/minecraft/artifacts/, which sits at area scope rather than
 # in either design because minecraft/dev-kit has a fact resting on the same probe.
@@ -80,8 +81,7 @@
   claim: |
     A pack's built output — the directory the harness copies into the pool and reads the built
     manifest from — is found at `dist/` within its package unless the package specifies an
-    alternate location. The harness therefore has a locatable built-output directory per pack
-    without inspecting the package's build.
+    alternate location.
   backing: documented
   sources:
     - url: design/minecraft/dev-kit/requirements.yaml
@@ -91,6 +91,11 @@
         alternate location.
 
 - id: compose-watch-actions-and-versions
+  status: retired
+  reason: stale
+  caveat: |
+    Nothing in this design rests on it, and its two action quotes splice entries that are not
+    adjacent on the page, so the quoted text does not appear as written at the source.
   claim: |
     Docker Compose's `develop.watch` offers the actions a live deploy needs, but the two most
     useful gate on recent Compose versions: `sync` copies changed files into the running
@@ -281,7 +286,7 @@
 - id: bedrock-activation-entry-is-header-uuid-and-version
   claim: |
     A world's activation list, `<world>/world_behavior_packs.json`, is a JSON array of entries
-    with exactly two fields: `pack_id`, the uuid from the pack manifest's *header* — a module
+    carrying `pack_id`, the uuid from the pack manifest's *header* — a module
     uuid does not work — and `version`, the header's three-number version array, which must
     match the pack in the pool: with either wrong, the world's pack stack is None. The server does
     not create the file for a new world and does not rewrite one it is given.
@@ -442,6 +447,13 @@
           world_behavior_packs.json = [{"pack_id":"d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f","version":[1,0,0]},{"pack_id":"f5ebc4c3-7d8a-4e9f-0a1b-2c3d4e5f6a7b","version":[1,0,0]}]
           world_resource_packs.json = []
         [2026-07-24 23:49:03:808 INFO] Pack Stack - [00] layout probe behavior pack (id: d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f, version: 1.0.0) @ development_behavior_packs/probe-bp
+    - url: design/minecraft/artifacts/pack-layout/probe/OUTPUT.txt
+      where: case 3 — both packs correctly pooled, each listed in its own world list
+      quote: |
+        === case 3: back to correct pools, behavior pack only listed
+          world_behavior_packs.json = [{"pack_id":"d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f","version":[1,0,0]}]
+          world_resource_packs.json = [{"pack_id":"f5ebc4c3-7d8a-4e9f-0a1b-2c3d4e5f6a7b","version":[1,0,0]}]
+        [2026-07-24 23:49:09:755 INFO] Pack Stack - [00] layout probe behavior pack (id: d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f, version: 1.0.0) @ development_behavior_packs/probe-bp
     - url: design/minecraft/artifacts/pack-layout/probe/OUTPUT.txt
       where: cases 4 and 5 — the behavior pack in the resource pool, then pool directories named against their manifests
       quote: |
