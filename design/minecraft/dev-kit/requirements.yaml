@@ -77,44 +77,31 @@
     build, but it defines no build semantics, performs no deployment, and builds no release
     archive.
 
-- id: kit-owns-manifest-completion
-  statement: |
-    the kit's product is a validated, normalised pack set and, for each pack, the completed
-    manifest: injecting `header.name`, `header.version`, and the versions of in-workspace
-    dependencies is the kit's job, not a consumer's or a package build's. It still performs no
-    deployment and builds no release archive.
-  rationale: |
-    Validation now hinges on a source manifest that is deliberately incomplete, so someone must
-    populate it. Leaving that outside the kit would leak the injection rules into every consumer
-    that wants a loadable pack.
-
 # Manifest completion
 
-- id: source-manifests-omit-injected-name-and-version
+- id: kit-completes-partial-source-manifests
   statement: |
-    a source `manifest.json` omits `header.name` and `header.version`; both are injected into the
-    manifest that reaches build output. Their absence from source is never reported as a problem.
-
-- id: absent-dependency-version-denotes-a-workspace-pack
-  statement: |
-    a manifest `dependencies` entry whose version is absent — no `version` key, or an empty array —
-    denotes a pack in this workspace, and the version of that pack is stamped into the entry on the
-    way to build output. An entry carrying an explicit version denotes a pack outside the workspace
-    and passes through untouched.
+    a source `manifest.json` is partial by design: it carries no `header.name` and no
+    `header.version`, and a `dependencies` entry on a pack in this workspace carries no version
+    either — no `version` key, or an empty array. Absence is what marks a dependency in-workspace:
+    its version is resolved from the pack it names and stamped into the entry on the way to build
+    output, while an entry carrying an explicit version denotes a pack outside the workspace and
+    passes through untouched. The injected `header.name` is the owning package's `package.json`
+    `productName` when present, and otherwise the package name with its npm scope stripped —
+    `@scope/mc-pack-1` becomes `mc-pack-1`. Completing all of this is the kit's job, not a
+    consumer's or a package build's, and no absence it fills in is ever reported as a problem. The
+    kit's product is therefore a validated, normalised pack set and, for each pack, its completed
+    manifest; it still performs no deployment and builds no release archive.
   rationale: |
-    Absence is the resolution signal because a `workspace:*`-style placeholder token would be
-    ill-typed against a field the format admits only as an array or a SemVer string.
+    Validation hinges on a manifest that is deliberately incomplete, so someone must populate it,
+    and leaving that outside the kit would leak these rules into every consumer that wants a
+    loadable pack. Absence is the resolution signal because a `workspace:*`-style placeholder token
+    would be ill-typed against a field the format admits only as an array or a SemVer string.
 
-- id: injected-name-comes-from-the-package
-  statement: |
-    the injected `header.name` is the owning package's `package.json` `productName` when present,
-    and otherwise the package name with its npm scope stripped — `@scope/mc-pack-1` becomes
-    `mc-pack-1`.
-  rationale: |
-    Not the scoped name: `@` and `/` are undocumented in a field the game renders in its
-    pack-selection UI, and no first-party pack uses them. Not a dotted form either, which is
-    indistinguishable from an unresolved `pack.name` localization key, whose documented failure
-    mode is rendering the raw string in that same UI.
+    The injected name is not the scoped package name: `@` and `/` are undocumented in a field the
+    game renders in its pack-selection UI, and no first-party pack uses them. Nor a dotted form,
+    which is indistinguishable from an unresolved `pack.name` localization key, whose documented
+    failure mode is rendering the raw string in that same UI.
 
 # Built output and workspace scope
 

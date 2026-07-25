@@ -24,9 +24,10 @@ kit's to inject, and never a problem to report.
 ```yaml
 questions:
   - id: injected-version-source
-    question: where does the injected `header.version` come from? The requirements fix where the
-      injected name comes from and that a version is injected, but not what it is read from — the
-      owning package's `package.json` `version` is the obvious candidate and is not stated.
+    question: where does the injected `header.version` come from?
+      r:kit-completes-partial-source-manifests fixes where the injected name comes from and that a
+      version is injected, but not what that version is read from — the owning package's
+      `package.json` `version` is the obvious candidate and is not stated.
     closes: requirement
     gates: [completion-is-a-post-build-pass-over-the-output-tree]
   - id: completion-outside-the-kit-build-entry-point
@@ -70,7 +71,7 @@ type Pack = {
 `sourceDir` and `outputDir` are both present on every record, because both are computable from source
 alone. `outputDir` is where the kit will look; that something is there is a separate question the kit
 answers only when asked (below) [[r:packs-enumerable-without-a-build]]. `version` is the one field a
-record cannot always carry: source does not state it [[r:source-manifests-omit-injected-name-and-version]],
+record cannot always carry: source does not state it [[r:kit-completes-partial-source-manifests]],
 so it is present only once completion has determined it.
 
 ## Finding packs
@@ -101,9 +102,9 @@ Kind derived this way is then checked
 against the directory it was found in, and a disagreement is a problem naming both sides.
 
 What the manifest does not carry at this point is a name or a version, and the reader does not treat
-either as missing [[r:source-manifests-omit-injected-name-and-version]] — a source manifest that
-parses, declares a uuid, and declares recognised modules is complete for every purpose before
-completion runs.
+either as missing [[r:kit-completes-partial-source-manifests]] — a source manifest that parses,
+declares a uuid, and declares recognised modules is complete for every purpose before completion
+runs.
 
 `outputDir` is `dist/` joined to the same kind-named subdirectory the source probe used, and that
 subdirectory is always present, however many packs the package has
@@ -129,12 +130,11 @@ the directory that located it.
 
 Dependency checking follows from what an absent version means. An entry that names a `uuid` and
 carries no version has to resolve to a discovered pack, because the version stamped there at
-completion can only come from that pack [[r:absent-dependency-version-denotes-a-workspace-pack]];
-one carrying an explicit version is a pack the workspace does not hold, and is left alone rather
-than failed for being unresolvable [[d:explicit-version-marks-a-dependency-external]]. An entry
-naming a `module_name` names a built-in scripting module and is exempt from both, so the set is
-never treated as closed [[f:pack-dependencies-name-an-exact-uuid-and-version]]
-[[r:unresolvable-packs-fail-loudly]].
+completion can only come from that pack [[r:kit-completes-partial-source-manifests]]; one carrying
+an explicit version is a pack the workspace does not hold, and is left alone rather than failed for
+being unresolvable [[d:explicit-version-marks-a-dependency-external]]. An entry naming a
+`module_name` names a built-in scripting module and is exempt from both, so the set is never treated
+as closed [[f:pack-dependencies-name-an-exact-uuid-and-version]] [[r:unresolvable-packs-fail-loudly]].
 
 The one check that cannot run on a clean checkout is built output, and it runs only when the caller
 asks for it [[d:built-output-checks-are-opt-in]]. Asked for, a pack with nothing at its `outputDir`
@@ -143,14 +143,11 @@ is a problem naming the package and that path; not asked for, its absence is not
 
 ## Completing a manifest
 
-Three fields source omits are the kit's to supply [[r:kit-owns-manifest-completion]]. `header.name`
-comes from the owning package — its `productName`, or its scope-stripped package name
-[[r:injected-name-comes-from-the-package]] — which is the second thing the workspace definition is
-read for. `header.version` is injected too [[r:source-manifests-omit-injected-name-and-version]].
-Each unversioned dependency entry is stamped with the version of the pack its uuid resolved to
-[[r:absent-dependency-version-denotes-a-workspace-pack]], which is the same resolution validation
-already performed, so completion consumes the validated pack set rather than re-reading the
-workspace.
+Completion needs no input the kit has not already read [[r:kit-completes-partial-source-manifests]].
+The owning package's `productName` and name sit in the workspace definition discovery went to
+anyway, and the version stamped into an unversioned dependency entry is the version of the pack its
+uuid resolved to during validation. Completion therefore consumes the validated pack set and
+re-reads nothing.
 
 Completion rewrites the manifest that sits under the package's output root, after the package's own
 build script has put it there, and leaves the source manifest untouched
@@ -164,7 +161,7 @@ Building a selection runs once per owning package, not once per pack, so a calle
 of a package's two packs gets both rebuilt and both reported as affected, with completion run over
 that package's output root once the script returns [[d:build-is-delegated-per-package]]. The kit
 still defines nothing about how the package assembles its output; it only invokes the script and
-then fills in the fields the script left blank [[r:kit-owns-manifest-completion]]. That attribution
+then fills in the fields the script left blank [[r:kit-completes-partial-source-manifests]]. That attribution
 is exact where a package's two packs are built by one script [[r:one-pack-of-each-kind-per-package]].
 A package with no build script to invoke is a problem, not a silent no-op.
 
