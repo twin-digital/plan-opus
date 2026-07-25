@@ -11,7 +11,7 @@ free functions for everything the real API cannot express: creating a world, spa
 invalidating a reference, and reshaping an entity's components. It answers the pack author's
 problem that the engine package ships declarations with no runtime, leaving every suite to
 hand-roll doubles that record calls, smooth over the API's quirks, and cannot express an absent
-component or an entity that unloaded mid-event.
+component or a reference that went invalid mid-event.
 
 One constraint shapes everything below: the fake has no engine and no tick. Every behaviour it
 reproduces is transcribed from a recorded observation of one pinned engine version, so where the
@@ -20,10 +20,9 @@ inventing a plausible value.
 
 ## What the library substitutes, and how it types itself
 
-The library hands a test fake objects to pass into the code under test, and does nothing to the
-module system [[r:object-substitution-not-module-mocking]]. That is the only substitution
-available: `@minecraft/server` publishes `index.d.ts` and nothing importable, so there is neither a
-runtime module to intercept nor a real class to instantiate or subclass
+Passing fake objects into the code under test is the only substitution available:
+`@minecraft/server` publishes `index.d.ts` and nothing importable, so there is neither a runtime
+module to intercept nor a real class to instantiate or subclass
 [[f:server-package-ships-types-only]]. Every fake is therefore an ordinary class this package
 declares and this package constructs.
 
@@ -38,12 +37,17 @@ what keeps the shape complete without a codegen step: a missing member is a comp
 package, not a `undefined` read in a consumer's test.
 
 Because the clause forces a body onto every member, the built surface has to be settled member by
-member, not class by class: a builder needs to know which side of the throw each one falls on
-[[d:built-surface-v1]]. On `World` it is `getDimension`, `getAllPlayers`, `scoreboard`,
-`gameRules`, `isHardcore`, `seed`, `afterEvents`, and `beforeEvents` — the members a world with no
-one connected was observed to answer [[f:world-resting-state-observed]]. On `Dimension` it is `id`,
-`heightRange`, `localizationKey`, `spawnEntity`, and `getEntities`; every block-shaped member is a
-stub, since blocks are outside the surface entirely. On `Entity` and `Player` it is the state the
+member, not class by class: a builder needs to know which side of the throw each one falls on. On
+`World` it is `getAllPlayers`, `scoreboard`, `gameRules`, `isHardcore`, `seed`, `afterEvents`, and
+`beforeEvents` — the members a world with no one connected was observed to answer
+[[f:world-resting-state-observed]] — plus `getDimension`, which resolves either spelling of the
+three vanilla ids [[f:vanilla-dimensions-resolve-with-populated-fields]] and throws on an id naming
+no dimension [[f:get-dimension-unknown-id-error]] [[d:built-surface-v1]]. On `Dimension` it is
+`id`, `heightRange`, `localizationKey`, `spawnEntity`, and `getEntities`, the last answering only
+its no-argument form: an `EntityQueryOptions` argument throws not-implemented, since evaluating one
+needs geometry and per-type data the fake has only partly and a silently mis-filtered result is
+worse than a loud refusal [[r:fakes-never-fabricate]]. Every block-shaped member is a stub, since
+blocks are outside the surface entirely. On `Entity` and `Player` it is the state the
 fakes hold and nothing more — identity, location and dimension, rotation and velocity, the tag
 methods, `getComponent`/`getComponents`/`hasComponent`, the four effect methods, `applyDamage`,
 `kill`, `remove`, and `Player.name`. `triggerEvent` rejects a bare id as the engine does and then
@@ -63,39 +67,46 @@ before-event signals, stay silent rather than throwing, since a pack subscribing
 never triggers is doing nothing wrong, and the fake models no before-phase to cancel from.
 
 All 68 entity component classes the type map names [[f:component-ids-are-derivable-from-types]] can
-be attached to an entity and answer their identity members, so the control plane can shape any
-component set a test needs; only the 7 attribute-shaped ones behave beyond that, and a
-non-attribute component's other members throw not-implemented.
+be attached to an entity and answer their identity members — `typeId`, `isValid`, and the `entity`
+that owns them, the three every entity component declares outside its own behaviour — so the
+control plane can shape any component set a test needs; only the 7 attribute-shaped ones behave
+beyond that, and a non-attribute component's other members throw not-implemented.
 
-What that surface leaves out follows from the same reading: every behaviour the requirements name
-is a world's, an entity's, a component's, an effect's, or an event's
-[[r:fakes-behave-not-record]] [[r:invalidation-is-modeled]] [[r:control-plane-component-mutation]],
-and every engine observation held here was taken on those objects, so v1 builds the classes those
-behaviours run through and stubs the other 400-odd the package declares
-[[f:server-classes-are-structurally-assignable]]. What is left out, and why:
+Being outside that surface means two different things. A member of a built class is authored and
+throws not-implemented, because the `implements` clause forces a body onto it
+[[r:structural-full-shape-fakes]]. A class outside it is absent from the package: there is no fake
+of it to import, no stub object to hold, and no component owns one. Which classes those are follows
+from the same reading of the requirements — every behaviour they name is a world's, an entity's, a
+component's, an effect's, or an event's [[r:fakes-behave-not-record]] [[r:invalidation-is-modeled]]
+[[r:control-plane-component-mutation]], and every engine observation held here was taken on those
+objects:
 
-| omitted | what it is | why it stays out of v1 |
+| absent from v1 | what it is | why |
 |---|---|---|
-| `ItemStack`, `Container`, `ContainerSlot`, the item component classes | item stacks and the inventories holding them | no requirement names a consumer needing it; the decision's own falsifier makes a consumer suite passing an `ItemStack` the trigger to reopen |
-| `Block`, `BlockPermutation`, `BlockType` and `BlockStates`, `BlockVolume` and its iterators, the block component classes | the voxel layer and everything addressed by block position | answering any of it needs world geometry the fake has none of, so every answer would be invented [[r:fakes-never-fabricate]] |
+| `ItemStack`, `Container`, `ContainerSlot`, the item component classes | item stacks and the inventories holding them | the expected next increment, not a permanent boundary: v1 ships the basic shape first |
+| `Block`, `BlockPermutation`, `BlockType` and `BlockStates`, `BlockVolume` and its iterators, the block component classes | the voxel layer and everything addressed by block position | the same next increment, and the heavier half of it: a block layer needs world geometry, which is state the library does not yet hold |
 | `System` — `run`, `runTimeout`, `runInterval`, `currentTick` | tick scheduling and the tick counter | there is no tick to schedule against [[d:no-clock]] |
 | `EntityTypes`, `EffectTypes`, `ItemTypes`, `BlockTypes`, `Potions` and the other static registries | the engine's catalogues of what exists | their contents are per-type vanilla data, which belongs to a package built on this one [[r:presets-are-opt-in]] |
-| `StartupEvent`, `ShutdownEvent`, and the custom command and custom component registries | the startup phase where a pack registers its own commands and components | it is reached through the module's own lifecycle, not through objects a test passes in [[r:object-substitution-not-module-mocking]] |
-| `Camera`, `ScreenDisplay`, `PlayerAimAssist`, `InputInfo`, `LocatorBar` | what a connected client is shown and how it drives its player | no requirement names a consumer needing it, and there is no client behind the fake to answer from |
-| `Structure` and `StructureManager`, the loot table classes, `MolangVariableMap`, `Seat`, `FluidContainer`, and the remaining declared classes | world authoring, loot generation, and the long tail | no requirement names a consumer needing it |
-| `Scoreboard`, `ScoreboardObjective`, `ScoreboardIdentity`, `GameRules` | the objects a world's `scoreboard` and `gameRules` answer with | present because the world graph has to be callable [[f:world-resting-state-observed]], with their own members stubbed: nothing modelled reads or writes them |
+| `StartupEvent`, `ShutdownEvent`, and the custom command and custom component registries | the startup phase where a pack registers its own commands and components | reached through the module's own lifecycle, not through objects a test passes in [[r:object-substitution-not-module-mocking]] |
+| `Camera`, `ScreenDisplay`, `PlayerAimAssist`, `InputInfo`, `LocatorBar`, `Structure` and `StructureManager`, the loot table classes, `MolangVariableMap`, `Seat`, `FluidContainer`, and the remaining declared classes | the player-client surface, world authoring, loot generation, and the long tail | no requirement names a consumer needing it |
 
-Id types are derived from the package's own declarations rather than transcribed
-[[f:component-ids-are-derivable-from-types]] [[d:id-unions-derived-from-declarations]]. The values
-behind those types are a different matter:
+`Scoreboard`, `ScoreboardObjective`, `ScoreboardIdentity`, and `GameRules` are the one middle case:
+built, because the world's graph has to be callable [[f:world-resting-state-observed]], with their
+own members stubbed, because nothing modelled reads or writes them.
+
+Id types come from the package's own type maps, so a version bump reshapes them with no
+transcription pass [[f:component-ids-are-derivable-from-types]]
+[[d:id-unions-derived-from-declarations]]. The values behind those types are a different matter:
 the enum members have types but no usable values at runtime [[f:server-package-ships-types-only]],
 so any runtime constant the library needs is its own string literal, and a consumer wanting real
 constants uses `@minecraft/vanilla-data`, which does ship runtime JavaScript and whose values are
 the prefixed form [[f:vanilla-data-provides-prefixed-id-constants]]. The derived unions and the
 hand-written stub lists are the two places a version bump surfaces, which is why the pin is a
-declared peer range and not an assumption [[r:target-server-version]]. Nothing is depended on
-beyond it [[r:no-test-framework-dependency]], so the fakes carry no recording machinery of their
-own: a caller who wants call records wraps them in whatever their runner provides.
+declared peer range and not an assumption [[r:target-server-version]]. Nothing else is depended on
+at runtime [[r:no-test-framework-dependency]], so the fakes ship no spy or call-record machinery; a
+caller who wants call records wraps them in whatever their runner provides. The one record they do
+keep is the world's delivery log, which no runner could reconstruct, since the events it holds are
+dispatched inside the library rather than called across its surface.
 
 ## Failing loudly
 
@@ -113,12 +124,12 @@ invalid owner [[f:attribute-guard-classes-observed]].
 ## Construction and presets
 
 Construction populating
-nothing the caller did not ask for [[r:no-implicit-defaults]] is a deliberate
-departure from what the engine rests at — a fresh engine entity always carries components, with a
-type-dependent set and no common baseline [[f:fresh-entity-is-never-component-empty]], and a fresh
-health component answers all four of its values before any write
-[[f:fresh-health-component-values-populated]] — because reproducing either would mean shipping
-per-type vanilla data.
+nothing the caller did not ask for [[r:no-implicit-defaults]] departs from what the engine rests
+at — a fresh engine entity always carries components, with a type-dependent set and no common
+baseline [[f:fresh-entity-is-never-component-empty]], and a fresh health component answers all four
+of its values before any write [[f:fresh-health-component-values-populated]]. Both readings are
+per-type vanilla data, which is the outside-the-data-we-hold bound the fidelity rule licenses the
+departure on [[r:fakes-match-observed-engine-behaviour]].
 
 Two things are always present regardless. The object graph the API needs in order to be callable —
 the event signal objects, the scoreboard, the game rules — is constructed with the world, since a
@@ -131,10 +142,12 @@ reproduce it: its rotation and velocity are drawn afresh per spawn
 [[f:spawn-frame-kinematics-zero-except-xp-orb]], a departure the fidelity rule licenses as
 undetermined by evidence [[r:fakes-match-observed-engine-behaviour]]. `nameTag` starts as the empty
 string, which is uniform across every type sampled and so needs no per-type data
-[[f:fresh-entity-nametag-is-empty-string]]; the other spawn-frame fields the engine populates —
-`localizationKey`, a real `location` [[f:fresh-entity-spawn-frame-field-values]] — are the caller's
-to supply, and a read of one the test never set throws rather than answering an invented value
-[[r:fakes-never-fabricate]].
+[[f:fresh-entity-nametag-is-empty-string]]. The other spawn-frame fields the engine populates are
+the caller's to supply: `localizationKey` is the entity type's own name key
+[[f:fresh-entity-spawn-frame-field-values]], per-type data the library does not hold and so the
+same bound again [[r:fakes-match-observed-engine-behaviour]], and `location` the caller passes to
+the spawner as they would to the engine. A read of either before it is set throws rather than
+answering an invented value [[r:fakes-never-fabricate]].
 
 A populated starting point is a named preset the caller invokes, never constructor behaviour, and a
 preset here supplies only values a fact pins [[r:presets-are-opt-in]]. Exactly one clears that bar:
@@ -152,10 +165,8 @@ library does not hold. The boat's offset is constant in magnitude with a sign ru
 establish [[f:boat-spawn-offset-magnitude-constant]] — reproducing it would mean guessing which
 way to push, so it is undetermined by evidence as well as per-type. Post-spawn AI drift is drawn
 per run rather than fixed per type [[f:post-spawn-mob-motion-is-per-run-not-per-type]], the same
-undetermined bound. Those are what eight sampled types turned up, against the 128 entity types
-`@minecraft/vanilla-data` names [[f:vanilla-data-provides-prefixed-id-constants]]: a per-type table
-built from the sample would be a table of the types that happened to be probed, so which types
-carry a quirk is bounded only by what was probed.
+undetermined bound. Eight of the 128 entity types `@minecraft/vanilla-data` names were sampled
+[[f:vanilla-data-provides-prefixed-id-constants]], so which types carry a quirk is itself unknown.
 
 ## Identity and ids
 
@@ -170,14 +181,22 @@ licenses a departure on [[r:fakes-match-observed-engine-behaviour]], so a test d
 shape of an id depends on something the engine does not promise
 [[d:sequential-opaque-entity-ids]].
 
-Every id-taking input is normalized on entry and stored and reported in the canonical
-`minecraft:`-prefixed form [[r:canonical-prefixed-storage]] [[d:ids-normalized-at-entry]].
 Tolerance of the bare form is per-surface rather than universal:
 components, effect types, and entity types accept either, while `triggerEvent`
 rejects a bare event id [[f:namespace-prefix-is-optional]], and the fake rejects it too rather than
-being more permissive than what it stands in for [[r:fakes-match-observed-engine-behaviour]].
+being more permissive than what it stands in for [[r:fakes-match-observed-engine-behaviour]]. One
+normalizer at every entry point, storing and reporting the prefixed form, is what keeps that split
+a single exception rather than a rule each surface carries
+[[r:canonical-prefixed-storage]] [[d:ids-normalized-at-entry]].
 
 ## Validity
+
+The fake models one invalid state, and the evidence behind it is narrower than the states the
+engine reaches. Every guard observation was taken on a reference invalidated by `remove()`
+[[f:invalidation-guard-list-complete]] [[f:effect-members-throw-plain-error]]; whether a reference
+invalidated by its chunk unloading presents the same way is assumed, not observed. A test standing
+in for an unload therefore gets the removal behaviour, which is the one the engine was watched
+doing.
 
 Validity is
 per object and not per entity: a component or effect reads invalid when its own flag is
@@ -207,7 +226,10 @@ Event signals are fake objects with the real `subscribe`/`unsubscribe` shape. Re
 set-shaped — the same closure subscribed twice delivers once — and distinct subscribers are called
 in subscription order [[f:subscription-semantics-observed]].
 
-Delivery is synchronous, inside the causing call [[r:synchronous-event-delivery]] [[d:no-clock]].
+The engine defers an after-event past the mutating call's return and delivers it later in the same
+tick [[f:after-event-deferral-subtick]]; that offset is a function of elapsed ticks a clockless fake
+cannot represent, so delivery lands inside the causing call instead
+[[r:fakes-match-observed-engine-behaviour]] [[r:synchronous-event-delivery]] [[d:no-clock]].
 Within that call the dispatch point is its end, after the mutation has landed, which is what
 preserves the one property handlers actually depend on: a handler observes post-write state
 [[f:after-events-deferred]]. An event a handler itself causes dispatches inside that handler
@@ -233,8 +255,8 @@ the new duration is at least as long; a lower amplifier never replaces
 [[f:effect-replacement-rule-observed]] [[r:fakes-match-observed-engine-behaviour]]. A live effect
 answers all its members, `displayName` included — a populated human-readable string in the engine
 [[f:live-effect-fields-populated]] — but the mapping from effect id and amplifier to that string is
-vanilla data, so the fake reads back what the test supplied and fails loudly otherwise
-[[r:fakes-never-fabricate]]. Duration is static: the engine decays it with the tick
+vanilla data, outside what this library holds, so the fake reads back what the test supplied and
+fails loudly otherwise [[r:fakes-match-observed-engine-behaviour]] [[r:fakes-never-fabricate]]. Duration is static: the engine decays it with the tick
 [[f:effect-replacement-rule-observed]], which makes it a function of elapsed ticks a clockless fake
 cannot represent — the first of the fidelity rule's bounds
 [[r:fakes-match-observed-engine-behaviour]] [[d:no-clock]].
@@ -269,26 +291,21 @@ indefinitely, and a test that needs it gone invalidates it through the control p
 [[d:corpse-stays-valid-except-on-the-no-health-path]]. Writes through the health component fire
 `entityHealthChanged` with no `entityHurt`, and a write that reaches the effective minimum fires
 `entityDie` with cause `override` [[f:component-health-writes-cascade]]. `remove()` fires no death
-event. It does fire `entityRemove`, whose payload is the removed entity's id and type — both
-readable on the fake after removal [[f:invalidation-guard-list-complete]] — so nothing about it is
-out of the fake's reach, and being awkward to route from an entity to its world's signals is not a
-bound the fidelity rule offers [[r:fakes-match-observed-engine-behaviour]]. The other four
-deliveries the engine made after its own `remove()` — an `entitySpawn` and three
-`dataDrivenEntityTrigger` [[f:kill-and-remove-cascades]] — stay out on two bounds. They arise from
-entity definitions the fake holds none of, the same absence that makes `triggerEvent` throw, which
-puts them outside the data this library holds; and the run does not establish what caused them,
-being a single run whose payload matching failed once the entity was gone, so the five were
-attributed to that entity by what else the world held rather than by their payloads.
+event. It fires `entityRemove`, whose payload is the removed entity's id and type — both still
+readable on a removed fake [[f:invalidation-guard-list-complete]] — and it reaches the signal the
+way every other emitting member does, by handing off to the pipeline the entity fake holds rather
+than by reaching for the world itself. The four further deliveries the engine made after its own
+`remove()`, an `entitySpawn` and three `dataDrivenEntityTrigger` [[f:kill-and-remove-cascades]],
+arise from entity definitions the fake holds none of — the same absence that makes `triggerEvent`
+throw, and the outside-the-data bound again [[r:fakes-match-observed-engine-behaviour]].
 
 ## The control plane
 
-Everything the real surface cannot express is an exported free function rather than a member on a
-fake [[r:only-real-members-free-functions]]
-[[d:control-plane-free-functions-take-the-fake-first]]. Keeping them off the classes is what lets
-the `implements` clause mean what it says: a fake-only member would sit in the same namespace the
-conformance check is proving complete, and a consumer reading a fake could not tell which members
-their pack may call. The list is the package's root export list, so it is named here rather than
-left to the builder:
+Keeping the control operations off the fake classes is what lets the `implements` clause mean what
+it says: a fake-only member would sit in the same namespace the conformance check is proving
+complete [[r:only-real-members-free-functions]]. This table is the package's root export list, so
+it is pinned here rather than left to the builder
+[[d:control-plane-free-functions-take-the-fake-first]]:
 
 | function | what it does |
 |---|---|
@@ -297,16 +314,32 @@ left to the builder:
 | `spawnFake(dimension, typeId, init?)` | an entity fake, id from the world counter unless `init` overrides it |
 | `spawnPlayerFake(dimension, init?)` | the same for `Player`, whose `name` `init` supplies |
 | `invalidate(fake)` | sets the own flag on an entity, component, or effect [[r:invalidation-is-modeled]] |
-| `addComponent(entity, id, init?)` | attaches a component, `init` supplying an attribute one's value and bounds [[r:control-plane-component-mutation]] |
+| `addComponent(entity, id, init?)` | attaches a component, `init` supplying an attribute one's four values [[r:control-plane-component-mutation]] |
 | `removeComponent(entity, id)` | detaches it, leaving the handle invalid |
 | `emit(world, signalName, payload)` | delivers to a signal's subscribers without a mutation behind it |
 | `getSubscribers(signal)` | the registered closures in subscription order |
 | `getDeliveries(world)` | every event the world has dispatched, in order, with its payload |
 | `getUnsetFields(fake)` | the fields a read would throw on, so a test can assert its own setup |
 
-The last three are the reads the real API has no member for. Every one of these takes the fake it
-acts on first — the spawners act on the dimension they spawn into — leaving `createWorld` the only
-entry with nothing to take [[d:control-plane-free-functions-take-the-fake-first]].
+The last three are the reads the real API has no member for. `signalName` is typed
+`keyof WorldAfterEvents`, the same derivation the id unions use rather than a bare string, so a
+misspelled signal is a compile error and the name resolves to exactly one signal object; a
+before-event name is not in that type, since nothing delivers on the before-phase.
+
+Each `init` is a partial of the fields its target holds, and every field it omits stays unset, so a
+read of one throws until a test supplies it [[r:no-implicit-defaults]] [[r:fakes-never-fabricate]].
+The fields are fixed here for the same reason the export list is:
+
+| init | fields |
+|---|---|
+| `createWorld` | `isHardcore`, `seed` |
+| `addDimension` | `id` (required), `heightRange`, `localizationKey` |
+| `spawnFake` | `id`, `location`, `rotation`, `velocity`, `nameTag`, `tags` |
+| `spawnPlayerFake` | those, plus `name` |
+| `addComponent` | on an attribute component, `currentValue`, `defaultValue`, `effectiveMin`, `effectiveMax`; on any other, nothing |
+
+`rotation`, `velocity` and `nameTag` are the three that start at a value rather than unset — zero,
+zero, and the empty string.
 
 ## Components
 
@@ -324,26 +357,30 @@ components:
     after: [error-model]
   - id: event-dispatch
     responsibility: >-
-      the 55 after-event and 13 before-event signal objects, every payload class a signal hands a
-      subscriber, set-shaped registration, and synchronous depth-first delivery of a payload it is
-      given
+      the 55 after-event and 13 before-event signal objects, the map from a declared signal name to
+      its object, every payload class a signal hands a subscriber, set-shaped registration,
+      synchronous depth-first delivery of a payload it is given, and the per-world delivery log —
+      one entry per dispatch holding the signal name and the payload delivered, in dispatch order
     excludes: which mutation emits which event, and what any payload's fields hold
   - id: world-and-dimensions
-    responsibility: the world fake, its always-present object graph, dimension lookup, and the per-world entity id counter
-    excludes: the signal objects that graph holds, and constructing the entities the counter numbers
+    responsibility: >-
+      the world fake, its always-present object graph, dimension lookup, the per-world entity id
+      counter, and the spawner seam Dimension.spawnEntity delegates to
+    excludes: the signal objects that graph holds, and the entity fakes the spawner constructs
     after: [ids-and-types, event-dispatch, error-model]
   - id: entity-fakes
     responsibility: >-
-      the Entity and Player fakes, their spawn-frame field values, their stubbed remainder, and the
-      component-store, effect-store, and health-pipeline interfaces the constructor takes and the
-      behaving members delegate to
+      the Entity and Player fakes, their spawn-frame field values, the record of which of those
+      fields no test has supplied, their stubbed remainder, and the component-store, effect-store,
+      and lifecycle-pipeline interfaces the constructor takes and the behaving members — remove()
+      among them — delegate to
     excludes: every implementation behind those three interfaces
     after: [validity-model, world-and-dimensions]
   - id: component-model
     responsibility: >-
       the component-store implementation — every component class attachable and answering its
       identity members, the attribute-shaped ones holding and reading back value and bounds, their
-      mutating members delegating to the injected health-pipeline interface
+      mutating members delegating to the injected lifecycle-pipeline interface
     excludes: the write path itself — the bounds check, the value write, and the events it emits
     after: [entity-fakes, ids-and-types]
   - id: effect-model
@@ -351,10 +388,10 @@ components:
     after: [entity-fakes, ids-and-types]
   - id: lifecycle-cascades
     responsibility: >-
-      the health-pipeline implementation and the sole writer of an attribute value — the bounds
+      the lifecycle-pipeline implementation and the sole writer of an attribute value — the bounds
       check and its ArgumentOutOfBoundsError, the write through the store, and the populated event
       sequence each of applyDamage, kill, and the component writes emits — plus the entityRemove
-      payload and delivery on remove(), which writes no attribute and runs no pipeline
+      payload and delivery on remove(), which writes no attribute value
     after: [component-model, event-dispatch]
   - id: control-plane
     responsibility: >-
