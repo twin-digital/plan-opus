@@ -1,53 +1,18 @@
-# Decisions proposed for the minecraft/dev-kit design.
+# Decisions for the minecraft/dev-kit design.
 # Schema: id, statement, status (proposed|accepted|tolerated|rejected), falsifiers.
 # status is required and always written. At least one falsifier per live decision.
-
-- id: pack-set-is-a-flat-record-list
-  statement: |
-    the kit's product is one flat list of pack records, each carrying owning package, kind,
-    identity, version, source directory, and expected output directory
-  status: proposed
-  falsifiers:
-    - consumers routinely regroup the list by owning package to act on a package's packs as a unit,
-      so the grouping the flat shape discards is rebuilt at every call site
-
-- id: packages-come-from-the-workspace-definition
-  statement: |
-    candidate packages are enumerated from the workspace's package-manager workspace definition,
-    not from walking the directory tree
-  status: proposed
-  falsifiers:
-    - a pack-bearing directory the workspace definition does not list turns out to be normal, so
-      enumeration misses real packs
-    - the kit is asked to serve a repository whose packages are not registered with any package
-      manager
-
-- id: membership-probed-at-fixed-package-root-paths
-  statement: |
-    the membership probe reads exactly `behavior_pack/manifest.json` and
-    `resource_pack/manifest.json` at a package's root, with no recursive search
-  status: proposed
-  falsifiers:
-    - packages need their pack sources under an intermediate directory, so a fixed root path finds
-      nothing where a pack really is
-    - a package legitimately names a pack's source directory for something other than its kind
-
-- id: kind-derived-from-module-types
-  statement: |
-    a pack's kind is derived from the `type` values across its manifest's modules — `data` or
-    `script` to behavior, `resources` to resource — and any other or mixed reading is a problem
-  status: proposed
-  falsifiers:
-    - a pack the kit must serve declares a module type outside this mapping, such as a world
-      template, that a consumer needs classified rather than reported
-    - a behavior pack in a real workspace legitimately declares a `resources` module beside its
-      `data` module, so spanning both kinds is not an error
+#
+# Three decisions the owner accepted on review are gone from this file: they are now requirements
+# under the same ids (pack-set-is-a-flat-record-list, packages-come-from-the-workspace-definition,
+# kind-derived-from-module-types), and their citations moved to [[r:...]]. A fourth,
+# membership-probed-at-fixed-package-root-paths, is gone because the requirements settle it —
+# see the requirements it cited in "Finding packs".
 
 - id: problems-returned-beside-the-pack-set
   statement: |
     every capability returns the normalised pack set together with a list of coded problem records
     naming the owning package, the path examined, and a message
-  status: proposed
+  status: tolerated
   falsifiers:
     - both consumers wrap every call in the same throw-on-any-problem shim, so pairing the return
       only relocates the check it was meant to force
@@ -69,29 +34,41 @@
 - id: output-root-overridden-in-package-json
   statement: |
     a package overrides the default output root with a `minecraft.outDir` key in its own
-    `package.json`, and each pack's built directory is that root plus its kind-named subdirectory
-  status: proposed
+    `package.json`
+  status: tolerated
   falsifiers:
-    - a package's build emits its two packs to unrelated directories, so one root plus a fixed
-      subdirectory cannot locate both
+    - a package's build emits its two packs somewhere other than under one root, so no single
+      override can locate both
     - the output root must vary per invocation, by build target or configuration, so a single
       static value in `package.json` cannot express it
 
-- id: dependency-checks-uuid-and-version
+- id: explicit-version-marks-a-dependency-external
   statement: |
-    a manifest dependency naming a `uuid` is satisfied only by a discovered pack with that header
-    uuid at that version, and one naming a `module_name` is exempt from resolution
+    a dependency entry with no version must resolve by uuid to a discovered pack, and one carrying
+    an explicit version is treated as external and never resolved against the workspace
   status: proposed
   falsifiers:
-    - development workflows routinely leave in-workspace pack versions skewed, so the version
-      problem fires constantly and consumers filter it out
-    - packs legitimately depend by uuid on packs published outside the workspace, so an unresolved
-      uuid is not by itself a fault
+    - manifests in a real workspace carry explicit versions on entries that do name in-workspace
+      packs, so an explicit version cannot mark a dependency external
+    - a pack must depend on an in-workspace pack at a version other than the one the workspace
+      currently holds, which an absent version cannot express
+
+- id: completion-is-a-post-build-pass-over-the-output-tree
+  statement: |
+    the kit completes each manifest by rewriting it in place under the package's output root,
+    after the package's own build script has copied it there, and never edits a source manifest
+  status: proposed
+  falsifiers:
+    - a package's build reads, validates, or bundles the manifest it emits, so a pass that runs
+      after the build arrives too late to matter
+    - a package's build emits an archive or otherwise non-tree output, so there is no manifest
+      file in place to rewrite
 
 - id: build-is-delegated-per-package
   statement: |
-    building is invoking the owning package's own build script once per package, with every pack
-    that package owns reported as affected
+    building a selection invokes the owning package's own build script once per package, with the
+    kit's completion pass run over that package's output root afterwards and every pack the
+    package owns reported as affected
   status: proposed
   falsifiers:
     - a package's build can produce one of its packs without touching the other, so per-package

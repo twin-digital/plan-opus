@@ -3,6 +3,9 @@
 # stated directly on the shape walkthrough; the rest are outcomes distilled from it.
 #
 # rationale is omitted unless the statement's intent is genuinely non-obvious.
+#
+# Everything from "Manifest completion" down, and the retirement of
+# r:kit-stops-at-a-validated-pack-set, is the owner's own, stated on review of the draft spec.
 
 # Product and consumers
 
@@ -68,7 +71,78 @@
     the server. A dependency naming a built-in scripting module is not a missing pack.
 
 - id: kit-stops-at-a-validated-pack-set
+  status: retired
   statement: |
     the kit's product is a validated, normalised pack set. It may invoke or configure a package's
     build, but it defines no build semantics, performs no deployment, and builds no release
     archive.
+
+- id: kit-owns-manifest-completion
+  statement: |
+    the kit's product is a validated, normalised pack set and, for each pack, the completed
+    manifest: injecting `header.name`, `header.version`, and the versions of in-workspace
+    dependencies is the kit's job, not a consumer's or a package build's. It still performs no
+    deployment and builds no release archive.
+  rationale: |
+    Validation now hinges on a source manifest that is deliberately incomplete, so someone must
+    populate it. Leaving that outside the kit would leak the injection rules into every consumer
+    that wants a loadable pack.
+
+# Manifest completion
+
+- id: source-manifests-omit-injected-name-and-version
+  statement: |
+    a source `manifest.json` omits `header.name` and `header.version`; both are injected into the
+    manifest that reaches build output. Their absence from source is never reported as a problem.
+
+- id: absent-dependency-version-denotes-a-workspace-pack
+  statement: |
+    a manifest `dependencies` entry whose version is absent — no `version` key, or an empty array —
+    denotes a pack in this workspace, and the version of that pack is stamped into the entry on the
+    way to build output. An entry carrying an explicit version denotes a pack outside the workspace
+    and passes through untouched.
+  rationale: |
+    Absence is the resolution signal because a `workspace:*`-style placeholder token would be
+    ill-typed against a field the format admits only as an array or a SemVer string.
+
+- id: injected-name-comes-from-the-package
+  statement: |
+    the injected `header.name` is the owning package's `package.json` `productName` when present,
+    and otherwise the package name with its npm scope stripped — `@scope/mc-pack-1` becomes
+    `mc-pack-1`.
+  rationale: |
+    Not the scoped name: `@` and `/` are undocumented in a field the game renders in its
+    pack-selection UI, and no first-party pack uses them. Not a dotted form either, which is
+    indistinguishable from an unresolved `pack.name` localization key, whose documented failure
+    mode is rendering the raw string in that same UI.
+
+# Built output and workspace scope
+
+- id: built-output-mirrors-the-source-layout
+  statement: |
+    a package's output root always holds one kind-named subdirectory per pack — `behavior_pack`,
+    `resource_pack` — mirroring the source layout, however many packs the package has; a
+    single-pack package still nests. Packaging is a zip of that tree with no restructuring, so a
+    one-pack product ships a one-pack `.mcaddon`.
+
+- id: workspace-definitions-are-npm-and-pnpm
+  statement: |
+    the workspace definitions the kit enumerates packages from are npm's and pnpm's.
+
+# Elevated from this design's decisions on owner review. Ids are carried over from the decision
+# they replace, since the content is unchanged and only its authority moved.
+
+- id: pack-set-is-a-flat-record-list
+  statement: |
+    the kit's product is one flat list of pack records, each carrying owning package, kind,
+    identity, version, source directory, and expected output directory.
+
+- id: packages-come-from-the-workspace-definition
+  statement: |
+    candidate packages are enumerated from the workspace's package-manager workspace definition,
+    not from walking the directory tree.
+
+- id: kind-derived-from-module-types
+  statement: |
+    a pack's kind is derived from the `type` values across its manifest's modules — `data` or
+    `script` to behavior, `resources` to resource — and any other or mixed reading is a problem.
