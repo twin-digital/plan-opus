@@ -22,50 +22,6 @@ inventing a plausible value.
 
 ```yaml
 questions:
-  - id: tickless-effect-duration
-    question: >-
-      an effect's duration decays with the tick in the engine, and a tickless fake's duration
-      stays at whatever the test set; which requirement documents that departure, as
-      synchronous-event-delivery documents the event one?
-    closes: requirement
-    gates: [no-clock]
-  - id: projectile-damage-adjustment
-    question: >-
-      the engine adjusts projectile-path damage by an amount neither the declarations nor the
-      API reference states, observed once and not reproducible from one sample, so the fake
-      applies the requested damage; which requirement documents that departure?
-    closes: requirement
-    gates: [one-mutation-pipeline-for-health]
-  - id: entity-id-form-departure
-    question: >-
-      the engine issues entity ids as negative integers and the fake issues decimal counter
-      strings; the API reference documents `Entity.id` as opaque and tells a reader not to
-      parse or interpret it, so the form may be a quirk no fake owes reproduction — does that
-      reading exempt the id from the observed-behaviour rule, or does a requirement document
-      the departure?
-    closes: requirement
-    gates: [sequential-opaque-entity-ids]
-  - id: per-type-spawn-quirk-departure
-    question: >-
-      the engine's spawn frame carries per-type placement offsets and rotation settles the fake
-      does not apply — boat, arrow and xp_orb among the eight types probed, with the set over
-      all entity types unknown; which requirement documents that departure, given a decision
-      currently carries it?
-    closes: requirement
-    gates: [per-type-spawn-quirks-not-modeled]
-  - id: remove-side-effect-departure
-    question: >-
-      the engine's `remove()` was followed by five after-event deliveries the fake emits none
-      of, four of them data-driven and none of the five causally pinned by the run; which
-      requirement documents that departure, and should `entityRemove` — the one the fake could
-      populate — be emitted rather than carried as a departure?
-    closes: requirement
-  - id: corpse-despawn-departure
-    question: >-
-      the engine's killed corpse turns invalid by roughly 27 ticks and a tickless fake's stays
-      valid until the control plane invalidates it; which requirement documents that departure?
-    closes: requirement
-    gates: [corpse-stays-valid-except-on-the-no-health-path]
   - id: namespace-prefix-contradicted-by-its-source
     question: >-
       `namespace-prefix-is-optional` claims `Entity.triggerEvent` rejects a bare id and requires
@@ -151,7 +107,8 @@ The event surface divides the same way. All 55 after-event signals and all 13 be
 [[f:world-resting-state-observed]] exist as objects a test can subscribe to, and every signal's
 payload class — `EntityHurtAfterEvent` and its siblings, the objects a handler actually reads — is
 complete rather than stubbed. Only an after-event signal a modelled mutation emits ever delivers,
-which is the damage, health, and death cascades below; every other after-event signal, and all 13
+which is the damage, health, and death cascades below and the removal event beside them; every
+other after-event signal, and all 13
 before-event signals, stay silent rather than throwing, since a pack subscribing to a signal it
 never triggers is doing nothing wrong, and the fake models no before-phase to cancel from.
 
@@ -219,9 +176,11 @@ world whose collections are empty is a real resting state while a world missing 
 not callable at all [[f:world-resting-state-observed]] [[r:no-implicit-defaults]]. And a spawned
 entity starts at zero rotation and zero velocity for every type
 [[r:zero-kinematics-at-spawn]] — the value seven of the eight probed types read on their spawn
-frame, bit-identical across runs, with `minecraft:xp_orb` the outlier the fake does not reproduce
-[[f:spawn-frame-kinematics-zero-except-xp-orb]]. `nameTag` starts as the empty string, which is
-uniform across every type sampled and so needs no per-type data
+frame, bit-identical across runs. `minecraft:xp_orb` is the outlier, and the fake does not
+reproduce it: its rotation and velocity are drawn afresh per spawn
+[[f:spawn-frame-kinematics-zero-except-xp-orb]], a departure the fidelity rule licenses as
+undetermined by evidence [[r:fakes-match-observed-engine-behaviour]]. `nameTag` starts as the empty
+string, which is uniform across every type sampled and so needs no per-type data
 [[f:fresh-entity-nametag-is-empty-string]]; the other spawn-frame fields the engine populates —
 `localizationKey`, a real `location` [[f:fresh-entity-spawn-frame-field-values]] — are the caller's
 to supply, and a read of one the test never set throws rather than answering an invented value
@@ -234,13 +193,16 @@ the three vanilla dimensions, whose ids resolve from either spelling, whose heig
 [[f:vanilla-dimensions-resolve-with-populated-fields]] [[d:vanilla-dimensions-is-the-only-preset]].
 The rest of the engine's resting state is per-type vanilla data and belongs to a package built on
 this one. So does the engine's per-type spawn-frame behaviour: the fake places an entity exactly
-where asked and models neither the boat's 0.2 placement offset — constant in magnitude, but with a
-sign rule the observations do not establish, so reproducing it would mean guessing which way to
-push [[f:boat-spawn-offset-magnitude-constant]] — nor the arrow's one-time rotation settle to −72
-[[f:resting-arrow-turns-once-and-stays-valid]], nor post-spawn AI drift, which is drawn per run
-rather than fixed per type and so is not deterministically reproducible at all
-[[f:post-spawn-mob-motion-is-per-run-not-per-type]] [[d:per-type-spawn-quirks-not-modeled]]. Those
-three are what eight sampled types turned up, against the 128 entity types
+where asked and models neither the boat's 0.2 placement offset nor the arrow's one-time rotation
+settle to −72, and each is a departure the fidelity rule licenses on a different bound
+[[r:fakes-match-observed-engine-behaviour]] [[d:per-type-spawn-quirks-not-modeled]]. The arrow's
+settle is pinned to the last digit but is a value of the arrow's own type
+[[f:resting-arrow-turns-once-and-stays-valid]], so shipping it means shipping per-type data this
+library does not hold. The boat's offset is constant in magnitude with a sign rule the runs do not
+establish [[f:boat-spawn-offset-magnitude-constant]] — reproducing it would mean guessing which
+way to push, so it is undetermined by evidence as well as per-type. Post-spawn AI drift is drawn
+per run rather than fixed per type [[f:post-spawn-mob-motion-is-per-run-not-per-type]], the same
+undetermined bound. Those are what eight sampled types turned up, against the 128 entity types
 `@minecraft/vanilla-data` names [[f:vanilla-data-provides-prefixed-id-constants]]: a per-type table
 built from the sample would be a table of the types that happened to be probed, so which types
 carry a quirk is bounded only by what was probed.
@@ -251,8 +213,11 @@ The id `spawnFake` assigns unless the caller overrides it [[r:ids-auto-assigned-
 comes from a counter on the world — the only place a monotonic sequence can live in a library with
 no module state [[r:instance-scoped-world]] — as a decimal string, never reissued, matching the
 engine's observed non-reissue after removal
-[[f:entity-ids-not-reused]]; the engine's negative-integer form is not reproduced, so a test that
-depends on the shape of an id is depending on something the engine does not promise
+[[f:entity-ids-not-reused]]. The engine's negative-integer form is not reproduced: the API
+documents an entity id as carrying no meaning to parse or interpret
+[[f:entity-id-is-documented-opaque]], which is the documented-opaque bound the fidelity rule
+licenses a departure on [[r:fakes-match-observed-engine-behaviour]], so a test depending on the
+shape of an id depends on something the engine does not promise
 [[d:sequential-opaque-entity-ids]].
 
 Every id-taking input is normalized on entry and stored and reported in the canonical
@@ -319,8 +284,10 @@ the new duration is at least as long; a lower amplifier never replaces
 answers all its members, `displayName` included — a populated human-readable string in the engine
 [[f:live-effect-fields-populated]] — but the mapping from effect id and amplifier to that string is
 vanilla data, so the fake reads back what the test supplied and fails loudly otherwise
-[[r:fakes-never-fabricate]]. Duration is static: with no tick there is nothing to decay it
-[[d:no-clock]].
+[[r:fakes-never-fabricate]]. Duration is static: the engine decays it with the tick
+[[f:effect-replacement-rule-observed]], which makes it a function of elapsed ticks a clockless fake
+cannot represent — the first of the fidelity rule's bounds
+[[r:fakes-match-observed-engine-behaviour]] [[d:no-clock]].
 
 ## Damage, health, and death
 
@@ -333,9 +300,10 @@ drives `currentValue` below `effectiveMin` and the change event reports the nega
 [[f:health-not-clamped-at-minimum]]. With no options the damage cause is `none`, and with the
 projectile options form the fake reports the cause `projectile` the engine derives from that form.
 On that path the fake applies exactly the amount asked for: the engine adjusted a requested 1 to
-1.045823097229004 from a real arrow, an adjustment the declarations and the API reference state
-nowhere and one run cannot pin, so the requested amount is the only value the fake holds evidence
-for [[f:applydamage-cause-defaults]] [[r:fakes-never-fabricate]].
+1.045823097229004 from a real arrow, and the declarations and the API reference state the rule
+nowhere while one run pins nothing [[f:applydamage-cause-defaults]]. That is the fidelity rule's
+undetermined-by-evidence bound [[r:fakes-match-observed-engine-behaviour]] — an adjusted number
+here would be an invented one [[r:fakes-never-fabricate]].
 
 `kill()` fires the full cascade — hurt for exactly the current health with cause `selfDestruct`,
 the health change to exactly the minimum, then die with the same cause — returns true, and returns
@@ -344,22 +312,23 @@ true again on the corpse while firing nothing [[f:kill-and-remove-cascades]]
 `entityDie` and the reference reads invalid synchronously [[f:kill-no-health-behaviour]], which the
 fake reproduces. The killed mob's corpse is the departure: the engine leaves it valid for several
 ticks and despawns it by roughly 27 [[f:death-invalidation-window]], so post-death validity is no
-uniform grace period, and a grace period measured in ticks is one a fake with no tick cannot count
-down [[d:no-clock]]. The fake's corpse therefore stays valid indefinitely, and a test that needs it
-gone invalidates it through the control plane
+uniform grace period but a countdown in ticks — a function of elapsed ticks a clockless fake cannot
+represent, which is the bound the fidelity rule licenses this departure on
+[[r:fakes-match-observed-engine-behaviour]] [[d:no-clock]]. The fake's corpse therefore stays valid
+indefinitely, and a test that needs it gone invalidates it through the control plane
 [[d:corpse-stays-valid-except-on-the-no-health-path]]. Writes through the health component fire
 `entityHealthChanged` with no `entityHurt`, and a write that reaches the effective minimum fires
 `entityDie` with cause `override` [[f:component-health-writes-cascade]]. `remove()` fires no death
-event, and the fake emits nothing else on that path either. The engine's own `remove()` was
-followed by five further deliveries — an `entitySpawn`, three `dataDrivenEntityTrigger`, and an
-`entityRemove` [[f:kill-and-remove-cascades]] — and two things keep them out of the fake. The run
-does not establish what caused which: it is a single run whose payload matching failed once the
-entity was gone, so the five are attributed to that entity by what else the world held rather than
-by their payloads. And four of the five are data-driven — a spawn and three definition-event
-triggers — arising from entity definitions the fake models none of, which is the same absence that
-makes `triggerEvent` throw; emitting them would mean inventing both the cause and the payload
-[[r:fakes-never-fabricate]]. `entityRemove` is the one delivery a fake could populate from what it
-holds, and it is what the open question on this departure turns on.
+event. It does fire `entityRemove`, whose payload is the removed entity's id and type — both
+readable on the fake after removal [[f:invalidation-guard-list-complete]] — so nothing about it is
+out of the fake's reach, and being awkward to route from an entity to its world's signals is not a
+bound the fidelity rule offers [[r:fakes-match-observed-engine-behaviour]]. The other four
+deliveries the engine made after its own `remove()` — an `entitySpawn` and three
+`dataDrivenEntityTrigger` [[f:kill-and-remove-cascades]] — stay out on two bounds. They arise from
+entity definitions the fake holds none of, the same absence that makes `triggerEvent` throw, which
+puts them outside the data this library holds; and the run does not establish what caused them,
+being a single run whose payload matching failed once the entity was gone, so the five were
+attributed to that entity by what else the world held rather than by their payloads.
 
 ## The control plane
 
@@ -434,7 +403,8 @@ components:
     responsibility: >-
       the health-pipeline implementation and the sole writer of an attribute value — the bounds
       check and its ArgumentOutOfBoundsError, the write through the store, and the populated event
-      sequence each of applyDamage, kill, and the component writes emits
+      sequence each of applyDamage, kill, and the component writes emits — plus the entityRemove
+      payload and delivery on remove(), which writes no attribute and runs no pipeline
     after: [component-model, event-dispatch]
   - id: control-plane
     responsibility: >-
