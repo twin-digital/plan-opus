@@ -1,0 +1,68 @@
+=== environment
+Docker Compose version v5.2.0
+DOCKER_HOST=ssh://prod-development-docker
+
+The compose file substitutes MINECRAFT_SERVER_NAME (default "dev-behavior-packs") and also
+declares a relative env_file (./svc-env/extra.env), a relative volume source (./svc-env) and
+a relative develop.watch path (./svc-env). Two .env candidates exist: one in the cwd
+(from-cwd) and, in part A only, one beside the compose file (beside-compose).
+
+=== A. a .env sits beside the compose file AND in the cwd
+
+--- -f alone
+  argv: docker compose --ansi never -f <work>/project/compose.yaml config   (cwd = <work>/run-from)
+          - path: <work>/project/svc-env
+            target: /watched
+        SERVER_NAME: beside-compose
+        WHICH_ENV_FILE: beside-compose
+          source: <work>/project/svc-env
+          target: /mounted
+
+--- --project-directory .
+  argv: docker compose --ansi never --project-directory . -f <work>/project/compose.yaml config   (cwd = <work>/run-from)
+          - path: <work>/run-from/svc-env
+            target: /watched
+        SERVER_NAME: from-cwd
+        WHICH_ENV_FILE: from-cwd
+          source: <work>/run-from/svc-env
+          target: /mounted
+
+--- --env-file .env
+  argv: docker compose --ansi never --env-file .env -f <work>/project/compose.yaml config   (cwd = <work>/run-from)
+          - path: <work>/project/svc-env
+            target: /watched
+        SERVER_NAME: from-cwd
+        WHICH_ENV_FILE: beside-compose
+          source: <work>/project/svc-env
+          target: /mounted
+
+=== B. a .env sits only in the cwd (none beside the compose file)
+
+--- -f alone
+  argv: docker compose --ansi never -f <work>/project/compose.yaml config   (cwd = <work>/run-from)
+          - path: <work>/project/svc-env
+            target: /watched
+        SERVER_NAME: dev-behavior-packs
+        WHICH_ENV_FILE: beside-compose
+          source: <work>/project/svc-env
+          target: /mounted
+
+--- --project-directory .
+  argv: docker compose --ansi never --project-directory . -f <work>/project/compose.yaml config   (cwd = <work>/run-from)
+          - path: <work>/run-from/svc-env
+            target: /watched
+        SERVER_NAME: from-cwd
+        WHICH_ENV_FILE: from-cwd
+          source: <work>/run-from/svc-env
+          target: /mounted
+
+--- --env-file .env
+  argv: docker compose --ansi never --env-file .env -f <work>/project/compose.yaml config   (cwd = <work>/run-from)
+          - path: <work>/project/svc-env
+            target: /watched
+        SERVER_NAME: from-cwd
+        WHICH_ENV_FILE: beside-compose
+          source: <work>/project/svc-env
+          target: /mounted
+
+=== done

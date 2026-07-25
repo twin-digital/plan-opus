@@ -1,0 +1,12 @@
+# Probe: a directory watch path that does not exist when the watcher attaches,
+# and is created afterwards. Setup used: ./late absent at `compose watch` time.
+name: probe-late-dir
+services:
+  app:
+    image: alpine:3
+    command: sleep 300
+    develop:
+      watch:
+        - path: ./late
+          target: /late
+          action: sync

@@ -1,0 +1,88 @@
+# Requirements scoped to the minecraft/dev-server design. All were ratified by the owner for
+# this design under its former name, minecraft/dev-workflow; the two reworded here and the one
+# added beside them carry the owner's decision to move discovery and build into
+# minecraft/dev-kit and to make what a run hosts a selection.
+#
+# rationale is omitted unless the statement's intent is genuinely non-obvious.
+
+- id: one-command-dev-loop
+  statement: |
+    a single command takes an author from a clean checkout to a running server with every pack
+    deployed and watched — it builds the packs, starts the server, deploys the current build, and
+    begins watching for changes — with the server's output and the build/deploy activity shown in
+    one interleaved stream.
+
+- id: server-lifecycle-outlives-the-foreground
+  statement: |
+    closing the foreground loop (Ctrl+C) leaves the server running so the author can reattach
+    without losing world state or disconnecting a client, and a separate explicit command stops
+    the server and tears it down. Detaching the watchers and stopping the server are distinct
+    acts.
+  rationale: |
+    The world is the expensive, long-lived thing; the watchers are disposable.
+
+- id: packs-discovered-from-workspace
+  statement: |
+    the set of packs available to the loop is discovered from the workspace — every package that
+    declares itself a behavior pack is included — with no hand-maintained list of what exists.
+    Adding, removing, or renaming a pack requires no edit to the harness.
+
+- id: hosted-packs-are-a-selection
+  statement: |
+    which of the discovered packs a run hosts is an argument to that run, defaulting to all of
+    them. A selection may be persisted as a named profile, and a profile is a saved argument: it
+    narrows what a run hosts and never determines what the workspace contains.
+
+- id: deploy-reconciles-to-built-packs
+  statement: |
+    after any deploy the server's pack state equals the built output of the selected packs: every
+    selected pack present and up to date, packs no longer selected removed from the server, and
+    the world's activation list matching the deployed packs. The operation is idempotent —
+    re-running with no change is a no-op — and is the same operation at startup and on file
+    change.
+
+- id: edit-to-live-without-disconnect
+  statement: |
+    a saved change to a pack's source is reflected in the running server within a few seconds and
+    without disconnecting a connected client, whenever the change is one the server can apply
+    without a restart.
+
+- id: behavior-packs-required-other-content-optional
+  statement: |
+    the harness must deploy and activate behavior packs. Support for other kinds of addon content
+    — resource packs among them — is optional, at the builder's or designer's discretion.
+
+- id: deployment-is-not-a-pack-concern
+  statement: |
+    an individual pack package is responsible only for producing a valid built pack and for
+    watching its own sources; how a built pack reaches the dev server, or a release, is the
+    harness's and the pipeline's concern, not the pack's. A pack carries no deploy or publish
+    scripts.
+  rationale: |
+    Keeps packs interchangeable and the deploy transport free to change in one place.
+
+- id: built-output-assembly-is-the-package-s-concern
+  statement: |
+    the harness deploys a package's built output, not its source, and makes no assumption about
+    how that output was assembled.
+
+- id: single-world-scope
+  statement: |
+    the harness serves one world at a time. Running two dev worlds concurrently is out of scope.
+
+- id: remote-docker-supported
+  statement: |
+    any component of the solution which requires a Docker service must function even when the Docker
+    engine is running on a remote host (e.g., bind mounts must not be required)
+
+- id: pack-source-layout-is-fixed
+  status: retired
+  statement: |
+    a package's packs are found at a fixed source layout: `pack/manifest.json` for a package holding
+    one pack, or `packs/<name>/manifest.json` for a package holding several. Both forms are
+    recognised. The source layout is what discovery reads, and it is not configurable.
+  rationale: |
+    Retired: where a package's pack sources sit is minecraft/dev-kit's concern, and the kit
+    settles it differently — membership is read from `behavior_pack/manifest.json` and
+    `resource_pack/manifest.json`, and the multi-pack form has no meaning under one pack of each
+    kind per package.
