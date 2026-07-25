@@ -1,0 +1,80 @@
+# Facts scoped to the minecraft/dev-kit design. Reality the kit is built against.
+#
+# The kit also stands on facts already held at design/minecraft/dev-workflow/ — the manifest's
+# declaration of pack identity and kind, and how content-independent detection heuristics misfire.
+# Those are not copied here; they are proposed for the design/minecraft/ area scope, since both
+# designs need them.
+
+- id: pack-kind-mismatch-fails-silently-at-the-server
+  claim: |
+    A pack deployed into the pool for the other kind does not load, in either direction, and the
+    server reports nothing about it — a behavior pack in the resource pool leaves the world with
+    "Pack Stack - None", and a resource pack in the behavior pool is simply absent from the stack.
+    A pack's kind must therefore be right before anything is copied, and a wrong kind is not
+    observable from the server's output.
+  backing: documented
+  sources:
+    - url: design/minecraft/dev-workflow/artifacts/pack-layout/probe/OUTPUT.txt
+      where: case 4 — the behavior pack placed in the resource pool and listed as a resource pack
+      quote: |
+        === case 4: the behavior pack placed in the resource pool and listed as a resource pack
+        (does the pool decide a pack's kind, or does its manifest?)
+          world_behavior_packs.json = []
+          world_resource_packs.json = [{"pack_id":"f5ebc4c3-7d8a-4e9f-0a1b-2c3d4e5f6a7b","version":[1,0,0]},{"pack_id":"d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f","version":[1,0,0]}]
+        [2026-07-24 23:49:15:522 INFO] Pack Stack - None
+    - url: design/minecraft/dev-workflow/artifacts/pack-layout/probe/NOTES.md
+      where: What this establishes — the pool is authoritative for kind
+      quote: |
+        - **The pool is authoritative for kind, and it is a deploy target.** A pack loads only from the
+          pool matching its kind (cases 2 and 4, in both directions). Misfiling fails in silence.
+
+- id: pack-directory-name-carries-no-meaning
+  claim: |
+    Nothing reads a pack's directory name. A behavior pack deployed into a directory named
+    `resource_pack_totally` loads normally and the server prints that name back untroubled. Where a
+    pack's sources and built output sit, and what those directories are called, is therefore free
+    for a package to choose without affecting whether the pack loads.
+  backing: documented
+  sources:
+    - url: design/minecraft/dev-workflow/artifacts/pack-layout/probe/OUTPUT.txt
+      where: case 5 — pack directories renamed to names that contradict their manifests
+      quote: |
+        === case 5: pack directories renamed to names that contradict their manifests
+        (is a source or pool directory name ever read as a declaration of kind?)
+          world_behavior_packs.json = [{"pack_id":"d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f","version":[1,0,0]}]
+          world_resource_packs.json = [{"pack_id":"f5ebc4c3-7d8a-4e9f-0a1b-2c3d4e5f6a7b","version":[1,0,0]}]
+        [2026-07-24 23:49:22:860 INFO] Pack Stack - [00] layout probe behavior pack (id: d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f, version: 1.0.0) @ development_behavior_packs/resource_pack_totally
+    - url: design/minecraft/dev-workflow/artifacts/pack-layout/probe/NOTES.md
+      where: What this establishes — a pack's own directory name means nothing
+      quote: |
+        - **A pack's own directory name means nothing.** A behavior pack in a directory called
+          `resource_pack_totally` loads, and the server prints that name back without complaint (case 5).
+          Nothing reads it; the manifest is the only declaration of what a pack is.
+
+- id: ecosystem-pack-tooling-is-single-pack-per-kind
+  claim: |
+    Every pack config and build tool surveyed models a project as at most one pack per kind. The
+    Bedrock-OSS project config standard — shared by Regolith and bridge. — keys its `packs` map by
+    pack type with one path each, both tools let a pack's path move while the pack-type keys stay
+    fixed, and
+    Microsoft's `@minecraft/core-build-tasks` merges every listed source folder into one
+    `development_behavior_packs/<PROJECT_NAME>` directory. A workspace of many independent packs is
+    a shape no surveyed tool can express, so a per-pack declaration has no ecosystem schema to adopt
+    and gives up no compatibility by being house-defined.
+  backing: documented
+  sources:
+    - url: design/minecraft/dev-workflow/artifacts/pack-layout/TOOLING-EVIDENCE.md
+      where: The community standard makes multi-pack projects structurally impossible — the Bedrock-OSS `packs` field
+      quote: |
+        `packs` is keyed by pack *type*, one path per type: a second behavior pack has nowhere to go.
+    - url: design/minecraft/dev-workflow/artifacts/pack-layout/TOOLING-EVIDENCE.md
+      where: The community standard makes multi-pack projects structurally impossible — closing note on Regolith and bridge.
+      quote: |
+        Regolith and bridge. both default to `BP/` and `RP/` (Regolith under `packs/`), and both let the
+        *paths* move while the pack-type keys stay fixed.
+    - url: design/minecraft/dev-workflow/artifacts/pack-layout/TOOLING-EVIDENCE.md
+      where: "`@minecraft/core-build-tasks` hard-codes one deployed pack per project"
+      quote: |
+        Several source folders may be listed, but they are all copied into the *same*
+        `development_behavior_packs/<PROJECT_NAME>` directory — they merge into one pack. Producing two
+        packs needs two `PROJECT_NAME` values and two task chains.

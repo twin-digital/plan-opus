@@ -1,0 +1,36 @@
+# Requirements scoped to the minecraft/dev-kit design. Every entry here is DRAFTED by an agent
+# for the owner to accept, amend, or reject — none has been ratified. Each states an outcome the
+# owner gets to decree; the mechanism that delivers it is the design's to choose.
+#
+# rationale is omitted unless the statement's intent is genuinely non-obvious.
+
+- id: packs-enumerable-without-a-build
+  statement: |
+    the kit lists every pack in a workspace from a clean checkout, with no build having run and no
+    server running. Listing, validating, and reporting a pack's identity, version, and kind are all
+    available before any build step.
+
+- id: pack-identity-and-kind-declared-only-by-the-manifest
+  statement: |
+    a pack's identity, version, and kind come from its own `manifest.json` and are stated nowhere
+    else. Anything else the workspace supplies about a pack — a package's declaration, a config
+    file, a directory name — may state only what the manifest cannot, and restating identity or
+    kind is an error rather than a redundancy the kit tolerates.
+
+- id: no-central-registry-of-what-exists
+  statement: |
+    the set of packs the kit reports is determined by the workspace itself. Adding, removing, or
+    renaming a pack requires no edit to any list held centrally by the kit or its consumers.
+
+- id: selection-filters-the-discovered-set
+  statement: |
+    which packs a consumer operates on is expressed as a filter over the discovered set, applied
+    per invocation; narrowing a selection never changes what the workspace contains, and the kit's
+    report of what exists is unaffected by it.
+
+- id: unresolvable-packs-fail-loudly
+  statement: |
+    a pack the kit cannot resolve — a source location that holds no pack, a manifest that cannot be
+    parsed, a missing or duplicated identity, an unsatisfiable dependency within the set — is
+    reported as a named error at the point the kit is asked for the pack set, not omitted from a
+    silently smaller result and not deferred to the server.
