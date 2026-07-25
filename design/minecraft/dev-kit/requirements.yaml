@@ -53,11 +53,8 @@
     package and the path examined, not omitted from a silently smaller result and not deferred to
     the server. A dependency naming a built-in scripting module is not a missing pack.
 
-# Release artifacts
-
-- id: release-archive-follows-pack-content
+- id: kit-stops-at-a-validated-pack-set
   statement: |
-    a release archive follows what the package contains: a package holding one pack emits that
-    pack's `.mcpack`, and a package holding both kinds emits an `.mcaddon` holding the two
-    `.mcpack` files. Archive packaging is a release concern and no part of the dev loop, which
-    deploys pack directories into server pools and builds no archive.
+    the kit's product is a validated, normalised pack set. It may invoke or configure a package's
+    build, but it defines no build semantics, performs no deployment, and builds no release
+    archive.
