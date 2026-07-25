@@ -74,8 +74,8 @@
     shape of its class, so assignability never narrows. Members outside the built surface
     present as not-implemented stubs — unfaked access throws rather than reading `undefined`.
   rationale: |
-    Possible only because the declared classes carry no private members or brand fields
-    [[f:server-classes-are-structurally-assignable]].
+    Possible only because the declared classes carry no private instance members and no brand
+    fields (server-classes-are-structurally-assignable).
 
 - id: only-real-members-free-functions
   statement: |
