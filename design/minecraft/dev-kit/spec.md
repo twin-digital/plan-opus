@@ -36,12 +36,6 @@ questions:
       (design/minecraft/dev-kit/artifacts/pack-detection/OUTPUT.txt, the built-output section).
     closes: requirement
     gates: [output-root-overridden-in-package-json]
-  - id: facts-header-provenance-is-stale
-    question: the facts.yaml header justifies holding the pool-layout probe at area scope by
-      "minecraft/dev-server has a fact resting on the same probe", and no such design exists; three
-      places also call minecraft/dev-workflow "the design formerly named minecraft/dev-workflow"
-      while it is live under that name. What provenance should those records carry?
-    closes: fact
   - id: heuristics-fact-under-reports-its-evidence
     question: >-
       the heuristics fact names two false positives for the `minecraft/` directory rule
