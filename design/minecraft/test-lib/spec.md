@@ -46,25 +46,53 @@ no dimension [[f:get-dimension-unknown-id-error]] [[d:built-surface-v1]]. On `Di
 `id`, `heightRange`, `localizationKey`, `spawnEntity`, and `getEntities`, the last answering only
 its no-argument form: an `EntityQueryOptions` argument throws not-implemented, since evaluating one
 needs geometry and per-type data the fake has only partly and a silently mis-filtered result is
-worse than a loud refusal [[r:fakes-never-fabricate]]. Every block-shaped member is a stub, since
-blocks are outside the surface entirely. On `Entity` and `Player` it is the state the
-fakes hold and nothing more — identity, location and dimension, rotation and velocity, the tag
-methods, `getComponent`/`getComponents`/`hasComponent`, the four effect methods, `applyDamage`,
-`kill`, `remove`, and `Player.name`. `triggerEvent` rejects a bare id as the engine does and then
-throws not-implemented, because what a triggered event does is a data-driven definition the fake
-has none of. Teleportation and impulse, `runCommand`, and the view-direction and AABB queries are
-stubs: each needs world geometry or a command interpreter behind it, and a fake that answered them
-would be inventing. The dynamic-property surface is a stub for the plainer reason that no
-requirement names a consumer needing it.
+worse than a loud refusal [[r:fakes-never-fabricate]]. What it answers from is the dimension's own
+registry of live entities, and there is one way in: `spawnFake` calls the same spawner seam
+`Dimension.spawnEntity` does, so an entity registers once however it was created. `remove()`
+detaches it, so a removed entity is gone from `getEntities` while the handle a test still holds
+answers in the four ways the guard table allows. Every block-shaped member is a stub, since
+blocks are outside the surface entirely.
 
-The event surface divides the same way. All 55 after-event signals and all 13 before-event signals
-[[f:world-resting-state-observed]] exist as objects a test can subscribe to, and every signal's
-payload class — `EntityHurtAfterEvent` and its siblings, the objects a handler actually reads — is
-complete rather than stubbed. Only an after-event signal a modelled mutation emits ever delivers,
-which is the damage, health, and death cascades below and the removal event beside them; every
-other after-event signal, and all 13
-before-event signals, stay silent rather than throwing, since a pack subscribing to a signal it
-never triggers is doing nothing wrong, and the fake models no before-phase to cancel from.
+`Entity` declares 16 properties and 46 methods, so its side of the throw is a list rather than a
+description. Eight properties behave: `id`, `typeId`, `isValid`, `dimension`, `location`,
+`nameTag`, `localizationKey`, and `scoreboardIdentity` — the last always reading `undefined`,
+because the fake holds no scoreboard identities and an absence the engine can also exhibit is not
+an invented value [[r:fakes-never-fabricate]]. The other eight — the `is…` state flags
+(`isClimbing`, `isFalling`, `isInWater`, `isOnGround`, `isSleeping`, `isSneaking`, `isSprinting`,
+`isSwimming`) — are stubs, since nothing in the fake moves an entity through those states.
+Seventeen methods behave: `getRotation` and `setRotation`, `getVelocity`, the four tag methods
+(`addTag`, `removeTag`, `hasTag`, `getTags`), `getComponent`, `getComponents`, `hasComponent`, the
+four effect methods (`addEffect`, `getEffect`, `getEffects`, `removeEffect`), `applyDamage`,
+`kill`, and `remove`. `triggerEvent` is the one half-case: it rejects a bare id as the engine does
+and then throws not-implemented, because what a triggered event does is a data-driven definition
+the fake has none of. The remaining 28 methods are stubs — teleportation and impulse,
+`runCommand`, the view-direction, AABB and block-standing queries, `matches`, `playAnimation`,
+`lookAt`, `setOnFire` and `extinguishFire`, the entity-property surface, and `addItem`, each of
+which needs world geometry, a command interpreter, or a class this package does not ship. The
+dynamic-property surface is a stub for the plainer reason that no requirement names a consumer
+needing it. On `Player` only `name` behaves; its other 17 properties and 22 methods are stubs, all
+of them client, inventory, or scoring surfaces.
+
+Two rules keep that list readable rather than something to re-derive. The guard table below
+governs behaving members only: a stub throws not-implemented whether its entity is valid or not,
+so nothing in the fake answers after invalidation that refused to answer before it. And every
+behaving member reads or writes state the fake holds, which is why `localizationKey` is the
+caller's to supply rather than derived from a type id.
+
+The event surface divides differently, because a signal and its payload are not the same
+commitment. All 55 after-event signals and all 13 before-event signals
+[[f:world-resting-state-observed]] exist as objects a test can subscribe to: a pack subscribing to
+a signal it never triggers is doing nothing wrong, and a signal that threw on `subscribe` would
+break it. Payload classes are narrower. Only four are built —
+`EntityHurtAfterEvent`, `EntityHealthChangedAfterEvent`, `EntityDieAfterEvent`, and
+`EntityRemoveAfterEvent` — which are exactly the payloads a modelled mutation delivers, the damage,
+health, and death cascades below and the removal event beside them. Seventeen of the other 51
+declare an `ItemStack`, `Block`, `BlockPermutation`, or `Container` field outright and several more
+reach one through a method, so a payload class for them could not be built without the classes this
+package does not ship, and a consumer constructing one would need the cast that
+[[r:structural-full-shape-fakes]] exists to avoid. Those 51 signals therefore register and stay
+silent, which is what a pack subscribing to them already expects, and the fake models no
+before-phase to cancel from.
 
 All 68 entity component classes the type map names [[f:component-ids-are-derivable-from-types]] can
 be attached to an entity and answer their identity members — `typeId`, `isValid`, and the `entity`
@@ -209,7 +237,7 @@ the declarations' `@throws` annotations, which under-report the guard: `nameTag`
 throw despite carrying no annotation [[f:invalidation-guard-list-complete]]. The table is
 non-uniform in three ways the fake reproduces [[r:fakes-match-observed-engine-behaviour]]. Exactly
 four `Entity` properties stay readable after removal — `id`, `isValid`, `typeId`, and
-`scoreboardIdentity`, the last reading `undefined` — and every other property throws
+`scoreboardIdentity`, the last reading `undefined` — and every other behaving property throws
 `InvalidEntityError` [[f:invalidation-guard-list-complete]]. On an attribute component the error
 class splits: `setCurrentValue` and `entity` throw `InvalidEntityError` while the four value
 getters and all three resets throw a plain `Error`, with `isValid` and `typeId` still readable
@@ -277,6 +305,20 @@ On that path the fake applies exactly the amount asked for: the engine adjusted 
 undetermined-by-evidence bound [[r:fakes-match-observed-engine-behaviour]] — an adjusted number
 here would be an invented one [[r:fakes-never-fabricate]].
 
+Both boolean returns follow their declared meaning rather than a guess. `applyDamage` answers
+whether the entity took damage: true when it wrote a health value, false when the amount is zero or
+less, and false on an entity carrying no health component — nothing to write, so nothing fires and
+no cascade runs, the one place `applyDamage` differs from `kill()` on that same entity.
+`removeEffect` answers true when an effect was present and is now gone, its handle left invalid,
+and false when the entity never carried it.
+
+Every write through the pipeline reads `effectiveMin` and `effectiveMax` for its bounds check, and
+`kill()` and the component writes read `effectiveMin` again to recognise the minimum. On a
+component whose bounds no test supplied, that read is a read of an unset field and throws the
+library's unset-field error, not `ArgumentOutOfBoundsError` — the value is missing, not out of
+range — and not the not-implemented error, which says a member was never built rather than that a
+test has more setup to do [[r:no-implicit-defaults]] [[r:fakes-never-fabricate]].
+
 `kill()` fires the full cascade — hurt for exactly the current health with cause `selfDestruct`,
 the health change to exactly the minimum, then die with the same cause — returns true, and returns
 true again on the corpse while firing nothing [[f:kill-and-remove-cascades]]
@@ -323,10 +365,10 @@ it is pinned here rather than left to the builder
 | `getDeliveries(world)` | every event the world has dispatched, in order, with its payload |
 | `getUnsetFields(fake)` | the fields a read would throw on, so a test can assert its own setup |
 
-The last three are the reads the real API has no member for. `signalName` is typed
-`keyof WorldAfterEvents`, the same derivation the id unions use rather than a bare string, so a
-misspelled signal is a compile error and the name resolves to exactly one signal object; a
-before-event name is not in that type, since nothing delivers on the before-phase.
+The last three are the reads the real API has no member for. `signalName` is the union of the four
+signals whose payload class is built — `entityHurt`, `entityHealthChanged`, `entityDie`,
+`entityRemove` — rather than a bare string or all 55, so `emit` can only be asked for a payload the
+package can construct, and a misspelled or unbuilt signal is a compile error.
 
 Each `init` is a partial of the fields its target holds, and every field it omits stays unset, so a
 read of one throws until a test supplies it [[r:no-implicit-defaults]] [[r:fakes-never-fabricate]].
@@ -336,7 +378,7 @@ The fields are fixed here for the same reason the export list is:
 |---|---|
 | `createWorld` | `isHardcore`, `seed` |
 | `addDimension` | `id` (required), `heightRange`, `localizationKey` |
-| `spawnFake` | `id`, `location`, `rotation`, `velocity`, `nameTag`, `tags` |
+| `spawnFake` | `id`, `location`, `localizationKey`, `rotation`, `velocity`, `nameTag`, `tags` |
 | `spawnPlayerFake` | those, plus `name` |
 | `addComponent` | on an attribute component, `currentValue`, `defaultValue`, `effectiveMin`, `effectiveMax`; on any other, nothing |
 
@@ -360,14 +402,17 @@ components:
   - id: event-dispatch
     responsibility: >-
       the 55 after-event and 13 before-event signal objects, the map from a declared signal name to
-      its object, every payload class a signal hands a subscriber, set-shaped registration,
+      its object, the four payload classes a delivering signal hands a subscriber, set-shaped
+      registration,
       synchronous depth-first delivery of a payload it is given, and the per-world delivery log —
       one entry per dispatch holding the signal name and the payload delivered, in dispatch order
     excludes: which mutation emits which event, and what any payload's fields hold
   - id: world-and-dimensions
     responsibility: >-
       the world fake, its always-present object graph, dimension lookup, the per-world entity id
-      counter, and the spawner seam Dimension.spawnEntity delegates to
+      counter, the spawner seam Dimension.spawnEntity and spawnFake both delegate to, and the
+      per-dimension registry of live entities getEntities answers from, with the detach hook
+      removal calls
     excludes: the signal objects that graph holds, and the entity fakes the spawner constructs
     after: [ids-and-types, event-dispatch, error-model]
   - id: entity-fakes
@@ -392,8 +437,9 @@ components:
     responsibility: >-
       the lifecycle-pipeline implementation and the sole writer of an attribute value — the bounds
       check and its ArgumentOutOfBoundsError, the write through the store, and the populated event
-      sequence each of applyDamage, kill, and the component writes emits — plus the entityRemove
-      payload and delivery on remove(), which writes no attribute value
+      sequence each of applyDamage, kill, and the component writes emits — plus the removal path on
+      remove(), which writes no attribute value: the detach through the dimension's registry hook
+      and the entityRemove payload and its delivery
     after: [component-model, event-dispatch]
   - id: control-plane
     responsibility: >-
