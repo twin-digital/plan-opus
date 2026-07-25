@@ -1,12 +1,79 @@
-# Facts scoped to the minecraft/dev-server design — Compose and Bedrock mechanics that only
-# the server harness rests on. All are PROPOSED by an agent and await owner review.
+# Facts scoped to the minecraft/dev-server design. All are PROPOSED by an agent and await owner
+# review.
 #
-# pack-kind-mismatch-fails-silently-at-the-server rests on the pool-layout probe under
-# design/minecraft/artifacts/, which sits at area scope rather than in either design because
-# minecraft/dev-kit has a fact resting on the same probe. What the kit hands this design — pack
-# identity and kind, already resolved — is the kit's published interface and is not restated here.
+# The first three facts are this design's dependency on minecraft/dev-kit, each sourced by
+# verbatim quote to the kit's requirements — its pinned artifact — per
+# r:cross-design-dependency-is-cited-as-a-fact. The rest are Compose and Bedrock mechanics that
+# only the server harness rests on. pack-kind-mismatch-fails-silently-at-the-server rests on the
+# pool-layout probe under design/minecraft/artifacts/, which sits at area scope rather than in
+# either design because minecraft/dev-kit has a fact resting on the same probe.
 #
 # Where a tested fact rests on a test this file's author did not run, the source says so.
+
+- id: dev-kit-delivers-a-validated-pack-set-as-data
+  claim: |
+    minecraft/dev-kit is imported as a library and hands back a validated, normalised pack set as
+    data rather than text to parse, and it stops there — it performs no deployment. Everything
+    between that pack set and a pack running on the server is this design's, and nothing upstream
+    of it is.
+  backing: documented
+  sources:
+    - url: design/minecraft/dev-kit/requirements.yaml
+      where: kit-is-consumed-as-a-library
+      quote: |
+        the kit's product is a typed library: a consumer imports it and receives the pack set as data,
+        not as text it must parse.
+    - url: design/minecraft/dev-kit/requirements.yaml
+      where: kit-stops-at-a-validated-pack-set
+      quote: |
+        the kit's product is a validated, normalised pack set. It may invoke or configure a package's
+        build, but it defines no build semantics, performs no deployment, and builds no release
+        archive.
+
+- id: dev-kit-pack-set-entry-names-package-kind-source-and-identity
+  claim: |
+    Every pack the kit reports carries its owning package, its kind, its source location, and the
+    identity its source manifest declares, and does so from a clean checkout with no build having
+    run. Identity, version and kind come from the pack's own manifest. The harness can therefore
+    route a pack to a pool and write its activation entry from the pack set alone, without reading
+    a manifest or reading a directory name as a declaration of kind.
+  backing: documented
+  sources:
+    - url: design/minecraft/dev-kit/requirements.yaml
+      where: packs-enumerable-without-a-build
+      quote: |
+        the kit reports every pack in a workspace — its owning package, its kind, its source location,
+        and the identity its source manifest declares — from a clean checkout, with no build having run
+        and no server running.
+    - url: design/minecraft/dev-kit/requirements.yaml
+      where: pack-identity-and-kind-declared-only-by-the-manifest
+      quote: |
+        a pack's identity, version, and kind come from its own `manifest.json`.
+
+- id: dev-kit-rejects-a-pack-set-with-an-unresolved-identity
+  claim: |
+    A pack set that reaches the harness holds no pack with a missing or duplicated identity: the
+    kit reports an unresolvable pack as a named error identifying the package and the path
+    examined, rather than omitting it from a smaller result or deferring it to the server, and it
+    reports problems as a structured result rather than as prose. Header uuids are therefore
+    unique within the set the harness deploys, which is what the world's activation lists key on,
+    and the harness has no duplicate-identity case of its own to detect.
+  backing: documented
+  sources:
+    - url: design/minecraft/dev-kit/requirements.yaml
+      where: unresolvable-packs-fail-loudly
+      quote: |
+        a pack the kit cannot resolve — a manifest that cannot be parsed, a missing or duplicated
+        identity, a manifest dependency on another pack that the set does not satisfy, or no built
+        output where the pack's output was expected — is reported as a named error identifying the
+        package and the path examined, not omitted from a silently smaller result and not deferred to
+        the server.
+    - url: design/minecraft/dev-kit/requirements.yaml
+      where: consumers-are-the-dev-server-and-ci
+      quote: |
+        the dev server and a continuous-integration check are both intended consumers. Validation
+        therefore reports a structured result naming every problem it found, consumable without a
+        human reading it.
 
 - id: compose-watch-actions-and-versions
   claim: |
