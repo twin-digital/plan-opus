@@ -22,14 +22,6 @@ inventing a plausible value.
 
 ```yaml
 questions:
-  - id: namespace-prefix-contradicted-by-its-source
-    question: >-
-      `namespace-prefix-is-optional` claims `Entity.triggerEvent` rejects a bare id and requires
-      the prefix, but the API reference page it cites says of `triggerEvent` that "If a namespace
-      is not specified, minecraft: is assumed", and the page is cited only where it agrees; does
-      the probe observation stand against the documentation, and what reconciles them?
-    closes: fact
-    gates: [ids-normalized-at-entry]
   - id: rewritten-facts-lack-a-supersession-record
     question: >-
       `namespace-prefix-is-optional` and `effect-members-throw-plain-error` had their meaning
