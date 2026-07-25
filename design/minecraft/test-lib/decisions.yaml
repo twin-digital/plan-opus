@@ -1,0 +1,159 @@
+# Decisions proposed for the minecraft/test-lib design.
+# Schema: id, statement, status (proposed|accepted|tolerated|rejected), falsifiers.
+# status is required and always written. At least one falsifier per live decision.
+
+- id: built-surface-v1
+  statement: |
+    the built surface is World, Dimension, Entity and Player, the entity component classes
+    with the attribute components behaving, Effect and EffectType, and the after-event
+    signals; every other declared class is out of the built surface
+  status: proposed
+  falsifiers:
+    - a consumer suite's helpers routinely take an ItemStack, Block, or BlockVolume parameter,
+      so the substitution style the library is built for reaches a class this list omits
+    - the stubbed remainder of a built class is hit so often in practice that callers wrap the
+      fakes to fill it, meaning the surface was cut narrower than the tests need
+
+- id: structural-conformance-by-implements-clause
+  statement: |
+    each fake class carries an `implements` clause naming the real declared type and fills
+    every member outside the built surface with a hand-written throwing stub, rather than
+    generating members from index.d.ts or standing a Proxy in for the class
+  status: proposed
+  falsifiers:
+    - a pinned-version bump adds or reshapes enough members that hand-maintaining the stub
+      bodies costs more than parsing index.d.ts at build time would
+    - a declared member's type is inexpressible in an implementing class (a construct signature,
+      a getter whose declared type the compiler will not accept from a field), so the clause
+      cannot be satisfied without a cast
+
+- id: library-owned-error-classes
+  statement: |
+    the library declares its own InvalidEntityError, ArgumentOutOfBoundsError, and
+    NotImplementedError, and throws plain Errors carrying the engine's observed message text
+    where the engine throws a plain Error
+  status: proposed
+  falsifiers:
+    - consumer code under test discriminates engine errors by `instanceof` against a class it
+      imports from somewhere real, so a library-declared class fails the check the pack makes
+    - the engine's message text turns out to vary by locale or version, so pinning the string
+      in the fake makes assertions that pass here fail against the real engine
+
+- id: guard-table-from-observation
+  statement: |
+    per-member behaviour on an invalidated fake comes from a hand-maintained table transcribed
+    from the engine probes, keyed by class and member; a member the table does not cover throws
+    the not-implemented error rather than a guessed engine error
+  status: proposed
+  falsifiers:
+    - a probe run covering the argument-taking Entity methods finds a member whose invalid-state
+      behaviour contradicts the class of the members already tabulated
+    - the not-implemented default fires so often on ordinary invalid-reference tests that callers
+      cannot write the try/catch tests the table exists to support
+
+- id: invalidation-propagates-to-derived-objects
+  statement: |
+    a component or effect reads its validity from the entity it was obtained from rather than
+    holding its own flag, so invalidating an entity invalidates everything derived from it
+  status: proposed
+  falsifiers:
+    - an engine observation shows a component or effect outliving its owner's invalidation
+    - a test needs to invalidate an effect while its owner stays valid, which the engine's
+      `remove()` on an effect already does
+
+- id: one-mutation-pipeline-for-health
+  statement: |
+    every health mutation — applyDamage, kill, setCurrentValue, and the three resets — runs
+    through one pipeline that writes the value and then emits a per-path event sequence
+  status: proposed
+  falsifiers:
+    - a further observed path needs an event order the per-path sequence cannot express without
+      branching inside the pipeline for most of its callers
+    - a non-health attribute component turns out to fire its own events on write, so the
+      pipeline is health-specific where it was meant to be attribute-general
+
+- id: dispatch-is-depth-first-at-mutation-end
+  statement: |
+    after-events dispatch at the end of the causing call in subscription order, an event a
+    handler causes dispatches inside that handler, and a closure subscribed twice is registered
+    once
+  status: proposed
+  falsifiers:
+    - a realistic pack test produces a handler-caused cascade deep enough to exhaust the stack,
+      so dispatch must become a queue drained at the outermost call
+    - a consumer needs two registrations of one closure to deliver twice, which set-shaped
+      registration cannot express
+
+- id: no-clock
+  statement: |
+    the library models no tick and no clock; effect durations and every other timed value are
+    static until a test writes them
+  status: proposed
+  falsifiers:
+    - consumer tests routinely need an effect to expire or a scheduled callback to run, so the
+      behaviour under test cannot be reached without advancing time
+    - the `system` object enters the built surface, at which point run/runTimeout need a clock
+      to be callable at all
+
+- id: ids-normalized-at-entry
+  statement: |
+    one normalizer runs at every id-taking entry point and stores the `minecraft:`-prefixed
+    form, while the entity-event surface rejects a bare id instead of normalizing it
+  status: proposed
+  falsifiers:
+    - a surface turns up on which the engine reports the bare form, so a single canonical
+      storage form makes reads compare unequal against what the engine returns
+    - a third id surface turns out to reject bare ids, making the entity-event exemption a rule
+      the normalizer should carry rather than a special case
+
+- id: id-unions-derived-from-declarations
+  statement: |
+    the component, effect, and entity type id types are derived from `@minecraft/server`'s own
+    type maps and enums rather than transcribed into the library
+  status: proposed
+  falsifiers:
+    - a pinned-version bump reshapes EntityComponentTypeMap so the conditional derivation of the
+      attribute subset no longer selects it
+    - the derived unions slow compilation or editor response enough that consumers notice
+
+- id: sequential-opaque-entity-ids
+  statement: |
+    spawnFake assigns ids from a per-world counter as decimal strings and never reuses one; the
+    engine's negative-integer id form is not reproduced
+  status: proposed
+  falsifiers:
+    - pack code under test parses an entity id as a number or depends on its sign or magnitude,
+      so a fake id that does not look like an engine id changes the code's behaviour
+
+- id: control-plane-free-functions-take-the-fake-first
+  statement: |
+    every control-plane operation is a free function exported from the package root whose first
+    argument is the fake it acts on
+  status: proposed
+  falsifiers:
+    - the free-function set grows past what a consumer can discover from one export list, so a
+      namespaced control object reads better than a flat surface
+    - an operation turns up that acts on no single fake, or on two equally, leaving its first
+      argument arbitrary
+
+- id: vanilla-dimensions-is-the-only-preset
+  statement: |
+    the library ships exactly one preset — the three vanilla dimensions with their observed
+    height ranges and localization keys
+  status: proposed
+  falsifiers:
+    - a second populated starting point is pinned by a fact at this design's scope, so the
+      preset surface is a set rather than a single entry
+    - consumers build the same second preset repeatedly in their own suites, showing the
+      fact-pinned bar cut something the library should have shipped
+
+- id: per-type-spawn-quirks-not-modeled
+  statement: |
+    spawnFake places an entity exactly where the caller asked and models no per-type placement
+    adjustment, post-spawn drift, or rotation settle
+  status: proposed
+  falsifiers:
+    - pack code under test reads back a spawned entity's location and branches on it, so an
+      unadjusted placement makes the fake take a path the engine would not
+    - the set of types carrying a placement adjustment turns out to be small and fact-pinned
+      rather than open-ended vanilla data
