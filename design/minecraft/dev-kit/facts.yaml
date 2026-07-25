@@ -2,13 +2,63 @@
 # review. Every outside quote was fetched from its primary source and checked byte-for-byte
 # against it.
 #
-# The two tested facts rest on probes committed with the design. The detection probe is this
+# The two live tested facts rest on probes committed with the design. The detection probe is this
 # design's own, under design/minecraft/dev-kit/artifacts/. The pool-layout probe sits at area
 # scope, under design/minecraft/artifacts/, because minecraft/dev-server has a fact resting on
 # the same probe. Both were run by the author of the design formerly named
 # minecraft/dev-workflow, not by this file's author, and say so per r:tested-facts-name-whose-test.
 
+- id: manifest-declares-pack-identity-version-and-module-kinds
+  claim: |
+    A Bedrock add-on pack is defined by its own `manifest.json`: the header's `uuid` uniquely
+    identifies the pack and the header's `version` is the pack version, while the `modules`
+    array's `type` states what kind of pack it is — `data` for behavior content, `script` for
+    scripting code, which is embedded within behavior packs, and `resources` for a resource
+    pack. A pack's own content therefore states both that it is a pack and which kind, with no
+    reference to how it is stored or built.
+  backing: documented
+  sources:
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/manifestreference/packmanifestdocument
+      where: opening paragraph — the root structure of a manifest.json
+      quote: |
+        The root structure of a manifest.json file that defines an add-on pack. Every behavior
+        pack and resource pack requires a manifest with a unique UUID, version info, and module
+        declarations. This is the entry point Minecraft uses to identify and load your content.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/manifestreference/packmanifestdocument
+      where: 3.0.0.Module — what a module declares
+      quote: |
+        Declares a module within the pack. Modules define what the pack contains: 'data' for
+        behavior packs, 'resources' for resource packs, or 'script' for packs with
+        JavaScript/TypeScript code. Script modules require an entry point file path.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
+      where: Properties — header — uuid
+      quote: |
+        This is a special type of identifier that uniquely identifies this pack from any other
+        pack. UUIDs are written in the format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx where each x
+        is a hexadecimal value (0-9 or a-f).
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
+      where: Properties — header — version, the full row including its Type column
+      quote: |
+        version | Vector [a, b, c] or SemVer String | This is the version of your pack in the
+        format [majorVersion, minorVersion, revision]. The version number is used when importing
+        a pack that has been imported before. The new pack will replace the old one if the
+        version is higher, and ignored if it's the same or lower. In version 3, currently in
+        preview, you must use a string for version.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
+      where: modules — type
+      quote: |
+        This is the type of the module. Can be any of the following: `resources`, `data`,
+        `world_template` or `script`.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/bedrockserver/scripting
+      where: '"Enable differentiated module permissions" — opening sentence'
+      quote: |
+        You can set different permissions for different references to scripts that are embedded
+        as modules within behavior packs.
+
 - id: bedrock-manifest-declares-pack-identity-and-kind
+  status: retired
+  reason: superseded
+  superseded_by: manifest-declares-pack-identity-version-and-module-kinds
   claim: |
     A Bedrock add-on pack is defined by its own `manifest.json`: the header's `uuid` uniquely
     identifies the pack and the header's `version` is the pack version, while the `modules`
@@ -48,7 +98,90 @@
         This is the type of the module. Can be any of the following: `resources`, `data`,
         `world_template` or `script`.
 
+- id: name-dependency-script-and-location-heuristics-misfire
+  claim: |
+    Detection rules keyed on a package's name, its dependencies, its scripts, or its position in
+    the tree misclassify real workspaces. Scored against a 41-package monorepo holding two
+    behavior packs, a dependency on the Minecraft scripting API also selects a shared library
+    that scripts against that API without being a pack; the presence of build and watch scripts
+    selects three unrelated packages; a package name matching `pack` selects a build config and
+    misses both packs; and living under a `minecraft/` directory also selects a build config,
+    the dev harness itself, and that same shared scripting library. A package.json marker field
+    or pack keyword selects nothing at all, missing both packs. Other rules that read no manifest
+    do score cleanly on this workspace, so what misfires is these signals, not manifest-blindness
+    as such.
+  backing: tested
+  sources:
+    - description: |
+        design/minecraft/dev-kit/artifacts/pack-detection/detect-probe.mjs was run against a 41-package
+        pnpm workspace (twin-digital/opus at archive/minecraft-prototype, 4e731f5b) by the author
+        of the design formerly named minecraft/dev-workflow, not by this fact's author; captured
+        stdout is OUTPUT.txt beside the script. Ground truth is derived from pack content under
+        the add-on format — a committed manifest.json with a header uuid and a data or script
+        module — and yielded two packs.
+    - url: design/minecraft/dev-kit/artifacts/pack-detection/OUTPUT.txt
+      where: '"rules (selected / missed / false positives)" — the heuristic rules and the directory-location rule, with the packages each selects'
+      quote: |
+        [heuristic] any dependency on @minecraft/server
+          selected(3): @twin-digital/hello-world, @twin-digital/mc-scripting-core, @twin-digital/village-guard
+          missed: none
+          false positives: @twin-digital/mc-scripting-core
+
+        [heuristic] has both build and watch scripts
+          selected(5): @twin-digital/bookify, @twin-digital/bookify-cli, @twin-digital/bookify-render-api, @twin-digital/hello-world, @twin-digital/village-guard
+          missed: none
+          false positives: @twin-digital/bookify, @twin-digital/bookify-cli, @twin-digital/bookify-render-api
+
+        [heuristic] package.json keywords contain a pack keyword
+          selected(0): (none)
+          missed: @twin-digital/hello-world, @twin-digital/village-guard
+          false positives: none
+
+        [heuristic] explicit package.json marker field (minecraft/mcpack/bedrock key)
+          selected(0): (none)
+          missed: @twin-digital/hello-world, @twin-digital/village-guard
+          false positives: none
+
+        [heuristic] package name matches /pack/
+          selected(1): @twin-digital/mc-pack-config
+          missed: @twin-digital/hello-world, @twin-digital/village-guard
+          false positives: @twin-digital/mc-pack-config
+
+        [external] directory location under a minecraft/ folder
+          selected(5): @twin-digital/dev-bedrock-server, @twin-digital/hello-world, @twin-digital/mc-pack-config, @twin-digital/mc-scripting-core, @twin-digital/village-guard
+          missed: none
+          false positives: @twin-digital/dev-bedrock-server, @twin-digital/mc-pack-config, @twin-digital/mc-scripting-core
+    - url: design/minecraft/dev-kit/artifacts/pack-detection/OUTPUT.txt
+      where: '"rules (selected / missed / false positives)" — the three manifest-blind rules that score cleanly'
+      quote: |
+        [external] devDependency on the repo's shared pack build config
+          selected(2): @twin-digital/hello-world, @twin-digital/village-guard
+          missed: none
+          false positives: none
+
+        [external] a build-tool fragment the repo's sync tool writes
+          selected(2): @twin-digital/hello-world, @twin-digital/village-guard
+          missed: none
+          false positives: none
+
+        [external] the repo's release-assets script
+          selected(2): @twin-digital/hello-world, @twin-digital/village-guard
+          missed: none
+          false positives: none
+    - url: design/minecraft/dev-kit/artifacts/pack-detection/OUTPUT.txt
+      where: "\"rules that diverge from the format's own answer\" — the summary of each heuristic's error counts"
+      quote: |2
+          [heuristic] any dependency on @minecraft/server: missed=0 falsePositives=1
+          [heuristic] has both build and watch scripts: missed=0 falsePositives=3
+          [heuristic] package.json keywords contain a pack keyword: missed=2 falsePositives=0
+          [heuristic] explicit package.json marker field (minecraft/mcpack/bedrock key): missed=2 falsePositives=0
+          [heuristic] package name matches /pack/: missed=2 falsePositives=1
+          [external] directory location under a minecraft/ folder: missed=0 falsePositives=3
+
 - id: content-independent-pack-heuristics-misfire
+  status: retired
+  reason: superseded
+  superseded_by: name-dependency-script-and-location-heuristics-misfire
   claim: |
     Detection rules that do not read a pack's manifest misclassify real workspaces. Scored
     against a 41-package monorepo holding two behavior packs, a dependency on the Minecraft
@@ -100,11 +233,12 @@
 
 - id: pack-directory-name-carries-no-meaning
   claim: |
-    Nothing reads a pack's directory name. The name is free by the format, and a behavior pack
-    deployed into a directory named `resource_pack_totally` loads normally, the server printing
-    that name back untroubled. Where a pack's sources and built output sit, and what those
-    directories are called, is therefore free to choose without affecting whether the pack loads —
-    and a directory name can never be relied on as a statement of what a pack is.
+    A pack's own directory name is free by the format — the creator names that folder whatever
+    they want — and a behavior pack deployed into a directory named `resource_pack_totally` loads
+    normally, the server printing that name back untroubled. Where a pack's sources and built
+    output sit, and what those directories are called, is therefore free to choose without
+    affecting whether the pack loads — and a pack's own directory name can never be relied on as
+    a statement of what a pack is.
   backing: tested
   sources:
     - description: |

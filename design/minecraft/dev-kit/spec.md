@@ -36,43 +36,6 @@ questions:
       (design/minecraft/dev-kit/artifacts/pack-detection/OUTPUT.txt, the built-output section).
     closes: requirement
     gates: [output-root-overridden-in-package-json]
-  - id: heuristics-fact-under-reports-its-evidence
-    question: >-
-      the heuristics fact names two false positives for the `minecraft/` directory rule
-      (a build config and the dev harness) while its own pasted quote records `falsePositives=3`;
-      the unnamed third is `mc-scripting-core`. Separately, the trailing gloss "until every pack is
-      edited to add it" is stated by no captured output, though the rest of that causal clause is —
-      `selected(0)` with `missed=2` for both the marker-field and keyword rules. Correcting the
-      count and dropping or attributing the gloss closes it. A reviewer argues that
-      `r:facts-proven-wrong-are-corrected` requires correcting the fact in place rather than
-      carrying this question; the owner should confirm which remedy applies.
-    closes: fact
-  - id: heuristics-fact-opens-with-an-unqualified-universal
-    question: the heuristics fact opens "Detection rules that do not read a pack's manifest
-      misclassify real workspaces", which its own artifact falsifies — three content-independent
-      rules score no misses and no false positives
-      (design/minecraft/dev-kit/artifacts/pack-detection/OUTPUT.txt:56-69, the rules section). The
-      spec relies only on the rules that do misfire — name, dependencies, scripts, tree position.
-      What scoping clause should the claim carry?
-    closes: fact
-  - id: manifest-version-quote-drops-its-type-column
-    question: the manifest fact's `version` quote is cut mid-row, dropping the type column ("Vector
-      [a, b, c] or SemVer String") and the following sentence ("In version 3, currently in preview,
-      you must use a string for version."), so the array form reads as unconditional. Should the
-      quote be extended, and does a string-valued version reach the kit's record shape?
-    closes: fact
-  - id: script-module-maps-to-behavior-without-a-quote
-    question: no quote in the manifest fact states that a `script` module makes a behavior pack,
-      which is the mapping this design's kind derivation rests on. The mapping is first-party
-      documented — Microsoft Learn's Bedrock scripting page has "scripts that are embedded as
-      modules within behavior packs" — so the gap is the fact's evidence, not the derivation, which
-      `d:kind-derived-from-module-types` carries as a falsifiable choice. Should that source quote
-      be added to the fact?
-    closes: fact
-  - id: directory-name-fact-states-more-than-it-shows
-    question: the directory-name fact opens "Nothing reads a pack's directory name" where its
-      evidence covers a pack's own directory name. Should the claim be narrowed to say so?
-    closes: fact
 ```
 
 ## The pack set
@@ -115,14 +78,14 @@ record and no problem.
 
 Nothing else about a package is consulted to decide membership — not its name, not its dependencies,
 not its scripts, not its position in the tree. Each of those selects packages that are not packs, or
-misses packs that are [[f:content-independent-pack-heuristics-misfire]].
+misses packs that are [[f:name-dependency-script-and-location-heuristics-misfire]].
 
 ## Reading a pack
 
 A record's identity, version, and kind are read from the manifest at the probed path and nowhere
 else [[r:pack-identity-and-kind-declared-only-by-the-manifest]]. Kind is derived from the `type`
 values across the manifest's `modules`, mapping `data` and `script` to behavior and `resources` to
-resource [[f:bedrock-manifest-declares-pack-identity-and-kind]] [[d:kind-derived-from-module-types]];
+resource [[f:manifest-declares-pack-identity-version-and-module-kinds]] [[d:kind-derived-from-module-types]];
 a manifest whose modules map to neither, or that spans both, yields a problem instead of a record.
 Kind derived this way is then checked
 against the directory it was found in, and a disagreement is a problem naming both sides.
