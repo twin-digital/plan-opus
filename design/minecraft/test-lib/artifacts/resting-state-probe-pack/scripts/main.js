@@ -62,6 +62,12 @@ const json = (value) => {
   }
 }
 
+/** Component-wise b - a for two vectors, or undefined if either is unreadable. */
+const delta = (a, b) => {
+  if (!a || !b) return undefined
+  return { x: b.x - a.x, y: b.y - a.y, z: b.z - a.z }
+}
+
 const safeId = (entity) => {
   try {
     return entity.id
@@ -146,6 +152,67 @@ const restingProbes = {
     const component = attempt(() => health(sheep)).value
     for (const member of ['currentValue', 'defaultValue', 'effectiveMin', 'effectiveMax']) {
       emit(`resting-entity-fields :: health.${member} ${show(attempt(() => component?.[member]))}`)
+    }
+  },
+
+  // Open point: are the resting kinematic/naming fields universal engine constants, or do they
+  // vary by entity type? `resting-entity-fields` sampled a sheep only (n=1). Per-type raw values
+  // are emitted alongside the uniformity verdict so the conclusion is checkable from the log.
+  'resting-kinematics': async (ctx) => {
+    const types = [
+      'minecraft:sheep',
+      'minecraft:cow',
+      'minecraft:chicken',
+      'minecraft:zombie',
+      'minecraft:armor_stand',
+      'minecraft:xp_orb',
+      'minecraft:arrow',
+      'minecraft:boat',
+    ]
+    const requested = ctx.location
+    const samples = []
+    const live = []
+    for (const typeId of types) {
+      const spawn = attempt(() => ctx.spawn(typeId))
+      if (!spawn.ok) {
+        emit(`resting-kinematics :: ${typeId} spawn ${show(spawn)}`)
+        continue
+      }
+      const entity = spawn.value
+      const rotation = attempt(() => entity.getRotation())
+      const velocity = attempt(() => entity.getVelocity())
+      const nameTag = attempt(() => entity.nameTag)
+      const location = attempt(() => entity.location)
+      emit(`resting-kinematics :: ${typeId} getRotation() ${showData(rotation)}`)
+      emit(`resting-kinematics :: ${typeId} getVelocity() ${showData(velocity)}`)
+      emit(`resting-kinematics :: ${typeId} nameTag ${show(nameTag)} length=${json(attempt(() => entity.nameTag?.length).value)}`)
+      emit(`resting-kinematics :: ${typeId} requested-location=${json(requested)} location ${showData(location)} delta=${json(delta(requested, location.ok ? location.value : undefined))}`)
+      samples.push({
+        typeId,
+        rotation: rotation.ok ? json(rotation.value) : `threw:${rotation.name}`,
+        velocity: velocity.ok ? json(velocity.value) : `threw:${velocity.name}`,
+        nameTag: nameTag.ok ? json(nameTag.value) : `threw:${nameTag.name}`,
+      })
+      live.push({ typeId, entity })
+    }
+    emit(`resting-kinematics :: sampled=${samples.length}/${types.length} types=[${samples.map((s) => s.typeId).join(', ')}]`)
+    for (const field of ['rotation', 'velocity', 'nameTag']) {
+      const values = [...new Set(samples.map((s) => s[field]))]
+      emit(
+        `resting-kinematics :: ${field} uniform=${values.length <= 1} distinctValues=${values.length} values=[${values.join(' | ')}]`,
+      )
+    }
+
+    // Separate observation: a type whose velocity is zero only on the spawn frame (falling or
+    // self-propelled) is distinguishable from one that truly rests at zero.
+    await tick(2)
+    for (const { typeId, entity } of live) {
+      const rotation = attempt(() => entity.getRotation())
+      const velocity = attempt(() => entity.getVelocity())
+      const location = attempt(() => entity.location)
+      emit(
+        `resting-kinematics-after-2-ticks :: ${typeId} isValid=${json(attempt(() => entity.isValid).value)} getRotation() ${showData(rotation)} getVelocity() ${showData(velocity)} location ${showData(location)} delta=${json(delta(requested, location.ok ? location.value : undefined))}`,
+      )
     }
   },
 

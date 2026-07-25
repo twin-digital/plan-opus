@@ -38,7 +38,11 @@ or, from the server console / as a fallback (optionally naming a single probe):
 execute as <player> run scriptevent mctest2:rest
 execute as <player> run scriptevent mctest2:gaps
 execute as <player> run scriptevent mctest2:gaps effect-equal-duration-replacement
+execute as <player> run scriptevent mctest2:rest resting-kinematics
 ```
+
+Run the `scriptevent` form `execute as <player>` (or otherwise from inside the loaded ticking
+area): a run driven from outside it fails with `LocationInUnloadedChunkError` when probes spawn.
 
 Run `mctest2:rest` **as a player** if you can: `resting-player-fields` needs a triggering player
 and reports that it was skipped when there is none (the console `scriptevent` path).
@@ -60,6 +64,7 @@ a dedicated server can collect them from the log file.
 | Probe | Target |
 |---|---|
 | `resting-entity-fields` | `no-implicit-defaults` (requirement): which entity fields — components, `nameTag`, `localizationKey`, `location`, `dimension.id`, rotation, velocity, `isValid`, and the four health-attribute values — the engine populates on a never-written sheep |
+| `resting-kinematics` | whether resting `getRotation()`, `getVelocity()`, and `nameTag` are universal engine constants or type-dependent — `resting-entity-fields` measured them on a sheep only. Spawns one fresh instance of eight types (sheep, cow, chicken, zombie, armor stand, xp orb, arrow, boat), emits each field per type as full data plus a `nameTag` length, reports requested vs. actual `location` so engine adjustment is visible, and states uniformity per field. `resting-kinematics-after-2-ticks` re-samples each entity as a separate observation, so a velocity that is zero only on the spawn frame is distinguishable from one that rests at zero |
 | `component-poor-entities` | `no-implicit-defaults`: whether a valid entity can carry **zero** components at all (arrow, armor stand, xp orb, item), reported as an explicit count |
 | `vanilla-dimensions` | open question `vanilla-dimension-set-on-a-world`, and `namespace-prefix-is-optional` on the dimension surface: what `world.getDimension` returns for each vanilla id, prefixed and bare |
 | `resting-world-fields` | `no-implicit-defaults` at world scope: `beforeEvents`, `afterEvents`, `scoreboard` (+ objective count), `seed`, `isHardcore`, `gameRules`, player count |
