@@ -261,3 +261,180 @@ skipped. Rerun with a player connected, trigger
 [2026-07-25 02:37:11.588] [mctest] resting-player-fields :: sheep-only=[minecraft:movement.basic, minecraft:navigation.walk, minecraft:leashable, minecraft:color, minecraft:is_dyeable]
 [2026-07-25 02:37:11.616] [mctest] rest complete — copy every [mctest] line into the design as the answer record
 ```
+
+---
+
+# `resting-kinematics` (pack 0.2.0)
+
+The probe added in `resting-state-probe-pack` 0.2.0, run twice: once from the same underground
+source the 0.1.0 runs used, and once from a purpose-built platform in open air. The spawn-frame
+observations are identical across both; the two runs are kept because the `after-2-ticks` half
+differs between them and that difference is what identifies the confound below.
+
+## Run provenance
+
+| | |
+|---|---|
+| Date | 2026-07-25 |
+| Server | `itzg/minecraft-bedrock-server`, Bedrock dedicated **1.26.31.1** |
+| `@minecraft/server` | **2.8.0** |
+| Pack | `resting-state-probe-pack` **0.2.0**, uuid `6b1c9f2a-4d83-4a17-9c0e-1f5a7b3e2d84` (unchanged) |
+| Trigger | `execute as <armor stand> run scriptevent mctest2:rest resting-kinematics` |
+| Source A | armor stand at `(24.5, 57, 24.5)` — below the local surface |
+| Source B | armor stand at `(42.5, 81, 22.5)` — on a placed 5×5 stone platform, open air above |
+| Coverage | `sampled=8/8` types, both runs, no `PROBE CRASHED` lines |
+
+The version bump was mirrored in the world's `world_behavior_packs.json` (`6b1c9f2a…` → `0.2.0`)
+and the server restarted; the boot pack stack confirms `[02] … version: 0.2.0`.
+
+## What the spawn frame shows
+
+Read on each entity's own spawn frame, before the later types exist. **Identical in both runs**:
+
+- **Rotation and velocity are not uniform across types.** Seven of eight spawn with
+  `getRotation() = {x:0, y:0}` and `getVelocity() = {x:0, y:0, z:0}`. `minecraft:xp_orb` spawns
+  with a randomized y-rotation and a nonzero randomized velocity, redrawn per spawn:
+
+  | run | `xp_orb` rotation.y | `xp_orb` velocity |
+  |---|---|---|
+  | A (underground) | `69.07179260253906` | `{x:0.0554, y:0.2263, z:-0.0950}` |
+  | B (open air) | `288.386962890625` | `{x:0.0967, y:0.1287, z:0.1627}` |
+
+- **`nameTag` is uniform** — `""`, `length=0`, all eight types, both runs.
+- **The requested spawn location is not always honored.** `minecraft:boat` lands `0.2` off the
+  requested point on both x and z in both runs (magnitude constant, sign varies); every other
+  type lands on it exactly, `delta={x:0,y:0,z:0}`.
+- **`minecraft:arrow` is `isValid=false` within 2 ticks of spawning**, unprompted, in both runs.
+  Nothing was called against it; every member read at the 2-tick sample throws
+  `InvalidEntityError`.
+
+## Reading the log — the `after-2-ticks` sample is confounded
+
+The probe spawns all eight types at one identical location and holds them live, so they
+interpenetrate and the engine resolves the overlap. The 2-tick sample therefore measures
+**collision resolution, not resting kinematics**. Two things identify it:
+
+- `minecraft:armor_stand`, which takes no such push, reads exactly zero velocity and zero
+  positional delta in both runs.
+- `minecraft:sheep` and `minecraft:cow` read exactly `+0.4550018310546875` upward in **both**
+  runs — including run B, on a flat platform with nothing above them. Moving the source to open
+  air changed the chicken, zombie and boat samples but left these two untouched, which is what
+  rules out terrain as the cause.
+
+Isolating the intended observation — whether a type's zero velocity is a resting value or only a
+spawn-frame value — needs each type spawned at its own offset, or disposed before the next is
+spawned. The spawn-frame section above is unaffected: each entity is read before the others exist.
+
+## Run-validity notes
+
+- **The world was modified for run B.** A 5×5 stone platform was placed at `y=80`,
+  `x 40–44`, `z 20–24`, inside the persisted `mctest` ticking area. Run A used unmodified terrain.
+- **Source entity churn.** The armor stand tagged `mctestsrc` for the 0.1.0 runs did not survive
+  run A; run B uses a fresh stand tagged `kin2`. The probe spawns and disposes an
+  `armor_stand` of its own at the source location, so an armor-stand source is a poor choice for
+  this probe specifically.
+- **`n = 2`**, and the two runs differ in source placement, so the agreeing spawn-frame values are
+  reproducible while the `xp_orb` randomization is confirmed as *varying* rather than measured.
+- The slash-command path remains unexercised; both runs used the `scriptevent` fallback.
+
+## Raw log — run A (source at `(24.5, 57, 24.5)`, underground)
+
+```
+[2026-07-25 03:18:22.570] [mctest] rest start — 1 probe(s), @minecraft/server 2.8.0 expected
+[2026-07-25 03:18:22.570] [mctest] resting-kinematics :: minecraft:sheep getRotation() ok value={"y":0,"x":0}
+[2026-07-25 03:18:22.570] [mctest] resting-kinematics :: minecraft:sheep getVelocity() ok value={"z":0,"y":0,"x":0}
+[2026-07-25 03:18:22.570] [mctest] resting-kinematics :: minecraft:sheep nameTag ok value=string: length=0
+[2026-07-25 03:18:22.570] [mctest] resting-kinematics :: minecraft:sheep requested-location={"z":24.5,"y":57,"x":24.5} location ok value={"z":24.5,"y":57,"x":24.5} delta={"x":0,"y":0,"z":0}
+[2026-07-25 03:18:22.571] [mctest] resting-kinematics :: minecraft:cow getRotation() ok value={"y":0,"x":0}
+[2026-07-25 03:18:22.571] [mctest] resting-kinematics :: minecraft:cow getVelocity() ok value={"z":0,"y":0,"x":0}
+[2026-07-25 03:18:22.571] [mctest] resting-kinematics :: minecraft:cow nameTag ok value=string: length=0
+[2026-07-25 03:18:22.571] [mctest] resting-kinematics :: minecraft:cow requested-location={"z":24.5,"y":57,"x":24.5} location ok value={"z":24.5,"y":57,"x":24.5} delta={"x":0,"y":0,"z":0}
+[2026-07-25 03:18:22.571] [mctest] resting-kinematics :: minecraft:chicken getRotation() ok value={"y":0,"x":0}
+[2026-07-25 03:18:22.571] [mctest] resting-kinematics :: minecraft:chicken getVelocity() ok value={"z":0,"y":0,"x":0}
+[2026-07-25 03:18:22.571] [mctest] resting-kinematics :: minecraft:chicken nameTag ok value=string: length=0
+[2026-07-25 03:18:22.571] [mctest] resting-kinematics :: minecraft:chicken requested-location={"z":24.5,"y":57,"x":24.5} location ok value={"z":24.5,"y":57,"x":24.5} delta={"x":0,"y":0,"z":0}
+[2026-07-25 03:18:22.572] [mctest] resting-kinematics :: minecraft:zombie getRotation() ok value={"y":0,"x":0}
+[2026-07-25 03:18:22.572] [mctest] resting-kinematics :: minecraft:zombie getVelocity() ok value={"z":0,"y":0,"x":0}
+[2026-07-25 03:18:22.572] [mctest] resting-kinematics :: minecraft:zombie nameTag ok value=string: length=0
+[2026-07-25 03:18:22.572] [mctest] resting-kinematics :: minecraft:zombie requested-location={"z":24.5,"y":57,"x":24.5} location ok value={"z":24.5,"y":57,"x":24.5} delta={"x":0,"y":0,"z":0}
+[2026-07-25 03:18:22.572] [mctest] resting-kinematics :: minecraft:armor_stand getRotation() ok value={"y":0,"x":0}
+[2026-07-25 03:18:22.572] [mctest] resting-kinematics :: minecraft:armor_stand getVelocity() ok value={"z":0,"y":0,"x":0}
+[2026-07-25 03:18:22.572] [mctest] resting-kinematics :: minecraft:armor_stand nameTag ok value=string: length=0
+[2026-07-25 03:18:22.572] [mctest] resting-kinematics :: minecraft:armor_stand requested-location={"z":24.5,"y":57,"x":24.5} location ok value={"z":24.5,"y":57,"x":24.5} delta={"x":0,"y":0,"z":0}
+[2026-07-25 03:18:22.572] [mctest] resting-kinematics :: minecraft:xp_orb getRotation() ok value={"y":69.07179260253906,"x":0}
+[2026-07-25 03:18:22.572] [mctest] resting-kinematics :: minecraft:xp_orb getVelocity() ok value={"z":-0.09496267884969711,"y":0.22630934417247772,"x":0.055352792143821716}
+[2026-07-25 03:18:22.572] [mctest] resting-kinematics :: minecraft:xp_orb nameTag ok value=string: length=0
+[2026-07-25 03:18:22.572] [mctest] resting-kinematics :: minecraft:xp_orb requested-location={"z":24.5,"y":57,"x":24.5} location ok value={"z":24.5,"y":57,"x":24.5} delta={"x":0,"y":0,"z":0}
+[2026-07-25 03:18:22.572] [mctest] resting-kinematics :: minecraft:arrow getRotation() ok value={"y":0,"x":0}
+[2026-07-25 03:18:22.572] [mctest] resting-kinematics :: minecraft:arrow getVelocity() ok value={"z":0,"y":0,"x":0}
+[2026-07-25 03:18:22.572] [mctest] resting-kinematics :: minecraft:arrow nameTag ok value=string: length=0
+[2026-07-25 03:18:22.572] [mctest] resting-kinematics :: minecraft:arrow requested-location={"z":24.5,"y":57,"x":24.5} location ok value={"z":24.5,"y":57,"x":24.5} delta={"x":0,"y":0,"z":0}
+[2026-07-25 03:18:22.573] [mctest] resting-kinematics :: minecraft:boat getRotation() ok value={"y":0,"x":0}
+[2026-07-25 03:18:22.573] [mctest] resting-kinematics :: minecraft:boat getVelocity() ok value={"z":0,"y":0,"x":0}
+[2026-07-25 03:18:22.573] [mctest] resting-kinematics :: minecraft:boat nameTag ok value=string: length=0
+[2026-07-25 03:18:22.573] [mctest] resting-kinematics :: minecraft:boat requested-location={"z":24.5,"y":57,"x":24.5} location ok value={"z":24.299999237060547,"y":57,"x":24.700000762939453} delta={"x":0.20000076293945312,"y":0,"z":-0.20000076293945312}
+[2026-07-25 03:18:22.573] [mctest] resting-kinematics :: sampled=8/8 types=[minecraft:sheep, minecraft:cow, minecraft:chicken, minecraft:zombie, minecraft:armor_stand, minecraft:xp_orb, minecraft:arrow, minecraft:boat]
+[2026-07-25 03:18:22.573] [mctest] resting-kinematics :: rotation uniform=false distinctValues=2 values=[{"y":0,"x":0} | {"y":69.07179260253906,"x":0}]
+[2026-07-25 03:18:22.573] [mctest] resting-kinematics :: velocity uniform=false distinctValues=2 values=[{"z":0,"y":0,"x":0} | {"z":-0.09496267884969711,"y":0.22630934417247772,"x":0.055352792143821716}]
+[2026-07-25 03:18:22.573] [mctest] resting-kinematics :: nameTag uniform=true distinctValues=1 values=[""]
+[2026-07-25 03:18:22.670] [mctest] resting-kinematics-after-2-ticks :: minecraft:sheep isValid=true getRotation() ok value={"y":0,"x":0} getVelocity() ok value={"z":0,"y":0.4550018310546875,"x":0} location ok value={"z":24.5,"y":57.45500183105469,"x":24.5} delta={"x":0,"y":0.4550018310546875,"z":0}
+[2026-07-25 03:18:22.670] [mctest] resting-kinematics-after-2-ticks :: minecraft:cow isValid=true getRotation() ok value={"y":0,"x":0} getVelocity() ok value={"z":0,"y":0.4550018310546875,"x":0} location ok value={"z":24.5,"y":57.45500183105469,"x":24.5} delta={"x":0,"y":0.4550018310546875,"z":0}
+[2026-07-25 03:18:22.670] [mctest] resting-kinematics-after-2-ticks :: minecraft:chicken isValid=true getRotation() ok value={"y":0,"x":0} getVelocity() ok value={"z":0,"y":0.4550018310546875,"x":0} location ok value={"z":24.5,"y":57.45500183105469,"x":24.5} delta={"x":0,"y":0.4550018310546875,"z":0}
+[2026-07-25 03:18:22.670] [mctest] resting-kinematics-after-2-ticks :: minecraft:zombie isValid=true getRotation() ok value={"y":30,"x":30} getVelocity() ok value={"z":0,"y":0.4550018310546875,"x":0} location ok value={"z":24.5,"y":57.45500183105469,"x":24.5} delta={"x":0,"y":0.4550018310546875,"z":0}
+[2026-07-25 03:18:22.670] [mctest] resting-kinematics-after-2-ticks :: minecraft:armor_stand isValid=true getRotation() ok value={"y":0,"x":0} getVelocity() ok value={"z":0,"y":0,"x":0} location ok value={"z":24.5,"y":57,"x":24.5} delta={"x":0,"y":0,"z":0}
+[2026-07-25 03:18:22.670] [mctest] resting-kinematics-after-2-ticks :: minecraft:xp_orb isValid=true getRotation() ok value={"y":69.07179260253906,"x":0} getVelocity() ok value={"z":-0.09120216220617294,"y":0.11517000198364258,"x":0.05316082388162613} location ok value={"z":24.311973571777344,"y":57.28131103515625,"x":24.60959815979004} delta={"x":0.10959815979003906,"y":0.28131103515625,"z":-0.18802642822265625}
+[2026-07-25 03:18:22.670] [mctest] resting-kinematics-after-2-ticks :: minecraft:arrow isValid=false getRotation() threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to call function 'getRotation' due to Entity being invalid (has the Entity been removed?)." getVelocity() threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to call function 'getVelocity' due to Entity being invalid (has the Entity been removed?)." location threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to get property 'location' due to Entity being invalid (has the Entity been removed?)." delta=undefined
+[2026-07-25 03:18:22.670] [mctest] resting-kinematics-after-2-ticks :: minecraft:boat isValid=true getRotation() ok value={"y":0,"x":0} getVelocity() ok value={"z":0,"y":0.02256011962890625,"x":0} location ok value={"z":24.299999237060547,"y":57.022560119628906,"x":24.700000762939453} delta={"x":0.20000076293945312,"y":0.02256011962890625,"z":-0.20000076293945312}
+[2026-07-25 03:18:22.774] [mctest] rest complete — copy every [mctest] line into the design as the answer record
+```
+
+## Raw log — run B (source at `(42.5, 81, 22.5)`, open air on a placed platform)
+
+```
+[2026-07-25 03:22:17.570] [mctest] rest start — 1 probe(s), @minecraft/server 2.8.0 expected
+[2026-07-25 03:22:17.571] [mctest] resting-kinematics :: minecraft:sheep getRotation() ok value={"y":0,"x":0}
+[2026-07-25 03:22:17.571] [mctest] resting-kinematics :: minecraft:sheep getVelocity() ok value={"z":0,"y":0,"x":0}
+[2026-07-25 03:22:17.571] [mctest] resting-kinematics :: minecraft:sheep nameTag ok value=string: length=0
+[2026-07-25 03:22:17.571] [mctest] resting-kinematics :: minecraft:sheep requested-location={"z":22.5,"y":81,"x":42.5} location ok value={"z":22.5,"y":81,"x":42.5} delta={"x":0,"y":0,"z":0}
+[2026-07-25 03:22:17.571] [mctest] resting-kinematics :: minecraft:cow getRotation() ok value={"y":0,"x":0}
+[2026-07-25 03:22:17.571] [mctest] resting-kinematics :: minecraft:cow getVelocity() ok value={"z":0,"y":0,"x":0}
+[2026-07-25 03:22:17.571] [mctest] resting-kinematics :: minecraft:cow nameTag ok value=string: length=0
+[2026-07-25 03:22:17.571] [mctest] resting-kinematics :: minecraft:cow requested-location={"z":22.5,"y":81,"x":42.5} location ok value={"z":22.5,"y":81,"x":42.5} delta={"x":0,"y":0,"z":0}
+[2026-07-25 03:22:17.571] [mctest] resting-kinematics :: minecraft:chicken getRotation() ok value={"y":0,"x":0}
+[2026-07-25 03:22:17.571] [mctest] resting-kinematics :: minecraft:chicken getVelocity() ok value={"z":0,"y":0,"x":0}
+[2026-07-25 03:22:17.571] [mctest] resting-kinematics :: minecraft:chicken nameTag ok value=string: length=0
+[2026-07-25 03:22:17.571] [mctest] resting-kinematics :: minecraft:chicken requested-location={"z":22.5,"y":81,"x":42.5} location ok value={"z":22.5,"y":81,"x":42.5} delta={"x":0,"y":0,"z":0}
+[2026-07-25 03:22:17.572] [mctest] resting-kinematics :: minecraft:zombie getRotation() ok value={"y":0,"x":0}
+[2026-07-25 03:22:17.572] [mctest] resting-kinematics :: minecraft:zombie getVelocity() ok value={"z":0,"y":0,"x":0}
+[2026-07-25 03:22:17.572] [mctest] resting-kinematics :: minecraft:zombie nameTag ok value=string: length=0
+[2026-07-25 03:22:17.572] [mctest] resting-kinematics :: minecraft:zombie requested-location={"z":22.5,"y":81,"x":42.5} location ok value={"z":22.5,"y":81,"x":42.5} delta={"x":0,"y":0,"z":0}
+[2026-07-25 03:22:17.572] [mctest] resting-kinematics :: minecraft:armor_stand getRotation() ok value={"y":0,"x":0}
+[2026-07-25 03:22:17.572] [mctest] resting-kinematics :: minecraft:armor_stand getVelocity() ok value={"z":0,"y":0,"x":0}
+[2026-07-25 03:22:17.572] [mctest] resting-kinematics :: minecraft:armor_stand nameTag ok value=string: length=0
+[2026-07-25 03:22:17.572] [mctest] resting-kinematics :: minecraft:armor_stand requested-location={"z":22.5,"y":81,"x":42.5} location ok value={"z":22.5,"y":81,"x":42.5} delta={"x":0,"y":0,"z":0}
+[2026-07-25 03:22:17.572] [mctest] resting-kinematics :: minecraft:xp_orb getRotation() ok value={"y":288.386962890625,"x":0}
+[2026-07-25 03:22:17.572] [mctest] resting-kinematics :: minecraft:xp_orb getVelocity() ok value={"z":0.162714883685112,"y":0.1286885142326355,"x":0.09673430025577545}
+[2026-07-25 03:22:17.572] [mctest] resting-kinematics :: minecraft:xp_orb nameTag ok value=string: length=0
+[2026-07-25 03:22:17.572] [mctest] resting-kinematics :: minecraft:xp_orb requested-location={"z":22.5,"y":81,"x":42.5} location ok value={"z":22.5,"y":81,"x":42.5} delta={"x":0,"y":0,"z":0}
+[2026-07-25 03:22:17.572] [mctest] resting-kinematics :: minecraft:arrow getRotation() ok value={"y":0,"x":0}
+[2026-07-25 03:22:17.572] [mctest] resting-kinematics :: minecraft:arrow getVelocity() ok value={"z":0,"y":0,"x":0}
+[2026-07-25 03:22:17.572] [mctest] resting-kinematics :: minecraft:arrow nameTag ok value=string: length=0
+[2026-07-25 03:22:17.572] [mctest] resting-kinematics :: minecraft:arrow requested-location={"z":22.5,"y":81,"x":42.5} location ok value={"z":22.5,"y":81,"x":42.5} delta={"x":0,"y":0,"z":0}
+[2026-07-25 03:22:17.573] [mctest] resting-kinematics :: minecraft:boat getRotation() ok value={"y":0,"x":0}
+[2026-07-25 03:22:17.573] [mctest] resting-kinematics :: minecraft:boat getVelocity() ok value={"z":0,"y":0,"x":0}
+[2026-07-25 03:22:17.573] [mctest] resting-kinematics :: minecraft:boat nameTag ok value=string: length=0
+[2026-07-25 03:22:17.573] [mctest] resting-kinematics :: minecraft:boat requested-location={"z":22.5,"y":81,"x":42.5} location ok value={"z":22.700000762939453,"y":81,"x":42.70000076293945} delta={"x":0.20000076293945312,"y":0,"z":0.20000076293945312}
+[2026-07-25 03:22:17.573] [mctest] resting-kinematics :: sampled=8/8 types=[minecraft:sheep, minecraft:cow, minecraft:chicken, minecraft:zombie, minecraft:armor_stand, minecraft:xp_orb, minecraft:arrow, minecraft:boat]
+[2026-07-25 03:22:17.573] [mctest] resting-kinematics :: rotation uniform=false distinctValues=2 values=[{"y":0,"x":0} | {"y":288.386962890625,"x":0}]
+[2026-07-25 03:22:17.573] [mctest] resting-kinematics :: velocity uniform=false distinctValues=2 values=[{"z":0,"y":0,"x":0} | {"z":0.162714883685112,"y":0.1286885142326355,"x":0.09673430025577545}]
+[2026-07-25 03:22:17.573] [mctest] resting-kinematics :: nameTag uniform=true distinctValues=1 values=[""]
+[2026-07-25 03:22:17.670] [mctest] resting-kinematics-after-2-ticks :: minecraft:sheep isValid=true getRotation() ok value={"y":0,"x":0} getVelocity() ok value={"z":0,"y":0.4550018310546875,"x":0} location ok value={"z":22.5,"y":81.45500183105469,"x":42.5} delta={"x":0,"y":0.4550018310546875,"z":0}
+[2026-07-25 03:22:17.670] [mctest] resting-kinematics-after-2-ticks :: minecraft:cow isValid=true getRotation() ok value={"y":0,"x":0} getVelocity() ok value={"z":0,"y":0.4550018310546875,"x":0} location ok value={"z":22.5,"y":81.45500183105469,"x":42.5} delta={"x":0,"y":0.4550018310546875,"z":0}
+[2026-07-25 03:22:17.670] [mctest] resting-kinematics-after-2-ticks :: minecraft:chicken isValid=true getRotation() ok value={"y":0,"x":0} getVelocity() ok value={"z":0,"y":0,"x":0.049999237060546875} location ok value={"z":22.700000762939453,"y":81.17500305175781,"x":42.150001525878906} delta={"x":-0.34999847412109375,"y":0.1750030517578125,"z":0.20000076293945312}
+[2026-07-25 03:22:17.670] [mctest] resting-kinematics-after-2-ticks :: minecraft:zombie isValid=true getRotation() ok value={"y":0,"x":0} getVelocity() ok value={"z":0,"y":0,"x":0.049999237060546875} location ok value={"z":22.700000762939453,"y":80.67500305175781,"x":42.95000076293945} delta={"x":0.4500007629394531,"y":-0.3249969482421875,"z":0.20000076293945312}
+[2026-07-25 03:22:17.670] [mctest] resting-kinematics-after-2-ticks :: minecraft:armor_stand isValid=true getRotation() ok value={"y":0,"x":0} getVelocity() ok value={"z":0,"y":0,"x":0} location ok value={"z":22.5,"y":81,"x":42.5} delta={"x":0,"y":0,"z":0}
+[2026-07-25 03:22:17.670] [mctest] resting-kinematics-after-2-ticks :: minecraft:xp_orb isValid=true getRotation() ok value={"y":288.386962890625,"x":0} getVelocity() ok value={"z":0.15627138316631317,"y":0.04597645625472069,"x":0.09290362149477005} location ok value={"z":22.822174072265625,"y":81.13560485839844,"x":42.691532135009766} delta={"x":0.19153213500976562,"y":0.1356048583984375,"z":0.322174072265625}
+[2026-07-25 03:22:17.670] [mctest] resting-kinematics-after-2-ticks :: minecraft:arrow isValid=false getRotation() threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to call function 'getRotation' due to Entity being invalid (has the Entity been removed?)." getVelocity() threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to call function 'getVelocity' due to Entity being invalid (has the Entity been removed?)." location threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to get property 'location' due to Entity being invalid (has the Entity been removed?)." delta=undefined
+[2026-07-25 03:22:17.670] [mctest] resting-kinematics-after-2-ticks :: minecraft:boat isValid=true getRotation() ok value={"y":0,"x":0} getVelocity() ok value={"z":0,"y":0,"x":0.049999237060546875} location ok value={"z":22.700000762939453,"y":81,"x":42.75} delta={"x":0.25,"y":0,"z":0.20000076293945312}
+[2026-07-25 03:22:17.770] [mctest] rest complete — copy every [mctest] line into the design as the answer record
+```
