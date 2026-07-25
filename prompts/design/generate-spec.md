@@ -38,9 +38,11 @@ finds wording. Run the panel once, act on it, then move to the capstone.
    *spec-level* and *design-level*, and a separate **caveat** list.
 2. **Triage the caveats.** Dispatch `triage-caveats.md` with the caveat list. This must be a
    **third agent** — not a reviewer that produced them, not the writer or reviser of this spec.
-   Both have a stake in whether a caveat matters. It records most as `caveat` lines on the entries
-   they concern, hands back anything it promotes as blocking, and drops the rest. Its input edits go
-   in the PR body for the owner.
+   Both have a stake in whether a caveat matters. Each caveat is discarded, recorded as a `caveat`
+   line on the entry it concerns, or sent back as blocking because it needs a change rather than a
+   note. Discarding a true-but-inert caveat is a correct outcome and needs no one's sign-off — the
+   entries are read by people deciding what to rely on, and their signal-to-noise is what triage
+   protects. Its input edits go in the PR body for the owner.
 3. **Revise.** Dispatch a **reviser** sub-agent with the blocking *spec-level* findings, plus
    anything triage promoted. It applies each fix and returns with `npm run check` green. It must
    **not** silently touch a *design-level* finding — a wrong requirement, accepted decision, or fact
