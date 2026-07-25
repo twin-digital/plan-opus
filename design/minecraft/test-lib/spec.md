@@ -54,6 +54,12 @@ questions:
       the engine's `remove()` was followed by five unrelated after-event deliveries the fake
       emits none of; which requirement documents that departure?
     closes: requirement
+  - id: corpse-despawn-departure
+    question: >-
+      the engine's killed corpse turns invalid by roughly 27 ticks and a tickless fake's stays
+      valid until the control plane invalidates it; which requirement documents that departure?
+    closes: requirement
+    gates: [corpse-stays-valid-except-on-the-no-health-path]
 ```
 
 ## What the library substitutes, and how it types itself
@@ -80,7 +86,9 @@ the declarations already close, and a builder needs to know which side of the th
 falls on. All 55 after-event signals [[f:world-resting-state-observed]] exist as objects a test can
 subscribe to; only those a modelled mutation emits — the damage, health, and death cascades below —
 ever deliver, and the rest stay silent rather than throwing, since a pack subscribing to a signal
-it never triggers is doing nothing wrong. All 68 entity component classes
+it never triggers is doing nothing wrong. A delivering signal drags its payload class in with it:
+`EntityHurtAfterEvent` and its siblings are the objects a handler actually reads, so each
+delivering signal's payload behaves and the rest are stubs like any other unbuilt class. All 68 entity component classes
 [[f:component-ids-are-derivable-from-types]] can be attached to an entity and answer their identity
 members, so the control plane can shape any component set a test needs; only the 7 attribute-shaped
 ones behave beyond that, and a non-attribute component's other members throw not-implemented
@@ -245,13 +253,13 @@ drives `currentValue` below `effectiveMin` and the change event reports the nega
 the health change to exactly the minimum, then die with the same cause — returns true, and returns
 true again on the corpse while firing nothing [[f:kill-and-remove-cascades]]
 [[f:health-not-clamped-at-minimum]]. On an entity with no health component it fires only
-`entityDie` and the reference reads invalid synchronously, in contrast to a killed mob's corpse,
-which stays valid for several ticks — post-death validity is not a uniform grace period
-[[f:kill-no-health-behaviour]] [[f:death-invalidation-window]]. The fake takes the synchronous
-invalidation for the no-health path and leaves the corpse valid otherwise, since the observed grace
-period is measured in ticks a tickless fake cannot count down; a test that needs the corpse gone
-invalidates it through the control plane [[d:corpse-stays-valid-except-on-the-no-health-path]]
-[[d:no-clock]]. Writes through the health component fire
+`entityDie` and the reference reads invalid synchronously [[f:kill-no-health-behaviour]], which the
+fake reproduces. The killed mob's corpse is the departure: the engine leaves it valid for several
+ticks and despawns it by roughly 27 [[f:death-invalidation-window]], so post-death validity is no
+uniform grace period, and a grace period measured in ticks is one a fake with no tick cannot count
+down [[d:no-clock]]. The fake's corpse therefore stays valid indefinitely, and a test that needs it
+gone invalidates it through the control plane
+[[d:corpse-stays-valid-except-on-the-no-health-path]]. Writes through the health component fire
 `entityHealthChanged` with no `entityHurt`, and a write that reaches the effective minimum fires
 `entityDie` with cause `override` [[f:component-health-writes-cascade]]. `remove()` fires no death
 event and is the control plane's business rather than a modelled event cascade: the engine's own
@@ -284,8 +292,10 @@ components:
     excludes: the control-plane function that triggers invalidation
     after: [error-model]
   - id: event-dispatch
-    responsibility: the 55 after-event signal objects, set-shaped registration, and synchronous depth-first delivery
-    excludes: knowing which mutation emits which event
+    responsibility: >-
+      the 55 after-event signal objects, the payload class each delivering signal hands its
+      subscribers, set-shaped registration, and synchronous depth-first delivery
+    excludes: knowing which mutation emits which event, and the field values any payload carries
   - id: world-and-dimensions
     responsibility: the world fake, its always-present object graph, dimension lookup, and the per-world entity id counter
     excludes: the signal objects that graph holds, and constructing the entities the counter numbers
@@ -307,7 +317,9 @@ components:
     responsibility: the effect-store implementation — Effect and EffectType fakes, addEffect, and the observed replacement rule
     after: [entity-fakes, ids-and-types]
   - id: lifecycle-cascades
-    responsibility: the health-pipeline implementation behind applyDamage, kill, and the component writes, and the sequence each path emits
+    responsibility: >-
+      the health-pipeline implementation behind applyDamage, kill, and the component writes, and
+      the event sequence each path emits with its payloads populated
     after: [component-model, event-dispatch]
   - id: control-plane
     responsibility: >-
