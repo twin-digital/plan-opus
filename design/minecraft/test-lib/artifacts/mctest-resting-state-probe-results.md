@@ -302,11 +302,14 @@ Read on each entity's own spawn frame, before the later types exist. **Identical
 
 - **`nameTag` is uniform** — `""`, `length=0`, all eight types, both runs.
 - **The requested spawn location is not always honored.** `minecraft:boat` lands `0.2` off the
-  requested point on both x and z in both runs (magnitude constant, sign varies); every other
-  type lands on it exactly, `delta={x:0,y:0,z:0}`.
-- **`minecraft:arrow` is `isValid=false` within 2 ticks of spawning**, unprompted, in both runs.
-  Nothing was called against it; every member read at the 2-tick sample throws
-  `InvalidEntityError`.
+  requested point on both x and z in both runs; every other type lands on it exactly,
+  `delta={x:0,y:0,z:0}`. The magnitude is constant and the sign tracks the spawn position — see
+  the four-run section below, where it is bit-identical across runs from a fixed base.
+- **RETRACTED — `minecraft:arrow` reads `isValid=false` at the 2-tick sample in both runs.** This
+  was recorded here as unprompted self-removal. It is not: the isolated runs below hold the arrow
+  valid at 2 and 22 ticks in 4/4, so the invalidation was **contact with the six other entities
+  spawned at the same point**, not a property of a resting arrow. The observation is left in
+  place because the raw logs below contain it; the conclusion drawn from it does not stand.
 
 ## Reading the log — the `after-2-ticks` sample is confounded
 
