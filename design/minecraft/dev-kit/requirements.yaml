@@ -4,6 +4,20 @@
 #
 # rationale is omitted unless the statement's intent is genuinely non-obvious.
 
+# Product and consumers
+
+- id: kit-is-consumed-as-a-library
+  statement: |
+    the kit's product is a typed library: a consumer imports it and receives the pack set as data,
+    not as text it must parse. A command-line interface over the same capabilities is intended and
+    is not specified here.
+
+- id: consumers-are-the-dev-server-and-ci
+  statement: |
+    the dev server and a continuous-integration check are both intended consumers. Validation
+    therefore reports a structured result naming every problem it found, consumable without a
+    human reading it.
+
 # Scope and membership
 
 - id: one-pack-of-each-kind-per-package
