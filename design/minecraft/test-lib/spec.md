@@ -36,6 +36,24 @@ questions:
       departure?
     closes: requirement
     gates: [one-mutation-pipeline-for-health]
+  - id: entity-id-form-departure
+    question: >-
+      the engine issues entity ids as negative integers and the fake issues decimal counter
+      strings; which requirement documents that departure?
+    closes: requirement
+    gates: [sequential-opaque-entity-ids]
+  - id: per-type-spawn-quirk-departure
+    question: >-
+      the engine's spawn frame carries per-type placement offsets and rotation settles the fake
+      does not apply; which requirement documents that departure, given a decision currently
+      carries it?
+    closes: requirement
+    gates: [per-type-spawn-quirks-not-modeled]
+  - id: remove-side-effect-departure
+    question: >-
+      the engine's `remove()` was followed by five unrelated after-event deliveries the fake
+      emits none of; which requirement documents that departure?
+    closes: requirement
 ```
 
 ## What the library substitutes, and how it types itself
@@ -55,25 +73,31 @@ makes the compiler enforce it, declaring the real type in an `implements` clause
 member outside the built surface with a throwing stub
 [[d:structural-conformance-by-implements-clause]] [[r:structural-full-shape-fakes]]. The clause is
 what keeps the shape complete without a codegen step: a missing member is a compile error in this
-package, not a `undefined` read in a consumer's test. The built surface — the members that actually
-behave — is the world and dimension objects, entity and player, the entity components with the
-attribute components behaving, effects, and the after-event signals
-[[d:built-surface-v1]].
+package, not a `undefined` read in a consumer's test.
 
-Id types are not transcribed. The component id sets are computable from the package's own
-declarations — `keyof EntityComponentTypeMap`, the `EntityComponentTypes` enum for the canonical
-prefixed ids, and a conditional mapping for the attribute-shaped subset — and a derivation tracks a
-version bump for free where a transcribed list rots [[f:component-ids-are-derivable-from-types]]
-[[d:id-unions-derived-from-declarations]]. The values behind those types are a different matter:
+The built surface is drawn as counts, because "the components" and "the signals" each name a set
+the declarations already close, and a builder needs to know which side of the throw each member
+falls on. All 55 after-event signals [[f:world-resting-state-observed]] exist as objects a test can
+subscribe to; only those a modelled mutation emits — the damage, health, and death cascades below —
+ever deliver, and the rest stay silent rather than throwing, since a pack subscribing to a signal
+it never triggers is doing nothing wrong. All 68 entity component classes
+[[f:component-ids-are-derivable-from-types]] can be attached to an entity and answer their identity
+members, so the control plane can shape any component set a test needs; only the 7 attribute-shaped
+ones behave beyond that, and a non-attribute component's other members throw not-implemented
+[[d:built-surface-v1]]. World, dimension, entity and player, effect and effect type complete the
+list; every other declared class is a stub throughout.
+
+Id types are derived from the package's own declarations rather than transcribed
+[[f:component-ids-are-derivable-from-types]] [[d:id-unions-derived-from-declarations]]. The values
+behind those types are a different matter:
 the enum members have types but no usable values at runtime [[f:server-package-ships-types-only]],
 so any runtime constant the library needs is its own string literal, and a consumer wanting real
 constants uses `@minecraft/vanilla-data`, which does ship runtime JavaScript and whose values are
-the prefixed form [[f:vanilla-data-provides-prefixed-id-constants]].
-
-The declarations the whole library is read from are one pinned version, 2.8.0, declared as the peer
-range a consumer must satisfy [[r:target-server-version]]. Nothing else is a runtime dependency: no
-test framework, no assertion library, no spy machinery — the fakes are plain objects a caller may
-wrap with whatever their runner provides [[r:no-test-framework-dependency]].
+the prefixed form [[f:vanilla-data-provides-prefixed-id-constants]]. The derived unions and the
+hand-written stub lists are the two places a version bump surfaces, which is why the pin is a
+declared peer range and not an assumption [[r:target-server-version]]. Nothing is depended on
+beyond it [[r:no-test-framework-dependency]], so the fakes carry no recording machinery of their
+own: a caller who wants call records wraps them in whatever their runner provides.
 
 ## Failing loudly
 
@@ -98,9 +122,8 @@ invalid owner [[f:attribute-guard-classes-observed]].
 ## Construction and presets
 
 All state belongs to a world instance the test creates; the library holds no module-level mutable
-state, so suites cannot leak into each other [[r:instance-scoped-world]]. Construction populates
-nothing the caller did not ask for: an entity has no components, a world no dimensions, an
-attribute component no value and no bounds [[r:no-implicit-defaults]]. This is a deliberate
+state, so suites cannot leak into each other [[r:instance-scoped-world]]. Construction populating
+nothing the caller did not ask for [[r:no-implicit-defaults]] is a deliberate
 departure from what the engine rests at — a fresh engine entity always carries components, with a
 type-dependent set and no common baseline [[f:fresh-entity-is-never-component-empty]], and a fresh
 health component answers all four of its values before any write
@@ -135,30 +158,28 @@ rather than fixed per type, so no fake could reproduce it deterministically anyw
 
 ## Identity and ids
 
-`spawnFake` requires a typeId and assigns the id itself, which the caller may override at spawn
-[[r:ids-auto-assigned-typeid-required]]. Ids come from a per-world counter as decimal strings and
-are never reused, matching the engine's observed non-reissue after removal
+The id `spawnFake` assigns unless the caller overrides it [[r:ids-auto-assigned-typeid-required]]
+comes from a per-world counter as a decimal string and is never reissued, matching the engine's
+observed non-reissue after removal
 [[f:entity-ids-not-reused]]; the engine's negative-integer form is not reproduced, so a test that
 depends on the shape of an id is depending on something the engine does not promise
 [[d:sequential-opaque-entity-ids]].
 
 Every id-taking input is normalized on entry and stored and reported in the canonical
-`minecraft:`-prefixed form [[r:canonical-prefixed-storage]] [[d:ids-normalized-at-entry]]. The
-prefixed form is the one the engine reports on every surface tried, so reads compare equal against
-the `@minecraft/vanilla-data` constants a test typically holds
-[[f:vanilla-data-provides-prefixed-id-constants]]. Tolerance of the bare form is per-surface rather
-than universal: components, effect types, and entity types accept either, while `triggerEvent`
+`minecraft:`-prefixed form [[r:canonical-prefixed-storage]] [[d:ids-normalized-at-entry]].
+Tolerance of the bare form is per-surface rather than universal:
+components, effect types, and entity types accept either, while `triggerEvent`
 rejects a bare event id [[f:namespace-prefix-is-optional]], and the fake rejects it too rather than
 being more permissive than what it stands in for [[r:fakes-match-observed-engine-behaviour]].
 
 ## Validity
 
 A fake can be put into the invalid state a stale engine reference occupies, and the transition can
-happen mid-test on a reference the test already holds — which is the whole point, since the hit
-that fires an event is routinely the hit that unloaded the entity
-[[r:invalidation-is-modeled]]. Components and effects read their validity from the entity they came
-from, so one invalidation reaches everything derived from it
-[[d:invalidation-propagates-to-derived-objects]].
+happen mid-test on a reference the test already holds [[r:invalidation-is-modeled]]. Validity is
+therefore per object and not per entity: a component or effect reads invalid when its own flag is
+set or its owner's is, which is what lets one entity invalidation reach everything derived from it
+while a removed effect still reads invalid under a valid owner
+[[f:effect-members-throw-plain-error]] [[d:invalidation-propagates-to-derived-objects]].
 
 What each member does in that state comes from a table transcribed from the probe runs, not from
 the declarations' `@throws` annotations, which under-report the guard: `nameTag` and `isSneaking`
@@ -182,12 +203,10 @@ Event signals are fake objects with the real `subscribe`/`unsubscribe` shape. Re
 set-shaped — the same closure subscribed twice delivers once — and distinct subscribers are called
 in subscription order [[f:subscription-semantics-observed]].
 
-Delivery is synchronous, inside the causing call [[r:synchronous-event-delivery]]. The engine
-instead defers past the call's return and delivers within the same tick
-[[f:after-events-deferred]] [[f:after-event-deferral-subtick]]; a tickless fake has no tick to defer
-within [[d:no-clock]]. The dispatch point is the end of the causing call, after the mutation has
-landed, which preserves the property handlers actually depend on: a handler observes post-write
-state [[f:after-events-deferred]]. An event a handler itself causes dispatches inside that handler
+Delivery is synchronous, inside the causing call [[r:synchronous-event-delivery]] [[d:no-clock]].
+Within that call the dispatch point is its end, after the mutation has landed, which is what
+preserves the one property handlers actually depend on: a handler observes post-write state
+[[f:after-events-deferred]]. An event a handler itself causes dispatches inside that handler
 [[d:dispatch-is-depth-first-at-mutation-end]].
 
 ## Entity state: components and effects
@@ -229,8 +248,10 @@ true again on the corpse while firing nothing [[f:kill-and-remove-cascades]]
 `entityDie` and the reference reads invalid synchronously, in contrast to a killed mob's corpse,
 which stays valid for several ticks — post-death validity is not a uniform grace period
 [[f:kill-no-health-behaviour]] [[f:death-invalidation-window]]. The fake takes the synchronous
-invalidation for the no-health path and leaves the corpse valid otherwise; a test that needs the
-corpse gone invalidates it through the control plane. Writes through the health component fire
+invalidation for the no-health path and leaves the corpse valid otherwise, since the observed grace
+period is measured in ticks a tickless fake cannot count down; a test that needs the corpse gone
+invalidates it through the control plane [[d:corpse-stays-valid-except-on-the-no-health-path]]
+[[d:no-clock]]. Writes through the health component fire
 `entityHealthChanged` with no `entityHurt`, and a write that reaches the effective minimum fires
 `entityDie` with cause `override` [[f:component-health-writes-cascade]]. `remove()` fires no death
 event and is the control plane's business rather than a modelled event cascade: the engine's own
@@ -239,13 +260,14 @@ reason to reproduce [[f:kill-and-remove-cascades]].
 
 ## The control plane
 
-Everything the real surface cannot express is an exported free function over the fakes, never a
-fake-only member — no fake exposes a member that duplicates or shadows a real one
-[[r:only-real-members-free-functions]]. That covers creating a world, spawning entities,
-invalidating a reference, adding and removing components, emitting an event directly, and reading
-state the real API has no member for. Each function is exported from the package root and takes the
-fake it acts on as its first argument, so the control plane is discoverable as one export list and
-never collides with the surface it manipulates [[d:control-plane-free-functions-take-the-fake-first]].
+The operations the real surface cannot express — creating a world, spawning entities, invalidating
+a reference, adding and removing components [[r:control-plane-component-mutation]], emitting an
+event directly, and reading state the real API has no member for — are exported free functions
+rather than members on the fakes [[r:only-real-members-free-functions]]
+[[d:control-plane-free-functions-take-the-fake-first]]. Keeping them off the classes is what lets
+the `implements` clause mean what it says: a fake-only member would sit in the same namespace the
+conformance check is proving complete, and a consumer reading a fake could not tell which members
+their pack may call.
 
 ## Components
 
@@ -258,29 +280,39 @@ components:
     responsibility: the library's error classes, engine message shapes, and the not-implemented failure
     excludes: deciding which member throws which error
   - id: validity-model
-    responsibility: the per-object validity flag, owner propagation, and the transcribed guard table
+    responsibility: the own-flag-or-owner validity rule and the transcribed per-member guard table
     excludes: the control-plane function that triggers invalidation
     after: [error-model]
   - id: event-dispatch
-    responsibility: fake event signals, set-shaped registration, and synchronous depth-first delivery
+    responsibility: the 55 after-event signal objects, set-shaped registration, and synchronous depth-first delivery
     excludes: knowing which mutation emits which event
   - id: world-and-dimensions
-    responsibility: the world fake, its always-present object graph, and dimension lookup and spawning
+    responsibility: the world fake, its always-present object graph, dimension lookup, and the per-world entity id counter
+    excludes: the signal objects that graph holds, and constructing the entities the counter numbers
     after: [ids-and-types, event-dispatch, error-model]
   - id: entity-fakes
-    responsibility: the Entity and Player fakes, their spawn-frame field values, and their stubbed remainder
+    responsibility: >-
+      the Entity and Player fakes, their spawn-frame field values, their stubbed remainder, and the
+      component-store, effect-store, and health-pipeline interfaces the constructor takes and the
+      behaving members delegate to
+    excludes: every implementation behind those three interfaces
     after: [validity-model, world-and-dimensions]
   - id: component-model
-    responsibility: the component registry on an entity and the attribute components' values and bounds
+    responsibility: >-
+      the component-store implementation — all 68 classes attachable and answering their identity
+      members, the 7 attribute-shaped ones behaving in full
+    excludes: the events a health write emits
     after: [entity-fakes, ids-and-types]
   - id: effect-model
-    responsibility: Effect and EffectType fakes, addEffect, and the observed replacement rule
+    responsibility: the effect-store implementation — Effect and EffectType fakes, addEffect, and the observed replacement rule
     after: [entity-fakes, ids-and-types]
   - id: lifecycle-cascades
-    responsibility: the single health-mutation pipeline behind applyDamage, kill, and the component writes
+    responsibility: the health-pipeline implementation behind applyDamage, kill, and the component writes, and the sequence each path emits
     after: [component-model, event-dispatch]
   - id: control-plane
-    responsibility: the exported free functions for construction, invalidation, component mutation, and emission
+    responsibility: >-
+      the exported free functions — world creation, spawnFake, invalidation, component mutation, and
+      emission — and the assembly of an entity fake from its three collaborators
     after: [lifecycle-cascades, effect-model]
   - id: presets
     responsibility: the vanilla-dimensions preset and the composition rule presets follow
