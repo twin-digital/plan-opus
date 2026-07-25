@@ -3,39 +3,53 @@
 #
 # rationale is omitted unless the statement's intent is genuinely non-obvious.
 
-# Product and boundary
+# Where the build lives
 
-- id: build-tool-is-separate-from-the-kit
+- id: build-ships-in-the-kit-package
   statement: |
-    the build tool ships as its own package layered on minecraft/dev-kit. A consumer that only
-    needs to know which packs a workspace holds imports the kit and takes on none of the build
-    toolchain.
+    the build capability ships in the same distributable as minecraft/dev-kit — one package, two
+    designs. Nothing here is published, versioned, or installed separately from the kit.
 
-- id: build-runs-per-package
+- id: build-is-a-generated-bundler-config
   statement: |
-    a build is invoked from a package's own scripts and builds that one package. Ordering builds
-    across packages and caching their results belong to the workspace task runner, and the build
-    tool supplies neither.
-
-- id: build-exposes-a-command-and-a-call
-  statement: |
-    the same build is reachable two ways over one implementation: a command a package's `build`
-    script runs, and a programmatic call a long-running process makes per changed package without
-    starting a process each time.
+    what this design produces is a configuration fragment for the repository's canonical bundler,
+    exported by the kit's package, plus a repo-kit feature that writes the per-package config
+    snippet into a package that depends on the kit. It ships no command of its own and embeds no
+    bundler: the repository's existing `build` and `watch` scripts detect the generated config and
+    run the bundler unchanged, and ordering across packages and caching stay the workspace task
+    runner's.
 
 # What a build produces
 
-- id: build-produces-loadable-output-in-one-step
+- id: script-module-is-bundled-with-game-modules-external
   statement: |
-    one invocation takes a package from source to output a server or a client can load with no
-    further processing: its script module bundled, its pack source in place under the output root,
-    and the completed manifests written there.
+    a pack's script module is bundled to the location the pack's output tree expects, with the
+    modules the game provides at runtime left external.
 
-- id: built-packs-come-only-from-the-build-tool
+- id: every-pack-file-reaches-the-output-tree
   statement: |
-    every route to a built pack — a package's `build` script, a rebuild triggered by a watcher, and
-    a continuous-integration run — goes through this build. No built output is produced any other
-    way.
+    every file a pack is made of, and not only what the bundler emits — functions, entity and item
+    definitions, textures, `.lang` files, and the rest — is placed into the output tree, so a
+    finished build is loadable with no further processing by anything downstream.
+
+- id: assembly-is-authoritative-over-the-output-tree
+  statement: |
+    the output tree holds what the current source declares and nothing else: a file deleted or
+    renamed in source is gone from the output after the next build, with no clean step first.
+  rationale: |
+    Otherwise a deleted file survives in the output and ships in the release archive.
+
+- id: rebuild-triggers-are-declared-not-inferred
+  statement: |
+    a rebuild is triggered by a change to any input a build reads, the pack files and
+    `package.json` included — nothing imports those, so a module graph cannot find them. A source
+    change rebundles; a change to a manifest input alone brings the output's manifests up to date
+    without rebundling.
+
+- id: built-packs-come-only-from-this-build
+  statement: |
+    every route to a built pack — a package's `build` script, a watch rebuild, and a
+    continuous-integration run — produces it this way. No built output is assembled any other way.
   rationale: |
     Manifest completion can then never be skipped, since there is no second path around it.
 
@@ -43,11 +57,3 @@
   statement: |
     releasing a package is raising its `package.json` version, building, and archiving the built
     output. No version is recorded anywhere else and no separate release manifest is maintained.
-
-# Configuration
-
-- id: build-needs-no-configuration
-  statement: |
-    a package with the conventional source and output layout builds with nothing declared. What a
-    package does need to state is stated under the existing `minecraft` key of its `package.json`,
-    and the build tool introduces no configuration file of its own.
