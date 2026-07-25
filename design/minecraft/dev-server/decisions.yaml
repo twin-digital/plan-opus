@@ -58,15 +58,13 @@
 - id: activation-version-read-from-the-built-manifest
   statement: |
     an activation entry's version is read from the header of the `manifest.json` in the pack's
-    built output — the same bytes the copy places in the pool — not from the kit's pack set
+    built output, not from the kit's pack set
   status: proposed
   falsifiers:
     - the kit's pack set comes to carry the built pack's version, leaving the harness a second read
       of the same value
-    - a package's build rewrites its manifest header after the harness reads it, so the version
-      written into the activation list can disagree with the one sitting in the pool
-    - a pack's built output holds no manifest at its root, leaving the harness nowhere local to
-      read the version from
+    - no package's build rewrites its manifest header, so the built version never differs from the
+      source version the pack set already carries and the second read buys nothing
 
 - id: live-reload-limited-to-active-behavior-pack-content
   statement: |
@@ -78,6 +76,28 @@
       a console command, making the restart needless in a common case
     - a change this rule applies live leaves the world stale or inconsistent, so the live class is
       drawn too wide
+
+- id: changed-pack-set-is-an-input-to-the-reconcile
+  statement: |
+    a reconcile takes the set of packs whose built output changed as a third input beside desired
+    and actual state, seeded at startup with every selected pack
+  status: proposed
+  falsifiers:
+    - the watcher drops or coalesces a change, so a pack the author edited is left out of the set
+      and the edit reaches the world only on some later unrelated save
+    - re-copying the whole selection on the startup seed takes long enough that the one-command
+      start is slower than authors will sit through
+
+- id: start-builds-once-before-the-first-reconcile
+  statement: |
+    the start sequence runs each selected package's one-shot build to completion before the first
+    reconcile, and starts the watch builds only after it
+  status: proposed
+  falsifiers:
+    - a pack package offers no one-shot build distinct from its watch build, leaving the start
+      sequence nothing it can run to completion
+    - a cold build of a full selection takes long enough that authors would rather have the server
+      up with packs arriving as each build finishes
 
 - id: reconcile-reads-live-server-state
   statement: |
