@@ -23,8 +23,10 @@ Docker API.
 questions:
   - id: pack-set-entry-built-output-location
     question: >-
-      does a kit pack-set entry name the built output directory the harness copies from, and under
-      what field and type?
+      under what field and type does a kit pack-set entry name the built output directory the
+      harness copies from — which side applies the `dist/` default when a package names no
+      alternate location, and is the built output per pack or per package, the kit allowing one
+      pack of each kind in a package but placing "a pack's built output" at a single `dist/`?
     closes: fact
     gates:
       - packages-rebuild-and-the-harness-watches-built-output
@@ -96,14 +98,16 @@ because the activation list is keyed on exactly that identity.
 Desired state is therefore two things per kind: the pool contents, and the world's activation list
 for that kind. An activation entry is the manifest header's uuid and its three-number version, both
 of which must match the pack sitting in the pool — a module uuid or a stale version loads nothing
-and reports nothing [[f:bedrock-activation-entry-is-header-uuid-and-version]]. The pack set carries
+[[f:bedrock-activation-entry-is-header-uuid-and-version]]. The pack set carries
 the identity but not that version, the kit declining to claim a pool version before a build
 [[f:dev-kit-pack-set-entry-names-package-kind-source-and-identity]], so the harness reads it from the
 manifest in the pack's built output — the same bytes the copy puts in the pool, which is what the
-match is against [[d:activation-version-read-from-the-built-manifest]]. Kind is what routes a pack to
-its pool and its list, and nothing at the server will catch a misrouted one: the load output names
-the behavior packs that loaded, says nothing about a pack that did not, and reads no directory name
-as a declaration of kind [[f:server-load-output-reports-only-activated-behavior-packs]] — the
+match is against [[d:activation-version-read-from-the-built-manifest]]; that output is the package's
+`dist/` unless the package says otherwise [[f:dev-kit-pack-built-output-defaults-to-dist]]. Kind is
+what routes a pack to its pool and its list, and the server will not catch a misrouted one: the Pack
+Stack line names the behavior packs that loaded, says nothing about a pack that did not, and reads no
+directory name as a declaration of kind
+[[f:server-load-output-reports-only-activated-behavior-packs]] — the
 argument for routing on the kit-reported kind rather than on anything inferred at deploy time.
 Behavior packs are the required half and resource packs the optional one
 [[r:behavior-packs-required-other-content-optional]]; carrying both costs one more pool and one more

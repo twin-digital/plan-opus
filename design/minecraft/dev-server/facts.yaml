@@ -1,7 +1,7 @@
 # Facts scoped to the minecraft/dev-server design. All are PROPOSED by an agent and await owner
 # review.
 #
-# The first three facts are this design's dependency on minecraft/dev-kit, each sourced by
+# The four dev-kit-* facts are this design's dependency on minecraft/dev-kit, each sourced by
 # verbatim quote to the kit's requirements — its pinned artifact — per
 # r:cross-design-dependency-is-cited-as-a-fact. The rest are Compose and Bedrock mechanics that
 # only the server harness rests on. server-load-output-reports-only-activated-behavior-packs rests
@@ -13,9 +13,8 @@
 - id: dev-kit-delivers-a-validated-pack-set-as-data
   claim: |
     minecraft/dev-kit is imported as a library and hands back a validated, normalised pack set as
-    data rather than text to parse, and it stops there — it performs no deployment. Everything
-    between that pack set and a pack running on the server is this design's, and nothing upstream
-    of it is.
+    data rather than text to parse, and it performs no deployment: getting a built pack onto a
+    running server is no part of what the kit does.
   backing: documented
   sources:
     - url: design/minecraft/dev-kit/requirements.yaml
@@ -76,6 +75,20 @@
         the dev server and a continuous-integration check are both intended consumers. Validation
         therefore reports a structured result naming every problem it found, consumable without a
         human reading it.
+
+- id: dev-kit-pack-built-output-defaults-to-dist
+  claim: |
+    A pack's built output — the directory the harness copies into the pool and reads the built
+    manifest from — is found at `dist/` within its package unless the package specifies an
+    alternate location. The harness therefore has a locatable built-output directory per pack
+    without inspecting the package's build.
+  backing: documented
+  sources:
+    - url: design/minecraft/dev-kit/requirements.yaml
+      where: built-output-defaults-to-dist
+      quote: |
+        a pack's built output is found at `dist/` within its package unless the package specifies an
+        alternate location.
 
 - id: compose-watch-actions-and-versions
   claim: |
@@ -270,9 +283,8 @@
     A world's activation list, `<world>/world_behavior_packs.json`, is a JSON array of entries
     with exactly two fields: `pack_id`, the uuid from the pack manifest's *header* — a module
     uuid does not work — and `version`, the header's three-number version array, which must
-    match the pack in the pool. A wrong uuid or a mismatched version loads nothing and reports
-    no error beyond "Pack Stack - None". The server does not create the file for a new world and
-    does not rewrite one it is given.
+    match the pack in the pool: with either wrong, the world's pack stack is None. The server does
+    not create the file for a new world and does not rewrite one it is given.
   backing: tested
   sources:
     - description: |
@@ -396,15 +408,15 @@
 
 - id: server-load-output-reports-only-activated-behavior-packs
   claim: |
-    The only pack-related line a Bedrock server logs at world load is its "Pack Stack" line, and
+    Across all five cases of the pool-layout probe, the only line naming a pack alongside `Stack`,
+    `error` or `failed` that a Bedrock server logged at world load was its "Pack Stack" line, and
     that line names just the behavior packs the world's `world_behavior_packs.json` activated, each
     with its manifest header identity and its pool path. A resource pack never appears on it —
     neither when correctly pooled and listed, nor when placed in the behavior pool and listed as a
-    behavior pack — and neither misfiling direction draws an error or a warning naming the pack. A
-    pool directory whose name contradicts its manifest changes nothing: a behavior pack under
-    `development_behavior_packs/resource_pack_totally` loads and the server prints that name back.
-    The load output therefore tells the harness which behavior packs are live and nothing else; a
-    misfiled pack is indistinguishable from one the server does not report on.
+    behavior pack. A pool directory whose name contradicts its manifest changes nothing: a behavior
+    pack under `development_behavior_packs/resource_pack_totally` loads and the server prints that
+    name back. The Pack Stack line therefore tells the harness which behavior packs are live, and
+    says nothing at all about a pack that is not on it.
   backing: tested
   sources:
     - description: |
@@ -412,9 +424,11 @@
         itzg/minecraft-bedrock-server container: run.mjs deploys the probe packs (bp/, rp/, each a
         manifest and content) into the server's pools via the compose project in compose.yaml,
         writes the world activation lists, restarts the server, and captures from each fresh load
-        every log line matching both /pack|Pack/ and /Stack|error|Error|failed/ — so an error or a
-        failure naming a pack would have been captured, and across all five cases only Pack Stack
-        lines were. This probe was run by the author of the design formerly named
+        every log line matching /pack|Pack/ *and* /Stack|error|Error|failed/. The filter is
+        conjunctive, so the captured output bounds the claim: a line naming a pack without one of
+        `Stack`, `error` or `failed` — a warning among them — was dropped before OUTPUT.txt was
+        written, and the full load output is not in hand. Across all five cases every captured line
+        was a Pack Stack line. This probe was run by the author of the design formerly named
         minecraft/dev-workflow, not by this fact's author.
     - url: design/minecraft/artifacts/pack-layout/probe/OUTPUT.txt
       where: cases 1 and 2 — the resource pack correctly filed, then in the behavior pool and behavior list
@@ -452,11 +466,10 @@
   reason: superseded
   superseded_by: server-load-output-reports-only-activated-behavior-packs
   caveat: |
-    The quoted case 4 output carries only half of this: its `world_behavior_packs.json` is empty,
-    so "Pack Stack - None" is explained by the activation list alone and isolates nothing about the
-    pool. The other direction, case 2, cannot isolate it either, since case 1 shows a correctly
-    pooled resource pack is likewise absent from the Pack Stack. The successor states what the
-    captured output does show.
+    The probe isolates neither direction. In case 4 the behavior pack sits in the resource pool and
+    `world_behavior_packs.json` is empty, so "Pack Stack - None" is explained by the activation list
+    alone. Case 2 fares no better, since case 1 shows a correctly pooled resource pack is likewise
+    absent from the Pack Stack. The successor states what the captured output does show.
   sources:
     - description: |
         The pool-layout probe at design/minecraft/artifacts/pack-layout/probe/, run by the author
