@@ -12,7 +12,7 @@
     object answering its identity members, with the attribute-shaped subset behaving in full;
     every other declared class, and every member of a built class beyond that list, is a
     not-implemented stub
-  status: proposed
+  status: tolerated
   falsifiers:
     - a consumer suite's helpers routinely take an ItemStack, Block, or BlockVolume parameter,
       so the substitution style the library is built for reaches a class this list omits
@@ -143,7 +143,7 @@
   statement: |
     spawnFake assigns ids from a per-world counter as decimal strings and never reuses one; the
     engine's negative-integer id form is not reproduced
-  status: proposed
+  status: tolerated
   falsifiers:
     - pack code under test parses an entity id as a number or depends on its sign or magnitude,
       so a fake id that does not look like an engine id changes the code's behaviour
@@ -175,7 +175,7 @@
   statement: |
     spawnFake places an entity exactly where the caller asked and models no per-type placement
     adjustment, post-spawn drift, or rotation settle
-  status: proposed
+  status: tolerated
   falsifiers:
     - pack code under test reads back a spawned entity's location and branches on it, so an
       unadjusted placement makes the fake take a path the engine would not
