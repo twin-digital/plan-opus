@@ -1,0 +1,63 @@
+{
+ "imports": {
+  "world": 1,
+  "system": 1,
+  "ItemStack": 1,
+  "EntityComponentTypes": 1
+ },
+ "namespaceImports": {
+  "mc": 1
+ },
+ "componentIds": {
+  "minecraft:inventory": 1,
+  "minecraft:health": 2
+ },
+ "events": {
+  "world.afterEvents.entityHurt": 1,
+  "world.beforeEvents.itemUse": 1,
+  "system.afterEvents.scriptEventReceive": 1
+ },
+ "calls": {
+  "getComponent": 3,
+  "setItem": 1,
+  "setCurrentValue": 1,
+  "addEffect": 1,
+  "sendMessage": 1,
+  "runCommand": 1,
+  "getDimension": 1,
+  "getBlock": 1,
+  "setPermutation": 1,
+  "resolve": 1
+ },
+ "props": {
+  "afterEvents": 2,
+  "entityHurt": 1,
+  "hurtEntity": 4,
+  "container": 1,
+  "currentValue": 1,
+  "effectiveMax": 1,
+  "beforeEvents": 1,
+  "itemUse": 1,
+  "itemStack": 1,
+  "typeId": 1,
+  "cancel": 1,
+  "scriptEventReceive": 1,
+  "sourceEntity": 1
+ },
+ "staticRefs": {
+  "BlockPermutation": 1
+ },
+ "constructed": {
+  "ItemStack": 1
+ },
+ "stoplisted": {
+  "subscribe": 3
+ },
+ "commands": {
+  "runCommand": 1
+ },
+ "modules": {
+  "@minecraft/server": 2,
+  "@minecraft/server-ui": 1
+ }
+}

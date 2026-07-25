@@ -1,0 +1,71 @@
+@minecraft/server 2.8.0
+classes: 438, interfaces: 99
+distinct member names: 828
+
+classes per area:
+  event              169
+  entity-component   72
+  loot               46
+  error              31
+  other              26
+  item               15
+  block              14
+  block-component    10
+  entity             10
+  item-component     10
+  player-ui          6
+  effect             6
+  world-system       4
+  container          4
+  dimension          4
+  player             4
+  scoreboard         4
+  structure          2
+  component-base     1
+
+component ids:
+  entity: 136 map keys
+  item: 18 map keys
+  block: 18 map keys
+
+event names:
+  afterEvents: 55
+  beforeEvents: 13
+  system.afterEvents: 1
+  system.beforeEvents: 2
+
+events whose payload exposes an item/block/container class:
+  afterEvents.blockContainerClosed: Block
+  afterEvents.blockContainerOpened: Block
+  afterEvents.blockExplode: BlockPermutation, Block
+  afterEvents.buttonPush: Block
+  afterEvents.entityHitBlock: Block, BlockPermutation
+  afterEvents.entityItemPickup: ItemStack
+  afterEvents.itemCompleteUse: ItemStack
+  afterEvents.itemReleaseUse: ItemStack
+  afterEvents.itemStartUse: ItemStack
+  afterEvents.itemStartUseOn: Block, ItemStack
+  afterEvents.itemStopUse: ItemStack
+  afterEvents.itemStopUseOn: Block, ItemStack
+  afterEvents.itemUse: ItemStack
+  afterEvents.leverAction: Block
+  afterEvents.pistonActivate: BlockPistonComponent, Block
+  afterEvents.playerBreakBlock: BlockPermutation, ItemStack, Block
+  afterEvents.playerHotbarSelectedSlotChange: ItemStack
+  afterEvents.playerInteractWithBlock: ItemStack, Block
+  afterEvents.playerInteractWithEntity: ItemStack
+  afterEvents.playerInventoryItemChange: ItemStack
+  afterEvents.playerPlaceBlock: Block
+  afterEvents.playerSwingStart: ItemStack
+  afterEvents.pressurePlatePop: Block
+  afterEvents.pressurePlatePush: Block
+  afterEvents.targetBlockHit: Block
+  afterEvents.tripWireTrip: Block
+  beforeEvents.itemUse: ItemStack
+  beforeEvents.playerBreakBlock: ItemStack, Block
+  beforeEvents.playerInteractWithBlock: Block, ItemStack
+  beforeEvents.playerInteractWithEntity: ItemStack
+  system.afterEvents.scriptEventReceive: Block
+
+member names declared in more than one area (attributed as ambiguous when seen in pack source):
+  133 of 828
