@@ -1,0 +1,25 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "mc-test-lib resting-state probes",
+    "description": "In-engine probes for the resting state of freshly-created objects, plus follow-ups that close gaps in existing tested facts. Run /mctest2:rest and /mctest2:gaps (or the /scriptevent equivalents) and copy the [mctest] lines from chat or the content log.",
+    "uuid": "6b1c9f2a-4d83-4a17-9c0e-1f5a7b3e2d84",
+    "version": [0, 3, 0],
+    "min_engine_version": [1, 26, 0]
+  },
+  "modules": [
+    {
+      "type": "script",
+      "language": "javascript",
+      "entry": "scripts/main.js",
+      "uuid": "c48d7e05-2b96-4f31-a7d2-90b6c1e5a473",
+      "version": [0, 3, 0]
+    }
+  ],
+  "dependencies": [
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.8.0"
+    }
+  ]
+}
