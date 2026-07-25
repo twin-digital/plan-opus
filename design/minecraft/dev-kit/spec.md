@@ -43,10 +43,37 @@ questions:
       while it is live under that name. What provenance should those records carry?
     closes: fact
   - id: heuristics-fact-under-reports-its-evidence
-    question: the heuristics fact names two false positives for the `minecraft/` directory rule where
-      the probe output and the fact's own quote both record three, and adds "because no package
-      carries one until every pack is edited to add it", a cause no captured output states. Should
-      the count be corrected and the causal clause dropped or attributed?
+    question: >-
+      the heuristics fact names two false positives for the `minecraft/` directory rule
+      (a build config and the dev harness) while its own pasted quote records `falsePositives=3`;
+      the unnamed third is `mc-scripting-core`. Separately, the trailing gloss "until every pack is
+      edited to add it" is stated by no captured output, though the rest of that causal clause is —
+      `selected(0)` with `missed=2` for both the marker-field and keyword rules. Correcting the
+      count and dropping or attributing the gloss closes it. A reviewer argues that
+      `r:facts-proven-wrong-are-corrected` requires correcting the fact in place rather than
+      carrying this question; the owner should confirm which remedy applies.
+    closes: fact
+  - id: heuristics-fact-opens-with-an-unqualified-universal
+    question: the heuristics fact opens "Detection rules that do not read a pack's manifest
+      misclassify real workspaces", which its own artifact falsifies — three content-independent
+      rules score no misses and no false positives
+      (design/minecraft/dev-kit/artifacts/pack-detection/OUTPUT.txt, the heuristic summary). The
+      spec relies only on the rules that do misfire — name, dependencies, scripts, tree position.
+      What scoping clause should the claim carry?
+    closes: fact
+  - id: manifest-version-quote-drops-its-type-column
+    question: the manifest fact's `version` quote is cut mid-row, dropping the type column ("Vector
+      [a, b, c] or SemVer String") and the following sentence ("In version 3, currently in preview,
+      you must use a string for version."), so the array form reads as unconditional. Should the
+      quote be extended, and does a string-valued version reach the kit's record shape?
+    closes: fact
+  - id: script-module-maps-to-behavior-without-a-quote
+    question: no quote in the manifest fact states that a `script` module makes a behavior pack,
+      which is the mapping this design's kind derivation rests on. The mapping is first-party
+      documented — Microsoft Learn's Bedrock scripting page has "scripts that are embedded as
+      modules within behavior packs" — so the gap is the fact's evidence, not the derivation, which
+      `d:kind-derived-from-module-types` carries as a falsifiable choice. Should that source quote
+      be added to the fact?
     closes: fact
   - id: directory-name-fact-states-more-than-it-shows
     question: the directory-name fact opens "Nothing reads a pack's directory name" where its
@@ -89,14 +116,12 @@ the definition is also where the owning package's name and directory come from, 
 record carries and the build step needs. Each candidate is then probed at two fixed paths under its
 root, `behavior_pack/manifest.json` and `resource_pack/manifest.json`, with no recursive search
 [[d:membership-probed-at-fixed-package-root-paths]] [[r:membership-from-source-manifest-presence]].
-A probe that hits is a pack, because a directory holding a manifest at its root is the format's own
-definition of one [[f:pack-is-a-directory-with-a-manifest-at-its-root]]; a package where neither
-probe hits is not pack-bearing and produces no record and no problem.
+A probe that hits is a pack; a package where neither probe hits is not pack-bearing and produces no
+record and no problem.
 
 Nothing else about a package is consulted to decide membership — not its name, not its dependencies,
 not its scripts, not its position in the tree. Each of those selects packages that are not packs, or
-misses packs that are [[f:content-independent-pack-heuristics-misfire]], and a wrong membership
-answer is the one error every capability downstream inherits.
+misses packs that are [[f:content-independent-pack-heuristics-misfire]].
 
 ## Reading a pack
 
@@ -144,18 +169,15 @@ is a problem naming the package and that path; not asked for, its absence is not
 Building a selection runs once per owning package, not once per pack, so a caller that selected one
 of a package's two packs gets both rebuilt and both reported as affected
 [[d:build-is-delegated-per-package]] [[r:kit-stops-at-a-validated-pack-set]]. That attribution is
-exact for the workspaces in scope, where a package's two packs are built by one script
-[[r:one-pack-of-each-kind-per-package]] [[f:ecosystem-models-one-pack-per-kind-per-project]]. A
+exact where a package's two packs are built by one script [[r:one-pack-of-each-kind-per-package]]. A
 package with no build script to invoke is a problem, not a silent no-op.
 
 ## Where the kit stops
 
-Deploying
-into a pool, activating, reloading, and the selection UX are the dev server's; release archives are a
-consumer's too, and a pack set is sufficient input for one, since an `.mcpack` is a single zipped
-pack and an `.mcaddon` a zip over those [[f:release-archives-follow-pack-content]]. What the kit
-would have to grow to own any of them — a notion of a running server, or of a distribution target —
-is what it deliberately has not got.
+Deploying into a pool, activating, reloading, and the selection UX are the dev server's; release
+archives are a consumer's too [[r:kit-stops-at-a-validated-pack-set]], and a pack set is sufficient
+input for one, since an `.mcpack` is a single zipped pack and an `.mcaddon` a zip over those
+[[f:release-archives-follow-pack-content]].
 
 ## Components
 
