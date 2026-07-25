@@ -166,3 +166,20 @@
     only a new self-facing rule needs adding, and those are rare. Decisions are named collectively
     and never by id, so this input does not pin which decisions the spec must record — the author
     proposes those.
+
+- id: documented-source-is-primary
+  statement: |
+    a fact backed `documented` cites the source that originates its claim: the upstream url,
+    with `where` and the verbatim passage as it appears at that url. A repository file that
+    transcribes, summarizes, or restates an outside source is a convenience copy and is never
+    the cited source — the fact points past it to the original. An in-repo url is the primary
+    source only where the repository file is itself the origin of the claim, as an upstream
+    design's requirement is
+  rationale: |
+    A citation of the author's own transcription reads as evidence while resting on the
+    author's output, and nothing in the repository can detect a drifted or invented quote.
+
+- id: quote-carries-the-claim
+  statement: |
+    a source quote states the claim the fact makes — a passage genuine and verbatim but not
+    supporting the claim fails the evidence bar exactly as a paraphrase does

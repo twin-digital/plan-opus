@@ -324,3 +324,8 @@
   rationale: |
     The field names are the format's public interface, so a stray or misspelled field — a stray
     `checked:`, a typo'd key — should be a caught error, not dead weight a lenient reader skips.
+
+- id: artifact-sources-back-only-tested-facts
+  statement: |
+    a source url pointing into a design's `artifacts/` directory is valid only on a fact backed
+    `tested`, where it names captured output of a test that was run
