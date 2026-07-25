@@ -73,3 +73,13 @@ fits. Discard the plausible-but-wrong; a review that cries wolf is worse than a 
   falsifier, a bloated section). A **design-level** finding means an *input* is wrong — a settled
   requirement, an accepted decision, a fact — and it goes to the owner, never fixed silently. Say
   which each is.
+
+**A design-level finding is recorded as an open question in the spec**, with `closes` naming the
+kind of input that would settle it and `gates` naming any decision that rests on it. That is what
+gives the finding teeth: an open question blocks the design from settling, so the spec cannot be
+built on while an input it stands on is known to be wrong. A finding that lives only in a report or
+a pull request body is one nobody is required to answer.
+
+Recording the question is a spec-level act and does not breach the rule above — the question states
+that the input is in doubt; it does not edit the input. Whether to fix the input, and how, stays
+the owner's.

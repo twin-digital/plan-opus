@@ -39,9 +39,12 @@ Loop, up to **3 rounds**:
    applies each fix and returns with `npm run check` green again. It must **not** silently touch a
    *design-level* finding — a wrong requirement, accepted decision, or fact is the owner's to
    settle.
-4. **Escalate and stop on design-level findings.** If review surfaces a design-level finding, stop
-   the loop and hand off with it flagged — the inputs need the owner before regeneration is worth
-   another round.
+4. **Escalate and stop on design-level findings.** If review surfaces a design-level finding, have
+   the reviser record it as an **open question** in the spec — `closes` naming the kind of input
+   that would settle it, `gates` naming any decision resting on it — then stop the loop and hand
+   off with it flagged. The question is what blocks the design from settling; the inputs need the
+   owner before regeneration is worth another round. Recording the question is not fixing the
+   input: it states that the input is in doubt and leaves the repair to the owner.
 5. Re-review.
 
 If spec-level findings still stand after the round cap, **stop and hand off with them listed.** Do
@@ -55,7 +58,12 @@ cannot pass honestly is a finding, not a failure to hide.
 Open a pull request against `main` per `write-design-doc.md`'s hand-back — the PR body is the
 writer's hand-off (what the spec designs, the decisions made and what would settle each, anything
 underspecified, open questions). Append a short **review log**: the rounds run, what each
-surfaced, which findings were fixed, and any design-level finding escalated to the owner.
+surfaced, and which findings were fixed.
+
+The review log does not re-list the design-level findings. Each is an open question in the spec by
+now, which is where the owner answers it and where it does its blocking work; restating them in the
+PR body splits the list in two and leaves the copy in the body to go stale the moment one is
+settled. Say how many there are and point at the Open questions section.
 
 The spec lands as a **draft**: decisions `proposed`, any open question open, so nothing is built
 on it until the owner clears the list.
