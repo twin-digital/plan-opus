@@ -35,7 +35,7 @@ questions:
       addition, and the one measured workspace emits `dist/manifest.json` flat for both of its packs
       (design/minecraft/dev-kit/artifacts/pack-detection/OUTPUT.txt, the built-output section).
     closes: requirement
-    gates: [output-root-overridden-in-package-json, built-output-checks-are-opt-in]
+    gates: [output-root-overridden-in-package-json]
   - id: facts-header-provenance-is-stale
     question: the facts.yaml header justifies holding the pool-layout probe at area scope by
       "minecraft/dev-server has a fact resting on the same probe", and no such design exists; three
@@ -57,7 +57,7 @@ questions:
     question: the heuristics fact opens "Detection rules that do not read a pack's manifest
       misclassify real workspaces", which its own artifact falsifies — three content-independent
       rules score no misses and no false positives
-      (design/minecraft/dev-kit/artifacts/pack-detection/OUTPUT.txt, the heuristic summary). The
+      (design/minecraft/dev-kit/artifacts/pack-detection/OUTPUT.txt:56-69, the rules section). The
       spec relies only on the rules that do misfire — name, dependencies, scripts, tree position.
       What scoping clause should the claim carry?
     closes: fact
@@ -129,25 +129,22 @@ A record's identity, version, and kind are read from the manifest at the probed 
 else [[r:pack-identity-and-kind-declared-only-by-the-manifest]]. Kind is derived from the `type`
 values across the manifest's `modules`, mapping `data` and `script` to behavior and `resources` to
 resource [[f:bedrock-manifest-declares-pack-identity-and-kind]] [[d:kind-derived-from-module-types]];
-a manifest whose modules map to neither, or that spans both, yields a problem instead of a record,
-since the kit has no ground on which to prefer one reading. Kind derived this way is then checked
-against the directory it was found in, and a disagreement is a problem naming both sides — the
-directory is not corrected to match, and the manifest is not overruled.
+a manifest whose modules map to neither, or that spans both, yields a problem instead of a record.
+Kind derived this way is then checked
+against the directory it was found in, and a disagreement is a problem naming both sides.
 
 `outputDir` is `dist/` joined to the same kind-named subdirectory the source probe used, so a
 package's built layout mirrors its source layout [[r:built-output-defaults-to-dist]]
 [[d:output-root-overridden-in-package-json]]. Both halves of that path resolve from the owning
-package's own files, so a record can state where output is expected on a clean checkout, and the two
-packs of one package cannot be pointed at unrelated places. The `minecraft.outDir` key is read only
-for a package already known to bear packs; it is never a membership signal, which is exactly the
-reading that picks up nothing at all [[f:content-independent-pack-heuristics-misfire]].
+package's own files, so a record can state where output is expected on a clean checkout. The
+`minecraft.outDir` key is read only
+for a package already known to bear packs; it is never a membership signal.
 
 ## Validation
 
 Every capability returns the pack set and a list of problems together, and a location the kit could
 not normalise leaves the set but appears in the list, naming the package and the path examined
-[[r:unresolvable-packs-fail-loudly]] [[d:problems-returned-beside-the-pack-set]]. A caller cannot
-obtain packs without also receiving problems, so a shrunken result is never silent. Each problem is
+[[r:unresolvable-packs-fail-loudly]] [[d:problems-returned-beside-the-pack-set]]. Each problem is
 a record with a stable code, so a CI check can classify and count what it found without a human
 reading a line of it, and the dev server can decide per code whether to proceed
 [[r:consumers-are-the-dev-server-and-ci]].
