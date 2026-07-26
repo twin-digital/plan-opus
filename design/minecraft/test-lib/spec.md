@@ -43,11 +43,16 @@ member, not class by class: a builder needs to know which side of the throw each
 [[f:world-resting-state-observed]] — plus `getDimension`, which resolves either spelling of the
 three vanilla ids [[f:vanilla-dimensions-resolve-with-populated-fields]] and throws on an id naming
 no dimension [[f:get-dimension-unknown-id-error]] [[d:built-surface-v1]]. On `Dimension` it is
-`id`, `heightRange`, `localizationKey`, `spawnEntity`, and `getEntities`, the last answering only
-its no-argument form: an `EntityQueryOptions` argument throws not-implemented, since evaluating one
-needs geometry and per-type data the fake has only partly and a silently mis-filtered result is
-worse than a loud refusal [[r:fakes-never-fabricate]]. What it answers from is the dimension's own
-registry of live entities, and there is one way in: `spawnFake` calls the same spawner seam
+`id`, `heightRange`, `localizationKey`, `spawnEntity`, and `getEntities`, which filters on the
+state it holds and refuses the rest. `type`, `excludeTypes`, `tags`, `excludeTags`, `name` and
+`excludeNames` read an entity's own type id, tag set, and name tag, so the fake evaluates them.
+Every other option — `location`, `minDistance`/`maxDistance`, `volume`, `closest`/`farthest`, the
+rotation ranges, `families`, `gameMode`, the level ranges, `propertyOptions`, `scoreOptions`, and
+their exclusions — needs world geometry, per-type vanilla data, or a surface the fake does not
+model, and each throws not-implemented when present: filtering on state is not fabrication, but
+silently ignoring a filter and answering a wrong set is [[r:fakes-never-fabricate]]. What it answers
+from is the dimension's own registry of live entities, and there is one way in: `spawnFake` calls
+the same spawner seam
 `Dimension.spawnEntity` does, so an entity registers once however it was created. `remove()`
 detaches it, so a removed entity is gone from `getEntities` while the handle a test still holds
 answers in the four ways the guard table allows. Every block-shaped member is a stub, since
@@ -243,10 +248,15 @@ class splits: `setCurrentValue` and `entity` throw `InvalidEntityError` while th
 getters and all three resets throw a plain `Error`, with `isValid` and `typeId` still readable
 [[f:attribute-guard-classes-observed]]. On an `Effect` — whether the effect was removed or its
 owner was — the four value members throw a plain `Error` and `isValid` answers false
-[[f:effect-members-throw-plain-error]]. A member the table does not cover throws the
-not-implemented error rather than a guessed engine error, which is the honest reading of the 27
-`Entity` methods whose invalid-state behaviour is unobserved because the engine's arity check fired
-first [[f:arity-checked-before-validity-guard]] [[d:guard-table-from-observation]].
+[[f:effect-members-throw-plain-error]]. Those exceptions are the table's whole content; a behaving
+member it does not name throws `InvalidEntityError`, which is the guard the sweep found everywhere
+it reached and the class a pack's `catch` branches on
+[[f:invalidation-guard-list-complete]] [[r:invalidation-is-modeled]]
+[[d:guard-table-from-observation]]. The 27 `Entity` methods the sweep left unobserved are no
+counter-evidence: their `TypeError` is the engine checking arity before the guard, so it says
+nothing about what a correctly-called one would raise
+[[f:arity-checked-before-validity-guard]]. The not-implemented error stays what it always was, the
+answer a stub gives, and never doubles as an invalidation result.
 
 ## Events
 
@@ -297,7 +307,14 @@ path was observed to emit [[d:one-mutation-pipeline-for-health]] [[r:fakes-behav
 and the hurt payload carries the requested amount even when it exceeds remaining health
 [[f:damage-cascade-order-and-payload]]. The value is not clamped at the minimum: a killing hit
 drives `currentValue` below `effectiveMin` and the change event reports the negative number
-[[f:health-not-clamped-at-minimum]]. With no options the damage cause is `none`, and with the
+[[f:health-not-clamped-at-minimum]]. The `entityDie` that ends a lethal `applyDamage` carries the
+same cause its `entityHurt` did, which is the damage source the caller supplied or `none` where
+they supplied nothing: the run recorded that event's order but not its cause
+[[f:damage-cascade-order-and-payload]], so carrying the cause forward is the only value the
+evidence in hand supports — inventing a distinct one, as `kill()` and the component write have
+pinned for their own paths, is what the undetermined-by-evidence bound forbids
+[[r:fakes-match-observed-engine-behaviour]] [[r:fakes-never-fabricate]]. With no options the damage
+cause is `none`, and with the
 projectile options form the fake reports the cause `projectile` the engine derives from that form.
 On that path the fake applies exactly the amount asked for: the engine adjusted a requested 1 to
 1.045823097229004 from a real arrow, a single sample that pins no rule
@@ -312,12 +329,24 @@ no cascade runs, the one place `applyDamage` differs from `kill()` on that same 
 `removeEffect` answers true when an effect was present and is now gone, its handle left invalid,
 and false when the entity never carried it.
 
-Every write through the pipeline reads `effectiveMin` and `effectiveMax` for its bounds check, and
-`kill()` and the component writes read `effectiveMin` again to recognise the minimum. On a
-component whose bounds no test supplied, that read is a read of an unset field and throws the
-library's unset-field error, not `ArgumentOutOfBoundsError` — the value is missing, not out of
-range — and not the not-implemented error, which says a member was never built rather than that a
-test has more setup to do [[r:no-implicit-defaults]] [[r:fakes-never-fabricate]].
+A corpse takes no second death. Once `entityDie` has fired for an entity, a further `applyDamage`
+writes nothing, fires nothing, and returns false, the same answer `kill()` was observed to give a
+corpse it fires nothing for [[f:kill-and-remove-cascades]]; without that, one pipeline would happily
+drive health further negative and fire a second `entityDie` no run has ever seen.
+
+One pipeline does not mean one gate. The bounds check belongs to the value a caller hands in —
+`setCurrentValue`, and only it — where the engine was observed to reject anything outside the
+effective range [[f:set-current-value-bounds-observed]]. A damage-derived write passes no
+caller value and is not gated: that is what lets a killing hit land at −92 against bounds of
+[0, 8] and fire its cascade rather than throwing [[f:health-not-clamped-at-minimum]]. The resets
+land on values the component already holds and are likewise ungated.
+
+Both gated and ungated paths still read the bounds — `setCurrentValue` to check against them,
+`kill()` and the component writes to recognise the minimum. On a component whose bounds no test
+supplied, that read is a read of an unset field and throws the library's unset-field error, not
+`ArgumentOutOfBoundsError` — the value is missing, not out of range — and not the not-implemented
+error, which says a member was never built rather than that a test has more setup to do
+[[r:no-implicit-defaults]] [[r:fakes-never-fabricate]].
 
 `kill()` fires the full cascade — hurt for exactly the current health with cause `selfDestruct`,
 the health change to exactly the minimum, then die with the same cause — returns true, and returns
@@ -411,8 +440,8 @@ components:
     responsibility: >-
       the world fake, its always-present object graph, dimension lookup, the per-world entity id
       counter, the spawner seam Dimension.spawnEntity and spawnFake both delegate to, and the
-      per-dimension registry of live entities getEntities answers from, with the detach hook
-      removal calls
+      per-dimension registry of live entities getEntities answers from — its detach hook, and the
+      state-only query filter with the not-implemented refusal of every other option
     excludes: the signal objects that graph holds, and the entity fakes the spawner constructs
     after: [ids-and-types, event-dispatch, error-model]
   - id: entity-fakes
