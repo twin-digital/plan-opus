@@ -105,6 +105,10 @@ the same test throughout: **inputs outrank the comment, and both outrank the doc
   full rebuild (`write-design-doc.md`) only when the owner calls for it — because input drift is
   large or structural, or enough amend turns have passed that a fresh context is warranted.
   Recommend it when you see those conditions; the choice is the owner's.
+- **Rejection is further than regeneration.** Regeneration rebuilds the spec from the inputs as they
+  stand. Reject with `reject-spec.md` when writing the spec is what showed the *inputs* to be wrong:
+  it discards the spec and its decisions, and the requirements come back refined by what the attempt
+  taught, to be built on again next cycle. The owner's call.
 
 Before any amend, reconcile the branch: the owner may have edited it directly while agents worked,
 so integrate those edits first rather than clobbering them. After a material amend, re-run the
