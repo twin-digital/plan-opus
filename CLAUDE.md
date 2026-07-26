@@ -24,5 +24,13 @@ b. **Tested directly** — the agent ran the test itself, and the design's `arti
    `r:tested-facts-name-whose-test`, and artifacts another design holds are promoted to a shared
    scope rather than cited where they sit.
 
-A fact meeting neither bar is recorded as an open question instead. Proposed facts are input
-changes and get owner review: the PR description must call each one out.
+A fact meeting neither bar is recorded as an open question instead.
+
+The same bar governs repairing one. An inherited fact an agent finds wrong, or whose evidence does
+not carry its claim, is corrected rather than cited as-is or merely flagged, per
+`r:facts-proven-wrong-are-corrected`: record the replacement at the bar above, and retire the fact
+it contradicts with a `reason` and a `superseded_by` naming the replacement. A retired fact may not
+be cited, so every citation of it moves to the replacement.
+
+Proposed and retired facts are input changes and get owner review: the PR description must call
+each one out.

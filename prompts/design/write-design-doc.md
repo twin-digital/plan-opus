@@ -83,9 +83,20 @@ here to undo. The inputs are the source of truth; the outputs are yours to rebui
 
 ## Rules
 
-- **Do not invent facts or requirements.** They are the owner's inputs. If the design needs
-  one that does not exist, that is a finding — record it as an open question, or in your
-  handoff — do not quietly add it.
+- **Do not invent requirements.** They are the owner's fiat. If the design needs one that
+  does not exist, that is a finding — record it as an open question, or in your handoff — do
+  not quietly add it.
+- **Facts you may propose, at the bar `CLAUDE.md` sets.** A fact is an objective claim with
+  evidence, so an agent that has the evidence may add one: documented upstream with a `url`,
+  a `where`, and a verbatim quote that states the claim, or tested by you with the scripts,
+  inputs, and captured output in the design's `artifacts/`. Same bar for repairing one — an
+  inherited fact you find wrong, or whose evidence does not carry its claim, is corrected
+  rather than cited as-is or merely flagged, per `r:facts-proven-wrong-are-corrected`: record
+  the properly-evidenced replacement, and retire the fact it contradicts with a `reason` and a
+  `superseded_by` naming the replacement. A retired fact may not be cited, so move every
+  citation of it to the replacement. A claim you cannot evidence to that bar is an open
+  question, not a fact. Every fact
+  you add or retire is an input change and gets owner review: call each one out in the PR body.
 - **Do decide.** Decisions are what a design *is*: yours to propose, scoped to this design,
   and a different competent agent could reasonably decide differently. Every choice that
   carries weight and the requirements do not already settle is a decision you make and record
