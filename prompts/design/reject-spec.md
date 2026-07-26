@@ -143,15 +143,46 @@ reading them, applied to a case where deleting the file is not enough.
 ## Hand off
 
 This pull request is the inputs' final review before another cycle builds on them, so the body puts
-the reader in a position to give one. It says nothing about the discarded artifact's internals:
+the reader in a position to give one. It says nothing about the discarded artifact's internals.
 
-- **Why the design is being restarted** — a short, plain account. This is the durable record; the
-  tag message is the long version.
-- **The inputs as they now stand**, and what changed in them across the iteration. The owner is
-  approving this set, and most of it moved since they last read it whole.
+**It opens with what moved and why:**
+
+> Updated requirements, brief, and/or facts (as relevant) based on draft spec iteration.
+>
+> Key changes:
+> - …
+
+That list is the durable record of the whole iteration — the one thing a reader a year from now
+will actually use. Everything else in the body supports it:
+
+- **Why the design is being restarted** — a short, plain account. The tag message is the long
+  version.
 - **What you amended in this pass**, and what you considered and left alone.
 - **What you would question but did not change** — a requirement you suspect is over-specified, a
   fact nothing has cited in a while, a brief line the iteration outgrew. Review time belongs here.
+
+### Getting the key changes right
+
+**The list is the owner's, not yours.** Offer it rather than assert it: put the candidates you can
+see in front of them as a multiple-select list, each one a short phrase they can accept or leave,
+and include a free-text option for what you missed. They know which changes mattered; you know
+which ones happened, and those are different lists.
+
+Where the candidates come from depends on what you have:
+
+- **You ran the iteration** — propose from your own context. Prefer the changes that would alter
+  how the next spec is written: a requirement whose force or scope moved, a fact that was corrected
+  or superseded, a scope line in the brief that shifted. Skip the mechanical ones; "fixed a
+  count in a source description" is not a key change.
+- **You did not** — derive them by diffing the inputs across the iteration
+  (`git diff main...<rejected-tip> -- design/<area>/<design>/brief.md requirements.yaml facts.yaml`)
+  and propose from that. Say that is where they came from, so the owner reads them as observed
+  rather than remembered.
+
+This is a deliberate exception to the repository's usual "do not ask, record" rule. That rule
+governs an agent designing from settled inputs, where a question to a human is a substitute for
+doing the work. Here the work *is* the owner's summary of decisions they made across an iteration,
+and guessing it is how a rejection ends up with a plausible, wrong record of itself.
 
 With no published spec the design returns to `exploring`: inputs only, nothing settled. With one,
 it stays on the published spec until the next cycle replaces it.
