@@ -25,10 +25,11 @@
 - id: dev-kit-pack-set-entry-names-package-kind-source-and-identity
   claim: |
     Every pack the kit reports carries its owning package, its kind, its source location, and the
-    full content of its manifest. It does so from a clean checkout with no build having
-    run. Identity, version and kind come from the pack's own manifest. The harness can therefore
-    route a pack to a pool and write its activation entry from the pack set alone, without reading
-    a manifest or reading a directory name as a declaration of kind.
+    full content of its manifest, including the fields completion populates. It does so from a
+    clean checkout with no build having run. Identity comes from the pack's own manifest; kind
+    comes from the directory the pack was found in, which the manifest must corroborate. The
+    harness can therefore route a pack to a pool and write its activation entry from the pack set
+    alone, without reading a manifest or a directory itself.
   backing: documented
   sources:
     - url: design/minecraft/dev-kit/requirements.yaml
@@ -45,11 +46,14 @@
           - its kind (behavior pack or resource pack)
           - its source location
           - its build output location (even if that location is not present because the pack is unbuilt),
-          - the full content of its manifest in object form
+          - the full content of its manifest in object form (including content auto-populated as
+            described by `r:kit-completes-partial-source-manifests`)
     - url: design/minecraft/dev-kit/requirements.yaml
       where: pack-identity-and-kind-declared-only-by-the-manifest
       quote: |
-        a pack's identity, and kind come from its own `manifest.json`.
+        a pack's identity — its uuid, name, and version — comes from its own `manifest.json`. Its kind
+        comes from the directory membership is read from, `behavior_pack/` or `resource_pack/`, and the
+        manifest must corroborate it.
 
 - id: dev-kit-rejects-a-pack-set-with-an-unresolved-identity
   claim: |
@@ -67,7 +71,9 @@
         a pack the kit cannot resolve — a manifest that cannot be parsed, a missing or duplicated
         identity, a manifest dependency on another pack that the set does not satisfy, invalid or
         missing manifest completion data — is reported as a named error identifying the package and
-        the path examined, not omitted from a silently smaller result and not deferred to the server.
+        the path examined. A dependency naming a built-in scripting module is not a missing pack.
+        Such invalid packs are never omitted silently: all discovered packs must be returned as fully
+        resolved pack data, or as a structured error.
     - url: design/minecraft/dev-kit/requirements.yaml
       where: structured-validation
       quote: |
