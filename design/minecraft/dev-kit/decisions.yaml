@@ -5,7 +5,7 @@
   statement: |
     workspace packages are enumerated in-process by each package manager's own published
     enumeration library, not by shelling out to the manager
-  status: proposed
+  status: accepted
   falsifiers:
     - a manager's enumeration library turns out to need a completed install, a lockfile, or a network fetch before it will list a clean checkout
     - a workspace form the kit must support is reachable only through the manager's CLI, not through the definition file its library reads
@@ -15,7 +15,7 @@
   statement: |
     a root `pnpm-workspace.yaml` selects pnpm enumeration, and otherwise a root `package.json`
     `workspaces` field selects npm
-  status: proposed
+  status: accepted
   falsifiers:
     - a real workspace carries both definition files with different member sets, so the precedence silently drops packages a developer expects to see
     - a third manager comes into scope whose workspace definition neither file distinguishes
@@ -24,7 +24,7 @@
   statement: |
     the workspace root package is a discovery candidate, added explicitly where the manager's
     library omits it
-  status: proposed
+  status: accepted
   falsifiers:
     - a root package routinely holds a `behavior_pack/` or `resource_pack/` directory that is fixture or template content rather than a shipped pack
 
@@ -33,7 +33,7 @@
     trouble with the workspace itself — no definition found, an unreadable root, a member
     `package.json` that will not parse — throws, while trouble with an individual pack becomes a
     problem record on its entry
-  status: proposed
+  status: tolerated
   falsifiers:
     - a consumer needs the packs it can resolve from a workspace whose definition is unreadable, rather than nothing at all
     - a consumer ends up wrapping every call to render workspace trouble alongside pack problems, so the two channels are one channel in practice
@@ -44,7 +44,7 @@
   statement: |
     a problem is a union discriminated by a code from a closed set, each code typing the referent
     it needs, plus a human-readable message; the entry it rides on names the pack it is about
-  status: proposed
+  status: tolerated
   falsifiers:
     - a consumer branches on message text because the codes are too coarse to act on
     - no consumer reads the code, every one of them treating a problem as an opaque message
@@ -56,7 +56,7 @@
     a manifest's `format_version` fixes its version form everywhere the kit reads or writes one —
     a SemVer string at 3 or higher, a `[major, minor, revision]` array otherwise, including when
     the format version is absent or unrecognised
-  status: proposed
+  status: accepted
   falsifiers:
     - a later format version requires a version form that is neither of these two
     - a manifest declaring no format version is rejected by the server when handed an array version
@@ -66,7 +66,7 @@
   statement: |
     a pack's built output location is computed from its package and kind and reported without
     touching the filesystem
-  status: proposed
+  status: tolerated
   falsifiers:
     - the output root becomes configurable per package, so the location can no longer be computed from the package directory and kind alone
     - every consumer independently stats the reported location, showing the kit should carry that answer
@@ -75,7 +75,7 @@
   statement: |
     the reported manifest is typed as an open document, with `format_version`, `header`, `modules`,
     and `dependencies` the known subset and every other field carried untyped
-  status: proposed
+  status: tolerated
   falsifiers:
     - the kit comes to read or write a field outside the known subset, so the typed subset no longer states what the kit acts on
     - a check keys on a field whose shape varies by format version, so the known subset has to be typed per format version rather than once
@@ -91,7 +91,7 @@
   statement: |
     a dependency entry whose uuid names a pack in the workspace is a problem when it specifies a
     version, rather than being read as an entry the kit leaves alone
-  status: proposed
+  status: accepted
   falsifiers:
     - a pack legitimately needs to pin a sibling at a version other than the one the workspace holds — a published release of a pack that also lives here — so the error blocks a real dependency
     - a workspace pack shares its uuid with an outside pack a manifest genuinely depends on, so the entry can never carry the version an external dependency requires
@@ -100,7 +100,7 @@
   statement: |
     a candidate that trips several codes yields one problem record per code, with no precedence
     among them and no primary code elected
-  status: proposed
+  status: tolerated
   falsifiers:
     - one malformed manifest routinely emits a burst a CLI cannot present without picking a lead code, so consumers re-derive a precedence the kit refused to give
     - two codes prove to be one condition seen twice, so a consumer counting problems overstates what is wrong
@@ -115,7 +115,7 @@
   statement: |
     a candidate carrying a problem is invalid, and so is every candidate that reaches one along its
     dependency edges — one walk backwards from the candidates that failed on their own
-  status: proposed
+  status: accepted
   falsifiers:
     - a rule arrives that can restore a candidate as well as invalidate one, so a single backward walk from the initial failures no longer settles the set
     - a consumer needs to deploy the packs that are individually sound even where a transitive dependency failed, so invalidating them at all blocks a run the developer wanted
@@ -125,7 +125,7 @@
     every path a pack record carries — its owning package's directory, its source location, its
     built-output location — is a POSIX path relative to the workspace root, naming a directory
     rather than a file within it
-  status: proposed
+  status: accepted
   falsifiers:
     - a consumer outside the workspace process needs an absolute path and cannot recover the workspace root the paths are relative to
     - a workspace member resolves outside the workspace root, so no relative path names it
@@ -134,7 +134,7 @@
   statement: |
     a pack record's `version` is the owning package's `version` string exactly as `package.json`
     holds it, read independently of the manifest and of what its format version can express
-  status: proposed
+  status: accepted
   falsifiers:
     - a consumer compares record versions against manifest versions field-for-field and has to re-parse the string back into the array form
     - the record version and the completed manifest version diverge often enough that consumers cannot tell which one a server will honour
@@ -144,7 +144,7 @@
   statement: |
     a pack's kind is the enum `behavior` | `resource` on the record and on every problem record,
     distinct from the `behavior_pack` / `resource_pack` directory names it is read from
-  status: proposed
+  status: accepted
   falsifiers:
     - consumers routinely map the enum back to the directory name to build a path, so carrying the directory spelling would serve them better
     - a third pack kind arrives whose directory name and enum value cannot be derived from one another
@@ -160,7 +160,7 @@
   statement: |
     a placeholder version is read as no version wherever the kit reads one, so it leaves an inside
     dependency entry unspecified and leaves an external entry missing the version it must carry
-  status: proposed
+  status: rejected
   falsifiers:
     - a pack legitimately depends on version `[0, 0, 0]` of an outside pack, so the placeholder reading rejects a real dependency
     - a placeholder version on an external entry turns out to be how an author says "any version" and the server accepts it
@@ -169,7 +169,7 @@
   statement: |
     the kit lowercases every uuid it reads before matching one against another, and a pack record
     carries the lowercased form
-  status: proposed
+  status: tolerated
   falsifiers:
     - a consumer queries with a uuid taken from a manifest rather than from a record, and the case mismatch reads as "no such pack" instead of an error
     - a uuid's case turns out to be significant somewhere the kit's output is consumed, so canonicalising changes which pack loads
@@ -178,7 +178,7 @@
   statement: |
     one asynchronous entry point returns a pack set holding the one list of entries and the queries
     over it
-  status: proposed
+  status: accepted
   falsifiers:
     - a workspace grows large enough that a consumer needs packs streamed or discovered incrementally rather than as one settled value
     - a consumer needs the queries over a set it assembled itself, so they have to be free functions
@@ -187,7 +187,7 @@
   statement: |
     an invalid entry carries every field the kit managed to read, two of them optional on that arm
     alone: `uuid` and `manifest`, present where the manifest parsed and declared a header uuid
-  status: proposed
+  status: accepted
   falsifiers:
     - a consumer sorts or renders entries by version and has to invent a placeholder for the ones without, so the field should always be present in some form
     - consumers read the optional fields without checking and crash on the arm that lacks them, so a status naming "found but unidentified" would carry the distinction better than optionality does
@@ -196,7 +196,7 @@
   statement: |
     a field completion cannot fill is left exactly as the source manifest wrote it — the placeholder,
     or the omission — and never carries a value the kit invented or a form the manifest cannot express
-  status: proposed
+  status: tolerated
   falsifiers:
     - a consumer needs to tell "the kit could not fill this" from "the author wrote this placeholder", which the document alone does not say
     - a server rejects a manifest carrying a placeholder where it would have accepted the field omitted, so leaving the source spelling is worse than dropping the field
@@ -205,7 +205,7 @@
   statement: |
     the kit accepts as a uuid only the documented `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` hexadecimal
     form, in either case, and reports an absent one and a malformed one under the one code
-  status: proposed
+  status: tolerated
   falsifiers:
     - packs in the wild carry a uuid the engine loads in another spelling — braces, or no hyphens — so rejecting it blocks a working pack
     - a consumer needs to tell an absent uuid from a malformed one to give the right repair advice, and the carried value is not enough
@@ -214,7 +214,7 @@
   statement: |
     the entry list is ordered by owning package name and then by kind, the same order on every run
     and under either package manager
-  status: proposed
+  status: accepted
   falsifiers:
     - a consumer needs the workspace definition's own order, or discovery order, and cannot recover it from a sorted list
     - every consumer re-sorts the list for its own display, so the kit's order is never the one used

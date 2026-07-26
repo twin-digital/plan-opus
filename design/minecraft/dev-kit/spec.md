@@ -167,11 +167,12 @@ external entry the kit will not complete must carry its own version, so an entry
 sibling that failed is reported as missing one, and the pack holding it is invalid on that record
 alone. The one case that is never ambiguous is an entry naming a workspace pack that also specifies
 a version: the kit reports it rather than reading the version as an intent to stay outside
-[[d:workspace-uuid-entry-may-not-carry-a-version]]. A placeholder is not a version anywhere the kit
-reads one, so a single recognition serves both sides to opposite ends
-[[d:a-placeholder-version-is-no-version-everywhere]] — on an inside entry it leaves the version
-unspecified, which is the form the requirement demands, and on an external entry it is the missing
-version the kit has already refused to supply.
+[[d:workspace-uuid-entry-may-not-carry-a-version]]. On an inside entry a placeholder leaves the
+version unspecified, which is the form the requirement demands
+[[r:kit-completes-partial-source-manifests]]. On an external entry the kit reads nothing at all: it
+passes the entry through untouched, so whatever version the author wrote there — placeholder-shaped
+or not — is the version that entry carries. Only an entry with no version is missing one. What
+`[0, 0, 0]` means outside this workspace is the author's business and not a thing the kit can know.
 
 The third is ordering. The uuid in an entry is the author's, but the version is the depended-on
 pack's owning package's, so completing an entry needs a pack other than the one being completed and
@@ -246,7 +247,7 @@ and what each carries beside its message, is the interface consumers build again
 | `package-version-unusable` | the owning package's version is missing, is not a version at all, or cannot be written in the form this manifest's format version requires | the version as `package.json` carries it |
 | `dependency-entry-malformed` | a dependency entry carries both a `uuid` and a `module_name`, or neither | the entry's index |
 | `dependency-version-specified` | a dependency entry naming a pack in the workspace also specifies a version | the entry |
-| `dependency-version-missing` | an external dependency entry — a built-in module, or a uuid no pack in the workspace claims — carries no version, a placeholder counting as none | the entry |
+| `dependency-version-missing` | an external dependency entry — a built-in module, or a uuid no pack in the workspace claims — carries no version at all | the entry |
 | `dependency-version-unrepresentable` | a dependency target's package version cannot be expressed in the depending manifest's version form | the entry, and the version that could not be expressed |
 | `dependency-target-unresolved` | a dependency entry names a pack in the workspace that did not survive as a resolved pack, or one the index cannot resolve to a single candidate | the entry |
 
