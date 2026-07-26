@@ -57,12 +57,14 @@
 
 - id: completion-version-form-follows-format-version
   statement: |
-    completion writes a version as a SemVer string when `format_version` is 3 or higher and as a
-    `[major, minor, revision]` array otherwise, including when it is absent or unrecognised
+    a manifest's `format_version` fixes its version form everywhere the kit reads or writes one —
+    a SemVer string at 3 or higher, a `[major, minor, revision]` array otherwise, including when
+    the format version is absent or unrecognised
   status: proposed
   falsifiers:
     - a later format version requires a version form that is neither of these two
     - a manifest declaring no format version is rejected by the server when handed an array version
+    - a format version accepts both forms, so one mapping cannot serve both what completion writes and what the kit rejects on read
 
 - id: built-output-location-is-computed-not-probed
   statement: |
@@ -75,12 +77,41 @@
 
 - id: manifest-is-reported-as-an-open-typed-document
   statement: |
-    the reported manifest keeps every field its source carried, typed as an open document whose
-    header, modules, and dependencies are known and whose other fields are preserved unread
+    the reported manifest is typed as an open document, with `header`, `modules`, and
+    `dependencies` the known subset and every other field carried untyped
   status: proposed
   falsifiers:
-    - a consumer needs a closed manifest type it can exhaustively switch on
-    - no consumer reads a preserved unknown field, so the looser type costs more than it saves
+    - the kit comes to read or write a field outside the known subset, so the typed subset no longer states what the kit acts on
+    - a check keys on a field whose shape varies by format version, so the known subset has to be typed per format version rather than once
+
+- id: workspace-dependency-resolution-matches-member-names
+  statement: |
+    a prod dependency resolves to a workspace package when its name equals an enumerated member's
+    `name`, whatever specifier it carries, and the declared range is not checked against that
+    member's version
+  status: proposed
+  falsifiers:
+    - a workspace routinely aliases a member under another key with an `npm:` specifier, so name matching misses a real workspace dependency
+    - a declared range that excludes the member's own version turns up in a real workspace, so completing the entry from the member's version writes a dependency the developer did not intend
+    - an installed checkout becomes a supported input and its `node_modules` links disagree with name matching
+
+- id: every-observed-problem-is-reported
+  statement: |
+    a candidate that trips several codes yields one problem record per code, with no precedence
+    among them and no primary code elected
+  status: proposed
+  falsifiers:
+    - one malformed manifest routinely emits a burst a CLI cannot present without picking a lead code, so consumers re-derive a precedence the kit refused to give
+    - two codes prove to be one condition seen twice, so a consumer counting problems overstates what is wrong
+
+- id: pack-set-closure-demotes-to-a-fixed-point
+  statement: |
+    a single closing pass decides which candidates ship as resolved packs, demoting every candidate
+    carrying a problem and re-walking dependency edges until a pass demotes nothing
+  status: proposed
+  falsifiers:
+    - a dependency cycle among packs makes the iteration non-terminating or its outcome order-dependent
+    - a consumer needs the packs that are individually sound even where a transitive dependency failed, so blanket demotion withholds usable data
 
 - id: the-pack-set-is-the-single-returned-value
   statement: |

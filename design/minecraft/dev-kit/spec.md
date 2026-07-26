@@ -22,9 +22,19 @@ questions:
       does a manifest below format_version 3 actually reject a version written as a SemVer string?
       The kit treats a version in a form its own format_version does not carry as an error, but the
       published reference types every version as a vector or a SemVer string and pins only version 3
-      to the string, so no source found establishes the restriction below it.
+      to the string, so no source found establishes the restriction below it. What the answer moves
+      is the `version-form-unsupported` rejection the requirement states, not what completion writes.
     closes: fact
-    gates: [completion-version-form-follows-format-version]
+  - id: dependency-entries-for-a-two-pack-package
+    question: >-
+      when a prod dependency resolves to a workspace package holding both a behavior pack and a
+      resource pack, which dependency entries does completion write? Membership admits a package
+      bearing one pack of each kind, while completion is written for a singular target — that
+      pack's `header` uuid — so nothing settles whether both entries are emitted, whether the
+      depending pack's kind selects one of them, or whether such a package is a valid dependency
+      target at all. This is the ordinary shape of a pack package here, not an edge case.
+    closes: requirement
+    gates: [workspace-dependency-resolution-matches-member-names]
 ```
 
 ## Finding the candidate packages
@@ -85,31 +95,50 @@ every other type it meets, and reports the disagreement when it finds one.
 ## Reading and completing the manifest
 
 The manifest is parsed once into the document the pack record hands back
-[[r:pack-record-details]], and that document is open: known where the kit acts on it, and
-otherwise preserving what it read [[d:manifest-is-reported-as-an-open-typed-document]]. A closed
-type is not available here even in principle — the module type list is open-ended, and the format
-version a source declares survives into the reported manifest untouched
-[[r:manifest-format-version-passes-through]] — so a consumer that hands the document to a server
-gets back what the author wrote plus what the kit filled in, and nothing dropped in transit.
+[[r:pack-record-details]], and the fields the kit itself acts on — the header, the modules, the
+dependencies — are the only ones it types, everything else riding along untyped
+[[d:manifest-is-reported-as-an-open-typed-document]]. Typing the rest is not available here even in
+principle, since the module type list is open-ended and the format version a source declares
+survives into the reported manifest untouched [[r:manifest-format-version-passes-through]]. So a
+consumer that hands the document to a server gets back what the author wrote plus what the kit
+filled in, and nothing dropped in transit.
 
-Filling in is the kit's defensible work [[r:kit-completes-partial-source-manifests]]. Two parts of
-it need pinning beyond what that requirement fixes. The first is the version form: format version
-decides it, so the kit needs an answer for a format version it does not recognise, including none
-at all. It writes the array there [[d:completion-version-form-follows-format-version]], which is
-the form the reference documents throughout and pins the string only to version 3
-[[f:manifest-declares-pack-identity-version-and-module-kinds]]. The open question above is the
-other half of that reading: the kit rejects a source version written in the form its format
-version does not carry, and below version 3 nothing published establishes that such a form is
-wrong.
+Filling in is the kit's defensible work [[r:kit-completes-partial-source-manifests]]. Three parts
+of it need pinning beyond what that requirement fixes.
 
-The second is ordering. A completed workspace dependency entry needs the depended-on pack's header
+The first is the version form, and one mapping serves every reader of it: the manifest's own
+`format_version` fixes the form, the string at 3 or higher and the array below it, absent and
+unrecognised versions included [[d:completion-version-form-follows-format-version]] — the form the
+reference documents throughout, pinning the string only to version 3
+[[f:manifest-declares-pack-identity-version-and-module-kinds]]. Three things read that one answer:
+what completion writes, which of the placeholder spellings are legal in a given manifest, and when
+`version-form-unsupported` fires against a source version. Placeholder recognition needs no other
+pack, so it runs with the parse: a placeholder in the legal form leaves the version unspecified and
+`header-version-specified` does not fire, while any other written version does trip it. The open
+question above is the other half of that reading: the kit rejects a source version written in the
+form its format version does not carry, and below version 3 nothing published establishes that such
+a form is wrong.
+
+The second is what "resolves to a workspace package" means for a prod dependency. The clean-checkout
+constraint removes the obvious mechanism — an uninstalled checkout has no `node_modules` to resolve
+through [[r:packs-enumerable-without-a-build]] — so the test is the name: a prod dependency whose
+name equals an enumerated member's `name` resolves to that member whatever specifier it carries,
+and the range it declares is not checked against the member's version
+[[d:workspace-dependency-resolution-matches-member-names]]. The specifier is the wrong test because
+`workspace:` is a pnpm spelling with no npm counterpart, so keying on it would emit no dependency
+entries at all for an npm workspace.
+
+The third is ordering. A completed workspace dependency entry needs the depended-on pack's header
 uuid and its owning package's version [[f:pack-dependency-entries-name-a-uuid-or-a-module-name-plus-a-version]],
-which is another pack's resolved data — so completion cannot run pack-by-pack during parsing. The
-kit therefore reads and per-pack-checks every candidate, settles identity across the whole set,
-and only then completes: two passes, with the set boundary between them. The same fact is why a
-`dependencies` entry already written in a source manifest is passed through rather than completed —
-an entry naming a built-in scripting module carries a `module_name` and no uuid, and there is no
-workspace package behind it for the kit to read a version from.
+which is another pack's data — so completion cannot run pack-by-pack during parsing. The kit reads
+and per-pack-checks every candidate, indexes identity across the whole set, completes each candidate
+against that index, and closes the set last (below). Completion is keyed on the target being
+pack-bearing, not on the target having survived: a target that bears a pack and then fails still
+gets its entry written, and the depending pack fails with it rather than shipping short an entry.
+The same fact about entries is why a `dependencies` entry already written in a source manifest is
+passed through rather than completed — an entry naming a built-in scripting module carries a
+`module_name` and no uuid, and there is no workspace package behind it for the kit to read a version
+from.
 
 ## Resolving the set and reporting problems
 
@@ -117,10 +146,21 @@ Identity is what the set is keyed by: queries match on it, and every completed d
 points at one. So a shared header uuid is not a defect of one pack that another survives — while
 two packs claim one identity, neither can be pointed at, and picking a winner would bind
 dependencies to an ordering nobody chose. Every sharer fails together, each naming the others so
-the developer can see the pair [[d:duplicate-header-uuid-invalidates-every-sharer]]. Failure
-propagates one step from there: a pack whose completed dependency target did not resolve cannot be
-completed either, and joins the problem list rather than shipping a dependency entry with a hole in
-it [[r:unresolvable-packs-fail-loudly]].
+the developer can see the pair [[d:duplicate-header-uuid-invalidates-every-sharer]]. The index of
+every candidate's uuid that this needs is also the only place a source-written dependency on a
+workspace pack can be caught — that entry belongs in `package.json`
+[[r:kit-completes-partial-source-manifests]], and spotting it means holding the whole set's uuids,
+which no single pack's data gives.
+
+Which candidates ship as packs is then one pass's answer, and it runs after completion rather than
+before it, because a candidate can fail at any stage: an unreadable manifest, a shared uuid, a
+package version the required form cannot express, a dependency target that did not survive
+[[r:unresolvable-packs-fail-loudly]]. Every earlier stage only records problems against a candidate;
+the closing pass alone demotes [[d:pack-set-closure-demotes-to-a-fixed-point]]. It has to iterate,
+because each demotion can create the next: with A depending on B and B on C, C's failure demotes B,
+and B's demotion then demotes A. So the pass demotes what carries a problem, re-walks the dependency
+edges of what is left, and repeats until nothing moves — propagation is transitive, not one step, and
+a pack never ships a dependency entry pointing outside the resolved set.
 
 A problem is a record a consumer can act on, not a rendered sentence
 [[d:problems-carry-a-closed-set-of-codes]]. Its code is what a CLI groups by, what a test asserts
@@ -142,6 +182,14 @@ and the condition each code covers, is the interface consumers build against:
 | `dependency-declares-a-workspace-pack` | a source-written dependency entry names a discovered pack's uuid |
 | `dependency-version-missing` | a source-written dependency entry carries no version |
 | `dependency-target-unresolved` | a completed dependency's target pack is not in the resolved set |
+
+One candidate can trip several of these at once — a v2 manifest carrying `"1.2.3"` is both
+`header-version-specified` and `version-form-unsupported` — and each trip is its own record: there
+is no precedence among the codes and no primary one to group by
+[[d:every-observed-problem-is-reported]]. Electing a primary would make the code a worse answer for
+both jobs it holds, since a test asserting on one condition would have to know which other condition
+outranked it. What bounds the burst is data rather than ranking: a check whose input an earlier
+failure withheld does not run, so an unreadable manifest yields exactly one record.
 
 Every candidate leaves discovery through exactly one of the two lists [[r:pack-discovery]], so a
 consumer that reads both has seen everything on disk and a silent drop is impossible by
@@ -171,24 +219,30 @@ components:
     responsibility: the problem record type, its closed code set, and the constructors other components raise through
     excludes: deciding which conditions are problems
   - id: workspace-packages
-    responsibility: resolve a workspace root into its member packages, each with name, directory, and parsed package.json
+    responsibility: resolve a workspace root into its member packages — the root package among them, added where the manager's library omits it — each with name, directory, and parsed package.json
     excludes: anything specific to Minecraft packs
   - id: pack-candidates
     responsibility: probe each package's two fixed source-manifest paths and emit one candidate per hit, carrying package, kind, and source directory
     excludes: reading manifest content
     after: [workspace-packages, problem-model]
   - id: manifest-document
-    responsibility: parse a candidate's manifest into the open typed document and apply every check that needs only that pack
+    responsibility: parse a candidate's manifest into the open typed document and apply every check needing only that pack — uuid presence, kind corroboration, version form, placeholder recognition, source-written dependency shape
     excludes: any check that needs another pack's data
     after: [pack-candidates]
-  - id: pack-set-resolution
-    responsibility: settle identity across candidates — uuid presence and uniqueness — and decide which candidates survive as packs
+  - id: pack-identity-index
+    responsibility: index candidate identities across the set, flagging a uuid two candidates share and a source-written dependency entry naming a discovered pack's uuid
+    excludes: deciding which candidates survive as packs
     after: [manifest-document]
   - id: manifest-completion
-    responsibility: fill the header name and version and add a dependency entry per prod dependency resolving to a resolved workspace pack
-    after: [pack-set-resolution]
+    responsibility: per candidate, fill the header name and version and add a dependency entry per prod dependency whose name matches a pack-bearing workspace member, taking the target uuid from the identity index
+    excludes: deciding which candidates survive as packs
+    after: [pack-identity-index]
+  - id: pack-set-closure
+    responsibility: demote every candidate carrying a problem, re-walk the dependency edges of the rest, and iterate to a fixed point, yielding the resolved set and the problem list
+    excludes: any check other than whether a completed dependency's target is still resolved
+    after: [manifest-completion]
   - id: pack-set-api
     responsibility: the exported entry point, the pack record shape, and the exact-match queries over a held set
     excludes: filesystem access of its own
-    after: [manifest-completion]
+    after: [pack-set-closure]
 ```
