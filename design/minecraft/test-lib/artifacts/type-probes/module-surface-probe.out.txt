@@ -1,0 +1,63 @@
+## Module-level exported constants
+
+  HudElementsCount: 13
+  HudVisibilityCount: 2
+  MoonPhaseCount: 8
+  TicksPerDay: 24000
+  TicksPerSecond: 20
+  system: System
+  world: World
+
+total=7 singleton-instances=2 numeric-constants=5
+singletons=[system, world]
+
+## Static members on exported classes
+
+total=112
+  static readonly componentId  = 86 (one per component class)
+  everything else              = 26
+
+### The non-componentId statics, by class
+
+  AimAssistRegistry (2)
+      static readonly DefaultCategoryId = 'minecraft:default'
+      static readonly DefaultPresetId = 'minecraft:aim_assist_default'
+  BiomeTypes (2)
+      static get(…)
+      static getAll(…)
+  BlockPermutation (1)
+      static resolve<T extends string = minecraftvanilladata.MinecraftBlockTypes>(…)
+  BlockStates (2)
+      static get(…)
+      static getAll(…)
+  BlockTypes (2)
+      static get(…)
+      static getAll(…)
+  DimensionTypes (2)
+      static get(…)
+      static getAll(…)
+  EffectTypes (2)
+      static get(…)
+      static getAll(…)
+  EnchantmentTypes (2)
+      static get(…)
+      static getAll(…)
+  EntityTypes (2)
+      static get(…)
+      static getAll(…)
+  FluidContainer (2)
+      static readonly maxFillLevel = 6
+      static readonly minFillLevel = 0
+  ItemTypes (2)
+      static get(…)
+      static getAll(…)
+  Potions (5)
+      static getAllDeliveryTypes(…)
+      static getAllEffectTypes(…)
+      static getDeliveryType(…)
+      static getEffectType(…)
+      static resolve(…)
+
+classes carrying componentId: 86
+classes with get/getAll lookup pairs: 8 [BiomeTypes, BlockStates, BlockTypes, DimensionTypes, EffectTypes, EnchantmentTypes, EntityTypes, ItemTypes]
+@minecraft/server version: 2.8.0

@@ -16,7 +16,8 @@ Three packs from the survey, chosen for different shapes and all near the sample
 ## Method
 
 For each pack, the ten units a developer would most plausibly unit-test — functions carrying real
-decisions, not event wiring or config — were read against the built member lists in `../../spec.md`,
+decisions, not event wiring or config — were read against the built member lists of the design's
+first spec, which has since been discarded,
 and each was given one of three verdicts: **testable as specified**, **blocked** (naming what is
 missing and quoting the pack line that needs it), or **testable with a seam change** (naming the
 refactor and judging whether a pack author would accept it).
@@ -24,6 +25,29 @@ refactor and judging whether a pack author would accept it).
 The three verdicts matter. Collapsing "seam change" into "blocked" overstates the gap; collapsing it
 into "testable" hides a real cost. Each probe also recorded what the fake gets *right* that a
 hand-rolled double would get wrong, so the library's value sits in the record beside its gaps.
+
+## The surface these verdicts were measured against
+
+Stated here because the spec that defined it no longer exists, and a verdict is only readable
+against a surface. Every "blocked" below means blocked by this list, not by anything the design
+must keep.
+
+- **`World`** — `getDimension`, `getAllPlayers`, `scoreboard`, `gameRules`, `isHardcore`, `seed`,
+  `afterEvents`, `beforeEvents`. Dynamic properties, `getPlayers`, `getEntity` and `sendMessage`
+  were **stubs**.
+- **`Dimension`** — `id`, `heightRange`, `localizationKey`, `spawnEntity`, `getEntities` in its
+  no-argument form only. Every block-shaped member was a stub.
+- **`Entity`/`Player`** — identity, location and dimension, rotation and velocity, the tag methods,
+  `getComponent`/`getComponents`/`hasComponent`, the four effect methods, `applyDamage`, `kill`,
+  `remove`, and `Player.name`. Dynamic properties, `runCommand`, teleport and impulse, the
+  view-direction and AABB queries, and the eight `is…` state flags were stubs.
+- **Components** — all of them attachable and answering identity members; only the attribute-shaped
+  ones behaved further.
+- **Events** — all 55 after-event and 13 before-event signals registrable; only `entityHurt`,
+  `entityHealthChanged`, `entityDie` and `entityRemove` ever delivered, and only those four had
+  payload classes.
+- **Absent entirely** — `ItemStack`, `Container`, `Block`, `BlockPermutation`, `System` and any
+  clock, the static type registries, and the startup phase.
 
 ## What this cannot support
 

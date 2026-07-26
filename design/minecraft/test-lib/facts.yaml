@@ -282,6 +282,13 @@
     followed by five delivered events — one `entitySpawn`, three `dataDrivenEntityTrigger`,
     and one `entityRemove`.
   backing: tested
+  caveat: |
+    "Followed by" is what the run establishes; that `remove()` *caused* all five is inference.
+    The probe's payload matching failed on every one — it reads an id that is unreadable after
+    removal — so attribution to the probe's own entity rests on the world holding nothing but
+    stationary armor stands besides it. One of the five is an `entitySpawn`, which no removal
+    plausibly causes, so at least that attribution is likely wrong. Read the five as events
+    observed in the window, not as a cascade to reproduce.
   sources:
     - description: |
         artifacts/mctest-engine-probe-results.md, `kill-cascade` lines: first kill returned
@@ -987,3 +994,36 @@
         the "Headline" table (71 unambiguous, 91 including event payloads, 12 untouched; median
         394 vs 1466 source lines), the "Which half of the gap" table (items 81, blocks 80, both
         70, neither 12) and the "API area" table (entity components 75, effects 13).
+
+- id: engine-surface-outside-instances
+  claim: |
+    `@minecraft/server` 2.8.0 exposes a surface that is not reached through any instance, in two
+    kinds.
+
+    **Module-level exported constants: 7.** Two are singleton instances — `system: System` and
+    `world: World` — and five are numeric literals: `HudElementsCount` 13, `HudVisibilityCount` 2,
+    `MoonPhaseCount` 8, `TicksPerDay` 24000, `TicksPerSecond` 20.
+
+    **Static members on exported classes: 112**, across 439 exported classes. They divide as:
+
+    - 86 are `static readonly componentId`, one on each component class, carrying that
+      component's id string.
+    - 16 are `get`/`getAll` lookup pairs on 8 registry classes: `BiomeTypes`, `BlockStates`,
+      `BlockTypes`, `DimensionTypes`, `EffectTypes`, `EnchantmentTypes`, `EntityTypes`,
+      `ItemTypes`.
+    - 5 are on `Potions`: `resolve`, `getDeliveryType`, `getEffectType`, `getAllDeliveryTypes`,
+      `getAllEffectTypes`.
+    - 1 is `BlockPermutation.resolve`, the only way to obtain a `BlockPermutation`, whose
+      constructor is private.
+    - 4 are constant values: `AimAssistRegistry.DefaultCategoryId` and `.DefaultPresetId`,
+      `FluidContainer.maxFillLevel` 6 and `.minFillLevel` 0.
+  backing: tested
+  sources:
+    - description: |
+        design/minecraft/test-lib/artifacts/type-probes/module-surface-probe.mjs, output in
+        module-surface-probe.out.txt, parsing @minecraft/server 2.8.0's index.d.ts: it collects
+        every `export const` with its declared type, and every 4-space-indented `static` member
+        with the `export class` it falls under. Output records total=7 module constants with
+        singleton-instances=2 and numeric-constants=5, and total=112 statics split
+        componentId=86 and everything-else=26, with the 26 listed per class and the 8 registry
+        classes named.

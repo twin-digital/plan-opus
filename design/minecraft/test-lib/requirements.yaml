@@ -51,12 +51,15 @@
 
 - id: fakes-never-fabricate
   statement: |
-    a fake never fabricates: a member whose behaviour has no fidelity reference, and a read
-    of state the test never supplied where the engine could not lack it, fail loudly with a
-    distinctive error rather than returning an invented value. Absence the engine can exhibit
-    is not fabrication, and reads back as the engine reports it. This is a default: where a more
-    specific requirement documents an observed engine behaviour for such a member, that
-    requirement takes precedence and states the override explicitly.
+    a fake never fabricates. It does not invent a value the test did not supply and the engine
+    could not lack: such a read fails loudly with a distinctive error. It does not answer a member
+    it does not implement: that throws too, distinctly. Absence the engine can exhibit is not
+    fabrication, and reads back as the engine reports it.
+
+    Holding state plainly is not fabrication either. A member the design models without an engine
+    behaviour behind it — a value written and read back, a collection a test filled — answers from
+    what it holds, and the spec says that is what it does. What is forbidden is presenting an
+    invented value, or an invented behaviour, as the engine's.
 
 - id: invalidation-is-modeled
   statement: |
@@ -78,7 +81,7 @@
     Every consumer test assumes helpers receive their world and entities as parameters; a later
     module-shim story would invalidate whole suites, so this is fiat, not open to reargument.
 
-- id: structural-full-shape-fakes
+- id: structural-assignability-not-full-shape
   statement: |
     a fake is assignable where the real declared type is expected, and every member it implements
     either behaves or throws — an unfaked access never reads `undefined`. A fake need not declare
