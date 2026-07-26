@@ -13,9 +13,7 @@
 - id: dev-kit-delivers-a-validated-pack-set-as-data
   claim: |
     minecraft/dev-kit is imported as a library and hands back a validated, normalised pack set as
-    data rather than text to parse, and it stops there — it performs no deployment. Everything
-    between that pack set and a pack running on the server is this design's, and nothing upstream
-    of it is.
+    data rather than text to parse.
   backing: documented
   sources:
     - url: design/minecraft/dev-kit/requirements.yaml
@@ -23,17 +21,11 @@
       quote: |
         the kit provides a typed library: a consumer imports it and receives the pack set as data,
         not as text it must parse.
-    - url: design/minecraft/dev-kit/requirements.yaml
-      where: kit-stops-at-a-validated-pack-set
-      quote: |
-        the kit's product is a validated, normalised pack set. It may invoke or configure a package's
-        build, but it defines no build semantics, performs no deployment, and builds no release
-        archive.
 
 - id: dev-kit-pack-set-entry-names-package-kind-source-and-identity
   claim: |
     Every pack the kit reports carries its owning package, its kind, its source location, and the
-    identity its source manifest declares, and does so from a clean checkout with no build having
+    full content of its manifest. It does so from a clean checkout with no build having
     run. Identity, version and kind come from the pack's own manifest. The harness can therefore
     route a pack to a pool and write its activation entry from the pack set alone, without reading
     a manifest or reading a directory name as a declaration of kind.
