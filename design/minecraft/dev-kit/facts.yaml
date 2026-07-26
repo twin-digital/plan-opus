@@ -111,14 +111,45 @@
         In the following example, all folders located inside the folder ./packages will be treated
         as workspaces as long as they have valid package.json files inside them:
 
+- id: module-type-enumerations-disagree
+  claim: |
+    The set of module `type` values a manifest may declare is not enumerable from the format's own
+    documentation. Microsoft's add-on manifest reference lists four — `resources`, `data`,
+    `world_template`, `script`. Its Creator Tools manifest validator raises an error on an
+    unrecognised type but names six, and says its list "include"s them rather than that they are the
+    set. And the reference page's own example behavior-pack manifest declares a `client_data` module
+    that appears in neither list. A kit validating a module type against any published enumeration
+    would report a problem against Microsoft's own reference pack.
+  backing: documented
+  sources:
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
+      where: modules — type
+      quote: |
+        This is the type of the module. Can be any of the following: `resources`, `data`,
+        `world_template` or `script`.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/mctoolsvalreference/chkmanif
+      where: CHKMANIF109 — Invalid Module, severity Error
+      quote: |
+        A module has an unrecognized type. Valid module types include: persona\_piece,
+        world\_template, skin\_pack, data, script, and resources.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
+      where: Examples — Behavior Pack, the second entry of its modules array
+      quote: |
+        {
+                    "description": "Example client scripts module",
+                    "type": "client_data",
+                    "uuid": "c05a992e-482a-455f-898c-58bbb4975e47",
+                    "version": [1, 0, 0]
+                }
+
 - id: manifest-declares-pack-identity-version-and-module-kinds
   claim: |
     A Bedrock add-on pack is defined by its own `manifest.json`: the header's `uuid` uniquely
     identifies the pack and the header's `version` is the pack version, while the `modules`
     array's `type` states what kind of pack it is — `data` for behavior content, `script` for
     scripting code, which is embedded within behavior packs, and `resources` for a resource
-    pack. A pack's own content therefore states both that it is a pack and which kind, with no
-    reference to how it is stored or built.
+    pack. A pack's own content therefore carries what kind of content it holds, without reference
+    to how it is stored or built.
   backing: documented
   sources:
     - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/manifestreference/packmanifestdocument
