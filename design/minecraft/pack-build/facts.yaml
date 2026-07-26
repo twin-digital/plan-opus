@@ -1,0 +1,69 @@
+# Facts scoped to the minecraft/pack-build design. All are PROPOSED by an agent and await owner
+# review.
+#
+# Each records a commitment minecraft/dev-kit makes that this design's build output has to
+# satisfy. They are sourced to the kit's requirements.yaml — its pinned artifact, and the file
+# where the commitment originates — by repo-relative url and verbatim quote, per
+# r:cross-design-dependency-is-cited-as-a-fact and r:documented-source-is-primary. The claims
+# record that the kit requires these; they are not this design's own fiat.
+
+- id: dev-kit-fixes-where-built-output-goes
+  claim: |
+    minecraft/dev-kit places a pack's built output under `dist/` within its package unless the
+    package specifies an alternate location, and the kit reports that build output location for
+    every pack it discovers, including packs that have not been built. The build writes where the
+    kit says a pack's output is, and does not resolve that location itself.
+  backing: documented
+  sources:
+    - url: design/minecraft/dev-kit/requirements.yaml
+      where: built-output-defaults-to-dist
+      quote: |
+        a pack's built output is found at `dist/` within its package unless the package specifies an
+        alternate location.
+    - url: design/minecraft/dev-kit/requirements.yaml
+      where: pack-record-details — the details provided for every discovered pack
+      quote: |
+        for every pack discovered, the kit provides the following details:
+
+          - its owning package
+          - its kind (behavior pack or resource pack)
+          - its source location
+          - it's build output location (even if that location is not present because the pack is unbuilt),
+          - the full content of its manifest in object form (including content auto-populated as
+            described by `r:kit-completes-partial-source-manifests`)
+
+- id: dev-kit-fixes-the-built-output-tree-shape
+  claim: |
+    minecraft/dev-kit requires a package's output root to hold one kind-named subdirectory per
+    pack — `behavior_pack`, `resource_pack` — mirroring the source layout, and to do so always: a
+    single-pack package still nests. The build has no flat single-pack shape to emit.
+  backing: documented
+  sources:
+    - url: design/minecraft/dev-kit/requirements.yaml
+      where: built-output-mirrors-the-source-layout
+      quote: |
+        a package's output root always holds one kind-named subdirectory per pack — `behavior_pack`,
+        `resource_pack` — mirroring the source layout. A single-pack package still nests.
+
+- id: dev-kit-completes-partial-source-manifests
+  claim: |
+    minecraft/dev-kit requires a pack's source `manifest.json` to be partial — carrying no
+    `header.name` and no `header.version`, and free to omit the version of a workspace-local
+    dependency — and completes those missing fields whenever it provides a pack's manifest
+    details. A source manifest is therefore not shippable as it sits: the manifest the build puts
+    into the output tree is the completed one the kit hands back.
+  backing: documented
+  sources:
+    - url: design/minecraft/dev-kit/requirements.yaml
+      where: kit-completes-partial-source-manifests — what a source manifest omits
+      quote: |
+        a pack's source `manifest.json` is partial by design:
+
+          - it MUST NOT have a `header.name` field
+          - it MUST NOT have a `header.version` field
+          - it MAY omit the version for workspace-local `dependencies` entries
+    - url: design/minecraft/dev-kit/requirements.yaml
+      where: kit-completes-partial-source-manifests — the kit populating the missing fields
+      quote: |
+        Whenever this component provides manifest details for a pack, it populates missing fields
+        as follows:
