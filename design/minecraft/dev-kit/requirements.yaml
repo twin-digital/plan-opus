@@ -76,7 +76,8 @@
 
     Every detail above is available for any discovered pack except its identity and its manifest
     content, which a pack whose manifest could not be parsed, or which declares no `header.uuid`,
-    does not have.
+    does not have — and its version, which a pack whose owning package declares none does not have.
+    A package declaring no version is itself a problem, so the pack is reported invalid either way.
 
 - id: built-output-defaults-to-dist
   statement: |
@@ -117,10 +118,11 @@
       - `header.name` is set to the owning package's `package.json` `productName` when present,
         and otherwise set to the package name with its npm scope strpped (`@scope/mc-pack-1`
         becomes `mc-pack-1`)
-      - `header.version` is set to the owning package's `package.json` version field, written as the
-        SemVer string at `format_version` 3 and as the `[major, minor, revision]` array elsewhere.
-        What the source used is not consulted; the format version decides. A version the chosen form
-        cannot express, such as a pre-release where the form is the array, is a problem
+      - `header.version` is set to the owning package's `package.json` version field, written as a
+        SemVer string. Every format version accepts that form, so completion does not branch on the
+        format version and a pre-release version completes like any other. What the source used is
+        not consulted. A `package.json` version that is missing, or is not a version at all, is a
+        problem
       - a `dependencies` entry whose `uuid` names a pack within the same workspace has its `version`
         set to that pack's owning package's `package.json` version, using the same parsing and error
         reporting rules described for `header.version`
