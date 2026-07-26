@@ -73,10 +73,10 @@
     
 - id: pack-identity-and-kind-declared-only-by-the-manifest
   statement: |
-    a pack's identity, and kind come from its own `manifest.json`. Where a convention
-    encodes kind — the `behavior_pack/` and `resource_pack/` directories membership is read from —
-    the manifest stays authoritative and a disagreement between the two is a reported error, never
-    a silent preference for one side.
+    a pack's identity — its uuid, name, and version — comes from its own `manifest.json`. Its kind
+    comes from the directory membership is read from, `behavior_pack/` or `resource_pack/`, and the
+    manifest must corroborate it. A disagreement between the two is a reported error, never a silent
+    preference for one side, so a pack carries one kind and no consumer reconciles two.
 
 - id: built-output-defaults-to-dist
   statement: |
@@ -118,9 +118,18 @@
 
 - id: kind-derived-from-module-types
   statement: |
-    a pack's kind is derived from the `type` values across its manifest's modules — `data` and
-    `script` to behavior, `resources` to resource. A module type outside those three, or module
-    types that map to more than one kind, is a problem.
+    a pack's manifest must carry a module corroborating the kind its directory declares — `data` for
+    a behavior pack, `resources` for a resource pack — and a manifest carrying neither, or carrying
+    the other kind's, is a problem. Any further module type is ignored: the kit validates no
+    enumeration of module types and treats an unrecognised one as neither corroborating nor a
+    problem.
+  rationale: |
+    The set of module types is not knowable. Microsoft's manifest reference lists four, its Creator
+    Tools validator lists six and says "include" rather than "are", and the reference's own
+    behavior-pack example declares a seventh the other two omit. `data` and `resources` are the
+    stable pair, present since format version 0; everything else is either a companion module riding
+    inside a pack — `script`, `client_data` — or a different artifact the fixed-path membership test
+    never reaches.
 
 - id: structured-validation
   statement: |
