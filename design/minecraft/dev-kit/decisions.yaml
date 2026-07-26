@@ -1,0 +1,86 @@
+# Decisions scoped to the minecraft/dev-kit design.
+# Schema: id, statement (single line, the choice only), falsifiers (>=1), status (always written).
+
+- id: workspace-is-the-unit-of-resolution
+  statement: the kit resolves a whole workspace in one pass; there is no entry point that resolves a single pack
+  status: proposed
+  falsifiers:
+    - a consumer needs one pack's record on a hot path and paying for the whole workspace pass is measurably too slow
+    - a workspace grows large enough that a full pass on every invocation dominates the dev server's startup time
+
+- id: validation-runs-inside-discovery
+  statement: discovery always validates, so there is no such thing as an unvalidated pack set
+  status: proposed
+  falsifiers:
+    - a consumer legitimately needs records for packs it knows are invalid and cannot proceed with them flagged
+    - validation grows a check whose cost is unacceptable on every discovery, forcing an opt-in tier
+
+- id: discovery-returns-problems-not-throws
+  statement: per-pack problems are returned in the result and only a workspace that cannot be enumerated at all throws
+  status: proposed
+  falsifiers:
+    - a consumer is found ignoring the returned problems and shipping broken packs, so a throw is the only reliable stop
+    - a problem class emerges that leaves the rest of the result untrustworthy rather than merely incomplete
+
+- id: problems-are-coded-records
+  statement: a problem is a record carrying a closed-union code, the owning package, the path examined, and a human-readable message
+  status: proposed
+  falsifiers:
+    - a consumer needs to branch on a condition the closed union cannot express without a new code every release
+    - problems need to nest or aggregate, so a flat record loses information a consumer acts on
+
+- id: records-carry-the-completed-manifest-only
+  statement: a pack record exposes the completed manifest, and the raw source manifest is reachable only by reading the source path
+  status: proposed
+  falsifiers:
+    - a consumer needs to diff completed against raw to report what completion supplied
+    - a tool that writes manifests back to source appears and needs the raw object the kit already parsed
+
+- id: manifest-kind-is-reported-on-disagreement
+  statement: a record's kind is always the manifest-derived one, with a source directory that disagrees reported as a problem against the pack
+  status: proposed
+  falsifiers:
+    - a consumer must place a pack by the directory it came from and the manifest-derived kind sends it to the wrong pool
+    - a real pack legitimately declares module types whose kind differs from its directory, making the disagreement a normal state rather than an error
+
+- id: duplicate-uuid-flags-every-holder
+  statement: when two packs share a header uuid, every pack holding it is flagged rather than the first occurrence being treated as the owner
+  status: proposed
+  falsifiers:
+    - a workflow needs one of a colliding pair to remain usable while the other is fixed
+    - duplicate uuids turn out to be routine during a copy-and-edit workflow, making a flag on every holder noise rather than signal
+
+- id: pnpm-definition-wins-when-both-present
+  statement: a pnpm-workspace.yaml is the workspace definition when it exists, otherwise the root package.json workspaces field, with no other detection
+  status: proposed
+  falsifiers:
+    - a workspace ships both definitions with deliberately different package sets, so silently preferring one enumerates the wrong packages
+    - a target workspace uses a manager whose definition is neither of these
+
+- id: output-root-override-in-package-json
+  statement: a package overrides its output root with an mcDevKit.outDir field in its own package.json, resolved relative to the package root
+  status: proposed
+  falsifiers:
+    - the package's build tooling already declares its output directory somewhere the kit could read, making a second declaration a source of drift
+    - a package needs different output roots per pack kind rather than one root per package
+
+- id: completion-writes-array-versions
+  statement: completion writes versions in the manifest's three-element array form, and a package version that is not three dotted segments is a problem
+  status: proposed
+  falsifiers:
+    - the kit is required to accept manifests using format version 3 string versions, where an array is not a legal value
+    - a workspace's release flow depends on prerelease package versions, making the problem fire on every pack
+
+- id: unknown-manifest-fields-pass-through
+  statement: validation checks only the enumerated conditions and every other manifest field is carried through unread and unvalidated
+  status: proposed
+  falsifiers:
+    - a malformed field the kit passes through causes a load failure the kit could have caught before deployment
+    - the kit is asked to be the workspace's manifest schema authority rather than its pack index
+
+- id: search-matches-exact-names
+  statement: search matches full package name and completed pack name by exact string equality, with multiple criteria combined as a conjunction
+  status: proposed
+  falsifiers:
+    - the dev server's selection UX needs partial or fuzzy matching to be usable at the workspace's size
+    - a caller routinely needs the union of two criteria and has to run two searches and merge them
