@@ -33,8 +33,8 @@
   statement: a pack record exposes the completed manifest, and the raw source manifest is reachable only by reading the source path
   status: proposed
   falsifiers:
-    - a consumer needs to diff completed against raw to report what completion supplied
-    - a tool that writes manifests back to source appears and needs the raw object the kit already parsed
+    - a pack set is consumed after the source tree it was resolved from has changed or become unreachable — a cached or serialised set, a moved or deleted checkout — so re-reading the source path no longer yields the manifest that was completed
+    - a field completion writes turns out to overwrite one the source manifest already carried, so the completed object silently loses committed content no consumer can recover from the record
 
 - id: manifest-kind-is-reported-on-disagreement
   statement: a record's kind is always the manifest-derived one, with a source directory that disagrees reported as a problem against the pack
@@ -82,5 +82,19 @@
   statement: search matches full package name and completed pack name by exact string equality, with multiple criteria combined as a conjunction
   status: proposed
   falsifiers:
-    - the dev server's selection UX needs partial or fuzzy matching to be usable at the workspace's size
-    - a caller routinely needs the union of two criteria and has to run two searches and merge them
+    - a pack's completed name is not the name users address it by, since completion derives it from productName or the scope-stripped package name, so exact equality returns nothing for the name that is actually typed
+    - a consumer holds an identifier that is neither a full package name nor a completed pack name — a header uuid, a source directory — and has no way to reach the record from it
+
+- id: output-path-follows-the-source-directory
+  statement: a pack's expected output path is computed from its source directory's kind, so a pack whose manifest kind disagrees still mirrors where its source sits
+  status: proposed
+  falsifiers:
+    - the packs' build tooling emits by manifest-derived kind, so the computed path names a directory the build never writes
+    - a consumer deploys packs by the record's kind and must find the built output under that same kind, making the two answers a per-pack contradiction it cannot resolve
+
+- id: dependency-resolution-judged-only-by-the-validator
+  statement: completion fills a dependency version only where the entry's uuid selects exactly one pack, and every judgement about whether a dependency resolves belongs to validation
+  status: proposed
+  falsifiers:
+    - a consumer cannot tell a version completion declined to fill from one the source manifest never had, so completion has to report its own outcome
+    - a dependency version has to be sourced from something other than a uniquely resolving in-workspace pack, making completion itself a resolution judgement

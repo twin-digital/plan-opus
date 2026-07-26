@@ -47,7 +47,8 @@ drifts from the format's answer.
 
 ## Why the chosen rule is the chosen rule
 
-**Chosen: a committed pack manifest with a header uuid and a `data` or `script` module.**
+**Chosen: a committed `behavior_pack/manifest.json` or `resource_pack/manifest.json` in a workspace
+package's source — a fixed-path presence test that reads neither the header uuid nor the modules.**
 
 - It asks the pack what it is. The manifest is the file that makes a directory a pack under the
   format — the same file the server reads to identify and load it. Nothing else in a package is
@@ -55,18 +56,16 @@ drifts from the format's answer.
 - It needs nothing added. A marker field would have to be introduced to every pack and then
   remembered for the next one, and it selects nothing today. The manifest is already there and is
   hand-authored.
-- Reading the module type is what keeps the rule correct as scope grows. Behavior packs are
-  required and other addon content is optional, and a resource pack's manifest is
-  indistinguishable from a behavior pack's until its modules are read — so an unexamined manifest
-  would silently push one into the behavior pool.
-- Requiring the header uuid turns a malformed manifest into a discovery error rather than a pack
-  that fails to load in silence: the activation list keys on that uuid, and the server reports
-  nothing when it is wrong.
+- Both kinds are admitted. The two fixed paths are the whole test, so a resource pack is discovered
+  on the same footing as a behavior pack rather than filtered out.
+- Fixing the paths is what lets the test stay membership-only. Reading the uuid or the module types
+  to decide membership would make a malformed manifest vanish from the result; instead the pack is
+  discovered and its uuid and module problems are reported against it.
 - It is visible before any build, so discovery works on a clean checkout — which a built-output
   rule cannot do.
 
-Cost of being wrong: a committed manifest that is a fixture or a vendored sample is picked up as a
-pack. Discovery lists what it found, so this is visible rather than silent.
+Cost of being wrong: a committed manifest at one of those paths that is a fixture or a vendored
+sample is picked up as a pack. Discovery lists what it found, so this is visible rather than silent.
 
 ## What would move the decision
 
@@ -75,5 +74,5 @@ pack. Discovery lists what it found, so this is visible rather than silent.
   run after a build.
 - A pack has to ship from somewhere that is not a workspace package — membership, not the
   manifest, becomes the binding constraint.
-- Resource packs become required rather than optional — the module-type test stops being a filter
-  and becomes a router with two destinations, each with its own pool and world list.
+- A pack has to live somewhere other than `behavior_pack/` or `resource_pack/` within its package —
+  the fixed-path test stops finding it, and membership has to search for the manifest instead.

@@ -55,6 +55,56 @@
                 copyFiles(params.copyToBehaviorPacks, path.join(deploymentPath, BehaviorPacksPath, projectName));
                 copyFiles(params.copyToScripts, path.join(deploymentPath, BehaviorPacksPath, projectName, 'scripts'));
 
+- id: pnpm-workspace-packages-is-an-include-exclude-glob-list
+  claim: |
+    A `pnpm-workspace.yaml` defines the root of a workspace, and its `packages` field is the list of
+    directory patterns the workspace includes or excludes: a direct subdirectory path, a `*` or `**`
+    glob, or a pattern prefixed with `!` to drop directories an earlier pattern matched. Omitting the
+    field leaves only the root package, and the root package is a member whatever the patterns say.
+  backing: documented
+  sources:
+    - url: https://pnpm.io/pnpm-workspace_yaml
+      where: pnpm-workspace.yaml — opening paragraph, before the example
+      quote: |
+        pnpm-workspace.yaml defines the root of the workspace and enables you to include / exclude
+        directories from the workspace. If the packages field is omitted, only the root package is
+        included in the workspace.
+    - url: https://pnpm.io/pnpm-workspace_yaml
+      where: pnpm-workspace.yaml — the packages example
+      quote: |
+        packages:
+          # specify a package in a direct subdir of the root
+          - 'my-app'
+          # all packages in direct subdirs of packages/
+          - 'packages/*'
+          # all packages in subdirs of components/
+          - 'components/**'
+          # exclude packages that are inside test directories
+          - '!**/test/**'
+    - url: https://pnpm.io/pnpm-workspace_yaml
+      where: pnpm-workspace.yaml — the note following the packages example
+      quote: |
+        The root package is always included, even when custom location wildcards are used.
+
+- id: npm-workspaces-is-an-array-of-paths-or-globs
+  claim: |
+    A root `package.json`'s `workspaces` field is an array of file patterns naming the folders that
+    are the workspace's members; each entry is either a direct path to a folder or a glob that
+    resolves to such folders.
+  backing: documented
+  sources:
+    - url: https://docs.npmjs.com/cli/v10/configuring-npm/package-json
+      where: workspaces — the field's definition
+      quote: |
+        The optional workspaces field is an array of file patterns that describes locations within
+        the local file system that the install client should look up to find each workspace that
+        needs to be symlinked to the top level node_modules folder.
+    - url: https://docs.npmjs.com/cli/v10/configuring-npm/package-json
+      where: workspaces — the sentence following the definition
+      quote: |
+        It can describe either the direct paths of the folders to be used as workspaces or it can
+        define globs that will resolve to these same folders.
+
 - id: manifest-declares-pack-identity-version-and-module-kinds
   claim: |
     A Bedrock add-on pack is defined by its own `manifest.json`: the header's `uuid` uniquely
