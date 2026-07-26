@@ -26,10 +26,8 @@
   claim: |
     Every pack the kit reports carries its owning package, its kind, its source location, and the
     full content of its manifest, including the fields completion populates. It does so from a
-    clean checkout with no build having run. Identity comes from the pack's own manifest; kind
-    comes from the directory the pack was found in, which the manifest must corroborate. The
-    harness can therefore route a pack to a pool and write its activation entry from the pack set
-    alone, without reading a manifest or a directory itself.
+    clean checkout with no build having run. The harness can therefore route a pack to a pool and 
+    write its activation entry from the pack set alone, without reading a manifest or a directory itself.
   backing: documented
   sources:
     - url: design/minecraft/dev-kit/requirements.yaml
@@ -48,12 +46,6 @@
           - its build output location (even if that location is not present because the pack is unbuilt),
           - the full content of its manifest in object form (including content auto-populated as
             described by `r:kit-completes-partial-source-manifests`)
-    - url: design/minecraft/dev-kit/requirements.yaml
-      where: pack-identity-and-kind-declared-only-by-the-manifest
-      quote: |
-        a pack's identity — its uuid, name, and version — comes from its own `manifest.json`. Its kind
-        comes from the directory membership is read from, `behavior_pack/` or `resource_pack/`, and the
-        manifest must corroborate it.
 
 - id: dev-kit-rejects-a-pack-set-with-an-unresolved-identity
   claim: |
