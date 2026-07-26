@@ -49,15 +49,16 @@
 - id: guard-table-from-observation
   statement: |
     per-member behaviour on an invalidated fake comes from a hand-maintained table transcribed
-    from the engine probes, keyed by class and member; a member the table does not cover throws
-    the not-implemented error rather than a guessed engine error
+    from the engine probes, keyed by class and member, recording the members that stay readable
+    and the ones throwing a plain Error; every other behaving member throws InvalidEntityError
   status: tolerated
   falsifiers:
     - a pinned-version bump lands with no server available to re-probe, so the transcribed table
       describes a version the library no longer targets, and a derivation from the `@throws`
       annotations plus a short list of observed exceptions would at least track the declarations
-    - the not-implemented default fires so often on ordinary invalid-reference tests that callers
-      cannot write the try/catch tests the table exists to support
+    - a member the table does not name turns out to stay readable or to throw a plain Error, so
+      the InvalidEntityError fallback reports a guard the engine does not apply and a pack's
+      catch branches on a class the real call would not raise
 
 - id: invalidation-propagates-to-derived-objects
   statement: |
