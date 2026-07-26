@@ -59,10 +59,7 @@
 
 - id: output-root-override-in-package-json
   statement: a package overrides its output root with an mcDevKit.outDir field in its own package.json, resolved relative to the package root
-  status: proposed
-  falsifiers:
-    - the package's build tooling already declares its output directory somewhere the kit could read, making a second declaration a source of drift
-    - a package needs different output roots per pack kind rather than one root per package
+  status: rejected
 
 - id: completion-writes-array-versions
   statement: completion writes versions in the manifest's three-element array form, and a package version that is not three dotted segments is a problem

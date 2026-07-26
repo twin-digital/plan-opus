@@ -144,12 +144,8 @@ fields; every other key in the manifest is carried through exactly as committed 
 Output locations are computed, never probed — the kit reports where a pack's build output belongs
 whether or not it exists, which is what keeps the answer the same on a clean checkout as on a built
 one [[r:packs-enumerable-without-a-build]]. The package's output root is `dist/`
-[[r:built-output-defaults-to-dist]], which a package overrides with an `mcDevKit.outDir` field in its
-own `package.json` resolved relative to the package root, keeping the override in the same file the
-rest of the package's identity comes from [[d:output-root-override-in-package-json]]; an override
-that is not a string, or that resolves outside the package, is a problem and the default stands.
-Within that root the pack sits in a kind-named subdirectory mirroring its source layout, so the path
-is a pure function of the package root, the override, and the kind
+[[r:built-output-defaults-to-dist]]. Within that root the pack sits in a kind-named subdirectory
+mirroring its source layout, so the path is a pure function of the package root and the kind
 [[r:built-output-mirrors-the-source-layout]]. That kind is the source directory's, not the manifest's:
 mirroring means the output sits where the source sat, so a pack whose manifest disagrees with the
 directory it lives in still builds into the directory it came from
@@ -168,7 +164,6 @@ The union is closed, so it is enumerated here in full — every code, and the co
 | code | raised when | raised by |
 |---|---|---|
 | `package-json-unparseable` | a candidate directory holds a `package.json` that does not parse | `workspace-enumerator` |
-| `out-dir-invalid` | `mcDevKit.outDir` is not a string, or resolves outside the package | `pack-locator` |
 | `manifest-unparseable` | a pack's `manifest.json` is not valid JSON | `manifest-reader` |
 | `manifest-shape-invalid` | the parsed manifest misses the shape floor below | `manifest-reader` |
 | `module-type-unrecognised` | a module declares a `type` outside `data`, `script`, and `resources` | `kind-deriver` |
