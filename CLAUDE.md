@@ -34,3 +34,19 @@ be cited, so every citation of it moves to the replacement.
 
 Proposed and retired facts are input changes and get owner review: the PR description must call
 each one out.
+
+## Requirements are the owner's
+
+A requirement is something the owner would reverse a spec decision over. Anything else — however
+true — is a decision the spec makes and defends. Requirements are stated in a sentence or two; one
+needing paragraphs of carve-outs is a decision wearing the wrong hat.
+
+Building to the requirements as written is the default. An agent may flag a requirement it cannot
+satisfy — once, with the measurement that shows the cost: a count, a failed build, a number. It may
+propose a requirement the way it proposes a fact, as an input change called out in the PR
+description.
+
+An agent may not reopen a requirement because its prose reads inconsistently with another's,
+because a rationale no longer matches a superseded regime, or because a better framing suggests
+itself. A fact that contradicts a requirement is still a stop-and-ask; an opinion about phrasing is
+not. Finding nothing to raise is a successful review.
