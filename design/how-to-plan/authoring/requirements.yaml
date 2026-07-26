@@ -3,6 +3,30 @@
 # rationale is always a block scalar. Requirements take no sources.
 # Promote to design/how-to-plan/requirements.yaml when a second design depends on one.
 
+- id: requirements-are-owner-reversal-calls
+  statement: |
+    a requirement states something the owner would reverse a spec decision over. A statement
+    that would not survive that test is design work, and belongs in the spec as a decision that
+    can be argued with rather than in the file of inputs
+  rationale: |
+    The file an owner has to trust is only readable if everything in it is theirs to decide.
+    Design work hoisted into requirements — to settle it, or to keep it from being reopened —
+    costs the owner the review they kept the file for.
+
+- id: a-requirement-is-a-sentence-or-two
+  statement: |
+    a requirement is stated in a sentence or two, carrying no carve-outs, exceptions, or
+    absolutes qualified in a later paragraph; one that needs them is over-specified, and the
+    excess is a spec decision that moves there
+
+- id: rationale-records-what-a-reversal-would-cost
+  statement: |
+    a requirement carries a rationale only where reversing it casually would be a mistake its
+    statement alone does not warn of; the rationale never argues that the requirement is correct
+  rationale: |
+    An argument invites the argument back. Rationale prose is also what drifts from a statement
+    as a design moves, making a requirement read as inconsistent when it is only old.
+
 - id: decisions-state-their-falsifier
   statement: a decision that cannot say what would prove it wrong is not reviewable, and does not belong on the list
   rationale: |
@@ -126,9 +150,10 @@
 - id: a-rule-binds-the-writer-of-what-it-governs
   statement: |
     a content rule binds whoever writes the entry it governs: the evidence rules bind a fact's
-    author when the fact is captured, while the citation, restatement, Summary, and falsifier
-    rules bind the author of the spec and its decisions. A spec author builds on facts already
-    held to the evidence rules rather than re-deriving them
+    author when the fact is captured and the requirement-content rules bind whoever writes a
+    requirement, while the citation, restatement, Summary, and falsifier rules bind the author of
+    the spec and its decisions. A spec author builds on facts and requirements already held to
+    their own rules rather than re-deriving or reopening them
   rationale: |
     Facts are inputs, written before and outside the spec that leans on them, so the rule that
     governs a fact binds its capture, not the later spec author who only consumes it.
