@@ -1,0 +1,17 @@
+## tsc --noEmit on component-ids-probe.ts (strict)
+
+$ npx tsc --noEmit --strict --module node16 --moduleResolution node16 --target es2022 component-ids-probe.ts
+exit 0, no diagnostics
+
+The file contains three @ts-expect-error directives; an unused one is itself an error,
+so exit 0 means all three negative probes genuinely failed to type-check:
+33:// @ts-expect-error a non-attribute component id is not in the attribute subset
+35:// @ts-expect-error a typo is not a component id
+37:// @ts-expect-error a bare id is not canonical
+
+## Whole-project run (tsconfig.json includes *.ts: assignability-probe.ts, component-ids-probe.ts)
+
+$ npx tsc --noEmit
+exit 0, no diagnostics
+
+@minecraft/server 2.8.0, typescript 5.9.3

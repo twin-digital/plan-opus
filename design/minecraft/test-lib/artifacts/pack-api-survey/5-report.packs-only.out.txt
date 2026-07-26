@@ -1,0 +1,820 @@
+# @minecraft/server usage across 98 public behavior-pack repositories
+kind filter: pack
+@minecraft/server declarations used for classification: 2.8.0
+total non-blank source lines analysed: 347361
+
+## Sample composition
+
+measure                              value
+-----------------------------------  -----
+repositories                            98
+tagged pack                             98
+tagged library/framework                 0
+TypeScript sources                      41
+JavaScript sources                      57
+0 stars                                 28
+1-9 stars                               55
+10+ stars                               15
+median non-blank source lines         1200
+median distinct event subscriptions      4
+
+## API area, by number of repositories that reference it (imports, component ids, event subscriptions, and method calls)
+
+area                         group  repos  share  refs
+----------------  ----------------  -----  -----  ----
+world-system           other-group     92    94%  2120
+event                  other-group     92    94%  1415
+dimension              other-group     74    76%  1626
+player                entity-group     73    74%   987
+entity-component      entity-group     71    72%  1620
+block             item-block-group     54    55%  2182
+container         item-block-group     53    54%  1410
+item              item-block-group     49    50%   332
+player-ui              other-group     43    44%   398
+other                  other-group     43    44%   326
+entity                entity-group     31    32%   139
+scoreboard             other-group     30    31%   688
+item-component    item-block-group     27    28%   446
+structure              other-group     12    12%    74
+effect                entity-group     12    12%    60
+block-component   item-block-group     10    10%    15
+loot                   other-group      2     2%    19
+error                  other-group      2     2%    17
+
+## Imported symbols from @minecraft/server
+
+symbol                                                area  repos  share  refs
+------------------------------------  --------------------  -----  -----  ----
+system                                value/enum/interface     91    93%   913
+world                                 value/enum/interface     87    89%  1067
+Player                                              player     61    62%   650
+ItemStack                                             item     47    48%   274
+GameMode                              value/enum/interface     30    31%   109
+Entity                                              entity     29    30%   132
+EquipmentSlot                         value/enum/interface     28    29%    62
+Block                                                block     27    28%    92
+Vector3                               value/enum/interface     25    26%   115
+Dimension                                        dimension     25    26%    71
+CommandPermissionLevel                value/enum/interface     24    24%    76
+EntityComponentTypes                  value/enum/interface     23    23%    76
+BlockPermutation                                     block     23    23%    58
+CustomCommandStatus                   value/enum/interface     21    21%   122
+CustomCommandParamType                value/enum/interface     21    21%    72
+RawMessage                            value/enum/interface     17    17%    48
+Container                                        container     16    16%    26
+EntityInventoryComponent                  entity-component     14    14%    40
+CustomCommandOrigin                                  other     14    14%    25
+MolangVariableMap                                    other     13    13%    27
+ItemLockMode                          value/enum/interface     12    12%    31
+InputPermissionCategory               value/enum/interface     12    12%    20
+EntityEquippableComponent                 entity-component     11    11%    19
+BlockTypes                                           block     11    11%    17
+ItemTypes                                             item     10    10%    19
+Direction                             value/enum/interface     10    10%    19
+ScriptEventCommandMessageAfterEvent                  event     10    10%    17
+EnchantmentTypes                                      item     10    10%    16
+ScoreboardObjective                             scoreboard     10    10%    14
+TicksPerSecond                        value/enum/interface      9     9%    41
+EntityDamageCause                     value/enum/interface      9     9%    22
+ItemComponentTypes                    value/enum/interface      9     9%    15
+EnchantmentType                                       item      9     9%    12
+EntityHealthComponent                     entity-component      8     8%    13
+ScriptEventSource                     value/enum/interface      8     8%    11
+BlockVolume                                          block      8     8%    10
+CustomCommandSource                   value/enum/interface      8     8%     8
+Vector2                               value/enum/interface      7     7%    16
+DisplaySlotId                         value/enum/interface      7     7%    14
+CustomCommandResult                   value/enum/interface      7     7%    12
+ItemUseBeforeEvent                                   event      7     7%    11
+DimensionLocation                     value/enum/interface      7     7%    11
+World                                         world-system      6     6%    16
+BlockCustomComponent                  value/enum/interface      6     6%    16
+EffectTypes                                         effect      6     6%    11
+PlayerSpawnAfterEvent                                event      6     6%     9
+ChatSendBeforeEvent                   value/enum/interface      6     6%     8
+ItemDurabilityComponent                     item-component      6     6%     8
+DimensionTypes                                   dimension      6     6%     7
+WeatherType                           value/enum/interface      6     6%     7
+ItemEnchantableComponent                    item-component      6     6%     7
+EntitySpawnAfterEvent                                event      6     6%     6
+EntityDieAfterEvent                                  event      5     5%     8
+HudElement                            value/enum/interface      5     5%     7
+InputButton                           value/enum/interface      5     5%     6
+EasingType                            value/enum/interface      5     5%     6
+BlockComponentPlayerInteractEvent                    event      4     4%    10
+PlayerLeaveAfterEvent                                event      4     4%     9
+RawText                               value/enum/interface      4     4%     9
+EntityQueryOptions                    value/enum/interface      4     4%     9
+BlockComponentOnPlaceEvent                           event      4     4%     9
+StructureSaveMode                     value/enum/interface      4     4%     8
+CustomCommandRegistry                                other      4     4%     6
+EntityHurtAfterEvent                                 event      4     4%     5
+BlockRaycastHit                       value/enum/interface      4     4%     5
+CustomCommand                         value/enum/interface      4     4%     5
+PlayerBreakBlockAfterEvent                           event      4     4%     5
+ButtonState                           value/enum/interface      4     4%     4
+TeleportOptions                       value/enum/interface      4     4%     4
+EntityTypes                                         entity      4     4%     4
+BlockInventoryComponent                    block-component      4     4%     4
+ObjectiveSortOrder                    value/enum/interface      3     3%     8
+BlockComponentRandomTickEvent                        event      3     3%     8
+BlockComponentPlayerBreakEvent                       event      3     3%     8
+ItemCustomComponent                   value/enum/interface      3     3%     8
+PlayerBreakBlockBeforeEvent                          event      3     3%     7
+PlayerPermissionLevel                 value/enum/interface      3     3%     4
+ItemUseAfterEvent                                    event      3     3%     4
+HudVisibility                         value/enum/interface      3     3%     4
+Effect                                              effect      3     3%     4
+EffectType                                          effect      3     3%     4
+ScoreboardIdentity                              scoreboard      3     3%     4
+System                                        world-system      3     3%     4
+RGBA                                  value/enum/interface      3     3%     4
+VectorXZ                              value/enum/interface      3     3%     4
+BlockType                                            block      3     3%     4
+ItemCompleteUseAfterEvent                            event      3     3%     4
+EntityHitEntityAfterEvent                            event      3     3%     4
+StartupEvent                                         event      3     3%     4
+InputMode                             value/enum/interface      3     3%     3
+EntityItemComponent                       entity-component      3     3%     3
+MemoryTier                            value/enum/interface      3     3%     3
+PlatformType                          value/enum/interface      3     3%     3
+ExplosionOptions                      value/enum/interface      3     3%     3
+BlockRaycastOptions                   value/enum/interface      3     3%     3
+EntityRaycastHit                      value/enum/interface      3     3%     3
+BlockComponentTypes                   value/enum/interface      3     3%     3
+ScoreboardIdentityType                value/enum/interface      3     3%     3
+BlockComponentPlayerPlaceBeforeEvent                 event      3     3%     3
+PlayerLeaveBeforeEvent                               event      3     3%     3
+ContainerSlot                                    container      2     2%    25
+MinecraftDimensionTypes               value/enum/interface      2     2%    10
+StructureRotation                     value/enum/interface      2     2%     9
+BlockStates                                          block      2     2%     6
+BlockComponentBlockBreakEvent                        event      2     2%     6
+ChatSendAfterEvent                    value/enum/interface      2     2%     5
+ItemComponentUseOnEvent                              event      2     2%     4
+VanillaEntityIdentifier               value/enum/interface      2     2%     4
+TimeOfDay                             value/enum/interface      2     2%     3
+StructureAnimationMode                value/enum/interface      2     2%     3
+Enchantment                           value/enum/interface      2     2%     3
+CameraFadeOptions                     value/enum/interface      2     2%     3
+PlayerInteractWithBlockBeforeEvent                   event      2     2%     3
+PlayerInteractWithEntityBeforeEvent                  event      2     2%     3
+PlayerPlaceBlockBeforeEvent           value/enum/interface      2     2%     3
+StructureMirrorAxis                   value/enum/interface      2     2%     3
+EntityType                                          entity      2     2%     3
+BlockComponentTickEvent                              event      2     2%     3
+PlayerSoundOptions                    value/enum/interface      2     2%     3
+LiquidType                            value/enum/interface      2     2%     2
+EntityComponent                           entity-component      2     2%     2
+EntityVariantComponent                    entity-component      2     2%     2
+ItemCooldownComponent                       item-component      2     2%     2
+RGB                                   value/enum/interface      2     2%     2
+WorldSoundOptions                     value/enum/interface      2     2%     2
+PistonActivateAfterEvent                             event      2     2%     2
+EntityHealthChangedAfterEvent                        event      2     2%     2
+PlayerPlaceBlockAfterEvent                           event      2     2%     2
+
+## Component ids, normalised over the optional minecraft: prefix
+
+component id                              on  repos  share  refs
+----------------------------  --------------  -----  -----  ----
+inventory                             entity     53    54%   452
+equippable                            entity     34    35%   234
+health                                entity     26    27%    98
+enchantable                             item     18    18%   108
+durability                              item     18    18%    71
+item                                  entity     11    11%    43
+type_family                           entity      7     7%    38
+projectile                            entity      7     7%    11
+variant                               entity      6     6%     8
+riding                                entity      4     4%     6
+rideable                              entity      3     3%    15
+enchantments                  custom/unknown      3     3%    11
+tameable                              entity      3     3%     7
+utilitycraft:mesh             custom/unknown      2     2%     7
+onfire                                entity      2     2%     5
+utilitycraft:machine_recipes  custom/unknown      2     2%     4
+movement                              entity      2     2%     3
+cursor_inventory                      entity      2     2%     2
+is_tamed                              entity      2     2%     2
+ender_inventory                       entity      2     2%     2
+sign                                   block      2     2%     2
+equipment_inventory           custom/unknown      1     1%     6
+mark_variant                          entity      1     1%     6
+grenade                       custom/unknown      1     1%     6
+gun_fire                      custom/unknown      1     1%     5
+gun_magazine                  custom/unknown      1     1%     5
+is_saddled                            entity      1     1%     4
+npc                           custom/unknown      1     1%     3
+book                                    item      1     1%     3
+utilitycraft:fishing_net      custom/unknown      1     1%     2
+villager                      custom/unknown      1     1%     2
+skin_id                               entity      1     1%     2
+exnihilo:falling_block        custom/unknown      1     1%     2
+exnihilo:falling_layer_block  custom/unknown      1     1%     2
+exnihilo:mesh                 custom/unknown      1     1%     2
+exnihilo:sieve                custom/unknown      1     1%     2
+gun_reload                    custom/unknown      1     1%     2
+item_weight                   custom/unknown      1     1%     2
+player.hunger                         entity      1     1%     1
+utilitycraft:hoe              custom/unknown      1     1%     1
+utilitycraft:block_loot       custom/unknown      1     1%     1
+potion                                  item      1     1%     1
+replaceable                   custom/unknown      1     1%     1
+entity                        custom/unknown      1     1%     1
+gun_damage                    custom/unknown      1     1%     1
+projectile_rebound            custom/unknown      1     1%     1
+gun_recoil                    custom/unknown      1     1%     1
+gun                           custom/unknown      1     1%     1
+gun_offset                    custom/unknown      1     1%     1
+
+## Component ids exactly as written (get/has/add/removeComponent)
+
+component id                        on  repos  share  refs
+-----------------------------  -------  -----  -----  ----
+minecraft:inventory             entity     34    35%   211
+inventory                       entity     30    31%   241
+minecraft:equippable            entity     23    23%    65
+equippable                      entity     15    15%   169
+minecraft:enchantable             item     15    15%    86
+minecraft:health                entity     15    15%    41
+minecraft:durability              item     15    15%    32
+health                          entity     13    13%    57
+durability                        item      8     8%    39
+minecraft:item                  entity      8     8%    34
+enchantable                       item      7     7%    22
+item                            entity      6     6%     9
+minecraft:type_family           entity      5     5%    31
+minecraft:projectile            entity      5     5%     8
+minecraft:riding                entity      4     4%     6
+minecraft:variant               entity      4     4%     5
+minecraft:rideable              entity      3     3%    15
+enchantments                   unknown      3     3%     7
+type_family                     entity      3     3%     7
+minecraft:tameable              entity      3     3%     7
+projectile                      entity      3     3%     3
+utilitycraft:mesh              unknown      2     2%     7
+minecraft:enchantments         unknown      2     2%     4
+utilitycraft:machine_recipes   unknown      2     2%     4
+variant                         entity      2     2%     3
+minecraft:ender_inventory       entity      2     2%     2
+minecraft:sign                   block      2     2%     2
+minecraft:equipment_inventory  unknown      1     1%     6
+minecraft:mark_variant          entity      1     1%     6
+grenade                        unknown      1     1%     6
+gun_fire                       unknown      1     1%     5
+gun_magazine                   unknown      1     1%     5
+minecraft:is_saddled            entity      1     1%     4
+onfire                          entity      1     1%     4
+npc                            unknown      1     1%     3
+minecraft:book                    item      1     1%     3
+utilitycraft:fishing_net       unknown      1     1%     2
+minecraft:villager             unknown      1     1%     2
+skin_id                         entity      1     1%     2
+exnihilo:falling_block         unknown      1     1%     2
+exnihilo:falling_layer_block   unknown      1     1%     2
+exnihilo:mesh                  unknown      1     1%     2
+exnihilo:sieve                 unknown      1     1%     2
+gun_reload                     unknown      1     1%     2
+movement                        entity      1     1%     2
+item_weight                    unknown      1     1%     2
+minecraft:cursor_inventory      entity      1     1%     1
+minecraft:player.hunger         entity      1     1%     1
+utilitycraft:hoe               unknown      1     1%     1
+utilitycraft:block_loot        unknown      1     1%     1
+minecraft:potion                  item      1     1%     1
+minecraft:is_tamed              entity      1     1%     1
+cursor_inventory                entity      1     1%     1
+minecraft:replaceable          unknown      1     1%     1
+minecraft:onfire                entity      1     1%     1
+is_tamed                        entity      1     1%     1
+minecraft:movement              entity      1     1%     1
+entity                         unknown      1     1%     1
+gun_damage                     unknown      1     1%     1
+projectile_rebound             unknown      1     1%     1
+gun_recoil                     unknown      1     1%     1
+gun                            unknown      1     1%     1
+gun_offset                     unknown      1     1%     1
+
+## Event subscriptions
+
+event                                                     payload areas  repos  share  refs
+------------------------------------------------  ---------------------  -----  -----  ----
+world.afterEvents.playerSpawn                                    player     42    43%    99
+system.beforeEvents.startup                                           -     38    39%    70
+world.afterEvents.worldLoad                                           -     33    34%    83
+system.afterEvents.scriptEventReceive                      entity,block     32    33%   116
+world.afterEvents.itemUse                                   item,player     31    32%    78
+world.afterEvents.entityDie                                      entity     27    28%    55
+world.beforeEvents.chatSend                                     UNKNOWN     24    24%    86
+world.beforeEvents.itemUse                                  item,player     24    24%    53
+world.afterEvents.playerPlaceBlock                         player,block     23    23%    44
+world.afterEvents.playerLeave                                         -     22    22%    53
+world.beforeEvents.playerBreakBlock                   item,player,block     21    21%    50
+world.afterEvents.entitySpawn                                    entity     21    21%    42
+world.beforeEvents.playerInteractWithBlock            block,item,player     19    19%    43
+world.afterEvents.entityHurt                                     entity     18    18%    48
+world.afterEvents.playerBreakBlock                    block,item,player     18    18%    38
+world.afterEvents.entityHitEntity                                entity     16    16%    41
+world.beforeEvents.playerLeave                                   player     15    15%    21
+world.afterEvents.playerJoin                                          -     13    13%    29
+world.beforeEvents.playerInteractWithEntity          item,player,entity     11    11%    25
+world.afterEvents.playerInteractWithEntity           item,player,entity     11    11%    20
+world.beforeEvents.playerPlaceBlock                             UNKNOWN      9     9%    28
+world.beforeEvents.itemUseOn                                    UNKNOWN      9     9%    16
+world.beforeEvents.entityHurt                                    entity      8     8%    12
+world.afterEvents.playerInteractWithBlock             item,block,player      8     8%    12
+world.afterEvents.itemCompleteUse                           item,player      7     7%    11
+world.afterEvents.worldInitialize                               UNKNOWN      7     7%    10
+world.beforeEvents.explosion                                     entity      7     7%     9
+system.beforeEvents.watchdogTerminate                           UNKNOWN      6     6%    12
+world.afterEvents.dataDrivenEntityTrigger                        entity      6     6%    12
+world.afterEvents.chatSend                                      UNKNOWN      6     6%    11
+world.afterEvents.pistonActivate                  block-component,block      6     6%     7
+world.afterEvents.itemStopUse                               item,player      5     5%    12
+world.afterEvents.entityHitBlock                           entity,block      5     5%     6
+world.afterEvents.playerDimensionChange                          player      5     5%     5
+world.afterEvents.entityRemove                                        -      4     4%    13
+world.afterEvents.playerHotbarSelectedSlotChange            item,player      4     4%     9
+system.beforeEvents.shutdown                                          -      4     4%     8
+world.afterEvents.itemReleaseUse                            item,player      4     4%     6
+world.afterEvents.itemStartUse                              item,player      4     4%     4
+world.beforeEvents.entityItemPickup                              entity      4     4%     4
+world.afterEvents.weatherChange                                       -      4     4%     4
+world.beforeEvents.entityRemove                                  entity      4     4%     4
+world.afterEvents.projectileHitEntity                            entity      3     3%     5
+world.afterEvents.playerGameModeChange                           player      3     3%     4
+world.afterEvents.projectileHitBlock                             entity      3     3%     4
+world.beforeEvents.worldInitialize                              UNKNOWN      3     3%     4
+world.afterEvents.entityHealthChanged                            entity      3     3%     4
+world.afterEvents.explosion                                      entity      3     3%     3
+world.afterEvents.leverAction                              player,block      3     3%     3
+world.afterEvents.playerEmote                                    player      2     2%     4
+world.afterEvents.playerInventoryItemChange                 item,player      2     2%     3
+world.afterEvents.entityLoad                                     entity      2     2%     2
+world.afterEvents.effectAdd                               effect,entity      2     2%     2
+world.afterEvents.entityItemDrop                                 entity      2     2%     2
+world.afterEvents.blockExplode                             block,entity      2     2%     2
+world.afterEvents.itemUseOn                                     UNKNOWN      2     2%     2
+world.afterEvents.buttonPush                               entity,block      2     2%     2
+world.afterEvents.entityContainerOpened                          entity      1     1%     3
+world.afterEvents.entityContainerClosed                          entity      1     1%     2
+world.beforeEvents.roleChange                                   UNKNOWN      1     1%     2
+world.afterEvents.playerSwingStart                          item,player      1     1%     1
+world.afterEvents.gameRuleChange                                      -      1     1%     1
+world.afterEvents.entityHeal                                     entity      1     1%     1
+world.afterEvents.entityItemPickup                          entity,item      1     1%     1
+world.afterEvents.pressurePlatePush                        entity,block      1     1%     1
+world.afterEvents.itemStartUseOn                      block,item,player      1     1%     1
+world.afterEvents.playerButtonInput                              player      1     1%     1
+
+## Method calls attributed to exactly one API area (inferred, no receiver type)
+
+member                                   area                                                               declared on  repos  share  refs
+---------------------------  ----------------  ------------------------------------------------------------------------  -----  -----  ----
+runInterval                      world-system                                                                    System     68    69%   369
+getDimension                     world-system                                                                     World     60    61%   372
+runTimeout                       world-system                                                                    System     57    58%   534
+getBlock                            dimension                                                                 Dimension     49    50%   629
+getItem                             container                                                   Container/ContainerSlot     48    49%   623
+setItem                             container                                                   Container/ContainerSlot     43    44%   623
+getEntities                         dimension                                                                 Dimension     43    44%   311
+getAllPlayers                    world-system                                                                     World     41    42%   289
+setActionBar                        player-ui                                                             ScreenDisplay     41    42%   285
+clearRun                         world-system                                                                    System     41    42%   200
+getEquipment                 entity-component                                                 EntityEquippableComponent     33    34%   222
+getGameMode                            player                                                                    Player     32    33%   135
+spawnEntity                         dimension                                                                 Dimension     32    33%   130
+setPermutation                          block                                                                     Block     31    32%   455
+getObjective                       scoreboard                                                                Scoreboard     30    31%   182
+registerCommand                         other                                                     CustomCommandRegistry     30    31%    65
+setEquipment                 entity-component                                                 EntityEquippableComponent     28    29%   163
+setScore                           scoreboard                                                       ScoreboardObjective     26    27%    92
+spawnItem                           dimension                                                                 Dimension     25    26%   182
+addObjective                       scoreboard                                                                Scoreboard     25    26%    53
+withState                               block                                                          BlockPermutation     22    22%   415
+getScore                           scoreboard                                                       ScoreboardObjective     20    20%   126
+registerEnum                            other                                                     CustomCommandRegistry     19    19%    25
+getState                                block                                                          BlockPermutation     18    18%   320
+setType                                 block                                                                     Block     18    18%   158
+getAllStates                            block                                                          BlockPermutation     16    16%    66
+setGameMode                            player                                                                    Player     16    16%    56
+below                                   block                                                                     Block     15    15%    64
+above                                   block                                                                     Block     15    15%    62
+setTitle                            player-ui                                                             ScreenDisplay     15    15%    32
+addEnchantment                 item-component                                                  ItemEnchantableComponent     14    14%   139
+getSlot                             container                                                                 Container     14    14%    40
+getParticipants                    scoreboard                                            Scoreboard/ScoreboardObjective     13    13%    72
+setPermissionCategory                  player                                                    PlayerInputPermissions     13    13%    54
+getEnchantments                item-component                                                  ItemEnchantableComponent     13    13%    45
+removeParticipant                  scoreboard                                                       ScoreboardObjective     13    13%    28
+removeObjective                    scoreboard                                                                Scoreboard     13    13%    25
+setCurrentValue              entity-component  EntityAttributeComponent/EntityExhaustionComponent/EntityHealthComponent     12    12%    25
+clearAll                            container                                                                 Container     12    12%    24
+getEntitiesAtBlockLocation          dimension                                                                 Dimension     11    11%   132
+waitTicks                        world-system                                                                    System     11    11%    93
+setBlockType                        dimension                                                                 Dimension     11    11%    61
+place                               structure                                                          StructureManager     11    11%    50
+north                                   block                                                                     Block     11    11%    33
+east                                    block                                                                     Block     11    11%    33
+south                                   block                                                                     Block     11    11%    33
+west                                    block                                                                     Block     11    11%    33
+getObjectives                      scoreboard                                                                Scoreboard     11    11%    18
+runJob                           world-system                                                                    System     10    10%    60
+hasItem                             container                                                             ContainerSlot     10    10%    28
+getEquipmentSlot             entity-component                                                 EntityEquippableComponent     10    10%    22
+setFloat                                other                                                         MolangVariableMap      9     9%    75
+sendScriptEvent                  world-system                                                                    System      9     9%    57
+addScore                           scoreboard                                                       ScoreboardObjective      9     9%    27
+getTimeOfDay                     world-system                                                                     World      9     9%    17
+addExperience                          player                                                                    Player      9     9%    17
+getTopmostBlock                     dimension                                                                 Dimension      9     9%    17
+setObjectiveAtDisplaySlot          scoreboard                                                                Scoreboard      9     9%    14
+getBlockFromRay                     dimension                                                                 Dimension      8     8%    19
+getDefaultSpawnLocation          world-system                                                                     World      8     8%    15
+getItemStack                            block                                                    Block/BlockPermutation      8     8%    15
+getSpawnPoint                          player                                                                    Player      8     8%    11
+getImpactedBlocks                       event                                  ExplosionAfterEvent/ExplosionBeforeEvent      8     8%    11
+setCamera                           player-ui                                                                    Camera      7     7%    23
+addLevels                              player                                                                    Player      7     7%    17
+createExplosion                     dimension                                                                 Dimension      7     7%    11
+clearObjectiveAtDisplaySlot        scoreboard                                                                Scoreboard      7     7%    10
+setSpawnPoint                          player                                                                    Player      7     7%     9
+hasTypeFamily                entity-component                                                 EntityTypeFamilyComponent      6     6%   115
+getEnchantment                 item-component                                                  ItemEnchantableComponent      6     6%    24
+clearJob                         world-system                                                                    System      6     6%    17
+fade                                player-ui                                                                    Camera      6     6%    17
+offset                                  block                                                                     Block      6     6%    13
+fillBlocks                          dimension                                                                 Dimension      6     6%     9
+setHudVisibility                    player-ui                                                             ScreenDisplay      6     6%     9
+addEnchantments                item-component                                                  ItemEnchantableComponent      6     6%     9
+setTimeOfDay                     world-system                                                                     World      6     6%     8
+scale                                   other                                              PrimitiveShape/TextPrimitive      5     5%    41
+getTotalXp                             player                                                                    Player      5     5%    17
+canAddEnchantment              item-component                                                  ItemEnchantableComponent      5     5%     9
+createFromWorld                     structure                                                          StructureManager      5     5%     9
+createTickingArea                       other                                                        TickingAreaManager      5     5%     5
+getName                                effect                                                                EffectType      4     4%    38
+transferItem                        container                                                                 Container      4     4%    10
+setColorRGBA                            other                                                         MolangVariableMap      4     4%    10
+hasParticipant                     scoreboard                                                       ScoreboardObjective      4     4%    10
+setVector3                              other                                                         MolangVariableMap      4     4%    10
+getButtonState                      player-ui                                                                 InputInfo      4     4%     7
+hideAllExcept                       player-ui                                                             ScreenDisplay      4     4%     7
+setImpactedBlocks                       event                                                      ExplosionBeforeEvent      4     4%     7
+setWeather                          dimension                                                                 Dimension      4     4%     6
+getScores                          scoreboard                                                       ScoreboardObjective      4     4%     6
+getWorldStructureIds                structure                                                          StructureManager      4     4%     5
+removeTickingArea                       other                                                        TickingAreaManager      4     4%     5
+shoot                        entity-component                                                 EntityProjectileComponent      4     4%     5
+getBlocks                           dimension                                                                 Dimension      4     4%     4
+updateSubtitle                      player-ui                                                             ScreenDisplay      4     4%     4
+getBiome                            dimension                                                                 Dimension      3     3%    33
+getAbsoluteTime                  world-system                                                                     World      3     3%    11
+getRiders                    entity-component                                                   EntityRideableComponent      3     3%    11
+bottomCenter                            block                                                                     Block      3     3%     9
+setColorRGB                             other                                                         MolangVariableMap      3     3%     6
+defaultValue                 entity-component  EntityAttributeComponent/EntityExhaustionComponent/EntityHealthComponent      3     3%     5
+contains                            container                                                                 Container      3     3%     5
+getEntityHit                            event                                             ProjectileHitEntityAfterEvent      3     3%     5
+removeEnchantment              item-component                                                  ItemEnchantableComponent      3     3%     4
+setWaterlogged                          block                                                                     Block      3     3%     4
+getAttachedBlocksLocations    block-component                                                      BlockPistonComponent      3     3%     3
+resetLevel                             player                                                                    Player      3     3%     3
+setDefaultSpawnLocation          world-system                                                                     World      3     3%     3
+removeAllEnchantments          item-component                                                  ItemEnchantableComponent      3     3%     3
+
+## Headline: how many repositories the item/block/container gap reaches
+
+touch test                                                                touch  share  untouched  share
+------------------------------------------------------------------------  -----  -----  ---------  -----
+unambiguous only (imports, static refs, item/block component ids)            67    68%         31    32%
++ member accesses attributed to item/block/container                         75    77%         23    23%
++ subscribes to an event whose payload exposes ItemStack/Block/Container     86    88%         12    12%
+
+repositories with no item/block/container reference under the strictest test (fully served by a fake without them):
+  Imeaces/YoniMC (5*, 588 lines, pack)
+  IndeedItzGab/Spawn-Randomizer (3*, 423 lines, pack)
+  colemad/Web-database (2*, 340 lines, pack)
+  IndeedItzGab/EssentialCC (2*, 1563 lines, pack)
+  Takkunlego0916/Easy-BAN-Addon (1*, 225 lines, pack)
+  ypacks/do-every (1*, 173 lines, pack)
+  blochsam/pokebedrock-3d-spawn-filter (1*, 750 lines, pack)
+  pyuagotto/Ban-Addon (1*, 225 lines, pack)
+  mygen/BedrockWorldBorder (1*, 794 lines, pack)
+  BohdanQQ/mc-bedrock-mini-teleport (0*, 384 lines, pack)
+  pyuagotto/TPA-Addon (0*, 241 lines, pack)
+  Myneedsad/addon-Tag-Effect (0*, 394 lines, pack)
+
+measure                                                            value
+-----------------------------------------------------------------  -----
+median source lines, repositories that touch item/block/container   1532
+median source lines, repositories that do not                        394
+largest repository that does not, in source lines                   1563
+
+## Which half of the gap each repository needs
+
+requirement                                           repos  share
+----------------------------------------------------  -----  -----
+needs items (ItemStack, item components, containers)     77    79%
+needs blocks (Block, permutations, block components)     75    77%
+needs both                                               66    67%
+needs items only                                         11    11%
+needs blocks only                                         9     9%
+needs neither (served by the v1 surface)                 12    12%
+
+fake surface          repos fully covered  share
+--------------------  -------------------  -----
+v1 surface as scoped                   12    12%
+v1 + items                             23    23%
+v1 + blocks                            21    21%
+v1 + items + blocks                    98   100%
+
+## Entity/component/effect group vs item/block/container group
+
+group                                                              repos  share
+-----------------------------------------------------------------  -----  -----
+entity-group (Entity, Player, entity components, effects)             91    93%
+item-block-group (ItemStack, Block, containers, their components)     75    77%
+
+## Surface absent from v1, by repositories that reach for it
+
+absent surface                                          repos  share
+------------------------------------------------------  -----  -----
+System scheduling (runInterval, runTimeout, ...)           82    84%
+beforeEvents subscriptions                                 75    77%
+items, item components, containers                         60    61%
+blocks, permutations, block components                     55    56%
+player client surface (ScreenDisplay, Camera, ...)         43    44%
+static type registries                                     40    41%
+startup phase and custom command/component registries      39    40%
+scoreboard reads/writes (built in v1, members stubbed)     30    31%
+structures                                                 12    12%
+loot tables                                                 2     2%
+
+repositories touching none of the above: 1 (1%)
+  Imeaces/YoniMC (5*, 588 lines)
+
+## Per-repository summary
+
+repository                                               kind  stars  lines  events  components  item/block      commit
+-------------------------------------------------------  ----  -----  -----  ------  ----------  ----------  ----------
+Scythe-Anticheat/Scythe-Anticheat                        pack    175   3915      17           6         yes  9e9d635b7d
+tutinoko2048/TNAntiCheat                                 pack     46   4742      19           6         yes  895147a911
+ForestOfLight/Construct                                  pack     40   3938      11           2         yes  28588f8a8f
+ForestOfLight/Understudy                                 pack     39   5289       8           3         yes  1382e26ea0
+ShapescapeMC/Educator-Tools                              pack     27   8593      10           2         yes  ec99478640
+AvionBlock/VoiceCraft.Addon                              pack     22   5156       4           0       event  66185b51d3
+jasonjgardner/minecraft-rtx-rainbow                      pack     21    343       4           0         yes  24e94abacb
+BlaizerBrumo/SafeGuard                                   pack     20   2156       9           7         yes  9f78f03d43
+JaylyDev/terminator                                      pack     20   3325       6           3         yes  5e5b4ee0b6
+theaddonn/WGE                                            pack     19   2072       4           0         yes  3b64aa98ca
+conmaster2112/con-database                               pack     18    873       1           1         yes  b385b3e129
+conmaster2112/procedular-world-gen-script-api            pack     15    893       4           0         yes  7b5eaad79a
+ForestOfLight/Statistic-Display                          pack     14   2129      21           2         yes  cd4c89e86f
+DoriosStudios/UtilityCraft                               pack     12  32439      19          21         yes  940e9e1f2e
+SjnExe/AddonExe                                          pack     10  23336      20          13         yes  90a51001a3
+DoriosStudios/Ascendant-Technology                       pack      9  40094      10          13         yes  b36c2c4a78
+gassayping/mc-debug-tools                                pack      7    193       2           1         yes  5caa045e68
+IndeedItzGab/BedrockTeams                                pack      7   3416       7           1         yes  9cef9ded7e
+TCMB-Project/TCMB                                        pack      7   1532       6           0         yes  1a70dfed22
+LushWay/Scripts                                          pack      7  32122      31          11         yes  e9c4d250bd
+SanjoSolutions/minecraft-building-tools                  pack      6    981       2           0         yes  b82cb228c1
+YZBWDLT/MurderMystery                                    pack      6   7268      17           9         yes  148e178521
+HaJuegos/Permadeath-SMP-Originals                        pack      6   1303       9           3         yes  7cab47fb7c
+rukiroki/playerlogger                                    pack      5    367      11           3         yes  9fc690e3a6
+Bedrock-Add-Ons/The-Bedrock-Add-On                       pack      5    340       4           0         yes  3054c367b9
+Imeaces/YoniMC                                           pack      5    588       0           0          no  f9b3411835
+rice-awa/MCBE-AI-Agent                                   pack      5   1397       3           2         yes  ee29512a06
+WayfindEntertainment/Bedrock-Debug-Screen                pack      3    197       1           1      member  58ad68c783
+Adr-hyng-OSS/Lumber-Axe                                  pack      3   7114       5           3         yes  9a71439d45
+mcbe-mods/ChopPop                                        pack      3    376       2           0         yes  3872d0f0d2
+cookieukw/MobsAndMates                                   pack      3   1639       8           2         yes  c25a76228f
+IndeedItzGab/Spawn-Randomizer                            pack      3    423       2           1          no  3ed89e65c6
+i-bexx/inside-the-cage-addon                             pack      3   4004       7           5      member  06c11d92f7
+DoriosStudios/Dorios-Atelier                             pack      3   3335       4           8         yes  11bd4c33ef
+colemad/Web-database                                     pack      2    340       0           0          no  b3d8361f69
+IndeedItzGab/EssentialCC                                 pack      2   1563       5           0          no  38bf6dfd5b
+Virus5600/Defensive-Measures-Add-On                      pack      2    355       1           0      member  99452dce00
+kishtarn555/BedrockEdit                                  pack      2   3567       4           1         yes  1a76ed8acd
+aerell-minecraft/aerell-npc                              pack      2    217       2           2       event  f9130312b8
+chapmanjw/minecraft-bedrock-mcp-behavior-pack            pack      2   2998      16           2         yes  3a01704f75
+gamelist1990/ChestLockAddon                              pack      2  12206      14           7         yes  73f997a816
+Adr-hyng-OSS/Torch-o-Useful                              pack      1   4677       3           0         yes  22fa436808
+Takkunlego0916/Easy-BAN-Addon                            pack      1    225       2           0          no  36951b5032
+Agg-dev/Gravity-Pistols-and-Cannons                      pack      1    459       9           1         yes  532e086aa6
+mukeenanyafiq/BedrockDeathLog                            pack      1    772       4           0       event  b5e6d94e96
+SolightzZ/Protection-Area-Addon                          pack      1   2894      12           1      member  21f6803776
+eriscs01/es-loot-rush                                    pack      1   2094       8           1         yes  5b6ec2fb6d
+ypacks/do-every                                          pack      1    173       1           0          no  8277659abc
+Dragonwolf-Studios/Mystical-Agriculture-Bedrock-Edition  pack      1   9718      14           8         yes  41bfd2a225
+PrograMistV1/ExNihilo_Bedrock                            pack      1   1800       9          10         yes  0f68d884e8
+akahoshi1421/minecraft-3D-data-exporter                  pack      1    978       1           0         yes  36ff819b03
+pyuagotto/TransferServer                                 pack      1    216       2           0       event  8e89f1679e
+blochsam/pokebedrock-3d-spawn-filter                     pack      1    750       1           0          no  28da0b840e
+AresgettaGamer/Frame-and-Pane                            pack      1    950       1           1         yes  2d4ba3b1f0
+jeevantenny/Bedrock-Disc-Pack                            pack      1    657       6           1         yes  438c9235ab
+Kheemwel/JourneyMode                                     pack      1    723       4           1         yes  0f7ec713c9
+xigma0512/GunFight-Arena                                 pack      1   1261      10           4         yes  0f16e882ab
+ypacks/scoreboards                                       pack      1    266       4           0       event  0c787f4cf3
+aerell-minecraft/aerell-fasting                          pack      1    516       5           3         yes  d83e5c9090
+kakeudon17/Debug_Stick                                   pack      1    259       3           1      member  44af977938
+pyuagotto/Ban-Addon                                      pack      1    225       2           0          no  45f037bf28
+njsk45/Mounts-Utilities                                  pack      1   2936       4           7         yes  8f847b9549
+oasoobi/noteblockplus                                    pack      1    517       4           1         yes  8aa4885ddb
+CrzxaExe/UnRealm-Bedrock                                 pack      1   9815      23          11         yes  b976b8d70e
+auieo-dayo/bedrock-server-manager                        pack      1   1466       7           2       event  929c826c2f
+Myneedsad/FATE-Sword-Addon                               pack      1    490       1           0         yes  5c7c59f17f
+HormigaDev/wheel-of-creation-addon                       pack      1   4410       8           4         yes  e446b09dbc
+mygen/BedrockWorldBorder                                 pack      1    794       1           0          no  a9922fe0d0
+BlueModsYT/BlueMods-Essential                            pack      1   5776      12           5         yes  cd0888f624
+DrabMarkerDM/Fictoria_Impact                             pack      1   1914       7           4       event  18f14640e3
+BohdanQQ/mc-bedrock-mini-teleport                        pack      0    384       1           0          no  e23351f381
+AresgettaGamer/WATI-Codex                                pack      0    966       2           1      member  1b78b5b58d
+AresgettaGamer/WATI-Core                                 pack      0    718       1           0         yes  882551aebc
+mohitagw15856/minecraft-mods                             pack      0    266       4           1         yes  5ef83522c4
+Hawariii/low-price-villager                              pack      0    195       2           0       event  0be566dcb6
+MatchaChoco010/MinecraftCatStatueAddon                   pack      0    442       8           3         yes  32f0e57483
+joseveigac/IdleGenerators_TS                             pack      0    935       2           1         yes  55bb940bad
+CYBOX-Digital-Entertainment/Traffic_Kor                  pack      0   1606       4           1       event  bb7c952dc6
+xigma0512/XBlockFire                                     pack      0   3901      17          18         yes  4be06ec516
+realmeat/projecte                                        pack      0   1540       7           4         yes  401a7a70b7
+ETDullavin/Real-Chickens-1.1.1                           pack      0    210       4           1         yes  3215ed3670
+pyuagotto/WorldBorder                                    pack      0    899       2           0         yes  513a4aa096
+BioTomateDE/BedrockAddonKitFFA                           pack      0    780       9           0         yes  1cefb2307d
+pyuagotto/Vote-Addon                                     pack      0    251       2           0       event  6d4c5fad01
+pyuagotto/TPA-Addon                                      pack      0    241       2           0          no  9f7f0a046d
+SalticHash/whynot                                        pack      0   1200      10           0         yes  397a6f9c0a
+woozystudio/ItemEditor                                   pack      0    414       1           3         yes  e17b8bfcb4
+kapuic/city-living-ext                                   pack      0   5896      13           5         yes  e8c3dbf008
+Wladyslaw18/AethelLib                                    pack      0  11000       9           5         yes  6da1c9c900
+oollerdiego/sync-inventories-bedrock                     pack      0    164       1           2      member  94e4deb3ab
+cthibault/minecraft_addons                               pack      0   1665       7           1         yes  2d9a6a66e5
+hakonikomoru/return-of-boxworld                          pack      0   7658       3           3         yes  25a647aaaa
+Void-Server-Hub/vsh-chatranks                            pack      0    366       2           2         yes  5bba02dabf
+Myneedsad/addon-Tag-Effect                               pack      0    394       1           1          no  d2bcdfcd82
+shaiku/remon                                             pack      0    530       1           1      member  89369c25ba
+royashbrook/mc-wizard                                    pack      0  13574       4           6         yes  477bc884a8
+ScytedTV-Studios/SimplyNetwork                           pack      0   6010      14           4         yes  ea698e29bc
+RedTNT-Official/NBS-Music-Player                         pack      0    291       1           0       event  5656fa7c9a
+
+## Property reads matching a single API area (low confidence; excluded from the area table)
+
+property                              area  repos  share  refs
+------------------------  ----------------  -----  -----  ----
+afterEvents                   world-system     88    90%   957
+beforeEvents                  world-system     77    79%   469
+cancel                               event     48    49%   387
+itemUse                              event     48    49%   137
+playerSpawn                          event     43    44%   101
+onScreenDisplay                     player     41    42%   348
+startup                              event     39    40%    71
+damagingEntity                       event     35    36%   139
+currentTick                   world-system     34    35%   381
+playerBreakBlock                     event     34    35%    95
+scriptEventReceive                   event     33    34%   120
+worldLoad                            event     33    34%    85
+permutation                          block     32    33%   812
+playerLeave                          event     32    33%    76
+scoreboard                    world-system     30    31%   317
+damageSource                         event     28    29%   112
+playerPlaceBlock                     event     28    29%    75
+entityDie                            event     28    29%    57
+currentValue              entity-component     25    26%    63
+playerInteractWithBlock              event     25    26%    58
+customCommandRegistry                event     25    26%    45
+entityHurt                           event     24    24%    68
+initialSpawn                         event     23    23%    31
+hurtEntity                           event     22    22%    54
+playerInteractWithEntity             event     21    21%    47
+entitySpawn                          event     21    21%    42
+deadEntity                           event     20    20%   132
+selectedSlotIndex                   player     20    20%   112
+slot                                 event     18    18%   130
+isAir                                block     18    18%    80
+playerName                           event     17    17%    84
+maxDurability               item-component     17    17%    74
+entityHitEntity                      event     17    17%    43
+playerId                             event     16    16%    98
+emptySlotsCount                  container     16    16%    39
+inputPermissions                    player     15    15%    76
+isLiquid                             block     15    15%    33
+defaultValue              entity-component     13    13%    78
+playerJoin                           event     13    13%    30
+gameRules                     world-system     12    12%    75
+effectiveMax              entity-component     12    12%    32
+settings                            player     11    11%    77
+owner                     entity-component     11    11%    61
+lore                                  loot     11    11%    58
+heightRange                      dimension     11    11%    37
+brokenBlockPermutation               event     11    11%    19
+explosion                            event     11    11%    13
+score                           scoreboard     10    10%    87
+structureManager              world-system     10    10%    64
+blockComponentRegistry               event     10    10%    42
+itemComponentRegistry                event     10    10%    14
+face                                 event      9     9%    55
+enchantments                          loot      9     9%    52
+camera                              player      9     9%    48
+successCount                         other      9     9%    40
+hitEntity                            event      8     8%    26
+entityRemove                         event      8     8%    17
+isGliding                           player      8     8%    16
+to                                   block      7     7%    75
+params                               other      7     7%    74
+identifier                           other      7     7%    43
+category                             event      7     7%    41
+isJumping                           player      7     7%    12
+itemCompleteUse                      event      7     7%    11
+durability                            loot      6     6%    45
+range                                 item      6     6%    40
+maxLevel                              item      6     6%    34
+rotation                             other      6     6%    28
+isWaterlogged                        block      6     6%    21
+isFirstEvent                         event      6     6%    17
+clientSystemInfo                    player      6     6%    16
+getGameMode                         player      6     6%    14
+projectile                           event      6     6%    14
+isFlying                            player      6     6%    12
+dataDrivenEntityTrigger              event      6     6%    12
+inventorySize             entity-component      6     6%    10
+blockFace                            event      6     6%     9
+playerPermissionLevel               player      6     6%     8
+pistonActivate                       event      6     6%     7
+slots                       item-component      5     5%   374
+offset                               block      5     5%    26
+inputInfo                           player      5     5%    16
+itemStopUse                          event      5     5%    12
+pattern                               loot      5     5%    11
+tickingAreaManager            world-system      5     5%    11
+platformType                  world-system      5     5%    10
+eventId                              event      5     5%    10
+shutdown                             event      5     5%     9
+effect                               event      5     5%     9
+entityHitBlock                       event      5     5%     6
+playerDimensionChange                event      5     5%     5
+
+## Subscriptions to event names that no longer exist in 2.8.0
+
+event                                  repos  share  refs
+-------------------------------------  -----  -----  ----
+world.beforeEvents.chatSend               24    24%    86
+world.beforeEvents.playerPlaceBlock        9     9%    28
+world.beforeEvents.itemUseOn               9     9%    16
+world.afterEvents.worldInitialize          7     7%    10
+system.beforeEvents.watchdogTerminate      6     6%    12
+world.afterEvents.chatSend                 6     6%    11
+world.beforeEvents.worldInitialize         3     3%     4
+world.afterEvents.itemUseOn                2     2%     2
+world.beforeEvents.roleChange              1     1%     2
+
+## Other @minecraft modules imported (context; out of scope for the fake)
+
+module                      repos  share  refs
+--------------------------  -----  -----  ----
+@minecraft/server              98   100%  2233
+@minecraft/server-ui           60    61%   269
+@minecraft/server-net          11    11%    35
+@minecraft/vanilla-data        10    10%   132
+@minecraft/server-admin        10    10%    19
+@minecraft/server-gametest      6     6%    20
+@minecraft/math                 4     4%    26
+@minecraft/debug-utilities      2     2%     6
+@minecraft/server-editor        1     1%     1
+
+## runCommand usage (packs that reach for commands rather than the API)
+
+call             repos  share  refs
+---------------  -----  -----  ----
+runCommand          55    56%   971
+runCommandAsync     16    16%   345
+
+## Stoplisted member names seen (excluded from attribution as too common in plain JS)
+
+name       repos  share  refs
+---------  -----  -----  ----
+subscribe     96    98%  1314
+location      79    81%  3021
+run           78    80%  1124
+id            76    78%  4525
+dimension     73    74%  1780
+x             72    73%  2664
+get           71    72%  6519
+z             71    72%  2541
+y             69    70%  2447
+name          66    67%  3732
+player        63    64%  1291
+set           63    64%  1123
+title         57    58%  1124
+block         52    53%  1136
+type          52    53%   858
+source        52    53%   535
+find          51    52%   881
+size          51    52%   597
+button        49    50%  1858
+add           49    50%   732
+max           48    49%  1625
+delete        48    49%   693
+message       48    49%   675
+entries       46    47%   484
+amount        44    45%  1151

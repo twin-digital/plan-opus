@@ -1,0 +1,28 @@
+import { world, system, ItemStack, EntityComponentTypes } from '@minecraft/server'
+import * as mc from '@minecraft/server'
+import { ActionFormData } from '@minecraft/server-ui'
+
+// commented out: entity.getComponent('minecraft:health') and container.setItem(
+/* also commented: world.afterEvents.playerBreakBlock.subscribe */
+
+const link = /https:\/\/example.com\/path/g
+
+world.afterEvents.entityHurt.subscribe((event) => {
+  const inventory = event.hurtEntity.getComponent('minecraft:inventory')
+  inventory.container.setItem(0, new ItemStack('minecraft:stone', 1))
+  const health = event.hurtEntity.getComponent(EntityComponentTypes.Health)
+  health.setCurrentValue(20)
+  event.hurtEntity.addEffect('speed', 200, { amplifier: 1 })
+  world.sendMessage(`hp ${health.currentValue} of ${event.hurtEntity.getComponent('minecraft:health').effectiveMax}`)
+})
+
+world.beforeEvents.itemUse.subscribe((event) => {
+  if (event.itemStack.typeId === 'minecraft:stick') event.cancel = true
+})
+
+system.afterEvents.scriptEventReceive.subscribe((event) => {
+  event.sourceEntity?.runCommand('say hi')
+})
+
+const block = world.getDimension('overworld').getBlock({ x: 0, y: 64, z: 0 })
+block.setPermutation(mc.BlockPermutation.resolve('minecraft:stone'))

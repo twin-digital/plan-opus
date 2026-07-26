@@ -15,11 +15,22 @@
     on the pinned `@minecraft/server` version — the engine-run facts — including the quirks a
     naive double would smooth over: namespace-optional ids, methods whose return value encodes
     success or failure, non-uniform invalidation, and values that read back exactly as the engine
-    reports them. It does not substitute a convenient approximation. A fake departs from observed
-    behaviour only where a requirement listed here documents the departure; the spec and builder
-    take the specific behaviours (effect replacement, the invalidation guard list, the kill
-    cascade, damage causes, and the rest) from the facts rather than from a per-behaviour
-    requirement. Current departures: synchronous-event-delivery, zero-kinematics-at-spawn.
+    reports them. It does not substitute a convenient approximation.
+
+    The modelled set is exactly the behaviours the spec cites a fact for, and it is read off the
+    spec rather than maintained as a separate list. A member the spec cites no behaviour fact for
+    holds its state and behaves plainly, and the spec says so where that is the case. Modelling
+    every observed behaviour is not owed, and an unmodelled one is not a defect.
+
+    Two things stay absolute. Nothing is modelled on a guess: a behaviour claimed as the engine's
+    rests on a fact, or it is not claimed. And no simplification is presented as the engine's
+    behaviour, so a reader can tell which assertions carry engine weight from which merely hold.
+  rationale: |
+    Binding every faked member to an evidenced observation put the library's cost under the control
+    of the engine's quirkiness rather than of what the library is for, and made each new surface
+    drag an evidence campaign behind it. Making the modelled set opt-in per behaviour, recorded by
+    the citation that already has to exist, keeps the cost proportional to what is actually built
+    and leaves the set countable at any moment.
 
 - id: synchronous-event-delivery
   statement: |
@@ -69,13 +80,17 @@
 
 - id: structural-full-shape-fakes
   statement: |
-    fake classes are complete structural implementations of the real declared types: a fake is
-    assignable where the real type is expected with no cast, and it declares the full public
-    shape of its class, so assignability never narrows. Members outside the built surface
-    present as not-implemented stubs — unfaked access throws rather than reading `undefined`.
+    a fake is assignable where the real declared type is expected, and every member it implements
+    either behaves or throws — an unfaked access never reads `undefined`. A fake need not declare
+    the full public shape of its class: a member outside the built surface may be absent, and a
+    consumer whose helper is typed against the declared class satisfies it at that seam.
   rationale: |
-    Possible only because the declared classes carry no private instance members and no brand
-    fields (server-classes-are-structurally-assignable).
+    Assignability is possible at all only because the declared classes carry no private instance
+    members and no brand fields (server-classes-are-structurally-assignable). Requiring the *full*
+    shape on top of that meant hand-writing a throwing body for every member of every faked class
+    — several hundred, maintained against a pinned version that is expected to bump — to buy a
+    compile error in this package for members no consumer calls. Where completeness is wanted
+    later it is a generated base class, not a hand-written one.
 
 - id: only-real-members-free-functions
   statement: |
@@ -119,9 +134,9 @@
 - id: zero-kinematics-at-spawn
   statement: |
     a spawned fake entity starts at zero rotation and zero velocity for every type, unless the
-    caller supplies otherwise. This is a documented departure from observed behaviour: the
-    engine spawns `minecraft:xp_orb` with a randomized y-rotation and a nonzero velocity drawn
-    per spawn, and the fake does not reproduce that draw.
+    caller supplies otherwise. The engine spawns `minecraft:xp_orb` with a randomized y-rotation
+    and a nonzero velocity drawn per spawn; the fake does not reproduce that draw, and the spec
+    says so where it spawns.
   rationale: |
     Zero is what seven of the eight probed types do (spawn-frame-kinematics-zero-except-xp-orb),
     and requiring every caller to supply two vectors to make a type-independent rule hold for one
@@ -160,3 +175,26 @@
     The engine reports the prefixed form, so reads compare equal against the
     `@minecraft/vanilla-data` constants a test typically holds — but its tolerance of bare ids
     is surface-dependent, not universal (namespace-prefix-is-optional).
+
+- id: persisted-state-is-modeled
+  statement: |
+    dynamic properties and scoreboard state are real state the fakes hold — readable and writable
+    on the world and on entities — and a test reads back what the code under test wrote. Neither
+    is a stub.
+  rationale: |
+    Measured, not assumed: dynamic properties are the largest single blocker across the three
+    packs probed in artifacts/testability-probe, stopping 17 of 30 candidate test units, and all
+    three keep their persisted state there. A string-keyed map needs no world geometry, no
+    per-type vanilla data, and no class this package does not ship, so none of the reasons the
+    other absences rest on apply to it.
+
+- id: output-is-capturable
+  statement: |
+    what a fake would send to a player or to the world — messages, titles, action bars — is
+    recorded and readable through the control plane rather than discarded.
+  rationale: |
+    A pack's output is what its tests assert on: SafeGuard alone has 145 sendMessage call sites
+    and, for most of its decisions, no other observable result
+    (artifacts/testability-probe/safeguard.md). Capturing output is not the recording machinery
+    fakes-behave-not-record forbids — that rule is about asserting on calls instead of on state,
+    and a message a pack emits is state it produced.
