@@ -106,9 +106,10 @@
     an empty array, an empty string, `[0, 0, 0]`, or `"0.0.0"`. A placeholder is unspecified, not
     specified, so it is not the error the bullets above describe.
 
-    Which placeholder forms are legal follows the manifest format version in play — the array forms
-    where that version carries arrays, the string forms where it carries strings. A source manifest
-    carrying a version in a form its own `format_version` does not support is an error.
+    A version is written as a `[major, minor, revision]` array or as a SemVer string, and both forms
+    are accepted at every manifest format version but one: at `format_version` 3 a version must be
+    the string. A source manifest carrying an array version at `format_version` 3 is an error; no
+    other format version restricts the form, so both placeholder spellings are legal there.
 
     Whenever this component provides manifest details for a pack, it populates missing fields
     as follows:
@@ -116,11 +117,10 @@
       - `header.name` is set to the owning package's `package.json` `productName` when present,
         and otherwise set to the package name with its npm scope strpped (`@scope/mc-pack-1`
         becomes `mc-pack-1`)
-      - `header.version` is set to the owning package's `package.json` version field, written in the
-        form the manifest's declared `format_version` requires — the `[major, minor, revision]` array
-        for v2 manifests, and the SemVer string for v3 manifests. What the source used is not
-        consulted; the format version decides. A version that form cannot express, such as a
-        pre-release where the form is the array, is a problem
+      - `header.version` is set to the owning package's `package.json` version field, written as the
+        SemVer string at `format_version` 3 and as the `[major, minor, revision]` array elsewhere.
+        What the source used is not consulted; the format version decides. A version the chosen form
+        cannot express, such as a pre-release where the form is the array, is a problem
       - a `dependencies` entry whose `uuid` names a pack within the same workspace has its `version`
         set to that pack's owning package's `package.json` version, using the same parsing and error
         reporting rules described for `header.version`
