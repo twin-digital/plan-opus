@@ -162,8 +162,9 @@ scores a spec by [[r:conclude-with-test-summary]]. Some rows judge a foundation 
 the spec's prose, and each of those falls due when that entry is written, to its author — the
 *judges* column names which [[r:a-rule-binds-the-writer-of-what-it-governs]]
 [[d:checklist-covers-entry-tests]]. It is the design's payoff: a reader who applies it produces
-specs that satisfy every reader-facing rule recorded here, because each such rule is one line on it [[r:instructs-readers-to-follow-the-spec-rules]]. Three rules do not appear as tests
-of a produced spec, because they govern this document rather than the specs its readers write —
+specs that satisfy every reader-facing rule recorded here, because each such rule is one line on
+it [[r:instructs-readers-to-follow-the-spec-rules]]. Three rules do not appear as tests of a
+produced spec, because they govern this document rather than the specs its readers write —
 that its guidance is written as tests and not templates [[r:guidance-is-tests-not-templates]], that
 it closes with this very checklist [[r:conclude-with-test-summary]], and that each content rule is
 aimed at whoever writes the entry it governs [[r:a-rule-binds-the-writer-of-what-it-governs]].
