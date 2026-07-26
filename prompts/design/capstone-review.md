@@ -68,14 +68,29 @@ likely to be wrong, or most expensive to reverse once built. Say what would show
 ## Report
 
 - **Recommendation** — ship, or do not ship, and why in one sentence.
-- **At most five findings.** Blocking only, most-severe first, each naming what a builder would do
-  differently. If you have more than five, you are reporting the wrong things; keep the five that
-  change the build. If you have none, say so plainly.
+- **Findings that clear the bar below**, most-severe first, each naming what a builder would do
+  differently. There is no target number. Zero is a common and correct result for a spec that has
+  already been reviewed and revised.
 - **The weakest part**, always, even when you recommend shipping and found nothing blocking. Name
-  the part of the design you would bet against, and why it is acceptable to ship anyway. A review
-  that finds nothing and names nothing has not been run.
+  the part of the design you would bet against, and why it is acceptable to ship anyway. This is
+  one judgement, not a finding — it is what you owe the owner whatever else you found.
 - **Your answers to the four questions**, briefly, including the simpler design you constructed.
 
-A capstone that returns "looks good" is a failed capstone. So is one that returns twenty findings
-about wording. The output that means it worked: a short list of things that would change the build,
-or an argued case that there are none, plus the risk you would watch.
+---
+
+## The bar for blocking
+
+Block on exactly two things:
+
+1. **A builder would build the wrong thing.** The spec says something that is not what the design
+   means, or two parts of it disagree and the builder cannot tell which governs.
+2. **A builder would stop cold.** Something they must have to start is absent, and no reasonable
+   default would let them proceed.
+
+Everything else is not a finding. In particular, an edge case the spec has not enumerated is **not**
+a finding when a builder would pick a sensible default and document it — that is the intended way to
+resolve it, not an omission. Say so in a sentence if it is worth the owner knowing; do not block.
+
+A spec ships with unspecified corners and documented behaviour. It does not ship with a contradiction
+or a hole where its product should be. Hold that line and let the rest go — a finding that would only
+add a sentence nobody builds differently from is the failure mode this prompt exists to prevent.
