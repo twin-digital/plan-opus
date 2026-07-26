@@ -118,18 +118,18 @@
 
 - id: kind-derived-from-module-types
   statement: |
-    a pack's manifest must carry a module corroborating the kind its directory declares — `data` for
-    a behavior pack, `resources` for a resource pack — and a manifest carrying neither, or carrying
-    the other kind's, is a problem. Any further module type is ignored: the kit validates no
-    enumeration of module types and treats an unrecognised one as neither corroborating nor a
-    problem.
+    a pack's manifest must carry a module corroborating the kind its directory declares — `data` or
+    `script` for a behavior pack, `resources` for a resource pack — and a manifest carrying none of
+    those, or carrying only the other kind's, is a problem. Any further module type is ignored: the
+    kit validates no enumeration of module types and treats an unrecognised one as neither
+    corroborating nor a problem.
   rationale: |
     The set of module types is not knowable. Microsoft's manifest reference lists four, its Creator
     Tools validator lists six and says "include" rather than "are", and the reference's own
-    behavior-pack example declares a seventh the other two omit. `data` and `resources` are the
-    stable pair, present since format version 0; everything else is either a companion module riding
-    inside a pack — `script`, `client_data` — or a different artifact the fixed-path membership test
-    never reaches.
+    behavior-pack example declares a seventh the other two omit. Corroboration therefore tests only
+    the types that carry the kind: `resources`, and the `data` and `script` that both sit in a
+    behavior pack. Everything else is either a companion module riding inside a pack, or a different
+    artifact the fixed-path membership test never reaches.
 
 - id: structured-validation
   statement: |
