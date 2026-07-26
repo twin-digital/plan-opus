@@ -106,15 +106,22 @@
   statement: |
     a single closing pass decides which entries are valid, marking every candidate carrying a
     problem invalid and re-walking dependency edges until a pass marks nothing
+  status: rejected
+
+- id: invalidation-propagates-along-dependency-edges
+  statement: |
+    a candidate carrying a problem is invalid, and so is every candidate that reaches one along its
+    dependency edges — one walk backwards from the candidates that failed on their own
   status: proposed
   falsifiers:
-    - a rule arrives that can restore a candidate as well as invalidate one — a repair pass, or a pack that becomes resolvable once a sibling is invalidated — so the marking is no longer monotone and the iteration has no fixed point to reach
-    - a consumer needs to deploy the packs that are individually sound even where a transitive dependency failed, so invalidating them transitively blocks a run the developer wanted
+    - a rule arrives that can restore a candidate as well as invalidate one, so a single backward walk from the initial failures no longer settles the set
+    - a consumer needs to deploy the packs that are individually sound even where a transitive dependency failed, so invalidating them at all blocks a run the developer wanted
 
 - id: pack-record-paths-are-workspace-relative-directories
   statement: |
-    a pack record's source and built-output locations are POSIX paths relative to the workspace
-    root, each naming the pack's directory rather than a file within it
+    every path a pack record carries — its owning package's directory, its source location, its
+    built-output location — is a POSIX path relative to the workspace root, naming a directory
+    rather than a file within it
   status: proposed
   falsifiers:
     - a consumer outside the workspace process needs an absolute path and cannot recover the workspace root the paths are relative to
@@ -122,12 +129,13 @@
 
 - id: pack-record-version-is-a-semver-string
   statement: |
-    a pack record's `version` is the pack version as a SemVer string, whatever form the manifest
-    inside that record carries it in
+    a pack record's `version` is the owning package's version as a SemVer string, read
+    independently of the manifest and of what its format version can express
   status: proposed
   falsifiers:
     - a consumer compares record versions against manifest versions field-for-field and has to re-parse the string back into the array form
     - a pack version turns up that is expressible as a manifest vector but not as a SemVer string
+    - the record version and the completed manifest version diverge often enough that consumers cannot tell which one a server will honour
 
 - id: pack-kind-is-spelled-behavior-or-resource
   statement: |
@@ -143,10 +151,7 @@
     while any candidate has yielded no identity, a dependency uuid no candidate claims is
     indeterminate rather than external: an entry carrying a version passes through and one carrying
     none is reported as an unresolved target
-  status: proposed
-  falsifiers:
-    - a workspace holds a candidate under construction for long stretches, so every external entry in every pack loses its missing-version check until that one pack parses
-    - the indeterminate reading routinely points a developer at an unrelated broken pack when the real fault was an external entry that forgot its version
+  status: rejected
 
 - id: a-placeholder-version-is-no-version-everywhere
   statement: |
@@ -177,10 +182,10 @@
 
 - id: an-invalid-entry-keeps-every-detail-its-sources-hold
   statement: |
-    an invalid entry is missing only the two fields the manifest supplies — the uuid and the
-    manifest document — and its `version` besides, in the one case where the owning package has no
-    usable version, which the problem reporting that carries verbatim
+    an invalid entry carries every field the kit managed to read, three of them optional on that arm
+    alone: `uuid` and `manifest` where the manifest parsed and declared a header uuid, and `version`
+    where the owning package's version parses
   status: proposed
   falsifiers:
     - a consumer sorts or renders entries by version and has to invent a placeholder for the ones without, so the field should always be present in some form
-    - packages with no usable version turn out to be common enough that the exception is the rule and a second status would say more than a missing field does
+    - consumers read the optional fields without checking and crash on the arm that lacks them, so a status naming "found but unidentified" would carry the distinction better than optionality does
