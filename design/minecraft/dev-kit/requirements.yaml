@@ -87,6 +87,13 @@
     a package's output root always holds one kind-named subdirectory per pack — `behavior_pack`,
     `resource_pack` — mirroring the source layout. A single-pack package still nests.
 
+- id: manifest-format-version-2-or-3-in-3-out
+  statement: |
+    a source `manifest.json` is accepted in manifest format version 2 or version 3, and the completed
+    manifest the kit reports is always version 3. The kit normalises as needed: a version 2 source's
+    array-form versions become SemVer strings, and `format_version` is reported as 3 whatever the
+    source declared.
+
 - id: kit-completes-partial-source-manifests
   statement: |
     a pack's source `manifest.json` is partial by design:
@@ -104,10 +111,9 @@
       - `header.name` is set to the owning package's `package.json` `productName` when present,
         and otherwise set to the package name with its npm scope strpped (`@scope/mc-pack-1` 
         becomes `mc-pack-1`)
-      - `header.version` is set to the owning package's `package.json` version field. The major,
-        minor, and patch versions are parsed to populate the manifest's array-based format. If
-        the version is not a three-segment dotted semver (e.g. has pre-release information, etc.),
-        it is considered a problem
+      - `header.version` is set to the owning package's `package.json` version field, written as the
+        SemVer string version 3 requires. Pre-release and build metadata are carried through, since
+        a version 3 manifest can express them. A version that is not valid SemVer is a problem
       - any dependency with a missing `version` is assumed to reference a pack within the same
         workspace. The `version` field of that package's package.json will be used as the dependency
         version, using the same parsing and error reporting rules described for `header.version`. If
