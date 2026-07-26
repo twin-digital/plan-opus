@@ -19,9 +19,9 @@
   backing: documented
   sources:
     - url: design/minecraft/dev-kit/requirements.yaml
-      where: kit-is-consumed-as-a-library
+      where: dev-kit-provides-a-library
       quote: |
-        the kit's product is a typed library: a consumer imports it and receives the pack set as data,
+        the kit provides a typed library: a consumer imports it and receives the pack set as data,
         not as text it must parse.
     - url: design/minecraft/dev-kit/requirements.yaml
       where: kit-stops-at-a-validated-pack-set
@@ -42,13 +42,22 @@
     - url: design/minecraft/dev-kit/requirements.yaml
       where: packs-enumerable-without-a-build
       quote: |
-        the kit reports every pack in a workspace — its owning package, its kind, its source location,
-        and the identity its source manifest declares — from a clean checkout, with no build having run
+        the kit must be able to discover workspace packs from a clean checkout, with no build having run
         and no server running.
+    - url: design/minecraft/dev-kit/requirements.yaml
+      where: pack-record-details
+      quote: |
+        for every pack discovered, the kit provides the following details:
+
+          - its owning package
+          - its kind (behavior pack or resource pack)
+          - its source location
+          - its build output location (even if that location is not present because the pack is unbuilt),
+          - the full content of its manifest in object form
     - url: design/minecraft/dev-kit/requirements.yaml
       where: pack-identity-and-kind-declared-only-by-the-manifest
       quote: |
-        a pack's identity, version, and kind come from its own `manifest.json`.
+        a pack's identity, and kind come from its own `manifest.json`.
 
 - id: dev-kit-rejects-a-pack-set-with-an-unresolved-identity
   claim: |
@@ -64,15 +73,13 @@
       where: unresolvable-packs-fail-loudly
       quote: |
         a pack the kit cannot resolve — a manifest that cannot be parsed, a missing or duplicated
-        identity, a manifest dependency on another pack that the set does not satisfy, or no built
-        output where the pack's output was expected — is reported as a named error identifying the
-        package and the path examined, not omitted from a silently smaller result and not deferred to
-        the server.
+        identity, a manifest dependency on another pack that the set does not satisfy, invalid or
+        missing manifest completion data — is reported as a named error identifying the package and
+        the path examined, not omitted from a silently smaller result and not deferred to the server.
     - url: design/minecraft/dev-kit/requirements.yaml
-      where: consumers-are-the-dev-server-and-ci
+      where: structured-validation
       quote: |
-        the dev server and a continuous-integration check are both intended consumers. Validation
-        therefore reports a structured result naming every problem it found, consumable without a
+        Validation reports a structured result naming every problem it found, consumable without a
         human reading it.
 
 - id: compose-watch-actions-and-versions
