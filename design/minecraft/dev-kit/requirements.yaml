@@ -1,74 +1,127 @@
-# Requirements scoped to the minecraft/dev-kit design. Every entry is DRAFTED for the owner to
-# accept, amend, or reject — none has been ratified. The first three record decisions the owner
-# stated directly on the shape walkthrough; the rest are outcomes distilled from it.
-#
-# rationale is omitted unless the statement's intent is genuinely non-obvious.
+# Product kind
 
-# Product and consumers
-
-- id: kit-is-consumed-as-a-library
+- id: dev-kit-provides-a-library
   statement: |
-    the kit's product is a typed library: a consumer imports it and receives the pack set as data,
-    not as text it must parse. A command-line interface over the same capabilities is intended and
-    is not specified here.
+    the kit provides a typed library: a consumer imports it and receives the pack set as data,
+    not as text it must parse. 
 
-- id: consumers-are-the-dev-server-and-ci
+- id: dev-kit-library-name
   statement: |
-    the dev server and a continuous-integration check are both intended consumers. Validation
-    therefore reports a structured result naming every problem it found, consumable without a
-    human reading it.
+    the name of the npm package containing the dev-kit library is `@twin-digital/mc-dev-kit`
 
-# Scope and membership
+# Pack Discovery
 
-- id: one-pack-of-each-kind-per-package
+- id: pack-discovery
   statement: |
-    a workspace package holds at most one behavior pack and at most one resource pack. A package
-    holding two packs of the same kind is out of scope, and nothing in the kit needs to express it.
+    the kit provides a way to discover Minecraft behavior packs and resource packs in a workspace.
+    Detailes for discovered packs are returned as a flat list of pack records.
+    
+- id: packs-enumerable-without-a-build
+  statement: |
+    the kit must be able to discover workspace packs from a clean checkout, with no build having run 
+    and no server running.
 
 - id: membership-from-source-manifest-presence
   statement: |
     a workspace package is a pack-bearing package when its source holds `behavior_pack/manifest.json`
     or `resource_pack/manifest.json`; presence of those source manifests is the whole membership
     test. Both kinds are discovered. No marker field, keyword, or central list is required, and
-    adding, removing, or renaming a pack needs no edit anywhere but the package itself.
+    adding, removing, or renaming a pack needs no edit anywhere but the package itself. Note that 
+    this makes it structurally impossible for a workspace package to hold more than one behavior pack
+    or more than one resource pack. A package holding two packs of the same kind is out of scope.
+
+- id: packages-come-from-the-workspace-definition
+  statement: |
+    candidate packages are enumerated from the workspace's package-manager workspace definition,
+    not from walking the directory tree. Both `npm` and `pnpm` workspace definitions must be
+    supported.
+
+# Pack Query
+
+- id: pack-search
+  statement: |
+    the kit allows users to search for packs using the following criteria:
+
+      - npm package name
+      - pack name
+
+    Search results are provided as an array of pack records. If no results are found, an empty
+    array is returned.
+
+# Pack Details
+
+- id: pack-record-details
+  statement: |
+    for every pack discovered, the kit provides the following details:
+    
+      - its owning package
+      - its kind (behavior pack or resource pack)
+      - its source location
+      - its build output location (even if that location is not present because the pack is unbuilt),
+      - the full content of its manifest in object form (including content auto-populated as
+        described by `r:kit-completes-partial-source-manifests`)
+    
+- id: pack-identity-and-kind-declared-only-by-the-manifest
+  statement: |
+    a pack's identity, and kind come from its own `manifest.json`. Where a convention
+    encodes kind — the `behavior_pack/` and `resource_pack/` directories membership is read from —
+    the manifest stays authoritative and a disagreement between the two is a reported error, never
+    a silent preference for one side.
 
 - id: built-output-defaults-to-dist
   statement: |
     a pack's built output is found at `dist/` within its package unless the package specifies an
     alternate location.
 
-# What the kit reports
-
-- id: packs-enumerable-without-a-build
+- id: built-output-mirrors-the-source-layout
   statement: |
-    the kit reports every pack in a workspace — its owning package, its kind, its source location,
-    and the identity its source manifest declares — from a clean checkout, with no build having run
-    and no server running. What only a built pack settles, the version present in a server pool, is
-    not claimed before a build.
+    a package's output root always holds one kind-named subdirectory per pack — `behavior_pack`,
+    `resource_pack` — mirroring the source layout. A single-pack package still nests.
 
-- id: pack-identity-and-kind-declared-only-by-the-manifest
+- id: kit-completes-partial-source-manifests
   statement: |
-    a pack's identity, version, and kind come from its own `manifest.json`. Where a convention
-    encodes kind — the `behavior_pack/` and `resource_pack/` directories membership is read from —
-    the manifest stays authoritative and a disagreement between the two is a reported error, never
-    a silent preference for one side.
+    a pack's source `manifest.json` is partial by design:
+    
+      - it MUST NOT have a `header.name` field
+      - it MUST NOT have a `header.version` field
+      - it MAY omit the version for workspace-local `dependencies` entries
 
-- id: selection-filters-the-discovered-set
+    In both cases, a 'version' field is left unspecified either by omitting it, or supplying
+    an empty array.
+
+    Whenever this component provides manifest details for a pack, it populates missing fields
+    as follows:
+
+      - `header.name` is set to the owning package's `package.json` `productName` when present,
+        and otherwise set to the package name with its npm scope strpped (`@scope/mc-pack-1` 
+        becomes `mc-pack-1`)
+      - `header.version` is set to the owning package's `package.json` version field. The major,
+        minor, and patch versions are parsed to populate the manifest's array-based format. If
+        the version is not a three-segment dotted semver (e.g. has pre-release information, etc.),
+        it is considered a problem
+      - any dependency with a missing `version` is assumed to reference a pack within the same
+        workspace. The `version` field of that package's package.json will be used as the dependency
+        version, using the same parsing and error reporting rules described for `header.version`. If
+        a dependency entry specifies a version, it is assumed to be an external dependency and is
+        handled normally.
+
+# Validation
+
+- id: kind-derived-from-module-types
   statement: |
-    which packs a consumer operates on is expressed as a filter over the discovered set, applied
-    per invocation; narrowing a selection never changes what the workspace contains, and the kit's
-    report of what exists is unaffected by it.
+    a pack's kind is derived from the `type` values across its manifest's modules — `data` and
+    `script` to behavior, `resources` to resource. A module type outside those three, or module
+    types that map to more than one kind, is a problem.
 
+- id: structured-validation
+  statement: |
+    Validation reports a structured result naming every problem it found, consumable without a
+    human reading it.
+    
 - id: unresolvable-packs-fail-loudly
   statement: |
     a pack the kit cannot resolve — a manifest that cannot be parsed, a missing or duplicated
-    identity, a manifest dependency on another pack that the set does not satisfy, or no built
-    output where the pack's output was expected — is reported as a named error identifying the
-    package and the path examined, not omitted from a silently smaller result and not deferred to
-    the server. A dependency naming a built-in scripting module is not a missing pack.
-
-- id: kit-stops-at-a-validated-pack-set
-  statement: |
-    the kit's product is a validated, normalised pack set. It may invoke or configure a package's
-    build, but it defines no build semantics, performs no deployment, and builds no release
-    archive.
+    identity, a manifest dependency on another pack that the set does not satisfy, invalid or
+    missing manifest completion data — is reported as a named error identifying the package and 
+    the path examined, not omitted from a silently smaller result and not deferred to the server. 
+    A dependency naming a built-in scripting module is not a missing pack.

@@ -1,0 +1,70 @@
+# Facts scoped to the minecraft area — evidence more than one design in the area rests on.
+# Both were design-scoped to minecraft/dev-kit until minecraft/pack-build came to need the same
+# evidence, and a citation may not cross into another design. Ids and text are unchanged by the
+# move.
+#
+# The tested fact rests on the pool-layout probe under design/minecraft/artifacts/, already at
+# area scope, run by the author of the design formerly named minecraft/dev-workflow rather than
+# by this file's author, and says so per r:tested-facts-name-whose-test.
+
+- id: pack-directory-name-carries-no-meaning
+  claim: |
+    A pack's own directory name is free by the format — the creator names that folder whatever
+    they want — and a behavior pack deployed into a directory named `resource_pack_totally` loads
+    normally, the server printing that name back untroubled. Where a pack's sources and built
+    output sit, and what those directories are called, is therefore free to choose without
+    affecting whether the pack loads — and a pack's own directory name can never be relied on as
+    a statement of what a pack is.
+  backing: tested
+  sources:
+    - description: |
+        The pool-layout probe at design/minecraft/artifacts/pack-layout/probe/, case 5: run.mjs
+        redeploys the probe packs into pool directories named to contradict their manifests and
+        reloads the world, capturing the server's Pack Stack line in OUTPUT.txt beside it. Run by
+        the author of the design formerly named minecraft/dev-workflow, not by this fact's author.
+        The Learn quote below is the source-side half — that a pack's own folder may be named
+        anything — and is independent of the probe.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/behaviorpackfromscratch
+      where: '"Create a folder" — naming the pack folder'
+      quote: |
+        In this section, you will create a folder called My_BEHAVIOR_Pack. Well, actually you
+        don't have to call it that. In fact, you can name this folder anything you want, but the
+        other folders have to be named exactly like this tutorial says so that Minecraft knows
+        where to look.
+    - url: design/minecraft/artifacts/pack-layout/probe/OUTPUT.txt
+      where: case 5 — pack directories renamed to names that contradict their manifests
+      quote: |
+        === case 5: pack directories renamed to names that contradict their manifests
+        (is a source or pool directory name ever read as a declaration of kind?)
+          world_behavior_packs.json = [{"pack_id":"d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f","version":[1,0,0]}]
+          world_resource_packs.json = [{"pack_id":"f5ebc4c3-7d8a-4e9f-0a1b-2c3d4e5f6a7b","version":[1,0,0]}]
+        [2026-07-24 23:49:22:860 INFO] Pack Stack - [00] layout probe behavior pack (id: d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f, version: 1.0.0) @ development_behavior_packs/resource_pack_totally
+
+- id: release-archives-follow-pack-content
+  claim: |
+    The format's distribution archives follow what a project contains: an `.mcpack` is one zipped
+    resource or behavior pack, and an `.mcaddon` is a zip holding `.mcpack` or `.mcworld` files.
+    Microsoft's build tasks emit exactly that — `packBP` and `packRP` each produce an `.mcpack`,
+    and `packMcaddon` bundles the two. Nothing in the definition requires an `.mcaddon` to hold
+    more than one pack.
+  backing: documented
+  caveat: |
+    That a client imports a single-pack `.mcaddon` happily is not stated by any first-party source
+    found. It is structurally legal by the definition quoted here, and untested.
+  sources:
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/minecraftfileextensions
+      where: .mcaddon
+      quote: |
+        A zip file that contains .mcpack or .mcworld files to modify Minecraft (Bedrock Edition);
+        generally used to distribute Add-Ons to other users.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/minecraftfileextensions
+      where: .mcpack
+      quote: |
+        A zipped resource or behavior pack that modifies Minecraft: Bedrock Edition, typically used
+        to transfer resources between users.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/scripting/libraries
+      where: Core build tasks — Available tasks — packBP, packRP, packMcaddon
+      quote: |
+        **packBP**: creates an **.mcpack** file with your behavior packs. (Requires the `build` task to have been run first.)
+        **packRP**: creates an **.mcpack** file with your resource packs. (Requires the `build` task to have been run first.)
+        **packMcaddon**: creates an **.mcaddon** file with the packs previously created in `packBP` and `packRP`.
