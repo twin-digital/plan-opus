@@ -71,12 +71,12 @@
       - the full content of its manifest in object form (including content auto-populated as
         described by `r:kit-completes-partial-source-manifests`)
 
-- id: pack-identity-and-kind-declared-only-by-the-manifest
+- id: pack-kind-from-the-directory
   statement: |
-    a pack's identity — its uuid, name, and version — comes from its own `manifest.json`. Its kind
-    comes from the directory membership is read from, `behavior_pack/` or `resource_pack/`, and the
-    manifest must corroborate it. A disagreement between the two is a reported error, never a silent
-    preference for one side, so a pack carries one kind and no consumer reconciles two.
+    a pack's identity kind comes from the directory membership is read from, `behavior_pack/` or 
+    `resource_pack/`, and the manifest must corroborate it. A disagreement between the two is a 
+    reported error, never a silent preference for one side, so a pack carries one kind and no consumer
+    reconciles two.
 
 - id: built-output-defaults-to-dist
   statement: |
@@ -97,8 +97,8 @@
   statement: |
     a pack's source `manifest.json` is partial by design:
 
-      - it MUST NOT have a `header.name` field, the kit MUST flag this as an error
-      - it MUST NOT have a `header.version` field, the kit MUST flag this as an error
+      - it MUST NOT specify a `header.name` field; a specified field is an error
+      - it MUST NOT specify a `header.version` field; a specified field is an error
       - it MAY omit the version for workspace-local `dependencies` entries
 
     In both cases, a 'version' field is left unspecified either by omitting it, or supplying
@@ -111,8 +111,8 @@
         and otherwise set to the package name with its npm scope strpped (`@scope/mc-pack-1`
         becomes `mc-pack-1`)
       - `header.version` is set to the owning package's `package.json` version field, written in the
-        form the source manifest's format version uses — the `[major, minor, revision]` array where
-        the source carries arrays, the SemVer string where it carries strings. A version the source's
+        the form the manifest's declared `format_version` requires — the `[major, minor, revision]` array 
+        for v2 manifests, and the SemVer string for v3 manifests. A version the source's
         form cannot express, such as a pre-release where that form is the array, is a problem
       - any dependency with a missing `version` is assumed to reference a pack within the same
         workspace. The `version` field of that package's package.json will be used as the dependency
@@ -122,7 +122,7 @@
 
 # Validation
 
-- id: kind-derived-from-module-types
+- id: manifest-corroborates-the-directory-kind
   statement: |
     a pack's manifest must carry a module corroborating the kind its directory declares — `data` or
     `script` for a behavior pack, `resources` for a resource pack — and must carry no module of the
@@ -137,17 +137,12 @@
     behavior pack. Everything else is either a companion module riding inside a pack, or a different
     artifact the fixed-path membership test never reaches.
 
-- id: structured-validation
-  statement: |
-    Validation reports a structured result naming every problem it found, consumable without a
-    human reading it.
-
 - id: unresolvable-packs-fail-loudly
   statement: |
     a pack the kit cannot resolve — a manifest that cannot be parsed, a missing or duplicated
     identity, a manifest dependency on another pack that the set does not satisfy, invalid or
-    missing manifest completion data — is reported as a named error identifying the package and
-    the path examined. A dependency naming a built-in scripting module is not a missing pack.
-    Such invalid packs are never omitted silently: all discovered packs must be returned as fully
-    resolved pack data, or as a structured error.
+    missing manifest completion data — is reported via the error list defined by `r:pack-discovery`.
+    A dependency naming a built-in scripting module is not a missing pack. Such invalid packs are 
+    never omitted silently: all discovered packs must be returned as fully resolved pack data, or 
+    as a structured error.
 
