@@ -1,0 +1,21 @@
+=== environment
+npm on PATH: 11.13.0
+pnpm on PATH: 11.17.0
+
+=== fixture state (no install has run in either)
+npm-ws node_modules present: false
+npm-ws package-lock.json present: false
+npm-ws pnpm-lock.yaml present: false
+pnpm-ws node_modules present: false
+pnpm-ws package-lock.json present: false
+pnpm-ws pnpm-lock.yaml present: false
+
+=== npm workspace via @npmcli/map-workspaces
+  @fixture/delta -> packages/delta
+  @fixture/gamma -> packages/gamma
+
+=== pnpm workspace via @pnpm/workspace.find-packages
+  patterns read from pnpm-workspace.yaml: ["packages/*","!packages/ignored"]
+  pnpm-ws-root@0.0.0 -> .
+  @fixture/alpha@1.2.3 -> packages/alpha
+  @fixture/beta@0.1.0 -> packages/beta

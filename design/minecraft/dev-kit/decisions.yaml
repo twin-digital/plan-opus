@@ -1,0 +1,92 @@
+# Decisions scoped to the minecraft/dev-kit design.
+# Schema: id, statement, status (proposed|accepted|tolerated|rejected), falsifiers.
+
+- id: workspace-enumeration-uses-the-managers-own-libraries
+  statement: |
+    workspace packages are enumerated in-process by each package manager's own published
+    enumeration library, not by shelling out to the manager
+  status: proposed
+  falsifiers:
+    - a manager's enumeration library turns out to need a completed install, a lockfile, or a network fetch before it will list a clean checkout
+    - a workspace form the kit must support is reachable only through the manager's CLI, not through the definition file its library reads
+    - a library's published API churns faster than the kit can absorb, so tracking it costs more than reading the definition files against their documented formats
+
+- id: workspace-definition-file-selects-the-manager
+  statement: |
+    a root `pnpm-workspace.yaml` selects pnpm enumeration, and otherwise a root `package.json`
+    `workspaces` field selects npm
+  status: proposed
+  falsifiers:
+    - a real workspace carries both definition files with different member sets, so the precedence silently drops packages a developer expects to see
+    - a third manager comes into scope whose workspace definition neither file distinguishes
+
+- id: workspace-root-package-is-a-candidate
+  statement: |
+    the workspace root package is a discovery candidate, added explicitly where the manager's
+    library omits it
+  status: proposed
+  falsifiers:
+    - a root package routinely holds a `behavior_pack/` or `resource_pack/` directory that is fixture or template content rather than a shipped pack
+
+- id: workspace-failures-throw-and-pack-failures-are-records
+  statement: |
+    trouble with the workspace itself — no definition found, an unreadable root — throws, while
+    trouble with an individual pack becomes a problem record
+  status: proposed
+  falsifiers:
+    - a consumer needs the packs it can resolve from a workspace whose definition is unreadable, rather than nothing at all
+    - a consumer ends up wrapping every call to render workspace trouble alongside pack problems, so the two channels are one channel in practice
+
+- id: duplicate-header-uuid-invalidates-every-sharer
+  statement: |
+    when two or more packs carry the same header uuid, none of them resolves and each becomes a
+    problem record naming the others
+  status: proposed
+  falsifiers:
+    - a supported workflow legitimately produces two packs sharing one header uuid, so failing all of them blocks work that should proceed
+    - consumers routinely want to keep working with one of the sharers and end up re-deriving a winner themselves
+
+- id: problems-carry-a-closed-set-of-codes
+  statement: |
+    every problem record carries a code from a closed set, alongside the owning package, the
+    pack's kind and source directory, and a human-readable message
+  status: proposed
+  falsifiers:
+    - a consumer branches on message text because the codes are too coarse to act on
+    - no consumer reads the code, every one of them treating a problem as an opaque message
+
+- id: completion-version-form-follows-format-version
+  statement: |
+    completion writes a version as a SemVer string when `format_version` is 3 or higher and as a
+    `[major, minor, revision]` array otherwise, including when it is absent or unrecognised
+  status: proposed
+  falsifiers:
+    - a later format version requires a version form that is neither of these two
+    - a manifest declaring no format version is rejected by the server when handed an array version
+
+- id: built-output-location-is-computed-not-probed
+  statement: |
+    a pack's built output location is computed from its package and kind and reported without
+    touching the filesystem
+  status: proposed
+  falsifiers:
+    - the output root becomes configurable per package, so the location can no longer be computed from the package directory and kind alone
+    - every consumer independently stats the reported location, showing the kit should carry that answer
+
+- id: manifest-is-reported-as-an-open-typed-document
+  statement: |
+    the reported manifest keeps every field its source carried, typed as an open document whose
+    header, modules, and dependencies are known and whose other fields are preserved unread
+  status: proposed
+  falsifiers:
+    - a consumer needs a closed manifest type it can exhaustively switch on
+    - no consumer reads a preserved unknown field, so the looser type costs more than it saves
+
+- id: the-pack-set-is-the-single-returned-value
+  statement: |
+    one asynchronous entry point returns a pack set holding the resolved packs, the problem
+    records, and the queries over them
+  status: proposed
+  falsifiers:
+    - a workspace grows large enough that a consumer needs packs streamed or discovered incrementally rather than as one settled value
+    - a consumer needs the queries over a set it assembled itself, so they have to be free functions

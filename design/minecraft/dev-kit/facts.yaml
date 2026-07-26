@@ -113,6 +113,68 @@
         In the following example, all folders located inside the folder ./packages will be treated
         as workspaces as long as they have valid package.json files inside them:
 
+- id: manager-enumeration-libraries-need-no-install
+  claim: |
+    npm and pnpm each publish their own workspace-enumeration implementation to the public npm
+    registry — `@npmcli/map-workspaces`, from github.com/npm/map-workspaces, and
+    `@pnpm/workspace.find-packages` with `@pnpm/workspace.read-manifest`, from github.com/pnpm/pnpm.
+    Each enumerates a workspace in-process from its checked-out definition alone: with no
+    `node_modules`, no lockfile, and without invoking the manager's own binary, both return the
+    workspace's member packages and the directory of each. pnpm's finder takes the `packages`
+    patterns its caller reads from `pnpm-workspace.yaml`, honours a `!` exclusion among them, and
+    returns the workspace root package alongside the members; npm's returns the members only.
+  backing: tested
+  sources:
+    - description: |
+        Two probes under design/minecraft/dev-kit/artifacts/, both written and run by this fact's
+        author on 2026-07-26. registry-probe/probe.mjs queries the public registry for each
+        package and prints its identifying metadata. workspace-enumeration-probe/probe.mjs
+        enumerates the two committed fixture workspaces beside it — neither ever installed, as the
+        probe checks and prints — using the libraries, and reports whether each manager's CLI is on
+        PATH. Captured stdout is OUTPUT.txt beside each script.
+    - url: design/minecraft/dev-kit/artifacts/registry-probe/OUTPUT.txt
+      where: both entries — registry status, latest version, and repository of each package
+      quote: |
+        === @npmcli/map-workspaces
+        GET https://registry.npmjs.org/@npmcli%2Fmap-workspaces -> 200
+        name: @npmcli/map-workspaces
+        latest: 6.0.0
+        description: Retrieves a name:pathname Map for a given workspaces config
+        repository: {"url":"git+https://github.com/npm/map-workspaces.git","type":"git"}
+        homepage: https://github.com/npm/map-workspaces#readme
+        dist.tarball: https://registry.npmjs.org/@npmcli/map-workspaces/-/map-workspaces-6.0.0.tgz
+
+        === @pnpm/workspace.find-packages
+        GET https://registry.npmjs.org/@pnpm%2Fworkspace.find-packages -> 200
+        name: @pnpm/workspace.find-packages
+        latest: 1000.0.65
+        description: Finds packages inside a workspace
+        repository: {"url":"git+https://github.com/pnpm/pnpm.git#main","type":"git"}
+        homepage: https://github.com/pnpm/pnpm/tree/main/workspace/find-packages#readme
+        dist.tarball: https://registry.npmjs.org/@pnpm/workspace.find-packages/-/workspace.find-packages-1000.0.65.tgz
+    - url: design/minecraft/dev-kit/artifacts/workspace-enumeration-probe/OUTPUT.txt
+      where: '"fixture state" — neither fixture workspace has been installed'
+      quote: |
+        === fixture state (no install has run in either)
+        npm-ws node_modules present: false
+        npm-ws package-lock.json present: false
+        npm-ws pnpm-lock.yaml present: false
+        pnpm-ws node_modules present: false
+        pnpm-ws package-lock.json present: false
+        pnpm-ws pnpm-lock.yaml present: false
+    - url: design/minecraft/dev-kit/artifacts/workspace-enumeration-probe/OUTPUT.txt
+      where: the two enumeration sections — what each library returned for its fixture
+      quote: |
+        === npm workspace via @npmcli/map-workspaces
+          @fixture/delta -> packages/delta
+          @fixture/gamma -> packages/gamma
+
+        === pnpm workspace via @pnpm/workspace.find-packages
+          patterns read from pnpm-workspace.yaml: ["packages/*","!packages/ignored"]
+          pnpm-ws-root@0.0.0 -> .
+          @fixture/alpha@1.2.3 -> packages/alpha
+          @fixture/beta@0.1.0 -> packages/beta
+
 - id: module-type-enumerations-disagree
   claim: |
     The set of module `type` values a manifest may declare is not enumerable from the format's own
