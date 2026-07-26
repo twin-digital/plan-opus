@@ -3,10 +3,12 @@
 ## Summary
 
 The dev kit answers one question about a workspace of Minecraft Bedrock packages: which packs are
-here, and what is each one. It is a typed npm library, and its product is a pack set — one record
-per resolved pack carrying identity, version, kind, owning package, source and built-output
-locations, and the pack's manifest completed to what a server would need to read, alongside a
-structured problem for every pack found but not resolvable. The problem it answers is that
+here, and what is each one. It is a typed npm library, and its product is a pack set — one entry per
+pack found, marked valid or invalid: a valid entry carrying identity, version, kind, owning package,
+source and built-output locations, and the pack's manifest completed to what a server would need to
+read; an invalid one carrying the problems that invalidated it alongside everything about it that
+did not come from the manifest, so a pack can be named and located even when it cannot be used. The
+problem it answers is that
 everything downstream of it — deploying, activating, reloading, choosing what to run — needs a
 single trustworthy answer to "what packs exist here", and without one each consumer re-derives it
 from signals that misclassify real workspaces. The constraint that shapes the whole design is that
@@ -154,10 +156,10 @@ cannot run during its parse. The kit reads and per-pack-checks every candidate, 
 across the whole set, completes each candidate against that index, and closes the set last (below).
 Completion is keyed on the target sitting unambiguously in the index, not on the target having
 survived: an entry whose target bears a pack and then fails is still given its version, and the
-depending pack is demoted with it rather than shipping an entry with a hole in it. Two candidates
+depending pack is invalidated with it rather than shipping an entry with a hole in it. Two candidates
 claiming one uuid is the exception, because their package versions can differ and nothing but
-arrival order would choose — the same reason the sharers themselves fail
-[[d:duplicate-header-uuid-invalidates-every-sharer]] — so the entry is left uncompleted and its
+arrival order would choose — the same reason no claimant of a duplicated uuid is preferred over
+another [[r:uuids-are-claimed-once-in-a-workspace]] — so the entry is left uncompleted and its
 dependent is reported against an unresolved target, which is where closure would put it regardless.
 
 What completion writes is the target's package version in the *depending* manifest's form, and the
@@ -169,39 +171,41 @@ owning-package version, and the component that writes the entry is the one that 
 
 ## Resolving the set and reporting problems
 
-Identity is what the set is keyed by: queries match on it, and every completed dependency entry
-points at one. So a shared header uuid is not a defect of one pack that another survives — while
-two packs claim one identity, neither can be pointed at, and picking a winner would bind
-dependencies to an ordering nobody chose. Every sharer fails together, each naming the others so
-the developer can see the pair [[d:duplicate-header-uuid-invalidates-every-sharer]]. The index of
-every candidate's uuid that this needs is also what sorts dependency entries into inside and outside
-the workspace, which no single pack's data can answer: an entry is external precisely when no
+Uniqueness is a property of the whole workspace, not of a pack, so one structure answers it: an
+index of every uuid anything in the workspace claims, header and module alike, with its claimants
+[[r:uuids-are-claimed-once-in-a-workspace]]. Holding module uuids there rather than checking them
+per manifest is what lets one check cover both shapes of collision the requirement names — two
+modules in one manifest, and two modules in different packs — since neither is visible to a pack
+reading only itself. That index is also what sorts dependency entries into inside and outside the
+workspace, another question no single pack's data can answer: an entry is external precisely when no
 candidate claims its uuid, and only where every candidate claimed one.
 
-Which candidates ship as packs is then one pass's answer, and it runs after completion rather than
-before it, because a candidate can fail at any stage: an unreadable manifest, a shared uuid, a
+Which entries are valid is then one pass's answer, and it runs after completion rather than before
+it, because a candidate can fail at any stage: an unreadable manifest, a uuid claimed twice, a
 package version the required form cannot express, a dependency target that did not survive
 [[r:unresolvable-packs-fail-loudly]]. Every earlier stage only records problems against a candidate;
-the closing pass alone demotes [[d:pack-set-closure-demotes-to-a-fixed-point]]. It has to iterate,
-because each demotion can create the next: with A depending on B and B on C, C's failure demotes B,
-and B's demotion then demotes A. So the pass demotes what carries a problem, re-walks the dependency
-edges of what is left, and repeats until nothing moves — propagation is transitive, not one step, and
-a pack never ships a dependency entry pointing outside the resolved set.
+the closing pass alone invalidates [[d:pack-set-closure-demotes-to-a-fixed-point]]. It has to
+iterate, because each invalidation can create the next: with A depending on B and B on C, C's
+failure invalidates B, and B's invalidation then invalidates A. So the pass invalidates what carries
+a problem, re-walks the dependency edges of what is left, and repeats until nothing moves —
+propagation is transitive, not one step, and no valid entry ships a dependency entry pointing at one
+that is not.
 
 A problem is a record a consumer can act on, not a rendered sentence
 [[d:problems-carry-a-closed-set-of-codes]]. Its code is what a CLI groups by, what a test asserts
-on, and what tells the dev server whether a pack is worth retrying after a rebuild. Most codes need
-one more thing to be actionable — which of a pack's dependency entries failed, which module, which
-other pack — and that referent is typed per code rather than rendered into the message or swept into
-a shared bag of details, so the pack the message is about and the entry it is about are read the
-same way. The closed set, the condition each code covers, and what each carries beyond the common
-fields, is the interface consumers build against:
+on, and what tells the dev server whether a pack is worth retrying after a rebuild. A problem no
+longer says which pack it is about, because it rides on that pack's entry and the entry already
+does; what it still owes is the part of the pack the code is about — which dependency entry failed,
+which module, which other claimant — and that referent is typed per code rather than rendered into
+the message or swept into a shared bag of details. The closed set, the condition each code covers,
+and what each carries beside its message, is the interface consumers build against:
 
 | code | raised when | carries |
 |---|---|---|
 | `manifest-unreadable` | the source manifest cannot be read, or is not valid JSON | — |
 | `header-uuid-missing` | the header carries no uuid, or one that is not a uuid | — |
-| `header-uuid-duplicated` | another discovered pack carries the same header uuid | the source directories of the other sharers |
+| `header-uuid-duplicated` | another discovered pack claims the same header uuid | the uuid, and the source directory of every other pack claiming it |
+| `module-uuid-duplicated` | a module's uuid is claimed by another module, in this manifest or another pack's | the uuid, and every claiming module as its index with its owning pack |
 | `header-name-specified` | the source manifest specifies a header name | — |
 | `header-version-specified` | the source manifest specifies a header version that is not a placeholder | — |
 | `version-form-unsupported` | a version is written in a form the manifest's format version does not carry | where it was written — the header, or a dependency entry's index |
@@ -218,26 +222,26 @@ fields, is the interface consumers build against:
 "The entry" is its index in the `dependencies` array together with the `uuid` or `module_name` it
 carries, since a pack may hold several and an index alone reads as nothing at the console.
 
-One candidate can trip several of these at once — a v2 manifest carrying `"1.2.3"` is both
-`header-version-specified` and `version-form-unsupported` — and each trip is its own record: there
-is no precedence among the codes and no primary one to group by
+Every code above invalidates, so there is no warning tier and no valid entry carries problems. One
+candidate can trip several at once — a v2 manifest carrying `"1.2.3"` is both
+`header-version-specified` and `version-form-unsupported` — and each trip is its own record on that
+entry: there is no precedence among the codes and no primary one to group by
 [[d:every-observed-problem-is-reported]]. Electing a primary would make the code a worse answer for
 both jobs it holds, since a test asserting on one condition would have to know which other condition
 outranked it. What bounds the burst is data rather than ranking: a check whose input an earlier
 failure withheld does not run, so an unreadable manifest yields exactly one record.
 
-Every candidate leaves discovery through exactly one of the two lists [[r:pack-discovery]], so a
-consumer that reads both has seen every pack the workspace definition admits. The guarantee is over
-the definition, not over the disk, and the difference is worth stating because it is where a pack
-can still vanish quietly: candidates come from the workspace definition rather than a tree walk
-[[r:packages-come-from-the-workspace-definition]], and a matched directory is a member only where it
-holds a valid `package.json` [[f:npm-workspaces-is-an-array-of-paths-or-globs]] — so a directory
-holding `behavior_pack/manifest.json` whose own `package.json` is missing or malformed is never a
-member, never a candidate, and gets no problem record. Nor does it throw: the workspace itself is
-readable, and only workspace-level trouble throws
-[[d:workspace-failures-throw-and-pack-failures-are-records]]. A consumer that has seen both lists has
-seen the definition's answer, and repairing a package that fell out of the definition is the package
-manager's own error to surface.
+Exhaustiveness needs no argument now that one list holds every pack found
+[[r:pack-discovery]] — a consumer holding the list holds everything the workspace definition admits,
+with no second place to look. What is worth stating is that the guarantee is over the definition and
+not over the disk, which is where a pack can still vanish quietly: candidates come from the
+workspace definition rather than a tree walk [[r:packages-come-from-the-workspace-definition]], and
+a matched directory is a member only where it holds a valid `package.json`
+[[f:npm-workspaces-is-an-array-of-paths-or-globs]] — so a directory holding
+`behavior_pack/manifest.json` whose own `package.json` is missing or malformed is never a member,
+never a candidate, and gets no entry at all. Nor does it throw: the workspace itself is readable, and
+only workspace-level trouble throws [[d:workspace-failures-throw-and-pack-failures-are-records]].
+Repairing a package that fell out of the definition is the package manager's own error to surface.
 
 What is deliberately absent from the table is a code for an unbuilt pack. The built
 output location is part of a pack's record whether or not anything is there
@@ -251,27 +255,44 @@ is the normal case this kit is built for, and a normal case does not produce pro
 
 The kit is consumed as `@twin-digital/mc-dev-kit` [[r:dev-kit-library-name]], imported and called
 [[r:dev-kit-provides-a-library]]. One asynchronous call does the discovery and returns everything
-it learned as one value [[d:the-pack-set-is-the-single-returned-value]]: the resolved packs, the
-problems, and the queries. Keeping the queries on that value is what makes exact matching by
-package name, pack name, or pack uuid [[r:pack-search]] a lookup rather than a second traversal —
-the set is already in memory and already indexed by the three keys, so a query never touches the
-filesystem and never disagrees with the set the caller is holding.
+it learned as one value [[d:the-pack-set-is-the-single-returned-value]]: the list of entries and the
+queries over it. Keeping the queries on that value is what makes matching by package name, pack
+name, pack uuid, or status [[r:pack-search]] a lookup rather than a second traversal — the set is
+already in memory and already indexed by those keys, so a query never touches the filesystem and
+never disagrees with the set the caller is holding. Two of that requirement's rules are worth
+holding together while building the query: criteria conjoin, and a query that names no status sees
+only valid entries. So the invalid ones are reachable but never accidental, and the index a query
+runs against is the entry list itself rather than a pre-filtered copy of it.
 
-The record is the whole product, so its fields are pinned here rather than left to the builder —
+The entry is the whole product, so its fields are pinned here rather than left to the builder —
 a consumer receiving data instead of text still has to know the shape of the data
-[[r:dev-kit-provides-a-library]] [[r:pack-record-details]]:
+[[r:dev-kit-provides-a-library]] [[r:pack-record-details]]. It is a union discriminated by `status`,
+read before anything else [[r:pack-discovery]], and the discriminant buys the consumer a real
+difference: only the two fields the manifest supplies are ever missing
+[[d:an-invalid-entry-keeps-every-detail-its-sources-hold]].
 
-| field | form |
-|---|---|
-| `uuid` | the header uuid, lowercased [[d:uuids-are-compared-and-reported-lowercased]] |
-| `name` | the completed `header.name` string |
-| `version` | the pack version as a SemVer string [[d:pack-record-version-is-a-semver-string]] |
-| `kind` | `behavior` or `resource` [[d:pack-kind-is-spelled-behavior-or-resource]] |
-| `packageName` | the owning package's `package.json` `name` |
-| `packageDir` | the owning package's directory |
-| `sourceDir` | the pack's source directory, the one holding `manifest.json` |
-| `outputDir` | the pack's built-output directory, present or not |
-| `manifest` | the completed manifest document |
+| field | form | on an invalid entry |
+|---|---|---|
+| `status` | `valid` or `invalid` | the discriminant |
+| `problems` | the problems that invalidated the entry | present; absent on a valid entry |
+| `uuid` | the header uuid, lowercased [[d:uuids-are-compared-and-reported-lowercased]] | absent |
+| `manifest` | the completed manifest document | absent |
+| `name` | the completed `header.name` string | present |
+| `version` | the pack version as a SemVer string [[d:pack-record-version-is-a-semver-string]] | present unless the owning package has no usable version |
+| `kind` | `behavior` or `resource` [[d:pack-kind-is-spelled-behavior-or-resource]] | present |
+| `packageName` | the owning package's `package.json` `name` | present |
+| `packageDir` | the owning package's directory | present |
+| `sourceDir` | the pack's source directory, the one holding `manifest.json` | present |
+| `outputDir` | the pack's built-output directory, present or not | present |
+
+The right-hand column is the whole point of the change that produced it: a pack invalidated only
+because something it depends on failed keeps everything a consumer needs to name it, locate it, and
+say what went wrong. What survives is what the workspace definition and the directory already
+carried — membership guarantees a readable `package.json`
+[[f:npm-workspaces-is-an-array-of-paths-or-globs]], the fixed path carries the kind, and the output
+location is computed rather than read [[d:built-output-location-is-computed-not-probed]] — so only
+identity and manifest content ever go missing, and a third status for "found but unidentified" would
+name a distinction no field records.
 
 Every path among them is relative to the workspace root and names a directory, never the manifest
 file inside it [[d:pack-record-paths-are-workspace-relative-directories]]. Two forms in that table
@@ -289,8 +310,8 @@ the manifest that carried it used.
 ```yaml
 components:
   - id: problem-model
-    responsibility: the problem record union — its closed code set, the common fields, the referent each code carries, and the constructors other components raise through
-    excludes: deciding which conditions are problems
+    responsibility: the problem union — its closed code set, the referent each code carries, its message, and the constructors other components raise through
+    excludes: deciding which conditions are problems, and naming the pack a problem is about
   - id: workspace-packages
     responsibility: resolve a workspace root into its member packages — the root package among them, added where the manager's library omits it — each with name, directory, and parsed package.json
     excludes: anything specific to Minecraft packs
@@ -303,19 +324,19 @@ components:
     excludes: any check that needs another pack's data, including whether a dependency uuid names a pack in the workspace
     after: [pack-candidates]
   - id: pack-identity-index
-    responsibility: index candidate identities across the set on their lowercased uuids, flagging a uuid more than one candidate claims and recording whether every candidate yielded one, then class each dependency entry as inside, outside, or indeterminate and flag an inside entry specifying a version and an outside one carrying none
-    excludes: deciding which candidates survive as packs
+    responsibility: index every uuid claimed in the workspace on its lowercased form — each candidate's header uuid and each of its modules' — flagging any uuid more than one claimant claims and recording whether every candidate yielded an identity, then class each dependency entry as inside, outside, or indeterminate and flag an inside entry specifying a version and an outside one carrying none
+    excludes: deciding which entries are valid
     after: [manifest-document]
   - id: manifest-completion
     responsibility: per candidate, fill the header name and version and the version of each dependency entry the index classed as inside and resolved to one candidate, rendered in the depending manifest's form and raising against the depending pack where that form cannot express it
-    excludes: deciding which candidates survive as packs
+    excludes: deciding which entries are valid
     after: [pack-identity-index]
   - id: pack-set-closure
-    responsibility: demote every candidate carrying a problem, re-walk the dependency edges of the rest, and iterate to a fixed point, yielding the resolved set and the problem list
-    excludes: any check other than whether a completed dependency's target is still resolved
+    responsibility: mark every candidate carrying a problem invalid, re-walk the dependency edges of the rest, and iterate to a fixed point, yielding the one list of entries
+    excludes: any check other than whether a completed dependency's target is still valid
     after: [manifest-completion]
   - id: pack-set-api
-    responsibility: the exported entry point, the pack record shape, and the exact-match queries over a held set
+    responsibility: the exported entry point, the entry union keyed on `status`, and the queries over a held set — conjoined criteria, and valid entries only where status goes unnamed
     excludes: filesystem access of its own
     after: [pack-set-closure]
 ```

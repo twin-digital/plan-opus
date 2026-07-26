@@ -37,25 +37,16 @@
     - a consumer needs the packs it can resolve from a workspace whose definition is unreadable, rather than nothing at all
     - a consumer ends up wrapping every call to render workspace trouble alongside pack problems, so the two channels are one channel in practice
 
-- id: duplicate-header-uuid-invalidates-every-sharer
-  statement: |
-    when two or more packs carry the same header uuid, none of them resolves and each becomes a
-    problem record naming the others
-  status: proposed
-  falsifiers:
-    - a supported workflow legitimately produces two packs sharing one header uuid, so failing all of them blocks work that should proceed
-    - consumers routinely want to keep working with one of the sharers and end up re-deriving a winner themselves
-
 - id: problems-carry-a-closed-set-of-codes
   statement: |
-    a problem record is a union discriminated by a code from a closed set, each code typing the
-    referent it needs, over common fields for the owning package, the pack's kind and source
-    directory, and a human-readable message
+    a problem is a union discriminated by a code from a closed set, each code typing the referent
+    it needs, plus a human-readable message; the entry it rides on names the pack it is about
   status: proposed
   falsifiers:
     - a consumer branches on message text because the codes are too coarse to act on
     - no consumer reads the code, every one of them treating a problem as an opaque message
     - consumers routinely widen the union back to one shape to render or store a list, so typing the referent per code costs more than it gives
+    - consumers routinely flatten problems across entries and have to re-attach the pack by hand, so a problem should carry it after all
 
 - id: completion-version-form-follows-format-version
   statement: |
@@ -113,12 +104,12 @@
 
 - id: pack-set-closure-demotes-to-a-fixed-point
   statement: |
-    a single closing pass decides which candidates ship as resolved packs, demoting every candidate
-    carrying a problem and re-walking dependency edges until a pass demotes nothing
+    a single closing pass decides which entries are valid, marking every candidate carrying a
+    problem invalid and re-walking dependency edges until a pass marks nothing
   status: proposed
   falsifiers:
-    - a rule arrives that can restore a candidate as well as demote one — a repair pass, or a pack that becomes resolvable once a sibling is demoted — so demotion is no longer monotone and the iteration has no fixed point to reach
-    - a consumer needs the packs that are individually sound even where a transitive dependency failed, so blanket demotion withholds usable data
+    - a rule arrives that can restore a candidate as well as invalidate one — a repair pass, or a pack that becomes resolvable once a sibling is invalidated — so the marking is no longer monotone and the iteration has no fixed point to reach
+    - a consumer needs to deploy the packs that are individually sound even where a transitive dependency failed, so invalidating them transitively blocks a run the developer wanted
 
 - id: pack-record-paths-are-workspace-relative-directories
   statement: |
@@ -177,9 +168,19 @@
 
 - id: the-pack-set-is-the-single-returned-value
   statement: |
-    one asynchronous entry point returns a pack set holding the resolved packs, the problem
-    records, and the queries over them
+    one asynchronous entry point returns a pack set holding the one list of entries and the queries
+    over it
   status: proposed
   falsifiers:
     - a workspace grows large enough that a consumer needs packs streamed or discovered incrementally rather than as one settled value
     - a consumer needs the queries over a set it assembled itself, so they have to be free functions
+
+- id: an-invalid-entry-keeps-every-detail-its-sources-hold
+  statement: |
+    an invalid entry is missing only the two fields the manifest supplies — the uuid and the
+    manifest document — and its `version` besides, in the one case where the owning package has no
+    usable version, which the problem reporting that carries verbatim
+  status: proposed
+  falsifiers:
+    - a consumer sorts or renders entries by version and has to invent a placeholder for the ones without, so the field should always be present in some form
+    - packages with no usable version turn out to be common enough that the exception is the rule and a second status would say more than a missing field does
