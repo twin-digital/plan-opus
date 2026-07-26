@@ -1,10 +1,11 @@
 # Review a design's inputs
 
 Read a design's `brief.md`, `requirements.yaml`, and `facts.yaml` as a set and propose what should
-change before another cycle builds on them. Used after `reject-spec.md` opens its pull request, and
-standalone whenever inputs have drifted.
+change before another cycle builds on them. Used before `generate-spec.md` starts its writer, after
+`reject-spec.md` opens its pull request, and standalone whenever inputs have drifted.
 
-**Target.** A design given as `<area>/<design>`, and the pull request holding its inputs.
+**Target.** A design given as `<area>/<design>`, and the pull request holding its inputs, where
+there is one.
 
 **You must not have written or revised these inputs.** The point of this pass is a reader who has
 not been inside the iteration. An author reads their own wording as obviously meant.
@@ -29,6 +30,10 @@ change is a concrete edit, so the owner can take it in one click:
 
 A finding with no suggestable edit — "these two requirements now overlap; one should go" — is a
 comment naming both and recommending which.
+
+Where there is no pull request yet — the pre-generation run — the same findings go back to whoever
+dispatched you, in the same shape: the entry each concerns, the edit you would suggest, and what the
+next spec would do differently. Someone else decides what happens to them. You still change no file.
 
 ---
 

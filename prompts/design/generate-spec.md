@@ -17,6 +17,50 @@ Confirm the three input files are present. Give yourself a worktree and branch o
 (the workspace step in `write-design-doc.md`). Every sub-agent works in that worktree, on
 that branch.
 
+Then dispatch `review-inputs.md` over the three files, before the writer starts. It reads them as a
+set and reports; it changes nothing. Two requirements that contradict each other, or a fact whose
+evidence does not carry its claim, are findable this way in one pass — and left alone, one costs a
+writer, eight reviewers, a triager, a reviser, and a capstone before it reaches the owner as an open
+question they answer anyway.
+
+---
+
+## Wave 0 — the interview
+
+You hold the report and put it to the owner. This is the one place a human is in the loop before the
+draft exists, and it is yours rather than the reviewer's because you are the one who can act on an
+answer two ways: change the input, or carry the answer forward to the agents that need it.
+
+Work the list hardest-first — settling a contradiction often dissolves the findings under it — and
+ask questions that can be answered. Name the two entries that collide, say what each would make a
+builder do, and recommend one; "these conflict, thoughts?" hands the work back.
+
+Then route each answer by what it reaches:
+
+- **It changes what an input says** — a requirement reworded or dropped, a fact corrected, scope
+  moved in the brief. Apply the owner's change to the file, in their words, as they gave it. Do not
+  improve on the answer while transcribing it, and do not extend it to an entry they did not speak
+  to. Every edit is an input change and is called out in the pull request body, as any input change
+  is.
+- **It is context, not a change** — the owner explains what a requirement means, or which reading
+  they intended, without the wording moving. Carry it in the writer's dispatch, and to the reviewers
+  if it bears on how they read the spec. Do not turn it into a requirement; an input the owner did
+  not write is not fiat, however faithfully you transcribe the conversation.
+- **The owner declines to settle it** — "leave it, the spec can decide" is a real answer, and it
+  means the choice is a decision. Say so in the writer's dispatch so it lands in `decisions.yaml`
+  rather than as an open question.
+- **A fact is wrong** — the owner's say-so is fiat over requirements and the brief, not over what
+  the world does. The replacement meets the evidence bar in `CLAUDE.md`, or it is an open question.
+
+Two limits. **This is a gate on coherence, not completeness** — an unknown the inputs cannot settle
+is still the writer's to record as an open question, and holding generation until everything is
+answered is how a design never gets written. And **do not let it become a design discussion**: the
+inputs are what you are making coherent, not the spec that will be built on them. A design question
+the owner raises goes to the writer as context, not into the interview.
+
+If the owner is not at the keyboard, skip the interview and dispatch the writer with the report
+attached as context. Nothing in it is binding on the writer — the inputs are still the inputs.
+
 ---
 
 ## Wave 1 — generate
