@@ -44,6 +44,20 @@ const scopes = [
   { label: "global",                   dir: ROOT },
 ];
 
+// A wider-scope requirement binds the designs its applies_to names, or its whole tier when it
+// names none. Requirements that bind some other design are dropped rather than shown here.
+const SETS_FILE = path.join(ROOT, "sets.yaml");
+const setsRaw = fs.existsSync(SETS_FILE) ? (YAML.parse(fs.readFileSync(SETS_FILE, "utf8")) ?? {}) : {};
+const sets = setsRaw && typeof setsRaw === "object" && !Array.isArray(setsRaw) ? setsRaw : {};
+const targetScope = `${target.area}/${target.name}`;
+const binds = (e) =>
+  !Array.isArray(e.applies_to) ||
+  e.applies_to.some((t) => {
+    const s = String(t);
+    return s.startsWith("set:") ? (sets[s.slice(4)] ?? []).includes(targetScope) : s === targetScope;
+  });
+let unbound = 0;
+
 // Block scalars are already hand-wrapped; preserve the author's line breaks (and any
 // bullet structure inside them) and quote them so the content is visibly not commentary.
 const quote = (s, prefix = "") => {
@@ -53,7 +67,8 @@ const quote = (s, prefix = "") => {
 
 const out = [];
 out.push(`# Foundations in scope — ${target.area}/${target.name}`, "");
-out.push(`Everything this design may cite, nearest scope first. Retired entries are omitted.`, "");
+out.push(`Everything this design may cite, nearest scope first. Retired entries are omitted.`,
+  `Requirements are the ones that bind this design — every one listed must be honoured.`, "");
 
 let totals = { req: 0, fact: 0 };
 for (const [kind, file, heading] of [["req", "requirements.yaml", "Requirements"],
@@ -61,7 +76,8 @@ for (const [kind, file, heading] of [["req", "requirements.yaml", "Requirements"
   out.push(`## ${heading}`, "");
   let any = false;
   for (const scope of scopes) {
-    const entries = read(path.join(scope.dir, file))
+    const all = read(path.join(scope.dir, file));
+    const entries = (kind === "req" ? all.filter((e) => binds(e) || (unbound++, false)) : all)
       .sort((a, b) => String(a.id).localeCompare(String(b.id)));
     if (!entries.length) continue;
     any = true;
@@ -83,5 +99,6 @@ for (const [kind, file, heading] of [["req", "requirements.yaml", "Requirements"
   if (!any) out.push("_none_", "");
 }
 
-out.push("---", "", `${totals.req} requirements, ${totals.fact} facts.`);
+out.push("---", "", `${totals.req} requirements, ${totals.fact} facts.` +
+  (unbound ? ` ${unbound} wider-scope requirement(s) bind other designs and are not shown.` : ""));
 console.log(out.join("\n"));

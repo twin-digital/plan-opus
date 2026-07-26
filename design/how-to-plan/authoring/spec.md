@@ -65,6 +65,17 @@ something fails, and so does a cited sentence that rests on nothing. That these 
 themselves written as such tests, rather than prose an author pastes in, is what keeps them from
 turning out stilted and uniform [[r:guidance-is-tests-not-templates]].
 
+## Requirements the design did not write
+
+Citing is not the only relation a spec has to a requirement. A requirement from a wider scope
+binds the designs it names, and a bound one is an obligation on this design rather than something
+a sibling might discharge instead — so the test is an account, not a token count: read the list of
+requirements binding the design, and for each, point to what in the spec satisfies it or to the
+decision that records a departure from it [[r:bound-requirements-are-honoured-or-departed]]. A
+hard requirement admits only the first. The list is printed rather than remembered, which is what
+makes the test cheap enough to run every time; a design that quietly leaves one unaccounted for
+has a finding against it, not a gap upstream.
+
 ## Evidence and inherited facts
 
 The evidence rules bind whoever captures a fact, as the requirement-content rules below bind
@@ -175,6 +186,7 @@ aimed at whoever writes the entry it governs [[r:a-rule-binds-the-writer-of-what
 | 2 | build content | Does every passage change what gets built, with a *why* only where its absence would misbuild and no surplus a builder never reads? |
 | 3 | build content — stands alone | Strike every citation token — does the specification still say what to build, with every path, literal, format, and default present in the prose or a component? |
 | 4 | citations | Does every claim that would change were a foundation false carry its token, and does no motivation or illustration carry one? |
+| 4a | spec — bound requirements | For every requirement binding this design, can a reviewer point to what satisfies it, or to a decision recording a departure from a soft one? |
 | 5 | fact — evidence | Does each fact's outside evidence appear verbatim at its source, and each assumed fact carry its mechanism? |
 | 5a | fact — provenance | Does each `documented` fact cite the upstream original rather than a repository file transcribing it, an in-repo source appearing only where that file originates the claim? |
 | 5b | fact — quote fit | Does each quote state the claim its fact makes, rather than being genuine but beside the point? |

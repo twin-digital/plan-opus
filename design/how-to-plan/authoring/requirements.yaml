@@ -1,7 +1,21 @@
 # Requirements scoped to the authoring design.
 # Schema: id, statement, force (hard|soft), status (active|retired), rationale (optional).
 # rationale is always a block scalar. Requirements take no sources.
-# Promote to design/how-to-plan/requirements.yaml when a second design depends on one.
+# Promote to design/how-to-plan/requirements.yaml when a second design depends on one, and give it
+# an applies_to unless it really binds every design in the area.
+
+- id: bound-requirements-are-honoured-or-departed
+  statement: |
+    a spec accounts for every requirement bound to its design, whichever scope it came from: a
+    hard one is satisfied, and a soft one is satisfied or departed from in a decision that cites
+    it. One neither satisfied nor departed from is a finding against the spec, not a gap in the
+    requirement
+  rationale: |
+    A requirement above design scope binds the designs its applies_to names, so it is an
+    obligation on each of them and not a shared aspiration one sibling might discharge. Nothing
+    mechanical can read whether a spec satisfies a statement, so the account is a reviewer's, run
+    against the list the harness prints — which is why the rule is stated as something to check
+    rather than something to cite.
 
 - id: requirements-are-owner-reversal-calls
   statement: |

@@ -46,11 +46,18 @@ your output has to pass.
 
 **3. Wider scopes, nearest first.**
 
-- `design/<area>/requirements.yaml` and `facts.yaml` — bind every design in the area
-- `design/requirements.yaml` and `facts.yaml` — bind everything
+- `design/<area>/requirements.yaml` and `facts.yaml`
+- `design/requirements.yaml` and `facts.yaml`
+- `design/sets.yaml` — named sets of designs a requirement can bind
 
 A citation resolves design → area → global. You may cite anything visible at those three
 tiers and **nothing from another design** — a design's decisions bind only itself.
+
+**Which of them bind you is a separate question from which you may cite.** A wider-scope
+requirement binds the designs its `applies_to` names, or its whole tier when it names none, and
+every requirement that binds you must be honoured — a hard one without exception, a soft one
+unless a decision of yours records the departure. Run `node bin/foundations.mjs <area>/<design>`
+for exactly that list; it resolves the sets for you.
 
 **4. The authoring rules — `design/how-to-plan/authoring/spec.md`** (and its `requirements.yaml`).
 These govern the *contents* of any design here, this one included: that the `spec.md` is a build

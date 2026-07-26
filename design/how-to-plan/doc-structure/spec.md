@@ -18,8 +18,11 @@ tool reads from the raw text.
 
 Foundations live in a directory tree of exactly three tiers — a global root, an area beneath it,
 and a design beneath that — each tier a directory holding at most a `requirements.yaml` and a
-`facts.yaml`, with no fourth tier and no nesting of areas [[r:three-tier-scopes]]. The three tiers
-exist so a foundation can bind everything, or one area, or one design, and no finer. A design's own
+`facts.yaml`, with no fourth tier and no nesting of areas; beside them at the root sits
+`sets.yaml`, which names groups of designs and holds no foundations
+[[r:three-tiers-hold-foundations]]. The three tiers file a foundation and group it for a reader;
+which designs a requirement *binds* is stated on the requirement, not read off its path (below).
+A design's own
 directory then splits what endures from what is regenerable along the file boundary, not a folder
 one: its `requirements.yaml` and `facts.yaml` are durable inputs, while its `decisions.yaml` and
 `spec.md` are outputs the design produces and nothing upstream may write into [[r:inputs-outputs-split]].
@@ -32,6 +35,7 @@ on disk, the three tiers and the input/output split take this shape [[r:spec-sho
 design/
 ├── requirements.yaml            global-scope inputs
 ├── facts.yaml
+├── sets.yaml                    named sets of designs
 └── how-to-plan/                 an area
     ├── requirements.yaml        area-scope inputs
     ├── facts.yaml
@@ -95,10 +99,13 @@ of `active` | `retired` (default `active`) — a retired fact adds a `reason` of
 `disproven` | `stale`, and a superseded one names its replacement in `superseded_by` as a bare fact
 id, not a citation token — and a `caveat` recording why the fact might not hold despite its backing.
 
-**Requirement** [[r:requirement-structure]]. Required: `id` and a `statement`. Optional: a `force`
-of `hard` | `soft` (default `hard`) — a hard requirement is non-negotiable, a soft one a preference
-that may bend with justification — a `status` of `active` | `retired` (default `active`), and a
-`rationale`. A requirement carries no `sources`. A design that departs from a soft requirement does
+**Requirement** [[r:requirement-entry-structure]]. Required: `id` and a `statement`. Optional: a
+`force` of `hard` | `soft` (default `hard`) — a hard requirement is non-negotiable, a soft one a
+preference that may bend with justification — a `status` of `active` | `retired` (default
+`active`), a `rationale`, and `applies_to`, the designs it binds, each item a design scope
+(`<area>/<design>`) or a `set:<name>`. `applies_to` sits only on a requirement above design scope;
+a design-scoped one already binds exactly its own design.
+A requirement carries no `sources`. A design that departs from a soft requirement does
 not amend it or annotate it with an exception; it records the departure as a decision that cites the
 requirement, since bending a soft requirement is a choice with a reason and a falsifier — a decision
 in every respect [[r:soft-departures-are-decisions]].
@@ -143,11 +150,11 @@ A fact, a requirement, and a decision, as they sit in a `facts.yaml`, `requireme
 ```
 
 ```yaml
-- id: three-tier-scopes
-  statement: exactly three scopes hold foundations — global, area, and design
-  force: soft
+- id: packs-ship-one-mcaddon
+  statement: every pack in the product ships as a single .mcaddon
+  applies_to: [set:minecraft-addon-pack]
   rationale: |
-    Two tiers cannot express "shared by these designs but not everything".
+    One import step per pack is what a player will actually follow.
 ```
 
 ```yaml
@@ -156,6 +163,15 @@ A fact, a requirement, and a decision, as they sit in a `facts.yaml`, `requireme
   status: proposed
   falsifiers:
     - a foundation file grows a need for file-level metadata beside its entries
+```
+
+The `sets.yaml` that `set:minecraft-addon-pack` resolves through — this one file is a mapping of
+set name to the design scopes it holds, not a sequence:
+
+```yaml
+minecraft-addon-pack:
+  - minecraft/pack-frontier
+  - minecraft/pack-tinker
 ```
 
 A component block and an open-question block, in the form each takes inside a `spec.md` — the
@@ -213,6 +229,35 @@ because ids are unique per kind repo-wide; without that guarantee resolution wou
 rule between tiers. A design may cite anything visible at its own, its area's, or the global tier,
 and nothing belonging to another design.
 
+## What a requirement binds
+
+Citing and binding are different relations, and the tier answers only the first. A design *may
+cite* any requirement at its own, its area's, or the global tier; it *is bound by* the ones whose
+`applies_to` names it — every one of them, without exception where the requirement is hard, and
+unless a decision records the departure where it is soft [[r:requirement-binding-is-explicit]]. A
+wider-scope requirement that omits `applies_to` binds its whole tier: every design in the area, or
+every design in the repository [[d:omitted-binding-means-the-whole-tier]]. That default is what
+keeps the field off almost every entry — the tier is usually the right answer, and stating it again
+would be noise.
+
+Where the tier is *not* the right answer, `applies_to` names the designs directly, or names a set.
+A set is declared once, in `design/sets.yaml`, mapping a name to the design scopes it holds
+[[r:binding-sets-are-declared-once]]; a set may hold designs from more than one area, and no set
+holds another set. This is what a product is here: the packs that share a build, or the library and
+the tools that ship together, listed by name rather than gathered into a directory. Listing the
+members in one place rather than on each design is a bet that a product's roster changes as a unit
+— adding a pack is then a one-line edit rather than an edit to every design that joins it
+[[d:set-membership-is-declared-by-the-set]].
+
+Binding does not create a citation obligation. A design settles on citing its own live
+requirements and the decisions it kept; a requirement bound to it from a wider scope may be
+honoured silently, because the design honouring it is often a matter of what it *does not* do
+[[r:settled-design-cites-what-it-keeps]] [[d:settle-bar-stays-design-scoped]]. What the harness
+owes instead is visibility: it resolves every set, rejects an `applies_to` naming a design or set
+that does not exist, and can list exactly the requirements binding a given design — the walk up the
+tree that an author would otherwise have to remember to make. Whether each is actually honoured is
+a reader's judgement, not a check [[d:binding-coverage-is-reported-not-enforced]].
+
 ## Design state
 
 A design is in one of three states — `exploring`, `draft`, or `settled` — and the state is computed
@@ -247,7 +292,9 @@ carries `id`, `claim`, and a `backing` in the enum, plus at least one source in 
 form, a `url` never carrying a `description`, a `url` always carrying `where`, an in-repo `url`
 written repo-relative, an `artifacts/` url only on a `tested` fact and only at that fact's own scope
 or wider, and every `quote` a block scalar; a requirement carries `id` and `statement`,
-a `force` and `status` in their enums, and no `sources`; a decision carries `id`, `statement`, and a
+a `force` and `status` in their enums, and no `sources`, and carries `applies_to` only above design
+scope, every item of it resolving to a real design scope or a declared set; every set in
+`sets.yaml` names only designs that exist and no other set; a decision carries `id`, `statement`, and a
 written `status` in its enum, plus at least one falsifier unless rejected; any field at its default is
 omitted; a retired fact carries a valid `reason` and, if superseded, a resolvable `superseded_by`. In
 the document: a live block is recognised only under its fixed `## Components` or `## Open questions`
@@ -267,3 +314,4 @@ Marked as having no mechanical backstop — the checker cannot see these, so a r
 | an id is stable — a changed meaning gets a new id, not a rewrite | a rename and a replacement are the same diff |
 | a decision's `statement` names the choice, not its why or entailments | whether a sentence smuggles in reasoning is a reading, not a match |
 | a fact's `backing` reflects how the fact was really established | the enum value is checkable; its truth is not |
+| a design honours every requirement bound to it | whether a design satisfies a statement is a reading of both, and honouring one is often a matter of what the design does not do |

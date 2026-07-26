@@ -46,3 +46,42 @@
       document to read well, so section placement cannot mark what is live
     - authors routinely need an illustrative block that must itself sit under a fixed section,
       so section is not enough to separate an example from a live entry
+
+- id: omitted-binding-means-the-whole-tier
+  statement: |
+    a wider-scope requirement with no `applies_to` binds every design in its tier
+  status: proposed
+  falsifiers:
+    - authors write `applies_to` on nearly every shared requirement, so the default never
+      describes what anyone means and only hides which designs are bound
+    - a requirement is found binding designs its author never intended, because the default
+      fired where nobody looked
+
+- id: set-membership-is-declared-by-the-set
+  statement: |
+    a set lists its member designs in design/sets.yaml; a design does not declare the sets it
+    belongs to
+  status: proposed
+  falsifiers:
+    - adding one design routinely means editing several set entries, so membership churns in
+      more places than the design itself
+    - two sets are maintained by different people and the single file becomes the thing they
+      contend over
+
+- id: settle-bar-stays-design-scoped
+  statement: |
+    a design settles on citing its own live requirements and its kept decisions; a requirement
+    bound to it from a wider scope carries no citation obligation
+  status: proposed
+  falsifiers:
+    - a design ships having silently ignored a requirement bound to it, and a citation at settle
+      would have caught it
+
+- id: binding-coverage-is-reported-not-enforced
+  statement: |
+    the harness resolves which requirements bind a design and shows them; whether the design
+    honours each is a reviewer's finding
+  status: proposed
+  falsifiers:
+    - a bound requirement's breach turns out to be mechanically detectable often enough that
+      reporting alone wastes the signal

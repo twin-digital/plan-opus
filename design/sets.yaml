@@ -1,0 +1,10 @@
+# Named sets of designs, for requirements that bind a group the directory tree cannot express —
+# a product spanning several designs, or one whose members sit in more than one area.
+#
+# A set maps a kebab-case name to design scopes (`<area>/<design>`). Sets do not nest, and a
+# design may belong to any number of them. A requirement names one as `set:<name>` in its
+# `applies_to`.
+#
+# minecraft-addon-pack:
+#   - minecraft/pack-frontier
+#   - minecraft/pack-tinker

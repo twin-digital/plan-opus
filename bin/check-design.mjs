@@ -73,6 +73,37 @@ for (const a of areas) {
   }
 }
 
+// ---- named sets of designs (design/sets.yaml) -------------------------------
+// A set groups designs the tree cannot: a product spanning areas, or one overlapping a sibling.
+// Sets never nest, so membership is one lookup deep.
+const SETS_FILE = path.join(ROOT, "sets.yaml");
+const raw = fs.existsSync(SETS_FILE) ? (YAML.parse(fs.readFileSync(SETS_FILE, "utf8")) ?? {}) : {};
+const sets = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+if (raw !== sets) add("sets.yaml is not a mapping of set name to design scopes", SETS_FILE);
+const designScopes = new Set(designs.map((d) => d.scope));
+for (const [name, members] of Object.entries(sets)) {
+  if (!KEBAB.test(name)) add("set name not kebab-case", name);
+  if (!Array.isArray(members) || !members.length) { add("set without members", name); continue; }
+  for (const m of members)
+    if (String(m).startsWith("set:")) add("set holds another set", `${name} -> ${m}`);
+    else if (!designScopes.has(String(m))) add("set member unresolved", `${name} -> ${m}`);
+}
+
+// ---- applies_to: which designs a requirement binds ---------------------------
+// Only above design scope, where omitting it binds the whole tier. A design-scoped requirement
+// already binds exactly its own design.
+for (const rec of Object.values(ent)) {
+  if (rec.kind !== "r" || rec.e.applies_to === undefined) continue;
+  const tag = `${rec.scope} ${rec.e.id}`;
+  if (rec.tier === "design") { add("applies_to on a design-scoped requirement", tag); continue; }
+  if (!Array.isArray(rec.e.applies_to) || !rec.e.applies_to.length) { add("applies_to is not a non-empty list", tag); continue; }
+  for (const t of rec.e.applies_to) {
+    const s = String(t);
+    if (s.startsWith("set:")) { if (!(s.slice(4) in sets)) add("applies_to names an undeclared set", `${tag} -> ${s}`); }
+    else if (!designScopes.has(s)) add("applies_to names no such design", `${tag} -> ${s}`);
+  }
+}
+
 // ---- per-entry schema checks (rules 4,6,7,8,9) ------------------------------
 function checkEntry(kind, e, scope, file) {
   const tag = `${scope} ${e.id}`;
@@ -216,6 +247,10 @@ const ORDER = [
   "bad decision status", "bad force", "bad retire reason", "retired fact without reason",
   "superseded fact without superseded_by", "superseded_by unresolved", "fact supersedes itself",
   "decision without a falsifier", "requirement with sources", "rationale not a block scalar",
+  "sets.yaml is not a mapping of set name to design scopes", "set name not kebab-case",
+  "set without members", "set holds another set", "set member unresolved",
+  "applies_to on a design-scoped requirement", "applies_to is not a non-empty list",
+  "applies_to names an undeclared set", "applies_to names no such design",
   "fact without a source", "source has both url and description", "source has no locator",
   "url without where", "in-repo url not repo-root-relative", "quote not a block scalar",
   "quote not verbatim at its source",

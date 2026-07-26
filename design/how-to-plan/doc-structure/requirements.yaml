@@ -32,6 +32,7 @@
     and Examples sections show each field in the form it takes on disk.
 
 - id: requirement-structure
+  status: retired
   statement: |
     Requirements MUST carry:
 
@@ -44,6 +45,26 @@
         non-negotiable, a soft one a preference that can bend if justified
       - a `status` of `active` | `retired` (default `active`)
       - a `rationale` clarifying the requirement's intent or importance
+  rationale: |
+    Field names and enum values are the format's public interface. The spec's Entry shapes
+    and Examples sections show each field in the form it takes on disk.
+
+- id: requirement-entry-structure
+  statement: |
+    Requirements MUST carry:
+
+      - a stable, kebab-case `id`
+      - a `statement` describing the requirement
+
+    and MAY carry:
+
+      - a `force` of `hard` | `soft` (default `hard`): a hard requirement is
+        non-negotiable, a soft one a preference that can bend if justified
+      - a `status` of `active` | `retired` (default `active`)
+      - a `rationale` clarifying the requirement's intent or importance
+      - `applies_to`, the designs it binds — a list whose items are each either a design
+        scope (`<area>/<design>`) or `set:<name>` naming a declared set. Valid only on a
+        requirement above design scope, where omitting it binds the whole tier
   rationale: |
     Field names and enum values are the format's public interface. The spec's Entry shapes
     and Examples sections show each field in the form it takes on disk.
@@ -109,6 +130,7 @@
     to an entry in a file — rather than some pointing into the prose and some out of it.
 
 - id: three-tier-scopes
+  status: retired
   statement: |
     exactly three scopes hold foundations — global, area, and design — each a directory
     holding at most a requirements.yaml and a facts.yaml. There is no fourth tier and areas
@@ -116,6 +138,46 @@
   rationale: |
     Two tiers cannot express "shared by these designs but not by everything"; a fourth invites
     a hierarchy that will grow unwieldly
+
+- id: three-tiers-hold-foundations
+  statement: |
+    exactly three scopes hold foundations — global, area, and design — each a directory
+    holding at most a requirements.yaml and a facts.yaml. There is no fourth tier and areas do
+    not nest. The global root additionally holds sets.yaml, which declares named sets of
+    designs and holds no foundations of its own
+  rationale: |
+    Three tiers is what the tree can carry: two cannot express "shared by these designs but not
+    by everything", and a fourth invites a hierarchy that grows unwieldy — while still failing
+    the grouping that motivated it, since a subtree cannot hold designs from two areas. The
+    tiers therefore file foundations and group them for a reader; which designs a requirement
+    binds is stated on the requirement, not read off the path.
+
+- id: requirement-binding-is-explicit
+  statement: |
+    a requirement above design scope binds a stated set of designs, and every design it binds
+    must honour it — a hard one without exception, a soft one unless a decision records the
+    departure. The set is `applies_to`; a requirement that omits it binds every design in its
+    own tier, meaning every design in the area or every design in the repository. A
+    design-scoped requirement binds its own design and carries no `applies_to`
+  rationale: |
+    A shared requirement had two readings — every design in the tier must satisfy it, or one of
+    them must — and nothing chose between them. "Every design it binds" is the reading worth
+    having: the other makes a wider-scope requirement unenforceable against any particular
+    design, so an author has no reason to walk up and look for one. Stating the set on the
+    entry is what lets the useful reading exist without also forcing every area-wide
+    requirement onto designs it was never meant for.
+
+- id: binding-sets-are-declared-once
+  statement: |
+    a set of designs named by more than one requirement is declared once in design/sets.yaml,
+    mapping a kebab-case set name to the design scopes it holds. A set may hold designs from
+    more than one area, and a set never holds another set
+  rationale: |
+    A product — the testing library, the dev tools, and the packs that share a build — is a set
+    of designs, and a directory tree cannot express one that crosses areas or overlaps a
+    sibling. Declaring it once means adding a design to a product is a one-line edit rather
+    than an edit to every requirement the product carries. Sets do not nest, which is the
+    answer to how deep the grouping goes: exactly one level, always.
 
 - id: inputs-outputs-split
   statement: |
