@@ -482,3 +482,52 @@
                 "version": "1.9.0"
             }
         ],
+
+- id: a-malformed-member-manifest-fails-the-whole-enumeration
+  claim: |
+    A directory a workspace pattern matches but that holds no `package.json` is skipped by both
+    managers' enumeration libraries, which return the workspace's other members normally. A
+    directory holding a `package.json` that is not valid JSON is not skipped: both libraries throw,
+    returning nothing at all. `@npmcli/map-workspaces` 6.0.0 throws a `JSONParseError` with code
+    `EJSONPARSE`; `@pnpm/workspace.find-packages` 1000.0.65 throws an error named `JSONError` with
+    code `ERR_PNPM_JSON_PARSE`, naming the offending file's path. So one unparseable member manifest
+    is a workspace-wide failure under either library, not a per-member one.
+  backing: tested
+  caveat: |
+    Observed for one malformed shape — a truncated value making the file invalid JSON — at the
+    versions named, on Node 24.16.0. A `package.json` that parses as JSON but is not a valid
+    manifest (wrong types, missing `name`) was not probed, and neither was a `package.json` that is
+    unreadable for other reasons, such as permissions or a directory in its place.
+  sources:
+    - description: |
+        design/minecraft/dev-kit/artifacts/workspace-member-fault-probe/, written and run by this
+        fact's author on 2026-07-26. probe.mjs runs each library against the four fixture
+        workspaces beside it — one per (library, fault) pair, each pattern matching both a healthy
+        `packages/good` member and one faulty directory — and prints either what the library
+        returned or the thrown error's class, name, code, and message. The fixtures are committed
+        uninstalled, as the probe checks and prints. Captured output is OUTPUT.txt beside the
+        script.
+    - url: design/minecraft/dev-kit/artifacts/workspace-member-fault-probe/OUTPUT.txt
+      where: the npm sections — malformed throws, missing is skipped
+      quote: |
+        === npm-malformed via @npmcli/map-workspaces
+          fault: packages/broken holds invalid JSON
+          THREW JSONParseError name=JSONParseError code=EJSONPARSE
+            Invalid package.json: JSONParseError: Unexpected token "}" (0x7D), ..."version": }
+            " is not valid JSON while parsing '{ "name": "@fixture/broken", "version": '
+
+        === npm-missing via @npmcli/map-workspaces
+          fault: packages/nomanifest holds no package.json
+          RETURNED @fixture/good -> packages/good
+    - url: design/minecraft/dev-kit/artifacts/workspace-member-fault-probe/OUTPUT.txt
+      where: the pnpm sections — malformed throws, missing is skipped
+      quote: |
+        === pnpm-malformed via @pnpm/workspace.find-packages
+          fault: packages/broken holds invalid JSON
+          THREW ErrorEXError name=JSONError code=ERR_PNPM_JSON_PARSE
+            Unexpected token '}', ..."version": }" is not valid JSON while parsing '{ "name": "@fixture/broken", "version": ' in /workspace/plan-opus/.claude/worktrees/dev-kit-spec-2/design/minecraft/dev-kit/artifacts/workspace-member-fault-probe/fixtures/pnpm-malformed/packages/broken/package.json
+
+        === pnpm-missing via @pnpm/workspace.find-packages
+          fault: packages/nomanifest holds no package.json
+          RETURNED pnpm-missing-root@0.0.0 -> .
+          RETURNED @fixture/good@1.0.0 -> packages/good

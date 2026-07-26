@@ -1,0 +1,26 @@
+=== fixture state (no install has run in any of them)
+npm-malformed: node_modules=false package-lock.json=false pnpm-lock.yaml=false
+npm-missing: node_modules=false package-lock.json=false pnpm-lock.yaml=false
+pnpm-malformed: node_modules=false package-lock.json=false pnpm-lock.yaml=false
+pnpm-missing: node_modules=false package-lock.json=false pnpm-lock.yaml=false
+
+=== npm-malformed via @npmcli/map-workspaces
+  fault: packages/broken holds invalid JSON
+  THREW JSONParseError name=JSONParseError code=EJSONPARSE
+    Invalid package.json: JSONParseError: Unexpected token "}" (0x7D), ..."version": }
+    " is not valid JSON while parsing '{ "name": "@fixture/broken", "version": '
+
+=== npm-missing via @npmcli/map-workspaces
+  fault: packages/nomanifest holds no package.json
+  RETURNED @fixture/good -> packages/good
+
+=== pnpm-malformed via @pnpm/workspace.find-packages
+  fault: packages/broken holds invalid JSON
+  THREW ErrorEXError name=JSONError code=ERR_PNPM_JSON_PARSE
+    Unexpected token '}', ..."version": }" is not valid JSON while parsing '{ "name": "@fixture/broken", "version": ' in /workspace/plan-opus/.claude/worktrees/dev-kit-spec-2/design/minecraft/dev-kit/artifacts/workspace-member-fault-probe/fixtures/pnpm-malformed/packages/broken/package.json
+
+=== pnpm-missing via @pnpm/workspace.find-packages
+  fault: packages/nomanifest holds no package.json
+  RETURNED pnpm-missing-root@0.0.0 -> .
+  RETURNED @fixture/good@1.0.0 -> packages/good
+
