@@ -32,7 +32,7 @@
 
 # Pack Details
 
-- id: pack-discovery
+- id: pack-record-details
   statement: |
     for every pack discovered, the kit provides the following details:
     
@@ -84,7 +84,12 @@
     a pack's kind is derived from the `type` values across its manifest's modules — `data` and
     `script` to behavior, `resources` to resource. A module type outside those three, or module
     types that map to more than one kind, is a problem.
-    
+
+- id: one-pack-of-each-kind-per-package
+  statement: |
+    a workspace package holds at most one behavior pack and at most one resource pack. A package
+    holding two packs of the same kind is out of scope.
+  
 - id: structured-validation
   statement: |
     Validation reports a structured result naming every problem it found, consumable without a
