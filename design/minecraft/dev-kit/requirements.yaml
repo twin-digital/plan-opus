@@ -22,7 +22,9 @@
     a workspace package is a pack-bearing package when its source holds `behavior_pack/manifest.json`
     or `resource_pack/manifest.json`; presence of those source manifests is the whole membership
     test. Both kinds are discovered. No marker field, keyword, or central list is required, and
-    adding, removing, or renaming a pack needs no edit anywhere but the package itself.
+    adding, removing, or renaming a pack needs no edit anywhere but the package itself. Note that 
+    this makes it structurally impossible for a workspace package to hold more than one behavior pack
+    or more than one resource pack. A package holding two packs of the same kind is out of scope.
 
 - id: packages-come-from-the-workspace-definition
   statement: |
@@ -51,7 +53,7 @@
       - its owning package
       - its kind (behavior pack or resource pack)
       - its source location
-      - it's build output location (even if that location is not present because the pack is unbuilt),
+      - its build output location (even if that location is not present because the pack is unbuilt),
       - the full content of its manifest in object form (including content auto-populated as
         described by `r:kit-completes-partial-source-manifests`)
     
@@ -109,8 +111,7 @@
 
 - id: one-pack-of-each-kind-per-package
   statement: |
-    a workspace package holds at most one behavior pack and at most one resource pack. A package
-    holding two packs of the same kind is out of scope.
+    
 
 - id: structured-validation
   statement: |
