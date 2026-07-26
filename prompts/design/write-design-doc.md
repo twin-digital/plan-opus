@@ -101,10 +101,36 @@ here to undo. The inputs are the source of truth; the outputs are yours to rebui
   and a different competent agent could reasonably decide differently. Every choice that
   carries weight and the requirements do not already settle is a decision you make and record
   in `decisions.yaml`, cited from the prose. Each is `proposed` — acceptance is the owner's
-  act, performed in review.
+  act, performed in review. The exception is a default the owner ruled on at the gate below,
+  which enters `accepted` because that act already happened.
 - **Do not ask; record.** Work from the inputs. A genuine unknown the inputs cannot settle
   becomes an open question in the spec — naming the kind of foundation that would close it —
   not a question to a human.
+- **Default simple.** The requirements do not enumerate every edge case and are not meant to.
+  Where one is quiet, take the obvious cheap behaviour and state it in a line, rather than
+  designing around the gap or raising it as a question. An edge case with documented behaviour
+  is resolved. Reserve a `decisions.yaml` entry for choices that are expensive to reverse —
+  a choice a later cycle could change for the cost of an afternoon belongs in the prose as
+  what the thing does. Say it in the words a builder would use, not the words a reviewer would.
+
+---
+
+## Before you write — declare your defaults
+
+Once you have read the inputs and before you write anything, report the choices you intend to
+**default simple**: places the inputs do not settle, where you will pick the obvious behaviour and
+document it. One short line each — the case, and what you will do. Then stop and wait.
+
+Most of the list is things nobody will want to discuss, and that is the point: the owner sees them
+once, cheaply, instead of meeting them as review findings. Do not pad it. A choice the requirements
+already settle is not a default, and neither is a decision you are making on the merits — those go
+in `decisions.yaml` as your own `proposed` work.
+
+**An empty list is a normal answer.** Say so and carry on.
+
+You will be told to proceed, or given different behaviour for some entries. Every entry that
+survives becomes a decision in `decisions.yaml` with `status: accepted` — the owner has ruled on it
+already. Where they replaced your default, the decision states theirs, not yours. Then write.
 
 ---
 

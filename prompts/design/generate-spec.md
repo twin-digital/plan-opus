@@ -70,6 +70,30 @@ Dispatch a **writer** sub-agent to produce `spec.md` + `decisions.yaml` by follo
 `authoring` (content). It returns only once `npm run check` is green. From it you keep the branch
 state and a one-paragraph summary of what it produced; you do not read the spec yourself.
 
+### The defaults gate
+
+The writer reads its inputs and, before writing, reports the choices it intends to **default
+simple**: places the inputs do not settle, where it will pick the obvious cheap behaviour and
+document it rather than design around it. The list is optional and often empty — a writer with
+nothing to declare says so and carries on.
+
+If the list is non-empty, hold the writer and put it to the owner as a whole, one short line per
+entry. Three answers:
+
+- **Proceed as planned** — every default stands. Resume the writer.
+- **Amend** — walk the list one entry at a time, each with the writer's default and the option to
+  give different behaviour instead. Carry the owner's answers back to the writer.
+- **Abort and fix inputs** — the list showed the inputs are wrong, not merely quiet. Stop, repair
+  them, and start the wave over.
+
+Every entry that survives the gate is a **decision** in `decisions.yaml`, not a requirement — the
+owner approving a default does not make it fiat, and a later cycle may revise it. But it enters
+`accepted` rather than `proposed`: the owner has already ruled on it, and re-asking in review is
+the churn this gate exists to prevent. An entry the owner replaced is likewise an `accepted`
+decision, stating their behaviour rather than the writer's.
+
+The gate runs **once**. A default the writer discovers later is its own to take and document.
+
 ---
 
 ## Wave 2 — panel review, triage, revise
@@ -105,8 +129,9 @@ finding, not a failure to hide.
 
 Dispatch `capstone-review.md` once, to an agent that has seen none of the above. It reads the whole
 spec as its builder and answers what a dimension panel cannot: is this buildable end to end, does it
-cohere, would a simpler design do, what is most likely to be wrong. It reports at most five blocking
-findings and always names the weakest part, so silence costs it something.
+cohere, would a simpler design do, what is most likely to be wrong. It blocks only where a builder
+would build the wrong thing or stop cold, so finding nothing is a normal result — but it always names
+the weakest part, which is the one judgement it owes you whatever else it found.
 
 If the capstone blocks, fix what it names and ship. **Do not send its output back through the
 panel** — that restarts the loop this structure exists to end.
@@ -155,10 +180,14 @@ the same test throughout: **inputs outrank the comment, and both outrank the doc
   taught, to be built on again next cycle. The owner's call.
 
 Before any amend, reconcile the branch: the owner may have edited it directly while agents worked,
-so integrate those edits first rather than clobbering them. After a material amend, re-run the
-**capstone** — a realigned draft still has to hold together. Re-run the panel only when the amend
-reached enough of the spec that it is effectively new; an amend touching one section does not earn
-eight reviewers.
+so integrate those edits first rather than clobbering them.
+
+Re-run the **capstone** only when an amend changed the design's **shape** — a component boundary
+moved, the product's type changed, a rule that several parts of the spec were built around was
+reversed. An amend that changes a rule, narrows one, or settles an edge case does not earn a fresh
+reader, and running one anyway is how a draft that is done acquires another round of findings. Re-run
+the panel only when the amend reached enough of the spec that it is effectively new; an amend
+touching one section does not earn eight reviewers.
 
 ---
 
@@ -174,3 +203,15 @@ eight reviewers.
 - **Judge the review by what it changed, not by what it found.** A round that returns four findings
   a builder would act on has done more than one that returns thirty. If most of a round's output is
   caveats, the spec is close to done and the next round is not worth running.
+- **Filter before you forward.** Every finding you pass down costs a revision round, so ask of each
+  one whether a builder would build something different because of it. Forward those; drop the rest
+  and tell the owner how many you dropped. A reviewer given a finding budget will spend it — that is
+  the instruction working, not a signal that the spec has that many problems, and forwarding its
+  output unfiltered turns each review into another rewrite. Dropping a true-but-inert finding is
+  your call and needs no one's sign-off.
+- **A spec ships with unspecified corners.** An edge case nobody has enumerated is resolved by a
+  documented default, not by another round. Prefer one line of stated behaviour over a recorded
+  deliberation, and reserve the ceremony of a decision entry for choices that are expensive to
+  reverse. Clearly documented behaviour now beats an exhaustive design later; a default that turns
+  out wrong is revised in the next cycle, which is cheaper than the round that would have prevented
+  it.
