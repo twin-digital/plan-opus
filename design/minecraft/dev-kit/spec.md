@@ -15,32 +15,6 @@ from signals that misclassify real workspaces. The constraint that shapes the wh
 the answer must come from a clean checkout, with nothing built, nothing installed, and no server
 running: no input the kit reads may be a build product, and no step may wait on one.
 
-## Open questions
-
-```yaml
-questions:
-  - id: prerelease-package-version-under-the-array-form
-    question: >-
-      what should the kit do with a prerelease `package.json` version? Completion writes the
-      `[major, minor, revision]` array for every manifest that does not declare format version 3 —
-      every non-preview manifest in practice — and the array cannot express `1.2.0-beta.1` or
-      `0.0.0-canary.4`, so `package-version-unusable` fires. Under changesets or canary publishing
-      that is the normal mid-release state of every package at once, so the whole set becomes
-      problem records and a dev server has nothing to deploy during exactly the window a developer
-      wants to run one. The rule is inherited and the spec adds no escape.
-    closes: requirement
-    gates: [completion-version-form-follows-format-version]
-  - id: entry-version-for-a-package-that-declares-none
-    question: >-
-      what does an entry's `version` hold when the owning `package.json` declares no version at all?
-      `r:pack-record-details` makes version available for every discovered pack and grants only two
-      exceptions, neither of them this one, while the field is read from the owning package — so
-      where that package states nothing there is nothing to state, and no requirement or fact settles
-      whether a workspace member must declare a version in the first place. The kit reports
-      `package-version-unusable` either way; what is open is what the field beside it carries.
-    closes: requirement
-```
-
 ## Finding the candidate packages
 
 Enumeration is the only part of the kit that is not about Minecraft, and it is where the
@@ -138,9 +112,10 @@ recognition falls out of the same rule: every placeholder spelling is legal exce
 one at 3. That check needs no other pack, so it runs with the parse, and `header-version-specified`
 fires only on a written version that is not one of the placeholders.
 
-On write, completion has to settle on one form, and the format version decides: the string at 3 and
-the array elsewhere, a manifest declaring no format version or one the kit does not recognise
-included [[d:completion-version-form-follows-format-version]].
+On write there is nothing to decide: completion always sets the version as a SemVer string
+[[r:kit-completes-partial-source-manifests]]. That form is legal at every format version — it is the
+one form version 3 accepts and one of the two everywhere else — so the write path never reads
+`format_version` at all, and a pre-release completes like any other version.
 
 The second is which entries completion touches. Every dependency a pack has is written in that
 pack's own manifest, so the entry itself is the discriminator
@@ -187,14 +162,10 @@ field the kit cannot complete keeps exactly what the source wrote — the placeh
 manifest plus whatever the kit could add, and never carries a value the kit invented or a form the
 manifest cannot express. The entry is invalid whenever that happens, so nothing deploys a
 half-filled manifest; what the rule buys is that the document beside those problems still shows what
-the author actually wrote, which is what a developer needs to fix it.
-
-What completion writes is the target's package version in the *depending* manifest's form, and the
-two manifests need not declare the same format version [[d:completion-version-form-follows-format-version]].
-A target at format version 3 carries `1.2.0-beta.1` into its own header without trouble, while a
-dependent that declares anything else cannot express it in the array at all — so that failure is the dependent's own and
-no other pack ever reports it. It is a distinct code from the one a pack raises against its own
-owning-package version, and the component that writes the entry is the one that raises it.
+the author actually wrote, which is what a developer needs to fix it. It also covers the one way a
+dependency version can now fail to arrive: a target whose owning package states no usable version
+reports that against itself, so the entry stays as written and the walk below takes the dependent
+with it, rather than the same fault being told twice.
 
 ## Resolving the set and reporting problems
 
@@ -238,11 +209,10 @@ and what each carries beside its message, is the interface consumers build again
 | `module-type-missing` | a module declares no type | the module's index |
 | `kind-uncorroborated` | no module corroborates the kind the pack's directory declares | — |
 | `kind-contradicted` | a module of the other kind is present | the offending module's index |
-| `package-version-unusable` | the owning package's version is missing, is not a version at all, or cannot be written in the form this manifest's format version requires | the version as `package.json` carries it |
+| `package-version-unusable` | the owning package states no version, or states one that is not a version | the version as `package.json` carries it, where it carries anything |
 | `dependency-entry-malformed` | a dependency entry carries both a `uuid` and a `module_name`, or neither | the entry's index |
 | `dependency-version-specified` | a dependency entry naming a pack in the workspace also specifies a version | the entry |
 | `dependency-version-missing` | an external dependency entry — a built-in module, or a uuid no pack in the workspace claims — carries no version at all | the entry |
-| `dependency-version-unrepresentable` | a dependency target's package version cannot be expressed in the depending manifest's version form | the entry, and the version that could not be expressed |
 | `dependency-target-unresolved` | a dependency entry names a pack in the workspace that did not survive as a resolved pack, or one the index cannot resolve to a single candidate | the entry |
 
 "The entry" is its index in the `dependencies` array together with the `uuid` or `module_name` it
@@ -306,7 +276,7 @@ kit managed to read rather than by the status itself
 | `uuid` | the header uuid, lowercased [[d:uuids-are-compared-and-reported-lowercased]] | present unless the manifest never parsed or declares no header uuid |
 | `manifest` | the manifest document, completed as far as it could be [[d:an-uncompletable-field-keeps-what-the-source-wrote]] | present unless the manifest never parsed |
 | `name` | the completed `header.name` string | present |
-| `version` | the owning package's `version`, the string as `package.json` holds it [[d:pack-record-version-is-the-packages-own-string]] | present |
+| `version` | the owning package's `version`, the string as `package.json` holds it [[d:pack-record-version-is-the-packages-own-string]] | present unless that package declares none |
 | `kind` | `behavior` or `resource` [[d:pack-kind-is-spelled-behavior-or-resource]] | present |
 | `packageName` | the owning package's `package.json` `name` | present |
 | `packageDir` | the owning package's directory | present |
@@ -326,11 +296,12 @@ also why `name` and `version` are here for a candidate whose manifest never pars
 is ever the manifest's to give — specifying either in the source is an error
 [[r:kit-completes-partial-source-manifests]] — so both are derived from the owning package the
 moment the candidate is found, and completion only copies them into the manifest document later.
-`version` in particular is the package's own string and never conditional on the manifest: a version
-the manifest's array form cannot hold is still a version the entry states plainly, so the field a
-consumer reads and the completion that failed are two separate answers
-[[d:pack-record-version-is-the-packages-own-string]]. A third status for "found but unidentified"
-would name a distinction the optional fields already make.
+`version` in particular is the package's own string, never the manifest's and never rewritten to
+suit one [[d:pack-record-version-is-the-packages-own-string]]. The one entry that carries no version
+is the one whose package declares none: the field is omitted rather than filled with something
+invented, and that package is a problem in its own right, so the entry is invalid whichever way a
+consumer reads it [[r:pack-record-details]]. A third status for "found but unidentified" would name
+a distinction the optional fields already make.
 
 The list those entries arrive in is ordered by owning package and then by kind, which is a total
 order because a package holds at most one pack of each [[r:membership-from-source-manifest-presence]]
@@ -372,7 +343,7 @@ components:
     excludes: deciding which entries are valid
     after: [manifest-document]
   - id: manifest-completion
-    responsibility: per candidate, copy the candidate's name and version into the manifest document in the form its format version requires, and fill the version of each dependency entry the index classed as inside, leaving untouched what it cannot complete — raising where the form cannot express what has to be written, and where an inside entry resolves to more than one candidate, always against the pack whose manifest it is
+    responsibility: per candidate, copy the candidate's name and version into the manifest document as a SemVer string, and fill the version of each dependency entry the index classed as inside, leaving untouched what it cannot complete — raising where an inside entry resolves to more than one candidate, against the pack whose manifest it is
     excludes: deciding which entries are valid, and deriving the name and version themselves
     after: [pack-identity-index]
   - id: pack-set-closure

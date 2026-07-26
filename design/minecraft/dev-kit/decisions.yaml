@@ -56,11 +56,7 @@
     a manifest's `format_version` fixes its version form everywhere the kit reads or writes one —
     a SemVer string at 3 or higher, a `[major, minor, revision]` array otherwise, including when
     the format version is absent or unrecognised
-  status: accepted
-  falsifiers:
-    - a later format version requires a version form that is neither of these two
-    - a manifest declaring no format version is rejected by the server when handed an array version
-    - a format version accepts both forms, so one mapping cannot serve both what completion writes and what the kit rejects on read
+  status: rejected
 
 - id: built-output-location-is-computed-not-probed
   statement: |
