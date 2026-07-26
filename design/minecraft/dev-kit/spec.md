@@ -35,6 +35,31 @@ questions:
       target at all. This is the ordinary shape of a pack package here, not an edge case.
     closes: requirement
     gates: [workspace-dependency-resolution-matches-member-names]
+  - id: sibling-pack-dependency-inside-one-package
+    question: >-
+      how does a behavior pack declare a dependency on the resource pack beside it in the same
+      package? Both routes are closed today: `package.json` cannot carry it, since completion
+      writes entries only for prod dependencies and a package does not depend on itself; and
+      writing the entry in the source manifest trips `dependency-declares-a-workspace-pack`,
+      because the sibling is a discovered pack. So the standard add-on pairing cannot be expressed,
+      and the problem the author is shown directs them to `package.json`, where it cannot go. Two
+      shapes could settle it — sibling entries auto-completed as a kind pair inside the package, or
+      an exemption for a uuid the same package owns. This is the same package-keyed versus
+      pack-keyed seam as `dependency-entries-for-a-two-pack-package`, and an owner may well settle
+      both with one requirement.
+    closes: requirement
+    gates: [workspace-dependency-resolution-matches-member-names]
+  - id: prerelease-package-version-under-the-array-form
+    question: >-
+      what should the kit do with a prerelease `package.json` version? Completion writes the
+      `[major, minor, revision]` array for every manifest below format version 3 — every
+      non-preview manifest in practice — and the array cannot express `1.2.0-beta.1` or
+      `0.0.0-canary.4`, so `package-version-unusable` fires. Under changesets or canary publishing
+      that is the normal mid-release state of every package at once, so the whole set becomes
+      problem records and a dev server has nothing to deploy during exactly the window a developer
+      wants to run one. The rule is inherited and the spec adds no escape.
+    closes: requirement
+    gates: [completion-version-form-follows-format-version]
 ```
 
 ## Finding the candidate packages
@@ -95,8 +120,8 @@ every other type it meets, and reports the disagreement when it finds one.
 ## Reading and completing the manifest
 
 The manifest is parsed once into the document the pack record hands back
-[[r:pack-record-details]], and the fields the kit itself acts on — the header, the modules, the
-dependencies — are the only ones it types, everything else riding along untyped
+[[r:pack-record-details]], and the fields the kit itself acts on — the format version, the header,
+the modules, the dependencies — are the only ones it types, everything else riding along untyped
 [[d:manifest-is-reported-as-an-open-typed-document]]. Typing the rest is not available here even in
 principle, since the module type list is open-ended and the format version a source declares
 survives into the reported manifest untouched [[r:manifest-format-version-passes-through]]. So a
@@ -192,8 +217,19 @@ outranked it. What bounds the burst is data rather than ranking: a check whose i
 failure withheld does not run, so an unreadable manifest yields exactly one record.
 
 Every candidate leaves discovery through exactly one of the two lists [[r:pack-discovery]], so a
-consumer that reads both has seen everything on disk and a silent drop is impossible by
-construction. What is deliberately absent from the table is a code for an unbuilt pack. The built
+consumer that reads both has seen every pack the workspace definition admits. The guarantee is over
+the definition, not over the disk, and the difference is worth stating because it is where a pack
+can still vanish quietly: candidates come from the workspace definition rather than a tree walk
+[[r:packages-come-from-the-workspace-definition]], and a matched directory is a member only where it
+holds a valid `package.json` [[f:npm-workspaces-is-an-array-of-paths-or-globs]] — so a directory
+holding `behavior_pack/manifest.json` whose own `package.json` is missing or malformed is never a
+member, never a candidate, and gets no problem record. Nor does it throw: the workspace itself is
+readable, and only workspace-level trouble throws
+[[d:workspace-failures-throw-and-pack-failures-are-records]]. A consumer that has seen both lists has
+seen the definition's answer, and repairing a package that fell out of the definition is the package
+manager's own error to surface.
+
+What is deliberately absent from the table is a code for an unbuilt pack. The built
 output location is part of a pack's record whether or not anything is there
 [[r:pack-record-details]], and it is derived — the package's output root
 [[r:built-output-defaults-to-dist]] and the kind-named subdirectory beneath it
@@ -211,6 +247,30 @@ package name, pack name, or pack uuid [[r:pack-search]] a lookup rather than a s
 the set is already in memory and already indexed by the three keys, so a query never touches the
 filesystem and never disagrees with the set the caller is holding.
 
+The record is the whole product, so its fields are pinned here rather than left to the builder —
+a consumer receiving data instead of text still has to know the shape of the data
+[[r:dev-kit-provides-a-library]] [[r:pack-record-details]]:
+
+| field | form |
+|---|---|
+| `uuid` | the header uuid, lowercase, as written in the manifest |
+| `name` | the completed `header.name` string |
+| `version` | the pack version as a SemVer string [[d:pack-record-version-is-a-semver-string]] |
+| `kind` | `behavior` or `resource` [[d:pack-kind-is-spelled-behavior-or-resource]] |
+| `packageName` | the owning package's `package.json` `name` |
+| `packageDir` | the owning package's directory |
+| `sourceDir` | the pack's source directory, the one holding `manifest.json` |
+| `outputDir` | the pack's built-output directory, present or not |
+| `manifest` | the completed manifest document |
+
+Every path among them is relative to the workspace root and names a directory, never the manifest
+file inside it [[d:pack-record-paths-are-workspace-relative-directories]]. Two forms in that table
+are choices a consumer cannot re-derive and would otherwise have to probe for. The version is one:
+the manifest's own form varies with its format version, so a set can hold both an array and a
+string, and a record field that inherited that variance could not be compared across two packs. The
+kind is the other: the enum is not the directory name it was read from, so a consumer building a
+path composes it from `outputDir` rather than interpolating the enum.
+
 ## Components
 
 ```yaml
@@ -222,8 +282,8 @@ components:
     responsibility: resolve a workspace root into its member packages — the root package among them, added where the manager's library omits it — each with name, directory, and parsed package.json
     excludes: anything specific to Minecraft packs
   - id: pack-candidates
-    responsibility: probe each package's two fixed source-manifest paths and emit one candidate per hit, carrying package, kind, and source directory
-    excludes: reading manifest content
+    responsibility: probe each package's two fixed source-manifest paths and emit one candidate per hit, carrying package, kind, source directory, and the built-output directory computed from the package and kind
+    excludes: reading manifest content, and any filesystem probe of the built-output location
     after: [workspace-packages, problem-model]
   - id: manifest-document
     responsibility: parse a candidate's manifest into the open typed document and apply every check needing only that pack — uuid presence, kind corroboration, version form, placeholder recognition, source-written dependency shape

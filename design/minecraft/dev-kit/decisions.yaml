@@ -77,8 +77,8 @@
 
 - id: manifest-is-reported-as-an-open-typed-document
   statement: |
-    the reported manifest is typed as an open document, with `header`, `modules`, and
-    `dependencies` the known subset and every other field carried untyped
+    the reported manifest is typed as an open document, with `format_version`, `header`, `modules`,
+    and `dependencies` the known subset and every other field carried untyped
   status: proposed
   falsifiers:
     - the kit comes to read or write a field outside the known subset, so the typed subset no longer states what the kit acts on
@@ -112,6 +112,33 @@
   falsifiers:
     - a dependency cycle among packs makes the iteration non-terminating or its outcome order-dependent
     - a consumer needs the packs that are individually sound even where a transitive dependency failed, so blanket demotion withholds usable data
+
+- id: pack-record-paths-are-workspace-relative-directories
+  statement: |
+    a pack record's source and built-output locations are POSIX paths relative to the workspace
+    root, each naming the pack's directory rather than a file within it
+  status: proposed
+  falsifiers:
+    - a consumer outside the workspace process needs an absolute path and cannot recover the workspace root the paths are relative to
+    - a workspace member resolves outside the workspace root, so no relative path names it
+
+- id: pack-record-version-is-a-semver-string
+  statement: |
+    a pack record's `version` is the pack version as a SemVer string, whatever form the manifest
+    inside that record carries it in
+  status: proposed
+  falsifiers:
+    - a consumer compares record versions against manifest versions field-for-field and has to re-parse the string back into the array form
+    - a pack version turns up that is expressible as a manifest vector but not as a SemVer string
+
+- id: pack-kind-is-spelled-behavior-or-resource
+  statement: |
+    a pack's kind is the enum `behavior` | `resource` on the record and on every problem record,
+    distinct from the `behavior_pack` / `resource_pack` directory names it is read from
+  status: proposed
+  falsifiers:
+    - consumers routinely map the enum back to the directory name to build a path, so carrying the directory spelling would serve them better
+    - a third pack kind arrives whose directory name and enum value cannot be derived from one another
 
 - id: the-pack-set-is-the-single-returned-value
   statement: |
