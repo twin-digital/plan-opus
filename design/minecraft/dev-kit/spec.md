@@ -73,6 +73,19 @@ indistinguishable from a working one. That line — the workspace is the caller'
 individual pack is data — is where every later error lands too
 [[d:workspace-failures-throw-and-pack-failures-are-records]].
 
+That line has one exception, and the libraries draw it rather than the kit. A pattern-matched
+directory holding no `package.json` is skipped, the other members coming back normally; one holding
+a `package.json` that will not parse makes both libraries throw and return nothing at all
+[[f:a-malformed-member-manifest-fails-the-whole-enumeration]]. A fault in a single member — a
+package with no pack in it, perhaps nothing to do with Minecraft — therefore fails the whole call.
+Keeping it pack-level would mean not letting the libraries read member manifests, and neither
+exposes an entry point that matches directories without reading them, so the kit would be back to
+reproducing each manager's glob semantics itself — the cost the enumeration decision exists to
+avoid. The exception is taken rather than engineered around, on two grounds: it is the same answer
+the manager gives on that checkout, these being the implementations the managers use
+[[f:manager-enumeration-libraries-need-no-install]], and both errors name the offending file, so a
+developer is pointed at the repair rather than left with a pack that quietly went missing.
+
 ## What counts as a pack
 
 Membership is two `stat` calls per package, at fixed relative paths
@@ -168,19 +181,17 @@ owning-package version, and the component that writes the entry is the one that 
 
 ## Resolving the set and reporting problems
 
-A uuid is claimed once by anything in the workspace, a header and a module alike
-[[r:uuids-are-claimed-once-in-a-workspace]], so a claim is what the check is over rather than a pack
-or a module: every claim carries what made it — this pack's header, or this module of this pack —
-and a uuid two claims share fails all of them, whichever kinds those claims are. That is what covers
-a header uuid colliding with a module uuid, which is neither of the two collisions the requirement
-lists yet is the same rule broken. The collisions inside one manifest are visible to a pack reading
-only itself and are caught there; the rest need the index that holds every claim in the workspace. A
-module with no uuid makes no claim — it has its own problem already — so a uuid-less module is never
-some other uuid-less module's duplicate. That index is also what sorts dependency entries into
-inside and outside the workspace, another question no single pack's data can answer.
+Identity is what the set is keyed by — queries match on it and every completed dependency entry
+points at one — so the index the kit builds is of header uuids and the packs claiming them
+[[r:uuids-are-claimed-once-in-a-workspace]]. The format's own reason for that is narrow: a header
+uuid is what tells one pack from every other [[f:manifest-declares-pack-identity-version-and-module-kinds]],
+and no comparable statement covers the uuid on a module, so the index holds no module uuids and two
+modules sharing one are not merely unreported but invisible to the kit by construction. That index
+is also what sorts dependency entries into inside and outside the workspace, another question no
+single pack's data can answer.
 
 Which entries are valid is then one pass's answer, and it runs after completion rather than before
-it, because a candidate can fail at any stage: an unreadable manifest, a uuid claimed twice, a
+it, because a candidate can fail at any stage: an unreadable manifest, a header uuid claimed twice, a
 package version the manifest's form cannot express, a dependency target that did not survive
 [[r:unresolvable-packs-fail-loudly]]. Every earlier stage only records problems against a candidate;
 the closing pass alone invalidates. Invalidation is transitive — with A depending on B and B on C,
@@ -194,7 +205,7 @@ A problem is a record a consumer can act on, not a rendered sentence
 on, and what tells the dev server whether a pack is worth retrying after a rebuild. A problem no
 longer says which pack it is about, because it rides on that pack's entry and the entry already
 does; what it still owes is the part of the pack the code is about — which dependency entry failed,
-which module, which other claimant — and that referent is typed per code rather than rendered into
+which module, which other pack claims its uuid — and that referent is typed per code rather than rendered into
 the message or swept into a shared bag of details. The closed set, the condition each code covers,
 and what each carries beside its message, is the interface consumers build against:
 
@@ -202,12 +213,11 @@ and what each carries beside its message, is the interface consumers build again
 |---|---|---|
 | `manifest-unreadable` | the source manifest cannot be read, or is not valid JSON | — |
 | `header-uuid-missing` | the header carries no uuid, or one that is not a uuid | — |
-| `uuid-claimed-more-than-once` | a uuid this pack claims, from its header or one of its modules, is claimed by another claim anywhere in the workspace | the uuid, and every claim on it — each as the pack it belongs to, and the module index where a module made it |
+| `header-uuid-duplicated` | another pack in the workspace claims this pack's header uuid | the uuid, and the source directory of every pack claiming it |
 | `header-name-specified` | the source manifest specifies a header name | — |
 | `header-version-specified` | the source manifest specifies a header version that is not a placeholder | — |
 | `version-form-unsupported` | a version is written in a form the manifest's format version does not carry | where it was written — the header, or a dependency entry's index |
 | `module-type-missing` | a module declares no type | the module's index |
-| `module-uuid-missing` | a module declares no uuid, or one that is not a uuid | the module's index |
 | `kind-uncorroborated` | no module corroborates the kind the pack's directory declares | — |
 | `kind-contradicted` | a module of the other kind is present | the offending module's index |
 | `package-version-unusable` | the owning package's version is missing, unparseable, or cannot be written in the form this manifest's format version requires | the version as `package.json` carries it |
@@ -236,10 +246,12 @@ not over the disk, which is where a pack can still vanish quietly: candidates co
 workspace definition rather than a tree walk [[r:packages-come-from-the-workspace-definition]], and
 a matched directory is a member only where it holds a valid `package.json`
 [[f:npm-workspaces-is-an-array-of-paths-or-globs]] — so a directory holding
-`behavior_pack/manifest.json` whose own `package.json` is missing or malformed is never a member,
-never a candidate, and gets no entry at all. Nor does it throw: the workspace itself is readable, and
-only workspace-level trouble throws [[d:workspace-failures-throw-and-pack-failures-are-records]].
-Repairing a package that fell out of the definition is the package manager's own error to surface.
+`behavior_pack/manifest.json` but no `package.json` of its own is never a member, never a candidate,
+and gets no entry at all, the libraries skipping it and returning the rest
+[[f:a-malformed-member-manifest-fails-the-whole-enumeration]]. Repairing a package that fell out of
+the definition is the package manager's own error to surface. The other fault in that `package.json`
+— present but unparseable — never reaches this list at all, because the call it would have appeared
+in throws instead [[d:workspace-failures-throw-and-pack-failures-are-records]].
 
 What is deliberately absent from the table is a code for an unbuilt pack. The built
 output location is part of a pack's record whether or not anything is there
@@ -328,11 +340,11 @@ components:
     excludes: reading manifest content, and any filesystem probe of the built-output location
     after: [workspace-packages, problem-model]
   - id: manifest-document
-    responsibility: parse a candidate's manifest into the open typed document and apply every check needing only that pack — header and module uuid presence, a uuid claimed twice within the one manifest, kind corroboration, version form, placeholder recognition, and each dependency entry carrying exactly one identifier
+    responsibility: parse a candidate's manifest into the open typed document and apply every check needing only that pack — header uuid presence, kind corroboration, version form, placeholder recognition, and each dependency entry carrying exactly one identifier
     excludes: any check that needs another pack's data, including whether a dependency uuid names a pack in the workspace
     after: [pack-candidates]
   - id: pack-identity-index
-    responsibility: index every uuid claim in the workspace on its lowercased form — each candidate's header, each of its uuid-bearing modules — flagging every claim on a uuid more than one claim carries, then class each dependency entry as inside or outside the workspace and flag an inside entry specifying a version and an outside one carrying none
+    responsibility: index every candidate's header uuid on its lowercased form, flagging every pack claiming a uuid more than one claims, then class each dependency entry as inside or outside the workspace and flag an inside entry specifying a version and an outside one carrying none
     excludes: deciding which entries are valid
     after: [manifest-document]
   - id: manifest-completion

@@ -30,12 +30,15 @@
 
 - id: workspace-failures-throw-and-pack-failures-are-records
   statement: |
-    trouble with the workspace itself — no definition found, an unreadable root — throws, while
-    trouble with an individual pack becomes a problem record
+    trouble with the workspace itself — no definition found, an unreadable root, a member
+    `package.json` that will not parse — throws, while trouble with an individual pack becomes a
+    problem record on its entry
   status: proposed
   falsifiers:
     - a consumer needs the packs it can resolve from a workspace whose definition is unreadable, rather than nothing at all
     - a consumer ends up wrapping every call to render workspace trouble alongside pack problems, so the two channels are one channel in practice
+    - a monorepo routinely holds a member whose `package.json` is mid-edit or generated broken, so packs with no relation to it become undiscoverable and a dev server stops for a fault in another team's package
+    - an entry point turns up that matches workspace directories without reading their manifests, so the kit could keep a member fault per-pack without reproducing either manager's glob semantics
 
 - id: problems-carry-a-closed-set-of-codes
   statement: |
