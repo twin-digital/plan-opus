@@ -1,8 +1,11 @@
 # Reject a spec
 
-A design was written, reviewed, and turned out to be the wrong design. This prompt discards it and
-returns the design to its inputs, so the next cycle starts from what the attempt taught rather than
-from what it built.
+A design has been iterated on enough. Rather than amend it again, discard it and start the next
+cycle from the inputs — which have been absorbing the learning all along and are most of what the
+iteration produced.
+
+This is a fresh start, not a post-mortem. The spec and its decisions go; the inputs get a final
+review and carry on.
 
 **Target.** A design given as `<area>/<design>`, and the branch or pull request holding the draft
 being rejected.
@@ -27,33 +30,36 @@ again it was not worth keeping.
 | `requirements.yaml` | **yes, refined** — see below |
 | `spec.md`, `decisions.yaml` | no |
 
-**Requirements are the point of the cycle, not collateral.** Writing a spec is how you find out
-which requirements were wrong, missing, or more expensive than they looked. A rejection is where
-that lands: the requirements come back refined — reworded, split, dropped, added — and the refined
-set is what the next cycle builds on. Carrying them unchanged wastes the attempt; discarding them
-wastes it twice.
+**Requirements are the point of the cycle, not collateral.** Writing and reviewing a spec is how you
+find out which requirements were wrong, missing, or more expensive than they looked, and most of
+that has already landed in `requirements.yaml` by the time you get here. They carry on, reviewed
+once more as a set. Discarding them would throw away the most valuable thing the iteration made.
 
-Refining is the owner's act. Propose the changes and the evidence for each; the owner settles them.
+Any further change is the owner's act. Propose it with the evidence; the owner settles it.
 
 ---
 
-## First, take the lesson out
+## The inputs have already moved
 
-Do this before touching a branch. A rejection that preserves the artifact and loses the reason has
-thrown away the expensive part — the reason is what the attempt bought.
+By the time a design is rejected it has usually been iterated on for a while, and the inputs have
+been carrying the learning as it happened — facts corrected against their evidence, requirements
+reworded, new facts recorded from probes and measurements. The rejection is not where that starts.
+It is where it gets a last look.
 
-Work out what the attempt established that outlives it, and write each into an input:
+So this is a **review**, not an extraction. Read the inputs as they now stand and ask:
 
-- **Something now known to be true about the world** — an engine behaviour, a measurement, a cost
-  observed — is a fact, with its evidence, under the bar in `CLAUDE.md`.
-- **Something the owner now rules** — a constraint the attempt revealed, an approach that must not
-  be taken again, a requirement that proved too expensive to keep as written — is a requirement
-  change, proposed here and settled by the owner.
-- **Something about the shape of the problem** — what is in scope, what "done" looks like now, a
-  tension the attempt exposed — is a `brief.md` amendment.
+- **Facts** — is each still true, and is each still evidenced? Iteration tends to leave facts that
+  were gathered for a question nobody is asking any more. An uncited fact is fine and free to keep;
+  a wrong one is not.
+- **Requirements** — do they hold together *as a set*, read fresh? This is the question that never
+  gets asked during iteration, because each was reviewed on its own as it changed. Look for two
+  that now overlap, one whose rationale describes a design rather than a constraint, and one that
+  was written to justify something the discarded spec did.
+- **The brief** — does it still describe the problem, the scope, and what "done" looks like? Iterating
+  on a design routinely changes the answer without anyone editing the brief.
 
-A lesson that fits none of these is about the artifact rather than the design, and dies with it.
-Say so rather than inventing a home for it.
+Amend what needs it. If the iteration turned something up that never made it into an input, add it
+now — but the common case is that the inputs are close to right and want a trim, not a harvest.
 
 **Nothing may point at the rejected draft.** Not a fact source, not a brief line, not a requirement
 rationale. A citation of a dead draft is how the next agent ends up reading it.
@@ -136,15 +142,16 @@ reading them, applied to a case where deleting the file is not enough.
 
 ## Hand off
 
-The pull request body says what a reader needs and nothing about the discarded artifact's internals:
+This pull request is the inputs' final review before another cycle builds on them, so the body puts
+the reader in a position to give one. It says nothing about the discarded artifact's internals:
 
-- **What was rejected and why** — a short, plain account. This is the durable record; the tag
-  message is the long version.
-- **The refined requirements**, each with what the attempt showed: reworded, split, dropped, added.
-  This is the substance of the rejection and where review time belongs.
-- **What else was carried** — the facts and artifacts kept, and the brief amendment.
-- **What the next cycle should not assume** — anything the owner wants ruled out that has not
-  become a requirement yet, flagged as still needing to.
+- **Why the design is being restarted** — a short, plain account. This is the durable record; the
+  tag message is the long version.
+- **The inputs as they now stand**, and what changed in them across the iteration. The owner is
+  approving this set, and most of it moved since they last read it whole.
+- **What you amended in this pass**, and what you considered and left alone.
+- **What you would question but did not change** — a requirement you suspect is over-specified, a
+  fact nothing has cited in a while, a brief line the iteration outgrew. Review time belongs here.
 
 With no published spec the design returns to `exploring`: inputs only, nothing settled. With one,
 it stays on the published spec until the next cycle replaces it.
