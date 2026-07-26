@@ -122,6 +122,18 @@
 
 # Validation
 
+- id: uuids-are-claimed-once-in-a-workspace
+  statement: |
+    a uuid is claimed by exactly one thing in the workspace: no two packs declare the same header
+    `uuid`, and no two modules declare the same module `uuid`, whether those modules sit in one
+    manifest or in different packs. A duplicated uuid is an error, reported per
+    `r:unresolvable-packs-fail-loudly`, and every pack claiming one is unresolvable — no claimant is
+    preferred over another.
+
+    The error names the duplicated uuid and every claimant of it — each pack for a header uuid, each
+    module and its owning pack for a module uuid — so a reader can reach the copies without
+    searching the workspace.
+
 - id: manifest-corroborates-the-directory-kind
   statement: |
     a pack's kind comes from the directory membership is read from, `behavior_pack/` or
@@ -144,8 +156,8 @@
 
 - id: unresolvable-packs-fail-loudly
   statement: |
-    a pack the kit cannot resolve — a manifest that cannot be parsed, a missing or duplicated
-    identity, a manifest dependency on another pack that the set does not satisfy, invalid or
+    a pack the kit cannot resolve — a manifest that cannot be parsed, a missing identity, a
+    manifest dependency on another pack that the set does not satisfy, invalid or
     missing manifest completion data — is reported via the error list defined by `r:pack-discovery`.
     A dependency naming a built-in scripting module is not a missing pack. Such invalid packs are 
     never omitted silently: all discovered packs must be returned as fully resolved pack data, or 
