@@ -2,8 +2,8 @@
 
 A Bedrock behavior pack that establishes the engine-run facts in `../../facts.yaml` by
 observing the real engine. Each probe emits observation lines — it reports what the engine did
-rather than asserting what it should do — and its output is transcribed into the facts that the
-behavioural-fidelity requirement (`fakes-match-observed-engine-behaviour`) binds the fake to.
+rather than asserting what it should do — and its output is transcribed into the facts that
+source the fake's engine behaviour where the declarations are silent (`engine-claims-are-sourced`).
 
 ## Install
 
@@ -57,8 +57,8 @@ differ, that is a new fact and the fake needs both states.
 The first run's results are recorded in `../mctest-engine-probe-results.md`; record the
 `mctest:deep` output the same way. A probe measures what the engine does; whether the fake
 should *match* that (versus keep a deliberate simplification, e.g. synchronous dispatch) is a
-design decision the probe cannot make — see `fakes-match-observed-engine-behaviour` and its
-documented departures in `../../requirements.yaml`.
+design decision the probe cannot make — see `modelled-behaviour-is-the-engines` and
+`engine-claims-are-sourced` in `../../requirements.yaml`.
 
 The probes spawn a few sheep (and one arrow) near the triggering player, exercise them, and
 remove them afterward. Output lines look like:

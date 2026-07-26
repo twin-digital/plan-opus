@@ -1,7 +1,7 @@
 # Requirements scoped to the minecraft/test-lib design. Owner-fiat inputs the spec is built to
-# satisfy. Behavioural fidelity is one general requirement, not a per-behaviour list: the fake
-# reproduces what the engine was observed to do (the facts), and the spec/builder derive the
-# specific behaviours from those facts.
+# satisfy. Behavioural fidelity is two general requirements, not a per-behaviour list: modelled
+# behaviour is the engine's, and a behaviour presented as the engine's is sourced. Which
+# behaviours are modelled, and how each one behaves, are decisions the spec makes.
 #
 # rationale is omitted unless the requirement's intent is non-obvious from its statement (a
 # reason it should not be casually reversed, or the fact that makes it feasible); a requirement
@@ -9,28 +9,26 @@
 
 # Fidelity and behaviour
 
-- id: fakes-match-observed-engine-behaviour
+- id: modelled-behaviour-is-the-engines
   statement: |
-    for every faked member, the fake reproduces the behaviour the engine is observed to exhibit
-    on the pinned `@minecraft/server` version — the engine-run facts — including the quirks a
-    naive double would smooth over: namespace-optional ids, methods whose return value encodes
-    success or failure, non-uniform invalidation, and values that read back exactly as the engine
-    reports them. It does not substitute a convenient approximation.
+    where the library models a behaviour, it models the engine's, quirks included — namespace-
+    optional ids, methods whose return value encodes success or failure, non-uniform invalidation,
+    and values that read back exactly as the engine reports them — not a convenient approximation.
+    Which behaviours are modelled is a scope decision the spec makes; an unmodelled one is not a
+    defect, and a member the spec models no behaviour for holds its state and behaves plainly.
 
-    The modelled set is exactly the behaviours the spec cites a fact for, and it is read off the
-    spec rather than maintained as a separate list. A member the spec cites no behaviour fact for
-    holds its state and behaves plainly, and the spec says so where that is the case. Modelling
-    every observed behaviour is not owed, and an unmodelled one is not a defect.
-
-    Two things stay absolute. Nothing is modelled on a guess: a behaviour claimed as the engine's
-    rests on a fact, or it is not claimed. And no simplification is presented as the engine's
-    behaviour, so a reader can tell which assertions carry engine weight from which merely hold.
+- id: engine-claims-are-sourced
+  statement: |
+    a behaviour the library presents as the engine's rests on a source: the pinned version's
+    declarations and the official API reference, or a recorded observation where those are silent.
+    A simplification is never presented as the engine's behaviour — the spec marks it as the
+    library's own, so a reader can tell which assertions carry engine weight from which merely hold.
   rationale: |
-    Binding every faked member to an evidenced observation put the library's cost under the control
-    of the engine's quirkiness rather than of what the library is for, and made each new surface
-    drag an evidence campaign behind it. Making the modelled set opt-in per behaviour, recorded by
-    the citation that already has to exist, keeps the cost proportional to what is actually built
-    and leaves the set countable at any moment.
+    Requiring a recorded observation per behaviour put the library's cost under the control of the
+    engine's quirkiness rather than of what the library is for, and made each new surface drag an
+    evidence campaign behind it. Behaviour the declarations settle is sourced without one;
+    observation is reserved for where the declarations are silent and a test could plausibly depend
+    on the distinction.
 
 - id: synchronous-event-delivery
   statement: |
