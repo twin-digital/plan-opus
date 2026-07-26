@@ -124,6 +124,15 @@
     patterns its caller reads from `pnpm-workspace.yaml`, honours a `!` exclusion among them, and
     returns the workspace root package alongside the members; npm's returns the members only.
   backing: tested
+  caveat: |
+    Both `npm` and `pnpm` were on PATH when the probe ran, so the capture shows the libraries not
+    being handed the binary rather than the libraries working while it is absent — non-invocation is
+    read off the committed probe script, not observed against a machine without the manager. The
+    enumeration results and the uninstalled fixture state are directly observed. The registry capture
+    covers `@npmcli/map-workspaces` and `@pnpm/workspace.find-packages` only; the claim also names
+    `@pnpm/workspace.read-manifest`, whose registry status no output here records. And what the
+    registry entries carry is that each package is published from the manager's own repository, not
+    that either manager's CLI consumes the published package.
   sources:
     - description: |
         Two probes under design/minecraft/dev-kit/artifacts/, both written and run by this fact's
