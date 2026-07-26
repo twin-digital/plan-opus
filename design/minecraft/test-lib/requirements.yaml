@@ -17,20 +17,20 @@
     success or failure, non-uniform invalidation, and values that read back exactly as the engine
     reports them. It does not substitute a convenient approximation.
 
-    Fidelity is owed where a consumer depends on it, not everywhere. A quirk is modelled when a
-    pack under test relies on it, and the spec cites the fact establishing what the engine does;
-    until then the member holds state and behaves plainly. The library does not owe a reproduction
-    of every observed behaviour, and an unmodelled quirk is not a defect.
+    The modelled set is exactly the behaviours the spec cites a fact for, and it is read off the
+    spec rather than maintained as a separate list. A member the spec cites no behaviour fact for
+    holds its state and behaves plainly, and the spec says so where that is the case. Modelling
+    every observed behaviour is not owed, and an unmodelled one is not a defect.
 
-    What the fake never does is present a simplification as the engine's behaviour. Where it
-    simplifies, the spec says so at that point, so a reader can tell a modelled behaviour from a
-    plain one and knows which assertions carry engine weight.
+    Two things stay absolute. Nothing is modelled on a guess: a behaviour claimed as the engine's
+    rests on a fact, or it is not claimed. And no simplification is presented as the engine's
+    behaviour, so a reader can tell which assertions carry engine weight from which merely hold.
   rationale: |
-    Binding every faked member to an evidenced engine observation made each new surface carry an
-    evidence campaign behind it, and put the library's cost under the control of the engine's
-    quirkiness rather than of what consumers actually test. Fidelity pays where a pack depends on
-    a quirk; elsewhere it buys nothing a plain implementation does not, and the sole consumer of
-    this library finds a disagreement in their own pack rather than in a stranger's.
+    Binding every faked member to an evidenced observation put the library's cost under the control
+    of the engine's quirkiness rather than of what the library is for, and made each new surface
+    drag an evidence campaign behind it. Making the modelled set opt-in per behaviour, recorded by
+    the citation that already has to exist, keeps the cost proportional to what is actually built
+    and leaves the set countable at any moment.
 
 - id: synchronous-event-delivery
   statement: |
