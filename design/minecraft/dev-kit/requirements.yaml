@@ -14,7 +14,9 @@
 - id: pack-discovery
   statement: |
     the kit provides a way to discover Minecraft behavior packs and resource packs in a workspace.
-    Detailes for discovered packs are returned as a flat list of pack records.
+    Details for valid, discovered packs are returned as a flat list of pack records. A separate list
+    is provided containing structured errors for packs that were discovered, but whose content was
+    invalid. The error list is only included if it is not empty.
     
 - id: packs-enumerable-without-a-build
   statement: |
@@ -33,8 +35,16 @@
 - id: packages-come-from-the-workspace-definition
   statement: |
     candidate packages are enumerated from the workspace's package-manager workspace definition,
-    not from walking the directory tree. Both `npm` and `pnpm` workspace definitions must be
-    supported.
+    not from walking the directory tree. Both `npm` and `pnpm` workspaces must be supported.
+
+- id: do-not-reinvent-package-manager-features
+  statement: |
+    candidate packages are enumerated using functionality implemented directly by the package
+    manager itself. This means the kit must use a package manager-provided library, or shell out to
+    the package manager itself (rather than interpreting and re-implementing configuration, glob
+    behavior, etc.) APIs that are not officially supported are tolerated provided they are published
+    to the public package registry. Spec authors are expected to weigh advantages and disadvantages
+    of the decision they make on how to implement workspace discovery.
 
 # Pack Query
 
@@ -81,8 +91,8 @@
   statement: |
     a pack's source `manifest.json` is partial by design:
     
-      - it MUST NOT have a `header.name` field
-      - it MUST NOT have a `header.version` field
+      - it MUST NOT have a `header.name` field, the kit MUST flag this as an error
+      - it MUST NOT have a `header.version` field, the kit MUST flag this as an error
       - it MAY omit the version for workspace-local `dependencies` entries
 
     In both cases, a 'version' field is left unspecified either by omitting it, or supplying
@@ -122,5 +132,7 @@
     a pack the kit cannot resolve — a manifest that cannot be parsed, a missing or duplicated
     identity, a manifest dependency on another pack that the set does not satisfy, invalid or
     missing manifest completion data — is reported as a named error identifying the package and 
-    the path examined, not omitted from a silently smaller result and not deferred to the server. 
-    A dependency naming a built-in scripting module is not a missing pack.
+    the path examined. A dependency naming a built-in scripting module is not a missing pack.
+    Such invalid packs are never omitted silently: all discovered packs must be returned as fully
+    resolved pack data, or as a structured error.
+
