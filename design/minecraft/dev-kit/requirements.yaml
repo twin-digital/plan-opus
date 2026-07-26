@@ -119,10 +119,10 @@
 - id: kind-derived-from-module-types
   statement: |
     a pack's manifest must carry a module corroborating the kind its directory declares — `data` or
-    `script` for a behavior pack, `resources` for a resource pack — and a manifest carrying none of
-    those, or carrying only the other kind's, is a problem. Any further module type is ignored: the
-    kit validates no enumeration of module types and treats an unrecognised one as neither
-    corroborating nor a problem.
+    `script` for a behavior pack, `resources` for a resource pack — and must carry no module of the
+    other kind. A manifest carrying no corroborating module, or carrying modules of both kinds, is a
+    problem. Any further module type is ignored: the kit validates no enumeration of module types and
+    treats an unrecognised one as neither corroborating nor a problem.
   rationale: |
     The set of module types is not knowable. Microsoft's manifest reference lists four, its Creator
     Tools validator lists six and says "include" rather than "are", and the reference's own
