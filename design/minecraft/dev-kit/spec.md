@@ -25,30 +25,6 @@ questions:
       to the string, so no source found establishes the restriction below it. What the answer moves
       is the `version-form-unsupported` rejection the requirement states, not what completion writes.
     closes: fact
-  - id: dependency-entries-for-a-two-pack-package
-    question: >-
-      when a prod dependency resolves to a workspace package holding both a behavior pack and a
-      resource pack, which dependency entries does completion write? Membership admits a package
-      bearing one pack of each kind, while completion is written for a singular target — that
-      pack's `header` uuid — so nothing settles whether both entries are emitted, whether the
-      depending pack's kind selects one of them, or whether such a package is a valid dependency
-      target at all. This is the ordinary shape of a pack package here, not an edge case.
-    closes: requirement
-    gates: [workspace-dependency-resolution-matches-member-names]
-  - id: sibling-pack-dependency-inside-one-package
-    question: >-
-      how does a behavior pack declare a dependency on the resource pack beside it in the same
-      package? Both routes are closed today: `package.json` cannot carry it, since completion
-      writes entries only for prod dependencies and a package does not depend on itself; and
-      writing the entry in the source manifest trips `dependency-declares-a-workspace-pack`,
-      because the sibling is a discovered pack. So the standard add-on pairing cannot be expressed,
-      and the problem the author is shown directs them to `package.json`, where it cannot go. Two
-      shapes could settle it — sibling entries auto-completed as a kind pair inside the package, or
-      an exemption for a uuid the same package owns. This is the same package-keyed versus
-      pack-keyed seam as `dependency-entries-for-a-two-pack-package`, and an owner may well settle
-      both with one requirement.
-    closes: requirement
-    gates: [workspace-dependency-resolution-matches-member-names]
   - id: prerelease-package-version-under-the-array-form
     question: >-
       what should the kit do with a prerelease `package.json` version? Completion writes the
@@ -144,26 +120,28 @@ question above is the other half of that reading: the kit rejects a source versi
 form its format version does not carry, and below version 3 nothing published establishes that such
 a form is wrong.
 
-The second is what "resolves to a workspace package" means for a prod dependency. The clean-checkout
-constraint removes the obvious mechanism — an uninstalled checkout has no `node_modules` to resolve
-through [[r:packs-enumerable-without-a-build]] — so the test is the name: a prod dependency whose
-name equals an enumerated member's `name` resolves to that member whatever specifier it carries,
-and the range it declares is not checked against the member's version
-[[d:workspace-dependency-resolution-matches-member-names]]. The specifier is the wrong test because
-`workspace:` is a pnpm spelling with no npm counterpart, so keying on it would emit no dependency
-entries at all for an npm workspace.
+The second is which entries completion touches. Every dependency a pack has is written in that
+pack's own manifest, so the entry itself is the discriminator
+[[r:kit-completes-partial-source-manifests]]: a `uuid` that a discovered pack claims as its header
+uuid names a dependency inside the workspace, and the kit supplies its version; a `uuid` no
+candidate claims, and an entry naming a built-in scripting module by `module_name`, are outside the
+workspace and the kit touches neither [[f:pack-dependency-entries-name-a-uuid-or-a-module-name-plus-a-version]].
+That test costs the whole set — a uuid is unknown only once every candidate has been read — which is
+why classification waits for the identity index rather than running with the parse. It also means a
+mistyped workspace uuid and a genuine outside pack are the same input to the kit, and both are read
+as external. The one case that is not ambiguous is an entry naming a workspace pack that also
+specifies a version: the kit reports it rather than reading the version as an intent to stay outside
+[[d:workspace-uuid-entry-may-not-carry-a-version]].
 
-The third is ordering. A completed workspace dependency entry needs the depended-on pack's header
-uuid and its owning package's version [[f:pack-dependency-entries-name-a-uuid-or-a-module-name-plus-a-version]],
-which is another pack's data — so completion cannot run pack-by-pack during parsing. The kit reads
-and per-pack-checks every candidate, indexes identity across the whole set, completes each candidate
-against that index, and closes the set last (below). Completion is keyed on the target being
-pack-bearing, not on the target having survived: a target that bears a pack and then fails still
-gets its entry written, and the depending pack fails with it rather than shipping short an entry.
-The same fact about entries is why a `dependencies` entry already written in a source manifest is
-passed through rather than completed — an entry naming a built-in scripting module carries a
-`module_name` and no uuid, and there is no workspace package behind it for the kit to read a version
-from.
+The third is ordering. The uuid in an entry is the author's, but the version is the depended-on
+pack's owning package's, so completing an entry needs a pack other than the one being completed and
+cannot run during its parse. The kit reads and per-pack-checks every candidate, indexes identity
+across the whole set, completes each candidate against that index, and closes the set last (below).
+Completion is keyed on the target being in the index, not on the target having survived: an entry
+whose target bears a pack and then fails is still given its version, and the depending pack is
+demoted with it rather than shipping an entry with a hole in it. That also keeps one failure from
+being reported twice — a target whose own package version the required form cannot express fails on
+its own header first, so its dependents meet it as an unresolved target and nothing else.
 
 ## Resolving the set and reporting problems
 
@@ -172,10 +150,9 @@ points at one. So a shared header uuid is not a defect of one pack that another 
 two packs claim one identity, neither can be pointed at, and picking a winner would bind
 dependencies to an ordering nobody chose. Every sharer fails together, each naming the others so
 the developer can see the pair [[d:duplicate-header-uuid-invalidates-every-sharer]]. The index of
-every candidate's uuid that this needs is also the only place a source-written dependency on a
-workspace pack can be caught — that entry belongs in `package.json`
-[[r:kit-completes-partial-source-manifests]], and spotting it means holding the whole set's uuids,
-which no single pack's data gives.
+every candidate's uuid that this needs is also what sorts dependency entries into inside and outside
+the workspace, which no single pack's data can answer: an entry is external precisely when no
+candidate claims its uuid.
 
 Which candidates ship as packs is then one pass's answer, and it runs after completion rather than
 before it, because a candidate can fail at any stage: an unreadable manifest, a shared uuid, a
@@ -204,9 +181,9 @@ and the condition each code covers, is the interface consumers build against:
 | `kind-uncorroborated` | no module corroborates the kind the pack's directory declares |
 | `kind-contradicted` | a module of the other kind is present |
 | `package-version-unusable` | the owning package's version is missing, unparseable, or inexpressible in the required form |
-| `dependency-declares-a-workspace-pack` | a source-written dependency entry names a discovered pack's uuid |
-| `dependency-version-missing` | a source-written dependency entry carries no version |
-| `dependency-target-unresolved` | a completed dependency's target pack is not in the resolved set |
+| `dependency-version-specified` | a dependency entry naming a pack in the workspace also specifies a version |
+| `dependency-version-missing` | an external dependency entry — a built-in module, or a uuid no pack in the workspace claims — carries no version |
+| `dependency-target-unresolved` | a dependency entry names a pack in the workspace that did not survive as a resolved pack |
 
 One candidate can trip several of these at once — a v2 manifest carrying `"1.2.3"` is both
 `header-version-specified` and `version-form-unsupported` — and each trip is its own record: there
@@ -286,15 +263,15 @@ components:
     excludes: reading manifest content, and any filesystem probe of the built-output location
     after: [workspace-packages, problem-model]
   - id: manifest-document
-    responsibility: parse a candidate's manifest into the open typed document and apply every check needing only that pack — uuid presence, kind corroboration, version form, placeholder recognition, source-written dependency shape
-    excludes: any check that needs another pack's data
+    responsibility: parse a candidate's manifest into the open typed document and apply every check needing only that pack — uuid presence, kind corroboration, version form, placeholder recognition, and the version a `module_name` dependency entry must carry
+    excludes: any check that needs another pack's data, including whether a dependency uuid names a pack in the workspace
     after: [pack-candidates]
   - id: pack-identity-index
-    responsibility: index candidate identities across the set, flagging a uuid two candidates share and a source-written dependency entry naming a discovered pack's uuid
+    responsibility: index candidate identities across the set, flagging a uuid two candidates share, and classify each dependency entry's uuid as inside or outside the workspace, flagging an inside entry that specifies a version and an outside one that carries none
     excludes: deciding which candidates survive as packs
     after: [manifest-document]
   - id: manifest-completion
-    responsibility: per candidate, fill the header name and version and add a dependency entry per prod dependency whose name matches a pack-bearing workspace member, taking the target uuid from the identity index
+    responsibility: per candidate, fill the header name and version and the version of each dependency entry the index classed as inside the workspace, read from that target's owning package
     excludes: deciding which candidates survive as packs
     after: [pack-identity-index]
   - id: pack-set-closure

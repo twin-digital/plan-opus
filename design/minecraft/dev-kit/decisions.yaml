@@ -89,11 +89,16 @@
     a prod dependency resolves to a workspace package when its name equals an enumerated member's
     `name`, whatever specifier it carries, and the declared range is not checked against that
     member's version
+  status: rejected
+
+- id: workspace-uuid-entry-may-not-carry-a-version
+  statement: |
+    a dependency entry whose uuid names a pack in the workspace is a problem when it specifies a
+    version, rather than being read as an entry the kit leaves alone
   status: proposed
   falsifiers:
-    - a workspace routinely aliases a member under another key with an `npm:` specifier, so name matching misses a real workspace dependency
-    - a declared range that excludes the member's own version turns up in a real workspace, so completing the entry from the member's version writes a dependency the developer did not intend
-    - an installed checkout becomes a supported input and its `node_modules` links disagree with name matching
+    - a pack legitimately needs to pin a sibling at a version other than the one the workspace holds — a published release of a pack that also lives here — so the error blocks a real dependency
+    - a workspace pack shares its uuid with an outside pack a manifest genuinely depends on, so the entry can never carry the version an external dependency requires
 
 - id: every-observed-problem-is-reported
   statement: |
