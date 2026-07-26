@@ -4,11 +4,12 @@ The dev kit is the library that answers, for a workspace of Minecraft Bedrock pa
 
 It ships as a typed library — a consumer imports it and gets the pack set as data, never as text to parse.
 
-Four capabilities cover the surface:
+Five capabilities cover the surface:
 
 - **Discover** — given a workspace root, find the pack-bearing packages and return one record per valid pack, with a structured error for every pack that was found but could not be resolved. Each discovered pack lands in exactly one of the two.
 - **Detail** — for each pack, its owning package, its kind, its source location, where its built output is expected whether or not it is there yet, and its manifest as an object.
-- **Complete** — a source manifest omits what the package already knows, and the kit fills those fields in on the manifest it reports: the header name and version from `package.json`, and the version of any dependency left unversioned, which is how a dependency is marked as one this workspace resolves.
+- **Complete** — a source manifest omits what the package already knows, and the kit fills those fields in on the manifest it reports: the header name and version from `package.json`, and a dependency entry for every prod dependency that resolves to a pack-bearing workspace package, which is how a dependency on a pack this workspace resolves is declared.
+- **Search** — find packs by npm package name, pack name, or pack uuid, matched exactly.
 - **Validate** — the manifest parses; a header uuid is present and unique across the set; the manifest carries a module corroborating the kind its directory declares, and none of the other kind; in-workspace manifest dependencies resolve, exempting a dependency naming a built-in scripting module; the data completion needs is present and well formed.
 
 Enumerating the workspace's packages is the one place worth weighing before deciding. Consider reaching for what the package manager already implements — a library it publishes, or shelling out to the manager itself — rather than re-implementing its configuration formats and glob behaviour. An API the manager does not officially support is acceptable where it is published to the public registry and the spec argues it is the most robust option available. This is a suggestion, not a constraint: the spec weighs it and decides.

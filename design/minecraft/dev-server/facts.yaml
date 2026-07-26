@@ -24,8 +24,9 @@
 
 - id: dev-kit-pack-set-entry-names-package-kind-source-and-identity
   claim: |
-    Every pack the kit reports carries its owning package, its kind, its source location, and the
-    full content of its manifest, including the fields completion populates. It does so from a
+    Every pack the kit reports carries its identity and version, its owning package, its kind, its
+    source location, and the full content of its manifest, including the fields completion
+    populates. It does so from a
     clean checkout with no build having run. The harness can therefore route a pack to a pool and 
     write its activation entry from the pack set alone, without reading a manifest or a directory itself.
   backing: documented
@@ -40,6 +41,8 @@
       quote: |
         for every pack discovered, the kit provides the following details:
 
+          - its identity, the `header` uuid
+          - its version
           - its owning package
           - its kind (behavior pack or resource pack)
           - its source location

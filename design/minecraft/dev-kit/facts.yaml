@@ -1,4 +1,6 @@
 - id: ecosystem-models-one-pack-per-kind-per-project
+  status: retired
+  reason: stale
   claim: |
     Every pack config and build tool surveyed models a project as at most one pack of each kind.
     The Bedrock-OSS project config standard — shared by Regolith and bridge. — keys its `packs` map
@@ -365,20 +367,16 @@
       quote: |
         Create a new document in your My_BEHAVIOR_Pack folder and name it manifest.json.
 
-- id: pack-dependencies-name-an-exact-uuid-and-version
+- id: pack-dependency-entries-name-a-uuid-or-a-module-name-plus-a-version
   claim: |
-    A pack declares its dependencies on other packs in its manifest's `dependencies` array, each
-    entry naming the other pack's exact header uuid and an exact version. An entry may instead name
-    a built-in scripting module by `module_name`, so not every dependency entry resolves to a pack
-    in the workspace and validation cannot assume the set is closed.
+    A pack declares what it requires in its manifest's `dependencies` array. An entry carries a
+    `version` — the specific version depended on, which should match the depended-on pack's own,
+    written as a `[a, b, c]` vector or a SemVer string — alongside either a `uuid`, which must be
+    the exact header uuid of the depended-on pack, or a `module_name` naming a built-in scripting
+    module such as `@minecraft/server`. The documented behavior-pack manifest shows both shapes in
+    one array, a uuid entry and a `module_name` entry with no uuid, so a dependency entry does not
+    always name another pack.
   backing: documented
-  caveat: |
-    The quoted rows list `uuid`, `module_name`, and `version` side by side; that a `module_name`
-    entry stands *instead of* a uuid is not stated by any of them. The page's behavior-pack example
-    does show such an entry, but it is not among the sources here. The version row says the version
-    "Should match" the depended-on pack's, not that an exact match is required, and its Type cell —
-    quoted in the sibling header fact as `Vector [a, b, c] or SemVer String` — is omitted here, so
-    nothing quoted pins a dependency version to the array form.
   sources:
     - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
       where: Properties table — dependencies row
@@ -391,12 +389,25 @@
         This is the unique identifier of the pack that this pack depends on. It needs to be the
         exact same UUID that the pack has defined in the header section of its manifest file.
     - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
-      where: dependencies table — version row
+      where: dependencies table — version row, Type and Description cells
       quote: |
-        This is the specific version of the pack that your pack depends on. Should match the
-        version the other pack has in its manifest file.
+        Vector [a, b, c] or SemVer String | This is the specific version of the pack that your
+        pack depends on. Should match the version the other pack has in its manifest file.
     - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
       where: dependencies table — module_name row
       quote: |
         For dependencies on built-in scripting modules, contains the name of the module. (for
         example, @minecraft/server)
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
+      where: Examples — Behavior Pack manifest, `dependencies` array
+      quote: |
+        "dependencies": [
+            {
+                "uuid": "66c6e9a8-3093-462a-9c36-dbb052165822",
+                "version": [1, 0, 0]
+            },
+            {
+                "module_name": "@minecraft/server",
+                "version": "1.9.0"
+            }
+        ],

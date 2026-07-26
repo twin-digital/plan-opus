@@ -16,7 +16,7 @@
     the kit provides a way to discover Minecraft behavior packs and resource packs in a workspace.
     Details for valid, discovered packs are returned as a flat list of pack records. A separate list
     is provided containing structured errors for packs that were discovered, but whose content was
-    invalid. The error list is only included if it is not empty.
+    invalid.
 
 - id: packs-enumerable-without-a-build
   statement: |
@@ -45,9 +45,11 @@
 
       - npm package name
       - pack name
+      - pack uuid
 
-    Search results are provided as an array of pack records. If no results are found, an empty
-    array is returned.
+    Every criterion matches on the exact name or identity; no substring or case-insensitive
+    matching. Search results are provided as an array of pack records. If no results are found, an
+    empty array is returned.
 
 # Pack Details
 
@@ -55,19 +57,14 @@
   statement: |
     for every pack discovered, the kit provides the following details:
 
+      - its identity, the `header` uuid
+      - its version
       - its owning package
       - its kind (behavior pack or resource pack)
       - its source location
       - its build output location (even if that location is not present because the pack is unbuilt),
       - the full content of its manifest in object form (including content auto-populated as
         described by `r:kit-completes-partial-source-manifests`)
-
-- id: pack-kind-from-the-directory
-  statement: |
-    a pack's kind comes from the directory membership is read from, `behavior_pack/` or
-    `resource_pack/`, and the manifest must corroborate it. A disagreement between the two is a
-    reported error, never a silent preference for one side, so a pack carries one kind and no consumer
-    reconciles two.
 
 - id: built-output-defaults-to-dist
   statement: |
@@ -90,9 +87,8 @@
 
       - it MUST NOT specify a `header.name` field; a specified field is an error
       - it MUST NOT specify a `header.version` field; a specified field is an error
-      - it MAY omit the version for workspace-local `dependencies` entries
 
-    In both cases, a `version` is left unspecified by omitting it, or by supplying a placeholder:
+    A `version` is left unspecified by omitting it, or by supplying a placeholder:
     an empty array, an empty string, `[0, 0, 0]`, or `"0.0.0"`. A placeholder is unspecified, not
     specified, so it is not the error the bullets above describe.
 
@@ -111,16 +107,27 @@
         for v2 manifests, and the SemVer string for v3 manifests. What the source used is not
         consulted; the format version decides. A version that form cannot express, such as a
         pre-release where the form is the array, is a problem
-      - any dependency with a missing `version` is assumed to reference a pack within the same
-        workspace. The `version` field of that package's package.json will be used as the dependency
-        version, using the same parsing and error reporting rules described for `header.version`. If
-        a dependency entry specifies a version, it is assumed to be an external dependency and is
-        handled normally.
+      - a `dependencies` entry is added for every prod dependency in the owning package's
+        `package.json` that resolves to a pack-bearing workspace package. The kit supplies that
+        pack's `header` uuid and its owning package's `package.json` version, using the same
+        parsing and error reporting rules described for `header.version`. A prod dependency
+        resolving to anything else — an external package, a built-in scripting module such as
+        `@minecraft/server` — is not a pack dependency and contributes nothing to the manifest.
+
+    A `dependencies` entry written in the source manifest is an external or built-in dependency:
+    the kit passes it through untouched and never completes it, so it MUST carry its own `version`.
+    A source-written entry naming a workspace pack is an error, since `package.json` is where a
+    workspace pack dependency is declared.
 
 # Validation
 
 - id: manifest-corroborates-the-directory-kind
   statement: |
+    a pack's kind comes from the directory membership is read from, `behavior_pack/` or
+    `resource_pack/`, and the manifest must corroborate it. A disagreement between the two is a
+    reported error, never a silent preference for one side, so a pack carries one kind and no
+    consumer reconciles two.
+
     every module in a pack's manifest must declare a `type`, and the manifest must carry a module
     corroborating the kind its directory declares — `data` or `script` for a behavior pack,
     `resources` for a resource pack — and must carry no module of the other kind. A module with no
