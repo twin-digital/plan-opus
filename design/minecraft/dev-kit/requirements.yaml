@@ -136,15 +136,13 @@
 
 - id: uuids-are-claimed-once-in-a-workspace
   statement: |
-    a uuid is claimed by exactly one thing in the workspace: no two packs declare the same header
-    `uuid`, and no two modules declare the same module `uuid`, whether those modules sit in one
-    manifest or in different packs. A duplicated uuid is an error, reported per
-    `r:unresolvable-packs-fail-loudly`, and every pack claiming one is unresolvable — no claimant is
-    preferred over another.
+    a header `uuid` is claimed by exactly one pack in the workspace. A duplicated uuid is an error,
+    reported per `r:unresolvable-packs-fail-loudly`, and every pack claiming one is unresolvable —
+    no claimant is preferred over another.
 
-    The error names the duplicated uuid and every claimant of it — each pack for a header uuid, each
-    module and its owning pack for a module uuid — so a reader can reach the copies without
-    searching the workspace.
+    The error names the duplicated uuid and every pack claiming it, so a reader can reach the copies
+    without searching the workspace. Module `uuid`s are not checked for uniqueness: nothing
+    establishes that the format requires it.
 
 - id: manifest-corroborates-the-directory-kind
   statement: |
