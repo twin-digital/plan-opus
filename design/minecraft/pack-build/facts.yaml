@@ -1,16 +1,10 @@
-- id: dev-kit-fixes-where-built-output-goes
+- id: dev-kit-reports-each-pack-build-output-location
   claim: |
-    minecraft/dev-kit places a pack's built output under `dist/` within its package unless the
-    package specifies an alternate location, and the kit reports that build output location for
-    every pack it discovers, including packs that have not been built. The build writes where the
-    kit says a pack's output is, and does not resolve that location itself.
+    minecraft/dev-kit reports a build output location for every pack it discovers, including packs
+    that have not been built. The build writes where the kit says a pack's output is, and resolves
+    no output location itself.
   backing: documented
   sources:
-    - url: design/minecraft/dev-kit/requirements.yaml
-      where: built-output-defaults-to-dist
-      quote: |
-        a pack's built output is found at `dist/` within its package unless the package specifies an
-        alternate location.
     - url: design/minecraft/dev-kit/requirements.yaml
       where: pack-record-details — the details provided for every discovered pack
       quote: |
