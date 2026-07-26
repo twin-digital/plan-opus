@@ -90,7 +90,8 @@
   claim: |
     A root `package.json`'s `workspaces` field is an array of file patterns naming the folders that
     are the workspace's members; each entry is either a direct path to a folder or a glob that
-    resolves to such folders.
+    resolves to such folders. A folder a pattern matches is treated as a workspace only where it
+    holds a valid `package.json`, so matching a pattern is not by itself membership.
   backing: documented
   sources:
     - url: https://docs.npmjs.com/cli/v10/configuring-npm/package-json
@@ -104,6 +105,11 @@
       quote: |
         It can describe either the direct paths of the folders to be used as workspaces or it can
         define globs that will resolve to these same folders.
+    - url: https://docs.npmjs.com/cli/v10/configuring-npm/package-json
+      where: workspaces — the sentence introducing the glob example
+      quote: |
+        In the following example, all folders located inside the folder ./packages will be treated
+        as workspaces as long as they have valid package.json files inside them:
 
 - id: manifest-declares-pack-identity-version-and-module-kinds
   claim: |

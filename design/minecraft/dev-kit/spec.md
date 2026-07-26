@@ -41,24 +41,40 @@ questions:
 
 ## The pack set
 
-Discovery returns one record per pack in a flat list [[r:pack-discovery]], carrying the five details
-every consumer needs of a pack [[r:pack-record-details]]. Flatness costs no addressability: a
-package's source can hold at most one pack of each kind, so the pair of package name and kind is
-already unique across the set [[r:membership-from-source-manifest-presence]].
+Discovery returns one record per pack in a flat list [[r:pack-discovery]], carrying the details every
+consumer needs of a pack [[r:pack-record-details]]. The record is the interface four components
+compile against, so its shape is pinned here.
 
-The record is the interface four components compile against, so its shape is pinned here. `kind` is
-`'behavior'` or `'resource'`; the on-disk spellings `behavior_pack` and `resource_pack` are a mapping
-applied when a path is built, never the field's own value. Both the source path and the expected
-output path are workspace-relative and POSIX-separated, so a record can be logged, serialised, and
-compared without carrying the machine it was produced on. Whether the manifest field may be absent is
-an open question above.
-
-A record's kind comes off the manifest's module types [[r:kind-derived-from-module-types]], because
-the manifest is where a pack states both that it is a pack and which kind
-[[f:manifest-declares-pack-identity-version-and-module-kinds]] while the directory holding it states
-nothing the server reads [[f:pack-directory-name-carries-no-meaning]]. The kind-named directory a
-pack was found under is therefore a membership signal and never a second opinion
+Two fields answer "which kind", and the record says which is which
+[[d:record-carries-both-kinds-explicitly]]. `kind` is the pack's own — read off its manifest's module
+types [[r:kind-derived-from-module-types]], because the manifest is where a pack states both that it
+is a pack and which kind [[f:manifest-declares-pack-identity-version-and-module-kinds]] while the
+directory holding it states nothing the server reads [[f:pack-directory-name-carries-no-meaning]].
+`sourceKind` is the kind-named directory the pack was found under, which is a membership signal and
+never a second opinion on identity
 [[r:pack-identity-and-kind-declared-only-by-the-manifest]] [[d:manifest-kind-is-reported-on-disagreement]].
+Both paths are built from `sourceKind` [[d:output-path-follows-the-source-directory]]. The two agree
+on every pack that has no `kind-disagrees-with-directory` problem; carrying both is what keeps the
+disagreement legible on the record itself, so a consumer that filters by `kind` and then reads a path
+sees the mismatch without joining against the problem list. What that costs is a record with two
+kind-shaped fields a careless consumer could confuse; what it buys is that the design never both
+reports the disagreement and quietly resolves it one way in one field and the other way in another.
+
+Each takes the value `'behavior'` or `'resource'`; the on-disk spellings `behavior_pack` and
+`resource_pack` are a mapping applied when a path is built, never a field's own value. Both the
+source path and the expected output path are workspace-relative and POSIX-separated, so a record can
+be logged, serialised, and compared without carrying the machine it was produced on.
+
+A pack the kit could not fully resolve gets the same record type, with the fields whose evidence is
+missing left absent rather than a second record type a consumer must narrow to
+[[d:unresolved-packs-keep-the-record-shape]]. Three fields can be absent, and each only for a stated
+reason: `kind`, when the manifest did not parse, missed the shape floor, or declared module types
+that yield no kind; the owning package name, when the package's own `package.json` did not parse; and
+the manifest, which is an open question above. `sourceKind` and both paths are present on every
+record, because the fixed-path membership test that found the pack already supplies them
+[[r:membership-from-source-manifest-presence]]. Flatness therefore costs no addressability: the
+source path is unique across the set and always present, and for a resolved pack the pair of package
+name and kind is unique too, since a package's source can hold at most one pack of each kind.
 
 The manifest a record carries is the completed one; a consumer that needs the bytes as committed
 reads them from the source path the record already gives it
@@ -76,7 +92,18 @@ with a leading `!` to drop directories an earlier pattern matched, and whose abs
 package alone [[f:pnpm-workspace-packages-is-an-include-exclude-glob-list]]. In `package.json` it is
 the `workspaces` array, which has no negation form
 [[f:npm-workspaces-is-an-array-of-paths-or-globs]]; the field is read only in that array form, and an
-object wrapping a `packages` list is not a definition the kit accepts.
+object wrapping a `packages` list is not a definition the kit accepts. The workspace root is a
+candidate under both, which pnpm's definition already makes it and which the kit applies to the
+`workspaces` form too, so one tree does not answer two ways by package manager
+[[f:pnpm-workspace-packages-is-an-include-exclude-glob-list]].
+
+A pattern is a filter over directories, not an assertion that each match is a package: a matched
+directory holding no `package.json` is not a workspace member and the kit passes over it silently,
+with no problem raised [[f:npm-workspaces-is-an-array-of-paths-or-globs]]. A stale directory under
+`packages/` is a fact about the tree, not something wrong with a pack. A `package.json` that is
+present but will not parse is different — that directory is still membership-tested, so its packs are
+still discovered and still get records, and the unreadable file is reported once against the package
+[[r:unresolvable-packs-fail-loudly]].
 
 A candidate becomes a pack-bearing package by holding `behavior_pack/manifest.json` or
 `resource_pack/manifest.json` in its source [[r:membership-from-source-manifest-presence]], which is
@@ -140,7 +167,7 @@ The union is closed, so it is enumerated here in full — every code, and the co
 
 | code | raised when | raised by |
 |---|---|---|
-| `package-json-unreadable` | a candidate package's `package.json` is absent or does not parse | `workspace-enumerator` |
+| `package-json-unparseable` | a candidate directory holds a `package.json` that does not parse | `workspace-enumerator` |
 | `out-dir-invalid` | `mcDevKit.outDir` is not a string, or resolves outside the package | `pack-locator` |
 | `manifest-unparseable` | a pack's `manifest.json` is not valid JSON | `manifest-reader` |
 | `manifest-shape-invalid` | the parsed manifest misses the shape floor below | `manifest-reader` |
@@ -152,12 +179,18 @@ The union is closed, so it is enumerated here in full — every code, and the co
 | `dependency-entry-unidentified` | a `dependencies` entry names neither a `uuid` nor a `module_name` | `pack-validator` |
 | `dependency-unsatisfied` | a dependency's uuid matches no pack in the set | `pack-validator` |
 | `dependency-ambiguous` | a dependency's uuid matches more than one pack in the set | `pack-validator` |
-| `version-not-three-segments` | a version completion must write is not three dotted segments | `manifest-completer` |
+| `version-not-three-segments` | a `package.json` version completion must read is not three dotted segments | `manifest-completer` |
 
 The shape floor `manifest-reader` enforces is the minimum every later component reads: a `header`
 object and a `modules` array whose entries are objects each carrying a `type`. A manifest missing
 either is `manifest-shape-invalid`; anything beyond them is carried through unread
 [[d:unknown-manifest-fields-pass-through]].
+
+`version-not-three-segments` is attributed to the package whose `package.json` holds the offending
+version, and raised once against it, whether the version was being read for that pack's own header or
+for a dependency pointing at it. A depending pack's entry is then left unversioned and draws no
+second problem, so one bad version in a widely depended-on pack stays one problem rather than one per
+depender.
 
 A dependency entry naming a built-in scripting module by `module_name` resolves to no pack and is not
 a problem under any row above [[f:pack-dependencies-name-an-exact-uuid-and-version]]
@@ -178,21 +211,24 @@ second one that read from disk would be the per-pack resolution the kit does not
 [[d:workspace-is-the-unit-of-resolution]]; searching is therefore pure over a pack set already in
 hand, returning an array of records and an empty array when nothing matches [[r:pack-search]]. Search
 matches a full package name or a completed pack name by exact string equality, with several criteria
-combined as a conjunction [[d:search-matches-exact-names]].
+combined as a conjunction [[d:search-matches-exact-names]]. It searches the whole set, problem-carrying
+packs included — filtering them out would make search a second, quieter way for a broken pack to
+vanish [[r:unresolvable-packs-fail-loudly]]. A pack missing the field a criterion reads simply does
+not match on that criterion, and a pack with no completed name is reachable by package name alone.
 
 ## Components
 
 ```yaml
 components:
   - id: core-types
-    responsibility: the pack record type, the problem record type and its closed code union, and the result type pairing packs with problems
+    responsibility: the pack record type including which of its fields may be absent and when, the problem record type and its closed code union, and the result type pairing packs with problems
     excludes: detecting any of the conditions it can express
   - id: workspace-enumerator
-    responsibility: resolve a workspace root to its candidate package directories and each one's parsed package.json
+    responsibility: resolve a workspace root to its candidate package directories — every pattern match holding a package.json, plus the root — and each one's parsed package.json
     excludes: deciding which candidates hold packs
     after: [core-types]
   - id: pack-locator
-    responsibility: apply the source-manifest membership test to a candidate package and compute each pack's source and expected output paths from the source directory's kind
+    responsibility: apply the source-manifest membership test to a candidate directory and set each pack's sourceKind, source path, and expected output path from it
     excludes: parsing manifest contents
     after: [workspace-enumerator]
   - id: manifest-reader

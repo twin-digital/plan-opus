@@ -85,6 +85,20 @@
     - a pack's completed name is not the name users address it by, since completion derives it from productName or the scope-stripped package name, so exact equality returns nothing for the name that is actually typed
     - a consumer holds an identifier that is neither a full package name nor a completed pack name — a header uuid, a source directory — and has no way to reach the record from it
 
+- id: unresolved-packs-keep-the-record-shape
+  statement: a pack the kit could not fully resolve carries the same record type with the fields whose evidence is missing left absent, rather than a separate unresolved record type
+  status: proposed
+  falsifiers:
+    - consumers work almost entirely with fully resolved packs and the optional fields force a narrowing at every call site, so filtering once against a discriminated union is measurably less error-prone
+    - a field turns out to be absent on a pack that is otherwise fully resolved, so absence stops meaning unresolved and no consumer can use it as that test
+
+- id: record-carries-both-kinds-explicitly
+  statement: a record carries the manifest-declared kind and the source directory's kind as separate fields, so a disagreement is visible on the record rather than only in the problem list
+  status: proposed
+  falsifiers:
+    - a consumer is found reading sourceKind as the pack's kind because it is the field always present, reinstating the silent directory answer the manifest's authority exists to prevent
+    - packs stop being laid out under kind-named directories, so sourceKind is no longer derivable and both paths need another source
+
 - id: output-path-follows-the-source-directory
   statement: a pack's expected output path is computed from its source directory's kind, so a pack whose manifest kind disagrees still mirrors where its source sits
   status: proposed
