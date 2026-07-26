@@ -130,15 +130,15 @@
     - a consumer outside the workspace process needs an absolute path and cannot recover the workspace root the paths are relative to
     - a workspace member resolves outside the workspace root, so no relative path names it
 
-- id: pack-record-version-is-a-semver-string
+- id: pack-record-version-is-the-packages-own-string
   statement: |
-    a pack record's `version` is the owning package's version as a SemVer string, read
-    independently of the manifest and of what its format version can express
+    a pack record's `version` is the owning package's `version` string exactly as `package.json`
+    holds it, read independently of the manifest and of what its format version can express
   status: proposed
   falsifiers:
     - a consumer compares record versions against manifest versions field-for-field and has to re-parse the string back into the array form
-    - a pack version turns up that is expressible as a manifest vector but not as a SemVer string
     - the record version and the completed manifest version diverge often enough that consumers cannot tell which one a server will honour
+    - consumers parse the field as SemVer without checking and break on the entries where the package's string is not one
 
 - id: pack-kind-is-spelled-behavior-or-resource
   statement: |
@@ -185,10 +185,36 @@
 
 - id: an-invalid-entry-keeps-every-detail-its-sources-hold
   statement: |
-    an invalid entry carries every field the kit managed to read, three of them optional on that arm
-    alone: `uuid` and `manifest` where the manifest parsed and declared a header uuid, and `version`
-    where the owning package's version parses
+    an invalid entry carries every field the kit managed to read, two of them optional on that arm
+    alone: `uuid` and `manifest`, present where the manifest parsed and declared a header uuid
   status: proposed
   falsifiers:
     - a consumer sorts or renders entries by version and has to invent a placeholder for the ones without, so the field should always be present in some form
     - consumers read the optional fields without checking and crash on the arm that lacks them, so a status naming "found but unidentified" would carry the distinction better than optionality does
+
+- id: an-uncompletable-field-keeps-what-the-source-wrote
+  statement: |
+    a field completion cannot fill is left exactly as the source manifest wrote it — the placeholder,
+    or the omission — and never carries a value the kit invented or a form the manifest cannot express
+  status: proposed
+  falsifiers:
+    - a consumer needs to tell "the kit could not fill this" from "the author wrote this placeholder", which the document alone does not say
+    - a server rejects a manifest carrying a placeholder where it would have accepted the field omitted, so leaving the source spelling is worse than dropping the field
+
+- id: a-uuid-is-the-documented-hex-form
+  statement: |
+    the kit accepts as a uuid only the documented `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` hexadecimal
+    form, in either case, and reports an absent one and a malformed one under the one code
+  status: proposed
+  falsifiers:
+    - packs in the wild carry a uuid the engine loads in another spelling — braces, or no hyphens — so rejecting it blocks a working pack
+    - a consumer needs to tell an absent uuid from a malformed one to give the right repair advice, and the carried value is not enough
+
+- id: entries-come-back-in-a-stable-order
+  statement: |
+    the entry list is ordered by owning package name and then by kind, the same order on every run
+    and under either package manager
+  status: proposed
+  falsifiers:
+    - a consumer needs the workspace definition's own order, or discovery order, and cannot recover it from a sorted list
+    - every consumer re-sorts the list for its own display, so the kit's order is never the one used
