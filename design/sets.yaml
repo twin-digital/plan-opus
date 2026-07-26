@@ -1,10 +1,20 @@
 # Named sets of designs, for requirements that bind a group the directory tree cannot express —
 # a product spanning several designs, or one whose members sit in more than one area.
 #
-# A set maps a kebab-case name to design scopes (`<area>/<design>`). Sets do not nest, and a
-# design may belong to any number of them. A requirement names one as `set:<name>` in its
-# `applies_to`.
+# A set maps a name to design scopes (`<area>/<design>`). The name is colon-separated kebab-case
+# segments; the segments group names for a reader and mean nothing to the checker. Sets do not
+# nest, and a design may belong to any number of them — dev-kit is in both sets below. A
+# requirement names one as `set:<name>` in its `applies_to`.
 #
-# minecraft-addon-pack:
-#   - minecraft/pack-frontier
-#   - minecraft/pack-tinker
+# A member that is not a design yet is reported as a notice, not an error: a set may name work
+# that is planned before the directory exists.
+
+# Designs that ship a Node.js library, wherever they sit — the technology binds them, not the area.
+nodejs:libraries:
+  - minecraft/dev-kit
+  - minecraft/test-lib
+
+# The tooling half of the minecraft area: what a pack author runs, not what ships to a player.
+minecraft:dev-tools:
+  - minecraft/dev-kit
+  - minecraft/pack-build

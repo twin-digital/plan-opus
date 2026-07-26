@@ -170,8 +170,10 @@
 - id: binding-sets-are-declared-once
   statement: |
     a set of designs named by more than one requirement is declared once in design/sets.yaml,
-    mapping a kebab-case set name to the design scopes it holds. A set may hold designs from
-    more than one area, and a set never holds another set
+    mapping a set name to the design scopes it holds. The name is colon-separated kebab-case
+    segments, which group names for a reader and carry no meaning to the machine. A set may hold
+    designs from more than one area, may hold a design that does not exist yet, and never holds
+    another set
   rationale: |
     A product — the testing library, the dev tools, and the packs that share a build — is a set
     of designs, and a directory tree cannot express one that crosses areas or overlaps a

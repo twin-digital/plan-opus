@@ -150,11 +150,11 @@ A fact, a requirement, and a decision, as they sit in a `facts.yaml`, `requireme
 ```
 
 ```yaml
-- id: packs-ship-one-mcaddon
-  statement: every pack in the product ships as a single .mcaddon
-  applies_to: [set:minecraft-addon-pack]
+- id: libraries-publish-types
+  statement: every published library ships its own type declarations
+  applies_to: [set:nodejs:libraries]
   rationale: |
-    One import step per pack is what a player will actually follow.
+    A consumer should not have to hand-write the types for something we published.
 ```
 
 ```yaml
@@ -165,13 +165,17 @@ A fact, a requirement, and a decision, as they sit in a `facts.yaml`, `requireme
     - a foundation file grows a need for file-level metadata beside its entries
 ```
 
-The `sets.yaml` that `set:minecraft-addon-pack` resolves through — this one file is a mapping of
-set name to the design scopes it holds, not a sequence:
+The `sets.yaml` that `set:nodejs:libraries` resolves through — this one file is a mapping of set
+name to the design scopes it holds, not a sequence. A design may belong to any number of sets:
 
 ```yaml
-minecraft-addon-pack:
-  - minecraft/pack-frontier
-  - minecraft/pack-tinker
+nodejs:libraries:
+  - minecraft/dev-kit
+  - minecraft/test-lib
+
+minecraft:dev-tools:
+  - minecraft/dev-kit
+  - minecraft/pack-build
 ```
 
 A component block and an open-question block, in the form each takes inside a `spec.md` — the
@@ -242,11 +246,16 @@ would be noise.
 
 Where the tier is *not* the right answer, `applies_to` names the designs directly, or names a set.
 A set is declared once, in `design/sets.yaml`, mapping a name to the design scopes it holds
-[[r:binding-sets-are-declared-once]]; a set may hold designs from more than one area, and no set
-holds another set. This is what a product is here: the packs that share a build, or the library and
-the tools that ship together, listed by name rather than gathered into a directory. Listing the
-members in one place rather than on each design is a bet that a product's roster changes as a unit
-— adding a pack is then a one-line edit rather than an edit to every design that joins it
+[[r:binding-sets-are-declared-once]]. This is what a product is here: the designs that ship a
+Node.js library, or the tooling half of an area, listed by name rather than gathered into a
+directory. A set may hold designs from more than one area — the case a subtree cannot express — and
+a design belongs to as many sets as describe it, which is the other half: a grouping that overlaps
+a sibling is a set, never a directory. No set holds another, so membership is one lookup deep, and
+that is also the answer to how far the nesting goes: exactly one level, always. A set may name a
+design that does not exist yet, since a product is often named before its last member is written;
+the harness reports the dangling member rather than failing on it. Listing the members in one place
+rather than on each design is a bet that a product's roster changes as a unit — adding a pack is
+then a one-line edit rather than an edit to every design that joins it
 [[d:set-membership-is-declared-by-the-set]].
 
 Binding does not create a citation obligation. A design settles on citing its own live
@@ -293,8 +302,10 @@ form, a `url` never carrying a `description`, a `url` always carrying `where`, a
 written repo-relative, an `artifacts/` url only on a `tested` fact and only at that fact's own scope
 or wider, and every `quote` a block scalar; a requirement carries `id` and `statement`,
 a `force` and `status` in their enums, and no `sources`, and carries `applies_to` only above design
-scope, every item of it resolving to a real design scope or a declared set; every set in
-`sets.yaml` names only designs that exist and no other set; a decision carries `id`, `statement`, and a
+scope, and naming only declared sets; every set in `sets.yaml` has a name of kebab-case segments,
+at least one member, and no member that is another set — a member or an `applies_to` entry naming
+a design that does not exist yet is reported as a notice, not an error, so a set can be declared
+before its last member is written; a decision carries `id`, `statement`, and a
 written `status` in its enum, plus at least one falsifier unless rejected; any field at its default is
 omitted; a retired fact carries a valid `reason` and, if superseded, a resolvable `superseded_by`. In
 the document: a live block is recognised only under its fixed `## Components` or `## Open questions`
