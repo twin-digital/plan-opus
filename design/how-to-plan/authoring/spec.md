@@ -67,9 +67,11 @@ turning out stilted and uniform [[r:guidance-is-tests-not-templates]].
 
 ## Evidence and inherited facts
 
-The evidence rules bind whoever captures a fact; a spec author builds on facts already held to
-them rather than re-deriving each [[r:a-rule-binds-the-writer-of-what-it-governs]]. Their test is
-at the source: open what a fact cites, and for evidence drawn from outside the author the words it
+The evidence rules bind whoever captures a fact, as the requirement-content rules below bind
+whoever writes a requirement; a spec author builds on facts and requirements already held to their
+own rules rather than re-deriving or reopening them
+[[r:a-rule-binds-the-writer-of-what-it-governs]]. Their test is at the source: open what a fact
+cites, and for evidence drawn from outside the author the words it
 rests on are there on the page, verbatim — a paraphrase fails because it is the agent's voice
 standing where the source's should be, and an assumed fact instead carries the mechanism it rests
 on. A source takes one of exactly two forms, and which one is the first thing the test looks at: a
@@ -102,6 +104,19 @@ its `spec.md` only where no requirement pins the claim
 [[f:in-repo-source-url-is-repo-relative]] [[f:fact-source-is-quote-or-mechanism]] — never as a
 direct citation of that design's decisions or invariants
 [[r:cross-design-dependency-is-cited-as-a-fact]].
+
+## What belongs in a requirement
+
+A requirement is owner fiat, so the test of one is a reversal: would the owner overturn a spec
+decision to hold it? A statement that fails that test is design work, and belongs in the spec as a
+decision that can be argued with rather than in the file of inputs
+[[r:requirements-are-owner-reversal-calls]]. Two further tests read the entry itself. The first is
+length: a requirement states its call in a sentence or two, and a carve-out, an exception, or an
+absolute a later paragraph qualifies marks one carrying design work — the excess moves to a
+decision [[r:a-requirement-is-a-sentence-or-two]]. The second is what the rationale is doing: it
+belongs only where reversing the requirement casually would be a mistake the statement alone does
+not warn of, and a rationale arguing that the requirement is correct fails whatever else it says
+[[r:rationale-records-what-a-reversal-would-cost]].
 
 ## Falsifiers that can fire
 
@@ -143,9 +158,11 @@ when verifying or deciding it now would cost little beside building on it and be
 ## The tests
 
 The checklist gathers every test above into one list an author self-checks against and a reviewer
-scores a spec by [[r:conclude-with-test-summary]]. It is the design's payoff: a reader who applies
-it produces specs that satisfy every reader-facing rule recorded here, because each such rule is
-one line on it [[r:instructs-readers-to-follow-the-spec-rules]]. Three rules do not appear as tests
+scores a spec by [[r:conclude-with-test-summary]]. Some rows judge a foundation entry rather than
+the spec's prose, and each of those falls due when that entry is written, to its author — the
+*judges* column names which [[r:a-rule-binds-the-writer-of-what-it-governs]]
+[[d:checklist-covers-entry-tests]]. It is the design's payoff: a reader who applies it produces
+specs that satisfy every reader-facing rule recorded here, because each such rule is one line on it [[r:instructs-readers-to-follow-the-spec-rules]]. Three rules do not appear as tests
 of a produced spec, because they govern this document rather than the specs its readers write —
 that its guidance is written as tests and not templates [[r:guidance-is-tests-not-templates]], that
 it closes with this very checklist [[r:conclude-with-test-summary]], and that each content rule is
@@ -157,13 +174,16 @@ aimed at whoever writes the entry it governs [[r:a-rule-binds-the-writer-of-what
 | 2 | build content | Does every passage change what gets built, with a *why* only where its absence would misbuild and no surplus a builder never reads? |
 | 3 | build content — stands alone | Strike every citation token — does the specification still say what to build, with every path, literal, format, and default present in the prose or a component? |
 | 4 | citations | Does every claim that would change were a foundation false carry its token, and does no motivation or restatement carry one? |
-| 5 | evidence | Does each fact's outside evidence appear verbatim at its source, and each assumed fact carry its mechanism? |
-| 5a | evidence — provenance | Does each `documented` fact cite the upstream original rather than a repository file transcribing it, an in-repo source appearing only where that file originates the claim? |
-| 5b | evidence — fit | Does each quote state the claim its fact makes, rather than being genuine but beside the point? |
-| 5c | evidence — whose test | Does each `tested` fact its author did not run say so and name whose test it was, with in-repo artifacts another design holds promoted to a shared scope rather than cited across? |
+| 5 | fact — evidence | Does each fact's outside evidence appear verbatim at its source, and each assumed fact carry its mechanism? |
+| 5a | fact — provenance | Does each `documented` fact cite the upstream original rather than a repository file transcribing it, an in-repo source appearing only where that file originates the claim? |
+| 5b | fact — quote fit | Does each quote state the claim its fact makes, rather than being genuine but beside the point? |
+| 5c | fact — whose test | Does each `tested` fact its author did not run say so and name whose test it was, with in-repo artifacts another design holds promoted to a shared scope rather than cited across? |
 | 6 | inherited fact — wrong | Is every inherited fact the spec found wrong corrected by a superseding evidenced fact, not cited as-is or merely flagged? |
 | 7 | inherited fact — discovery | Is every discovery a decision or component rests on recorded as a fact, not left implicit in prose? |
 | 8 | cross-design dependency | Is each reliance on another design's output a sourced fact in this or a shared scope, not a direct citation of that design's decisions or invariants? |
-| 9 | falsifiers | Does each decision's falsifier name a condition that could arise and would reverse it — boundary falsifiers included and scrutinised? |
-| 10 | components | Is each component one dispatchable build task with an interface pinned for parallel build, the set bounded and serial dependencies marked? |
-| 11 | unknowns | Is every unknown the evidence already determines resolved now — found, decided, or raised as an open question — with only the genuinely unresolvable carried as a falsifier or assumed fact, and each assumed fact the design rests on re-judged? |
+| 9 | requirement — is it the owner's call | Would the owner reverse a spec decision to hold this, rather than it being design work that belongs in the spec as a decision? |
+| 10 | requirement — length | Is it stated in a sentence or two, carrying no carve-out, exception, or absolute a later paragraph qualifies? |
+| 11 | requirement — rationale | Does a rationale appear only where a casual reversal would be a mistake the statement does not warn of, and nowhere argue that the requirement is correct? |
+| 12 | falsifiers | Does each decision's falsifier name a condition that could arise and would reverse it — boundary falsifiers included and scrutinised? |
+| 13 | components | Is each component one dispatchable build task with an interface pinned for parallel build, the set bounded and serial dependencies marked? |
+| 14 | unknowns | Is every unknown the evidence already determines resolved now — found, decided, or raised as an open question — with only the genuinely unresolvable carried as a falsifier or assumed fact, and each assumed fact the design rests on re-judged? |
