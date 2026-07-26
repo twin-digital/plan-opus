@@ -61,6 +61,11 @@ So this is a **review**, not an extraction. Read the inputs as they now stand an
 Amend what needs it. If the iteration turned something up that never made it into an input, add it
 now — but the common case is that the inputs are close to right and want a trim, not a harvest.
 
+Do this lightly. Once the pull request is open, dispatch `review-inputs.md` to an agent that did not
+work on this design: it reads the three files as a set and posts its proposals as review
+suggestions the owner accepts or leaves. Restructuring the inputs yourself before that point turns
+the owner's final review into a review of your restructuring, which is not the same act.
+
 **Nothing may point at the rejected draft.** Not a fact source, not a brief line, not a requirement
 rationale. A citation of a dead draft is how the next agent ends up reading it.
 
@@ -183,6 +188,11 @@ This is a deliberate exception to the repository's usual "do not ask, record" ru
 governs an agent designing from settled inputs, where a question to a human is a substitute for
 doing the work. Here the work *is* the owner's summary of decisions they made across an iteration,
 and guessing it is how a rejection ends up with a plausible, wrong record of itself.
+
+Then dispatch `review-inputs.md` against the open pull request, to an agent that did not work on
+this design. Its suggestions land as review comments for the owner to accept or leave; you do not
+apply them. Say in your hand-off that it has run, so the owner knows the review is complete rather
+than pending.
 
 With no published spec the design returns to `exploring`: inputs only, nothing settled. With one,
 it stays on the published spec until the next cycle replaces it.
