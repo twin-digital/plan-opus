@@ -19,19 +19,11 @@ running: no input the kit reads may be a build product, and no step may wait on 
 
 ```yaml
 questions:
-  - id: version-form-restriction-below-format-version-3
-    question: >-
-      does a manifest below format_version 3 actually reject a version written as a SemVer string?
-      The kit treats a version in a form its own format_version does not carry as an error, but the
-      published reference types every version as a vector or a SemVer string and pins only version 3
-      to the string, so no source found establishes the restriction below it. What the answer moves
-      is the `version-form-unsupported` rejection the requirement states, not what completion writes.
-    closes: fact
   - id: prerelease-package-version-under-the-array-form
     question: >-
       what should the kit do with a prerelease `package.json` version? Completion writes the
-      `[major, minor, revision]` array for every manifest below format version 3 — every
-      non-preview manifest in practice — and the array cannot express `1.2.0-beta.1` or
+      `[major, minor, revision]` array for every manifest that does not declare format version 3 —
+      every non-preview manifest in practice — and the array cannot express `1.2.0-beta.1` or
       `0.0.0-canary.4`, so `package-version-unusable` fires. Under changesets or canary publishing
       that is the normal mid-release state of every package at once, so the whole set becomes
       problem records and a dev server has nothing to deploy during exactly the window a developer
@@ -135,18 +127,20 @@ would read inside them, and is a problem on the entry rather than an exception o
 Filling in is the kit's defensible work [[r:kit-completes-partial-source-manifests]]. Three parts
 of it need pinning beyond what that requirement fixes.
 
-The first is the version form, and one mapping serves every reader of it: the manifest's own
-`format_version` fixes the form, the string at 3 or higher and the array below it, absent and
-unrecognised versions included [[d:completion-version-form-follows-format-version]] — the form the
-reference documents throughout, pinning the string only to version 3
-[[f:manifest-declares-pack-identity-version-and-module-kinds]]. Three things read that one answer:
-what completion writes, which of the placeholder spellings are legal in a given manifest, and when
-`version-form-unsupported` fires against a source version. Placeholder recognition needs no other
-pack, so it runs with the parse: a placeholder in the legal form leaves the version unspecified and
-`header-version-specified` does not fire, while any other written version does trip it. The open
-question above is the other half of that reading: the kit rejects a source version written in the
-form its format version does not carry, and below version 3 nothing published establishes that such
-a form is wrong.
+The first is the version form, where reading and writing take different rules and only one of them
+is the kit's to choose. On read the kit accepts both the array and the SemVer string, with
+`format_version` 3 the single exception that narrows to the string
+[[r:kit-completes-partial-source-manifests]] — the shape of the reference itself, which types every
+version as either form and pins only version 3
+[[f:manifest-declares-pack-identity-version-and-module-kinds]]. So `version-form-unsupported` has
+exactly one trigger, an array version in a manifest declaring format version 3, and placeholder
+recognition falls out of the same rule: every placeholder spelling is legal except an array-shaped
+one at 3. That check needs no other pack, so it runs with the parse, and `header-version-specified`
+fires only on a written version that is not one of the placeholders.
+
+On write, completion has to settle on one form, and the format version decides: the string at 3 and
+the array elsewhere, a manifest declaring no format version or one the kit does not recognise
+included [[d:completion-version-form-follows-format-version]].
 
 The second is which entries completion touches. Every dependency a pack has is written in that
 pack's own manifest, so the entry itself is the discriminator
@@ -198,7 +192,7 @@ the author actually wrote, which is what a developer needs to fix it.
 What completion writes is the target's package version in the *depending* manifest's form, and the
 two manifests need not declare the same format version [[d:completion-version-form-follows-format-version]].
 A target at format version 3 carries `1.2.0-beta.1` into its own header without trouble, while a
-dependent below 3 cannot express it in the array at all — so that failure is the dependent's own and
+dependent that declares anything else cannot express it in the array at all — so that failure is the dependent's own and
 no other pack ever reports it. It is a distinct code from the one a pack raises against its own
 owning-package version, and the component that writes the entry is the one that raises it.
 
@@ -240,7 +234,7 @@ and what each carries beside its message, is the interface consumers build again
 | `header-uuid-duplicated` | another pack in the workspace claims this pack's header uuid | the uuid, and the source directory of every pack claiming it |
 | `header-name-specified` | the source manifest specifies a header name | — |
 | `header-version-specified` | the source manifest specifies a header version that is not a placeholder | — |
-| `version-form-unsupported` | a version is written in a form the manifest's format version does not carry | where it was written — the header, or a dependency entry's index |
+| `version-form-unsupported` | a version is written as an array in a manifest declaring `format_version` 3 | where it was written — the header, or a dependency entry's index |
 | `module-type-missing` | a module declares no type | the module's index |
 | `kind-uncorroborated` | no module corroborates the kind the pack's directory declares | — |
 | `kind-contradicted` | a module of the other kind is present | the offending module's index |
@@ -370,7 +364,7 @@ components:
     excludes: reading manifest content, and any filesystem probe of the built-output location
     after: [workspace-packages, problem-model]
   - id: manifest-document
-    responsibility: parse a candidate's manifest into the open typed document, reject a document whose known subset is not the shape the format documents, and apply every check needing only that pack — header uuid presence and form, kind corroboration, version form, placeholder recognition, and each dependency entry carrying exactly one identifier
+    responsibility: parse a candidate's manifest into the open typed document, reject a document whose known subset is not the shape the format documents, and apply every check needing only that pack — header uuid presence and form, kind corroboration, an array version where the format version requires the string, placeholder recognition, and each dependency entry carrying exactly one identifier
     excludes: any check that needs another pack's data, including whether a dependency uuid names a pack in the workspace
     after: [pack-candidates]
   - id: pack-identity-index
