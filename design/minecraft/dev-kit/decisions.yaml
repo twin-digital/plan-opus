@@ -48,12 +48,14 @@
 
 - id: problems-carry-a-closed-set-of-codes
   statement: |
-    every problem record carries a code from a closed set, alongside the owning package, the
-    pack's kind and source directory, and a human-readable message
+    a problem record is a union discriminated by a code from a closed set, each code typing the
+    referent it needs, over common fields for the owning package, the pack's kind and source
+    directory, and a human-readable message
   status: proposed
   falsifiers:
     - a consumer branches on message text because the codes are too coarse to act on
     - no consumer reads the code, every one of them treating a problem as an opaque message
+    - consumers routinely widen the union back to one shape to render or store a list, so typing the referent per code costs more than it gives
 
 - id: completion-version-form-follows-format-version
   statement: |
@@ -115,7 +117,7 @@
     carrying a problem and re-walking dependency edges until a pass demotes nothing
   status: proposed
   falsifiers:
-    - a dependency cycle among packs makes the iteration non-terminating or its outcome order-dependent
+    - a rule arrives that can restore a candidate as well as demote one — a repair pass, or a pack that becomes resolvable once a sibling is demoted — so demotion is no longer monotone and the iteration has no fixed point to reach
     - a consumer needs the packs that are individually sound even where a transitive dependency failed, so blanket demotion withholds usable data
 
 - id: pack-record-paths-are-workspace-relative-directories
@@ -144,6 +146,34 @@
   falsifiers:
     - consumers routinely map the enum back to the directory name to build a path, so carrying the directory spelling would serve them better
     - a third pack kind arrives whose directory name and enum value cannot be derived from one another
+
+- id: unidentified-candidates-make-outside-ness-indeterminate
+  statement: |
+    while any candidate has yielded no identity, a dependency uuid no candidate claims is
+    indeterminate rather than external: an entry carrying a version passes through and one carrying
+    none is reported as an unresolved target
+  status: proposed
+  falsifiers:
+    - a workspace holds a candidate under construction for long stretches, so every external entry in every pack loses its missing-version check until that one pack parses
+    - the indeterminate reading routinely points a developer at an unrelated broken pack when the real fault was an external entry that forgot its version
+
+- id: a-placeholder-version-is-no-version-everywhere
+  statement: |
+    a placeholder version is read as no version wherever the kit reads one, so it leaves an inside
+    dependency entry unspecified and leaves an external entry missing the version it must carry
+  status: proposed
+  falsifiers:
+    - a pack legitimately depends on version `[0, 0, 0]` of an outside pack, so the placeholder reading rejects a real dependency
+    - a placeholder version on an external entry turns out to be how an author says "any version" and the server accepts it
+
+- id: uuids-are-compared-and-reported-lowercased
+  statement: |
+    the kit lowercases every uuid it reads before matching one against another, and a pack record
+    carries the lowercased form
+  status: proposed
+  falsifiers:
+    - a consumer queries with a uuid taken from a manifest rather than from a record, and the case mismatch reads as "no such pack" instead of an error
+    - a uuid's case turns out to be significant somewhere the kit's output is consumed, so canonicalising changes which pack loads
 
 - id: the-pack-set-is-the-single-returned-value
   statement: |

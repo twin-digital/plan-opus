@@ -122,26 +122,50 @@ a form is wrong.
 
 The second is which entries completion touches. Every dependency a pack has is written in that
 pack's own manifest, so the entry itself is the discriminator
-[[r:kit-completes-partial-source-manifests]]: a `uuid` that a discovered pack claims as its header
-uuid names a dependency inside the workspace, and the kit supplies its version; a `uuid` no
-candidate claims, and an entry naming a built-in scripting module by `module_name`, are outside the
-workspace and the kit touches neither [[f:pack-dependency-entries-name-a-uuid-or-a-module-name-plus-a-version]].
-That test costs the whole set — a uuid is unknown only once every candidate has been read — which is
-why classification waits for the identity index rather than running with the parse. It also means a
-mistyped workspace uuid and a genuine outside pack are the same input to the kit, and both are read
-as external. The one case that is not ambiguous is an entry naming a workspace pack that also
-specifies a version: the kit reports it rather than reading the version as an intent to stay outside
-[[d:workspace-uuid-entry-may-not-carry-a-version]].
+[[r:kit-completes-partial-source-manifests]]. An entry carries exactly one identifier, and one
+carrying both a `uuid` and a `module_name` or carrying neither names nothing the kit can act on
+[[f:pack-dependency-entries-name-a-uuid-or-a-module-name-plus-a-version]]. A `uuid` that a
+discovered pack claims as its header uuid names a dependency inside the workspace, and the kit
+supplies its version; a `module_name`, and a `uuid` no candidate claims, are outside it and the kit
+touches neither. The match is made on the lowercased form of both sides, which is the form the pack
+record carries and the form the reference writes a uuid in
+[[d:uuids-are-compared-and-reported-lowercased]].
+
+That test cannot run until every candidate has been read, which is why classification waits for the
+identity index — and it is sound only over a set where every candidate yielded an identity. Where
+one did not, an unclaimed uuid may be that broken pack's, so outside-ness is indeterminate: an entry
+carrying a version passes through, and one carrying none is reported as an unresolved target rather
+than as an external entry missing its version
+[[d:unidentified-candidates-make-outside-ness-indeterminate]] — the diagnosis that points at the
+pack whose repair would settle the question, rather than telling the author of a correct manifest
+that their sibling is a stranger. Where every candidate is identified, the kit still cannot tell a
+mistyped workspace uuid from a genuine outside pack, and reads both as external. The one case that
+is never ambiguous is an entry naming a workspace pack that also specifies a version: the kit
+reports it rather than reading the version as an intent to stay outside
+[[d:workspace-uuid-entry-may-not-carry-a-version]]. A placeholder is not a version anywhere the kit
+reads one, so a single recognition serves both sides to opposite ends
+[[d:a-placeholder-version-is-no-version-everywhere]] — on an inside entry it leaves the version
+unspecified, which is the form the requirement demands, and on an external entry it is the missing
+version the kit has already refused to supply.
 
 The third is ordering. The uuid in an entry is the author's, but the version is the depended-on
 pack's owning package's, so completing an entry needs a pack other than the one being completed and
 cannot run during its parse. The kit reads and per-pack-checks every candidate, indexes identity
 across the whole set, completes each candidate against that index, and closes the set last (below).
-Completion is keyed on the target being in the index, not on the target having survived: an entry
-whose target bears a pack and then fails is still given its version, and the depending pack is
-demoted with it rather than shipping an entry with a hole in it. That also keeps one failure from
-being reported twice — a target whose own package version the required form cannot express fails on
-its own header first, so its dependents meet it as an unresolved target and nothing else.
+Completion is keyed on the target sitting unambiguously in the index, not on the target having
+survived: an entry whose target bears a pack and then fails is still given its version, and the
+depending pack is demoted with it rather than shipping an entry with a hole in it. Two candidates
+claiming one uuid is the exception, because their package versions can differ and nothing but
+arrival order would choose — the same reason the sharers themselves fail
+[[d:duplicate-header-uuid-invalidates-every-sharer]] — so the entry is left uncompleted and its
+dependent is reported against an unresolved target, which is where closure would put it regardless.
+
+What completion writes is the target's package version in the *depending* manifest's form, and the
+two manifests need not declare the same format version [[d:completion-version-form-follows-format-version]].
+A target at format version 3 carries `1.2.0-beta.1` into its own header without trouble, while a
+dependent below 3 cannot express it in the array at all — so that failure is the dependent's own and
+no other pack ever reports it. It is a distinct code from the one a pack raises against its own
+owning-package version, and the component that writes the entry is the one that raises it.
 
 ## Resolving the set and reporting problems
 
@@ -152,7 +176,7 @@ dependencies to an ordering nobody chose. Every sharer fails together, each nami
 the developer can see the pair [[d:duplicate-header-uuid-invalidates-every-sharer]]. The index of
 every candidate's uuid that this needs is also what sorts dependency entries into inside and outside
 the workspace, which no single pack's data can answer: an entry is external precisely when no
-candidate claims its uuid.
+candidate claims its uuid, and only where every candidate claimed one.
 
 Which candidates ship as packs is then one pass's answer, and it runs after completion rather than
 before it, because a candidate can fail at any stage: an unreadable manifest, a shared uuid, a
@@ -166,24 +190,33 @@ a pack never ships a dependency entry pointing outside the resolved set.
 
 A problem is a record a consumer can act on, not a rendered sentence
 [[d:problems-carry-a-closed-set-of-codes]]. Its code is what a CLI groups by, what a test asserts
-on, and what tells the dev server whether a pack is worth retrying after a rebuild. The closed set,
-and the condition each code covers, is the interface consumers build against:
+on, and what tells the dev server whether a pack is worth retrying after a rebuild. Most codes need
+one more thing to be actionable — which of a pack's dependency entries failed, which module, which
+other pack — and that referent is typed per code rather than rendered into the message or swept into
+a shared bag of details, so the pack the message is about and the entry it is about are read the
+same way. The closed set, the condition each code covers, and what each carries beyond the common
+fields, is the interface consumers build against:
 
-| code | raised when |
-|---|---|
-| `manifest-unreadable` | the source manifest cannot be read, or is not valid JSON |
-| `header-uuid-missing` | the header carries no uuid, or one that is not a uuid |
-| `header-uuid-duplicated` | another discovered pack carries the same header uuid |
-| `header-name-specified` | the source manifest specifies a header name |
-| `header-version-specified` | the source manifest specifies a header version that is not a placeholder |
-| `version-form-unsupported` | a version is written in a form the manifest's format version does not carry |
-| `module-type-missing` | a module declares no type |
-| `kind-uncorroborated` | no module corroborates the kind the pack's directory declares |
-| `kind-contradicted` | a module of the other kind is present |
-| `package-version-unusable` | the owning package's version is missing, unparseable, or inexpressible in the required form |
-| `dependency-version-specified` | a dependency entry naming a pack in the workspace also specifies a version |
-| `dependency-version-missing` | an external dependency entry — a built-in module, or a uuid no pack in the workspace claims — carries no version |
-| `dependency-target-unresolved` | a dependency entry names a pack in the workspace that did not survive as a resolved pack |
+| code | raised when | carries |
+|---|---|---|
+| `manifest-unreadable` | the source manifest cannot be read, or is not valid JSON | — |
+| `header-uuid-missing` | the header carries no uuid, or one that is not a uuid | — |
+| `header-uuid-duplicated` | another discovered pack carries the same header uuid | the source directories of the other sharers |
+| `header-name-specified` | the source manifest specifies a header name | — |
+| `header-version-specified` | the source manifest specifies a header version that is not a placeholder | — |
+| `version-form-unsupported` | a version is written in a form the manifest's format version does not carry | where it was written — the header, or a dependency entry's index |
+| `module-type-missing` | a module declares no type | the module's index |
+| `kind-uncorroborated` | no module corroborates the kind the pack's directory declares | — |
+| `kind-contradicted` | a module of the other kind is present | the offending module's index |
+| `package-version-unusable` | the owning package's version is missing, unparseable, or inexpressible in the required form | the version as `package.json` carries it |
+| `dependency-entry-malformed` | a dependency entry carries both a `uuid` and a `module_name`, or neither | the entry's index |
+| `dependency-version-specified` | a dependency entry naming a pack in the workspace also specifies a version | the entry |
+| `dependency-version-missing` | an external dependency entry — a built-in module, or a uuid no pack in the workspace claims — carries no version, a placeholder counting as none | the entry |
+| `dependency-version-unrepresentable` | a dependency target's package version cannot be expressed in the depending manifest's version form | the entry, and the version that could not be expressed |
+| `dependency-target-unresolved` | a dependency entry names a pack in the workspace that did not survive as a resolved pack, or one the index cannot resolve to a single candidate | the entry |
+
+"The entry" is its index in the `dependencies` array together with the `uuid` or `module_name` it
+carries, since a pack may hold several and an index alone reads as nothing at the console.
 
 One candidate can trip several of these at once — a v2 manifest carrying `"1.2.3"` is both
 `header-version-specified` and `version-form-unsupported` — and each trip is its own record: there
@@ -230,7 +263,7 @@ a consumer receiving data instead of text still has to know the shape of the dat
 
 | field | form |
 |---|---|
-| `uuid` | the header uuid, lowercase, as written in the manifest |
+| `uuid` | the header uuid, lowercased [[d:uuids-are-compared-and-reported-lowercased]] |
 | `name` | the completed `header.name` string |
 | `version` | the pack version as a SemVer string [[d:pack-record-version-is-a-semver-string]] |
 | `kind` | `behavior` or `resource` [[d:pack-kind-is-spelled-behavior-or-resource]] |
@@ -246,14 +279,17 @@ are choices a consumer cannot re-derive and would otherwise have to probe for. T
 the manifest's own form varies with its format version, so a set can hold both an array and a
 string, and a record field that inherited that variance could not be compared across two packs. The
 kind is the other: the enum is not the directory name it was read from, so a consumer building a
-path composes it from `outputDir` rather than interpolating the enum.
+path composes it from `outputDir` rather than interpolating the enum. The uuid is canonicalised
+rather than passed through for a related reason: a query matches exactly [[r:pack-search]], so a
+uuid a caller read off one record has to be the same string as the one indexing it, whatever case
+the manifest that carried it used.
 
 ## Components
 
 ```yaml
 components:
   - id: problem-model
-    responsibility: the problem record type, its closed code set, and the constructors other components raise through
+    responsibility: the problem record union — its closed code set, the common fields, the referent each code carries, and the constructors other components raise through
     excludes: deciding which conditions are problems
   - id: workspace-packages
     responsibility: resolve a workspace root into its member packages — the root package among them, added where the manager's library omits it — each with name, directory, and parsed package.json
@@ -263,15 +299,15 @@ components:
     excludes: reading manifest content, and any filesystem probe of the built-output location
     after: [workspace-packages, problem-model]
   - id: manifest-document
-    responsibility: parse a candidate's manifest into the open typed document and apply every check needing only that pack — uuid presence, kind corroboration, version form, placeholder recognition, and the version a `module_name` dependency entry must carry
+    responsibility: parse a candidate's manifest into the open typed document and apply every check needing only that pack — uuid presence, kind corroboration, version form, placeholder recognition, and each dependency entry carrying exactly one identifier
     excludes: any check that needs another pack's data, including whether a dependency uuid names a pack in the workspace
     after: [pack-candidates]
   - id: pack-identity-index
-    responsibility: index candidate identities across the set, flagging a uuid two candidates share, and classify each dependency entry's uuid as inside or outside the workspace, flagging an inside entry that specifies a version and an outside one that carries none
+    responsibility: index candidate identities across the set on their lowercased uuids, flagging a uuid more than one candidate claims and recording whether every candidate yielded one, then class each dependency entry as inside, outside, or indeterminate and flag an inside entry specifying a version and an outside one carrying none
     excludes: deciding which candidates survive as packs
     after: [manifest-document]
   - id: manifest-completion
-    responsibility: per candidate, fill the header name and version and the version of each dependency entry the index classed as inside the workspace, read from that target's owning package
+    responsibility: per candidate, fill the header name and version and the version of each dependency entry the index classed as inside and resolved to one candidate, rendered in the depending manifest's form and raising against the depending pack where that form cannot express it
     excludes: deciding which candidates survive as packs
     after: [pack-identity-index]
   - id: pack-set-closure
