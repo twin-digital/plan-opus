@@ -25,17 +25,16 @@
 - id: dev-kit-pack-set-entry-names-package-kind-source-and-identity
   claim: |
     Every pack the kit reports carries its owning package, its kind, its source location, and the
-    full content of its manifest. It does so from a clean checkout with no build having
-    run. Identity, version and kind come from the pack's own manifest. The harness can therefore
-    route a pack to a pool and write its activation entry from the pack set alone, without reading
-    a manifest or reading a directory name as a declaration of kind.
+    full content of its manifest, including the fields completion populates. It does so from a
+    clean checkout with no build having run. The harness can therefore route a pack to a pool and 
+    write its activation entry from the pack set alone, without reading a manifest or a directory itself.
   backing: documented
   sources:
     - url: design/minecraft/dev-kit/requirements.yaml
       where: packs-enumerable-without-a-build
       quote: |
-        the kit must be able to discover workspace packs from a clean checkout, with no build having run
-        and no server running.
+        the kit must be able to discover workspace packs from a clean checkout, with no build having run,
+        no install having run, and no server running.
     - url: design/minecraft/dev-kit/requirements.yaml
       where: pack-record-details
       quote: |
@@ -45,20 +44,16 @@
           - its kind (behavior pack or resource pack)
           - its source location
           - its build output location (even if that location is not present because the pack is unbuilt),
-          - the full content of its manifest in object form
-    - url: design/minecraft/dev-kit/requirements.yaml
-      where: pack-identity-and-kind-declared-only-by-the-manifest
-      quote: |
-        a pack's identity, and kind come from its own `manifest.json`.
+          - the full content of its manifest in object form (including content auto-populated as
+            described by `r:kit-completes-partial-source-manifests`)
 
 - id: dev-kit-rejects-a-pack-set-with-an-unresolved-identity
   claim: |
     A pack set that reaches the harness holds no pack with a missing or duplicated identity: the
-    kit reports an unresolvable pack as a named error identifying the package and the path
-    examined, rather than omitting it from a smaller result or deferring it to the server, and it
-    reports problems as a structured result rather than as prose. Header uuids are therefore
-    unique within the set the harness deploys, which is what the world's activation lists key on,
-    and the harness has no duplicate-identity case of its own to detect.
+    kit reports an unresolvable pack in a separate list of structured errors, rather than omitting
+    it from a smaller result or deferring it to the server. Header uuids are therefore unique
+    within the set the harness deploys, which is what the world's activation lists key on, and the
+    harness has no duplicate-identity case of its own to detect.
   backing: documented
   sources:
     - url: design/minecraft/dev-kit/requirements.yaml
@@ -66,13 +61,13 @@
       quote: |
         a pack the kit cannot resolve — a manifest that cannot be parsed, a missing or duplicated
         identity, a manifest dependency on another pack that the set does not satisfy, invalid or
-        missing manifest completion data — is reported as a named error identifying the package and
-        the path examined, not omitted from a silently smaller result and not deferred to the server.
+        missing manifest completion data — is reported via the error list defined by `r:pack-discovery`.
     - url: design/minecraft/dev-kit/requirements.yaml
-      where: structured-validation
+      where: pack-discovery
       quote: |
-        Validation reports a structured result naming every problem it found, consumable without a
-        human reading it.
+        Details for valid, discovered packs are returned as a flat list of pack records. A separate list
+        is provided containing structured errors for packs that were discovered, but whose content was
+        invalid.
 
 - id: compose-watch-actions-and-versions
   claim: |

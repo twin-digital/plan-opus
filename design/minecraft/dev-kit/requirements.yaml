@@ -3,7 +3,7 @@
 - id: dev-kit-provides-a-library
   statement: |
     the kit provides a typed library: a consumer imports it and receives the pack set as data,
-    not as text it must parse. 
+    not as text it must parse.
 
 - id: dev-kit-library-name
   statement: |
@@ -14,27 +14,28 @@
 - id: pack-discovery
   statement: |
     the kit provides a way to discover Minecraft behavior packs and resource packs in a workspace.
-    Detailes for discovered packs are returned as a flat list of pack records.
-    
+    Details for valid, discovered packs are returned as a flat list of pack records. A separate list
+    is provided containing structured errors for packs that were discovered, but whose content was
+    invalid. The error list is only included if it is not empty.
+
 - id: packs-enumerable-without-a-build
   statement: |
-    the kit must be able to discover workspace packs from a clean checkout, with no build having run 
-    and no server running.
+    the kit must be able to discover workspace packs from a clean checkout, with no build having run,
+    no install having run, and no server running.
 
 - id: membership-from-source-manifest-presence
   statement: |
     a workspace package is a pack-bearing package when its source holds `behavior_pack/manifest.json`
     or `resource_pack/manifest.json`; presence of those source manifests is the whole membership
     test. Both kinds are discovered. No marker field, keyword, or central list is required, and
-    adding, removing, or renaming a pack needs no edit anywhere but the package itself. Note that 
+    adding, removing, or renaming a pack needs no edit anywhere but the package itself. Note that
     this makes it structurally impossible for a workspace package to hold more than one behavior pack
     or more than one resource pack. A package holding two packs of the same kind is out of scope.
 
 - id: packages-come-from-the-workspace-definition
   statement: |
     candidate packages are enumerated from the workspace's package-manager workspace definition,
-    not from walking the directory tree. Both `npm` and `pnpm` workspace definitions must be
-    supported.
+    not from walking the directory tree. Both `npm` and `pnpm` workspaces must be supported.
 
 # Pack Query
 
@@ -53,52 +54,63 @@
 - id: pack-record-details
   statement: |
     for every pack discovered, the kit provides the following details:
-    
+
       - its owning package
       - its kind (behavior pack or resource pack)
       - its source location
       - its build output location (even if that location is not present because the pack is unbuilt),
       - the full content of its manifest in object form (including content auto-populated as
         described by `r:kit-completes-partial-source-manifests`)
-    
-- id: pack-identity-and-kind-declared-only-by-the-manifest
+
+- id: pack-kind-from-the-directory
   statement: |
-    a pack's identity, and kind come from its own `manifest.json`. Where a convention
-    encodes kind — the `behavior_pack/` and `resource_pack/` directories membership is read from —
-    the manifest stays authoritative and a disagreement between the two is a reported error, never
-    a silent preference for one side.
+    a pack's kind comes from the directory membership is read from, `behavior_pack/` or
+    `resource_pack/`, and the manifest must corroborate it. A disagreement between the two is a
+    reported error, never a silent preference for one side, so a pack carries one kind and no consumer
+    reconciles two.
 
 - id: built-output-defaults-to-dist
   statement: |
-    a pack's built output is found at `dist/` within its package unless the package specifies an
-    alternate location.
+    a pack's built output is found at `dist/` within its package.
 
 - id: built-output-mirrors-the-source-layout
   statement: |
     a package's output root always holds one kind-named subdirectory per pack — `behavior_pack`,
     `resource_pack` — mirroring the source layout. A single-pack package still nests.
 
+- id: manifest-format-version-passes-through
+  statement: |
+    a source `manifest.json` is accepted whatever manifest format version it declares, and the
+    completed manifest the kit reports stays in that version. The kit does not normalise between
+    versions.
+
 - id: kit-completes-partial-source-manifests
   statement: |
     a pack's source `manifest.json` is partial by design:
-    
-      - it MUST NOT have a `header.name` field
-      - it MUST NOT have a `header.version` field
+
+      - it MUST NOT specify a `header.name` field; a specified field is an error
+      - it MUST NOT specify a `header.version` field; a specified field is an error
       - it MAY omit the version for workspace-local `dependencies` entries
 
-    In both cases, a 'version' field is left unspecified either by omitting it, or supplying
-    an empty array.
+    In both cases, a `version` is left unspecified by omitting it, or by supplying a placeholder:
+    an empty array, an empty string, `[0, 0, 0]`, or `"0.0.0"`. A placeholder is unspecified, not
+    specified, so it is not the error the bullets above describe.
+
+    Which placeholder forms are legal follows the manifest format version in play — the array forms
+    where that version carries arrays, the string forms where it carries strings. A source manifest
+    carrying a version in a form its own `format_version` does not support is an error.
 
     Whenever this component provides manifest details for a pack, it populates missing fields
     as follows:
 
       - `header.name` is set to the owning package's `package.json` `productName` when present,
-        and otherwise set to the package name with its npm scope strpped (`@scope/mc-pack-1` 
+        and otherwise set to the package name with its npm scope strpped (`@scope/mc-pack-1`
         becomes `mc-pack-1`)
-      - `header.version` is set to the owning package's `package.json` version field. The major,
-        minor, and patch versions are parsed to populate the manifest's array-based format. If
-        the version is not a three-segment dotted semver (e.g. has pre-release information, etc.),
-        it is considered a problem
+      - `header.version` is set to the owning package's `package.json` version field, written in the
+        form the manifest's declared `format_version` requires — the `[major, minor, revision]` array
+        for v2 manifests, and the SemVer string for v3 manifests. What the source used is not
+        consulted; the format version decides. A version that form cannot express, such as a
+        pre-release where the form is the array, is a problem
       - any dependency with a missing `version` is assumed to reference a pack within the same
         workspace. The `version` field of that package's package.json will be used as the dependency
         version, using the same parsing and error reporting rules described for `header.version`. If
@@ -107,21 +119,27 @@
 
 # Validation
 
-- id: kind-derived-from-module-types
+- id: manifest-corroborates-the-directory-kind
   statement: |
-    a pack's kind is derived from the `type` values across its manifest's modules — `data` and
-    `script` to behavior, `resources` to resource. A module type outside those three, or module
-    types that map to more than one kind, is a problem.
+    every module in a pack's manifest must declare a `type`, and the manifest must carry a module
+    corroborating the kind its directory declares — `data` or `script` for a behavior pack,
+    `resources` for a resource pack — and must carry no module of the other kind. A module with no
+    `type`, a manifest carrying no corroborating module, and a manifest carrying modules of both
+    kinds are each a problem. Any further module type is ignored: the kit validates no enumeration of
+    module types and treats an unrecognised one as neither corroborating nor a problem.
+  rationale: |
+    The set of module types is not enumerable, as `f:module-type-enumerations-disagree` records, so
+    validating against any list would report a problem against packs the format allows. Corroboration
+    therefore tests only the types that carry the kind: `resources`, and the `data` and `script` that
+    both sit in a behavior pack. Everything else is either a companion module riding inside a pack,
+    or a different artifact the fixed-path membership test never reaches.
 
-- id: structured-validation
-  statement: |
-    Validation reports a structured result naming every problem it found, consumable without a
-    human reading it.
-    
 - id: unresolvable-packs-fail-loudly
   statement: |
     a pack the kit cannot resolve — a manifest that cannot be parsed, a missing or duplicated
     identity, a manifest dependency on another pack that the set does not satisfy, invalid or
-    missing manifest completion data — is reported as a named error identifying the package and 
-    the path examined, not omitted from a silently smaller result and not deferred to the server. 
-    A dependency naming a built-in scripting module is not a missing pack.
+    missing manifest completion data — is reported via the error list defined by `r:pack-discovery`.
+    A dependency naming a built-in scripting module is not a missing pack. Such invalid packs are 
+    never omitted silently: all discovered packs must be returned as fully resolved pack data, or 
+    as a structured error.
+

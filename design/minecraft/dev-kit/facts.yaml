@@ -7,6 +7,13 @@
     into one `development_behavior_packs/<PROJECT_NAME>` directory. What no surveyed tool can
     express is two packs of the *same* kind in one project.
   backing: documented
+  caveat: |
+    The operative half of the claim — at most one pack of a *given* kind — is carried by the
+    project-config-standard `packs` map and Regolith's `Packs` struct, each holding one path per
+    pack type. The other two legs are weaker than they look: the bridge. quote counts pack *types*
+    ("up to four different pack types"), not packs per type, and no quote here states that bridge.
+    shares the Bedrock-OSS standard; the `core-build-tasks` merge argument needs
+    `copyToBehaviorPacks` to be a list of folders, which the quoted call site does not show.
   sources:
     - url: https://github.com/Bedrock-OSS/project-config-standard
       where: README — the `packs` field of the config interface
@@ -48,14 +55,101 @@
                 copyFiles(params.copyToBehaviorPacks, path.join(deploymentPath, BehaviorPacksPath, projectName));
                 copyFiles(params.copyToScripts, path.join(deploymentPath, BehaviorPacksPath, projectName, 'scripts'));
 
+- id: pnpm-workspace-packages-is-an-include-exclude-glob-list
+  claim: |
+    A `pnpm-workspace.yaml` defines the root of a workspace, and its `packages` field is the list of
+    directory patterns the workspace includes or excludes: a direct subdirectory path, a `*` or `**`
+    glob, or a pattern prefixed with `!` to drop directories an earlier pattern matched. Omitting the
+    field leaves only the root package, and the root package is a member whatever the patterns say.
+  backing: documented
+  sources:
+    - url: https://pnpm.io/pnpm-workspace_yaml
+      where: pnpm-workspace.yaml — opening paragraph, before the example
+      quote: |
+        pnpm-workspace.yaml defines the root of the workspace and enables you to include / exclude
+        directories from the workspace. If the packages field is omitted, only the root package is
+        included in the workspace.
+    - url: https://pnpm.io/pnpm-workspace_yaml
+      where: pnpm-workspace.yaml — the packages example
+      quote: |
+        packages:
+          # specify a package in a direct subdir of the root
+          - 'my-app'
+          # all packages in direct subdirs of packages/
+          - 'packages/*'
+          # all packages in subdirs of components/
+          - 'components/**'
+          # exclude packages that are inside test directories
+          - '!**/test/**'
+    - url: https://pnpm.io/pnpm-workspace_yaml
+      where: pnpm-workspace.yaml — the note following the packages example
+      quote: |
+        The root package is always included, even when custom location wildcards are used.
+
+- id: npm-workspaces-is-an-array-of-paths-or-globs
+  claim: |
+    A root `package.json`'s `workspaces` field is an array of file patterns naming the folders that
+    are the workspace's members; each entry is either a direct path to a folder or a glob that
+    resolves to such folders. A folder a pattern matches is treated as a workspace only where it
+    holds a valid `package.json`, so matching a pattern is not by itself membership.
+  backing: documented
+  sources:
+    - url: https://docs.npmjs.com/cli/v10/configuring-npm/package-json
+      where: workspaces — the field's definition
+      quote: |
+        The optional workspaces field is an array of file patterns that describes locations within
+        the local file system that the install client should look up to find each workspace that
+        needs to be symlinked to the top level node_modules folder.
+    - url: https://docs.npmjs.com/cli/v10/configuring-npm/package-json
+      where: workspaces — the sentence following the definition
+      quote: |
+        It can describe either the direct paths of the folders to be used as workspaces or it can
+        define globs that will resolve to these same folders.
+    - url: https://docs.npmjs.com/cli/v10/configuring-npm/package-json
+      where: workspaces — the sentence introducing the glob example
+      quote: |
+        In the following example, all folders located inside the folder ./packages will be treated
+        as workspaces as long as they have valid package.json files inside them:
+
+- id: module-type-enumerations-disagree
+  claim: |
+    The set of module `type` values a manifest may declare is not enumerable from the format's own
+    documentation. Microsoft's add-on manifest reference lists four — `resources`, `data`,
+    `world_template`, `script`. Its Creator Tools manifest validator raises an error on an
+    unrecognised type but names six, and says its list "include"s them rather than that they are the
+    set. And the reference page's own example behavior-pack manifest declares a `client_data` module
+    that appears in neither list. A kit validating a module type against any published enumeration
+    would report a problem against Microsoft's own reference pack.
+  backing: documented
+  sources:
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
+      where: modules — type
+      quote: |
+        This is the type of the module. Can be any of the following: `resources`, `data`,
+        `world_template` or `script`.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/mctoolsvalreference/chkmanif
+      where: CHKMANIF109 — Invalid Module, severity Error
+      quote: |
+        A module has an unrecognized type. Valid module types include: persona\_piece,
+        world\_template, skin\_pack, data, script, and resources.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
+      where: Examples — Behavior Pack, the second entry of its modules array
+      quote: |
+        {
+                    "description": "Example client scripts module",
+                    "type": "client_data",
+                    "uuid": "c05a992e-482a-455f-898c-58bbb4975e47",
+                    "version": [1, 0, 0]
+                }
+
 - id: manifest-declares-pack-identity-version-and-module-kinds
   claim: |
     A Bedrock add-on pack is defined by its own `manifest.json`: the header's `uuid` uniquely
     identifies the pack and the header's `version` is the pack version, while the `modules`
     array's `type` states what kind of pack it is — `data` for behavior content, `script` for
     scripting code, which is embedded within behavior packs, and `resources` for a resource
-    pack. A pack's own content therefore states both that it is a pack and which kind, with no
-    reference to how it is stored or built.
+    pack. A pack's own content therefore carries what kind of content it holds, without reference
+    to how it is stored or built.
   backing: documented
   sources:
     - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/manifestreference/packmanifestdocument
@@ -278,6 +372,13 @@
     a built-in scripting module by `module_name`, so not every dependency entry resolves to a pack
     in the workspace and validation cannot assume the set is closed.
   backing: documented
+  caveat: |
+    The quoted rows list `uuid`, `module_name`, and `version` side by side; that a `module_name`
+    entry stands *instead of* a uuid is not stated by any of them. The page's behavior-pack example
+    does show such an entry, but it is not among the sources here. The version row says the version
+    "Should match" the depended-on pack's, not that an exact match is required, and its Type cell —
+    quoted in the sibling header fact as `Vector [a, b, c] or SemVer String` — is omitted here, so
+    nothing quoted pins a dependency version to the array form.
   sources:
     - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
       where: Properties table — dependencies row
