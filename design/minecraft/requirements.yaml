@@ -1,0 +1,16 @@
+# Requirements scoped to the minecraft area — those more than one design in the area depends on.
+# Both are accepted owner fiat, elevated from minecraft/dev-kit when minecraft/pack-build came to
+# share them: pack-build produces the output layout, and dev-kit predicts it in every pack
+# record. Ids are unchanged by the move, so citations resolve as before.
+#
+# rationale is omitted unless the statement's intent is genuinely non-obvious.
+
+- id: one-pack-of-each-kind-per-package
+  statement: |
+    a workspace package holds at most one behavior pack and at most one resource pack. A package
+    holding two packs of the same kind is out of scope.
+
+- id: built-output-defaults-to-dist
+  statement: |
+    a pack's built output is found at `dist/` within its package unless the package specifies an
+    alternate location.
