@@ -82,13 +82,13 @@
 # (regenerable), and falling back to spec.md only where no requirement pins the claim.
 
 - id: summary-carries-no-citation
-  claim: the Summary section of a spec.md carries no citation token
+  claim: all citations live in the specification and explicitly NOT the Summary
   backing: documented
   sources:
     - url: design/how-to-plan/doc-structure/spec.md
-      where: The document (sections table)
+      where: The spec.md document
       quote: |
-        `## Summary` | a paragraph or two, no citations
+        A `spec.md` opens with a Summary and then the specification — its remaining prose sections, where every citation lives.
 
 - id: foundations-extracted-into-lists
   claim: a design's facts, requirements, and decisions live as entries in their own list files, not in the spec.md prose
@@ -143,8 +143,3 @@
       where: decisions-require-a-falsifier
       quote: |
         a decision must list at least one falsifier
-    - url: design/how-to-plan/doc-structure/spec.md
-      where: Entry shapes (Decisions)
-      quote: |
-        Whether a written falsifier is a
-        real one is a question of content, and belongs to authoring.

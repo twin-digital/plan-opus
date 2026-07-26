@@ -89,10 +89,11 @@ evidenced fact that supersedes it, not cited as-is or merely flagged
 buried in prose — a discovery the design comes to stand on is recorded as a fact meeting the
 evidence bar, where it can be checked and reused, while a passing observation is not
 [[r:foundational-discoveries-are-recorded-as-facts]]. Third: a reliance on another design's output
-appears as a fact in this design's own or a shared scope, sourced to the upstream `spec.md` by
-repo-relative url and verbatim quote [[f:in-repo-source-url-is-repo-relative]]
-[[f:fact-source-is-quote-or-mechanism]], never as a direct citation of that design's decisions or
-invariants [[r:cross-design-dependency-is-cited-as-a-fact]].
+appears as a fact in this design's own or a shared scope, sourced by repo-relative url and verbatim
+quote to the upstream's requirement — its `spec.md` only where no requirement pins the claim
+[[f:in-repo-source-url-is-repo-relative]] [[f:fact-source-is-quote-or-mechanism]] — never as a
+direct citation of that design's decisions or invariants
+[[r:cross-design-dependency-is-cited-as-a-fact]].
 
 ## Falsifiers that can fire
 

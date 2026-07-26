@@ -31,6 +31,17 @@ const literalHas = (file, id, key) => {
   return new RegExp(`^\\s+${key}:`, "m").test(entry);
 };
 
+// A quote must still be present at an in-repo source. Whitespace is normalised on both sides:
+// YAML block scalars re-indent and the source file wraps its own way, so only the words are
+// compared. An off-repo url cannot be read here and is not checked.
+const normalise = (s) => String(s).replace(/\s+/g, " ").trim();
+const quoteMissing = (url, quote) => {
+  if (!/^(design|prompts|docs|bin)\//.test(url)) return false; // off-repo
+  const file = url.split("#")[0];
+  if (!fs.existsSync(file)) return "source file not found";
+  return normalise(fs.readFileSync(file, "utf8")).includes(normalise(quote)) ? false : "quote not present";
+};
+
 // ---- load foundations across scopes -----------------------------------------
 // ent[id] = {kind:'f'|'r'|'d', tier, scope, e, file}
 const ent = {};
@@ -111,6 +122,10 @@ function checkSources(e, tag, backing, scope) { // rule 7
     if (hasUrl && !hasWhere) add("url without where", tag);
     if (hasUrl && /^(\.\.?\/)/.test(String(s.url))) add("in-repo url not repo-root-relative", `${tag}: ${s.url}`);
     if (s.quote !== undefined && !/\n/.test(String(s.quote))) add("quote not a block scalar", tag);
+    if (hasUrl && s.quote !== undefined) {
+      const why = quoteMissing(String(s.url), s.quote);
+      if (why) add("quote not verbatim at its source", `${tag}: ${s.url} — ${why}`);
+    }
     // an artifacts/ path is captured test output, so it backs only a tested fact
     if (hasUrl && backing !== "tested" && /(^|\/)artifacts\//.test(String(s.url))) add("artifact source on a non-tested fact", `${tag}: ${s.url}`);
     // and only artifacts at the fact's own scope or wider — another design's are promoted, not reached across for
@@ -203,6 +218,7 @@ const ORDER = [
   "decision without a falsifier", "requirement with sources", "rationale not a block scalar",
   "fact without a source", "source has both url and description", "source has no locator",
   "url without where", "in-repo url not repo-root-relative", "quote not a block scalar",
+  "quote not verbatim at its source",
   "artifact source on a non-tested fact", "artifact source outside the fact's scope",
   "default stated explicitly", "empty questions block", "empty components block",
   "component missing id", "component missing responsibility", "component after unresolved",
