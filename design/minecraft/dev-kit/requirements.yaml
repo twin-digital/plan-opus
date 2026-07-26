@@ -87,6 +87,8 @@
 
       - it MUST NOT specify a `header.name` field; a specified field is an error
       - it MUST NOT specify a `header.version` field; a specified field is an error
+      - it MUST NOT specify the version of a `dependencies` entry naming a pack within the same
+        workspace; a specified version is an error
 
     A `version` is left unspecified by omitting it, or by supplying a placeholder:
     an empty array, an empty string, `[0, 0, 0]`, or `"0.0.0"`. A placeholder is unspecified, not
@@ -107,17 +109,16 @@
         for v2 manifests, and the SemVer string for v3 manifests. What the source used is not
         consulted; the format version decides. A version that form cannot express, such as a
         pre-release where the form is the array, is a problem
-      - a `dependencies` entry is added for every prod dependency in the owning package's
-        `package.json` that resolves to a pack-bearing workspace package. The kit supplies that
-        pack's `header` uuid and its owning package's `package.json` version, using the same
-        parsing and error reporting rules described for `header.version`. A prod dependency
-        resolving to anything else — an external package, a built-in scripting module such as
-        `@minecraft/server` — is not a pack dependency and contributes nothing to the manifest.
+      - a `dependencies` entry whose `uuid` names a pack within the same workspace has its `version`
+        set to that pack's owning package's `package.json` version, using the same parsing and error
+        reporting rules described for `header.version`
 
-    A `dependencies` entry written in the source manifest is an external or built-in dependency:
-    the kit passes it through untouched and never completes it, so it MUST carry its own `version`.
-    A source-written entry naming a workspace pack is an error, since `package.json` is where a
-    workspace pack dependency is declared.
+    Every dependency a pack has is declared in its own source `manifest.json`. The owning package's
+    `package.json` `dependencies` are not consulted and contribute no manifest dependency entry.
+
+    A `dependencies` entry whose `uuid` names no pack in the workspace, and one naming a built-in
+    scripting module by `module_name`, are external: the kit passes each through untouched and never
+    completes it, so each MUST carry its own `version`.
 
 # Validation
 

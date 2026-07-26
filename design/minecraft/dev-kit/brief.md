@@ -8,7 +8,7 @@ Five capabilities cover the surface:
 
 - **Discover** — given a workspace root, find the pack-bearing packages and return one record per valid pack, with a structured error for every pack that was found but could not be resolved. Each discovered pack lands in exactly one of the two.
 - **Detail** — for each pack, its owning package, its kind, its source location, where its built output is expected whether or not it is there yet, and its manifest as an object.
-- **Complete** — a source manifest omits what the package already knows, and the kit fills those fields in on the manifest it reports: the header name and version from `package.json`, and a dependency entry for every prod dependency that resolves to a pack-bearing workspace package, which is how a dependency on a pack this workspace resolves is declared.
+- **Complete** — a source manifest omits what the package already knows, and the kit fills those fields in on the manifest it reports: the header name and version from `package.json`, and the version of any dependency naming a workspace pack by uuid, which is how a dependency on a pack this workspace resolves is declared.
 - **Search** — find packs by npm package name, pack name, or pack uuid, matched exactly.
 - **Validate** — the manifest parses; a header uuid is present and unique across the set; the manifest carries a module corroborating the kind its directory declares, and none of the other kind; in-workspace manifest dependencies resolve, exempting a dependency naming a built-in scripting module; the data completion needs is present and well formed.
 
