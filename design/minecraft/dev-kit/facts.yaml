@@ -7,6 +7,13 @@
     into one `development_behavior_packs/<PROJECT_NAME>` directory. What no surveyed tool can
     express is two packs of the *same* kind in one project.
   backing: documented
+  caveat: |
+    The operative half of the claim — at most one pack of a *given* kind — is carried by the
+    project-config-standard `packs` map and Regolith's `Packs` struct, each holding one path per
+    pack type. The other two legs are weaker than they look: the bridge. quote counts pack *types*
+    ("up to four different pack types"), not packs per type, and no quote here states that bridge.
+    shares the Bedrock-OSS standard; the `core-build-tasks` merge argument needs
+    `copyToBehaviorPacks` to be a list of folders, which the quoted call site does not show.
   sources:
     - url: https://github.com/Bedrock-OSS/project-config-standard
       where: README — the `packs` field of the config interface
@@ -278,6 +285,13 @@
     a built-in scripting module by `module_name`, so not every dependency entry resolves to a pack
     in the workspace and validation cannot assume the set is closed.
   backing: documented
+  caveat: |
+    The quoted rows list `uuid`, `module_name`, and `version` side by side; that a `module_name`
+    entry stands *instead of* a uuid is not stated by any of them. The page's behavior-pack example
+    does show such an entry, but it is not among the sources here. The version row says the version
+    "Should match" the depended-on pack's, not that an exact match is required, and its Type cell —
+    quoted in the sibling header fact as `Vector [a, b, c] or SemVer String` — is omitted here, so
+    nothing quoted pins a dependency version to the array form.
   sources:
     - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
       where: Properties table — dependencies row
