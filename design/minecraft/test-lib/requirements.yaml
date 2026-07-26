@@ -15,27 +15,22 @@
     on the pinned `@minecraft/server` version — the engine-run facts — including the quirks a
     naive double would smooth over: namespace-optional ids, methods whose return value encodes
     success or failure, non-uniform invalidation, and values that read back exactly as the engine
-    reports them. It does not substitute a convenient approximation. The spec and builder take the
-    specific behaviours (effect replacement, the invalidation guard list, the kill cascade, damage
-    causes, and the rest) from the facts rather than from a per-behaviour requirement.
+    reports them. It does not substitute a convenient approximation.
 
-    Fidelity reaches as far as the fake can reach. Four bounds put a behaviour out of reach, and a
-    departure is licensed only by naming which bound applies and citing the fact that establishes
-    it:
+    Fidelity is owed where a consumer depends on it, not everywhere. A quirk is modelled when a
+    pack under test relies on it, and the spec cites the fact establishing what the engine does;
+    until then the member holds state and behaves plainly. The library does not owe a reproduction
+    of every observed behaviour, and an unmodelled quirk is not a defect.
 
-    a. elapsed ticks — the behaviour is a function of time passing, which a fake with no clock
-       cannot represent;
-    b. undetermined by evidence — the observation does not pin the rule, whether because the engine
-       draws it per run or because the runs recorded do not establish it. Reproducing it would be
-       fabricating it, which fakes-never-fabricate forbids;
-    c. outside the data this library holds — the behaviour is per-type vanilla data or a
-       pack-supplied definition, which presets-are-opt-in places in a package built on this one;
-    d. documented opaque — the API documents the value as carrying no meaning to be parsed or
-       interpreted, so no consumer contract may depend on its form.
-
-    A behaviour the fake could reproduce is not exempt because reproducing it is inconvenient. A
-    departure fitting none of these bounds is a defect, not a new bound: the bounds are settled
-    here and adding one is an amendment to this requirement.
+    What the fake never does is present a simplification as the engine's behaviour. Where it
+    simplifies, the spec says so at that point, so a reader can tell a modelled behaviour from a
+    plain one and knows which assertions carry engine weight.
+  rationale: |
+    Binding every faked member to an evidenced engine observation made each new surface carry an
+    evidence campaign behind it, and put the library's cost under the control of the engine's
+    quirkiness rather than of what consumers actually test. Fidelity pays where a pack depends on
+    a quirk; elsewhere it buys nothing a plain implementation does not, and the sole consumer of
+    this library finds a disagreement in their own pack rather than in a stranger's.
 
 - id: synchronous-event-delivery
   statement: |
@@ -85,13 +80,17 @@
 
 - id: structural-full-shape-fakes
   statement: |
-    fake classes are complete structural implementations of the real declared types: a fake is
-    assignable where the real type is expected with no cast, and it declares the full public
-    shape of its class, so assignability never narrows. Members outside the built surface
-    present as not-implemented stubs — unfaked access throws rather than reading `undefined`.
+    a fake is assignable where the real declared type is expected, and every member it implements
+    either behaves or throws — an unfaked access never reads `undefined`. A fake need not declare
+    the full public shape of its class: a member outside the built surface may be absent, and a
+    consumer whose helper is typed against the declared class satisfies it at that seam.
   rationale: |
-    Possible only because the declared classes carry no private instance members and no brand
-    fields (server-classes-are-structurally-assignable).
+    Assignability is possible at all only because the declared classes carry no private instance
+    members and no brand fields (server-classes-are-structurally-assignable). Requiring the *full*
+    shape on top of that meant hand-writing a throwing body for every member of every faked class
+    — several hundred, maintained against a pinned version that is expected to bump — to buy a
+    compile error in this package for members no consumer calls. Where completeness is wanted
+    later it is a generated base class, not a hand-written one.
 
 - id: only-real-members-free-functions
   statement: |
@@ -135,9 +134,9 @@
 - id: zero-kinematics-at-spawn
   statement: |
     a spawned fake entity starts at zero rotation and zero velocity for every type, unless the
-    caller supplies otherwise. This is a documented departure from observed behaviour: the
-    engine spawns `minecraft:xp_orb` with a randomized y-rotation and a nonzero velocity drawn
-    per spawn, and the fake does not reproduce that draw.
+    caller supplies otherwise. The engine spawns `minecraft:xp_orb` with a randomized y-rotation
+    and a nonzero velocity drawn per spawn; the fake does not reproduce that draw, and the spec
+    says so where it spawns.
   rationale: |
     Zero is what seven of the eight probed types do (spawn-frame-kinematics-zero-except-xp-orb),
     and requiring every caller to supply two vectors to make a type-independent rule hold for one
@@ -176,3 +175,26 @@
     The engine reports the prefixed form, so reads compare equal against the
     `@minecraft/vanilla-data` constants a test typically holds — but its tolerance of bare ids
     is surface-dependent, not universal (namespace-prefix-is-optional).
+
+- id: persisted-state-is-modeled
+  statement: |
+    dynamic properties and scoreboard state are real state the fakes hold — readable and writable
+    on the world and on entities — and a test reads back what the code under test wrote. Neither
+    is a stub.
+  rationale: |
+    Measured, not assumed: dynamic properties are the largest single blocker across the three
+    packs probed in artifacts/testability-probe, stopping 17 of 30 candidate test units, and all
+    three keep their persisted state there. A string-keyed map needs no world geometry, no
+    per-type vanilla data, and no class this package does not ship, so none of the reasons the
+    other absences rest on apply to it.
+
+- id: output-is-capturable
+  statement: |
+    what a fake would send to a player or to the world — messages, titles, action bars — is
+    recorded and readable through the control plane rather than discarded.
+  rationale: |
+    A pack's output is what its tests assert on: SafeGuard alone has 145 sendMessage call sites
+    and, for most of its decisions, no other observable result
+    (artifacts/testability-probe/safeguard.md). Capturing output is not the recording machinery
+    fakes-behave-not-record forbids — that rule is about asserting on calls instead of on state,
+    and a message a pack emits is state it produced.
