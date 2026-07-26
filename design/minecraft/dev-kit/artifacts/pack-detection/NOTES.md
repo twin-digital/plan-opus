@@ -11,6 +11,3 @@ with a header uuid and a `data` or `script` module — not from any convention o
 scored. Rules are labelled `format` (restating that test, so agreement is definitional),
 `heuristic` (content-independent guesses, scored to show their divergence), and `external`
 (conventions of the surrounding repo, reported but excluded from the choice).
-
-`ADDENDUM.md` is the living record the decision refers to: the rules weighed, what each scored,
-and why the chosen one was chosen. Update it when the decision moves.
