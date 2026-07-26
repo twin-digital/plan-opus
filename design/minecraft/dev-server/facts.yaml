@@ -52,11 +52,11 @@
 
 - id: dev-kit-rejects-a-pack-set-with-an-unresolved-identity
   claim: |
-    A pack set that reaches the harness holds no pack with a missing or duplicated identity: the
-    kit reports an unresolvable pack in a separate list of structured errors, rather than omitting
-    it from a smaller result or deferring it to the server. Header uuids are therefore unique
-    within the set the harness deploys, which is what the world's activation lists key on, and the
-    harness has no duplicate-identity case of its own to detect.
+    No pack with a missing or duplicated identity is valid in the set that reaches the harness: the
+    kit marks an unresolvable pack invalid and carries its structured problems on that pack's own
+    entry, rather than omitting it from a smaller result or deferring it to the server. Header
+    uuids are therefore unique among the valid packs the harness deploys, which is what the world's
+    activation lists key on, and the harness has no duplicate-identity case of its own to detect.
   backing: documented
   sources:
     - url: design/minecraft/dev-kit/requirements.yaml
@@ -64,7 +64,8 @@
       quote: |
         a pack the kit cannot resolve — a manifest that cannot be parsed, a missing identity, a
         manifest dependency on another pack that the set does not satisfy, invalid or
-        missing manifest completion data — is reported via the error list defined by `r:pack-discovery`.
+        missing manifest completion data — is returned as an `invalid` entry carrying its structured
+        problems, per `r:pack-discovery`.
     - url: design/minecraft/dev-kit/requirements.yaml
       where: uuids-are-claimed-once-in-a-workspace
       quote: |
@@ -76,9 +77,11 @@
     - url: design/minecraft/dev-kit/requirements.yaml
       where: pack-discovery
       quote: |
-        Details for valid, discovered packs are returned as a flat list of pack records. A separate list
-        is provided containing structured errors for packs that were discovered, but whose content was
-        invalid.
+        An entry is `valid` or `invalid`, and a consumer reads that status before anything else. A
+        valid entry carries every detail `r:pack-record-details` requires, with nothing absent or in
+        doubt. An invalid entry carries the structured problems that invalidated it, alongside every
+        detail that does not come from the manifest — so a consumer can always name and locate a pack
+        it cannot use.
 
 - id: compose-watch-actions-and-versions
   claim: |

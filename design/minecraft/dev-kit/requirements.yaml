@@ -14,9 +14,14 @@
 - id: pack-discovery
   statement: |
     the kit provides a way to discover Minecraft behavior packs and resource packs in a workspace.
-    Details for valid, discovered packs are returned as a flat list of pack records. A separate list
-    is provided containing structured errors for packs that were discovered, but whose content was
-    invalid.
+    Every discovered pack is returned as one entry in a single flat list, so that list is the whole
+    of what was found: nothing is reported in one place and omitted from another.
+
+    An entry is `valid` or `invalid`, and a consumer reads that status before anything else. A
+    valid entry carries every detail `r:pack-record-details` requires, with nothing absent or in
+    doubt. An invalid entry carries the structured problems that invalidated it, alongside every
+    detail that does not come from the manifest — so a consumer can always name and locate a pack
+    it cannot use.
 
 - id: packs-enumerable-without-a-build
   statement: |
@@ -46,10 +51,13 @@
       - npm package name
       - pack name
       - pack uuid
+      - entry status
 
-    Every criterion matches on the exact name or identity; no substring or case-insensitive
-    matching. Search results are provided as an array of pack records. If no results are found, an
-    empty array is returned.
+    Every criterion matches on the exact name, identity, or status; no substring or
+    case-insensitive matching. Where more than one criterion is given, an entry matches only if it
+    satisfies all of them. A search that does not constrain status returns valid entries only, so
+    the common path cannot reach an unusable pack by forgetting to exclude it. Search results are
+    provided as an array of entries. If no results are found, an empty array is returned.
 
 # Pack Details
 
@@ -65,6 +73,10 @@
       - its build output location (even if that location is not present because the pack is unbuilt),
       - the full content of its manifest in object form (including content auto-populated as
         described by `r:kit-completes-partial-source-manifests`)
+
+    Every detail above is available for any discovered pack except its identity and its manifest
+    content, which a pack whose manifest could not be parsed, or which declares no `header.uuid`,
+    does not have.
 
 - id: built-output-defaults-to-dist
   statement: |
@@ -158,8 +170,8 @@
   statement: |
     a pack the kit cannot resolve — a manifest that cannot be parsed, a missing identity, a
     manifest dependency on another pack that the set does not satisfy, invalid or
-    missing manifest completion data — is reported via the error list defined by `r:pack-discovery`.
-    A dependency naming a built-in scripting module is not a missing pack. Such invalid packs are 
-    never omitted silently: all discovered packs must be returned as fully resolved pack data, or 
-    as a structured error.
+    missing manifest completion data — is returned as an `invalid` entry carrying its structured
+    problems, per `r:pack-discovery`. A dependency naming a built-in scripting module is not a
+    missing pack. Such packs are never omitted silently: every discovered pack appears in the list,
+    valid or not.
 
