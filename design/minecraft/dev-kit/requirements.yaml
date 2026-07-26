@@ -89,7 +89,19 @@
   statement: |
     a workspace package holds at most one behavior pack and at most one resource pack. A package
     holding two packs of the same kind is out of scope.
-  
+
+- id: built-output-defaults-to-dist
+  statement: |
+    a pack's built output is found at `dist/` within its package unless the package specifies an
+    alternate location.
+
+- id: built-output-mirrors-the-source-layout
+  statement: |
+    a package's output root always holds one kind-named subdirectory per pack — `behavior_pack`,
+    `resource_pack` — mirroring the source layout, however many packs the package has; a
+    single-pack package still nests. Packaging is a zip of that tree with no restructuring, so a
+    one-pack product ships a one-pack `.mcaddon`.
+
 - id: structured-validation
   statement: |
     Validation reports a structured result naming every problem it found, consumable without a
