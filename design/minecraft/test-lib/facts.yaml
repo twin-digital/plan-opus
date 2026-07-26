@@ -946,3 +946,44 @@
         EntityHealthComponent with its TSDoc block and splits members by whether the block
         names InvalidEntityError; committed output in
         design/minecraft/test-lib/artifacts/type-probes/throws-annotation-probe.out.txt.
+
+- id: public-packs-reach-past-the-v1-surface
+  claim: |
+    Across 103 public GitHub behavior-pack repositories (368,385 non-blank source lines,
+    classified against the `@minecraft/server` 2.8.0 declarations), every part of the surface v1
+    leaves out is reached by a large share of packs. `system` scheduling is reached by 84%,
+    `beforeEvents` subscriptions by 76%, items and containers by 62%, blocks by 55%, the player
+    client surface by 44%, the static type registries by 41%, and the startup and custom-command
+    registries by 40%. Exactly one repository of the 103 reaches for none of them.
+
+    On items and blocks specifically, 69% of repositories reference `ItemStack`, `Block`,
+    `Container`, or an item or block component id unambiguously, and 88% either do so or
+    subscribe to an event whose payload exposes one of those classes. The two halves are demanded
+    almost equally — items 79%, blocks 78% — and 68% need both, so neither half alone raises the
+    share of fully-covered repositories above 22%. The 12 repositories that reference none are
+    small utility packs: median 394 source lines and largest 1,563, against a median of 1,466 for
+    the rest.
+
+    By contrast, entity components are referenced by 73% of repositories and effects by 13%.
+  backing: tested
+  caveat: |
+    Presence is not weight: one `itemStack.typeId` read counts the same as an inventory system,
+    so these shares rank what packs touch and do not establish how much of a pack could still be
+    usefully tested against a fake lacking it. "Fully covered" is a claim about references, not
+    about testability. The sample is what GitHub repository search returns for one fixed query
+    list — packs shipped as `.mcaddon`, on marketplaces, or in private repositories are absent,
+    and the unit is a repository rather than a shipped pack. Helper modules that manipulate API
+    objects without naming `@minecraft/server` are not analysed at all, which undercounts.
+  sources:
+    - description: |
+        design/minecraft/test-lib/artifacts/pack-api-survey, five Node scripts run in order with
+        output captured in 1-discover.out.txt, 2-api-index.out.txt, 3-fetch.out.txt,
+        4-analyze.out.txt and 5-report.out.txt. 3-fetch.mjs cloned 850 candidate repositories and
+        accepted 103 on their contents, pinning each commit SHA in packs.json; 4-analyze.mjs
+        classified every import, component id, event subscription and single-area method call
+        against the 2.8.0 declarations parsed by 2-api-index.mjs. The shares above are the
+        "Surface absent from v1" table (System scheduling 87/103, beforeEvents 78, items 64,
+        blocks 57, player client 45, registries 42, startup 41; one repository touching none),
+        the "Headline" table (71 unambiguous, 91 including event payloads, 12 untouched; median
+        394 vs 1466 source lines), the "Which half of the gap" table (items 81, blocks 80, both
+        70, neither 12) and the "API area" table (entity components 75, effects 13).
