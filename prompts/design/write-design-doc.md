@@ -50,8 +50,11 @@ your output has to pass.
 - `design/requirements.yaml` and `facts.yaml`
 - `design/sets.yaml` and `design/<area>/sets.yaml` — named sets of designs a requirement can bind
 
-A citation resolves design → area → global. You may cite anything visible at those three
-tiers and **nothing from another design** — a design's decisions bind only itself.
+**4. Every fact in the repository — `node bin/foundations.mjs --facts`.** A fact is citable from
+any design, whichever scope files it, so this index is your search surface: read it before you
+record a new fact, and cite the existing entry rather than writing a second id for the same claim.
+Requirements are fenced — you may cite only your own, your area's, and the global ones — and a
+decision is citable only by the design that made it.
 
 **Which of them bind you is a separate question from which you may cite.** A wider-scope
 requirement binds the designs its `applies_to` names, or its whole tier when it names none — never
@@ -60,7 +63,7 @@ must be honoured — a hard one without exception, a soft one
 unless a decision of yours records the departure. Run `node bin/foundations.mjs <area>/<design>`
 for exactly that list; it resolves the sets for you.
 
-**4. The authoring rules — `design/how-to-plan/authoring/spec.md`** (and its `requirements.yaml`).
+**5. The authoring rules — `design/how-to-plan/authoring/spec.md`** (and its `requirements.yaml`).
 These govern the *contents* of any design here, this one included: that the `spec.md` is a build
 document stating what to build and how with a minimum of why, that it opens by orienting, that it
 states every value the build turns on rather than leaving it to a citation to fetch, what must be
@@ -70,7 +73,7 @@ constraints on your prose — this prompt does not restate them. (When the desig
 *is* authoring, its spec is being rebuilt, so its `requirements.yaml` and `brief.md` are the
 source.)
 
-**5. Background — `docs/vision.md`.** The problem the whole repository answers.
+**6. Background — `docs/vision.md`.** The problem the whole repository answers.
 
 ---
 

@@ -42,7 +42,9 @@ gate until it is verified (below).
 5. **Evidence integrity** — each fact's quote is verbatim and *actually supports the claim it
    backs* (a quote that is real but does not carry the claim is the subtle failure). In-repo
    sources resolve and the quoted span is present; an assumed fact carries a mechanism, not a
-   missing quote.
+   missing quote. Each new fact is also checked against `node bin/foundations.mjs --facts`: an
+   entry restating a claim already held under another id is a duplicate to drop, since every
+   design can cite either one.
 6. **Rule adherence** — apply `authoring`'s own concluding checklist to this spec, test by test.
    The checklist is the manual; run the spec through it and record every test it fails.
 7. **Conciseness** — minimum-why: a *why* a builder who lacked it would not misbuild is surplus.

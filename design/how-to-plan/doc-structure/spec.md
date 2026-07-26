@@ -28,7 +28,10 @@ one: its `requirements.yaml` and `facts.yaml` are durable inputs, while its `dec
 `spec.md` are outputs the design produces and nothing upstream may write into [[r:inputs-outputs-split]].
 Because inputs and outputs are separated only by which file holds them, a fact or requirement can be
 dropped into whatever scope it belongs to the moment it is found, without first knowing which design
-will consume it — knowledge is never stranded for want of a home [[r:enable-easy-capture]]. Laid out
+will consume it — knowledge is never stranded for want of a home [[r:enable-easy-capture]]. For a
+fact the tier is a filing decision and nothing more: it is filed at the narrowest scope that
+describes its subject, and a second design coming to rest on it never moves it
+[[r:facts-are-filed-by-subject]]. Laid out
 on disk, the three tiers and the input/output split take this shape [[r:spec-shows-layout-as-tree]]:
 
 ```text
@@ -67,6 +70,13 @@ question the facts and requirements leave open, is reopened freely while the des
 when the design is thrown away, and never binds a sibling design facing the same question — two
 competent designs may answer it differently and both be right [[r:decisions-belong-to-their-design]].
 
+Where the authority comes from also sets how far each kind reaches. A requirement and a decision
+each bind a bounded set of designs, so citing one from outside that set would import an obligation
+its owner never issued — the tiers fence them. A fact issues no obligation at all: it reports what
+is true, on evidence anyone can re-check, and stays true whichever design happened to find it. So a
+fact is citable from anywhere in the repository while a requirement keeps the three-tier fence and a
+decision stays with its own design [[r:facts-resolve-repo-wide]].
+
 Only these three kinds are citable, and each lives in a YAML file: facts and requirements in a
 design's own directory or a wider scope, decisions in a `decisions.yaml` beside the `spec.md`.
 Components and open questions live in the document and are never cited [[r:citable-entries-are-foundations]].
@@ -91,9 +101,8 @@ verbatim `quote` [[r:facts-require-a-source]]. A `url` pointing inside this repo
 relative to the repo root, not to the file holding it [[r:repo-relative-source-paths]], and a
 `quote` is always a block scalar even when one line [[r:quote-is-block-scalar]]. A `url` under an
 `artifacts/` directory is admissible only on a `tested` fact, where it names output a test actually
-produced, and only where that directory sits at the fact's own scope or a wider one — artifacts
-another design holds are promoted to a shared scope rather than reached across for, the same
-visibility rule citations already obey [[r:artifact-sources-back-only-tested-facts]]. That is the
+produced; which design's directory holds that output does not bear on whether the fact stands
+[[r:artifact-sources-back-tested-facts]]. That is the
 one provenance rule with a mechanical shadow; which source is the right one for a given `backing`,
 and what a source must disclose about who produced it, are authoring's to test, not this format's. Optional: a `status`
 of `active` | `retired` (default `active`) — a retired fact adds a `reason` of `superseded` |
@@ -229,8 +238,19 @@ component, or other claim would have to change were the cited foundation false
 matched against every entry of that kind across all three tiers, and exactly one match is required —
 any other count is an error [[r:resolution-is-scope-blind]]. Scope-blind matching is safe only
 because ids are unique per kind repo-wide; without that guarantee resolution would need a precedence
-rule between tiers. A design may cite anything visible at its own, its area's, or the global tier,
-and nothing belonging to another design.
+rule between tiers. What a design may cite then follows the kind, not the tier the citing design
+sits in: every active fact in the repository, the requirements at its own, its area's, and the
+global tier, and only its own decisions [[r:facts-resolve-repo-wide]].
+
+Citing a fact anywhere only helps an author who can see it, and a tree read one file at a time
+hides most of it. So the whole set is available as one generated view — every fact with its id, its
+scope, its backing, and its claim — produced from the foundation files on demand and never
+committed [[r:facts-can-be-found-without-walking-the-tree]] [[d:fact-index-is-generated-on-demand]].
+Search over that view is the finding mechanism; a topic vocabulary carried on each entry was the
+alternative, and it loses on upkeep — a tag set stays useful only while every author agrees on it,
+and there is nothing here to hold that agreement. Whether a fact sits at the right scope for its
+subject is a question the generated view makes visible and the harness deliberately does not decide
+[[d:filing-scope-is-advisory-not-enforced]].
 
 ## What a requirement binds
 
@@ -313,8 +333,8 @@ to this format throughout produces a conforming spec [[r:instructs-readers-to-fo
 Mechanically enforced, entry by entry: every id is kebab-case and unique per kind repo-wide; a fact
 carries `id`, `claim`, and a `backing` in the enum, plus at least one source in exactly one locator
 form, a `url` never carrying a `description`, a `url` always carrying `where`, an in-repo `url`
-written repo-relative, an `artifacts/` url only on a `tested` fact and only at that fact's own scope
-or wider, and every `quote` a block scalar; a requirement carries `id` and `statement`,
+written repo-relative, an `artifacts/` url only on a `tested` fact, and every `quote` a block
+scalar; a requirement carries `id` and `statement`,
 a `force` and `status` in their enums, and no `sources`, and carries `applies_to` only above design
 scope, its every item resolving to a design that exists or a set that is declared and lying within
 the requirement's own tier; every set has a name unique across the repository and at least one
@@ -327,8 +347,9 @@ section, a `yaml` block elsewhere being illustrative; a component carries `id` a
 and every `after` resolves to a sibling; an open question carries `id`, `question`, a `closes` in the
 enum, and gates only local decisions; a conditional block present but empty is an error. For
 citations: every token matches the grammar,
-resolves to exactly one live entry of the named kind, points at no other design's entry and no
-decision outside the citing design. A live entry is an active fact or requirement, or a decision that
+resolves to exactly one live entry of the named kind, points at no requirement outside the citing
+design's three tiers and no decision outside the citing design; a fact resolves from anywhere. A
+live entry is an active fact or requirement, or a decision that
 is not rejected; a retired fact or requirement and a rejected decision are dead and may not be cited.
 At settle: no live requirement binding the design — its own, or a wider-scope one whose
 `applies_to` reaches it — and no accepted-or-tolerated decision goes uncited.
@@ -341,3 +362,4 @@ Marked as having no mechanical backstop — the checker cannot see these, so a r
 | a decision's `statement` names the choice, not its why or entailments | whether a sentence smuggles in reasoning is a reading, not a match |
 | a fact's `backing` reflects how the fact was really established | the enum value is checkable; its truth is not |
 | a design honours every requirement bound to it | whether a design satisfies a statement is a reading of both, and honouring one is often a matter of what the design does not do |
+| a fact sits at the narrowest scope describing its subject | what a claim is *about* is a reading of the claim, not a property of the file it sits in |

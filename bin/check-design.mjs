@@ -6,6 +6,9 @@
 // global; decisions live in a decisions.yaml beside a design's spec.md. Components and open
 // questions live in spec.md and are never cited. Citations are [[k:id]] with k in f/r/d.
 //
+// A fact resolves from anywhere in the repository; a requirement resolves within the citing
+// design's three tiers, and a decision only within the design that made it.
+//
 // The rule numbers in comments map to the Invariants table in the doc-structure design.
 import fs from "fs";
 import path from "path";
@@ -128,7 +131,7 @@ function checkEntry(kind, e, scope, file) {
         else if (e.superseded_by === e.id) add("fact supersedes itself", tag);
       }
     }
-    checkSources(e, tag, e.backing, scope);
+    checkSources(e, tag, e.backing);
   }
 
   if (kind === "r") {
@@ -148,7 +151,7 @@ function checkEntry(kind, e, scope, file) {
   }
 }
 
-function checkSources(e, tag, backing, scope) { // rule 7
+function checkSources(e, tag, backing) { // rule 7
   const srcs = e.sources ?? [];
   if (!srcs.length) { add("fact without a source", tag); return; }
   for (const s of srcs) {
@@ -164,9 +167,6 @@ function checkSources(e, tag, backing, scope) { // rule 7
     }
     // an artifacts/ path is captured test output, so it backs only a tested fact
     if (hasUrl && backing !== "tested" && /(^|\/)artifacts\//.test(String(s.url))) add("artifact source on a non-tested fact", `${tag}: ${s.url}`);
-    // and only artifacts at the fact's own scope or wider — another design's are promoted, not reached across for
-    const owner = hasUrl && String(s.url).match(/^design\/(.*?)\/artifacts\//)?.[1];
-    if (owner && scope !== owner && !String(scope).startsWith(`${owner}/`)) add("artifact source outside the fact's scope", `${tag}: ${s.url}`);
   }
 }
 
@@ -225,8 +225,9 @@ for (const d of designs) {
     if (t.kind !== k) add("citation kind mismatch", `${tag} [[${k}:${id}]] is ${t.kind}`);
     if (isDead(t.e)) add("citation of dead entry", `${tag} [[${k}:${id}]] (${t.e.status})`); // rule 12
     if (k === "d" && t.scope !== d.scope) add("decision cited across designs", `${tag} [[d:${id}]] (${t.scope})`); // rule 13
-    if (t.tier === "design" && t.scope !== d.scope) add("cites another design's entry", `${tag} [[${k}:${id}]]`); // scope visibility
-    if (t.tier === "area" && t.scope !== d.area) add("cites another area's entry", `${tag} [[${k}:${id}]]`);
+    // a fact carries no obligation, so it resolves from anywhere; a requirement stays fenced by tier
+    if (k === "r" && t.tier === "design" && t.scope !== d.scope) add("cites another design's requirement", `${tag} [[${k}:${id}]]`);
+    if (k === "r" && t.tier === "area" && t.scope !== d.area) add("cites another area's requirement", `${tag} [[${k}:${id}]]`);
   }
 
   // settle gate (rule 14): a settle-eligible design cannot settle while a live requirement that
@@ -261,13 +262,14 @@ const ORDER = [
   "fact without a source", "source has both url and description", "source has no locator",
   "url without where", "in-repo url not repo-root-relative", "quote not a block scalar",
   "quote not verbatim at its source",
-  "artifact source on a non-tested fact", "artifact source outside the fact's scope",
+  "artifact source on a non-tested fact",
   "default stated explicitly", "empty questions block", "empty components block",
   "component missing id", "component missing responsibility", "component after unresolved",
   "question missing id", "question missing text", "question closes bad kind",
   "question gates non-local decision", "malformed citation token", "citation unresolved",
   "citation kind mismatch", "citation of dead entry", "citation of non-foundation kind",
-  "decision cited across designs", "cites another design's entry", "cites another area's entry",
+  "decision cited across designs", "cites another design's requirement",
+  "cites another area's requirement",
   "uncited at settle",
 ];
 for (const k of Object.keys(fail)) if (!ORDER.includes(k)) ORDER.push(k);

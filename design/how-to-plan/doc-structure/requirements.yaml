@@ -395,8 +395,54 @@
     `checked:`, a typo'd key — should be a caught error, not dead weight a lenient reader skips.
 
 - id: artifact-sources-back-only-tested-facts
+  status: retired
   statement: |
     a source url pointing into an `artifacts/` directory is valid only on a fact backed
     `tested`, where it names captured output of a test that was run, and only when that
     directory sits at the fact's own scope or a wider one. A fact resting on artifacts held
     by another design is an artifact to promote to a shared scope, not one to reach across for
+
+- id: artifact-sources-back-tested-facts
+  statement: |
+    a source url pointing into an `artifacts/` directory is valid only on a fact backed
+    `tested`, where it names captured output of a test that was run. Which design's directory
+    holds that output does not bear on the fact's validity
+  rationale: |
+    Captured output is evidence wherever it sits, so the locator's own scope was never what made
+    it admissible — the `tested` backing was. The scope half of the retired rule forced a
+    directory move whenever a second design came to rest on the same output, which relocated
+    files without changing what any of them showed.
+
+- id: facts-resolve-repo-wide
+  statement: |
+    any design may cite any active fact, whichever scope files it. Requirements keep the
+    three-tier fence — a design cites its own, its area's, and global ones — and a decision is
+    citable only by the design that made it
+  rationale: |
+    A fact is a claim about the world held on evidence, and evidence does not become
+    inadmissible because a different design found it first. The fence is worth keeping where
+    authority is local: a requirement is fiat over a bounded set of designs and a decision binds
+    nobody but its own, so citing either across a boundary would import an obligation its owner
+    never issued. Nothing is lost mechanically, because resolution is already scope-blind — the
+    fence was a second check layered over a lookup that never consulted scope.
+
+- id: facts-are-filed-by-subject
+  statement: |
+    a fact is filed at the scope its subject belongs to — the narrowest scope that describes what
+    the fact is about, not the set of designs that happen to cite it. Gaining a second consumer
+    never moves a fact
+  rationale: |
+    Filing by consumer makes a fact's location a running tally of who cites it, so the tree has
+    to be edited every time a claim finds a new reader, and ids and text travel between files for
+    reasons that have nothing to do with the claim. Filing by subject gives one durable answer to
+    "where does this go?" at the moment of capture, which is the only moment the author has the
+    context to answer it.
+
+- id: facts-can-be-found-without-walking-the-tree
+  statement: |
+    an author can see every fact in the repository, with its scope and its backing, without
+    opening each foundation file in turn. How that view is produced is the design's to choose
+  rationale: |
+    Repo-wide citability only pays if repo-wide finding is cheap; otherwise authors re-derive
+    claims that already exist under ids they never saw, and the duplicate is worse than the
+    detour because both entries then look settled.
