@@ -32,7 +32,9 @@ lowers it too, as adherence falls with each added constraint and misleading cues
 [[f:over-specification-also-degrades-code]]. What raises output is the relevance of what is
 present, not its volume [[f:relevance-not-volume-improves-output]], and surplus is not free even
 when it is true: accuracy drops as the input grows and as the needed part sits buried among the
-rest [[f:context-is-not-free]].
+rest [[f:context-is-not-free]]. The same cut falls on the tests below: each is here because
+applying it costs less than the misbuild it prevents, and one that cannot show that is cut rather
+than carried [[r:must-beat-doing-it-myself]].
 
 The second is the values themselves. Every value the build turns on — a path, a filename, a literal
 spelling, a format, an enumeration, a default — is stated in the prose or in a component, and never
@@ -118,6 +120,17 @@ belongs only where reversing the requirement casually would be a mistake the sta
 not warn of, and a rationale arguing that the requirement is correct fails whatever else it says
 [[r:rationale-records-what-a-reversal-would-cost]].
 
+Those tests bind whoever writes a requirement. The spec author's duty toward one is to honour it,
+and a requirement from a wider scope is an obligation on this design rather than something a
+sibling might discharge instead. The design cannot settle until every one binding it is cited, so
+the token is already compulsory — which is exactly why the reader's test is a different one, run
+where the machine stops. The gate asks whether a token is present; this asks whether the claim
+under it is true: for each requirement on the list, point to what in the spec satisfies it, or to
+the decision recording a departure from a soft one [[r:bound-requirements-are-honoured-or-departed]].
+A hard requirement admits only the first, and a citation pinned to filler to clear the gate fails
+here even though the checker passed it. The list is printed rather than remembered:
+`node bin/foundations.mjs <area>/<design>` renders it with the sets resolved.
+
 ## Falsifiers that can fire
 
 A decision that cannot say what would prove it wrong is not understood well enough to keep, and
@@ -175,6 +188,7 @@ aimed at whoever writes the entry it governs [[r:a-rule-binds-the-writer-of-what
 | 2 | build content | Does every passage change what gets built, with a *why* only where its absence would misbuild and no surplus a builder never reads? |
 | 3 | build content — stands alone | Strike every citation token — does the specification still say what to build, with every path, literal, format, and default present in the prose or a component? |
 | 4 | citations | Does every claim that would change were a foundation false carry its token, and does no motivation or illustration carry one? |
+| 4a | spec — bound requirements | For every requirement binding this design, can a reviewer point to what satisfies it, or to a decision recording a departure from a soft one? |
 | 5 | fact — evidence | Does each fact's outside evidence appear verbatim at its source, and each assumed fact carry its mechanism? |
 | 5a | fact — provenance | Does each `documented` fact cite the upstream original rather than a repository file transcribing it, an in-repo source appearing only where that file originates the claim? |
 | 5b | fact — quote fit | Does each quote state the claim its fact makes, rather than being genuine but beside the point? |

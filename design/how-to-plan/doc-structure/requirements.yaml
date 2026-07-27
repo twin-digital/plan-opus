@@ -32,6 +32,7 @@
     and Examples sections show each field in the form it takes on disk.
 
 - id: requirement-structure
+  status: retired
   statement: |
     Requirements MUST carry:
 
@@ -44,6 +45,26 @@
         non-negotiable, a soft one a preference that can bend if justified
       - a `status` of `active` | `retired` (default `active`)
       - a `rationale` clarifying the requirement's intent or importance
+  rationale: |
+    Field names and enum values are the format's public interface. The spec's Entry shapes
+    and Examples sections show each field in the form it takes on disk.
+
+- id: requirement-entry-structure
+  statement: |
+    Requirements MUST carry:
+
+      - a stable, kebab-case `id`
+      - a `statement` describing the requirement
+
+    and MAY carry:
+
+      - a `force` of `hard` | `soft` (default `hard`): a hard requirement is
+        non-negotiable, a soft one a preference that can bend if justified
+      - a `status` of `active` | `retired` (default `active`)
+      - a `rationale` clarifying the requirement's intent or importance
+      - `applies_to`, the designs it binds — a list whose items are each either a design
+        scope (`<area>/<design>`) or `set:<name>` naming a declared set. Valid only on a
+        requirement above design scope, where omitting it binds the whole tier
   rationale: |
     Field names and enum values are the format's public interface. The spec's Entry shapes
     and Examples sections show each field in the form it takes on disk.
@@ -109,6 +130,7 @@
     to an entry in a file — rather than some pointing into the prose and some out of it.
 
 - id: three-tier-scopes
+  status: retired
   statement: |
     exactly three scopes hold foundations — global, area, and design — each a directory
     holding at most a requirements.yaml and a facts.yaml. There is no fourth tier and areas
@@ -116,6 +138,44 @@
   rationale: |
     Two tiers cannot express "shared by these designs but not by everything"; a fourth invites
     a hierarchy that will grow unwieldly
+
+- id: three-tiers-hold-foundations
+  statement: |
+    exactly three scopes hold foundations — global, area, and design — each a directory
+    holding at most a requirements.yaml and a facts.yaml. There is no fourth tier and areas do
+    not nest. The global root and each area may also hold a sets.yaml, which declares named sets
+    of designs and holds no foundations of its own
+  rationale: |
+    Adding a tier reads like a local change and is not: every path in prose, every artifact
+    locator, and the scope of every existing foundation move with it.
+
+- id: requirement-binding-is-explicit
+  statement: |
+    every design a requirement binds must honour it, and which designs those are is the
+    requirement's own property rather than a consequence of where its file sits
+  rationale: |
+    Reading the binding off the path costs nothing visible until a design moves or a tier grows,
+    at which point the set of requirements it must honour changes and no diff says so.
+
+- id: binding-narrows-within-the-tier
+  statement: |
+    the designs a requirement binds are always a subset of the designs in its own tier: an
+    applies_to narrows, and never reaches a design the requirement's position does not already
+    cover
+  rationale: |
+    Reaching across is what makes "which requirements bind me" unanswerable from where a design
+    sits, so an obligation arrives from a file nobody watching that design has reason to read.
+
+- id: binding-sets-are-declared-once
+  statement: |
+    a set of designs is declared once, in a sets.yaml at global or area scope, mapping a name
+    unique across the repository to the design scopes it holds. An area's sets hold only that
+    area's designs and a global set may span areas; no set holds another
+  rationale: |
+    Scattering a roster across the designs in it looks equivalent and is not: no diff then shows
+    the roster, and a misspelt name binds nobody rather than failing. Tiering the file is what
+    keeps a set's reach a property of where it sits rather than a membership list to re-check
+    every time someone edits it.
 
 - id: inputs-outputs-split
   statement: |
@@ -214,6 +274,7 @@
     counting — a format that keeps growing unbacked rules has outrun what can be checked.
 
 - id: settled-design-cites-what-it-keeps
+  status: retired
   statement: |
     a design cannot be settled while a live design-scoped requirement, or an accepted or
     tolerated decision, has no claim in the design citing it. Facts, and requirements at wider
@@ -227,6 +288,14 @@
     this one; facts are exempt because an uncited fact is available knowledge, not an ignored
     obligation. A departed-from soft requirement is still cited, by the decision that records
     the departure.
+
+- id: settled-design-cites-what-binds-it
+  statement: |
+    a design cannot settle while a live requirement binding it, or an accepted or tolerated
+    decision it holds, has no claim in the design citing it. Facts carry no such obligation
+  rationale: |
+    An uncited bound requirement is indistinguishable from one nobody read, and the design ships
+    either way.
 
 - id: citation-token-grammar
   statement: a citation is `[[<k>:<id>]]` with a single-letter kind — `f` fact, `r`

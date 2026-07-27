@@ -36,10 +36,16 @@ does, so nothing touches the main checkout. Do all reading, writing, and `npm ru
    a bet about reality wearing a requirement's clothes.
 4. **`CLAUDE.md`** — the repository's rule that an agent may *propose* facts only when each meets
    the evidence bar, and that proposed facts get owner review called out in the PR.
-5. **Existing scoped foundations** — `design/<area>/`, `design/`, and every current design's
-   `facts.yaml` / `requirements.yaml`. Read these to avoid a duplicate id (uniqueness is repo-wide)
-   and to notice when a fact or requirement you are about to write already exists at a wider scope,
-   or belongs at one.
+5. **Existing scoped foundations** — `design/<area>/`, `design/`, `design/sets.yaml`, and every
+   current design's `facts.yaml` / `requirements.yaml`. Read these to avoid a duplicate id
+   (uniqueness is repo-wide) and to notice when a fact or requirement you are about to write
+   already exists at a wider scope, or belongs at one. A requirement written above design scope
+   states which designs it binds: give it an `applies_to` unless it truly binds every design in
+   its tier, and name a `set:` where the group is a product rather than a directory. Every design
+   it binds must honour it, so binding widely is not the safe default — and it can only ever
+   narrow, so a rule reaching designs in more than one area is a **global** requirement, not an
+   area one. Sets follow the same line: an area's `design/<area>/sets.yaml` holds that area's
+   designs, `design/sets.yaml` holds the ones that span areas.
 6. **Background — `docs/vision.md`.** The problem the whole repository answers.
 
 ---

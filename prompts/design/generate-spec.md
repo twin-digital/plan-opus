@@ -20,7 +20,7 @@ that branch.
 Then dispatch `review-inputs.md` over the three files, before the writer starts. It reads them as a
 set and reports; it changes nothing. Two requirements that contradict each other, or a fact whose
 evidence does not carry its claim, are findable this way in one pass — and left alone, one costs a
-writer, eight reviewers, a triager, a reviser, and a capstone before it reaches the owner as an open
+writer, nine reviewers, a triager, a reviser, and a capstone before it reaches the owner as an open
 question they answer anyway.
 
 ---
@@ -94,11 +94,16 @@ decision, stating their behaviour rather than the writer's.
 
 The gate runs **once**. A default the writer discovers later is its own to take and document.
 
+The gate is not the filter on what becomes a decision. Every choice the writer makes that a
+consumer could tell apart is an entry whether or not it was raised here — a default raised at the
+gate lands `accepted` because the owner already ruled on it, and one they never saw lands
+`proposed` for them to rule on in review. Nothing skips the list for having been settled quietly.
+
 ---
 
 ## Wave 2 — panel review, triage, revise
 
-**One panel review, not a loop to clean.** Eight adversarial reviewers always return findings; a
+**One panel review, not a loop to clean.** Nine adversarial reviewers always return findings; a
 second panel spends most of its budget reviewing the churn the first one caused, and the third
 finds wording. Run the panel once, act on it, then move to the capstone.
 
@@ -187,7 +192,7 @@ moved, the product's type changed, a rule that several parts of the spec were bu
 reversed. An amend that changes a rule, narrows one, or settles an edge case does not earn a fresh
 reader, and running one anyway is how a draft that is done acquires another round of findings. Re-run
 the panel only when the amend reached enough of the spec that it is effectively new; an amend
-touching one section does not earn eight reviewers.
+touching one section does not earn nine reviewers.
 
 ---
 
@@ -210,8 +215,10 @@ touching one section does not earn eight reviewers.
   output unfiltered turns each review into another rewrite. Dropping a true-but-inert finding is
   your call and needs no one's sign-off.
 - **A spec ships with unspecified corners.** An edge case nobody has enumerated is resolved by a
-  documented default, not by another round. Prefer one line of stated behaviour over a recorded
-  deliberation, and reserve the ceremony of a decision entry for choices that are expensive to
-  reverse. Clearly documented behaviour now beats an exhaustive design later; a default that turns
-  out wrong is revised in the next cycle, which is cheaper than the round that would have prevented
-  it.
+  documented default, not by another round. Clearly documented behaviour now beats an exhaustive
+  design later; a default that turns out wrong is revised in the next cycle, which is cheaper than
+  the round that would have prevented it. That is about **rounds**, not about extraction — a
+  default a competent agent could have set differently, and that anyone downstream could tell
+  apart, still earns its `decisions.yaml` entry. The list is how the owner reviews a design without
+  reading it, so a choice that reaches a consumer and lives only in prose is one they never got to
+  make.

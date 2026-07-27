@@ -26,30 +26,35 @@ structured findings that name the rule or foundation it violates and where. Do n
 gate until it is verified (below).
 
 1. **Conformance** — beyond the checker: does the Summary orient (subject, product, problem)? Are
-   the sections in order? Is every live design-scoped requirement and every accepted/tolerated
+   the sections in order? Is every live requirement binding the design and every accepted/tolerated
    decision *genuinely* cited by a claim that rests on it, not pinned to filler to clear the gate?
-2. **Citation intent** — both directions. A weight-bearing claim (some decision, component, or
+2. **Bound requirements** — run `node bin/foundations.mjs <area>/<design>` for the requirements
+   that bind this design, wider scopes included. For each, point to what in the spec satisfies it,
+   or to the decision recording a departure from a soft one. A hard requirement bound to the
+   design and left unaccounted for is a finding; "a sibling design handles it" is not an answer,
+   because binding is per-design.
+3. **Citation intent** — both directions. A weight-bearing claim (some decision, component, or
    other claim would change were a foundation false) with no token is a miss; a token on
    motivation, illustration, or restatement is a false signal. Over- and under-citation both fail.
-3. **Falsifier value** — each decision's falsifier names a concrete condition that could actually
+4. **Falsifier value** — each decision's falsifier names a concrete condition that could actually
    arise and would reverse the decision. A restated negation of the choice, an impossibility, or a
    certainty is a ticked box, not a falsifier.
-4. **Evidence integrity** — each fact's quote is verbatim and *actually supports the claim it
+5. **Evidence integrity** — each fact's quote is verbatim and *actually supports the claim it
    backs* (a quote that is real but does not carry the claim is the subtle failure). In-repo
    sources resolve and the quoted span is present; an assumed fact carries a mechanism, not a
    missing quote.
-5. **Rule adherence** — apply `authoring`'s own concluding checklist to this spec, test by test.
+6. **Rule adherence** — apply `authoring`'s own concluding checklist to this spec, test by test.
    The checklist is the manual; run the spec through it and record every test it fails.
-6. **Conciseness** — minimum-why: a *why* a builder who lacked it would not misbuild is surplus.
+7. **Conciseness** — minimum-why: a *why* a builder who lacked it would not misbuild is surplus.
    Flag it, and any section longer than the work it does. Stating a value a requirement, fact, or
    decision fixes is **not** surplus and is never a finding here — the builder reads this document
    with its citation tokens struck out, so a literal left to a token is a literal they never get.
-7. **Buildability** — read it as the builder receives it, every citation token struck: does it
+8. **Buildability** — read it as the builder receives it, every citation token struck: does it
    still say what to build? Every path, filename, literal spelling, format, and default the build
    turns on is present in the prose or a component, not left to a token to fetch. Beyond that: is
    each component a dispatchable unit with an interface pinned enough for parallel build? Is
    anything left underspecified for a real build choice?
-8. **Cross-design dependency** — does every reliance on another design's output appear as a
+9. **Cross-design dependency** — does every reliance on another design's output appear as a
    **fact** in this design's or a shared scope, sourced by repo-relative url and verbatim quote to
    the upstream's **requirement** — its `spec.md` only where no upstream requirement pins the
    claim — never as a direct citation of another design's decisions or invariants, and never left
@@ -86,7 +91,7 @@ Only blocking findings gate. Caveats are reported in their own list and go to tr
 reviser: see `triage-caveats.md`. Do not upgrade a caveat by arguing it *could* matter — say what a
 builder would do differently, or call it a caveat.
 
-This classification is the reviewer's discipline against its own machinery. Eight adversarial
+This classification is the reviewer's discipline against its own machinery. Nine adversarial
 reviewers will always return findings; that is what they are for. Volume is not a signal of spec
 quality, and a review that reports thirty equal-weight findings has done less work than one that
 reports the four that matter and says so.

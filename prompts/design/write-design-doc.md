@@ -46,11 +46,19 @@ your output has to pass.
 
 **3. Wider scopes, nearest first.**
 
-- `design/<area>/requirements.yaml` and `facts.yaml` — bind every design in the area
-- `design/requirements.yaml` and `facts.yaml` — bind everything
+- `design/<area>/requirements.yaml` and `facts.yaml`
+- `design/requirements.yaml` and `facts.yaml`
+- `design/sets.yaml` and `design/<area>/sets.yaml` — named sets of designs a requirement can bind
 
 A citation resolves design → area → global. You may cite anything visible at those three
 tiers and **nothing from another design** — a design's decisions bind only itself.
+
+**Which of them bind you is a separate question from which you may cite.** A wider-scope
+requirement binds the designs its `applies_to` names, or its whole tier when it names none — never
+further, so nothing outside those three files can bind you — and every requirement that binds you
+must be honoured — a hard one without exception, a soft one
+unless a decision of yours records the departure. Run `node bin/foundations.mjs <area>/<design>`
+for exactly that list; it resolves the sets for you.
 
 **4. The authoring rules — `design/how-to-plan/authoring/spec.md`** (and its `requirements.yaml`).
 These govern the *contents* of any design here, this one included: that the `spec.md` is a build
@@ -110,9 +118,15 @@ here to undo. The inputs are the source of truth; the outputs are yours to rebui
 - **Default simple.** The requirements do not enumerate every edge case and are not meant to.
   Where one is quiet, take the obvious cheap behaviour and state it in a line, rather than
   designing around the gap or raising it as a question. An edge case with documented behaviour
-  is resolved. Reserve a `decisions.yaml` entry for choices that are expensive to reverse —
-  a choice a later cycle could change for the cost of an afternoon belongs in the prose as
-  what the thing does. Say it in the words a builder would use, not the words a reviewer would.
+  is resolved. Say it in the words a builder would use, not the words a reviewer would.
+
+  Defaulting is about not spending a round on it, **not** about keeping it out of
+  `decisions.yaml`. A default still earns an entry whenever a competent agent could have set it
+  differently and a consumer, a builder, or a sibling design could tell the difference. How cheap
+  it is to reverse is not the test: the entry is how the owner finds and reviews a choice without
+  reading the spec, and a cheap choice they cannot find is one they never got to make. Keep out of
+  the list only what nobody could observe or would argue with. The prose still states the value —
+  the builder reads with the tokens struck — and the entry carries the choice and its falsifier.
 
 ---
 
@@ -139,9 +153,11 @@ already. Where they replaced your default, the decision states theirs, not yours
 
 Conform to `doc-structure` for the **format** and `authoring` for the **content** — you read
 both above; they own these rules and this prompt does not restate them. One operational gate to
-keep in view: every live design-scoped requirement and every accepted decision must be cited
-somewhere in the spec, or the design cannot settle. Capture is otherwise free — a fact or a
-requirement you record but do not yet cite is fine, at any scope.
+keep in view: every requirement that **binds** this design — its own, and every wider-scope one
+whose `applies_to` reaches it — and every accepted decision must be cited somewhere in the spec, or
+the design cannot settle. `node bin/foundations.mjs <area>/<design>` is that list. Capture is
+otherwise free: a fact you record but do not cite is fine, as is a requirement that binds someone
+else.
 
 ---
 
@@ -149,7 +165,7 @@ requirement you record but do not yet cite is fine, at any scope.
 
 Run `npm run check` and fix everything it reports. The checker enforces the format's invariants —
 an unresolved citation, a malformed or mis-scoped entry, and, for a design otherwise ready to
-settle, a design-scoped requirement or accepted decision that no claim cites. Passing means the
+settle, a requirement binding it or an accepted decision that no claim cites. Passing means the
 spec is *well-formed*, not that it is *well-built*; green is the floor, not the goal.
 
 ---

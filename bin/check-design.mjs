@@ -10,6 +10,7 @@
 import fs from "fs";
 import path from "path";
 import YAML from "yaml";
+import { loadSets, bindsDesign, reachable } from "./lib/binding.mjs";
 
 const ROOT = "design";
 const fail = {};
@@ -70,6 +71,41 @@ for (const a of areas) {
     if (fs.existsSync(decFile))
       for (const e of loadYaml(decFile)) { declare(e.id, { kind: "d", tier: "design", scope, e, file: decFile }); checkEntry("d", e, scope, decFile); }
     designs.push({ area: a.name, name: d.name, dir, scope, md: path.join(dir, "spec.md"), decFile });
+  }
+}
+
+// ---- named sets of designs (sets.yaml, at global or area scope) --------------
+// A set groups designs the tree cannot: a product spanning areas, or one overlapping a sibling.
+// Sets never nest, so membership is one lookup deep. An area's sets.yaml holds only that area's
+// designs, which is what makes "is this set inside my area?" a question about where the file sits.
+const { sets, malformed, duplicates } = loadSets(ROOT);
+for (const f of malformed) add("sets.yaml is not a mapping of set name to design scopes", f);
+for (const d of duplicates) add("set name not unique", d);
+const designScopes = new Set(designs.map((d) => d.scope));
+for (const [name, set] of Object.entries(sets)) {
+  const { members, tier, scope } = set;
+  if (!Array.isArray(members) || !members.length) { add("set without members", name); continue; }
+  for (const m of members) {
+    const s = String(m);
+    if (s.startsWith("set:")) add("set holds another set", `${name} -> ${m}`);
+    else if (!designScopes.has(s)) add("set member unresolved", `${name} -> ${m}`);
+    else if (tier === "area" && !s.startsWith(`${scope}/`)) add("area set holds another area's design", `${name} -> ${m}`);
+  }
+}
+
+// ---- applies_to: which designs a requirement binds ---------------------------
+// Only above design scope, where omitting it binds the whole tier. applies_to narrows within that
+// tier and never widens: an area requirement reaches only its own area's designs and sets.
+for (const rec of Object.values(ent)) {
+  if (rec.kind !== "r" || rec.e.applies_to === undefined) continue;
+  const tag = `${rec.scope} ${rec.e.id}`;
+  if (rec.tier === "design") { add("applies_to on a design-scoped requirement", tag); continue; }
+  if (!Array.isArray(rec.e.applies_to) || !rec.e.applies_to.length) { add("applies_to is not a non-empty list", tag); continue; }
+  for (const t of rec.e.applies_to) {
+    const s = String(t);
+    if (s.startsWith("set:") && !(s.slice(4) in sets)) { add("applies_to names an undeclared set", `${tag} -> ${s}`); continue; }
+    if (!s.startsWith("set:") && !designScopes.has(s)) { add("applies_to names no such design", `${tag} -> ${s}`); continue; }
+    if (!reachable(sets, rec, s)) add("applies_to reaches outside its tier", `${tag} -> ${s}`);
   }
 }
 
@@ -193,8 +229,8 @@ for (const d of designs) {
     if (t.tier === "area" && t.scope !== d.area) add("cites another area's entry", `${tag} [[${k}:${id}]]`);
   }
 
-  // settle gate (rule 14): a settle-eligible design cannot settle while a live design-scoped
-  // requirement or an accepted/tolerated decision it holds goes uncited; a rejected one is exempt.
+  // settle gate (rule 14): a settle-eligible design cannot settle while a live requirement that
+  // binds it, or an accepted/tolerated decision it holds, goes uncited; a rejected one is exempt.
   if (d.state === "settled") {
     const uncited = [];
     for (const x of decs) {
@@ -202,7 +238,7 @@ for (const d of designs) {
       if (!toks.some(([, k, id]) => k === "d" && id === x.id)) uncited.push(`d:${x.id}`);
     }
     for (const [id, r] of Object.entries(ent)) {
-      if (r.kind !== "r" || r.tier !== "design" || r.scope !== d.scope || isDead(r.e)) continue;
+      if (r.kind !== "r" || isDead(r.e) || !bindsDesign(sets, r, r.e, d)) continue;
       if (!toks.some(([, k, i]) => k === "r" && i === id)) uncited.push(`r:${id}`);
     }
     if (uncited.length) { d.state = "draft"; for (const u of uncited) add("uncited at settle", `${tag} ${u}`); }
@@ -216,6 +252,12 @@ const ORDER = [
   "bad decision status", "bad force", "bad retire reason", "retired fact without reason",
   "superseded fact without superseded_by", "superseded_by unresolved", "fact supersedes itself",
   "decision without a falsifier", "requirement with sources", "rationale not a block scalar",
+  "sets.yaml is not a mapping of set name to design scopes", "set name not unique",
+  "set without members", "set holds another set", "set member unresolved",
+  "area set holds another area's design",
+  "applies_to on a design-scoped requirement", "applies_to is not a non-empty list",
+  "applies_to names an undeclared set", "applies_to names no such design",
+  "applies_to reaches outside its tier",
   "fact without a source", "source has both url and description", "source has no locator",
   "url without where", "in-repo url not repo-root-relative", "quote not a block scalar",
   "quote not verbatim at its source",
