@@ -389,6 +389,13 @@
         three resets threw name=Error ctor=Error instanceofInvalidEntityError=false, message
         "Failed to call function '<name>'." — extending the single reset of the earlier run to
         the whole reset trio.
+    - description: |
+        artifacts/type-probes/throws-annotation-probe.out.txt, which the sibling
+        throws-annotation-probe.mjs produced by parsing the pinned `.d.ts`, carries the
+        annotation half: under `## EntityAttributeComponent`, "InvalidEntityError in TSDoc (1):
+        setCurrentValue" and "@throws without InvalidEntityError (7): currentValue,
+        defaultValue, effectiveMax, effectiveMin, resetToDefaultValue, resetToMaxValue,
+        resetToMinValue"; under `## EntityComponent`, "InvalidEntityError in TSDoc (1): entity".
 
 - id: set-current-value-bounds-observed
   claim: |
@@ -546,6 +553,13 @@
         (getAABB, getComponents, getEffects, getHeadLocation, getRotation, getTags,
         getVelocity, getViewDirection, getDynamicPropertyIds, getDynamicPropertyTotalByteCount)
         threw InvalidEntityError with instanceofInvalidEntityError=true.
+    - description: |
+        artifacts/type-probes/throws-annotation-probe.out.txt, which the sibling
+        throws-annotation-probe.mjs produced by parsing the pinned `.d.ts`, carries the
+        annotation half: under `## Entity`, "InvalidEntityError in TSDoc (56)" lists neither
+        `nameTag` nor `isSneaking`, and "no @throws (6): id, isSneaking, isValid, nameTag,
+        scoreboardIdentity, typeId" names both — so two members the sweep observed throwing
+        are unannotated, which is what makes the list non-derivable from the annotations.
 
 - id: kill-no-health-behaviour
   claim: |
