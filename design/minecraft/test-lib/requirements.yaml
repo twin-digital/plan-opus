@@ -16,6 +16,15 @@
     Requiring a recorded observation for every behaviour puts the library's cost under the
     engine's quirkiness rather than under what the library is for.
 
+- id: coverage-is-enumerated
+  statement: |
+    the library enumerates the engine behaviours within its scope, stating each as modelled, not
+    modelled, or modelled with a divergence; every divergence is described where a user of the
+    library will find it, not only in the spec.
+  rationale: |
+    Reversing this leaves a user to meet a divergence by writing a test that passes against the
+    fake and fails against the engine — the failure the library exists to prevent.
+
 - id: synchronous-event-delivery
   statement: |
     the fake dispatches a behaving method's after-events synchronously, within the causing
