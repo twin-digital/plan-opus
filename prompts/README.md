@@ -5,12 +5,13 @@ phases; each artifact a phase produces is the next phase's input.
 
 ## Capture → Design → Build
 
-**Capture** — produce a design's inputs (`brief.md`, `requirements.yaml`, `facts.yaml`). The
+**Capture** — produce a design's inputs (`brief.md`, `requirements.yaml`) and whatever facts they
+rest on, in the `facts/` pool. The
 foundations get written down before anyone designs.
 
 | prompt | role | produces |
 |---|---|---|
-| [`capture-requirements.md`](./capture/capture-requirements.md) | planner | `brief.md`, `requirements.yaml`, `facts.yaml` — by interview, by converting a prototype, or hybrid |
+| [`capture-requirements.md`](./capture/capture-requirements.md) | planner | `brief.md`, `requirements.yaml`, and pool facts — by interview, by converting a prototype, or hybrid |
 
 **Design** — turn settled inputs into a `spec.md` + `decisions.yaml`, reviewed clean. The spec is
 the design: what to build and the decisions behind it.

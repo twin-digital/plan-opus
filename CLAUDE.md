@@ -1,12 +1,13 @@
 # plan-opus
 
-Planning repository. Designs live under `design/<area>/<design>/`; the artifact format is
+Planning repository. Designs live under `design/<area>/<design>/` and facts in the `facts/` pool;
+the artifact format is
 specified by `design/how-to-plan/doc-structure/spec.md` and the content rules by
 `design/how-to-plan/authoring/spec.md`. Validate every change with `npm run check`.
 
 ## Agents may propose facts
 
-An agent writing or revising a spec may add entries to a `facts.yaml`, at any scope, provided
+An agent writing or revising a spec may add entries to a fact file under `facts/`, provided
 each new fact meets one of:
 
 a. **Documented elsewhere** — its sources cite the evidence as `doc-structure` requires: a
@@ -21,8 +22,7 @@ b. **Tested directly** — the agent ran the test itself, and the design's `arti
    an artifact contributes is captured output; a prose conclusion the agent wrote there is
    interpretation, and a fact resting on it belongs under (a) or as an open question. This bar
    is claimed on your own behalf only: a test you did not run is disclosed per
-   `r:tested-facts-name-whose-test`, and artifacts another design holds are promoted to a shared
-   scope rather than cited where they sit.
+   `r:tested-facts-disclose-whose-test`, naming whose test it was and where its artifacts sit.
 
 A fact meeting neither bar is recorded as an open question instead.
 
@@ -50,3 +50,12 @@ An agent may not reopen a requirement because its prose reads inconsistently wit
 because a rationale no longer matches a superseded regime, or because a better framing suggests
 itself. A fact that contradicts a requirement is still a stop-and-ask; an opinion about phrasing is
 not. Finding nothing to raise is a successful review.
+
+## Facts are repo-wide; requirements are not
+
+Any design may cite any fact, whichever scope files it. Before recording one, search
+`node bin/foundations.mjs --facts` and cite what is already there. File a new fact at the
+narrowest scope that describes its **subject** — not the design that needs it — and leave it
+there when a second design comes to depend on it. Requirements are fenced: a design cites its
+own, its area's, and the global ones, and is bound by those whose `applies_to` names it. A
+decision is citable only by the design that made it.

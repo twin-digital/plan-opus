@@ -15,13 +15,15 @@ Read, in this order:
 1. **`design/<area>/<design>/spec.md`** — the build instruction. It tells you *what to build and
    how*, with a minimum of *why*. Its Components are the units you build; the prose is the how.
    Build to it.
-2. **`decisions.yaml`, `requirements.yaml`, `facts.yaml`** in and under the design directory — the
+2. **`decisions.yaml` and `requirements.yaml`** in and under the design directory, plus the `facts/`
+   pool — the
    foundations the spec rests on. The spec's `[[f:...]]` / `[[r:...]]` / `[[d:...]]` citations
    point into these; follow one when you need the fact, requirement, or decision behind a claim.
-3. **Wider scopes as needed** — a citation resolves `design → area → global`, so an
-   `[[r:...]]` / `[[f:...]]` may live in `design/<area>/` or `design/`. Walk the tree to resolve
-   one when the spec leans on it. *(Interim: you read the raw design tree directly; a packaged
-   builder bundle will replace this later.)*
+3. **Wider scopes as needed** — an `[[r:...]]` may live in `design/<area>/` or `design/`, and an
+   `[[f:...]]` may be filed under any design or area at all, since a fact is citable repo-wide.
+   Resolve a requirement by walking the three tiers; resolve a fact by id against
+   `node bin/foundations.mjs --facts`. *(Interim: you read the raw design tree directly; a
+   packaged builder bundle will replace this later.)*
 
 **Build only settled work.** Confirm the design is `settled` — present on `main`, with no open
 questions and no proposed decisions. If it is still a draft, stop and say so: an unsettled spec

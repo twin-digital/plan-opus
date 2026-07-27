@@ -43,7 +43,7 @@ fixed source-manifest paths" looks complete while the tokens are present and can
 moment they are gone. So the test is run on the stripped document, not the annotated one.
 
 What the prose carries is the value, not the entry. The foundations themselves stay in the short
-lists a reviewer reads first — facts in `facts.yaml`, requirements in `requirements.yaml`, decisions
+lists a reviewer reads first — facts in the `facts/` pool, requirements in `requirements.yaml`, decisions
 in `decisions.yaml` [[f:foundations-extracted-into-lists]] — so a literal named in prose leaves that
 read whole, while a foundation the design stands on appearing *only* in prose is what breaks it
 [[r:easily-reviewable-foundations]].
@@ -84,15 +84,26 @@ and a repository file transcribing that original is a convenience copy the fact 
 citing it instead makes the author's own output the evidence, and a drifted or invented quote
 becomes undetectable [[r:documented-source-is-primary]]. An in-repo url is primary only where the
 file is where the claim originates, which is why a cross-design dependency sources to the
-upstream's own requirement [[r:cross-design-dependency-is-cited-as-a-fact]]. The second is whether
+upstream's own requirement [[r:upstream-dependency-is-recorded-as-a-fact]]. The second is whether
 the quote does the work: a passage genuine, verbatim, and beside the point fails as surely as a
 paraphrase, and is the harder failure to see [[r:quote-carries-the-claim]]. A `tested` fact faces
 the parallel question of whose test it was: an entry that does not say reads as the author's own
 work, and the guarantee that whoever wrote the fact can re-run its evidence decays into a file
 existing somewhere. So a test the author did not run is disclosed as such in the source, named to
-whoever ran it; and where that test's artifacts are held in this repository by another design, they
-are promoted to a scope both designs share rather than cited where they sit — disclosure alone
-carries only a test run outside the repository [[r:tested-facts-name-whose-test]]. A spec author's own duties toward inherited facts are three further
+whoever ran it and to where its artifacts sit [[r:tested-facts-disclose-whose-test]]. Nothing more
+is asked of it: an artifacts directory is re-runnable from wherever it already stands.
+
+Two tests run before any of those. The first is where the fact goes: the pool takes any file at
+any depth and the path binds nothing, so the choice is the author's and the test is a reading —
+does this file's subject describe the claim? A fact filed by the design that happened to need it,
+rather than by what it is about, fails, and it never moves again once a second design comes to rest
+on it [[r:facts-are-filed-by-subject]]. The second is that a fact recorded twice cannot be
+corrected once: the author searches the repository-wide index for an entry already making the
+claim, and cites it instead of writing a second [[r:search-before-recording-a-fact]]. Every fact is visible to every
+design, so the duplicate is not a local copy but a rival — two settled-looking ids for one claim,
+of which only one will be maintained.
+
+A spec author's own duties toward inherited facts are three further
 tests a reviewer runs against the prose. First: no claim rests on a fact the author has found
 wrong — one shown false, or unsupported by its own evidence, is corrected in place by a new
 evidenced fact that supersedes it, not cited as-is or merely flagged
@@ -100,12 +111,13 @@ evidenced fact that supersedes it, not cited as-is or merely flagged
 buried in prose — a discovery the design comes to stand on is recorded as a fact meeting the
 evidence bar, where it can be checked and reused, while a passing observation is not
 [[r:foundational-discoveries-are-recorded-as-facts]]. Third: a reliance on another design's output
-appears as a fact in this design's own or a shared scope, sourced by a `url` written relative to the
-repository root and a verbatim `quote`, pointing at the upstream design's `requirements.yaml` — at
-its `spec.md` only where no requirement pins the claim
-[[f:in-repo-source-url-is-repo-relative]] [[f:fact-source-is-quote-or-mechanism]] — never as a
-direct citation of that design's decisions or invariants
-[[r:cross-design-dependency-is-cited-as-a-fact]].
+appears as a fact, sourced by a `url` written relative to the repository root and a verbatim
+`quote`, pointing at the upstream design's `requirements.yaml` — never as a direct citation of that
+design's decisions or invariants [[f:in-repo-source-url-is-repo-relative]]
+[[f:fact-source-is-quote-or-mechanism]] [[r:upstream-dependency-is-recorded-as-a-fact]]. Its
+`spec.md` is a fallback only where no requirement pins the claim, since regenerable prose drifts
+out from under a quote. One such fact serves every design that leans on the same commitment: the
+pool holds it once, and a second dependent cites it rather than restating it.
 
 ## What belongs in a requirement
 
@@ -192,10 +204,12 @@ aimed at whoever writes the entry it governs [[r:a-rule-binds-the-writer-of-what
 | 5 | fact — evidence | Does each fact's outside evidence appear verbatim at its source, and each assumed fact carry its mechanism? |
 | 5a | fact — provenance | Does each `documented` fact cite the upstream original rather than a repository file transcribing it, an in-repo source appearing only where that file originates the claim? |
 | 5b | fact — quote fit | Does each quote state the claim its fact makes, rather than being genuine but beside the point? |
-| 5c | fact — whose test | Does each `tested` fact its author did not run say so and name whose test it was, with in-repo artifacts another design holds promoted to a shared scope rather than cited across? |
+| 5c | fact — whose test | Does each `tested` fact its author did not run say so and name whose test it was, and where its artifacts sit? |
+| 5d | fact — filing | Is each fact in the pool file whose subject describes its claim, rather than the one the design that needed it happened to own? |
+| 5e | fact — duplicates | Was the repository-wide fact index searched before each new fact was recorded, so no entry restates a claim already held under another id? |
 | 6 | inherited fact — wrong | Is every inherited fact the spec found wrong corrected by a superseding evidenced fact, not cited as-is or merely flagged? |
 | 7 | inherited fact — discovery | Is every discovery a decision or component rests on recorded as a fact, not left implicit in prose? |
-| 8 | cross-design dependency | Is each reliance on another design's output a sourced fact in this or a shared scope, not a direct citation of that design's decisions or invariants? |
+| 8 | cross-design dependency | Is each reliance on another design's output a fact sourced to the upstream's requirement, not a direct citation of that design's decisions or invariants? |
 | 9 | requirement — is it the owner's call | Would the owner reverse a spec decision to hold this, rather than it being design work that belongs in the spec as a decision? |
 | 10 | requirement — length | Is it stated in a sentence or two, carrying no carve-out, exception, or absolute a later paragraph qualifies? |
 | 11 | requirement — rationale | Does a rationale appear only where a casual reversal would be a mistake the statement does not warn of, and nowhere argue that the requirement is correct? |

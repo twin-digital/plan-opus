@@ -25,7 +25,7 @@ again it was not worth keeping.
 | what | carries forward |
 |---|---|
 | `brief.md` | yes, amended with what the attempt taught about the problem |
-| `facts.yaml` | yes, wholesale — an observation does not become false because a design failed |
+| pool facts | yes, wholesale — an observation does not become false because a design failed |
 | `artifacts/` | yes — the evidence the facts rest on |
 | `requirements.yaml` | **yes, refined** — see below |
 | `spec.md`, `decisions.yaml` | no |
@@ -100,7 +100,7 @@ git fetch origin main
 git worktree add -b inputs/<area>-<design> .claude/worktrees/<area>-<design> origin/main
 ```
 
-Apply the surviving inputs by **writing them, not by cherry-picking**: `facts.yaml` and `artifacts/`
+Apply the surviving inputs by **writing them, not by cherry-picking**: the pool facts and `artifacts/`
 as they stood, `brief.md` amended, `requirements.yaml` as the refined set. Then `npm run check`,
 commit, and open a pull request against `main`.
 
@@ -180,7 +180,7 @@ Where the candidates come from depends on what you have:
   or superseded, a scope line in the brief that shifted. Skip the mechanical ones; "fixed a
   count in a source description" is not a key change.
 - **You did not** — derive them by diffing the inputs across the iteration
-  (`git diff main...<rejected-tip> -- design/<area>/<design>/brief.md requirements.yaml facts.yaml`)
+  (`git diff main...<rejected-tip> -- design/<area>/<design>/ facts/`)
   and propose from that. Say that is where they came from, so the owner reads them as observed
   rather than remembered.
 

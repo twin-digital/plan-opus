@@ -1,6 +1,7 @@
 # Review a design's inputs
 
-Read a design's `brief.md`, `requirements.yaml`, and `facts.yaml` as a set and propose what should
+Read a design's `brief.md` and `requirements.yaml`, together with the pool facts they lean on, as a
+set and propose what should
 change before another cycle builds on them. Used before `generate-spec.md` starts its writer, after
 `reject-spec.md` opens its pull request, and standalone whenever inputs have drifted.
 
