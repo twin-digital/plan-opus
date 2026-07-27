@@ -13,11 +13,7 @@ import YAML from "yaml";
 
 const ROOT = "design";
 const fail = {};
-const NOTICES = new Set([
-  "legacy format — regenerate",
-  "set member is not a design yet",
-  "applies_to names a design that does not exist yet",
-]);
+const NOTICES = new Set(["legacy format — regenerate"]);
 const add = (k, v) => (fail[k] ??= []).push(v);
 const isDead = (e) => e?.status === "retired" || e?.status === "rejected";
 const KEBAB = /^[a-z0-9]+(-[a-z0-9]+)*$/;
@@ -84,18 +80,12 @@ const SETS_FILE = path.join(ROOT, "sets.yaml");
 const raw = fs.existsSync(SETS_FILE) ? (YAML.parse(fs.readFileSync(SETS_FILE, "utf8")) ?? {}) : {};
 const sets = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
 if (raw !== sets) add("sets.yaml is not a mapping of set name to design scopes", SETS_FILE);
-// A set name is colon-separated kebab-case segments; the segments group names for a reader and
-// mean nothing to the checker.
-const SET_NAME = /^[a-z0-9]+(-[a-z0-9]+)*(:[a-z0-9]+(-[a-z0-9]+)*)*$/;
 const designScopes = new Set(designs.map((d) => d.scope));
 for (const [name, members] of Object.entries(sets)) {
-  if (!SET_NAME.test(name)) add("set name not kebab-case segments", name);
   if (!Array.isArray(members) || !members.length) { add("set without members", name); continue; }
   for (const m of members)
     if (String(m).startsWith("set:")) add("set holds another set", `${name} -> ${m}`);
-    // a set may name a design not yet created — capture runs ahead of the tree, so this is a
-    // notice, not a failure
-    else if (!designScopes.has(String(m))) add("set member is not a design yet", `${name} -> ${m}`);
+    else if (!designScopes.has(String(m))) add("set member unresolved", `${name} -> ${m}`);
 }
 
 // ---- applies_to: which designs a requirement binds ---------------------------
@@ -109,9 +99,20 @@ for (const rec of Object.values(ent)) {
   for (const t of rec.e.applies_to) {
     const s = String(t);
     if (s.startsWith("set:")) { if (!(s.slice(4) in sets)) add("applies_to names an undeclared set", `${tag} -> ${s}`); }
-    else if (!designScopes.has(s)) add("applies_to names a design that does not exist yet", `${tag} -> ${s}`);
+    else if (!designScopes.has(s)) add("applies_to names no such design", `${tag} -> ${s}`);
   }
 }
+
+// Which designs a requirement binds: its applies_to, or its whole tier when it names none.
+const bindsDesign = (rec, d) => {
+  if (rec.tier === "design") return rec.scope === d.scope;
+  const at = rec.e.applies_to;
+  if (!Array.isArray(at)) return rec.tier === "global" || rec.scope === d.area;
+  return at.some((t) => {
+    const s = String(t);
+    return s.startsWith("set:") ? (sets[s.slice(4)] ?? []).includes(d.scope) : s === d.scope;
+  });
+};
 
 // ---- per-entry schema checks (rules 4,6,7,8,9) ------------------------------
 function checkEntry(kind, e, scope, file) {
@@ -233,8 +234,8 @@ for (const d of designs) {
     if (t.tier === "area" && t.scope !== d.area) add("cites another area's entry", `${tag} [[${k}:${id}]]`);
   }
 
-  // settle gate (rule 14): a settle-eligible design cannot settle while a live design-scoped
-  // requirement or an accepted/tolerated decision it holds goes uncited; a rejected one is exempt.
+  // settle gate (rule 14): a settle-eligible design cannot settle while a live requirement that
+  // binds it, or an accepted/tolerated decision it holds, goes uncited; a rejected one is exempt.
   if (d.state === "settled") {
     const uncited = [];
     for (const x of decs) {
@@ -242,7 +243,7 @@ for (const d of designs) {
       if (!toks.some(([, k, id]) => k === "d" && id === x.id)) uncited.push(`d:${x.id}`);
     }
     for (const [id, r] of Object.entries(ent)) {
-      if (r.kind !== "r" || r.tier !== "design" || r.scope !== d.scope || isDead(r.e)) continue;
+      if (r.kind !== "r" || isDead(r.e) || !bindsDesign(r, d)) continue;
       if (!toks.some(([, k, i]) => k === "r" && i === id)) uncited.push(`r:${id}`);
     }
     if (uncited.length) { d.state = "draft"; for (const u of uncited) add("uncited at settle", `${tag} ${u}`); }
@@ -256,10 +257,10 @@ const ORDER = [
   "bad decision status", "bad force", "bad retire reason", "retired fact without reason",
   "superseded fact without superseded_by", "superseded_by unresolved", "fact supersedes itself",
   "decision without a falsifier", "requirement with sources", "rationale not a block scalar",
-  "sets.yaml is not a mapping of set name to design scopes", "set name not kebab-case segments",
-  "set without members", "set holds another set", "set member is not a design yet",
+  "sets.yaml is not a mapping of set name to design scopes",
+  "set without members", "set holds another set", "set member unresolved",
   "applies_to on a design-scoped requirement", "applies_to is not a non-empty list",
-  "applies_to names an undeclared set", "applies_to names a design that does not exist yet",
+  "applies_to names an undeclared set", "applies_to names no such design",
   "fact without a source", "source has both url and description", "source has no locator",
   "url without where", "in-repo url not repo-root-relative", "quote not a block scalar",
   "quote not verbatim at its source",

@@ -50,7 +50,7 @@
 - id: omitted-binding-means-the-whole-tier
   statement: |
     a wider-scope requirement with no `applies_to` binds every design in its tier
-  status: proposed
+  status: accepted
   falsifiers:
     - authors write `applies_to` on nearly every shared requirement, so the default never
       describes what anyone means and only hides which designs are bound
@@ -61,7 +61,7 @@
   statement: |
     a set lists its member designs in design/sets.yaml; a design does not declare the sets it
     belongs to
-  status: proposed
+  status: tolerated
   falsifiers:
     - adding one design routinely means editing several set entries, so membership churns in
       more places than the design itself
@@ -72,7 +72,7 @@
   statement: |
     a design settles on citing its own live requirements and its kept decisions; a requirement
     bound to it from a wider scope carries no citation obligation
-  status: proposed
+  status: rejected
   falsifiers:
     - a design ships having silently ignored a requirement bound to it, and a citation at settle
       would have caught it
@@ -81,7 +81,7 @@
   statement: |
     a set member, or an `applies_to` entry, naming a design that does not exist is reported as a
     notice rather than failing the check
-  status: proposed
+  status: rejected
   falsifiers:
     - dangling names accumulate because nothing forces one to resolve, so the notice stops being
       read and a typo survives as long as a real forward reference
@@ -91,7 +91,7 @@
   statement: |
     the harness resolves which requirements bind a design and shows them; whether the design
     honours each is a reviewer's finding
-  status: proposed
+  status: rejected
   falsifiers:
     - a bound requirement's breach turns out to be mechanically detectable often enough that
       reporting alone wastes the signal

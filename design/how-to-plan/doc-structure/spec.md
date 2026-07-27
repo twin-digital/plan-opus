@@ -175,7 +175,7 @@ nodejs:libraries:
 
 minecraft:dev-tools:
   - minecraft/dev-kit
-  - minecraft/pack-build
+  - minecraft/dev-server
 ```
 
 A component block and an open-question block, in the form each takes inside a `spec.md` — the
@@ -242,8 +242,10 @@ cite* any requirement at its own, its area's, or the global tier; it *is bound b
 unless a decision records the departure where it is soft [[r:soft-departures-are-decisions]]. A
 wider-scope requirement that omits `applies_to` binds its whole tier: every design in the area, or
 every design in the repository [[d:omitted-binding-means-the-whole-tier]]. That default is what
-keeps the field off almost every entry — the tier is usually the right answer, and stating it again
-would be noise.
+keeps the field off almost every entry, and it is there because the tier is usually the right
+answer: a field an author must write out on every shared requirement to say what the path already
+said is exactly the ceremony this process cuts rather than keeps
+[[r:must-beat-doing-it-myself]].
 
 Where the tier is *not* the right answer, `applies_to` names the designs directly, or names a set.
 A set is declared once, in `design/sets.yaml`, mapping a name to the design scopes it holds
@@ -252,22 +254,22 @@ Node.js library, or the tooling half of an area, listed by name rather than gath
 directory. A set may hold designs from more than one area — the case a subtree cannot express — and
 a design belongs to as many sets as describe it, which is the other half: a grouping that overlaps
 a sibling is a set, never a directory. No set holds another, so membership is one lookup deep, and
-that is also the answer to how far the nesting goes: exactly one level, always. A set may name a
-design that does not exist yet, since a product is often named before its last member is written,
-so a dangling member is reported rather than rejected
-[[d:dangling-members-are-reported-not-rejected]]. Listing the members in one place
-rather than on each design is a bet that a product's roster changes as a unit — adding a pack is
-then a one-line edit rather than an edit to every design that joins it
-[[d:set-membership-is-declared-by-the-set]].
+that is also the answer to how far the nesting goes: exactly one level, always. Every member
+resolves to a design that exists, and a name that does not is an error rather than a forward
+reference — a set is written after the designs it groups, because a typo and a plan read the same
+on the page. Listing the members in one place rather than on each design is a bet that a product's
+roster changes as a unit — adding a pack is then a one-line edit rather than an edit to every
+design that joins it [[d:set-membership-is-declared-by-the-set]].
 
-Binding does not create a citation obligation. A design settles on citing its own live
-requirements and the decisions it kept; a requirement bound to it from a wider scope may be
-honoured silently, because the design honouring it is often a matter of what it *does not* do
-[[r:settled-design-cites-what-it-keeps]] [[d:settle-bar-stays-design-scoped]]. What the harness
-owes instead is visibility: it resolves every set, rejects an `applies_to` naming a set nobody
-declared, and lists exactly the requirements binding a given design — the walk up the tree that an
-author would otherwise have to remember to make. Whether each is actually honoured is
-a reader's judgement, not a check [[d:binding-coverage-is-reported-not-enforced]].
+Binding is what the settle gate is measured against. A design cannot settle while a requirement
+binding it goes uncited, whichever scope that requirement came from, alongside the accepted and
+tolerated decisions it holds [[r:settled-design-cites-what-binds-it]]. That is the whole point of
+naming the designs: an obligation nobody can point at in the prose is indistinguishable from one
+nobody read, and stating the set is what makes the citation demandable without forcing every
+area-wide requirement onto a design it was never meant for. The harness resolves every set, rejects
+an `applies_to` naming a set nobody declared, and fails the settle gate on each bound requirement
+no claim cites. What it still cannot read is whether a cited requirement is genuinely *honoured*;
+that stays a reviewer's judgement, and it is the one part of binding with no mechanical backstop.
 
 ## Design state
 
@@ -284,11 +286,10 @@ a still-proposed decision cannot be settled in the first place [[r:only-publishe
 Publication is a second axis, not a fourth state: the three states stay computable from tree content,
 while merge-to-main is a git-ref property no artifact in the tree records, so it is tracked as a
 boolean beside the state rather than folded into the enum [[r:publication-is-a-separate-axis]]. The
-last bar on settling is a citation bar: a design cannot settle while a live design-scoped
-requirement, or an accepted or
-tolerated decision it holds, has no claim citing it — the two things a settled design must actually
-stand on. Facts, and requirements at wider scopes, carry no such obligation, so capture stays free
-everywhere and the only citation debt falls due at settle [[r:settled-design-cites-what-it-keeps]].
+last bar on settling is a citation bar: a design cannot settle while a live requirement binding it,
+or an accepted or tolerated decision it holds, has no claim citing it — the two things a settled
+design must actually stand on [[r:settled-design-cites-what-binds-it]]. Facts carry no such
+obligation, so capture stays free everywhere and the only citation debt falls due at settle.
 Which of these transitions are legal, and who performs them, is process's to say, not this design's.
 
 ## Invariants
@@ -304,10 +305,9 @@ form, a `url` never carrying a `description`, a `url` always carrying `where`, a
 written repo-relative, an `artifacts/` url only on a `tested` fact and only at that fact's own scope
 or wider, and every `quote` a block scalar; a requirement carries `id` and `statement`,
 a `force` and `status` in their enums, and no `sources`, and carries `applies_to` only above design
-scope, and naming only declared sets; every set in `sets.yaml` has a name of kebab-case segments,
-at least one member, and no member that is another set — a member or an `applies_to` entry naming
-a design that does not exist yet is reported as a notice, not an error, so a set can be declared
-before its last member is written; a decision carries `id`, `statement`, and a
+scope, its every item resolving to a design that exists or a set that is declared; every set in
+`sets.yaml` has at least one member, every member resolving to a design that exists, and no member
+that is another set; a decision carries `id`, `statement`, and a
 written `status` in its enum, plus at least one falsifier unless rejected; any field at its default is
 omitted; a retired fact carries a valid `reason` and, if superseded, a resolvable `superseded_by`. In
 the document: a live block is recognised only under its fixed `## Components` or `## Open questions`
@@ -318,7 +318,8 @@ citations: every token matches the grammar,
 resolves to exactly one live entry of the named kind, points at no other design's entry and no
 decision outside the citing design. A live entry is an active fact or requirement, or a decision that
 is not rejected; a retired fact or requirement and a rejected decision are dead and may not be cited.
-At settle: no live design-scoped requirement and no accepted-or-tolerated decision goes uncited.
+At settle: no live requirement binding the design — its own, or a wider-scope one whose
+`applies_to` reaches it — and no accepted-or-tolerated decision goes uncited.
 
 Marked as having no mechanical backstop — the checker cannot see these, so a reviewer must:
 

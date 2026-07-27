@@ -151,18 +151,16 @@
 
 - id: requirement-binding-is-explicit
   statement: |
-    a requirement names the designs it binds, and every design it binds must honour it. Which
-    designs those are is the requirement's to state, not the tree's to imply
+    every design a requirement binds must honour it, and which designs those are is the
+    requirement's own property rather than a consequence of where its file sits
   rationale: |
-    Letting position imply the binding costs nothing visible until a design is filed under a
-    different path, at which point the set of requirements it must honour changes and no diff
-    says so.
+    Reading the binding off the path costs nothing visible until a design moves or a tier grows,
+    at which point the set of requirements it must honour changes and no diff says so.
 
 - id: binding-sets-are-declared-once
   statement: |
-    a set of designs is declared once in design/sets.yaml, mapping a name of colon-separated
-    kebab-case segments to the design scopes it holds. A set may hold designs from more than one
-    area, and never holds another set
+    a set of designs is declared once in design/sets.yaml, mapping a name to the design scopes it
+    holds. A set may hold designs from more than one area, and never holds another set
   rationale: |
     Scattering a roster across the designs in it looks equivalent and is not: no diff then shows
     the roster, and a misspelt name binds nobody rather than failing.
@@ -264,6 +262,7 @@
     counting — a format that keeps growing unbacked rules has outrun what can be checked.
 
 - id: settled-design-cites-what-it-keeps
+  status: retired
   statement: |
     a design cannot be settled while a live design-scoped requirement, or an accepted or
     tolerated decision, has no claim in the design citing it. Facts, and requirements at wider
@@ -277,6 +276,14 @@
     this one; facts are exempt because an uncited fact is available knowledge, not an ignored
     obligation. A departed-from soft requirement is still cited, by the decision that records
     the departure.
+
+- id: settled-design-cites-what-binds-it
+  statement: |
+    a design cannot settle while a live requirement binding it, or an accepted or tolerated
+    decision it holds, has no claim in the design citing it. Facts carry no such obligation
+  rationale: |
+    An uncited bound requirement is indistinguishable from one nobody read, and the design ships
+    either way.
 
 - id: citation-token-grammar
   statement: a citation is `[[<k>:<id>]]` with a single-letter kind — `f` fact, `r`

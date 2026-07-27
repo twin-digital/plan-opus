@@ -26,7 +26,7 @@ structured findings that name the rule or foundation it violates and where. Do n
 gate until it is verified (below).
 
 1. **Conformance** — beyond the checker: does the Summary orient (subject, product, problem)? Are
-   the sections in order? Is every live design-scoped requirement and every accepted/tolerated
+   the sections in order? Is every live requirement binding the design and every accepted/tolerated
    decision *genuinely* cited by a claim that rests on it, not pinned to filler to clear the gate?
 2. **Bound requirements** — run `node bin/foundations.mjs <area>/<design>` for the requirements
    that bind this design, wider scopes included. For each, point to what in the spec satisfies it,

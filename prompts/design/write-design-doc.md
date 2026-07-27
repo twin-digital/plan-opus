@@ -146,9 +146,11 @@ already. Where they replaced your default, the decision states theirs, not yours
 
 Conform to `doc-structure` for the **format** and `authoring` for the **content** — you read
 both above; they own these rules and this prompt does not restate them. One operational gate to
-keep in view: every live design-scoped requirement and every accepted decision must be cited
-somewhere in the spec, or the design cannot settle. Capture is otherwise free — a fact or a
-requirement you record but do not yet cite is fine, at any scope.
+keep in view: every requirement that **binds** this design — its own, and every wider-scope one
+whose `applies_to` reaches it — and every accepted decision must be cited somewhere in the spec, or
+the design cannot settle. `node bin/foundations.mjs <area>/<design>` is that list. Capture is
+otherwise free: a fact you record but do not cite is fine, as is a requirement that binds someone
+else.
 
 ---
 
@@ -156,7 +158,7 @@ requirement you record but do not yet cite is fine, at any scope.
 
 Run `npm run check` and fix everything it reports. The checker enforces the format's invariants —
 an unresolved citation, a malformed or mis-scoped entry, and, for a design otherwise ready to
-settle, a design-scoped requirement or accepted decision that no claim cites. Passing means the
+settle, a requirement binding it or an accepted decision that no claim cites. Passing means the
 spec is *well-formed*, not that it is *well-built*; green is the floor, not the goal.
 
 ---
