@@ -97,7 +97,7 @@ an exported free function over the fakes [[r:only-real-members-free-functions]]:
 | `createPlayer(server, options)` | as above, a `Player` |
 | `addComponent(entity, componentId, state?)` | attach a component to a live entity |
 | `removeComponent(entity, componentId)` | detach one |
-| `setEffectDisplayName(server, effectTypeId, displayName)` | register the display name every effect of that type reads |
+| `registerEffectBaseName(server, effectTypeId, baseName)` | the base name for a custom effect type, or an override for a shipped one |
 | `invalidate(entity)` | put the reference into the engine's invalid state |
 | `emit(signal, payload)` | deliver a payload to a signal's subscribers |
 | `advanceTicks(server, count)` | run scheduled callbacks |
@@ -405,19 +405,38 @@ identifier either: `minecraft:breath_of_the_nautilus` reads back with a leading 
 amplifier, straight from the engine's localisation data, so only a verbatim stored string reproduces
 it [[f:effect-display-name-carries-raw-whitespace]].
 
-It comes per effect *type*. `setEffectDisplayName(server, effectTypeId, displayName)` writes to a
-registry on the world, and every effect of that type in that world reads the registered name;
-`addEffect` takes the engine's own `EntityEffectOptions`, which has no display-name field, and
-`Effect` has no member to set one through, so the route is a free function
-[[r:only-real-members-free-functions]]. Keying it by type rather than by effect instance is what
-lets a handler read the name inside the `effectAdd` event `addEffect` itself dispatches — the
-handler runs before `addEffect` returns, so there is no instance for a test to have set a value on
-yet [[d:effect-fields-are-supplied-by-a-free-function]]. One name per type does not reproduce the
-amplifier's part of the engine's string, so a test that wants `"Speed II"` registers that string.
+So the library ships the base names and computes the numeral. A vanilla effect's `displayName`
+resolves with nothing registered and no test setup: the base string comes from a table of the 37
+observed names, and the suffix from the mapping above — bare base at amplifier 0, base plus the
+Roman numeral of *amplifier + 1* at 1 through 5, bare base again from 6 to 255. That reproduces the
+engine across the whole accepted range, the amplifier-6 reversion included
+[[d:display-names-resolve-from-a-shipped-table]].
 
-Reading `displayName` for a type nothing was registered for throws `UnsetValueError`: it is declared
-a bare `string`, so an unsupplied read throws under the ordinary rule below
-[[d:effect-display-name-is-supplied]].
+**The table is transcribed observed output, not generated from identifiers.** Each base is the
+string the engine returned, stored byte for byte. `minecraft:breath_of_the_nautilus` is
+`" Breath of the Nautilus"` — the leading space is the engine's, it is not a typo, and it is what
+makes the fake agree with the engine on that type [[f:effect-display-name-carries-raw-whitespace]].
+Anything that normalises the table, or rebuilds it by title-casing identifiers, breaks that agreement
+and several others with it. Shipping these 37 strings is not the per-type vanilla data
+[[r:presets-are-opt-in]] sends to a package built on this one: that clause governs presets, the
+populated starting points a caller opts into, while these are the baseline data a modelled member
+needs to answer its own read at all.
+
+A **custom effect type** has no shipped base. `registerEffectBaseName(server, effectTypeId, baseName)`
+supplies one, and the same numeral mapping is computed over it, so a registered
+`"Gravity Well"` reads `"Gravity Well III"` at amplifier 2 exactly as a vanilla type would. The route
+is a free function because `addEffect` takes the engine's own `EntityEffectOptions`, which has no
+display-name field, and `Effect` has no member to set one through
+[[r:only-real-members-free-functions]]; it is keyed by type and held on the world, so a name is
+readable inside the `effectAdd` event `addEffect` itself dispatches, where no effect instance exists
+yet. A registration also overrides a shipped base for a vanilla type, which is how a test targeting
+a locale other than the observed one supplies its own strings.
+
+Reading `displayName` for a custom type nothing was registered for throws `UnsetValueError`. The
+fake will not invent a base name from the identifier, because the engine's own strings are not
+derivable from identifiers and a fabricated one would read plausibly while differing from the engine
+[[r:fakes-never-fabricate]] [[d:custom-effect-display-name-is-supplied]]. A vanilla type never
+reaches that path.
 
 ## Events
 
@@ -575,8 +594,12 @@ whole of it: a member matching an earlier rule never reaches a later one.
 Rules 3 and 4 are told apart by the declaration's own type: a member declared `T | undefined` has an
 absence the engine itself can present, so the fake presents it; a member declared bare `T` has none,
 so an unsupplied read throws rather than inventing one. `Effect.displayName` is declared `string`,
-which is why an unsupplied read of it throws [[d:effect-display-name-is-supplied]] — rule 4 applied,
-not an exception to it.
+which is why a custom effect type with no registered base name throws rather than reading
+`undefined` [[d:custom-effect-display-name-is-supplied]] — rule 4 applied, not an exception to it.
+A vanilla type never reaches rule 4 at all: its name resolves from the shipped table, so there is no
+unsupplied value to read [[d:display-names-resolve-from-a-shipped-table]]. Rule 4 governs what a
+modelled member does when a value it needs was never supplied, and shipping the value is one way to
+make sure that never happens.
 
 Rules 1 and 2 are what rule 3 must not swallow. A member that is both out of scope and declared
 `T | undefined` — and the declarations carry many — takes rule 2 and throws. Returning `undefined`
@@ -628,9 +651,11 @@ not been considered, which is not the same as a promise about it.
 | `addEffect`'s argument bounds | modelled | amplifier `0…255`, duration `1…20000000`, `ArgumentOutOfBoundsError` outside either, nothing clamped, both message shapes reproduced |
 | `addEffect`'s non-integer arguments | modelled | truncated toward zero, then bounds-checked — so duration `0.5` is refused |
 | `addEffect` on `NaN` or `Infinity` | divergence | the engine refuses these with a `TypeError` ahead of the bounds check; the fake does not reproduce that error's shape |
-| the display name's amplifier mapping | divergence | the engine gives the bare base name at amplifier 0, a numeral for 1–5, and the bare name again from 6 up — six distinct names per type; the fake reads back one registered name per type and does not vary it |
+| the display name's amplifier mapping | modelled | bare base at amplifier 0, base plus the Roman numeral of amplifier + 1 at 1–5, bare base again from 6 to 255 — reproduced for all 37 vanilla types across the whole accepted amplifier range |
 | effect duration decay and expiry | divergence | a duration reads back the value applied and never decays; the engine decays it one per tick and expires the effect |
-| `Effect.displayName` | divergence | the test registers a name per effect type and an unsupplied read throws; the engine derives a populated string from the type *and* amplifier, which one name per type cannot vary |
+| `Effect.displayName` for the 37 vanilla types | modelled | resolves with no test setup, from verbatim shipped base names and the computed numeral |
+| `Effect.displayName` in a locale other than the observed one | divergence | the shipped bases are the strings one server returned, and the API documents only a "player-friendly name" with no locale contract; until a second locale is observed the table is that locale's, and a test needing another registers its own bases |
+| `Effect.displayName` for a custom effect type | divergence | no base is shipped, so an unregistered custom type throws `UnsetValueError` where the engine would answer with whatever its own data holds |
 | signal existence, `subscribe` / `unsubscribe`, reference dedupe and subscription order | modelled | |
 | after-event dispatch timing | divergence | synchronous, inside the causing call; the engine defers past that call's return to later in the same tick |
 | engine-raised signals outside the five after-events and three before-events the fakes raise | not modelled | no fake behaviour raises them; a test drives one with `emit` |
@@ -713,7 +738,8 @@ components:
   - id: effect-model
     responsibility: >-
       addEffect/getEffect/getEffects/removeEffect, the amplifier-first replacement rule, and the
-      per-world display-name registry behind the setEffectDisplayName free function
+      shipped table of verbatim base names with the computed numeral, and the registerEffectBaseName
+      free function behind custom types and overrides
     after: [entity-model]
 
   - id: validity-guards

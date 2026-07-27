@@ -85,15 +85,17 @@
     - the duration comparison basis is established and the fake comes to model decay, at which point
       the two readings stop coinciding
 
-- id: effect-display-name-is-supplied
+- id: custom-effect-display-name-is-supplied
   statement: |
-    Effect.displayName reads back what the test supplied and throws UnsetValueError otherwise
+    a custom effect type's displayName reads back from the base name the test registered, and
+    throws UnsetValueError when none was registered rather than deriving one from the identifier
   status: tolerated
   falsifiers:
-    - a source pins the display name for every effect type, making the value derivable rather than
-      supplied
-    - tests that never touch displayName are forced to supply it anyway because some modelled path
-      reads it internally
+    - a base name derived from the identifier turns out to match the engine for custom types, whose
+      strings the engine has no localisation entry for, making the throw an obstacle rather than a
+      guard against fabrication
+    - tests that never touch displayName are forced to register one anyway because some modelled
+      path reads it internally
 
 - id: trigger-event-requires-prefix-and-records
   statement: |
@@ -242,16 +244,20 @@
     - honouring the write while applyDamage's boolean is settled from the requested amount reads
       as a contradiction to test authors, who see true returned for a handler-written zero
 
-- id: effect-fields-are-supplied-by-a-free-function
+- id: display-names-resolve-from-a-shipped-table
   statement: |
-    an effect's display name is supplied through setEffectDisplayName(server, effectTypeId,
-    displayName), a per-world registry keyed by effect type that every effect of that type reads
+    Effect.displayName resolves with no test setup, from a shipped table of the 37 observed base
+    names stored verbatim plus the observed numeral mapping computed over the amplifier, with
+    registerEffectBaseName supplying a base for a custom type or overriding a shipped one
   status: proposed
   falsifiers:
-    - a source pins displayName per effect type and amplifier, so the value is derived and needs no
-      supply route at all
-    - tests assert on the part of the engine's string that varies with amplifier — "Speed II"
-      against "Speed I" — which one registered name per type cannot express
+    - a version bump changes a vanilla display name, so the transcribed table silently disagrees
+      with the engine where a derivation would have tracked it
+    - the numeral mapping proves locale-dependent — a locale placing the numeral elsewhere, or
+      using different numerals — so computing the suffix cannot be right for every locale the
+      shipped bases might be replaced with
+    - packs read displayName rarely enough that shipping and maintaining 37 strings costs more than
+      the reads it answers
 
 - id: fakes-are-handler-tables-over-a-state-record
   statement: |

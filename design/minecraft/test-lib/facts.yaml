@@ -1425,6 +1425,11 @@
     Nothing in the engine's registry supplies the base name either: `EffectTypes.getAll()` returns
     38 types — the 37 `@minecraft/vanilla-data` ships plus `minecraft:empty` — and every one of
     them answers `getName()` with its own identifier rather than a display name.
+  caveat: |
+    The runs captured one server's locale, and `Effect.displayName` is documented only as the
+    "player-friendly name" with no locale contract stated. Both the base strings and the placement
+    of the numeral are therefore that locale's until a second one is observed; a locale that
+    translates the bases, or positions the level marker differently, would not match.
   backing: tested
   sources:
     - description: |
@@ -1466,6 +1471,9 @@
     A display name derived from the type identifier cannot reproduce it, so any mechanism that
     answers `displayName` correctly for this type has to carry the base string verbatim, space
     included.
+  caveat: |
+    Observed in one server's locale. The leading space is a property of the localisation entry that
+    locale resolves to, so another locale's entry for the same type may not carry it.
   backing: tested
   sources:
     - description: |
