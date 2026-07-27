@@ -2,11 +2,11 @@
 
 ## What this design is for
 
-Specify what makes the *content* of a spec good — as distinct from its shape, which
-`doc-structure` fixes. A spec is the primary document a builder builds from, so "good" means it
-tells a builder what to build and how; this design says what that takes and how much of it. An
-agent handed `doc-structure` can write a well-formed `spec.md`; it needs this one to write a good
-one.
+Specify what makes the *content* of a spec, and of the foundation entries it rests on, good — as
+distinct from their shape, which `doc-structure` fixes. A spec is the primary document a builder
+builds from, so "good" means it tells a builder what to build and how; this design says what that
+takes and how much of it. An agent handed `doc-structure` can write a well-formed `spec.md`; it
+needs this one to write a good one.
 
 ## In scope
 
@@ -26,6 +26,9 @@ one.
   not; and the author's duty toward inherited facts — correct one proven wrong (a new evidenced
   fact, superseding the old) and record a foundational discovery as a fact rather than leaving
   it in the prose.
+- **What belongs in a requirement**: that a requirement is an owner call — something a spec
+  decision would be reversed over — stated in a sentence or two, and that design work needing
+  carve-outs and argument belongs in the spec where it can be argued with.
 - **Falsifiers**: what makes one real rather than a box being ticked.
 - **Unknowns**: that an unknown answerable now is answered now, and when one may instead be
   carried as a gate, a revisit condition, or an assumed fact.
