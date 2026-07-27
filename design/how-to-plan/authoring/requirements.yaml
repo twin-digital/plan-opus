@@ -66,6 +66,7 @@
     because doc-structure forbids a token in the Summary.
 
 - id: specification-does-not-restate-entries
+  status: retired
   statement: |
     the specification — the H2 sections of a spec.md, meaning everything after the Summary that is
     not the Open questions or Components block, and the only place citations appear — carries no
@@ -73,12 +74,18 @@
     concluding test checklist is the one exception, since gathering the tests in one place is
     exactly its job
   rationale: |
-    "The specification" is pinned to the H2 prose sections doc-structure defines, so the rule names
-    what it governs. The extracted lists are
-    already read on their own and drawn into the builder's crib, so a sentence that only restates
-    an entry adds nothing; what the prose owes is the connective work the lists cannot show. The
-    concluding checklist is exempt: it is a deliberate summary artifact, not specification prose that
-    failed to add anything.
+    Retired as superseded by `specification-stands-alone-at-build-time`, which requires in the prose
+    the very sentences this rule's central case struck; what it cut beyond those is already cut by
+    the minimum-sufficient bar, so it fired on almost nothing while pulling a reviewer the wrong way.
+
+- id: specification-stands-alone-at-build-time
+  statement: |
+    the specification states every value the build turns on — a path, a filename, a literal
+    spelling, a format, a default — rather than leaving it to a citation to fetch, so a builder
+    reading the document with its citation tokens stripped can still produce the artifact.
+  rationale: |
+    A citation is an index, and the builder's copy does not have one: "the two fixed
+    source-manifest paths" reads complete until the tokens are gone.
 
 - id: resting-on-an-assumed-fact-is-an-answerable-unknown
   statement: |

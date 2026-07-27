@@ -54,9 +54,10 @@ tiers and **nothing from another design** — a design's decisions bind only its
 
 **4. The authoring rules — `design/how-to-plan/authoring/spec.md`** (and its `requirements.yaml`).
 These govern the *contents* of any design here, this one included: that the `spec.md` is a build
-document stating what to build and how with a minimum of why, that it opens by orienting and does
-not re-narrate the extracted lists, what must be cited, that falsifiers are real and evidence is
-quoted, and that an unknown answerable now is answered rather than deferred. Read them as the
+document stating what to build and how with a minimum of why, that it opens by orienting, that it
+states every value the build turns on rather than leaving it to a citation to fetch, what must be
+cited, that falsifiers are real and evidence is quoted, and that an unknown answerable now is
+answered rather than deferred. Read them as the
 constraints on your prose — this prompt does not restate them. (When the design you are writing
 *is* authoring, its spec is being rebuilt, so its `requirements.yaml` and `brief.md` are the
 source.)

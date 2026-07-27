@@ -32,7 +32,7 @@ Do not report, and do not spend reading time on:
 
 - citation mechanics, token placement, over- or under-citation
 - quote provenance, verbatim accuracy, `where` fields, source formatting
-- restatement, wording, section length, prose quality
+- wording, section length, prose quality
 - falsifier phrasing, entry schema, id conventions, anything `npm run check` enforces
 - any defect whose fix leaves every builder doing exactly what they already would
 
@@ -47,8 +47,10 @@ which is a real result, not a failed review.
 Answer each with specifics from the spec. Vagueness here is indistinguishable from not having read
 it.
 
-**1. Could you build this?** Pick the component you would start with and walk its interface. Name
-every point where you would have to stop and ask someone. If there are none, say which component
+**1. Could you build this?** Read it the way the builder receives it, with every citation token
+struck out — a value left to a token to fetch is a value they never get. Pick the component you
+would start with and walk its interface. Name every point where you would have to stop and ask
+someone. If there are none, say which component
 you checked and why it holds — a builder who could start today is the thing being tested.
 
 **2. Does it cohere?** Do the decisions fit each other, or does one quietly assume something
