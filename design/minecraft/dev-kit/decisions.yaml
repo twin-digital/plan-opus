@@ -7,7 +7,7 @@
   statement: |
     the kit reads the workspace definition and expands its patterns itself, rather than delegating
     enumeration to `@npmcli/map-workspaces` or `@pnpm/workspace.find-packages`
-  status: proposed
+  status: rejected
   falsifiers:
     - a real workspace holds a directory with its own `package.json`, not the root, that `npm query .workspace` or `pnpm list -r` counts a member and the kit does not, or the reverse — divergence outside the two the design chooses
     - either manager changes its workspace config format such that the kit's pattern handling has to track a moving target
@@ -17,7 +17,7 @@
   statement: |
     a candidate package whose `package.json` cannot be read or parsed invalidates the packs in that
     package and no others; the rest of the workspace enumerates normally
-  status: proposed
+  status: rejected
   falsifiers:
     - consumers report that a package fault silently hides a workspace-wide breakage they needed to see immediately
     - packs whose completion data comes from a faulted package are found to be usable in practice, making the invalid marking wrong
@@ -26,16 +26,10 @@
   statement: |
     a directory the workspace patterns match that holds a source pack but no `package.json` is
     reported as an invalid entry rather than skipped
-  status: proposed
+  status: rejected
   falsifiers:
     - real workspaces routinely carry pack-shaped directories outside any package that consumers must not be told about
     - the entries produced this way are unusable enough that every consumer filters them out at the first call
-
-- id: delegate-enumeration-to-the-manager-libraries
-  statement: |
-    enumerate workspace members by calling `@npmcli/map-workspaces` and
-    `@pnpm/workspace.find-packages` rather than reading the workspace definition in the kit
-  status: rejected
 
 - id: pack-locations-are-workspace-relative
   statement: a pack's source and build-output locations are reported as workspace-relative paths
@@ -47,7 +41,7 @@
   statement: |
     entries are ordered by candidate-package path, behavior pack before resource pack within a
     package
-  status: accepted
+  status: proposed
   falsifiers:
     - a consumer needs a different stable order often enough that it re-sorts on every call
 
@@ -55,7 +49,7 @@
   statement: |
     `discoverPacks` throws only when the workspace root holds neither a readable
     `pnpm-workspace.yaml` nor a readable `package.json`; every other fault is a reported problem
-  status: accepted
+  status: rejected
   falsifiers:
     - a fault class arises that no entry can carry, because it belongs to no pack
 
@@ -63,14 +57,14 @@
   statement: |
     a root `pnpm-workspace.yaml` selects pnpm; otherwise the root is an npm workspace, whether or
     not its `package.json` declares a `workspaces` array
-  status: accepted
+  status: proposed
   falsifiers:
     - a third manager's workspace layout has to be supported and its marker file collides with this order
     - a root holding a `pnpm-workspace.yaml` is found that must be read as an npm workspace
 
 - id: node-modules-directories-are-never-candidates
   statement: a matched directory anywhere under a `node_modules` path is never a candidate package
-  status: accepted
+  status: rejected
   falsifiers:
     - a workspace legitimately holds a source pack under a `node_modules` path
 
@@ -78,7 +72,7 @@
   statement: |
     a candidate package holding neither source pack directory produces no entry at all, not an
     empty or invalid one
-  status: accepted
+  status: proposed
   falsifiers:
     - a consumer needs to distinguish a package that was examined from one that was never a candidate
 
@@ -86,7 +80,7 @@
   statement: |
     any failure to read or to parse a source `manifest.json` is reported as the single
     `manifest-unreadable` problem carrying the underlying message
-  status: accepted
+  status: proposed
   falsifiers:
     - a consumer has to branch on whether the file was absent, unreadable, or malformed
 
@@ -94,7 +88,7 @@
   statement: |
     a `header.name` of `""` in a source manifest is treated as unspecified and completed; any other
     present value is the specified-field error
-  status: accepted
+  status: proposed
   falsifiers:
     - a pack legitimately ships an empty header name that must survive to the server
 
@@ -102,7 +96,7 @@
   statement: |
     only a `format_version` of 3 restricts a source version to string form; a missing or
     unrecognised `format_version` imposes no restriction
-  status: accepted
+  status: proposed
   falsifiers:
     - a later manifest format version restricts version form and the kit reports its packs as unrestricted
 
@@ -110,7 +104,7 @@
   statement: |
     a `package.json` `productName` is used for completion only when it is a non-empty string;
     anything else falls back to the scope-stripped package name
-  status: accepted
+  status: proposed
   falsifiers:
     - a package is found whose non-string `productName` carries the name a consumer expects to see
 
@@ -124,7 +118,7 @@
 
 - id: an-unconstrained-search-returns-every-valid-entry
   statement: a search constraining nothing returns every valid entry in the set
-  status: accepted
+  status: proposed
   falsifiers:
     - the empty-criteria call is found to be a common typo whose result reads as a filtered set
 
@@ -132,6 +126,6 @@
   statement: |
     each `discoverPacks` call reads the filesystem once and searches run over that in-memory set,
     with no caching or watching between calls
-  status: accepted
+  status: proposed
   falsifiers:
     - a consumer's watch loop calls `discoverPacks` often enough that repeated whole-workspace reads dominate its cost

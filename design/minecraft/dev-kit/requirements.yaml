@@ -42,6 +42,16 @@
     candidate packages are enumerated from the workspace's package-manager workspace definition,
     not from walking the directory tree. Both `npm` and `pnpm` workspaces must be supported.
 
+- id: enumeration-uses-the-managers-own-libraries
+  statement: |
+    workspace packages are enumerated by each package manager's own published enumeration library,
+    called in-process, rather than by the kit reading the workspace definition and expanding its
+    patterns itself.
+  rationale: |
+    Reversing this means owning each manager's glob dialect, exclusion ordering, and
+    `node_modules` rules, where drift from upstream is silent and surfaces as a pack that
+    quietly stops being found.
+
 # Pack Query
 
 - id: pack-search
