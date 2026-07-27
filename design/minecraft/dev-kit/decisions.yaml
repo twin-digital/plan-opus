@@ -114,6 +114,16 @@
   falsifiers:
     - the empty-criteria call is found to be a common typo whose result reads as a filtered set
 
+- id: filtering-is-a-parameter-of-the-discovery-call
+  statement: |
+    pack criteria are the `filter` field of `DiscoverOptions`, and `discoverPacks` returns the
+    matching entries directly rather than a pack-set object carrying a `search` method
+  status: proposed
+  falsifiers:
+    - a consumer filters one workspace more than once per read, so the repeated whole-workspace reads dominate its cost
+    - a consumer needs the whole set alongside a filtered subset of it and has to call twice to get both
+    - the pack set grows behaviour past the entry list — a uuid index, a lazily read detail — that has nowhere to live once the call returns a bare array
+
 - id: the-pack-set-is-read-once-per-call
   statement: |
     each `discoverPacks` call reads the filesystem once and searches run over that in-memory set,

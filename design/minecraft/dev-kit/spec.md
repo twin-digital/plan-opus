@@ -26,34 +26,36 @@ text to parse [[r:dev-kit-provides-a-library]].
 ```ts
 interface DiscoverOptions {
   workspace?: string      // the workspace root; defaults to process.cwd()
+  filter?: PackCriteria   // when given, only the entries matching it are returned
 }
 
-interface PackSet {
-  readonly packs: readonly PackEntry[]
-  search(criteria?: PackCriteria): PackEntry[]
-}
-
-declare function discoverPacks(options?: DiscoverOptions): Promise<PackSet>
+declare function discoverPacks(options?: DiscoverOptions): Promise<readonly PackEntry[]>
 ```
+
+One call carries both jobs: `discoverPacks` hands back the entry array itself, and the criteria that
+select among the packs are the `filter` field of its options
+[[d:filtering-is-a-parameter-of-the-discovery-call]].
 
 `workspace` defaults to `process.cwd()`, so a bare `discoverPacks()` discovers the packs of the
 workspace the process is running in, and a relative `workspace` resolves against that same
-directory. `PackEntry`, `Problem`, `PackCriteria`, and `PackManifest` with the header, module, and
-dependency shapes it uses are declared below and exported alongside these three.
+directory. `filter` is described under Filtering below. `PackEntry`, `Problem`, `PackCriteria`, and
+`PackManifest` with the header, module, and dependency shapes it uses are declared below and
+exported alongside the options type and the function.
 
-`discoverPacks` reads the filesystem once and builds the whole set eagerly; `search` runs over that
-in-memory set, and the kit neither caches across calls nor watches for changes — a consumer wanting
-fresh data calls `discoverPacks` again [[d:the-pack-set-is-read-once-per-call]]. It rejects only
-when the workspace cannot be enumerated at all: the root holds neither a readable
-`pnpm-workspace.yaml` nor a readable `package.json`, or the root `package.json` an npm workspace is
-read from is not valid JSON, or the enumeration library throws — which it does when any workspace
-member's `package.json` is not valid JSON (below). The underlying error reaches the caller
+`discoverPacks` reads the filesystem once per call and builds the whole set eagerly; a `filter` is
+applied to that in-memory set once it is built, and the kit neither caches across calls nor watches
+for changes — a consumer wanting fresh data, or a second filtering, calls `discoverPacks` again
+[[d:the-pack-set-is-read-once-per-call]]. It rejects only when the workspace cannot be enumerated at
+all: the root holds neither a readable `pnpm-workspace.yaml` nor a readable `package.json`, or the
+root `package.json` an npm workspace is read from is not valid JSON, or the enumeration library
+throws — which it does when any workspace member's `package.json` is not valid JSON (below). The
+underlying error reaches the caller
 unwrapped, so the rejection carries its message. Every fault the kit meets after enumeration is
 carried by an entry instead [[d:enumeration-failure-rejects-the-call]].
 
-`set.packs` is the single flat list of everything found, so nothing appears in one view and is
-missing from another, and every entry is `valid` or `invalid` [[r:pack-discovery]]. The two shapes
-share their non-manifest details:
+The returned array is the single flat list of everything found, so nothing appears in one view and
+is missing from another, and every entry is `valid` or `invalid` [[r:pack-discovery]]; a call
+passing no `filter` returns the whole of it. The two shapes share their non-manifest details:
 
 ```ts
 type PackKind = 'behavior' | 'resource'
@@ -84,42 +86,68 @@ interface InvalidPackEntry extends PackEntryBase {
 }
 ```
 
-The manifest is typed over the fields the kit reads and completes, and no further: every field is
-optional, because a source manifest may omit any of them, and each interface carries an index
-signature so keys the kit does not model survive to the consumer unchanged.
+`PackManifest` is the *completed* manifest a valid entry carries, so it states what such an entry
+guarantees rather than what a source file may hold: a field validation demands or completion always
+writes is required, and only a field a valid pack may genuinely lack is optional. It is typed over
+what the kit reads and completes and no further, and each interface carries an index signature so
+keys the kit does not model survive to the consumer unchanged.
 
 ```ts
 type ManifestVersion = string | [number, number, number]
 
 interface PackManifest {
   format_version?: number | string
-  header?: ManifestHeader
-  modules?: ManifestModule[]
+  header: ManifestHeader
+  modules: [ManifestModule, ...ManifestModule[]]
   dependencies?: ManifestDependency[]
   [key: string]: unknown
 }
 
 interface ManifestHeader {
-  name?: string
-  uuid?: string
-  version?: ManifestVersion
+  name: string
+  uuid: string
+  version: string
   [key: string]: unknown
 }
 
 interface ManifestModule {
-  type?: string
+  type: string
   uuid?: string
   version?: ManifestVersion
   [key: string]: unknown
 }
 
-interface ManifestDependency {
-  uuid?: string
-  module_name?: string
-  version?: ManifestVersion
+type ManifestDependency = ManifestPackDependency | ManifestModuleDependency
+
+interface ManifestPackDependency {
+  uuid: string
+  version: ManifestVersion
+  [key: string]: unknown
+}
+
+interface ManifestModuleDependency {
+  module_name: string
+  version: ManifestVersion
   [key: string]: unknown
 }
 ```
+
+Each required field is one the rules below leave a valid entry unable to lack. `header` and its
+`uuid` are required because a manifest declaring no `header.uuid` is `manifest-missing-uuid`, and a
+`header` that is not an object is `manifest-shape-invalid`. `header.name` and `header.version` are
+required because completion always writes both, and `version` is a `string` rather than a
+`ManifestVersion` because completion writes a SemVer string at every format version. `modules` is
+required and non-empty, and every module carries a `type`, because a valid pack has a module
+corroborating its kind and a module with no `type` is `module-missing-type`. A dependency entry
+carries exactly one of `uuid` or `module_name`, since one carrying both or neither is
+`dependency-entry-malformed`, and always a `version`: completion writes it where the `uuid` names a
+pack in the workspace, and an entry the workspace does not complete that carries none is
+`dependency-unsatisfied` or `external-dependency-version-missing`.
+
+The rest stay optional. `format_version` may be absent, because a missing or unrecognised one
+restricts nothing and passes through; `dependencies` may be absent, because a pack depending on
+nothing is ordinary; and `modules[].uuid` and `modules[].version` may be absent, because the kit
+neither completes nor validates either.
 
 Only a valid entry's `manifest` is a `PackManifest`. An invalid entry's is typed `unknown`, because a
 file that parsed to something other than a JSON object — or whose `header`, `modules`, or
@@ -386,10 +414,10 @@ a missing pack, and neither is a uuid the set does not claim that carries its ow
 external [[r:kit-completes-partial-source-manifests]]. One carrying no version is the
 `dependency-unsatisfied` above.
 
-## Searching
+## Filtering
 
-`search(criteria?)` takes any of four criteria and returns an array, empty when nothing matches
-[[r:pack-search]]:
+`DiscoverOptions.filter` takes any of four criteria and narrows the array `discoverPacks` returns,
+which is empty when nothing matches [[r:pack-search]]:
 
 ```ts
 interface PackCriteria {
@@ -405,8 +433,16 @@ an entry must satisfy all of them. Criteria whose value an entry does not carry 
 entry with no manifest matches no `name`, and one with no header uuid matches no `uuid`. The
 one departure a builder will meet is `uuid`, which is compared with both sides lowercased, so a
 case-varied spelling of the same uuid still matches [[r:uuids-compare-case-insensitively]]. No filter
-is applied by default: criteria that omit `status` match valid and invalid entries alike, and a call
-constraining nothing at all returns every entry in the set [[r:pack-search]].
+is applied by default: a `filter` that omits `status` matches valid and invalid entries alike, and a
+call passing no `filter`, or an empty one, returns every entry in the set [[r:pack-search]].
+
+The filter runs over the built set rather than narrowing the work that builds it. Validation is
+set-wide — duplicate uuids and the propagation of invalidity along dependency edges are decided
+across every pack found — so no criterion can be read before the whole set exists, and a filtered
+call costs a workspace read exactly as an unfiltered one does
+[[d:filtering-is-a-parameter-of-the-discovery-call]]. Filtering one workspace twice is therefore two
+reads, which is the price the once-per-call reading already carries and the condition its falsifier
+names [[d:the-pack-set-is-read-once-per-call]].
 
 ## Components
 
@@ -428,7 +464,7 @@ components:
     excludes: deciding what an entry exposes to a consumer
     after: [manifest-completion]
   - id: pack-set-api
-    responsibility: expose discoverPacks and its options, the entry, problem, and manifest types, the pack list in its defined order, and search over the built set
+    responsibility: expose discoverPacks and its options, the entry, problem, and manifest types, and the pack list in its defined order, narrowed by the filter option when one is given
     excludes: producing or deploying built output
     after: [pack-validation]
 ```
