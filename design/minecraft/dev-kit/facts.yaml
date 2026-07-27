@@ -446,6 +446,10 @@
     one array, a uuid entry and a `module_name` entry with no uuid, so a dependency entry does not
     always name another pack.
   backing: documented
+  caveat: |
+    The sources define the `uuid`, `module_name`, and `version` fields and show one entry of each
+    shape. None of them states that an entry must carry exactly one of `uuid` and `module_name`, so
+    an entry carrying neither, or both, is outside what this evidence covers.
   sources:
     - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
       where: Properties table — dependencies row
