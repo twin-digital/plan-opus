@@ -200,7 +200,7 @@
   statement: |
     applyDamage fires entityDie when the write leaves currentValue at or below effectiveMin, the
     boundary value included
-  status: accepted
+  status: proposed
   falsifiers:
     - a type with a non-zero effectiveMin reaches that minimum and lives, so the rule holds only
       where the minimum is zero — which is every type the survey reached
@@ -329,7 +329,7 @@
     a subscriber that throws does not reach the caller, does not stop the other subscribers, and
     does not stop the rest of the cascade, as the engine was observed to behave; the library
     records the error for getHandlerErrors rather than discarding it as the engine does
-  status: accepted
+  status: proposed
   falsifiers:
     - tests never read getHandlerErrors, so a throwing handler is lost as silently as the engine
       loses it and the recording buys nothing over plain absorption
