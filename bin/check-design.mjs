@@ -10,6 +10,7 @@
 import fs from "fs";
 import path from "path";
 import YAML from "yaml";
+import { loadSets, bindsDesign } from "./lib/binding.mjs";
 
 const ROOT = "design";
 const fail = {};
@@ -76,10 +77,8 @@ for (const a of areas) {
 // ---- named sets of designs (design/sets.yaml) -------------------------------
 // A set groups designs the tree cannot: a product spanning areas, or one overlapping a sibling.
 // Sets never nest, so membership is one lookup deep.
-const SETS_FILE = path.join(ROOT, "sets.yaml");
-const raw = fs.existsSync(SETS_FILE) ? (YAML.parse(fs.readFileSync(SETS_FILE, "utf8")) ?? {}) : {};
-const sets = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
-if (raw !== sets) add("sets.yaml is not a mapping of set name to design scopes", SETS_FILE);
+const { sets, malformed } = loadSets(ROOT);
+if (malformed) add("sets.yaml is not a mapping of set name to design scopes", path.join(ROOT, "sets.yaml"));
 const designScopes = new Set(designs.map((d) => d.scope));
 for (const [name, members] of Object.entries(sets)) {
   if (!Array.isArray(members) || !members.length) { add("set without members", name); continue; }
@@ -102,17 +101,6 @@ for (const rec of Object.values(ent)) {
     else if (!designScopes.has(s)) add("applies_to names no such design", `${tag} -> ${s}`);
   }
 }
-
-// Which designs a requirement binds: its applies_to, or its whole tier when it names none.
-const bindsDesign = (rec, d) => {
-  if (rec.tier === "design") return rec.scope === d.scope;
-  const at = rec.e.applies_to;
-  if (!Array.isArray(at)) return rec.tier === "global" || rec.scope === d.area;
-  return at.some((t) => {
-    const s = String(t);
-    return s.startsWith("set:") ? (sets[s.slice(4)] ?? []).includes(d.scope) : s === d.scope;
-  });
-};
 
 // ---- per-entry schema checks (rules 4,6,7,8,9) ------------------------------
 function checkEntry(kind, e, scope, file) {
@@ -243,7 +231,7 @@ for (const d of designs) {
       if (!toks.some(([, k, id]) => k === "d" && id === x.id)) uncited.push(`d:${x.id}`);
     }
     for (const [id, r] of Object.entries(ent)) {
-      if (r.kind !== "r" || isDead(r.e) || !bindsDesign(r, d)) continue;
+      if (r.kind !== "r" || isDead(r.e) || !bindsDesign(sets, r, r.e, d)) continue;
       if (!toks.some(([, k, i]) => k === "r" && i === id)) uncited.push(`r:${id}`);
     }
     if (uncited.length) { d.state = "draft"; for (const u of uncited) add("uncited at settle", `${tag} ${u}`); }

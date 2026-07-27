@@ -9,6 +9,7 @@
 import fs from "fs";
 import path from "path";
 import YAML from "yaml";
+import { loadSets, bindsDesign } from "./lib/binding.mjs";
 
 const ROOT = "design";
 const args = process.argv.slice(2);
@@ -38,24 +39,16 @@ const read = (file) => {
   if (!fs.existsSync(file)) return [];
   return (YAML.parse(fs.readFileSync(file, "utf8")) ?? []).filter((e) => !DEAD.includes(e.status));
 };
+const targetDesign = { scope: `${target.area}/${target.name}`, area: target.area };
 const scopes = [
-  { label: `design — ${target.name}`, dir: target.dir },
-  { label: `area — ${target.area}`,    dir: path.join(ROOT, target.area) },
-  { label: "global",                   dir: ROOT },
+  { label: `design — ${target.name}`, dir: target.dir,                  tier: "design", scope: targetDesign.scope },
+  { label: `area — ${target.area}`,   dir: path.join(ROOT, target.area), tier: "area",   scope: target.area },
+  { label: "global",                  dir: ROOT,                        tier: "global", scope: "global" },
 ];
 
-// A wider-scope requirement binds the designs its applies_to names, or its whole tier when it
-// names none. Requirements that bind some other design are dropped rather than shown here.
-const SETS_FILE = path.join(ROOT, "sets.yaml");
-const setsRaw = fs.existsSync(SETS_FILE) ? (YAML.parse(fs.readFileSync(SETS_FILE, "utf8")) ?? {}) : {};
-const sets = setsRaw && typeof setsRaw === "object" && !Array.isArray(setsRaw) ? setsRaw : {};
-const targetScope = `${target.area}/${target.name}`;
-const binds = (e) =>
-  !Array.isArray(e.applies_to) ||
-  e.applies_to.some((t) => {
-    const s = String(t);
-    return s.startsWith("set:") ? (sets[s.slice(4)] ?? []).includes(targetScope) : s === targetScope;
-  });
+// Requirements that bind some other design are dropped rather than shown here, resolved by the
+// same rule the settle gate uses.
+const { sets } = loadSets(ROOT);
 let unbound = 0;
 
 // Block scalars are already hand-wrapped; preserve the author's line breaks (and any
@@ -77,7 +70,7 @@ for (const [kind, file, heading] of [["req", "requirements.yaml", "Requirements"
   let any = false;
   for (const scope of scopes) {
     const all = read(path.join(scope.dir, file));
-    const entries = (kind === "req" ? all.filter((e) => binds(e) || (unbound++, false)) : all)
+    const entries = (kind === "req" ? all.filter((e) => bindsDesign(sets, scope, e, targetDesign) || (unbound++, false)) : all)
       .sort((a, b) => String(a.id).localeCompare(String(b.id)));
     if (!entries.length) continue;
     any = true;
