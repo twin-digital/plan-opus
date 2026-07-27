@@ -120,8 +120,9 @@ entirely, which the survey costs at 69% of repositories referencing one of them 
 Every behaviour stated below as the engine's rests on the pinned declarations, the official API
 reference, or a recorded observation, and where an observation contradicts the reference this
 document says so and follows the observation [[r:engine-claims-are-sourced]]. Where the library
-simplifies, the simplification is marked as the library's own; those are gathered under *Where the
-fakes diverge*.
+simplifies, the simplification is marked as the library's own, and *Coverage* below enumerates every
+behaviour this design has ruled on as modelled, not modelled, or a divergence
+[[r:coverage-is-enumerated]].
 
 ## Constructing a world
 
@@ -149,13 +150,14 @@ behaviour, and compose freely [[r:presets-are-opt-in]]. Two ship in this cycle
   `"the end"`, each returning a dimension whose `id` is the prefixed form, with `heightRange`
   −64..320, 0..128 and 0..256 respectively and `localizationKey`
   `dimension.dimensionName0`/`1`/`2` [[f:vanilla-dimensions-resolve-with-populated-fields]].
-- `asSpawnedEntity(entity)` supplies the spawn-frame values a source pins: `nameTag` the empty
-  string, `getRotation()` `{x: 0, y: 0}`, and `getVelocity()` `{x: 0, y: 0, z: 0}`
-  [[f:fresh-entity-nametag-is-empty-string]]. The zeros are pinned for seven of the eight types
-  sampled and not for `minecraft:xp_orb`, which spawns with a randomized rotation and a nonzero
-  randomized velocity, so on an entity of that type the preset supplies `nameTag` alone and leaves
-  rotation and velocity unset [[f:spawn-frame-kinematics-zero-except-xp-orb]]
-  [[d:spawn-frame-preset-skips-xp-orb]].
+- `asSpawnedEntity(entity)` supplies the spawn frame: `nameTag` the empty string, `getRotation()`
+  `{x: 0, y: 0}`, and `getVelocity()` `{x: 0, y: 0, z: 0}`
+  [[f:fresh-entity-nametag-is-empty-string]]. It applies those values on every entity type. The
+  zeros are the observed spawn frame of seven of the eight types sampled; `minecraft:xp_orb` is the
+  exception, spawning with a randomized rotation and a nonzero randomized velocity, and the preset
+  simplifies past it rather than modelling a per-type draw
+  [[f:spawn-frame-kinematics-zero-except-xp-orb]]. That is a deliberate simplification and is
+  recorded as one below.
 
 Neither preset invents per-type vanilla data. A sheep's fourteen components and its 8/8/0/8 health
 are per-type data no preset here supplies; a package built on this one may
@@ -318,7 +320,8 @@ there.
 
 `Effect.displayName` is a populated human-readable string in the engine — `"Speed II"` for speed at
 amplifier 1 — which no declaration or constant pins, so the fake reads back what the test supplied
-for it and throws `UnsetValueError` when the test supplied nothing
+for it and throws `UnsetValueError` when the test supplied nothing — it is declared a bare `string`,
+an unsupplied read of which throws under the ordinary rule below
 [[f:live-effect-fields-populated]] [[d:effect-display-name-is-supplied]]. The test supplies it with
 `setEffectState(effect, { displayName })`, the effect-side counterpart of `addComponent`'s `state`:
 `addEffect` takes the engine's own `EntityEffectOptions`, which has no display-name field, and
@@ -438,20 +441,94 @@ for the messages quoted above. Two errors are the library's own and have no engi
 `NotImplementedError` for a declared member this cycle does not model, and `UnsetValueError` for a
 read of a value the test never supplied. Both name the member they came from.
 
-## Where the fakes diverge
+### What a read that finds nothing does
 
-These are the library's own simplifications, not the engine's behaviour:
+Four rules govern a read with no value behind it, and they apply in this order. The order is the
+whole of it: a member matching an earlier rule never reaches a later one.
 
-- After-events dispatch synchronously rather than same-tick-deferred.
-- Construction populates nothing, where a real entity always arrives with components.
-- Effect durations do not decay and effects never expire, where the engine decays one per tick.
-- Entities never move on their own and land exactly where they are placed.
-- Projectile-form damage is the amount requested.
-- `remove()` raises `entityRemove` alone.
-- Method arity is not checked ahead of the validity guard.
-- Items, blocks, containers, the player client surface, custom commands, the startup registries, and
-  all eight registry classes are declared and throw `NotImplementedError`.
-- Entity queries ignore no filter because they accept none: an `EntityQueryOptions` argument throws.
+1. **The validity guard fires first.** On an invalidated reference every guarded member throws
+   `InvalidEntityError` — or the plain `Error` its owner's table above gives — whatever the member
+   would otherwise have done [[d:guard-list-comes-from-the-observation]].
+2. **An out-of-scope member throws `NotImplementedError`.** A member this cycle does not model
+   never answers a read, however its declaration is typed
+   [[d:out-of-scope-members-throw-not-implemented]].
+3. **A modelled member reading an absence the engine can exhibit returns `undefined`** — an
+   unattached component, an unset dynamic property, an unknown objective or participant
+   [[d:absence-reads-as-undefined]].
+4. **A modelled member reading a value the test never supplied throws `UnsetValueError`**, because
+   the engine could not have lacked it [[r:fakes-never-fabricate]].
+
+Rules 3 and 4 are told apart by the declaration's own type: a member declared `T | undefined` has an
+absence the engine itself can present, so the fake presents it; a member declared bare `T` has none,
+so an unsupplied read throws rather than inventing one. `Effect.displayName` is declared `string`,
+which is why an unsupplied read of it throws [[d:effect-display-name-is-supplied]] — rule 4 applied,
+not an exception to it.
+
+Rules 1 and 2 are what rule 3 must not swallow. A member that is both out of scope and declared
+`T | undefined` — and the declarations carry many — takes rule 2 and throws. Returning `undefined`
+there would be the library asserting the engine had nothing, on a member it never modelled
+[[r:fakes-never-fabricate]].
+
+## Coverage
+
+Every engine behaviour this design has ruled on is listed below as **modelled** (the fake reproduces
+the engine), **not modelled** (the members are declared and throw `NotImplementedError`, or the
+behaviour has no fake counterpart), or a **divergence** (the fake behaves, and differs from the
+engine on purpose) [[r:coverage-is-enumerated]]. Each divergence row carries the difference itself,
+so this table is the one place a reader learns where a passing test would not have passed against
+the engine. The table states what the design ruled on and nothing more: a behaviour outside it has
+not been considered, which is not the same as a promise about it.
+
+| engine behaviour | coverage | what the library does |
+|---|---|---|
+| dimension registration and `world.getDimension` resolution | modelled | via `withVanillaDimensions`; ids, aliases, height ranges and localization keys as observed |
+| `getDimension` with an unknown id | modelled | plain `Error`, the message quoted above |
+| the world's resting state — empty collections, no players, no objectives | modelled | |
+| a freshly constructed entity's components | divergence | construction populates nothing; in the engine a fresh entity always arrives carrying at least one component |
+| the spawn frame of `minecraft:xp_orb` | divergence | `asSpawnedEntity` applies zero rotation and velocity to every type; the engine spawns an `xp_orb` with a randomized rotation and a nonzero randomized velocity, drawn afresh per spawn |
+| per-type vanilla data — a sheep's fourteen components, its 8/8/0/8 health | not modelled | no preset supplies it; a package built on this one may |
+| entity id assignment | divergence | ids are decimal strings issued from `1` per bundle; the engine's are negative integers. `Entity.id` is documented opaque, so nothing may read the spelling either way |
+| `world.getEntity`, `getAllPlayers`, `getPlayers`, `dimension.getEntities`, `dimension.getPlayers` | modelled | unfiltered, in creation order |
+| `EntityQueryOptions` filtering | not modelled | any options argument throws; a test filters the unfiltered return |
+| the other entity lookups — `getEntitiesAtBlockLocation`, `getEntitiesFromRay`, `getEntitiesFromViewDirection` and the rest | not modelled | |
+| `dimension.spawnEntity` placement | divergence | the entity lands exactly where asked; the engine adjusts some placements — a boat by 0.2 on x and z |
+| post-spawn motion | divergence | an entity never moves on its own; AI-driven mobs drift within a couple of dozen ticks |
+| `entity.remove()` | divergence | raises `entityRemove` alone; any further event the engine attributes to removal is not reproduced |
+| `entity.triggerEvent` | divergence | validates the prefixed id and records the call, changing no state; in the engine the event reshapes the entity |
+| `entity.kill()` | modelled | the full cascade, on an entity with and without a health component |
+| invalidation of a dead entity's reference | not modelled | `kill()` never invalidates; when a corpse goes invalid varies by type in the engine, so a test says so with `invalidate()` |
+| the seven attribute-shaped components | modelled | all four values, the bounds check, and the health-write cascade |
+| the other 61 entity components | not modelled | attachable, carrying `typeId`, `isValid` and `entity`; every other member throws |
+| runtime component attachment and detachment | not modelled | the engine reaches it through data-driven paths; a test uses the `addComponent` / `removeComponent` free functions |
+| bare and prefixed id tolerance | modelled | per-surface, as observed — `triggerEvent` rejects the bare form and the others accept it |
+| `setCurrentValue` bounds check | modelled | including the message and both inclusive bounds |
+| `applyDamage` cascade, order and payloads | modelled | including the unclamped negative health an overkill leaves |
+| `applyDamage` cause defaults and the `damagingEntity` carry-through | modelled | |
+| the engine's velocity-dependent projectile damage adjustment | divergence | the projectile options form applies the amount requested |
+| `addEffect` / `getEffect` / `getEffects` / `removeEffect` and the amplifier-first replacement rule | modelled | |
+| effect duration decay and expiry | divergence | a duration reads back the value applied and never decays; the engine decays it one per tick and expires the effect |
+| `Effect.displayName` | divergence | the test supplies it and an unsupplied read throws; the engine derives a populated string from the type and amplifier |
+| signal existence, `subscribe` / `unsubscribe`, reference dedupe and subscription order | modelled | |
+| after-event dispatch timing | divergence | synchronous, inside the causing call; the engine defers past that call's return to later in the same tick |
+| engine-raised signals outside the five after-events and three before-events the fakes raise | not modelled | no fake behaviour raises them; a test drives one with `emit` |
+| before-event cancellation | modelled | on the two signals whose payload declares `cancel` |
+| a subscriber that throws | modelled | propagates out of the dispatching call; the remaining subscribers do not run |
+| the tick loop | divergence | nothing runs on its own; `currentTick` starts at 0 and moves only under `advanceTicks` |
+| `run` / `runTimeout` / `runInterval` / `clearRun` scheduling | modelled | every intervening tick's callbacks run during an advance |
+| `runJob` / `clearJob` | not modelled | |
+| dynamic properties on the world and on entities | modelled | real storage over the declared value types |
+| `getDynamicPropertyTotalByteCount` | not modelled | no source pins the engine's accounting |
+| the scoreboard — objectives, scores, participants, display slots | modelled | |
+| `sendMessage` and `onScreenDisplay` output | modelled | captured to a per-target log rather than displayed, and read back with `getOutput` |
+| the invalidation guard on entities, attribute components and effects | modelled | the observed per-member table, error class by error class |
+| arity checked ahead of the validity guard | divergence | a guarded member throws `InvalidEntityError` however it was called; the engine raises a `TypeError` on a wrong-arity call first |
+| items, blocks, containers, the player client surface, custom commands, the startup registries, and the eight registry classes | not modelled | declared in full and throwing |
+
+The divergence rows are not spec-only. Each one describes a way a test can pass against the fake and
+fail against the engine, so this table and its descriptions carry through into the package's own
+user-facing documentation, where someone reading it has the library in hand and the spec nowhere
+near [[r:coverage-is-enumerated]]. Keeping the two in step is `package-and-exports`'s to hold,
+alongside the entry point it already owns.
 
 ## Components
 
@@ -538,9 +615,10 @@ components:
   - id: package-and-exports
     responsibility: >-
       the package.json with its peer dependency and ESM-only build, the TypeScript build and
-      declaration emit, and the single public entry point re-exporting every fake type and every
-      free function
-    excludes: the behaviour behind anything it re-exports
+      declaration emit, the single public entry point re-exporting every fake type and every free
+      function, and the user-facing documentation carrying the coverage table and a description of
+      every divergence in it
+    excludes: the behaviour behind anything it re-exports, and which coverage a behaviour has
     after:
       [
         event-bus,

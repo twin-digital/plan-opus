@@ -287,17 +287,6 @@
     - tests that supply only currentValue routinely hit UnsetValueError from setCurrentValue's
       bounds check or a reset, so the optional record forces every test to supply all four anyway
 
-- id: spawn-frame-preset-skips-xp-orb
-  statement: |
-    asSpawnedEntity supplies nameTag alone on a minecraft:xp_orb and nameTag plus the zero rotation
-    and velocity on every other type
-  status: proposed
-  falsifiers:
-    - the xp_orb spawn frame is pinned to a distribution a preset can draw from, so the type no
-      longer needs excluding
-    - tests spawning an xp_orb hit UnsetValueError on rotation often enough that the type-aware
-      preset surprises more readers than uniform zeros would have misled
-
 - id: tick-advance-semantics
   statement: |
     advanceTicks steps one tick at a time, incrementing currentTick and running that tick's
