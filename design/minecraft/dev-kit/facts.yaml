@@ -61,9 +61,13 @@
   claim: |
     A `pnpm-workspace.yaml` defines the root of a workspace, and its `packages` field is the list of
     directory patterns the workspace includes or excludes: a direct subdirectory path, a `*` or `**`
-    glob, or a pattern prefixed with `!` to drop directories an earlier pattern matched. Omitting the
-    field leaves only the root package, and the root package is a member whatever the patterns say.
+    glob, or a pattern prefixed with `!` excluding the directories it matches. Omitting the field
+    leaves only the root package, and the root package is a member whatever the patterns say.
   backing: documented
+  caveat: |
+    The documentation states only that the field includes or excludes directories; it says nothing
+    about the patterns being evaluated in order, so whether a `!` pattern can be undone by a later
+    include is outside what this evidence covers.
   sources:
     - url: https://pnpm.io/pnpm-workspace_yaml
       where: pnpm-workspace.yaml — opening paragraph, before the example

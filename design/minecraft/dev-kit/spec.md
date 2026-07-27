@@ -21,10 +21,21 @@ The kit ships as an ESM TypeScript library named `@twin-digital/mc-dev-kit`
 pack set as data; nothing is returned as text to parse [[r:dev-kit-provides-a-library]].
 
 ```ts
-const set = await discoverPacks({ workspace: '/abs/path/to/repo' })
-set.packs                       // readonly PackEntry[] — the whole of what was found
-set.search({ package: 'mc-pack-1' })  // PackEntry[]
+interface DiscoverOptions {
+  workspace: string       // the workspace root; a relative path resolves against process.cwd()
+}
+
+interface PackSet {
+  readonly packs: readonly PackEntry[]
+  search(criteria?: PackCriteria): PackEntry[]
+}
+
+declare function discoverPacks(options: DiscoverOptions): Promise<PackSet>
 ```
+
+`workspace` is required and has no default, so `discoverPacks()` with no argument does not
+type-check; a consumer wanting the current directory passes it explicitly. `PackEntry`, `Problem`,
+and `PackCriteria` are declared below and exported alongside these three.
 
 `discoverPacks` reads the filesystem once and builds the whole set eagerly; `search` runs over that
 in-memory set, and the kit neither caches across calls nor watches for changes — a consumer wanting
@@ -39,10 +50,11 @@ share their non-manifest details:
 
 ```ts
 type PackKind = 'behavior' | 'resource'
+type PackEntry = ValidPackEntry | InvalidPackEntry
 
 interface PackEntryBase {
   kind: PackKind          // from the source directory name, corroborated by the manifest
-  packageName?: string    // absent when the owning package.json could not be read
+  packageName?: string    // absent when the owning package.json was unread or declares no name
   packageDir: string      // workspace-relative, e.g. 'packages/mc-pack-1'
   sourceDir: string       // workspace-relative, e.g. 'packages/mc-pack-1/behavior_pack'
   outputDir: string       // workspace-relative, e.g. 'packages/mc-pack-1/dist/behavior_pack'
@@ -69,14 +81,45 @@ interface InvalidPackEntry extends PackEntryBase {
 A valid entry carries every detail with nothing absent or in doubt. An invalid one carries the
 problems that invalidated it plus every detail its sources still hold — always the kind and the two
 locations, and the package name, uuid, version, and manifest whenever those survived
-[[r:pack-record-details]]. All four paths are workspace-relative, so an entry is stable across
-machines and readable in a log; a consumer rejoins them with the workspace root it passed in before
-touching the filesystem [[d:pack-locations-are-workspace-relative]]. Entries are ordered by
-`packageDir`, with a package's behavior pack before its resource pack
-[[d:entries-ordered-by-package-path]].
+[[r:pack-record-details]]. Every path an entry carries is workspace-relative, so an entry is stable
+across machines and readable in a log; a consumer rejoins them with the workspace root it passed in
+before touching the filesystem [[d:pack-locations-are-workspace-relative]]. Each is a normalised
+POSIX relative path with no `./` prefix and no trailing slash, and the root package's `packageDir` is
+the single dot `.` — so the root's behavior pack is `behavior_pack`, not `./behavior_pack`, and the
+root sorts ahead of every nested package. Entries are ordered by `packageDir`, with a package's
+behavior pack before its resource pack [[d:entries-ordered-by-package-path]].
 
-A `Problem` is `{ code, message }` plus the fields its code carries; the codes are enumerated under
-Validating below. Any problem makes an entry invalid.
+A `Problem` is a `code`, a human-readable `message`, and the fields that code carries. Any problem
+makes an entry invalid. The whole closed set:
+
+```ts
+type Problem =
+  | { code: 'owning-package-unreadable';          message: string; error: string }
+  | { code: 'pack-outside-workspace-package';     message: string }
+  | { code: 'manifest-unreadable';                message: string; error: string }
+  | { code: 'array-version-at-format-version-3';  message: string; field: string }
+  | { code: 'header-name-specified';              message: string }
+  | { code: 'header-version-specified';           message: string }
+  | { code: 'package-name-missing';               message: string }
+  | { code: 'package-version-missing';            message: string; field: string; packageDir: string }
+  | { code: 'package-version-invalid';            message: string; field: string; packageDir: string; value: string }
+  | { code: 'dependency-version-specified';       message: string; field: string; uuid: string }
+  | { code: 'external-dependency-version-missing'; message: string; field: string; moduleName: string }
+  | { code: 'manifest-missing-uuid';              message: string }
+  | { code: 'module-missing-type';                message: string; field: string }
+  | { code: 'kind-not-corroborated';              message: string }
+  | { code: 'foreign-kind-module';                message: string; field: string; type: string }
+  | { code: 'duplicate-uuid';                     message: string; uuid: string; claimants: string[] }
+  | { code: 'dependency-unresolved';              message: string; field: string; uuid: string }
+  | { code: 'dependency-invalid';                 message: string; field: string; uuid: string }
+```
+
+`field` locates the problem in the source manifest as a dotted path with bracketed array indices —
+`header.version`, `dependencies[2].version`, `modules[0].type` — so a code that applies to one entry
+of an array names which. `packageDir` names the package whose `package.json` is at fault: the entry's
+own package when completing `header.version`, and the depended-on pack's package when completing a
+`dependencies` entry. `error` carries the underlying read or parse message. `value` is the offending
+`package.json` `version` as it was written.
 
 ## Candidate packages
 
@@ -95,26 +138,35 @@ definition is an include/exclude list of directory patterns and nothing more.
 Resolution runs in this order [[d:pnpm-marker-wins-npm-is-the-fallback]]:
 
 - **pnpm** — the root holds `pnpm-workspace.yaml`. Its `packages` field is the pattern list: a
-  direct subdirectory path, a `*` or `**` glob, or a `!`-prefixed pattern excluding directories an
-  earlier pattern matched. An omitted `packages` field leaves only the root package, and the root
-  package is a member whatever the patterns say [[f:pnpm-workspace-packages-is-an-include-exclude-glob-list]].
+  direct subdirectory path, a `*` or `**` glob, or a `!`-prefixed pattern excluding directories from
+  the workspace. An omitted `packages` field leaves only the root package, and the root package is a
+  member whatever the patterns say [[f:pnpm-workspace-packages-is-an-include-exclude-glob-list]].
+  Every `!` pattern excludes independently of where it sits in the list, because the exclusion is
+  applied to the whole match set rather than to what precedes it.
 - **npm** — anything else. The root `package.json`'s `workspaces` array is the pattern list, each
   entry a direct folder path or a glob resolving to folders
-  [[f:npm-workspaces-is-an-array-of-paths-or-globs]]. A root carrying no `workspaces` array is a
+  [[f:npm-workspaces-is-an-array-of-paths-or-globs]]. There is no exclusion syntax here — the field
+  is defined as paths and resolving globs and nothing else — so every entry is an include pattern
+  and a leading `!` is part of the path it is written in. A root carrying no `workspaces` array is a
   workspace of one, so a single non-monorepo package still resolves its own packs. The root package
   is always a candidate here too.
 
 Patterns are expanded with a glob library (`fast-glob`) against the workspace root, matching
-directories only, with `!`-prefixed entries passed as ignore patterns. Any matched path lying under
-a `node_modules` segment is dropped [[d:node-modules-directories-are-never-candidates]]. The
-surviving directories, plus the root, are the candidate packages.
+directories only, with pnpm's `!`-prefixed entries passed as ignore patterns. Any matched path lying
+under a `node_modules` segment is dropped [[d:node-modules-directories-are-never-candidates]]. The
+surviving directories, plus the root, are the candidate packages, deduplicated by workspace-relative
+path — a pattern list that also matches the root yields one root candidate, not two, so a pack under
+it is never reported twice.
 
 The kit then reads each candidate's own `package.json` independently, so a fault is that
 candidate's alone and the rest of the workspace enumerates normally
-[[d:a-package-fault-invalidates-only-its-own-packs]]. A candidate whose `package.json` is missing,
-unreadable, or not valid JSON stays a candidate: its packs are still located and reported, invalid,
-with `owning-package-unreadable`. When the root's own `package.json` is the one that will not parse
-under npm, no patterns can be read from it and the candidate set is the root alone.
+[[d:a-package-fault-invalidates-only-its-own-packs]]. A candidate whose `package.json` is unreadable
+or not valid JSON stays a candidate: its packs are still located and reported, invalid, with
+`owning-package-unreadable`. A candidate holding no `package.json` at all is the separate case below,
+under Finding packs. When the root's own `package.json` is the one that will not parse under npm, no
+patterns can be read from it and the candidate set is the root alone; a `pnpm-workspace.yaml` that
+opens but is not parseable YAML is read the same way — it still selects pnpm and still does not
+throw, and with no pattern list to be had the candidate set is again the root alone.
 
 Nothing in this path needs `node_modules`, a lockfile, a build, or a running server: the definition
 and the checked-out sources are the whole input [[r:packs-enumerable-without-a-build]].
@@ -125,10 +177,12 @@ A candidate package holds a pack when its source carries `behavior_pack/manifest
 `resource_pack/manifest.json`, relative to the package directory. That presence is the whole
 membership test — no marker field, keyword, or central list — and it is why adding, removing, or
 renaming a pack needs no edit outside the package itself [[r:membership-from-source-manifest-presence]].
-The two fixed paths also fall out of the format, where a pack is a directory whose one required
-file is `manifest.json` at its root [[f:pack-is-a-directory-with-a-manifest-at-its-root]]. Rules
-keyed on package names, dependencies, scripts, or tree position misclassify real workspaces —
-against a 41-package monorepo, a dependency on the scripting API also selects a non-pack library, a
+Only the tail of each path comes from the format, which fixes a pack as a directory whose one
+required file is `manifest.json`, sitting at that directory's root
+[[f:pack-is-a-directory-with-a-manifest-at-its-root]]; the two directory names in front of it are
+this workspace's convention and nothing the format imposes (below). Rules keyed on package names,
+dependencies, scripts, or tree position misclassify real workspaces — against a 41-package
+monorepo, a dependency on the scripting API also selects a non-pack library, a
 build-and-watch script pair selects three unrelated packages, and a `package.json` marker field
 selects nothing at all [[f:name-dependency-script-and-location-heuristics-misfire]] — so none of
 them is consulted.
@@ -156,10 +210,12 @@ the one problem `manifest-unreadable`, carrying the underlying error message
 [[d:unreadable-and-unparseable-manifests-are-one-problem]]; such an entry has no `uuid`, `version`,
 or `manifest`, and its remaining details still stand.
 
-A directory the patterns matched that holds no `package.json` but does hold one of the two source
-pack paths is reported as an invalid entry too, with `pack-outside-workspace-package`, rather than
+A candidate directory that holds no `package.json` at all but does hold one of the two source pack
+paths is reported as an invalid entry too, with `pack-outside-workspace-package`, rather than
 vanishing from the list [[d:a-pack-outside-any-workspace-package-is-reported-invalid]]. Its
-`packageName` is absent and its `packageDir` is the matched directory.
+`packageName` is absent and its `packageDir` is the candidate directory. Absence is that code's case
+alone: `owning-package-unreadable` covers a `package.json` that is there and will not open or parse,
+so no directory earns both.
 
 ## Completing the manifest
 
@@ -176,15 +232,20 @@ empty string, the string `'0.0.0'`, or the array `[0, 0, 0]`. A version is writt
 version except 3, where it must be the string; a source manifest carrying an array version at
 `format_version` 3 is `array-version-at-format-version-3`, placeholder or not. No other format
 version restricts the form, and a missing or unrecognised `format_version` restricts nothing
-[[d:only-format-version-3-restricts-version-form]]. A `header.name` of `""` reads as unspecified
-like a placeholder version does; any other present `header.name` is the specified-field error
-[[d:empty-header-name-reads-as-unspecified]].
+[[d:only-format-version-3-restricts-version-form]]. The check reads exactly the two version fields
+completion touches — `header.version` and each `dependencies[].version` — and never a
+`modules[].version`, which the kit neither completes nor validates. A `header.name` of `""` reads
+as unspecified like a placeholder version does; any other present `header.name` is the
+specified-field error [[d:empty-header-name-reads-as-unspecified]].
 
 Three completions run, and each has a matching error when the source specified what it must not:
 
 - **`header.name`** — set to the owning package's `productName` when that is a non-empty string,
   and otherwise to the package's `name` with its npm scope stripped, so `@scope/mc-pack-1` becomes
-  `mc-pack-1` [[d:product-name-must-be-a-non-empty-string]]. A specified `header.name` is
+  `mc-pack-1` [[d:product-name-must-be-a-non-empty-string]]. A `package.json` that parses but
+  declares no string `name` — the ordinary shape of a private root package, and the root is always a
+  candidate — leaves `packageName` absent; where no usable `productName` stands in for it, the field
+  cannot be completed and the problem is `package-name-missing`. A specified `header.name` is
   `header-name-specified`.
 - **`header.version`** — set to the owning package's `package.json` `version`, written as a SemVer
   string at every format version, so completion never branches on the format version and a
@@ -204,6 +265,12 @@ missing one is `external-dependency-version-missing`. Uuids are matched against 
 set, valid and invalid alike, after lowercasing both sides
 [[d:uuids-compare-case-insensitively]]. Only the pack's own source manifest contributes dependency
 entries; the owning package's `package.json` `dependencies` are never consulted.
+
+An entry that reached here with no readable owning package — one carrying `owning-package-unreadable`
+or `pack-outside-workspace-package` — has nothing to complete from, so the three completions are
+skipped and the manifest is reported as the source held it, with no completion problem added to the
+one the entry already carries. A dependency on such a pack needs no rule of its own: that pack is
+already invalid, so the depending entry takes `dependency-invalid` below.
 
 ## Validating
 
@@ -270,7 +337,7 @@ components:
     responsibility: resolve the workspace root to candidate packages, each with its package.json read or its read fault
     excludes: locating or reading any pack manifest
   - id: pack-locator
-    responsibility: probe each candidate's two fixed source manifest paths and read the manifests found
+    responsibility: probe each candidate's two fixed source manifest paths, read the manifests found, and build each entry's kind, source and output locations, and owning-package problems
     excludes: interpreting or completing manifest content
     after: [workspace-enumerator]
   - id: manifest-completion
@@ -282,7 +349,7 @@ components:
     excludes: deciding what an entry exposes to a consumer
     after: [manifest-completion]
   - id: pack-set-api
-    responsibility: expose discoverPacks, the entry and problem types, and search over the built set
+    responsibility: expose discoverPacks and its options, the entry and problem types, the pack list in its defined order, and search over the built set
     excludes: producing or deploying built output
     after: [pack-validation]
 ```

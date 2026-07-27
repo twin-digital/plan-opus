@@ -9,7 +9,7 @@
     enumeration to `@npmcli/map-workspaces` or `@pnpm/workspace.find-packages`
   status: proposed
   falsifiers:
-    - a real workspace resolves to a different member set under the kit than under `npm query .workspace` or `pnpm list -r`
+    - a real workspace holds a directory with its own `package.json`, not the root, that `npm query .workspace` or `pnpm list -r` counts a member and the kit does not, or the reverse — divergence outside the two the design chooses
     - either manager changes its workspace config format such that the kit's pattern handling has to track a moving target
     - the kit's own enumeration path grows past the size of the config-format and glob semantics it replaces
 
