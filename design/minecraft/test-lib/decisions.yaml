@@ -179,9 +179,9 @@
     NotImplementedError, and no registry tracks world state
   status: proposed
   falsifiers:
-    - a pack under test calls DimensionTypes.getAll or EntityTypes.get on a path its tests must
-      exercise, so a throwing registry leaves that pack untestable — 41% of surveyed packs touch
-      the static registries
+    - a pack resolves an id through DimensionTypes.getAll or EntityTypes.get on the path its test
+      exercises, rather than in startup code the test never enters, so the throwing registry blocks
+      the test itself
     - dimension registration grows past withVanillaDimensions and tests need DimensionTypes.getAll
       to agree with world.getDimension, which two independent stores cannot do
 
@@ -193,8 +193,6 @@
   falsifiers:
     - a probe damages an entity with no health component and observes entityHurt firing or a true
       return, so the silent false is a fabricated answer
-    - packs call applyDamage before attaching health and rely on the hurt handler running, so the
-      silent no-op hides the handler under test never being reached
 
 - id: killing-hit-lands-at-or-below-minimum
   statement: |
@@ -204,9 +202,6 @@
   falsifiers:
     - a probe lands damage exactly on effectiveMin and observes no entityDie, putting the boundary
       on the survivor side
-    - an entity whose effectiveMin is below zero is damaged into the band between that minimum and
-      zero and the engine fires entityDie there, showing the threshold is zero rather than the
-      component's minimum
 
 - id: entity-lookups-are-unfiltered-and-ordered
   statement: |
@@ -214,8 +209,9 @@
     NotImplementedError on an EntityQueryOptions argument
   status: proposed
   falsifiers:
-    - surveyed packs pass EntityQueryOptions on the query that matters — a type, tag or radius
-      filter — so the throwing form makes the common call untestable
+    - a pack filters inside the query and acts on the result in the same expression, so a test
+      cannot substitute filtering the unfiltered return — the pattern appearing on the path under
+      test rather than only in setup
     - a pack orders its own work by the sequence getEntities returns and the engine's order proves
       to be something creation order does not reproduce
 
@@ -227,8 +223,9 @@
   falsifiers:
     - a probe cancels one of these and observes the engine returning true, or the Effect, so the
       no-op return contradicts the engine on the path a pack branches over
-    - a cancellable before-event comes to gate an action whose return type has no no-op value, so
-      the rule cannot be stated for every gated call
+    - a pack tells a cancelled call from an ordinary failure by its return — false from a missing
+      health component against false from a cancellation — which the no-op value makes
+      indistinguishable
 
 - id: effect-fields-are-supplied-by-a-free-function
   statement: |
@@ -247,10 +244,11 @@
     record, and behaviour ships as handlers registered against that table
   status: proposed
   falsifiers:
-    - the indirection loses a declared signature's type inference — getComponent's return type keyed
-      on its id argument — forcing the class to declare that member directly after all
-    - two parts of the library need handlers on the same member and the table offers no way to
-      order or compose them, so the split that made parallel build possible needs another mechanism
+    - the table-backed members cannot carry the declared overloads, so a fake stops being
+      structurally assignable to Entity and cannot be handed to code typed against the real class
+    - two parts of the library need handlers on the same member — the health write's cascade and
+      the validity guard both sit on setCurrentValue — and the table offers no way to order or
+      compose them, so the split that made parallel build possible needs another mechanism
 
 - id: one-public-entry-point
   statement: |
@@ -258,10 +256,10 @@
     subpath exports
   status: proposed
   falsifiers:
-    - importing one free function pulls the whole library into a bundle a pack toolchain cannot
-      tree-shake, so the single entry point costs size a consumer measures
-    - a sibling design needs part of the surface without the rest — the error classes alone — which
-      one entry point cannot express
+    - the library's own parts come to import each other through the single barrel, and the cycle
+      that creates cannot be broken without a subpath export a builder can import directly
+    - a sibling package must depend on the error classes at a version cadence independent of the
+      fakes, which one entry point in one package cannot express
 
 - id: attribute-id-set-is-a-checked-literal-array
   statement: |
@@ -269,8 +267,9 @@
     type-derived union as the compile-time completeness check
   status: proposed
   falsifiers:
-    - a version bump adds an attribute-shaped component and the build stays green, showing the union
-      check does not catch an array gone stale
+    - a component behaves as an attribute without matching the conditional mapping over
+      EntityComponentTypeMap, so the derived union no longer describes the set and cannot check the
+      array at all
     - the same runtime-enumeration need appears for the other derived id sets, making generation
       from the declarations at build time the cheaper single mechanism
 
@@ -282,8 +281,8 @@
   falsifiers:
     - a component outside the seven gains modelled fields, so state must carry per-component shapes
       rather than one attribute-shaped record
-    - every modelled attribute member reads all four numbers, so a test that omits any of them
-      cannot use the component and the optionality buys nothing
+    - tests that supply only currentValue routinely hit UnsetValueError from setCurrentValue's
+      bounds check or a reset, so the optional record forces every test to supply all four anyway
 
 - id: spawn-frame-preset-skips-xp-orb
   statement: |
@@ -305,8 +304,8 @@
   falsifiers:
     - the engine is observed running a run callback on the scheduling tick itself, so the
       convention here misses every scheduled callback by a tick
-    - packs commonly call runTimeout(cb, 0), which this rule places on the scheduling tick and
-      therefore never runs
+    - a probe schedules runTimeout(cb, 1) and observes it on the second tick after scheduling, so
+      the convention here lands every scheduled callback a tick early
 
 - id: output-log-record-shape
   statement: |
@@ -327,5 +326,6 @@
   falsifiers:
     - the engine is observed catching a handler's throw and continuing to the next subscriber, so
       propagating both misreports the engine and stops a test's other handlers
-    - a modelled action leaves the fake half-mutated when a handler throws mid-dispatch, so a test
-      asserting on the aborted state reads something the engine never produces
+    - a test's own handler throws to assert an error path and the propagation aborts the library's
+      remaining cascade — entityHealthChanged and entityDie never fire — where the engine delivers
+      them regardless, leaving the test asserting on a state the engine never presents
