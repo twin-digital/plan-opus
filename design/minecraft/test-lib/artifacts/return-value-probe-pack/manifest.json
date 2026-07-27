@@ -1,0 +1,25 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "mc-test-lib return-value probes",
+    "description": "What a call's return value reports when the action does not land: applyDamage across the amount range, under cancellation and under the invulnerability window; createExplosion under cancellation; and the isolated no-health damage set. Run /scriptevent mctest5:returns and mctest5:nohealth and copy the [mctest] lines.",
+    "uuid": "9c4e1f7a-3b62-4d18-a5e0-7f2c8d4b6019",
+    "version": [0, 1, 0],
+    "min_engine_version": [1, 26, 0]
+  },
+  "modules": [
+    {
+      "type": "script",
+      "language": "javascript",
+      "entry": "scripts/main.js",
+      "uuid": "4a7d2e91-8c53-4f06-b1d9-3e5a7c0f2846",
+      "version": [0, 1, 0]
+    }
+  ],
+  "dependencies": [
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.8.0"
+    }
+  ]
+}
