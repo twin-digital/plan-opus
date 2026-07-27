@@ -52,7 +52,7 @@ ticking area, spawns there, drops the area, and polls for up to 200 ticks. Two t
 
 If the unloaded reads match the removal reads, `effect-members-throw-plain-error` and
 `invalidation-guard-list-complete` can drop the removal-only caveats they currently carry. If they
-differ, that is a new fact and the fake needs both states.
+differ, that is a new fact.
 
 The first run's results are recorded in `../mctest-engine-probe-results.md`; record the
 `mctest:deep` output the same way. A probe measures what the engine does; whether the fake
