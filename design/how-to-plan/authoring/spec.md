@@ -16,8 +16,9 @@ reader can apply, and the document closes with the list of them.
 
 ## The spec is a build document
 
-The builder reads the specification with every citation token `[[<k>:<id>]]` struck out, so what
-survives that stripping is the whole of what the thing gets built from
+The builder reads the specification — everything after the Summary that is not the Open questions or
+Components block, and the only place a citation appears — with every token `[[<k>:<id>]]` struck
+out, so what survives that stripping is the whole of what the thing gets built from
 [[r:specification-stands-alone-at-build-time]]. That gives the spec two edges to cut against, and
 they run in opposite directions.
 
@@ -35,16 +36,15 @@ rest [[f:context-is-not-free]].
 
 The second is the values themselves. Every value the build turns on — a path, a filename, a literal
 spelling, a format, an enumeration, a default — is stated in the prose or in a component, and never
-left to a token to fetch [[r:specification-stands-alone-at-build-time]]. This is the edge no other
-review catches, because a citation reads as an index and the builder's copy has no index behind it:
-"probe each package's two fixed source-manifest paths" looks complete while the tokens are present
-and cannot be acted on the moment they are gone. So the test is run on the stripped document, not
-the annotated one.
+left to a token to fetch [[r:specification-stands-alone-at-build-time]]: "probe each package's two
+fixed source-manifest paths" looks complete while the tokens are present and cannot be acted on the
+moment they are gone. So the test is run on the stripped document, not the annotated one.
 
-What the prose carries is the value, not the entry: the foundations still live as the short lists a
-reviewer reads first — facts in `facts.yaml`, requirements in `requirements.yaml`, decisions in
-`decisions.yaml` [[f:foundations-extracted-into-lists]] [[r:easily-reviewable-foundations]]. What
-breaks that read is the opposite move, a foundation the design stands on appearing *only* in prose.
+What the prose carries is the value, not the entry. The foundations themselves stay in the short
+lists a reviewer reads first — facts in `facts.yaml`, requirements in `requirements.yaml`, decisions
+in `decisions.yaml` [[f:foundations-extracted-into-lists]] — so a literal named in prose leaves that
+read whole, while a foundation the design stands on appearing *only* in prose is what breaks it
+[[r:easily-reviewable-foundations]].
 
 ## Opening by orienting
 
@@ -54,20 +54,6 @@ before any detail — plus, when a single constraint clearly dominates, that con
 front [[r:summary-names-subject-product-and-problem]]. A Summary carrying a fourth kind of
 content, or a citation token, has overstepped: it is the one section `doc-structure` bars a token
 from [[f:summary-carries-no-citation]], so anything that would need one belongs below it.
-
-## Saying it once
-
-The foundations are already pulled into their own lists for review and for the builder's crib
-[[f:foundations-extracted-into-lists]], so the specification — everything after the Summary that is
-not the Open questions or Components block, and the only place a citation appears — owes the
-connective work those lists cannot show, not a second telling of them. The test: strike any sentence
-whose whole content is an extracted fact, requirement, or decision restated, and the specification
-loses nothing [[r:specification-does-not-restate-entries]]. *Whole content* is what the test turns
-on. A sentence naming the value an entry fixes survives it, because that value is content the
-stripped document has nowhere else to get; only a sentence whose removal leaves a builder no worse
-off is the restatement this rule cuts. The concluding checklist is the deliberate
-exception — gathering the tests in one place is its whole job, and a summary artifact is not
-prose that failed to add anything.
 
 ## What a claim cites
 
@@ -169,8 +155,7 @@ aimed at whoever writes the entry it governs [[r:a-rule-binds-the-writer-of-what
 |---|---|---|
 | 1 | Summary | Reading only it, can a reviewer name the design's subject, its product, and the problem it addresses — plus the dominant constraint when one leads — with no citation present? |
 | 2 | build content | Does every passage change what gets built, with a *why* only where its absence would misbuild and no surplus a builder never reads? |
-| 2a | build content — stands alone | Strike every citation token — does the specification still say what to build, with every path, literal, format, and default present in the prose or a component? |
-| 3 | specification prose | Does striking any sentence whose *whole content* restates an extracted entry leave the specification whole — a sentence naming a value an entry fixes not counting as restatement? (this checklist is exempt) |
+| 3 | build content — stands alone | Strike every citation token — does the specification still say what to build, with every path, literal, format, and default present in the prose or a component? |
 | 4 | citations | Does every claim that would change were a foundation false carry its token, and does no motivation or restatement carry one? |
 | 5 | evidence | Does each fact's outside evidence appear verbatim at its source, and each assumed fact carry its mechanism? |
 | 5a | evidence — provenance | Does each `documented` fact cite the upstream original rather than a repository file transcribing it, an in-repo source appearing only where that file originates the claim? |

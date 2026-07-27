@@ -66,19 +66,17 @@
     because doc-structure forbids a token in the Summary.
 
 - id: specification-does-not-restate-entries
+  status: retired
   statement: |
     the specification — the H2 sections of a spec.md, meaning everything after the Summary that is
     not the Open questions or Components block, and the only place citations appear — carries no
-    sentence whose whole content restates an extracted fact, requirement, or decision. Naming a
-    value an entry fixes is not restatement: the sentence carries the value, the token carries the
-    provenance. The concluding test checklist is the one exception, since gathering the tests in one
-    place is exactly its job
+    sentence whose whole content restates an extracted fact, requirement, or decision. The
+    concluding test checklist is the one exception, since gathering the tests in one place is
+    exactly its job
   rationale: |
-    "The specification" is pinned to the H2 prose sections doc-structure defines, so the rule names
-    what it governs. The extracted lists are already read on their own, so a sentence that only
-    restates an entry adds nothing; what the prose owes is the connective work the lists cannot
-    show. The "whole content" qualifier keeps the rule from pushing a literal out of the prose and
-    behind a token, which is the failure `specification-stands-alone-at-build-time` names.
+    Retired as superseded by `specification-stands-alone-at-build-time`, which requires in the prose
+    the very sentences this rule's central case struck; what it cut beyond those is already cut by
+    the minimum-sufficient bar, so it fired on almost nothing while pulling a reviewer the wrong way.
 
 - id: specification-stands-alone-at-build-time
   statement: |
