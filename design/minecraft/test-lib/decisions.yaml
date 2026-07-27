@@ -1,0 +1,172 @@
+# Decisions for @twin-digital/minecraft-test-lib.
+# The accepted entries are the owner's ruling at the defaults gate; the proposed ones are the
+# spec author's, open to review.
+
+- id: server-bundle-mirrors-module-exports
+  statement: |
+    createServer returns one bundle whose properties are named as `@minecraft/server` exports
+    them — world, system, and the eight registry classes — and that bundle is the only route to
+    system and the registries
+  status: proposed
+  falsifiers:
+    - surveyed packs overwhelmingly take `world` alone as a parameter and reach `system` by direct
+      import, so a bundle carrying system is a shape no real pack can receive
+    - the registry classes turn out to need per-call state a single per-bundle object cannot hold,
+      forcing a registry to be constructed against something narrower than the world
+
+- id: modelled-surface-is-world-entity-effect
+  statement: |
+    the behaving surface this cycle is the world, dimensions, entity identity and lifecycle, the
+    seven attribute-shaped components, effects, events, scheduling, persisted state and output;
+    every other entity component carries only typeId, isValid and entity
+  status: proposed
+  falsifiers:
+    - a component outside the attribute-shaped seven is reached by enough packs that tests written
+      against the library routinely hit NotImplementedError on a first attempt
+    - the attribute-shaped components turn out to differ from one another in behaviour, so treating
+      the seven as one modelled family produces wrong readings for some of them
+
+- id: every-signal-exists-few-are-raised
+  statement: |
+    every declared event signal exists and accepts subscribers, while the fakes' own behaviour
+    raises only the entity spawn, remove, hurt, health-changed and die signals; any other signal is
+    driven by the emit free function
+  status: proposed
+  falsifiers:
+    - tests routinely need a payload built for them because hand-constructing an event payload for
+      emit is more work than the assertion it enables
+    - a modelled action turns out to raise a signal outside the named set, so the set as written
+      makes the fake silently miss an event a handler depends on
+
+- id: guard-list-comes-from-the-observation
+  statement: |
+    the invalidation guard list is a per-member table transcribed from the reflective engine sweep,
+    not derived from the declarations' @throws annotations
+  status: proposed
+  falsifiers:
+    - a version bump changes a member's guard behaviour and no fresh sweep is available, leaving the
+      table stale with no mechanical way to regenerate it
+    - a member outside the sweep's 62 is found to be guarded, showing the transcribed table is as
+      incomplete as the annotations it replaced
+
+- id: library-declares-its-error-classes
+  statement: |
+    the library exports its own InvalidEntityError, ArgumentOutOfBoundsError and
+    InvalidArgumentError matching the engine's declared shapes and messages, plus NotImplementedError
+    and UnsetValueError of its own
+  status: proposed
+  falsifiers:
+    - a pack under test catches by `instanceof` against a class it imports from somewhere else, so a
+      library-declared class is never caught by the code being tested
+    - the engine's message text for one of these errors varies by call site, so a single class
+      reproducing one message shape misleads a test asserting on it
+
+- id: presets-are-vanilla-dimensions-and-spawn-frame
+  statement: |
+    two presets ship — withVanillaDimensions and asSpawnedEntity — supplying only the dimension and
+    spawn-frame values a source pins
+  status: proposed
+  falsifiers:
+    - nearly every test opens with the same further preamble beyond these two, showing a third
+      preset is pinned well enough to ship
+    - the spawn-frame values prove type-dependent often enough that asSpawnedEntity misleads more
+      tests than it saves
+
+- id: effect-durations-do-not-decay
+  statement: |
+    an effect's duration reads back the value applied and never decays or expires as ticks advance
+  status: accepted
+  falsifiers:
+    - packs commonly branch on a decayed duration, so a non-decaying fake lets the wrong branch pass
+    - the duration comparison basis is established and the fake comes to model decay, at which point
+      the two readings stop coinciding
+
+- id: effect-display-name-is-supplied
+  statement: |
+    Effect.displayName reads back what the test supplied and throws UnsetValueError otherwise
+  status: accepted
+  falsifiers:
+    - a source pins the display name for every effect type, making the value derivable rather than
+      supplied
+    - tests that never touch displayName are forced to supply it anyway because some modelled path
+      reads it internally
+
+- id: trigger-event-requires-prefix-and-records
+  statement: |
+    Entity.triggerEvent requires the prefixed id, throws InvalidArgumentError on a bare one, changes
+    no state, and records the call for getTriggeredEvents
+  status: accepted
+  falsifiers:
+    - a later observation shows the engine does assume the namespace on this surface, making the
+      bare-id rejection wrong
+    - packs depend on a triggered event reshaping components, so recording alone leaves the handler
+      under test reading state that never changed
+
+- id: remove-raises-only-entity-remove
+  statement: |
+    Entity.remove raises entityRemove and nothing else
+  status: accepted
+  falsifiers:
+    - a targeted probe attributes another event to removal, showing the fake omits an event handlers
+      really receive
+
+- id: projectile-damage-is-verbatim
+  statement: |
+    applyDamage with the projectile options form applies the amount requested and reports cause
+    projectile
+  status: accepted
+  falsifiers:
+    - packs branch on the fractional adjustment the engine applies to projectile damage, so verbatim
+      damage hides a real difference
+
+- id: placement-and-motion-are-literal
+  statement: |
+    a fake entity is placed at exactly the requested location and never moves on its own
+  status: accepted
+  falsifiers:
+    - a pack's logic keys on the engine's placement adjustment or on post-spawn drift, so a static
+      entity cannot exercise it
+
+- id: out-of-scope-members-throw-not-implemented
+  statement: |
+    a member the cycle does not model is declared and throws NotImplementedError rather than being
+    absent or reading undefined
+  status: accepted
+  falsifiers:
+    - the declared-everything surface costs more to maintain per version bump than the assignability
+      it buys
+    - packs commonly feature-detect a member by reading it, so a throwing member breaks code that a
+      missing one would not
+
+- id: current-tick-starts-at-zero
+  statement: |
+    system.currentTick starts at 0 and advances only under advanceTicks
+  status: accepted
+  falsifiers:
+    - a pack treats a small currentTick as a startup condition, so starting at 0 puts every test in
+      a state the engine rarely presents
+
+- id: entity-ids-are-sequential-opaque-strings
+  statement: |
+    an auto-assigned entity id is a decimal string issued sequentially from 1 per bundle and never
+    reissued
+  status: accepted
+  falsifiers:
+    - a pack parses or orders ids in a way the engine's negative-integer spelling supports and this
+      one does not
+
+- id: absence-reads-as-undefined
+  statement: |
+    an absent component, an unset dynamic property, and an unknown objective or participant read
+    undefined rather than throwing
+  status: accepted
+  falsifiers:
+    - the engine is observed to throw on one of these reads, making undefined a fabricated answer
+
+- id: esm-only-typescript-package
+  statement: |
+    the package publishes an ESM-only TypeScript build with no runtime dependencies and
+    `@minecraft/server` 2.8.0 as its single peer dependency
+  status: accepted
+  falsifiers:
+    - a common pack toolchain cannot consume ESM-only, so consumers cannot install the library at all
