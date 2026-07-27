@@ -168,8 +168,9 @@
     at most a requirements.yaml. There is no fourth tier and areas do not nest. The global root
     and each area may also hold a sets.yaml, which declares named sets of designs
   rationale: |
-    Adding a tier reads like a local change and is not: every path in prose and the scope of
-    every existing requirement move with it.
+    Adding or removing a tier reads like a local change and is not: every requirement that names
+    no applies_to silently re-binds, so a design gains or loses obligations with nothing in its
+    own files having moved.
 
 - id: requirement-binding-is-explicit
   statement: |
