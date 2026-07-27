@@ -20,8 +20,8 @@
     An entry is `valid` or `invalid`, and a consumer reads that status before anything else. A
     valid entry carries every detail `r:pack-record-details` requires, with nothing absent or in
     doubt. An invalid entry carries the structured problems that invalidated it, alongside every
-    detail that does not come from the manifest — so a consumer can always name and locate a pack
-    it cannot use.
+    detail that does not come from the manifest and that its sources hold — so a consumer can always
+    name and locate a pack it cannot use.
 
 - id: packs-enumerable-without-a-build
   statement: |
@@ -42,6 +42,21 @@
     candidate packages are enumerated from the workspace's package-manager workspace definition,
     not from walking the directory tree. Both `npm` and `pnpm` workspaces must be supported.
 
+- id: the-root-package-is-a-candidate
+  statement: |
+    the workspace root package is always a candidate package, whichever package manager defines the
+    workspace.
+
+- id: enumeration-uses-the-managers-own-libraries
+  statement: |
+    workspace packages are enumerated by each package manager's own published enumeration library,
+    called in-process, rather than by the kit reading the workspace definition and expanding its
+    patterns itself.
+  rationale: |
+    Reversing this means owning each manager's glob dialect, exclusion ordering, and
+    `node_modules` rules, where drift from upstream is silent and surfaces as a pack that
+    quietly stops being found.
+
 # Pack Query
 
 - id: pack-search
@@ -55,9 +70,9 @@
 
     Every criterion matches on the exact name, identity, or status; no substring or
     case-insensitive matching. Where more than one criterion is given, an entry matches only if it
-    satisfies all of them. A search that does not constrain status returns valid entries only, so
-    the common path cannot reach an unusable pack by forgetting to exclude it. Search results are
-    provided as an array of entries. If no results are found, an empty array is returned.
+    satisfies all of them. No filter is applied by default: a search that does not constrain status
+    returns every pack regardless of status. Search results are provided as an array of entries. If
+    no results are found, an empty array is returned.
 
 # Pack Details
 
@@ -108,25 +123,17 @@
       - an empty string
       - the string '0.0.0'
       - the array value `[0, 0, 0]` (not valid if manifest `format_version` is 3)
-      
-    The array form is not valid when manifest `format_version` is 3, and will result in an error
-    instead for that version.
-
-    A specified version is written as a `[major, minor, revision]` array or as a SemVer string, and
-    both forms are accepted at every manifest format version but one: at `format_version` 3 a
-    version must be the string. A source manifest carrying a specified array version at
-    `format_version` 3 is an error; no other format version restricts the form.
 
     A version is written as a `[major, minor, revision]` array or as a SemVer string, and both forms
     are accepted at every manifest format version but one: at `format_version` 3 a version must be
-    the string. A source manifest carrying an array version at `format_version` 3 is an error; no
-    other format version restricts the form, so both placeholder spellings are legal there.
+    the string. A source manifest carrying an array version at `format_version` 3 is an error,
+    placeholder or not; no other format version restricts the form.
 
     Whenever this component provides manifest details for a pack, it populates missing fields
     as follows:
 
       - `header.name` is set to the owning package's `package.json` `productName` when present,
-        and otherwise set to the package name with its npm scope strpped (`@scope/mc-pack-1`
+        and otherwise set to the package name with its npm scope stripped (`@scope/mc-pack-1`
         becomes `mc-pack-1`)
       - `header.version` is set to the owning package's `package.json` version field, written as a
         SemVer string. Every format version accepts that form, so completion does not branch on the
@@ -156,6 +163,11 @@
     without searching the workspace. Module `uuid`s are not checked for uniqueness: nothing
     establishes that the format requires it.
 
+- id: uuids-compare-case-insensitively
+  statement: |
+    header and dependency uuids are normalised to lowercase before every comparison — uniqueness,
+    dependency resolution, and search.
+
 - id: manifest-corroborates-the-directory-kind
   statement: |
     a pack's kind comes from the directory membership is read from, `behavior_pack/` or
@@ -178,10 +190,10 @@
 
 - id: unresolvable-packs-fail-loudly
   statement: |
-    a pack the kit cannot resolve — a manifest that cannot be parsed, a missing identity, a
-    manifest dependency on another pack that the set does not satisfy, invalid or
-    missing manifest completion data — is returned as an `invalid` entry carrying its structured
-    problems, per `r:pack-discovery`. A dependency naming a built-in scripting module is not a
-    missing pack. Such packs are never omitted silently: every discovered pack appears in the list,
-    valid or not.
+    a pack the kit cannot resolve is returned as an `invalid` entry, per `r:pack-discovery`. A pack
+    is unresolvable when its manifest cannot be parsed, when its identity is missing, when its
+    manifest completion data is invalid or missing, or when it carries a manifest dependency the set
+    does not satisfy — a dependency naming no pack in the set, or one naming a pack that is itself
+    invalid, so invalidity propagates along dependency edges. A dependency naming a built-in
+    scripting module is not a missing pack.
 

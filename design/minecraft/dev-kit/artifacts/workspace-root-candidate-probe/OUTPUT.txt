@@ -1,0 +1,29 @@
+=== versions
+  @npmcli/map-workspaces@6.0.0
+  @pnpm/workspace.find-packages@1000.0.65
+  @pnpm/workspace.read-manifest@1000.3.1
+  node v24.16.0
+
+=== fixture state (no install has run in any)
+  npm-no-workspaces node_modules present: false
+  npm-empty-workspaces node_modules present: false
+  npm-with-workspaces node_modules present: false
+  pnpm-no-packages-field node_modules present: false
+
+=== npm-no-workspaces via @npmcli/map-workspaces
+  root package.json workspaces: undefined
+  RETURNED 0 entries (empty Map, no throw)
+
+=== npm-empty-workspaces via @npmcli/map-workspaces
+  root package.json workspaces: []
+  RETURNED 0 entries (empty Map, no throw)
+
+=== npm-with-workspaces via @npmcli/map-workspaces
+  root package.json workspaces: ["packages/*"]
+  RETURNED 1 entry
+    @fixture/good -> packages/good
+
+=== pnpm-no-packages-field via @pnpm/workspace.find-packages
+  patterns read from pnpm-workspace.yaml: undefined
+  RETURNED 1
+    @fixture/pnpm-nopatterns-root@1.0.0 -> .
