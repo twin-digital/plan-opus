@@ -122,7 +122,8 @@
   statement: |
     a populated starting point ships as a named preset the caller invokes explicitly, never as
     constructor behaviour, and presets compose. A preset supplies only values a source pins; one
-    needing per-type vanilla data belongs to a package built on this one.
+    needing per-type vanilla data belongs to a package built on this one. Data a modelled member
+    needs to answer its own read is not a preset, and this bar does not reach it.
   rationale: |
     The source-pinned bar is what stops a preset from reintroducing invented values by the back
     door: the three vanilla dimensions, their height ranges and localization keys are recorded
