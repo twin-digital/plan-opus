@@ -1,4 +1,6 @@
 - id: ecosystem-models-one-pack-per-kind-per-project
+  status: retired
+  reason: stale
   claim: |
     Every pack config and build tool surveyed models a project as at most one pack of each kind.
     The Bedrock-OSS project config standard — shared by Regolith and bridge. — keys its `packs` map
@@ -110,6 +112,77 @@
       quote: |
         In the following example, all folders located inside the folder ./packages will be treated
         as workspaces as long as they have valid package.json files inside them:
+
+- id: manager-enumeration-libraries-need-no-install
+  claim: |
+    npm and pnpm each publish their own workspace-enumeration implementation to the public npm
+    registry — `@npmcli/map-workspaces`, from github.com/npm/map-workspaces, and
+    `@pnpm/workspace.find-packages` with `@pnpm/workspace.read-manifest`, from github.com/pnpm/pnpm.
+    Each enumerates a workspace in-process from its checked-out definition alone: with no
+    `node_modules`, no lockfile, and without invoking the manager's own binary, both return the
+    workspace's member packages and the directory of each. pnpm's finder takes the `packages`
+    patterns its caller reads from `pnpm-workspace.yaml`, honours a `!` exclusion among them, and
+    returns the workspace root package alongside the members; npm's returns the members only.
+  backing: tested
+  caveat: |
+    Both `npm` and `pnpm` were on PATH when the probe ran, so the capture shows the libraries not
+    being handed the binary rather than the libraries working while it is absent — non-invocation is
+    read off the committed probe script, not observed against a machine without the manager. The
+    enumeration results and the uninstalled fixture state are directly observed. The registry capture
+    covers `@npmcli/map-workspaces` and `@pnpm/workspace.find-packages` only; the claim also names
+    `@pnpm/workspace.read-manifest`, whose registry status no output here records. And what the
+    registry entries carry is that each package is published from the manager's own repository, not
+    that either manager's CLI consumes the published package.
+  sources:
+    - description: |
+        Two probes under design/minecraft/dev-kit/artifacts/, both written and run by this fact's
+        author on 2026-07-26. registry-probe/probe.mjs queries the public registry for each
+        package and prints its identifying metadata. workspace-enumeration-probe/probe.mjs
+        enumerates the two committed fixture workspaces beside it — neither ever installed, as the
+        probe checks and prints — using the libraries, and reports whether each manager's CLI is on
+        PATH. Captured stdout is OUTPUT.txt beside each script.
+    - url: design/minecraft/dev-kit/artifacts/registry-probe/OUTPUT.txt
+      where: both entries — registry status, latest version, and repository of each package
+      quote: |
+        === @npmcli/map-workspaces
+        GET https://registry.npmjs.org/@npmcli%2Fmap-workspaces -> 200
+        name: @npmcli/map-workspaces
+        latest: 6.0.0
+        description: Retrieves a name:pathname Map for a given workspaces config
+        repository: {"url":"git+https://github.com/npm/map-workspaces.git","type":"git"}
+        homepage: https://github.com/npm/map-workspaces#readme
+        dist.tarball: https://registry.npmjs.org/@npmcli/map-workspaces/-/map-workspaces-6.0.0.tgz
+
+        === @pnpm/workspace.find-packages
+        GET https://registry.npmjs.org/@pnpm%2Fworkspace.find-packages -> 200
+        name: @pnpm/workspace.find-packages
+        latest: 1000.0.65
+        description: Finds packages inside a workspace
+        repository: {"url":"git+https://github.com/pnpm/pnpm.git#main","type":"git"}
+        homepage: https://github.com/pnpm/pnpm/tree/main/workspace/find-packages#readme
+        dist.tarball: https://registry.npmjs.org/@pnpm/workspace.find-packages/-/workspace.find-packages-1000.0.65.tgz
+    - url: design/minecraft/dev-kit/artifacts/workspace-enumeration-probe/OUTPUT.txt
+      where: '"fixture state" — neither fixture workspace has been installed'
+      quote: |
+        === fixture state (no install has run in either)
+        npm-ws node_modules present: false
+        npm-ws package-lock.json present: false
+        npm-ws pnpm-lock.yaml present: false
+        pnpm-ws node_modules present: false
+        pnpm-ws package-lock.json present: false
+        pnpm-ws pnpm-lock.yaml present: false
+    - url: design/minecraft/dev-kit/artifacts/workspace-enumeration-probe/OUTPUT.txt
+      where: the two enumeration sections — what each library returned for its fixture
+      quote: |
+        === npm workspace via @npmcli/map-workspaces
+          @fixture/delta -> packages/delta
+          @fixture/gamma -> packages/gamma
+
+        === pnpm workspace via @pnpm/workspace.find-packages
+          patterns read from pnpm-workspace.yaml: ["packages/*","!packages/ignored"]
+          pnpm-ws-root@0.0.0 -> .
+          @fixture/alpha@1.2.3 -> packages/alpha
+          @fixture/beta@0.1.0 -> packages/beta
 
 - id: module-type-enumerations-disagree
   claim: |
@@ -365,20 +438,16 @@
       quote: |
         Create a new document in your My_BEHAVIOR_Pack folder and name it manifest.json.
 
-- id: pack-dependencies-name-an-exact-uuid-and-version
+- id: pack-dependency-entries-name-a-uuid-or-a-module-name-plus-a-version
   claim: |
-    A pack declares its dependencies on other packs in its manifest's `dependencies` array, each
-    entry naming the other pack's exact header uuid and an exact version. An entry may instead name
-    a built-in scripting module by `module_name`, so not every dependency entry resolves to a pack
-    in the workspace and validation cannot assume the set is closed.
+    A pack declares what it requires in its manifest's `dependencies` array. An entry carries a
+    `version` — the specific version depended on, which should match the depended-on pack's own,
+    written as a `[a, b, c]` vector or a SemVer string — alongside either a `uuid`, which must be
+    the exact header uuid of the depended-on pack, or a `module_name` naming a built-in scripting
+    module such as `@minecraft/server`. The documented behavior-pack manifest shows both shapes in
+    one array, a uuid entry and a `module_name` entry with no uuid, so a dependency entry does not
+    always name another pack.
   backing: documented
-  caveat: |
-    The quoted rows list `uuid`, `module_name`, and `version` side by side; that a `module_name`
-    entry stands *instead of* a uuid is not stated by any of them. The page's behavior-pack example
-    does show such an entry, but it is not among the sources here. The version row says the version
-    "Should match" the depended-on pack's, not that an exact match is required, and its Type cell —
-    quoted in the sibling header fact as `Vector [a, b, c] or SemVer String` — is omitted here, so
-    nothing quoted pins a dependency version to the array form.
   sources:
     - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
       where: Properties table — dependencies row
@@ -391,12 +460,74 @@
         This is the unique identifier of the pack that this pack depends on. It needs to be the
         exact same UUID that the pack has defined in the header section of its manifest file.
     - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
-      where: dependencies table — version row
+      where: dependencies table — version row, Type and Description cells
       quote: |
-        This is the specific version of the pack that your pack depends on. Should match the
-        version the other pack has in its manifest file.
+        Vector [a, b, c] or SemVer String | This is the specific version of the pack that your
+        pack depends on. Should match the version the other pack has in its manifest file.
     - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
       where: dependencies table — module_name row
       quote: |
         For dependencies on built-in scripting modules, contains the name of the module. (for
         example, @minecraft/server)
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
+      where: Examples — Behavior Pack manifest, `dependencies` array
+      quote: |
+        "dependencies": [
+            {
+                "uuid": "66c6e9a8-3093-462a-9c36-dbb052165822",
+                "version": [1, 0, 0]
+            },
+            {
+                "module_name": "@minecraft/server",
+                "version": "1.9.0"
+            }
+        ],
+
+- id: a-malformed-member-manifest-fails-the-whole-enumeration
+  claim: |
+    A directory a workspace pattern matches but that holds no `package.json` is skipped by both
+    managers' enumeration libraries, which return the workspace's other members normally. A
+    directory holding a `package.json` that is not valid JSON is not skipped: both libraries throw,
+    returning nothing at all. `@npmcli/map-workspaces` 6.0.0 throws a `JSONParseError` with code
+    `EJSONPARSE`; `@pnpm/workspace.find-packages` 1000.0.65 throws an error named `JSONError` with
+    code `ERR_PNPM_JSON_PARSE`, naming the offending file's path. So one unparseable member manifest
+    is a workspace-wide failure under either library, not a per-member one.
+  backing: tested
+  caveat: |
+    Observed for one malformed shape — a truncated value making the file invalid JSON — at the
+    versions named, on Node 24.16.0. A `package.json` that parses as JSON but is not a valid
+    manifest (wrong types, missing `name`) was not probed, and neither was a `package.json` that is
+    unreadable for other reasons, such as permissions or a directory in its place.
+  sources:
+    - description: |
+        design/minecraft/dev-kit/artifacts/workspace-member-fault-probe/, written and run by this
+        fact's author on 2026-07-26. probe.mjs runs each library against the four fixture
+        workspaces beside it — one per (library, fault) pair, each pattern matching both a healthy
+        `packages/good` member and one faulty directory — and prints either what the library
+        returned or the thrown error's class, name, code, and message. The fixtures are committed
+        uninstalled, as the probe checks and prints. Captured output is OUTPUT.txt beside the
+        script.
+    - url: design/minecraft/dev-kit/artifacts/workspace-member-fault-probe/OUTPUT.txt
+      where: the npm sections — malformed throws, missing is skipped
+      quote: |
+        === npm-malformed via @npmcli/map-workspaces
+          fault: packages/broken holds invalid JSON
+          THREW JSONParseError name=JSONParseError code=EJSONPARSE
+            Invalid package.json: JSONParseError: Unexpected token "}" (0x7D), ..."version": }
+            " is not valid JSON while parsing '{ "name": "@fixture/broken", "version": '
+
+        === npm-missing via @npmcli/map-workspaces
+          fault: packages/nomanifest holds no package.json
+          RETURNED @fixture/good -> packages/good
+    - url: design/minecraft/dev-kit/artifacts/workspace-member-fault-probe/OUTPUT.txt
+      where: the pnpm sections — malformed throws, missing is skipped
+      quote: |
+        === pnpm-malformed via @pnpm/workspace.find-packages
+          fault: packages/broken holds invalid JSON
+          THREW ErrorEXError name=JSONError code=ERR_PNPM_JSON_PARSE
+            Unexpected token '}', ..."version": }" is not valid JSON while parsing '{ "name": "@fixture/broken", "version": ' in /workspace/plan-opus/.claude/worktrees/dev-kit-spec-2/design/minecraft/dev-kit/artifacts/workspace-member-fault-probe/fixtures/pnpm-malformed/packages/broken/package.json
+
+        === pnpm-missing via @pnpm/workspace.find-packages
+          fault: packages/nomanifest holds no package.json
+          RETURNED pnpm-missing-root@0.0.0 -> .
+          RETURNED @fixture/good@1.0.0 -> packages/good
