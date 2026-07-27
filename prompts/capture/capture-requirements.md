@@ -33,7 +33,10 @@ does, so nothing touches the main checkout. Do all reading, writing, and `npm ru
    assumed fact carries the mechanism it rests on, and a claim you cannot evidence is not a fact.
 3. **The process — `design/how-to-plan/process/spec.md`.** The knowledge model (who owns each
    kind), the autonomy rule, and the trap this step exists to avoid: a *requirement* that is really
-   a bet about reality wearing a requirement's clothes.
+   a bet about reality wearing a requirement's clothes. Read it for those three things only: it
+   predates the current format and the checker classifies it `legacy`, so its ids, its citation
+   tokens, and its "proposals" bucket are not the shape you write to. Where it and
+   `doc-structure` disagree about form, `doc-structure` wins.
 4. **`CLAUDE.md`** — the repository's rule that an agent may *propose* facts only when each meets
    the evidence bar, and that proposed facts get owner review called out in the PR.
 5. **Existing foundations.** Run `node bin/foundations.mjs --facts` for every fact in the
@@ -61,6 +64,11 @@ does, so nothing touches the main checkout. Do all reading, writing, and `npm ru
   gets to decree — "the server keeps running after Ctrl+C". A claim about what is *possible* —
   "one box serves a million users" — is not a requirement, it is a bet about reality, and it
   becomes a **fact to establish** or an open question, never a requirement.
+- **A lean the owner won't decree is `force: soft`.** When they state a preference and hand the
+  call to the design — "leaning hard toward one bundle, but that's the design's to weigh" —
+  neither dropping it nor writing it hard is right. A soft requirement is the shape that fits: the
+  design may depart from it, but only by recording a decision that cites it, so the departure is
+  argued rather than silent. Hard stays the default and stays unwritten.
 - **Keep a requirement bare.** A `statement`, and a `rationale` only when the statement's intent is
   genuinely non-obvious — then **one line**. Omit it by default: the schema allows it and the
   checker won't ask for it, and a bloated rationale is the most common way these inputs rot. When
@@ -77,9 +85,29 @@ does, so nothing touches the main checkout. Do all reading, writing, and `npm ru
   *choice* — a transport, a structure, an algorithm — that choice is the design's to make. Do not
   bake it into a requirement or a fact. Name it in the brief as deliberately left open.
 - **The unsettled has an honest home.** Open questions live in a `spec.md`, which does not exist
-  yet — so at capture, an unresolved matter goes in the brief's prose as "what the design must
-  still decide", and in interview mode, anything the owner can settle in a sentence you resolve now
+  yet — so at capture, an unresolved matter goes in the brief's *What the design must still
+  decide* section (below), and in interview mode, anything the owner can settle in a sentence you resolve now
   by asking, rather than parking it.
+
+---
+
+## What the brief holds
+
+Nothing checks the brief, so it is held to a convention instead — the one every existing brief
+follows, plus the section this step adds. Match it; a reader who knows one brief should recognise
+the next. Six H2 sections, in this order:
+
+- **What this design is for** — a short paragraph: the subject, and what the design produces.
+- **In scope** — the questions this design answers.
+- **Out of scope** — the questions it does not, each naming the design or document that owns it
+  instead. A boundary is stated from the far side or it is not stated.
+- **Done looks like** — the outcome that would tell the owner the design worked, written as
+  something observable rather than a quality.
+- **What the design must still decide** — every choice you deliberately left open, and for each,
+  what the design will have to weigh to close it. This is where an unsettled matter goes at
+  capture, since open questions live in a `spec.md` that does not exist yet.
+- **Known tensions** — the pulls the design will have to resolve, including the ones you expect it
+  to lose something to.
 
 ---
 
@@ -134,6 +162,31 @@ through each drafted requirement to accept, amend, or reject; surface every tens
 distillation exposed; and put each still-ambiguous matter to them. Finalize the inputs after that
 pass.
 
+### When the inputs already exist somewhere else
+
+A design is often carved out of one that grew too broad, and then its seed is a requirement the
+owner already ratified, sitting in a sibling's `requirements.yaml`. That is neither an interview
+nor a conversion: the entry is already the owner's, already at the bar, and the work is to
+**relocate it unchanged**. Move it, keep its id — a move is not a change of meaning, and a fresh id
+would strand every reference — and do not rewrite the statement or the rationale to suit the new
+home. If it reads wrong where it now sits, that is a question for the hand-off, not an edit.
+
+Two checks before you move one, and one after:
+
+- **Who cites it.** Requirements are fenced where facts are not, so a design-scoped requirement
+  that moves stops resolving for its old design. Grep the repository for the id first. If a spec
+  cites it and still needs to, the entry does not move to design scope — it goes to the area (or
+  global) tier with an `applies_to` naming both designs. If nothing cites it, design scope is
+  right, and it moves up later only when a second design actually comes to depend on it.
+- **Whether the split is real.** The requirement moves to whichever design would *reverse a spec
+  decision* over it. A requirement whose statement names the sibling by name ("the harness
+  publishes…") usually means the two designs divide as what-is-required versus what-implements-it;
+  say which is which in the brief's out-of-scope, from both sides.
+- **`npm run check` after the move**, which is what catches a citation you missed.
+
+Call every relocation out in the hand-off as its own list — moved-verbatim entries are not
+drafted requirements, and the owner reads them differently.
+
 ---
 
 ## Validate
@@ -156,10 +209,16 @@ does the routing work — it must:
 - **State the problem and intent** in a couple of sentences.
 - **Call out every proposed fact** — its backing, and for a tested fact where its `artifacts/`
   evidence sits; flag any documented quote captured indirectly (e.g. via a fetch tool) as worth a
-  spot-check against the live source before it is ratified.
+  spot-check against the live source before it is ratified. **None is a normal answer**, and one
+  worth stating plainly rather than padding: a new subject whose evidence is exactly what the
+  design phase will go and gather yields no facts at capture, and recording them now would be
+  choosing the design's answer ahead of its evidence. Say that, and say where the evidence has to
+  come from.
 - **Call out every drafted requirement for the owner's fiat** — a list to accept, amend, or reject.
   An elicited requirement the owner already stated in interview is theirs; a requirement you drafted
-  in convert mode is a proposal and says so.
+  in convert mode is a proposal and says so. Keep a relocated requirement off this list and in its
+  own, saying where it came from and that its text is unchanged — the owner has already ratified
+  it, and what they are checking is the move.
 - **Name what is left open for the design** — the choices you deliberately did not make.
 
 Keep it short and honest: a fact you could not evidence is an open question, not a quiet assumption,
@@ -171,7 +230,8 @@ and a requirement you were unsure was the owner's is a question, not a decree.
 
 - **Capture only load-bearing foundations.** A fact nothing will rest on and a requirement that
   decrees nothing are noise; the shortest input set that lets a design begin is the goal.
-- **Never invent a requirement.** Elicit it, or draft it and flag it. The owner decrees; you do not.
+- **Never invent a requirement.** Elicit it, draft it and flag it, or relocate one the owner
+  already ratified without touching its text. The owner decrees; you do not.
 - **Evidence, or it is a question.** No verbatim quote, no committed repro, no stated mechanism —
   then it is an open question, not a fact.
 - **Leave the design open.** Every choice the requirements and facts do not force is the design's
