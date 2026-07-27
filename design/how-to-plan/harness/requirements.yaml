@@ -7,35 +7,6 @@
     genuinely cannot do the job. Applies to permanent tooling — one-off agent scripting is
     unconstrained.
 
-- id: derived-implementer-view
-  statement: |
-    the artifact a spec's implementers build from is derived from the spec, not authored
-    separately: the spec.md itself with its inline citation tokens stripped, augmented by a
-    streamlined extraction of the decisions and requirements the spec is bound by. The spec's
-    prose is the primary source — it tells the builder what to build and how; the extraction is
-    a crib for the key commitments, and the facts and citation tokens are left out
-  rationale: |
-    The spec is the primary build document, so the builder reads it in full — minus the citation 
-    tokens, which point at sources the builder does not have and exist only to check that 
-    foundations were incorporated. The decisions and requirements are
-    also pulled into a streamlined list. Facts stay out — they
-    are the evidence behind the claims, a review concern, not a build input. The view is derived
-    rather than hand-authored so it cannot drift from its spec.
-
-- id: settle-publishes-a-versioned-bundle
-  statement: |
-    when a settled spec is merged to main, the harness publishes that spec's builder bundle —
-    the derived-implementer-view — and records a semantic-version tag for that spec. Each spec
-    carries its own version line; there is no single repo-wide version
-  rationale: |
-    Implementers build against the derived view, not the spec, so they need a stable, versioned
-    artifact to pin to — and the moment a spec settles is the moment it licenses building, which
-    makes it the natural trigger to publish the bundle and stamp a version. Per-spec versioning
-    because specs settle and change independently; one repo-wide version would churn every
-    spec's pin whenever any single spec moved. The bundle's contents are fixed by
-    derived-implementer-view; the version-bump policy, the tag format, and where the bundle is
-    published are this design's to settle.
-
 - id: in-repo-source-urls-resolve
   statement: |
     a fact source whose url is an in-repo path — one carrying no external scheme — must point
