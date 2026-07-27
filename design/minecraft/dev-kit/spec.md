@@ -18,14 +18,14 @@ directory that is no workspace package is never handed to the kit at all.
 
 ## What the consumer gets
 
-The kit ships as an ESM TypeScript library named `@twin-digital/mc-dev-kit`
-[[r:dev-kit-library-name]], exporting one async entry point and no CommonJS build
-[[d:the-library-is-esm-only]]. A consumer imports it and receives the pack set as data; nothing is
-returned as text to parse [[r:dev-kit-provides-a-library]].
+The kit ships as a TypeScript library named `@twin-digital/mc-dev-kit` [[r:dev-kit-library-name]],
+exporting one async entry point; its module format follows the conventions of the monorepo the
+build occurs in. A consumer imports it and receives the pack set as data; nothing is returned as
+text to parse [[r:dev-kit-provides-a-library]].
 
 ```ts
 interface DiscoverOptions {
-  workspace: string       // the workspace root; a relative path resolves against process.cwd()
+  workspace?: string      // the workspace root; defaults to process.cwd()
 }
 
 interface PackSet {
@@ -33,13 +33,13 @@ interface PackSet {
   search(criteria?: PackCriteria): PackEntry[]
 }
 
-declare function discoverPacks(options: DiscoverOptions): Promise<PackSet>
+declare function discoverPacks(options?: DiscoverOptions): Promise<PackSet>
 ```
 
-`workspace` is required and has no default, so `discoverPacks()` with no argument does not
-type-check; a consumer wanting the current directory passes `process.cwd()` explicitly
-[[d:the-workspace-option-is-required]]. `PackEntry`, `Problem`,
-and `PackCriteria` are declared below and exported alongside these three.
+`workspace` defaults to `process.cwd()`, so a bare `discoverPacks()` discovers the packs of the
+workspace the process is running in, and a relative `workspace` resolves against that same
+directory. `PackEntry`, `Problem`, `PackCriteria`, and `PackManifest` with the header, module, and
+dependency shapes it uses are declared below and exported alongside these three.
 
 `discoverPacks` reads the filesystem once and builds the whole set eagerly; `search` runs over that
 in-memory set, and the kit neither caches across calls nor watches for changes — a consumer wanting
@@ -71,7 +71,7 @@ interface ValidPackEntry extends PackEntryBase {
   status: 'valid'
   uuid: string            // the completed manifest's header.uuid, lowercased
   version: string         // the completed manifest's header.version, a SemVer string
-  manifest: object        // the completed manifest as parsed JSON, in the format version it declared
+  manifest: PackManifest  // the completed manifest, in the format version it declared
   problems: []
 }
 
@@ -79,24 +79,64 @@ interface InvalidPackEntry extends PackEntryBase {
   status: 'invalid'
   uuid?: string
   version?: string
-  manifest?: object
+  manifest?: unknown      // whatever the source manifest parsed to, completed as far as it could be
   problems: [Problem, ...Problem[]]
 }
 ```
+
+The manifest is typed over the fields the kit reads and completes, and no further: every field is
+optional, because a source manifest may omit any of them, and each interface carries an index
+signature so keys the kit does not model survive to the consumer unchanged.
+
+```ts
+type ManifestVersion = string | [number, number, number]
+
+interface PackManifest {
+  format_version?: number | string
+  header?: ManifestHeader
+  modules?: ManifestModule[]
+  dependencies?: ManifestDependency[]
+  [key: string]: unknown
+}
+
+interface ManifestHeader {
+  name?: string
+  uuid?: string
+  version?: ManifestVersion
+  [key: string]: unknown
+}
+
+interface ManifestModule {
+  type?: string
+  uuid?: string
+  version?: ManifestVersion
+  [key: string]: unknown
+}
+
+interface ManifestDependency {
+  uuid?: string
+  module_name?: string
+  version?: ManifestVersion
+  [key: string]: unknown
+}
+```
+
+Only a valid entry's `manifest` is a `PackManifest`. An invalid entry's is typed `unknown`, because a
+file that parsed to something other than a JSON object — or whose `header`, `modules`, or
+`dependencies` is not the container the format documents — is still reported as it parsed (below),
+and a consumer narrows it before reading.
 
 A valid entry carries every detail with nothing absent or in doubt. An invalid one carries the
 problems that invalidated it plus every detail its sources still hold — always the kind, the owning
 package, and the two locations, and the uuid, version, and manifest whenever those survived
 [[r:pack-record-details]]. Only those three are ever absent: `uuid`, `version`, and `manifest` are
 the manifest-derived details a fault can take away, and the other five are on every entry of either
-shape [[d:invalid-entries-omit-only-manifest-derived-details]]. `version` is the completed
-`header.version` — the owning package's `package.json` version as a SemVer string — and never what
-the source manifest held [[d:entry-version-is-the-completed-package-version]]; `manifest` is the
-parsed JSON as completed, typed `object` rather than modelled field by field
-[[d:the-completed-manifest-is-reported-as-a-plain-object]]. `packageName` is among the details every
-entry carries, so a pack whose owning `package.json` declares no string `name` is reported under
-that package directory's basename — the workspace root directory's own name where `packageDir` is
-`.` — and is invalid with `package-name-missing` below
+shape [[d:invalid-entries-omit-only-manifest-derived-details]]. `version` carries the completed
+`header.version` — the owning package's `package.json` version as a SemVer string — rather than a
+version of its own [[d:entry-version-is-the-completed-package-version]]. `packageName` is among the
+details every entry carries, so a pack whose owning `package.json` declares no string `name` is
+reported under that package directory's basename — the workspace root directory's own name where
+`packageDir` is `.` — and is invalid with `package-name-missing` below
 [[d:a-nameless-package-is-named-by-its-directory]]. Every path an entry carries is
 workspace-relative, so an entry is stable across machines and readable in a log; a consumer rejoins
 them with the workspace root it passed in before touching the filesystem
@@ -164,7 +204,7 @@ Both libraries list an uninstalled workspace from its checked-out definition alo
   name-to-directory map is the members. That map never carries the root package itself, and a root
   declaring no `workspaces` array — or an empty one — comes back empty rather than throwing
   [[f:npm-enumeration-returns-no-members-without-a-workspaces-array]], so the kit adds the root
-  package as a candidate of its own [[d:npm-root-package-is-a-candidate]] and a single non-monorepo
+  package as a candidate of its own [[r:the-root-package-is-a-candidate]] and a single non-monorepo
   package still resolves its own packs.
 
 The candidate set is what the library returned plus, under npm, the root, deduplicated by
@@ -292,7 +332,7 @@ depended on, or a `module_name` naming a built-in scripting module such as `@min
 or neither, is `dependency-entry-malformed`, its `field` naming the entry — `dependencies[1]` — and
 the kit neither completes nor resolves it rather than picking one of the two fields to believe
 [[d:an-ambiguous-dependency-entry-is-a-problem]]. Uuids are matched against the whole discovered
-set, valid and invalid alike, after lowercasing both sides [[d:uuids-compare-case-insensitively]].
+set, valid and invalid alike, after lowercasing both sides [[r:uuids-compare-case-insensitively]].
 
 Every entry the match does not claim is external: a `module_name` entry, and a `uuid` entry matching
 no pack in the set. An external entry passes through untouched, is never completed, and must carry
@@ -356,10 +396,9 @@ Every criterion matches exactly — no substring, no case folding — and where 
 an entry must satisfy all of them. Criteria whose value an entry does not carry never match: an
 entry with no manifest matches no `name`, and one with no header uuid matches no `uuid`. The
 one departure a builder will meet is `uuid`, which is compared with both sides lowercased, so a
-case-varied spelling of the same uuid still matches [[d:uuids-compare-case-insensitively]]. Criteria
-that omit `status` return valid entries only, so the common path cannot reach an unusable pack by
-forgetting to exclude it; a call constraining nothing at all returns every valid entry
-[[d:an-unconstrained-search-returns-every-valid-entry]].
+case-varied spelling of the same uuid still matches [[r:uuids-compare-case-insensitively]]. No filter
+is applied by default: criteria that omit `status` match valid and invalid entries alike, and a call
+constraining nothing at all returns every entry in the set [[r:pack-search]].
 
 ## Components
 
@@ -381,7 +420,7 @@ components:
     excludes: deciding what an entry exposes to a consumer
     after: [manifest-completion]
   - id: pack-set-api
-    responsibility: expose discoverPacks and its options, the entry and problem types, the pack list in its defined order, and search over the built set
+    responsibility: expose discoverPacks and its options, the entry, problem, and manifest types, the pack list in its defined order, and search over the built set
     excludes: producing or deploying built output
     after: [pack-validation]
 ```
