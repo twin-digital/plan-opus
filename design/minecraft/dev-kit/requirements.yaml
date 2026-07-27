@@ -42,6 +42,11 @@
     candidate packages are enumerated from the workspace's package-manager workspace definition,
     not from walking the directory tree. Both `npm` and `pnpm` workspaces must be supported.
 
+- id: the-root-package-is-a-candidate
+  statement: |
+    the workspace root package is always a candidate package, whichever package manager defines the
+    workspace.
+
 - id: enumeration-uses-the-managers-own-libraries
   statement: |
     workspace packages are enumerated by each package manager's own published enumeration library,
@@ -65,9 +70,9 @@
 
     Every criterion matches on the exact name, identity, or status; no substring or
     case-insensitive matching. Where more than one criterion is given, an entry matches only if it
-    satisfies all of them. A search that does not constrain status returns valid entries only, so
-    the common path cannot reach an unusable pack by forgetting to exclude it. Search results are
-    provided as an array of entries. If no results are found, an empty array is returned.
+    satisfies all of them. No filter is applied by default: a search that does not constrain status
+    returns every pack regardless of status. Search results are provided as an array of entries. If
+    no results are found, an empty array is returned.
 
 # Pack Details
 
@@ -157,6 +162,11 @@
     The error names the duplicated uuid and every pack claiming it, so a reader can reach the copies
     without searching the workspace. Module `uuid`s are not checked for uniqueness: nothing
     establishes that the format requires it.
+
+- id: uuids-compare-case-insensitively
+  statement: |
+    header and dependency uuids are normalised to lowercase before every comparison — uniqueness,
+    dependency resolution, and search.
 
 - id: manifest-corroborates-the-directory-kind
   statement: |
