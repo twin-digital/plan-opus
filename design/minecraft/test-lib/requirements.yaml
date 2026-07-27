@@ -1,36 +1,41 @@
-# Requirements scoped to the minecraft/test-lib design. Owner-fiat inputs the spec is built to
-# satisfy. Behavioural fidelity is one general requirement, not a per-behaviour list: the fake
-# reproduces what the engine was observed to do (the facts), and the spec/builder derive the
-# specific behaviours from those facts.
-#
-# rationale is omitted unless the requirement's intent is non-obvious from its statement (a
-# reason it should not be casually reversed, or the fact that makes it feasible); a requirement
-# that needs an argument to justify it is a decision wearing the wrong hat.
-
 # Fidelity and behaviour
 
-- id: fakes-match-observed-engine-behaviour
+- id: modelled-behaviour-is-the-engines
   statement: |
-    for every faked member, the fake reproduces the behaviour the engine is observed to exhibit
-    on the pinned `@minecraft/server` version — the engine-run facts — including the quirks a
-    naive double would smooth over: namespace-optional ids, methods whose return value encodes
-    success or failure, non-uniform invalidation, and values that read back exactly as the engine
-    reports them. It does not substitute a convenient approximation. A fake departs from observed
-    behaviour only where a requirement listed here documents the departure; the spec and builder
-    take the specific behaviours (effect replacement, the invalidation guard list, the kill
-    cascade, damage causes, and the rest) from the facts rather than from a per-behaviour
-    requirement. Current departures: synchronous-event-delivery, zero-kinematics-at-spawn.
+    where the library models a behaviour, it models the engine's, quirks included, not a
+    convenient approximation. Which behaviours are modelled is a scope decision the spec makes.
+
+- id: engine-claims-are-sourced
+  statement: |
+    a behaviour the library presents as the engine's rests on a source: the pinned version's
+    declarations and the official API reference, or a recorded observation where those are
+    silent. A simplification is never presented as the engine's behaviour; the spec marks it as
+    the library's own.
+  rationale: |
+    Requiring a recorded observation for every behaviour puts the library's cost under the
+    engine's quirkiness rather than under what the library is for.
 
 - id: synchronous-event-delivery
   statement: |
     the fake dispatches a behaving method's after-events synchronously, within the causing
-    call, rather than same-tick-deferred as the engine does; a test observes the event and the
-    resulting state immediately, with no tick to await.
+    call, rather than same-tick-deferred as the engine does.
   rationale: |
     The engine defers within the same tick [[f:after-events-deferred]]
-    [[f:after-event-deferral-subtick]], but a tickless fake has none to defer within; the
-    accepted cost is that code after the mutating call runs after the handlers, not before,
-    so the engine's interleaving is not reproducible in a tickless fake.
+    [[f:after-event-deferral-subtick]]; a tickless fake has none to defer within. The cost is
+    that code after the mutating call runs after the handlers, not before.
+
+- id: before-events-can-cancel
+  statement: |
+    the fake dispatches before-events synchronously ahead of the action they gate, and an event
+    a handler cancels does not take effect.
+
+- id: scheduling-is-test-advanced
+  statement: |
+    the fake records `system` scheduling and runs a callback only when the test advances it; the
+    library starts no timer and awaits nothing.
+  rationale: |
+    84% of surveyed public packs reach `system` [[f:public-packs-reach-past-entities-and-events]] —
+    more than reach items or blocks.
 
 - id: fakes-behave-not-record
   statement: |
@@ -40,12 +45,9 @@
 
 - id: fakes-never-fabricate
   statement: |
-    a fake never fabricates: a member whose behaviour has no fidelity reference, and a read
-    of state the test never supplied where the engine could not lack it, fail loudly with a
-    distinctive error rather than returning an invented value. Absence the engine can exhibit
-    is not fabrication, and reads back as the engine reports it. This is a default: where a more
-    specific requirement documents an observed engine behaviour for such a member, that
-    requirement takes precedence and states the override explicitly.
+    a fake never fabricates: a read of a value the test did not supply and the engine could not
+    lack fails loudly with a distinctive error, and an unimplemented member throws distinctly.
+    Absence the engine can exhibit is not fabrication, and reads back as the engine reports it.
 
 - id: invalidation-is-modeled
   statement: |
@@ -54,7 +56,7 @@
     the transition can happen mid-test on a reference a test already holds.
   rationale: |
     The hit that fires an event is routinely the hit that unloaded the entity, so the try/catch
-    guarding every handler is untestable without this — it earns its own invariant.
+    guarding every handler is untestable without this.
 
 # Substitution, typing, and surface
 
@@ -64,18 +66,14 @@
     intercept the `@minecraft/server` module import. Code that can only reach the engine
     through a direct module import is outside its reach.
   rationale: |
-    Every consumer test assumes helpers receive their world and entities as parameters; a later
-    module-shim story would invalidate whole suites, so this is fiat, not open to reargument.
+    A later module-shim story would invalidate whole suites written against object
+    substitution, so this is fiat, not open to reargument.
 
-- id: structural-full-shape-fakes
+- id: fakes-are-structurally-assignable
   statement: |
-    fake classes are complete structural implementations of the real declared types: a fake is
-    assignable where the real type is expected with no cast, and it declares the full public
-    shape of its class, so assignability never narrows. Members outside the built surface
-    present as not-implemented stubs — unfaked access throws rather than reading `undefined`.
-  rationale: |
-    Possible only because the declared classes carry no private instance members and no brand
-    fields (server-classes-are-structurally-assignable).
+    a fake is assignable where the real declared type is expected, and declares only the members
+    it implements; each of those either behaves or throws, so an unfaked access never reads
+    `undefined`.
 
 - id: only-real-members-free-functions
   statement: |
@@ -105,37 +103,18 @@
 
 - id: no-implicit-defaults
   statement: |
-    constructing a fake populates nothing the caller did not ask for. Every collection starts
-    empty and every value unset, whatever the engine would have populated there: an entity has
-    no components, a world no dimensions, an attribute component no current value and no
-    bounds. Two things are outside this rule. The object graph the API needs in order to be
-    callable at all is always present — a world's event-signal objects, its scoreboard, its
-    game rules — since their absence would leave the surface uncallable rather than empty. And
-    a spawned entity's rotation and velocity start at zero (zero-kinematics-at-spawn). A
-    populated starting point is otherwise a preset the test opts into (presets-are-opt-in).
+    constructing a fake populates nothing the caller did not ask for: every collection starts
+    empty and every value unset, whatever the engine would have populated there.
   rationale: |
     Keeping construction empty puts fidelity in presets, which can grow without reopening this rule.
-
-- id: zero-kinematics-at-spawn
-  statement: |
-    a spawned fake entity starts at zero rotation and zero velocity for every type, unless the
-    caller supplies otherwise. This is a documented departure from observed behaviour: the
-    engine spawns `minecraft:xp_orb` with a randomized y-rotation and a nonzero velocity drawn
-    per spawn, and the fake does not reproduce that draw.
-  rationale: |
-    Zero is what seven of the eight probed types do (spawn-frame-kinematics-zero-except-xp-orb),
-    and requiring every caller to supply two vectors to make a type-independent rule hold for one
-    outlier costs more than the outlier is worth. A test that cares about orbit kinematics
-    supplies the values.
 
 - id: presets-are-opt-in
   statement: |
     a populated starting point ships as a named preset the caller invokes explicitly, never as
-    constructor behaviour, and presets compose. A preset in this library supplies only values a
-    fact pins; one that would need per-type vanilla data — an entity type's component set, a
-    mob's resting health — belongs to a package built on this one, not here.
+    constructor behaviour, and presets compose. A preset supplies only values a source pins; one
+    needing per-type vanilla data belongs to a package built on this one.
   rationale: |
-    The fact-pinned bar is what stops a preset from reintroducing invented values by the back
+    The source-pinned bar is what stops a preset from reintroducing invented values by the back
     door: the three vanilla dimensions, their height ranges and localization keys are recorded
     facts; a sheep's 14 components are not.
 
@@ -151,12 +130,20 @@
 
 - id: canonical-prefixed-storage
   statement: |
-    an id-taking input accepts bare or prefixed ids on the surfaces where the engine accepts
-    both — component ids, effect type ids, and entity type ids — normalizes on entry, and
-    stores and reports the canonical `minecraft:`-prefixed form. On an entity event id the
-    fake matches the engine instead: the prefixed form only, a bare id rejected as the engine
-    rejects it.
+    an id-taking input accepts bare or prefixed ids wherever the engine accepts both, normalizes
+    on entry, and stores and reports the canonical `minecraft:`-prefixed form.
   rationale: |
     The engine reports the prefixed form, so reads compare equal against the
     `@minecraft/vanilla-data` constants a test typically holds — but its tolerance of bare ids
     is surface-dependent, not universal (namespace-prefix-is-optional).
+
+- id: persisted-state-is-modeled
+  statement: |
+    dynamic properties and scoreboard state are real state the fakes hold — readable and writable
+    on the world and on entities — and a test reads back what the code under test wrote. Neither
+    is a stub.
+
+- id: output-is-capturable
+  statement: |
+    what a fake would send to a player or to the world — messages, titles, action bars — is
+    recorded and readable through the control plane rather than discarded.

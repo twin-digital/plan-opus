@@ -599,7 +599,7 @@ distinct values, no repeats:
 | 4 | `61.4511` | `{x:-0.1481, y:0.0508, z:0.0354}` |
 
 The y-rotation spans the full circle and every velocity component takes both signs, so this is a
-per-spawn draw rather than a constant the fake could reproduce.
+per-spawn draw rather than a constant.
 
 ## Whether a mob has started moving by 22 ticks is per-run, not per-type
 
@@ -625,10 +625,9 @@ relied on.
 
 ## What this means for the sample
 
-The spawn frame is a sound basis for a fake: deterministic for seven of eight types and
-reproducible across runs. The post-spawn sample is not a property of the type at all for
-AI-driven mobs — it is a draw, and a fake that hardcodes either "still" or "moving" at 22 ticks
-would be wrong a predictable fraction of the time.
+The spawn frame is deterministic for seven of eight types and reproducible across runs. The
+post-spawn sample is not a property of the type at all for AI-driven mobs — it is a draw, and a
+single run cannot be read as characterising a type.
 
 ## Raw logs — runs 2, 3 and 4
 

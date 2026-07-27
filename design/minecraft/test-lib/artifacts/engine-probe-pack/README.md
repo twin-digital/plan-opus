@@ -2,8 +2,8 @@
 
 A Bedrock behavior pack that establishes the engine-run facts in `../../facts.yaml` by
 observing the real engine. Each probe emits observation lines — it reports what the engine did
-rather than asserting what it should do — and its output is transcribed into the facts that the
-behavioural-fidelity requirement (`fakes-match-observed-engine-behaviour`) binds the fake to.
+rather than asserting what it should do — and its output is transcribed into the facts that
+source the fake's engine behaviour where the declarations are silent (`engine-claims-are-sourced`).
 
 ## Install
 
@@ -15,14 +15,15 @@ behavioural-fidelity requirement (`fakes-match-observed-engine-behaviour`) binds
 
 ## Run
 
-There are two commands. `mctest:run` answers the original question set; `mctest:deep` runs the
+There are three commands. `mctest:run` answers the original question set; `mctest:deep` runs the
 follow-up probes that resolve the residuals the first run left open (the full effect-replacement
 matrix, the complete member-by-member invalidation guard list, the kill edges, and the exact
-after-event tick delay). As a player in the world:
+after-event tick delay); `mctest:unload` covers the chunk-unload path. As a player in the world:
 
 ```
 /mctest:run
 /mctest:deep
+/mctest:unload
 ```
 
 or, from the server console / as a fallback (optionally naming a single probe):
@@ -31,13 +32,33 @@ or, from the server console / as a fallback (optionally naming a single probe):
 /scriptevent mctest:run
 /scriptevent mctest:deep
 /scriptevent mctest:deep effect-replacement-matrix
+/scriptevent mctest:unload
 ```
+
+### `mctest:unload`
+
+Every invalidation fact so far rests on `remove()`. Unloading is the other way a reference goes
+stale, and `invalidation-is-modeled` names it, so this probe asks whether the two produce the same
+observable state. It reads the five `Effect` members and the entity's own guard list with the
+owner unloaded, against the loaded baseline it prints first.
+
+A pack cannot force a chunk to unload, so the probe holds a chunk 20,000 blocks away with a
+ticking area, spawns there, drops the area, and polls for up to 200 ticks. Two things to watch:
+
+- **Run it from spawn and stay there.** Distance from every player is what makes the unload
+  happen; following the entity keeps its chunk loaded and the probe reports
+  `BUDGET EXHAUSTED`, which means inconclusive rather than "stayed valid".
+- It needs cheats, like the others, since it drives `tickingarea` through `runCommand`.
+
+If the unloaded reads match the removal reads, `effect-members-throw-plain-error` and
+`invalidation-guard-list-complete` can drop the removal-only caveats they currently carry. If they
+differ, that is a new fact.
 
 The first run's results are recorded in `../mctest-engine-probe-results.md`; record the
 `mctest:deep` output the same way. A probe measures what the engine does; whether the fake
 should *match* that (versus keep a deliberate simplification, e.g. synchronous dispatch) is a
-design decision the probe cannot make — see `fakes-match-observed-engine-behaviour` and its
-documented departures in `../../requirements.yaml`.
+design decision the probe cannot make — see `modelled-behaviour-is-the-engines` and
+`engine-claims-are-sourced` in `../../requirements.yaml`.
 
 The probes spawn a few sheep (and one arrow) near the triggering player, exercise them, and
 remove them afterward. Output lines look like:

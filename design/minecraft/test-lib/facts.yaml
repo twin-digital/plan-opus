@@ -25,18 +25,46 @@
     so a test process cannot import the real class; only its declared shape is available.
   backing: documented
   sources:
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/invalidentityerror
+      where: Extends, and Properties — id and type
+      quote: |
+        ## Extends
+
+        - *Error*
+
+        The error called when an entity is invalid. This can occur when accessing components on
+        a removed entity.
+
+        ### **id**
+
+        `read-only id: string;`
+
+        The id of the entity that is now invalid.
+
+        ### **type**
+
+        `read-only type: string;`
+
+        The type of the entity that is now invalid.
     - description: |
-        @minecraft/server 2.8.0 index.d.ts declares `export class InvalidEntityError extends
-        Error` with a private constructor and readonly `id` and `type` members, each annotated
-        as belonging to "the entity that is now invalid". Runtime absence follows from
-        [[f:server-package-ships-types-only]].
+        Runtime absence follows from [[f:server-package-ships-types-only]]: the class is declared
+        in @minecraft/server 2.8.0's index.d.ts, which the package ships with no importable
+        runtime, so a test process has the declared shape and not the class.
 
 - id: namespace-prefix-is-optional
   claim: |
     Whether the `minecraft:` prefix may be omitted is per-surface, not a uniform rule. Bare and
     prefixed ids are both accepted by `addEffect`, `getEffect`, `spawnEntity`, and
     `getComponent`; `Entity.triggerEvent` rejects the bare form and requires the prefix. The
-    canonical (engine-reported) form is the prefixed one on every surface tried.
+    canonical (engine-reported) form is the prefixed one on every surface that reports one —
+    `triggerEvent` returns `undefined` and reports no id at all.
+
+    The API reference states the opposite for `triggerEvent` — "If a namespace is not specified,
+    minecraft: is assumed" — and the observation overrides it. The probe ran matched pairs on one
+    sheep: the bare id threw while its `minecraft:`-prefixed twin fired the same event
+    successfully, and the error echoed the bare string back rather than a prefixed one, so the
+    engine looked up the literal argument without assuming a namespace. The reference carries
+    that sentence for `getComponent` as well, where it does hold.
   backing: tested
   sources:
     - description: |
@@ -51,6 +79,10 @@
       where: Methods — getComponent, componentId parameter
       quote: |
         If no namespace prefix is specified, 'minecraft:' is assumed.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/entity
+      where: Methods — triggerEvent, eventName parameter — contradicted by the observation above
+      quote: |
+        Name of the entity type event to trigger. If a namespace is not specified, minecraft: is assumed.
     - description: |
         EntityComponentTypeMap in index.d.ts 2.8.0 carries every component id in both bare and
         prefixed form (136 keys = 68 components x 2). Prefixed is canonical: the
@@ -62,7 +94,8 @@
     The finite id sets are computable from `@minecraft/server`'s own types rather than
     transcribed: `keyof EntityComponentTypeMap` yields every component id, `` `${EntityComponentTypes}` ``
     the canonical prefixed ids, and a conditional mapping over the type map the attribute-shaped
-    subset. The derivation tracks version bumps for free.
+    subset. On 2.8.0 that is 68 component classes, each id in a bare and a prefixed form, of
+    which 7 are attribute-shaped. The derivation tracks version bumps for free.
   backing: tested
   sources:
     - description: |
@@ -72,7 +105,8 @@
         EntityComponentTypeMap and EntityComponentTypes, with three `@ts-expect-error` negative
         probes — a non-attribute id and a typo rejected by the derived unions, and a bare id
         rejected in canonical position. An unused expect-error directive fails the build, so all
-        three probes genuinely error.
+        three probes genuinely error. Output in component-ids-probe.tsc.out.txt: exit 0 with no
+        diagnostics, both for the file alone and for the whole-project run.
     - description: |
         design/minecraft/test-lib/artifacts/type-probes/component-ids-probe.mjs, output in
         component-ids-probe.out.txt, prints the same sets from the declarations: 136
@@ -149,6 +183,12 @@
         artifacts/mctest-engine-probe-results.md, `addeffect-success-return` lines: add and
         update both report `ok value=object(Effect)`; the returned object reads
         typeId=minecraft:speed duration=200 amplifier=1.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/entity
+      where: Methods — addEffect, signature and Returns
+      quote: |
+        `addEffect(effectType: EffectType | string, duration: number, options?: EntityEffectOptions): Effect | undefined`
+
+        **Returns**[*Effect*](effect) | *undefined* - Returns nothing if the effect was added or updated successfully. This can throw an error if the duration or amplifier are outside of the valid ranges, or if the effect does not exist.
 
 - id: effect-members-throw-plain-error
   claim: |
@@ -207,6 +247,31 @@
         [hurt(damage=1.045823097229004,cause=projectile), health(7->5.954176902770996)].
         Single run — the adjusted damage value itself is nondeterministic.
 
+- id: entity-remove-after-event-shape
+  claim: |
+    `EntityRemoveAfterEvent` — the payload `world.afterEvents.entityRemove` hands a subscriber —
+    carries exactly two readonly string properties, named `removedEntityId` and `typeId`. It
+    carries no entity reference, which is what makes the payload readable after the entity it
+    describes is gone. The engine raises the event for unloading as well as for scripted removal.
+  backing: documented
+  sources:
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/entityremoveafterevent
+      where: Class summary, and Properties — removedEntityId and typeId
+      quote: |
+        Data for an event that happens when an entity is removed from the world (for example, the entity is unloaded because it is not close to players.)
+
+        ### **removedEntityId**
+
+        `read-only removedEntityId: string;`
+
+        Id of the entity that was removed.
+
+        ### **typeId**
+
+        `read-only typeId: string;`
+
+        Identifier of the type of the entity removed - for example, 'minecraft:skeleton'.
+
 - id: kill-and-remove-cascades
   claim: |
     `kill()` fires the full damage cascade — `entityHurt` with damage equal to current
@@ -217,6 +282,13 @@
     followed by five delivered events — one `entitySpawn`, three `dataDrivenEntityTrigger`,
     and one `entityRemove`.
   backing: tested
+  caveat: |
+    "Followed by" is what the run establishes; that `remove()` *caused* all five is inference.
+    The probe's payload matching failed on every one — it reads an id that is unreadable after
+    removal — so attribution to the probe's own entity rests on the world holding nothing but
+    stationary armor stands besides it. One of the five is an `entitySpawn`, which no removal
+    plausibly causes, so at least that attribution is likely wrong. Read the five as events
+    observed in the window, not as a cascade to reproduce.
   sources:
     - description: |
         artifacts/mctest-engine-probe-results.md, `kill-cascade` lines: first kill returned
@@ -242,10 +314,11 @@
   backing: tested
   sources:
     - description: |
-        artifacts/mctest-engine-probe-results.md, `death-invalidation-timing` lines with the
-        tick-offset mapping in its "Reading the log" section: inside-die-handler isValid true
-        and hasTag answering; after-wait samples at ~2/7/27/67 ticks reading
-        true/true/false/false.
+        artifacts/mctest-engine-probe-results.md, `death-invalidation-timing` lines:
+        inside-die-handler isValid true and hasTag answering, then four after-wait samples
+        reading true/true/false/false. The tick offsets come from the probe itself —
+        artifacts/engine-probe-pack/scripts/main.js waits 2 ticks after `kill()` and then loops
+        delays [0, 5, 20, 40], so the four samples sit at 2, 7, 27 and 67 ticks.
 
 - id: component-health-writes-cascade
   claim: |
@@ -353,6 +426,25 @@
         artifacts/mctest-engine-probe-results.md, `entity-id-reuse` line with both id lists
         and reused=[].
 
+- id: entity-id-is-documented-opaque
+  claim: |
+    `Entity.id` is documented as an opaque identifier: consistent across loads of a world
+    instance, with no meaning to be inferred from its value or structure and no parsing or
+    interpretation intended. The declaration types it as a bare `string` and states no format,
+    so the negative-integer form the engine was observed to issue is an unpromised
+    implementation detail rather than part of the API's contract.
+  backing: documented
+  sources:
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/entity
+      where: Properties — id, declaration line and description
+      quote: |
+        `read-only id: string;`
+
+        Unique identifier of the entity. This identifier is intended to be consistent across
+        loads of a world instance. No meaning should be inferred from the value and structure
+        of this unique identifier - do not parse or interpret it. This property is accessible
+        even if @minecraft/server.Entity.isValid is false.
+
 # Facts from the mctest:deep follow-up run (same server session family: Bedrock 1.26.31.1,
 # @minecraft/server 2.8.0), recorded in the "Deep run" section of
 # artifacts/mctest-engine-probe-results.md. These close the factual half of the four
@@ -361,11 +453,17 @@
 - id: effect-replacement-rule-observed
   claim: |
     addEffect on an already-present effect replaces it iff the re-add has a higher amplifier,
-    or the same amplifier and a duration at least as long as the one originally applied; a
-    lower amplifier never replaces regardless of duration, and the same amplifier with a
-    shorter duration does not replace. The rule is amplifier-first with a duration tiebreak —
-    not unconditional. At equal duration specifically, replacement takes at a higher or equal
-    amplifier and not at a lower one.
+    or the same amplifier and a longer duration; a lower amplifier never replaces regardless of
+    duration, and the same amplifier with a shorter duration does not replace. The rule is
+    amplifier-first with a duration tiebreak — not unconditional. At equal duration
+    specifically, replacement takes at a higher or equal amplifier and not at a lower one.
+
+    An effect's duration decays with the tick while it is applied: a base applied at 300 read
+    back 290 once ticks had passed, which is how the probe told a surviving base from a fresh
+    replacement. Whether the duration comparison is against the duration originally applied or
+    the duration remaining is not discriminated by these runs — the one same-amplifier sample
+    re-applied 300 over a base that had decayed to 290, which satisfies both readings, and no
+    sample lies between.
   backing: tested
   sources:
     - description: |
@@ -400,9 +498,11 @@
         enumerated=62 properties=16 zeroArgMethods=46 argMethods=0, then
         readable-properties-after-remove=4 (id="-68719476721", isValid=false,
         scoreboardIdentity=undefined, typeId="minecraft:sheep"); the other 12 properties
-        threw name=InvalidEntityError instanceofInvalidEntityError=true (the sweep writes the
-        property it enumerates, so its nameTag line reports a set, not a get; the read is
-        covered by the engine-probe source below). Of the 46 methods,
+        threw name=InvalidEntityError instanceofInvalidEntityError=true (the sweep reads each
+        property — `attempt(() => sheep[name])` — and `nameTag` is reported as
+        `Failed to set property 'nameTag'`, which is the engine's wording on a read of that
+        member rather than evidence of a write; the engine-probe sweep, also a read, reports it
+        identically). Of the 46 methods,
         those reaching the guard (clearDynamicProperties, clearVelocity, extinguishFire,
         getAABB, getAllBlocksStandingOn, getBlockFromViewDirection, getBlockStandingOn,
         getComponents, getDynamicPropertyIds, getDynamicPropertyTotalByteCount, getEffects,
@@ -537,7 +637,9 @@
         37.7103385925293 / 191.06085205078125 / 61.451141357421875 in runs 1–4 with velocities
         {x:0.0673, y:0.0970, z:-0.1841} / {x:-0.1899, y:0.1864, z:0.0300} /
         {x:-0.0842, y:0.2846, z:-0.1761} / {x:-0.1481, y:0.0508, z:0.0354}; its y-rotation
-        spans the circle and every velocity component takes both signs. Its 22-tick velocity
+        spans the circle; x and z each take both signs, while y is positive in all four draws
+        (and in the two contended runs below, 0.2263 and 0.1287), so an upward component is
+        the one part of the draw not observed to vary in sign. Its 22-tick velocity
         falls to ~7e-6 (run 1) and ~5e-7 (run 4) after travelling ~0.5–2.4 blocks.
     - description: |
         artifacts/mctest-resting-state-probe-results.md, the two earlier contended
@@ -587,7 +689,9 @@
         run 3 (rotation.y 45.00886535644531, velocity ~0.0298, delta ~0.089), chicken in none;
         in run 3 both cow and zombie read rotation {y:0,x:0}, velocity {0,0,0} and delta
         {0,0,0}. armor_stand, boat and arrow read zero velocity and zero delta at both samples
-        in all four runs. The file records the chicken caveat above verbatim.
+        in all four runs. The file states the first sentence of the caveat above in nearly the
+        same words ("the same mechanism at a lower rate"); the caveat's second sentence, on
+        what about the drift is reproducible, is this entry's reading rather than the file's.
 
 - id: resting-arrow-turns-once-and-stays-valid
   claim: |
@@ -609,15 +713,22 @@
         the validity as 4/4, and explicitly retracts the contended runs' reading of an arrow
         invalidating within 2 ticks as contact with the seven co-located entities.
 
-- id: boat-spawn-location-offset
+- id: boat-spawn-offset-magnitude-constant
   claim: |
     `spawnEntity` does not always place an entity on the requested point: `minecraft:boat`
-    lands `0.2` off it on both x and z, `delta={x:0.20000076293945312, y:0,
-    z:0.20000076293945312}` identical to the last digit in 4/4 runs from a fixed base. The
-    magnitude is constant and the sign tracks the spawn position, so this is a deterministic
-    placement adjustment rather than a random one. Every other type sampled lands exactly,
+    lands `0.2` off it on x and z and exactly on it in y. From a fixed base the offset is
+    reproducible to the last digit — `delta={x:0.20000076293945312, y:0,
+    z:0.20000076293945312}` in 4/4 runs — so the adjustment is deterministic rather than a
+    per-spawn random draw. The magnitude is constant across every base sampled; the sign is
+    not, and the rule governing it is not established: at base (24.5, 57, 24.5) the same
+    coordinate value yields +0.2 on x and −0.2 on z, so the sign is not a function of the
+    requested coordinate alone. Every other type sampled lands exactly,
     `delta={x:0, y:0, z:0}`, and the boat's offset is already present on its spawn frame.
   backing: tested
+  caveat: |
+    Three bases were sampled, all with x greater than z on two of them; x read +0.2 in all
+    three. That is too few to tell a constant +0.2 on x from a sign rule that happened to
+    agree, and no base was sampled with a negative coordinate.
   sources:
     - description: |
         artifacts/mctest-resting-state-probe-results.md, `resting-kinematics-isolated`
@@ -626,8 +737,9 @@
         delta={"x":0.20000076293945312,"y":0,"z":0.20000076293945312} at spawn frame, 2 ticks
         and 22 ticks in every run; the seven other types read delta {"x":0,"y":0,"z":0}. The two
         earlier contended `resting-kinematics` runs, from different bases, produced the same
-        magnitude with different signs — (+0.2, -0.2) at (24.5, 57, 24.5) and (+0.2, +0.2) at
-        (42.5, 81, 22.5).
+        magnitude with different signs — delta {x:+0.20000076293945312, z:-0.20000076293945312}
+        at requested-location (24.5, 57, 24.5), and delta {x:+0.20000076293945312,
+        z:+0.20000076293945312} at (42.5, 81, 22.5).
 
 - id: fresh-health-component-values-populated
   claim: |
@@ -675,7 +787,7 @@
         boolean:false; seed string:"-4879002305207299781"; afterEvents signal count=55;
         beforeEvents signal count=13; scoreboard.getObjectives().length=0;
         getAllPlayers().length=0 (the run was driven from an armor stand with no player
-        connected); gameRules keys enumerated (36 names).
+        connected); gameRules keys enumerated (37 names).
 
 - id: live-effect-fields-populated
   claim: |
@@ -711,6 +823,29 @@
         every method was invoked bare, which is what exposed the ordering.
 
 # Retired: superseded by the deep-run measurements. Kept for the record.
+
+- id: boat-spawn-location-offset
+  status: retired
+  reason: superseded
+  superseded_by: boat-spawn-offset-magnitude-constant
+  claim: |
+    `spawnEntity` does not always place an entity on the requested point: `minecraft:boat`
+    lands `0.2` off it on both x and z, `delta={x:0.20000076293945312, y:0,
+    z:0.20000076293945312}` identical to the last digit in 4/4 runs from a fixed base. The
+    magnitude is constant and the sign tracks the spawn position, so this is a deterministic
+    placement adjustment rather than a random one. Every other type sampled lands exactly,
+    `delta={x:0, y:0, z:0}`, and the boat's offset is already present on its spawn frame.
+  backing: tested
+  sources:
+    - description: |
+        artifacts/mctest-resting-state-probe-results.md, `resting-kinematics-isolated`
+        minecraft:boat lines across runs 1–4 (n=4): requested-location {x:38.5, y:81, z:18.5},
+        location {"z":18.700000762939453,"y":81,"x":38.70000076293945},
+        delta={"x":0.20000076293945312,"y":0,"z":0.20000076293945312} at spawn frame, 2 ticks
+        and 22 ticks in every run; the seven other types read delta {"x":0,"y":0,"z":0}. The two
+        earlier contended `resting-kinematics` runs, from different bases, produced the same
+        magnitude with different signs — (+0.2, -0.2) at (24.5, 57, 24.5) and (+0.2, +0.2) at
+        (42.5, 81, 22.5).
 
 - id: fresh-entity-resting-field-values
   status: retired
@@ -818,3 +953,79 @@
         EntityHealthComponent with its TSDoc block and splits members by whether the block
         names InvalidEntityError; committed output in
         design/minecraft/test-lib/artifacts/type-probes/throws-annotation-probe.out.txt.
+
+- id: public-packs-reach-past-entities-and-events
+  claim: |
+    Across 103 public GitHub behavior-pack repositories (368,385 non-blank source lines,
+    classified against the `@minecraft/server` 2.8.0 declarations), every part of the API outside
+    entity state, effects and after-event subscriptions is reached by a large share of packs.
+    `system` scheduling is reached by 84%,
+    `beforeEvents` subscriptions by 76%, items and containers by 62%, blocks by 55%, the player
+    client surface by 44%, the static type registries by 41%, and the startup and custom-command
+    registries by 40%. Exactly one repository of the 103 reaches for none of them.
+
+    On items and blocks specifically, 69% of repositories reference `ItemStack`, `Block`,
+    `Container`, or an item or block component id unambiguously, and 88% either do so or
+    subscribe to an event whose payload exposes one of those classes. The two halves are demanded
+    almost equally — items 79%, blocks 78% — and 68% reference both, so a surface covering only
+    one of the two leaves at most 22% of repositories referencing nothing beyond it. The 12
+    repositories that reference none are
+    small utility packs: median 394 source lines and largest 1,563, against a median of 1,466 for
+    the rest.
+
+    By contrast, entity components are referenced by 73% of repositories and effects by 13%.
+  backing: tested
+  caveat: |
+    Presence is not weight: one `itemStack.typeId` read counts the same as an inventory system,
+    so these shares rank what packs touch and do not establish how much of a pack could still be
+    usefully tested against a fake lacking it. "Fully covered" is a claim about references, not
+    about testability. The sample is what GitHub repository search returns for one fixed query
+    list — packs shipped as `.mcaddon`, on marketplaces, or in private repositories are absent,
+    and the unit is a repository rather than a shipped pack. Helper modules that manipulate API
+    objects without naming `@minecraft/server` are not analysed at all, which undercounts.
+  sources:
+    - description: |
+        design/minecraft/test-lib/artifacts/pack-api-survey, five Node scripts run in order with
+        output captured in 1-discover.out.txt, 2-api-index.out.txt, 3-fetch.out.txt,
+        4-analyze.out.txt and 5-report.out.txt. 3-fetch.mjs cloned 850 candidate repositories and
+        accepted 103 on their contents, pinning each commit SHA in packs.json; 4-analyze.mjs
+        classified every import, component id, event subscription and single-area method call
+        against the 2.8.0 declarations parsed by 2-api-index.mjs. The shares above are the
+        "Surface absent from v1" table (System scheduling 87/103, beforeEvents 78, items 64,
+        blocks 57, player client 45, registries 42, startup 41; one repository touching none),
+        the "Headline" table (71 unambiguous, 91 including event payloads, 12 untouched; median
+        394 vs 1466 source lines), the "Which half of the gap" table (items 81, blocks 80, both
+        70, neither 12) and the "API area" table (entity components 75, effects 13).
+
+- id: engine-surface-outside-instances
+  claim: |
+    `@minecraft/server` 2.8.0 exposes a surface that is not reached through any instance, in two
+    kinds.
+
+    **Module-level exported constants: 7.** Two are singleton instances — `system: System` and
+    `world: World` — and five are numeric literals: `HudElementsCount` 13, `HudVisibilityCount` 2,
+    `MoonPhaseCount` 8, `TicksPerDay` 24000, `TicksPerSecond` 20.
+
+    **Static members on exported classes: 112**, across 439 exported classes. They divide as:
+
+    - 86 are `static readonly componentId`, one on each component class, carrying that
+      component's id string.
+    - 16 are `get`/`getAll` lookup pairs on 8 registry classes: `BiomeTypes`, `BlockStates`,
+      `BlockTypes`, `DimensionTypes`, `EffectTypes`, `EnchantmentTypes`, `EntityTypes`,
+      `ItemTypes`.
+    - 5 are on `Potions`: `resolve`, `getDeliveryType`, `getEffectType`, `getAllDeliveryTypes`,
+      `getAllEffectTypes`.
+    - 1 is `BlockPermutation.resolve`, the only way to obtain a `BlockPermutation`, whose
+      constructor is private.
+    - 4 are constant values: `AimAssistRegistry.DefaultCategoryId` and `.DefaultPresetId`,
+      `FluidContainer.maxFillLevel` 6 and `.minFillLevel` 0.
+  backing: tested
+  sources:
+    - description: |
+        design/minecraft/test-lib/artifacts/type-probes/module-surface-probe.mjs, output in
+        module-surface-probe.out.txt, parsing @minecraft/server 2.8.0's index.d.ts: it collects
+        every `export const` with its declared type, and every 4-space-indented `static` member
+        with the `export class` it falls under. Output records total=7 module constants with
+        singleton-instances=2 and numeric-constants=5, and total=112 statics split
+        componentId=86 and everything-else=26, with the 26 listed per class and the 8 registry
+        classes named.

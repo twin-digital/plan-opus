@@ -1,7 +1,8 @@
 # mctest engine probe results
 
 Two runs: the initial 18-probe `mctest:run` set, then the 4-probe `mctest:deep` set added in
-pack 0.2.0.
+pack 0.2.0. The probes report what the engine did; nothing here is an assertion about what the
+fake should do.
 
 ---
 
@@ -166,7 +167,7 @@ run. Same world and volume as the first run.
   | lower amp, longer dur | ❌ |
 
   This confirms and generalizes the first run's `effect-replace-unconditional` result:
-  replacement is conditional, and unconditional-replace semantics in a fake are wrong.
+  replacement is conditional.
 
 - **`invalidation-guard-enumeration` — the complete guard list**, read off the engine rather
   than off `@throws` annotations (which the first run showed under-report it). On a removed
@@ -186,7 +187,7 @@ run. Same world and volume as the first run.
   `called-at=72309 returned-at=72309 delivered-at=72309`, so **`delay-ticks=0`**. Combined
   with the first run's `events-delivered-before-applyDamage-returned=0`, the model is: the
   after-event is deferred past the mutating call's return but delivered **within the same
-  tick**. A fake that defers to the next tick is wrong in the other direction.
+  tick**.
 
 ## Operational notes for re-running the pack
 
