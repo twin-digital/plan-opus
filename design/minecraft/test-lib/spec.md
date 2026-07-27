@@ -97,7 +97,7 @@ an exported free function over the fakes [[r:only-real-members-free-functions]]:
 | `createPlayer(server, options)` | as above, a `Player` |
 | `addComponent(entity, componentId, state?)` | attach a component to a live entity |
 | `removeComponent(entity, componentId)` | detach one |
-| `setEffectState(effect, state)` | supply an effect's field values, `state` being `{ displayName?: string }` |
+| `setEffectDisplayName(server, effectTypeId, displayName)` | register the display name every effect of that type reads |
 | `invalidate(entity)` | put the reference into the engine's invalid state |
 | `emit(signal, payload)` | deliver a payload to a signal's subscribers |
 | `advanceTicks(server, count)` | run scheduled callbacks |
@@ -183,11 +183,30 @@ registered entity or `undefined` for an id no entity in that world holds, `world
 and `world.getPlayers()` return the registered players, and `dimension.getEntities()` and
 `dimension.getPlayers()` return those registered in that dimension, in creation order. An entity
 created with no `dimension` is registered with the world and appears in no dimension's listing.
-`EntityQueryOptions` filtering is not modelled: a call passing an options argument throws
-`NotImplementedError`, so only the no-argument forms answer. Every other lookup the declarations
-carry — `dimension.getEntitiesAtBlockLocation`, `dimension.getEntitiesFromRay`,
-`entity.getEntitiesFromViewDirection` and the rest — throws `NotImplementedError` like any
-unmodelled member [[d:entity-lookups-are-unfiltered-and-ordered]].
+Every other lookup the declarations carry — `dimension.getEntitiesAtBlockLocation`,
+`dimension.getEntitiesFromRay`, `entity.getEntitiesFromViewDirection` and the rest — throws
+`NotImplementedError` like any unmodelled member.
+
+`EntityQueryOptions` is honoured in part. It extends `EntityFilter` for 24 fields in all, and six
+filter: `type`, `tags` and `name`, and the exclusions `excludeTypes`, `excludeTags` and
+`excludeNames`. A query naming only those returns the entities matching it. A query naming any of
+the other eighteen — `EntityQueryOptions`' own positional fields `closest`, `farthest`, `location`,
+`maxDistance`, `minDistance` and `volume`, and `EntityFilter`'s families, game-mode, level, rotation,
+property and score fields with their exclusions — throws `NotImplementedError` naming the field it
+could not honour. The throw is per field, not per call: a test learns which filter was dropped
+instead of reading a result that quietly ignored it [[d:entity-lookups-honour-a-filter-subset]].
+
+Within the six, `type` matches `typeId` and `name` matches `nameTag`; `tags` keeps an entity
+carrying every tag listed and `excludeTags` drops one carrying any; each `exclude` field removes
+what its counterpart would have kept, and fields given together intersect. The filter reads the
+members the fake already exposes, so a `name` query against an entity whose `nameTag` was never
+supplied throws `UnsetValueError` exactly as a direct read of it would. Honouring `tags` means the
+tag members behave: `addTag`, `removeTag`, `hasTag` and `getTags` are real storage over a per-entity
+set.
+
+`entity.matches(options)` takes the same `EntityQueryOptions` and runs the same matching — the same
+six fields, the same per-field throw on the rest. It is one mechanism reached two ways, not a second
+set of semantics [[d:entity-lookups-honour-a-filter-subset]].
 
 `dimension.spawnEntity(typeId, location)` behaves: it creates an entity of that type at exactly the
 requested location, registers it with the world, fires `entitySpawn`, and returns it. The engine
@@ -319,15 +338,23 @@ advancing ticks does not decay it and never expires an effect
 there.
 
 `Effect.displayName` is a populated human-readable string in the engine — `"Speed II"` for speed at
-amplifier 1 — which no declaration or constant pins, so the fake reads back what the test supplied
-for it and throws `UnsetValueError` when the test supplied nothing — it is declared a bare `string`,
-an unsupplied read of which throws under the ordinary rule below
-[[f:live-effect-fields-populated]] [[d:effect-display-name-is-supplied]]. The test supplies it with
-`setEffectState(effect, { displayName })`, the effect-side counterpart of `addComponent`'s `state`:
+amplifier 1 — and nothing pins it at build time: `@minecraft/vanilla-data` ships ids and no names,
+and `EffectType.getName()` returns the identifier rather than the display name, so the value has to
+come from the test [[f:live-effect-fields-populated]].
+
+It comes per effect *type*. `setEffectDisplayName(server, effectTypeId, displayName)` writes to a
+registry on the world, and every effect of that type in that world reads the registered name;
 `addEffect` takes the engine's own `EntityEffectOptions`, which has no display-name field, and
-`Effect` has no member to set one through, so the supply route is a free function applied to an
-effect that already exists [[r:only-real-members-free-functions]]
-[[d:effect-fields-are-supplied-by-a-free-function]].
+`Effect` has no member to set one through, so the route is a free function
+[[r:only-real-members-free-functions]]. Keying it by type rather than by effect instance is what
+lets a handler read the name inside the `effectAdd` event `addEffect` itself dispatches — the
+handler runs before `addEffect` returns, so there is no instance for a test to have set a value on
+yet [[d:effect-fields-are-supplied-by-a-free-function]]. One name per type does not reproduce the
+amplifier's part of the engine's string, so a test that wants `"Speed II"` registers that string.
+
+Reading `displayName` for a type nothing was registered for throws `UnsetValueError`: it is declared
+a bare `string`, so an unsupplied read throws under the ordinary rule below
+[[d:effect-display-name-is-supplied]].
 
 ## Events
 
@@ -489,7 +516,8 @@ not been considered, which is not the same as a promise about it.
 | per-type vanilla data — a sheep's fourteen components, its 8/8/0/8 health | not modelled | no preset supplies it; a package built on this one may |
 | entity id assignment | divergence | ids are decimal strings issued from `1` per bundle; the engine's are negative integers. `Entity.id` is documented opaque, so nothing may read the spelling either way |
 | `world.getEntity`, `getAllPlayers`, `getPlayers`, `dimension.getEntities`, `dimension.getPlayers` | modelled | unfiltered, in creation order |
-| `EntityQueryOptions` filtering | not modelled | any options argument throws; a test filters the unfiltered return |
+| `EntityQueryOptions` filtering, on the lookups and on `entity.matches` | divergence | six of the twenty-four fields filter — `type`, `tags`, `name` and their `exclude` counterparts; each of the other eighteen throws `NotImplementedError` naming itself, where the engine honours them all |
+| entity tags — `addTag`, `removeTag`, `hasTag`, `getTags` | modelled | a per-entity set, which the `tags` and `excludeTags` filters read |
 | the other entity lookups — `getEntitiesAtBlockLocation`, `getEntitiesFromRay`, `getEntitiesFromViewDirection` and the rest | not modelled | |
 | `dimension.spawnEntity` placement | divergence | the entity lands exactly where asked; the engine adjusts some placements — a boat by 0.2 on x and z |
 | post-spawn motion | divergence | an entity never moves on its own; AI-driven mobs drift within a couple of dozen ticks |
@@ -507,7 +535,7 @@ not been considered, which is not the same as a promise about it.
 | the engine's velocity-dependent projectile damage adjustment | divergence | the projectile options form applies the amount requested |
 | `addEffect` / `getEffect` / `getEffects` / `removeEffect` and the amplifier-first replacement rule | modelled | |
 | effect duration decay and expiry | divergence | a duration reads back the value applied and never decays; the engine decays it one per tick and expires the effect |
-| `Effect.displayName` | divergence | the test supplies it and an unsupplied read throws; the engine derives a populated string from the type and amplifier |
+| `Effect.displayName` | divergence | the test registers a name per effect type and an unsupplied read throws; the engine derives a populated string from the type *and* amplifier, which one name per type cannot vary |
 | signal existence, `subscribe` / `unsubscribe`, reference dedupe and subscription order | modelled | |
 | after-event dispatch timing | divergence | synchronous, inside the causing call; the engine defers past that call's return to later in the same tick |
 | engine-raised signals outside the five after-events and three before-events the fakes raise | not modelled | no fake behaviour raises them; a test drives one with `emit` |
@@ -564,13 +592,15 @@ components:
       and getDimension resolution including the invalid-id error, and the entity registry behind
       world.getEntity, world.getAllPlayers, world.getPlayers, dimension.getEntities and
       dimension.getPlayers
-    excludes: dimension contents beyond the entity registry
+    excludes: dimension contents beyond the entity registry, and query filtering over it
     after: [surface-scaffold, event-bus]
 
   - id: entity-model
     responsibility: >-
       createEntity and createPlayer, id assignment, typeId and per-entity fields with
-      UnsetValueError on unsupplied reads, spawnEntity, triggerEvent recording, remove, and kill
+      UnsetValueError on unsupplied reads, the per-entity tag set, spawnEntity, triggerEvent
+      recording, remove, kill, and the EntityQueryOptions matcher — the honoured six, the per-field
+      throw on the rest — layered onto entity.matches and onto the lookups' options argument
     excludes: component and effect state
     after: [world-and-dimensions, event-bus]
 
@@ -584,8 +614,8 @@ components:
 
   - id: effect-model
     responsibility: >-
-      addEffect/getEffect/getEffects/removeEffect, the amplifier-first replacement rule, and effect
-      field storage behind the setEffectState free function
+      addEffect/getEffect/getEffects/removeEffect, the amplifier-first replacement rule, and the
+      per-world display-name registry behind the setEffectDisplayName free function
     after: [entity-model]
 
   - id: validity-guards
