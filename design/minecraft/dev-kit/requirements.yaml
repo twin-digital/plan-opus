@@ -103,9 +103,19 @@
       - it MUST NOT specify the version of a `dependencies` entry naming a pack within the same
         workspace; a specified version is an error
 
-    A `version` is left unspecified by omitting it, or by supplying a placeholder:
-    an empty array, an empty string, `[0, 0, 0]`, or `"0.0.0"`. A placeholder is unspecified, not
-    specified, so it is not the error the bullets above describe.
+    A `version` is left unspecified by omitting it, or by supplying a placeholder value:
+
+      - an empty string
+      - the string '0.0.0'
+      - the array value `[0, 0, 0]` (not valid if manifest `format_version` is 3)
+      
+    The array form is not valid when manifest `format_version` is 3, and will result in an error
+    instead for that version.
+
+    A specified version is written as a `[major, minor, revision]` array or as a SemVer string, and
+    both forms are accepted at every manifest format version but one: at `format_version` 3 a
+    version must be the string. A source manifest carrying a specified array version at
+    `format_version` 3 is an error; no other format version restricts the form.
 
     A version is written as a `[major, minor, revision]` array or as a SemVer string, and both forms
     are accepted at every manifest format version but one: at `format_version` 3 a version must be
