@@ -153,6 +153,13 @@
 
 # Validation
 
+- id: manifest-fields-are-validated-by-form
+  statement: |
+    the kit validates every manifest field it reports as typed data: a field whose declared type the
+    source contradicts is a reported problem, not a value passed through under a type it does not
+    have. Validation tests form, never value — the kit checks that a version is a SemVer string or a
+    `[major, minor, revision]` array, and never which versions or which format versions exist.
+
 - id: uuids-are-claimed-once-in-a-workspace
   statement: |
     a header `uuid` is claimed by exactly one pack in the workspace. A duplicated uuid is an error,
