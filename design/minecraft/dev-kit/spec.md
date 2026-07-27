@@ -19,8 +19,9 @@ directory that is no workspace package is never handed to the kit at all.
 ## What the consumer gets
 
 The kit ships as an ESM TypeScript library named `@twin-digital/mc-dev-kit`
-[[r:dev-kit-library-name]], exporting one async entry point. A consumer imports it and receives the
-pack set as data; nothing is returned as text to parse [[r:dev-kit-provides-a-library]].
+[[r:dev-kit-library-name]], exporting one async entry point and no CommonJS build
+[[d:the-library-is-esm-only]]. A consumer imports it and receives the pack set as data; nothing is
+returned as text to parse [[r:dev-kit-provides-a-library]].
 
 ```ts
 interface DiscoverOptions {
@@ -36,7 +37,8 @@ declare function discoverPacks(options: DiscoverOptions): Promise<PackSet>
 ```
 
 `workspace` is required and has no default, so `discoverPacks()` with no argument does not
-type-check; a consumer wanting the current directory passes it explicitly. `PackEntry`, `Problem`,
+type-check; a consumer wanting the current directory passes `process.cwd()` explicitly
+[[d:the-workspace-option-is-required]]. `PackEntry`, `Problem`,
 and `PackCriteria` are declared below and exported alongside these three.
 
 `discoverPacks` reads the filesystem once and builds the whole set eagerly; `search` runs over that
@@ -47,7 +49,7 @@ when the workspace cannot be enumerated at all: the root holds neither a readabl
 read from is not valid JSON, or the enumeration library throws — which it does when any workspace
 member's `package.json` is not valid JSON (below). The underlying error reaches the caller
 unwrapped, so the rejection carries its message. Every fault the kit meets after enumeration is
-carried by an entry instead.
+carried by an entry instead [[d:enumeration-failure-rejects-the-call]].
 
 `set.packs` is the single flat list of everything found, so nothing appears in one view and is
 missing from another, and every entry is `valid` or `invalid` [[r:pack-discovery]]. The two shapes
@@ -69,7 +71,7 @@ interface ValidPackEntry extends PackEntryBase {
   status: 'valid'
   uuid: string            // the completed manifest's header.uuid, lowercased
   version: string         // the completed manifest's header.version, a SemVer string
-  manifest: object        // the completed manifest, in the format version it declared
+  manifest: object        // the completed manifest as parsed JSON, in the format version it declared
   problems: []
 }
 
@@ -85,23 +87,36 @@ interface InvalidPackEntry extends PackEntryBase {
 A valid entry carries every detail with nothing absent or in doubt. An invalid one carries the
 problems that invalidated it plus every detail its sources still hold — always the kind, the owning
 package, and the two locations, and the uuid, version, and manifest whenever those survived
-[[r:pack-record-details]]. `packageName` is among the details every entry carries, so a pack whose
-owning `package.json` declares no string `name` is reported under that package directory's basename
-— the workspace root directory's own name where `packageDir` is `.` — and is invalid with
-`package-name-missing` below. Every path an entry carries is workspace-relative, so an entry is stable
-across machines and readable in a log; a consumer rejoins them with the workspace root it passed in
-before touching the filesystem [[d:pack-locations-are-workspace-relative]]. Each is a normalised
-POSIX relative path with no `./` prefix and no trailing slash, and the root package's `packageDir` is
-the single dot `.` — so the root's behavior pack is `behavior_pack`, not `./behavior_pack`, and the
-root sorts ahead of every nested package. Entries are ordered by `packageDir`, with a package's
-behavior pack before its resource pack [[d:entries-ordered-by-package-path]].
+[[r:pack-record-details]]. Only those three are ever absent: `uuid`, `version`, and `manifest` are
+the manifest-derived details a fault can take away, and the other five are on every entry of either
+shape [[d:invalid-entries-omit-only-manifest-derived-details]]. `version` is the completed
+`header.version` — the owning package's `package.json` version as a SemVer string — and never what
+the source manifest held [[d:entry-version-is-the-completed-package-version]]; `manifest` is the
+parsed JSON as completed, typed `object` rather than modelled field by field
+[[d:the-completed-manifest-is-reported-as-a-plain-object]]. `packageName` is among the details every
+entry carries, so a pack whose owning `package.json` declares no string `name` is reported under
+that package directory's basename — the workspace root directory's own name where `packageDir` is
+`.` — and is invalid with `package-name-missing` below
+[[d:a-nameless-package-is-named-by-its-directory]]. Every path an entry carries is
+workspace-relative, so an entry is stable across machines and readable in a log; a consumer rejoins
+them with the workspace root it passed in before touching the filesystem
+[[d:pack-locations-are-workspace-relative]]. Each is a normalised POSIX relative path with no `./`
+prefix and no trailing slash, and the root package's `packageDir` is the single dot `.` — so the
+root's behavior pack is `behavior_pack`, not `./behavior_pack`, and the root sorts ahead of every
+nested package [[d:relative-paths-are-posix-with-the-root-as-a-dot]]. Entries are ordered by
+`packageDir`, with a package's behavior pack before its resource pack
+[[d:entries-ordered-by-package-path]].
 
 A `Problem` is a `code`, a human-readable `message`, and the fields that code carries. Any problem
-makes an entry invalid. The whole closed set:
+makes an entry invalid. The set below is the whole of it and is closed: every fault the kit reports
+carries one of these codes, so a consumer's switch over them is exhaustive, and a fault class the
+kit later learns to report arrives as a new code in a new version
+[[d:the-problem-code-set-is-closed]].
 
 ```ts
 type Problem =
   | { code: 'manifest-unreadable';                message: string; error: string }
+  | { code: 'manifest-shape-invalid';             message: string; field: string }
   | { code: 'array-version-at-format-version-3';  message: string; field: string }
   | { code: 'header-name-specified';              message: string }
   | { code: 'header-version-specified';           message: string }
@@ -109,22 +124,23 @@ type Problem =
   | { code: 'package-version-missing';            message: string; field: string; packageDir: string }
   | { code: 'package-version-invalid';            message: string; field: string; packageDir: string; value: string }
   | { code: 'dependency-version-specified';       message: string; field: string; uuid: string }
-  | { code: 'external-dependency-version-missing'; message: string; field: string; moduleName: string }
+  | { code: 'dependency-entry-malformed';         message: string; field: string }
+  | { code: 'external-dependency-version-missing'; message: string; field: string; dependency: string }
   | { code: 'manifest-missing-uuid';              message: string }
   | { code: 'module-missing-type';                message: string; field: string }
   | { code: 'kind-not-corroborated';              message: string }
   | { code: 'foreign-kind-module';                message: string; field: string; type: string }
   | { code: 'duplicate-uuid';                     message: string; uuid: string; claimants: string[] }
-  | { code: 'dependency-unresolved';              message: string; field: string; uuid: string }
   | { code: 'dependency-invalid';                 message: string; field: string; uuid: string }
 ```
 
 `field` locates the problem in the source manifest as a dotted path with bracketed array indices —
 `header.version`, `dependencies[2].version`, `modules[0].type` — so a code that applies to one entry
-of an array names which. `packageDir` names the package whose `package.json` is at fault: the entry's
-own package when completing `header.version`, and the depended-on pack's package when completing a
-`dependencies` entry. `error` carries the underlying read or parse message. `value` is the offending
-`package.json` `version` as it was written.
+of an array names which; the manifest root itself is the empty string. `packageDir` names the
+package whose `package.json` is at fault: the entry's own package when completing `header.version`,
+and the depended-on pack's package when completing a `dependencies` entry. `error` carries the
+underlying read or parse message. `value` is the offending `package.json` `version` as it was
+written. `dependency` carries a dependency entry's `module_name` or `uuid` as the source wrote it.
 
 ## Candidate packages
 
@@ -148,7 +164,8 @@ Both libraries list an uninstalled workspace from its checked-out definition alo
   name-to-directory map is the members. That map never carries the root package itself, and a root
   declaring no `workspaces` array — or an empty one — comes back empty rather than throwing
   [[f:npm-enumeration-returns-no-members-without-a-workspaces-array]], so the kit adds the root
-  package as a candidate of its own and a single non-monorepo package still resolves its own packs.
+  package as a candidate of its own [[d:npm-root-package-is-a-candidate]] and a single non-monorepo
+  package still resolves its own packs.
 
 The candidate set is what the library returned plus, under npm, the root, deduplicated by
 workspace-relative path so a directory reached twice yields one candidate and a pack under it is
@@ -209,13 +226,23 @@ which is exactly why the manifest has to agree before the pack is called valid.
 `<packageDir>/dist/<behavior_pack|resource_pack>`: built output sits at `dist/` within the package
 [[r:built-output-defaults-to-dist]] and the output root mirrors the source layout with one
 kind-named subdirectory per pack, a single-pack package included
-[[r:built-output-mirrors-the-source-layout]]. `outputDir` is reported whether or not it exists, and
-the kit never reads it.
+[[r:built-output-mirrors-the-source-layout]]. Both are computed from the package directory and the
+kind: `outputDir` is reported whether or not it exists, and the kit never reads the output tree
+[[d:output-locations-are-computed-not-probed]].
 
 Each located `manifest.json` is read and parsed as JSON. Any failure to open, read, or parse it is
 the one problem `manifest-unreadable`, carrying the underlying error message
 [[d:unreadable-and-unparseable-manifests-are-one-problem]]; such an entry has no `uuid`, `version`,
 or `manifest`, and its remaining details still stand.
+
+A manifest that parses may still not have the format's shape. The parsed value must be a JSON
+object; `header`, where present, must be an object; and `modules` and `dependencies`, where present,
+must be arrays whose elements are objects. Anything else is the one problem `manifest-shape-invalid`,
+its `field` naming the offending value — `header`, `modules`, `dependencies[1]`, or the empty string
+for the manifest root — and the checks and completions that read that part are skipped, so one
+misshapen container does not cascade into derived problems
+[[d:manifest-shape-faults-are-one-problem]]. The manifest is still reported as it parsed, and the
+entry's remaining details still stand.
 
 ## Completing the manifest
 
@@ -254,19 +281,28 @@ Three completions run, and each has a matching error when the source specified w
   pre-release completes like any other. What the source held is not consulted. A `package.json`
   `version` that is missing is `package-version-missing`; one that is not a version is
   `package-version-invalid`. A specified `header.version` is `header-version-specified`.
-- **workspace dependency versions** — a `dependencies` entry whose `uuid` names a pack in this
-  workspace has its `version` set to that pack's owning package's `version`, by the same parse and
-  the same two problems as above. A specified version on such an entry is
+- **workspace dependency versions** — a `dependencies` entry whose `uuid` matches a pack in the
+  discovered set has its `version` set to that pack's owning package's `version`, by the same parse
+  and the same two problems as above. A specified version on such an entry is
   `dependency-version-specified`.
 
 A dependency entry carries a `version` alongside either a `uuid`, the exact header uuid of the pack
 depended on, or a `module_name` naming a built-in scripting module such as `@minecraft/server`
-[[f:pack-dependency-entries-name-a-uuid-or-a-module-name-plus-a-version]]. A `module_name` entry is
-external: it passes through untouched, is never completed, and must carry its own version — a
-missing one is `external-dependency-version-missing`. Uuids are matched against the whole discovered
-set, valid and invalid alike, after lowercasing both sides
-[[d:uuids-compare-case-insensitively]]. Only the pack's own source manifest contributes dependency
-entries; the owning package's `package.json` `dependencies` are never consulted.
+[[f:pack-dependency-entries-name-a-uuid-or-a-module-name-plus-a-version]]. An entry carrying both,
+or neither, is `dependency-entry-malformed`, its `field` naming the entry — `dependencies[1]` — and
+the kit neither completes nor resolves it rather than picking one of the two fields to believe
+[[d:an-ambiguous-dependency-entry-is-a-problem]]. Uuids are matched against the whole discovered
+set, valid and invalid alike, after lowercasing both sides [[d:uuids-compare-case-insensitively]].
+
+Every entry the match does not claim is external: a `module_name` entry, and a `uuid` entry matching
+no pack in the set. An external entry passes through untouched, is never completed, and must carry
+its own version; a missing one is `external-dependency-version-missing`, whose `dependency` field
+carries the `module_name` or the `uuid` as the source wrote it
+[[r:kit-completes-partial-source-manifests]]. A uuid the set does not claim is therefore an ordinary
+external dependency and not a fault in itself — the pack it names may be built elsewhere — so it
+invalidates nothing so long as it carries its own version. Only the pack's own source manifest
+contributes dependency entries; the owning package's `package.json` `dependencies` are never
+consulted.
 
 ## Validating
 
@@ -293,14 +329,14 @@ Across the set:
   preference between them, and the problem carries `uuid` and `claimants`, the workspace-relative
   `sourceDir` of every pack claiming it, so a reader reaches the copies without searching
   [[r:uuids-are-claimed-once-in-a-workspace]]. Module uuids are not checked for uniqueness.
-- `dependency-unresolved` — a `dependencies` entry names a `uuid` that no pack in the set claims.
-  The entry still passes through uncompleted, and the depending pack is invalid.
 - `dependency-invalid` — a `dependencies` entry names a pack in the set that is itself invalid.
 
-The last two are why invalidity propagates along dependency edges, so the pass repeats until no
-entry changes status; a `module_name` dependency is never a missing pack
-[[r:unresolvable-packs-fail-loudly]]. A cycle among packs that are otherwise sound stays valid,
-since nothing invalid seeds it.
+That last is why invalidity propagates along dependency edges [[r:unresolvable-packs-fail-loudly]],
+and the set-wide pass repeats until no entry changes status, so invalidity is transitive; a cycle
+among packs that are otherwise sound stays valid, since nothing invalid seeds it
+[[d:invalidity-propagates-to-a-fixpoint]]. A dependency naming a built-in scripting module is never
+a missing pack, and neither is a uuid the set does not claim: both are external and carry their own
+versions [[r:kit-completes-partial-source-manifests]].
 
 ## Searching
 

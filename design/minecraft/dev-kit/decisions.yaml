@@ -129,3 +129,127 @@
   status: proposed
   falsifiers:
     - a consumer's watch loop calls `discoverPacks` often enough that repeated whole-workspace reads dominate its cost
+
+- id: the-library-is-esm-only
+  statement: |
+    the package ships ESM only, exporting one async entry point, `discoverPacks`
+  status: proposed
+  falsifiers:
+    - a consumer that can only `require()` its dependencies — a CommonJS tool or build step — has to read the pack set
+
+- id: the-workspace-option-is-required
+  statement: |
+    `DiscoverOptions.workspace` is required and has no default, so a consumer wanting the current
+    directory passes it explicitly
+  status: proposed
+  falsifiers:
+    - nearly every call site is found passing `process.cwd()`, making the required argument ceremony
+
+- id: enumeration-failure-rejects-the-call
+  statement: |
+    a failure to enumerate the workspace — a missing or unparseable workspace definition, or an
+    enumeration library throwing on a member `package.json` — rejects `discoverPacks` with the
+    underlying error unwrapped, rather than being reported as an entry or a set-level problem
+  status: proposed
+  falsifiers:
+    - a consumer needs the packs from the members that did enumerate more than it needs the failure, so a workspace with one broken `package.json` must still return a set
+    - the library errors prove unstable enough across versions that consumers branch on their shape
+
+- id: npm-root-package-is-a-candidate
+  statement: |
+    under npm the kit adds the workspace root package as a candidate itself, since
+    `@npmcli/map-workspaces` returns members only; under pnpm the library already returns the root
+  status: proposed
+  falsifiers:
+    - a consumer keeps pack-shaped scratch content at the workspace root that must not appear in the set
+    - npm's own enumeration starts returning the root, making the kit's addition a duplicate
+
+- id: output-locations-are-computed-not-probed
+  statement: |
+    `outputDir` is computed from the package directory and the pack kind and reported whether or not
+    it exists; the kit never reads the output tree
+  status: proposed
+  falsifiers:
+    - a package builds its packs somewhere the convention does not predict, so the reported location is wrong and a consumer deploys nothing
+    - a consumer has to stat every reported `outputDir` before using it, making the unprobed path useless
+
+- id: the-problem-code-set-is-closed
+  statement: |
+    the `Problem` union is closed: every fault the kit reports carries one of the listed codes, and a
+    new fault class means a new code in a new version rather than a free-form problem
+  status: proposed
+  falsifiers:
+    - a fault arises that no listed code fits and that has to be reported before a release can add one
+    - codes are added often enough that consumers' exhaustive switches break on ordinary upgrades
+
+- id: invalid-entries-omit-only-manifest-derived-details
+  statement: |
+    on an invalid entry only `uuid`, `version`, and `manifest` may be absent; `kind`, `packageName`,
+    `packageDir`, `sourceDir`, and `outputDir` are present on every entry
+  status: proposed
+  falsifiers:
+    - a fault class arises that leaves a pack's kind or one of its locations unknown while still producing an entry
+
+- id: the-completed-manifest-is-reported-as-a-plain-object
+  statement: |
+    `manifest` is the parsed and completed JSON reported as an untyped `object`, not a typed model of
+    the manifest format
+  status: proposed
+  falsifiers:
+    - every consumer hand-writes the same manifest types over the kit's `object`, so the types belong in the kit
+    - a consumer mutates the reported object and corrupts a later reader, showing the untyped pass-through is too loose
+
+- id: entry-version-is-the-completed-package-version
+  statement: |
+    an entry's `version` is the completed `header.version` — the owning package's `package.json`
+    version as a SemVer string — never what the source manifest held
+  status: proposed
+  falsifiers:
+    - a pack whose deployed version must differ from its package's version is found, so the two cannot be one field
+    - a consumer needs the version the source manifest declared and can no longer reach it
+
+- id: relative-paths-are-posix-with-the-root-as-a-dot
+  statement: |
+    reported paths are normalised POSIX relative paths with no `./` prefix and no trailing slash, and
+    the root package's `packageDir` is the single dot `.`
+  status: proposed
+  falsifiers:
+    - a consumer joining these paths on Windows is broken by the POSIX spelling
+    - the `.` root spelling is found to concatenate or sort wrongly often enough in consumers to be a trap
+
+- id: a-nameless-package-is-named-by-its-directory
+  statement: |
+    a package whose `package.json` declares no string `name` is reported under its directory's
+    basename, and its packs are invalid with `package-name-missing`
+  status: proposed
+  falsifiers:
+    - a workspace whose root package legitimately declares no name, whose packs consumers must receive as valid
+    - two nameless packages whose directory basenames collide, making the reported name ambiguous
+
+- id: manifest-shape-faults-are-one-problem
+  statement: |
+    a manifest that parses as JSON but whose root, `header`, `modules`, or `dependencies` is not the
+    container shape the format documents is the single `manifest-shape-invalid` problem naming the
+    offending field, and the checks that read that part are skipped
+  status: proposed
+  falsifiers:
+    - a consumer has to branch on which part of the manifest was misshapen
+    - a manifest the server loads happily is rejected by the shape check
+
+- id: an-ambiguous-dependency-entry-is-a-problem
+  statement: |
+    a `dependencies` entry carrying both `uuid` and `module_name`, or neither, is
+    `dependency-entry-malformed` rather than resolved by preferring one field
+  status: proposed
+  falsifiers:
+    - the format is found to give an entry carrying both a defined meaning
+    - real manifests carry such entries often enough that consumers cannot use the kit until it picks a field
+
+- id: invalidity-propagates-to-a-fixpoint
+  statement: |
+    the set-wide pass repeats until no entry changes status, so `dependency-invalid` is transitive; a
+    dependency cycle among otherwise sound packs stays valid
+  status: proposed
+  falsifiers:
+    - a transitively invalidated pack is usable in practice, so consumers ignore the propagated status
+    - a cycle among packs is found that must be reported as a problem in its own right
