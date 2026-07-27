@@ -230,10 +230,7 @@
   statement: |
     `ManifestModule` declares only `type`; a module's `uuid` and `version` reach the consumer
     through the index signature as `unknown`
-  status: proposed
-  falsifiers:
-    - the kit grows a check or a completion that reads a module's `uuid` or `version`, so the field becomes data the kit reports as typed
-    - consumers are found hand-writing the same module `uuid` and `version` types over the index signature
+  status: rejected
 
 - id: field-type-faults-reuse-the-shape-code
   statement: |
