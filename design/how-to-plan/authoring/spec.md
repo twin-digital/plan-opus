@@ -84,7 +84,7 @@ and a repository file transcribing that original is a convenience copy the fact 
 citing it instead makes the author's own output the evidence, and a drifted or invented quote
 becomes undetectable [[r:documented-source-is-primary]]. An in-repo url is primary only where the
 file is where the claim originates, which is why a cross-design dependency sources to the
-upstream's own requirement [[r:cross-design-dependency-is-cited-as-a-fact]]. The second is whether
+upstream's own requirement [[r:upstream-dependency-is-recorded-as-a-fact]]. The second is whether
 the quote does the work: a passage genuine, verbatim, and beside the point fails as surely as a
 paraphrase, and is the harder failure to see [[r:quote-carries-the-claim]]. A `tested` fact faces
 the parallel question of whose test it was: an entry that does not say reads as the author's own
@@ -107,12 +107,13 @@ evidenced fact that supersedes it, not cited as-is or merely flagged
 buried in prose — a discovery the design comes to stand on is recorded as a fact meeting the
 evidence bar, where it can be checked and reused, while a passing observation is not
 [[r:foundational-discoveries-are-recorded-as-facts]]. Third: a reliance on another design's output
-appears as a fact in this design's own or a shared scope, sourced by a `url` written relative to the
-repository root and a verbatim `quote`, pointing at the upstream design's `requirements.yaml` — at
-its `spec.md` only where no requirement pins the claim
-[[f:in-repo-source-url-is-repo-relative]] [[f:fact-source-is-quote-or-mechanism]] — never as a
-direct citation of that design's decisions or invariants
-[[r:cross-design-dependency-is-cited-as-a-fact]].
+appears as a fact, sourced by a `url` written relative to the repository root and a verbatim
+`quote`, pointing at the upstream design's `requirements.yaml` — never as a direct citation of that
+design's decisions or invariants [[f:in-repo-source-url-is-repo-relative]]
+[[f:fact-source-is-quote-or-mechanism]] [[r:upstream-dependency-is-recorded-as-a-fact]]. Its
+`spec.md` is a fallback only where no requirement pins the claim, since regenerable prose drifts
+out from under a quote. One such fact serves every design that leans on the same commitment: the
+pool holds it once, and a second dependent cites it rather than restating it.
 
 ## What belongs in a requirement
 
@@ -203,7 +204,7 @@ aimed at whoever writes the entry it governs [[r:a-rule-binds-the-writer-of-what
 | 5d | fact — duplicates | Was the repository-wide fact index searched before each new fact was recorded, so no entry restates a claim already held under another id? |
 | 6 | inherited fact — wrong | Is every inherited fact the spec found wrong corrected by a superseding evidenced fact, not cited as-is or merely flagged? |
 | 7 | inherited fact — discovery | Is every discovery a decision or component rests on recorded as a fact, not left implicit in prose? |
-| 8 | cross-design dependency | Is each reliance on another design's output a sourced fact in this or a shared scope, not a direct citation of that design's decisions or invariants? |
+| 8 | cross-design dependency | Is each reliance on another design's output a fact sourced to the upstream's requirement, not a direct citation of that design's decisions or invariants? |
 | 9 | requirement — is it the owner's call | Would the owner reverse a spec decision to hold this, rather than it being design work that belongs in the spec as a decision? |
 | 10 | requirement — length | Is it stated in a sentence or two, carrying no carve-out, exception, or absolute a later paragraph qualifies? |
 | 11 | requirement — rationale | Does a rationale appear only where a casual reversal would be a mistake the statement does not warn of, and nowhere argue that the requirement is correct? |

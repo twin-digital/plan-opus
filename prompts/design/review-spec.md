@@ -57,7 +57,7 @@ gate until it is verified (below).
    each component a dispatchable unit with an interface pinned enough for parallel build? Is
    anything left underspecified for a real build choice?
 9. **Cross-design dependency** — does every reliance on another design's output appear as a
-   **fact** in this design's or a shared scope, sourced by repo-relative url and verbatim quote to
+   **fact** — one entry in the pool, cited by every dependent — sourced by repo-relative url and verbatim quote to
    the upstream's **requirement** — its `spec.md` only where no upstream requirement pins the
    claim — never as a direct citation of another design's decisions or invariants, and never left
    implicit in prose? The requirement is the pinned interface; spec prose is regenerable and drifts

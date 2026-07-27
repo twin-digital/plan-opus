@@ -168,6 +168,7 @@
     governs a fact binds its capture, not the later spec author who only consumes it.
 
 - id: cross-design-dependency-is-cited-as-a-fact
+  status: retired
   statement: |
     a design depending on another design's output re-expresses each upstream commitment it relies
     on as a fact in its own or a shared scope, sourced by repo-relative url and verbatim quote to
@@ -185,6 +186,15 @@
     from under the quote; the spec is a fallback only where no requirement pins the claim. Drift
     is detectable when the quote is re-checked; only if upstream requirements churn faster than
     that would a real cross-design citation form earn its complexity.
+
+- id: upstream-dependency-is-recorded-as-a-fact
+  statement: |
+    a design relying on another design's output records each upstream commitment it leans on as a
+    fact sourced by repo-relative url and verbatim quote to the upstream's requirement, never by
+    citing that design's decisions or invariants
+  rationale: |
+    An upstream decision cannot be cited and an invariant has no token, so without this the
+    downstream claim has nothing to rest on and quietly goes uncited.
 
 - id: conclude-with-test-summary
   statement: |
