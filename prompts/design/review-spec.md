@@ -40,12 +40,15 @@ gate until it is verified (below).
    missing quote.
 5. **Rule adherence** — apply `authoring`'s own concluding checklist to this spec, test by test.
    The checklist is the manual; run the spec through it and record every test it fails.
-6. **Conciseness** — minimum-why and no restatement: a *why* a builder who lacked it would not
-   misbuild is surplus; a sentence whose whole content restates an entry it cites should cut
-   without loss. Flag both, and any section longer than the work it does.
-7. **Buildability** — could a competent builder build from this alone? Is each component a
-   dispatchable unit with an interface pinned enough for parallel build? Is anything left
-   underspecified for a real build choice?
+6. **Conciseness** — minimum-why: a *why* a builder who lacked it would not misbuild is surplus.
+   Flag it, and any section longer than the work it does. Stating a value a requirement, fact, or
+   decision fixes is **not** surplus and is never a finding here — the builder reads this document
+   with its citation tokens struck out, so a literal left to a token is a literal they never get.
+7. **Buildability** — read it as the builder receives it, every citation token struck: does it
+   still say what to build? Every path, filename, literal spelling, format, and default the build
+   turns on is present in the prose or a component, not left to a token to fetch. Beyond that: is
+   each component a dispatchable unit with an interface pinned enough for parallel build? Is
+   anything left underspecified for a real build choice?
 8. **Cross-design dependency** — does every reliance on another design's output appear as a
    **fact** in this design's or a shared scope, sourced by repo-relative url and verbatim quote to
    the upstream's **requirement** — its `spec.md` only where no upstream requirement pins the
