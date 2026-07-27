@@ -347,6 +347,11 @@
     the resets alike, with no `entityHurt` — and a write that reaches the effective minimum
     fires `entityDie` with cause `override`.
   backing: tested
+  caveat: |
+    The observed writes are `setCurrentValue(3)`, `resetToMaxValue` and `resetToMinValue`.
+    Only `resetToMinValue` reached the effective minimum, so the die-at-minimum half rests on
+    that one path — `setCurrentValue` landing on the minimum is unobserved — and
+    `resetToDefaultValue` was not exercised at all.
   sources:
     - description: |
         artifacts/mctest-engine-probe-results.md, `component-health-writes-fire-events`
