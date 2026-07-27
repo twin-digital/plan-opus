@@ -69,16 +69,34 @@
   statement: |
     the specification — the H2 sections of a spec.md, meaning everything after the Summary that is
     not the Open questions or Components block, and the only place citations appear — carries no
-    sentence whose whole content restates an extracted fact, requirement, or decision. The
-    concluding test checklist is the one exception, since gathering the tests in one place is
-    exactly its job
+    sentence whose whole content restates an extracted fact, requirement, or decision. A sentence
+    naming a value an entry fixes is not such a sentence: its content is the value, which a builder
+    reading without citation tokens has nowhere else to get, and the token beside it carries the
+    provenance. The concluding test checklist is the one exception, since gathering the tests in one
+    place is exactly its job
   rationale: |
     "The specification" is pinned to the H2 prose sections doc-structure defines, so the rule names
     what it governs. The extracted lists are
     already read on their own and drawn into the builder's crib, so a sentence that only restates
     an entry adds nothing; what the prose owes is the connective work the lists cannot show. The
+    "whole content" qualifier is what keeps the rule from pushing a literal out of the prose and
+    behind a token, which is the failure `specification-stands-alone-at-build-time` names. The
     concluding checklist is exempt: it is a deliberate summary artifact, not specification prose that
     failed to add anything.
+
+- id: specification-stands-alone-at-build-time
+  statement: |
+    the specification is written to be read with its citation tokens removed, and a builder
+    holding only that stripped document can produce the artifact. Every value the build turns
+    on — a path, a filename, a literal spelling, a format, an enumeration, a default — is stated
+    in the prose or in a component, never left to a citation to fetch. Naming a value that a
+    requirement, fact, or decision also fixes is not restatement: the token carries provenance
+    for a reviewer, and the sentence carries the value for a builder.
+  rationale: |
+    A citation is an index, and the builder's artifact does not have one. A spec that says "the
+    two fixed source-manifest paths" reads complete while the tokens are present and becomes
+    unactionable the moment they are not, so the only test that catches it is reading the
+    document as the builder receives it.
 
 - id: resting-on-an-assumed-fact-is-an-answerable-unknown
   statement: |
