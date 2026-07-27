@@ -70,6 +70,10 @@ const factFiles = (dir) => fs.existsSync(dir) ? fs.readdirSync(dir, { withFileTy
 for (const file of factFiles(FACTS))
   for (const e of loadYaml(file)) { declare(e.id, { kind: "f", tier: "pool", scope: file, e, file }); checkEntry("f", e, file, file); }
 
+// A fact file under design/ would be silently invisible, and its entries unresolvable, so it is
+// an error rather than a file nobody reads.
+for (const stray of factFiles(ROOT).filter((f) => /(^|\/)facts\.ya?ml$/.test(f))) add("fact file outside the pool", stray);
+
 const areas = fs.readdirSync(ROOT, { withFileTypes: true }).filter((d) => d.isDirectory());
 const designs = [];
 loadScope(ROOT, "global", "global");
@@ -261,6 +265,7 @@ const ORDER = [
   "bad decision status", "bad force", "bad retire reason", "retired fact without reason",
   "superseded fact without superseded_by", "superseded_by unresolved", "fact supersedes itself",
   "decision without a falsifier", "requirement with sources", "rationale not a block scalar",
+  "fact file outside the pool",
   "sets.yaml is not a mapping of set name to design scopes", "set name not unique",
   "set without members", "set holds another set", "set member unresolved",
   "area set holds another area's design",

@@ -20,14 +20,14 @@ The repository has two trees, because requirements and facts are scoped differen
 live in exactly three tiers — a global root, an area beneath it, and a design beneath that — each a
 directory holding at most a `requirements.yaml`, with no fourth tier and no nesting of areas; the
 root and each area may also hold a `sets.yaml`, which names groups of designs
-[[r:three-tiers-hold-requirements]]. The tiers file a requirement and group it for a reader; which
-designs it *binds* is stated on the requirement, not read off its path (below).
+[[r:three-tiers-hold-requirements]]. A requirement's tier does two jobs: it files the entry for a
+reader, and it is the ceiling on what the entry may bind — and, where the entry names nothing, the
+binding itself (below).
 
 Facts have no tiers at all. They live in one pool under `facts/`, where any YAML file at any depth
 is a fact file and the path is filing convenience — it means nothing to resolution, so the tree may
-be reorganised whenever a better grouping appears [[r:facts-live-in-one-pool]]. What the author
-chooses is the file whose subject the fact belongs to, and a second design coming to rest on it
-never moves it [[r:facts-are-filed-by-subject]]. Between them, a fact or requirement can be dropped
+be reorganised whenever a better grouping appears [[r:facts-live-in-one-pool]]. Which file an
+author picks is authoring's to test, not this format's. Between them, a fact or requirement can be dropped
 where it belongs the moment it is found, without first knowing which design will consume it —
 knowledge is never stranded for want of a home [[r:enable-easy-capture]].
 
@@ -255,9 +255,11 @@ scope, its backing, and its claim — produced from the foundation files on dema
 committed [[r:facts-can-be-found-without-walking-the-tree]] [[d:fact-index-is-generated-on-demand]].
 Search over that view is the finding mechanism; a topic vocabulary carried on each entry was the
 alternative, and it loses on upkeep — a tag set stays useful only while every author agrees on it,
-and there is nothing here to hold that agreement. Whether a fact sits at the right scope for its
-subject is a question the generated view makes visible and the harness deliberately does not decide
-[[d:filing-scope-is-advisory-not-enforced]].
+and there is nothing here to hold that agreement. A fact must sit somewhere under `facts/`, and one
+written into a design's own directory is an error rather than a file nobody reads — its entries
+would resolve nowhere. Which pool file is the *right* one for a subject is a different question:
+the generated view makes it visible and the harness deliberately does not decide it
+[[d:fact-filing-is-advisory-not-enforced]].
 
 ## What a requirement binds
 
@@ -369,4 +371,3 @@ Marked as having no mechanical backstop — the checker cannot see these, so a r
 | a decision's `statement` names the choice, not its why or entailments | whether a sentence smuggles in reasoning is a reading, not a match |
 | a fact's `backing` reflects how the fact was really established | the enum value is checkable; its truth is not |
 | a design honours every requirement bound to it | whether a design satisfies a statement is a reading of both, and honouring one is often a matter of what the design does not do |
-| a fact sits in the pool file describing its subject | what a claim is *about* is a reading of the claim, not a property of the file it sits in |

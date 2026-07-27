@@ -93,9 +93,13 @@ existing somewhere. So a test the author did not run is disclosed as such in the
 whoever ran it and to where its artifacts sit [[r:tested-facts-disclose-whose-test]]. Nothing more
 is asked of it: an artifacts directory is re-runnable from wherever it already stands.
 
-One test runs before any of those, because a fact recorded twice cannot be corrected once: the
-author searches the repository-wide index for an entry already making the claim, and cites it
-instead of writing a second [[r:search-before-recording-a-fact]]. Every fact is visible to every
+Two tests run before any of those. The first is where the fact goes: the pool takes any file at
+any depth and the path binds nothing, so the choice is the author's and the test is a reading —
+does this file's subject describe the claim? A fact filed by the design that happened to need it,
+rather than by what it is about, fails, and it never moves again once a second design comes to rest
+on it [[r:facts-are-filed-by-subject]]. The second is that a fact recorded twice cannot be
+corrected once: the author searches the repository-wide index for an entry already making the
+claim, and cites it instead of writing a second [[r:search-before-recording-a-fact]]. Every fact is visible to every
 design, so the duplicate is not a local copy but a rival — two settled-looking ids for one claim,
 of which only one will be maintained.
 
@@ -201,7 +205,8 @@ aimed at whoever writes the entry it governs [[r:a-rule-binds-the-writer-of-what
 | 5a | fact — provenance | Does each `documented` fact cite the upstream original rather than a repository file transcribing it, an in-repo source appearing only where that file originates the claim? |
 | 5b | fact — quote fit | Does each quote state the claim its fact makes, rather than being genuine but beside the point? |
 | 5c | fact — whose test | Does each `tested` fact its author did not run say so and name whose test it was, and where its artifacts sit? |
-| 5d | fact — duplicates | Was the repository-wide fact index searched before each new fact was recorded, so no entry restates a claim already held under another id? |
+| 5d | fact — filing | Is each fact in the pool file whose subject describes its claim, rather than the one the design that needed it happened to own? |
+| 5e | fact — duplicates | Was the repository-wide fact index searched before each new fact was recorded, so no entry restates a claim already held under another id? |
 | 6 | inherited fact — wrong | Is every inherited fact the spec found wrong corrected by a superseding evidenced fact, not cited as-is or merely flagged? |
 | 7 | inherited fact — discovery | Is every discovery a decision or component rests on recorded as a fact, not left implicit in prose? |
 | 8 | cross-design dependency | Is each reliance on another design's output a fact sourced to the upstream's requirement, not a direct citation of that design's decisions or invariants? |

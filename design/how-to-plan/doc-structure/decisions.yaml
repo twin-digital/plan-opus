@@ -100,7 +100,7 @@
   statement: |
     the repository-wide view of facts is generated from the foundation files when asked for, and
     no copy of it is committed to the tree
-  status: proposed
+  status: accepted
   falsifiers:
     - generating the view is slow enough, or awkward enough to invoke, that authors skip it and
       write duplicates anyway
@@ -113,11 +113,11 @@
     filtering the tree by topic
   status: rejected
 
-- id: filing-scope-is-advisory-not-enforced
+- id: fact-filing-is-advisory-not-enforced
   statement: |
-    the harness checks that a fact is well-formed and resolvable, never that it sits at the right
-    scope for its subject; misfiling is a reviewer's finding
-  status: proposed
+    the harness checks that a fact sits somewhere under facts/ and is well-formed and resolvable,
+    never that it sits in the right file for its subject; a misfiled fact is a reviewer's finding
+  status: tolerated
   falsifiers:
-    - facts pile up at global scope because nothing pushes back, to the point that the narrower
-      scopes stop describing anything
+    - facts pile into one catch-all file because nothing pushes back, to the point that no file
+      name describes what it holds
