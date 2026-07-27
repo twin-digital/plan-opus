@@ -373,8 +373,8 @@ components:
     excludes: interpreting or completing manifest content
     after: [workspace-enumerator]
   - id: manifest-completion
-    responsibility: fill header name, header version, and workspace dependency versions, reporting specified-field and package-version problems
-    excludes: cross-pack checks that need the whole set
+    responsibility: run once over all located entries — index every pack's header uuid first, then fill header name, header version, and workspace dependency versions, reporting specified-field and package-version problems
+    excludes: the cross-pack checks that decide an entry's status
     after: [pack-locator]
   - id: pack-validation
     responsibility: run the per-pack and set-wide checks and propagate invalidity along dependency edges
