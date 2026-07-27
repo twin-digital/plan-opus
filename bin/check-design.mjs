@@ -1,9 +1,10 @@
 // Validates the design tree against the doc-structure format.
 // Run from the repo root:  node bin/check-design.mjs
 //
-// Foundations (facts, requirements, decisions) are the citable entries. Facts and
-// requirements live in YAML files at three scopes — design (in the design's own dir), area,
-// global; decisions live in a decisions.yaml beside a design's spec.md. Components and open
+// Foundations (facts, requirements, decisions) are the citable entries. Requirements live in
+// YAML files at three scopes — design (in the design's own dir), area, global; decisions live in
+// a decisions.yaml beside a design's spec.md. Facts live in one pool under facts/, in any file
+// and at any depth: the path is filing convenience and carries no meaning. Components and open
 // questions live in spec.md and are never cited. Citations are [[k:id]] with k in f/r/d.
 //
 // A fact resolves from anywhere in the repository; a requirement resolves within the citing
@@ -16,6 +17,7 @@ import YAML from "yaml";
 import { loadSets, bindsDesign, reachable } from "./lib/binding.mjs";
 
 const ROOT = "design";
+const FACTS = "facts";
 const fail = {};
 const NOTICES = new Set(["legacy format — regenerate"]);
 const add = (k, v) => (fail[k] ??= []).push(v);
@@ -55,12 +57,18 @@ const declare = (id, rec) => {
 };
 
 const loadScope = (dir, tier, scope) => {
-  for (const [kind, name] of [["f", "facts.yaml"], ["r", "requirements.yaml"]]) {
-    const file = path.join(dir, name);
-    if (!fs.existsSync(file)) continue;
-    for (const e of loadYaml(file)) { declare(e.id, { kind, tier, scope, e, file }); checkEntry(kind, e, scope, file); }
-  }
+  const file = path.join(dir, "requirements.yaml");
+  if (!fs.existsSync(file)) return;
+  for (const e of loadYaml(file)) { declare(e.id, { kind: "r", tier, scope, e, file }); checkEntry("r", e, scope, file); }
 };
+
+// Facts live in one pool. Any yaml file under facts/, at any depth, is a fact file; the path is
+// where an author chose to file it and means nothing to resolution.
+const factFiles = (dir) => fs.existsSync(dir) ? fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
+  e.isDirectory() ? factFiles(path.join(dir, e.name))
+  : /\.ya?ml$/.test(e.name) ? [path.join(dir, e.name)] : []) : [];
+for (const file of factFiles(FACTS))
+  for (const e of loadYaml(file)) { declare(e.id, { kind: "f", tier: "pool", scope: file, e, file }); checkEntry("f", e, file, file); }
 
 const areas = fs.readdirSync(ROOT, { withFileTypes: true }).filter((d) => d.isDirectory());
 const designs = [];

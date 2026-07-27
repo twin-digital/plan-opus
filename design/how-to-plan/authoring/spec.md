@@ -43,7 +43,7 @@ fixed source-manifest paths" looks complete while the tokens are present and can
 moment they are gone. So the test is run on the stripped document, not the annotated one.
 
 What the prose carries is the value, not the entry. The foundations themselves stay in the short
-lists a reviewer reads first — facts in `facts.yaml`, requirements in `requirements.yaml`, decisions
+lists a reviewer reads first — facts in the `facts/` pool, requirements in `requirements.yaml`, decisions
 in `decisions.yaml` [[f:foundations-extracted-into-lists]] — so a literal named in prose leaves that
 read whole, while a foundation the design stands on appearing *only* in prose is what breaks it
 [[r:easily-reviewable-foundations]].

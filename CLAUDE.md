@@ -1,12 +1,13 @@
 # plan-opus
 
-Planning repository. Designs live under `design/<area>/<design>/`; the artifact format is
+Planning repository. Designs live under `design/<area>/<design>/` and facts in the `facts/` pool;
+the artifact format is
 specified by `design/how-to-plan/doc-structure/spec.md` and the content rules by
 `design/how-to-plan/authoring/spec.md`. Validate every change with `npm run check`.
 
 ## Agents may propose facts
 
-An agent writing or revising a spec may add entries to a `facts.yaml`, at any scope, provided
+An agent writing or revising a spec may add entries to a fact file under `facts/`, provided
 each new fact meets one of:
 
 a. **Documented elsewhere** — its sources cite the evidence as `doc-structure` requires: a

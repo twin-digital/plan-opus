@@ -42,12 +42,11 @@ your output has to pass.
 |---|---|
 | `brief.md` | what this design is for, what is in and out of scope, what "done" looks like, known tensions |
 | `requirements.yaml` | owner fiat scoped to this design — not negotiable, not yours to change |
-| `facts.yaml` | things established to be true, with their evidence |
 
 **3. Wider scopes, nearest first.**
 
-- `design/<area>/requirements.yaml` and `facts.yaml`
-- `design/requirements.yaml` and `facts.yaml`
+- `design/<area>/requirements.yaml`
+- `design/requirements.yaml`
 - `design/sets.yaml` and `design/<area>/sets.yaml` — named sets of designs a requirement can bind
 
 **4. Every fact in the repository — `node bin/foundations.mjs --facts`.** A fact is citable from

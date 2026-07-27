@@ -6,7 +6,8 @@
 //   node bin/foundations.mjs --facts             every fact in the repository, one line each
 //
 // A fact is citable from any design, so --facts is the view to search before recording a new
-// one. It is generated on demand and never written to the tree.
+// one. It is generated on demand and never written to the tree. Facts live in one pool under
+// facts/, so a design view lists only the requirements that bind it.
 //
 // Retired entries are omitted: they are kept in the files so their
 // history survives, but they are not something a design may stand on.
@@ -16,6 +17,7 @@ import YAML from "yaml";
 import { loadSets, bindsDesign } from "./lib/binding.mjs";
 
 const ROOT = "design";
+const FACTS = "facts";
 const args = process.argv.slice(2);
 const full = args.includes("--full");
 const index = args.includes("--facts");
@@ -34,19 +36,19 @@ for (const area of fs.readdirSync(ROOT, { withFileTypes: true }).filter((d) => d
 
 // --facts: the repo-wide index. Every fact is citable from every design, so this is the view an
 // author searches before recording a new one.
-if (index) {
-  const scopes = [{ scope: "global", dir: ROOT }];
-  for (const area of new Set(designs.map((d) => d.area))) scopes.push({ scope: area, dir: path.join(ROOT, area) });
-  for (const d of designs) scopes.push({ scope: `${d.area}/${d.name}`, dir: d.dir });
+const factFiles = (dir) => fs.existsSync(dir) ? fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
+  e.isDirectory() ? factFiles(path.join(dir, e.name))
+  : /\.ya?ml$/.test(e.name) ? [path.join(dir, e.name)] : []) : [];
 
-  const rows = scopes
-    .flatMap(({ scope, dir }) => read(path.join(dir, "facts.yaml")).map((e) => ({ scope, e })))
+if (index) {
+  const rows = factFiles(FACTS)
+    .flatMap((file) => read(file).map((e) => ({ file, e })))
     .sort((a, b) => String(a.e.id).localeCompare(String(b.e.id)));
 
   console.log(`# Facts — every design may cite any of these\n`);
-  for (const { scope, e } of rows) {
+  for (const { file, e } of rows) {
     const claim = String(e.claim ?? "").replace(/\s+/g, " ").trim();
-    console.log(`- **${e.id}**  _(${e.backing ?? "unknown backing"}, filed at ${scope})_\n  ${claim}`);
+    console.log(`- **${e.id}**  _(${e.backing ?? "unknown backing"}, in ${file})_\n  ${claim}`);
   }
   console.log(`\n---\n\n${rows.length} facts.`);
   process.exit(0);
@@ -87,12 +89,12 @@ const quote = (s, prefix = "") => {
 
 const out = [];
 out.push(`# Foundations in scope — ${target.area}/${target.name}`, "");
-out.push(`Everything this design may cite, nearest scope first. Retired entries are omitted.`,
-  `Requirements are the ones that bind this design — every one listed must be honoured.`, "");
+out.push(`The requirements that bind this design, nearest scope first — every one listed must be`,
+  `honoured. Retired entries are omitted. Facts are not scoped: any design may cite any of them,`,
+  "so run `node bin/foundations.mjs --facts` for those.", "");
 
-let totals = { req: 0, fact: 0 };
-for (const [kind, file, heading] of [["req", "requirements.yaml", "Requirements"],
-                                     ["fact", "facts.yaml", "Facts"]]) {
+let totals = { req: 0 };
+for (const [kind, file, heading] of [["req", "requirements.yaml", "Requirements"]]) {
   out.push(`## ${heading}`, "");
   let any = false;
   for (const scope of scopes) {
@@ -119,6 +121,6 @@ for (const [kind, file, heading] of [["req", "requirements.yaml", "Requirements"
   if (!any) out.push("_none_", "");
 }
 
-out.push("---", "", `${totals.req} requirements, ${totals.fact} facts.` +
+out.push("---", "", `${totals.req} requirements.` +
   (unbound ? ` ${unbound} wider-scope requirement(s) bind other designs and are not shown.` : ""));
 console.log(out.join("\n"));

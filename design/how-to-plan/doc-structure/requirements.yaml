@@ -119,6 +119,7 @@
     interpretation cannot be checked.
 
 - id: citable-entries-are-foundations
+  status: retired
   statement: |
     only the three foundation kinds — facts, requirements, and decisions — may be cited by a
     claim, and each lives in a YAML file: facts and requirements in a design's own dir or a
@@ -128,6 +129,16 @@
     Citing only foundations keeps a citation meaning "this rests on something settled", and
     keeping every citable kind in a YAML file means every citation resolves the same way —
     to an entry in a file — rather than some pointing into the prose and some out of it.
+
+
+- id: foundations-are-the-citable-kinds
+  statement: |
+    only facts, requirements, and decisions may be cited by a claim, and each lives in a YAML
+    file: facts in the pool, requirements in a design's own dir or a wider scope, decisions in a
+    decisions.yaml beside the spec.md. Components and open questions are never cited
+  rationale: |
+    Let a claim cite something held in prose and the citation stops meaning "this rests on
+    something settled", because there is no entry to check.
 
 - id: three-tier-scopes
   status: retired
@@ -140,6 +151,7 @@
     a hierarchy that will grow unwieldly
 
 - id: three-tiers-hold-foundations
+  status: retired
   statement: |
     exactly three scopes hold foundations — global, area, and design — each a directory
     holding at most a requirements.yaml and a facts.yaml. There is no fourth tier and areas do
@@ -148,6 +160,16 @@
   rationale: |
     Adding a tier reads like a local change and is not: every path in prose, every artifact
     locator, and the scope of every existing foundation move with it.
+
+
+- id: three-tiers-hold-requirements
+  statement: |
+    exactly three scopes hold requirements — global, area, and design — each a directory holding
+    at most a requirements.yaml. There is no fourth tier and areas do not nest. The global root
+    and each area may also hold a sets.yaml, which declares named sets of designs
+  rationale: |
+    Adding a tier reads like a local change and is not: every path in prose and the scope of
+    every existing requirement move with it.
 
 - id: requirement-binding-is-explicit
   statement: |
@@ -178,12 +200,22 @@
     every time someone edits it.
 
 - id: inputs-outputs-split
+  status: retired
   statement: |
     a design directory separates its durable inputs from its regenerable outputs by file, not
     by folder. Facts and requirements are inputs and live in a design's own requirements.yaml
     and facts.yaml or a wider scope; decisions, components, and open questions are outputs,
     produced by the design and written only into its decisions.yaml or its spec.md, never into
     an input file
+
+
+- id: design-inputs-and-outputs-split
+  statement: |
+    a design directory separates its durable inputs from its regenerable outputs by file, not by
+    folder: brief.md and requirements.yaml are inputs, while decisions.yaml and spec.md are
+    outputs the design produces and nothing upstream may write into
+  rationale: |
+    Without the split a regeneration would overwrite the fiat it was meant to build from.
 
 - id: ids-unique-per-kind
   statement: |
@@ -418,10 +450,19 @@
     twice, and then it costs a relocation: the entry moves file for a reason that has nothing to
     do with the claim.
 
+- id: facts-live-in-one-pool
+  statement: |
+    every fact lives under facts/, where any YAML file at any depth is a fact file. The path is
+    filing convenience and carries no meaning to resolution, so the tree may be reorganised
+    freely
+  rationale: |
+    Giving the path meaning would make a reorganisation a breaking change, and the tiers it
+    replaces named units of work rather than units of subject.
+
 - id: facts-are-filed-by-subject
   statement: |
-    a fact is filed at the narrowest scope that describes its subject, and gaining a second
-    consumer never moves it
+    a fact is filed in the pool file that describes its subject, and gaining a second consumer
+    never moves it
   rationale: |
     Filing by consumer instead makes a fact's location a running tally of who cites it, edited
     every time a claim finds a new reader.

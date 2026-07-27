@@ -16,42 +16,48 @@ tool reads from the raw text.
 
 ## The design tree
 
-Foundations live in a directory tree of exactly three tiers — a global root, an area beneath it,
-and a design beneath that — each tier a directory holding at most a `requirements.yaml` and a
-`facts.yaml`, with no fourth tier and no nesting of areas; the root and each area may also hold a
-`sets.yaml`, which names groups of designs and holds no foundations
-[[r:three-tiers-hold-foundations]]. The three tiers file a foundation and group it for a reader;
-which designs a requirement *binds* is stated on the requirement, not read off its path (below).
-A design's own
-directory then splits what endures from what is regenerable along the file boundary, not a folder
-one: its `requirements.yaml` and `facts.yaml` are durable inputs, while its `decisions.yaml` and
-`spec.md` are outputs the design produces and nothing upstream may write into [[r:inputs-outputs-split]].
-Because inputs and outputs are separated only by which file holds them, a fact or requirement can be
-dropped into whatever scope it belongs to the moment it is found, without first knowing which design
-will consume it — knowledge is never stranded for want of a home [[r:enable-easy-capture]]. For a
-fact the tier is a filing decision and nothing more: it is filed at the narrowest scope that
-describes its subject, and a second design coming to rest on it never moves it
-[[r:facts-are-filed-by-subject]]. Laid out
-on disk, the three tiers and the input/output split take this shape [[r:spec-shows-layout-as-tree]]:
+The repository has two trees, because requirements and facts are scoped differently. Requirements
+live in exactly three tiers — a global root, an area beneath it, and a design beneath that — each a
+directory holding at most a `requirements.yaml`, with no fourth tier and no nesting of areas; the
+root and each area may also hold a `sets.yaml`, which names groups of designs
+[[r:three-tiers-hold-requirements]]. The tiers file a requirement and group it for a reader; which
+designs it *binds* is stated on the requirement, not read off its path (below).
+
+Facts have no tiers at all. They live in one pool under `facts/`, where any YAML file at any depth
+is a fact file and the path is filing convenience — it means nothing to resolution, so the tree may
+be reorganised whenever a better grouping appears [[r:facts-live-in-one-pool]]. What the author
+chooses is the file whose subject the fact belongs to, and a second design coming to rest on it
+never moves it [[r:facts-are-filed-by-subject]]. Between them, a fact or requirement can be dropped
+where it belongs the moment it is found, without first knowing which design will consume it —
+knowledge is never stranded for want of a home [[r:enable-easy-capture]].
+
+A design's own directory then splits what endures from what is regenerable along the file boundary,
+not a folder one: its `brief.md` and `requirements.yaml` are durable inputs, while its
+`decisions.yaml` and `spec.md` are outputs the design produces and nothing upstream may write into
+[[r:design-inputs-and-outputs-split]]. Laid out on disk, the two trees and the input/output split
+take this shape [[r:spec-shows-layout-as-tree]]:
 
 ```text
+facts/                           the fact pool — any yaml, any depth
+├── markdown-rendering.yml
+└── minecraft/
+    └── pack-format.yml
+
 design/
-├── requirements.yaml            global-scope inputs
-├── facts.yaml
+├── requirements.yaml            global-scope requirements
 ├── sets.yaml                    sets that may span areas
 └── how-to-plan/                 an area
-    ├── requirements.yaml        area-scope inputs
-    ├── facts.yaml
+    ├── requirements.yaml        area-scope requirements
     ├── sets.yaml                sets of this area's designs
     └── doc-structure/           a design
-        ├── requirements.yaml    design inputs (durable)
-        ├── facts.yaml
+        ├── brief.md             design inputs (durable)
+        ├── requirements.yaml
         ├── decisions.yaml       design outputs (regenerable)
         └── spec.md
 ```
 
 An id is the handle everything else resolves through, so within a kind it is unique across the whole
-repository, not merely across the three scopes one design can see [[r:ids-unique-repo-wide]]; a
+repository, not merely across the scopes one design can see [[r:ids-unique-repo-wide]]; a
 repeat at a nearer scope is an error, never a shadowing override, and an entry whose meaning changes
 earns a fresh id rather than a rewrite of the old one [[r:ids-unique-per-kind]]. That repo-wide
 uniqueness is what lets resolution ignore scope entirely (below).
@@ -78,9 +84,9 @@ fact is citable from anywhere in the repository [[r:facts-resolve-repo-wide]], w
 keeps the three-tier fence and a decision stays with the design that made it
 [[r:decisions-belong-to-their-design]].
 
-Only these three kinds are citable, and each lives in a YAML file: facts and requirements in a
-design's own directory or a wider scope, decisions in a `decisions.yaml` beside the `spec.md`.
-Components and open questions live in the document and are never cited [[r:citable-entries-are-foundations]].
+Only these three kinds are citable, and each lives in a YAML file: facts in the pool, requirements
+in a design's own directory or a wider scope, decisions in a `decisions.yaml` beside the `spec.md`.
+Components and open questions live in the document and are never cited [[r:foundations-are-the-citable-kinds]].
 Keeping every citable kind in a file is what makes every citation resolve the same way — to one
 entry in one file — and keeps a citation meaning "this rests on something settled."
 
@@ -144,8 +150,8 @@ author of any spec starts from a concrete shape rather than the field lists alon
 [[r:spec-shows-copyable-type-examples]]. The blocks below sit outside the fixed `## Components` and
 `## Open questions` sections, so they are read as illustration and never as live entries (below).
 
-A fact, a requirement, and a decision, as they sit in a `facts.yaml`, `requirements.yaml`, and
-`decisions.yaml` — each file a bare sequence:
+A fact, a requirement, and a decision, as they sit in a fact-pool file, a `requirements.yaml`, and
+a `decisions.yaml` — each file a bare sequence:
 
 ```yaml
 - id: fence-info-string-is-raw-text
@@ -236,7 +242,7 @@ format's; how much of a design must be cited is a claim's obligation only where 
 component, or other claim would have to change were the cited foundation false
 [[r:explicit-intent]]. A citation is the token `[[<k>:<id>]]`, its kind a single letter — `f` fact,
 `r` requirement, `d` decision [[r:citation-token-grammar]]. It resolves scope-blind: the id is
-matched against every entry of that kind across all three tiers, and exactly one match is required —
+matched against every entry of that kind in the repository, and exactly one match is required —
 any other count is an error [[r:resolution-is-scope-blind]]. Scope-blind matching is safe only
 because ids are unique per kind repo-wide; without that guarantee resolution would need a precedence
 rule between tiers. What a design may cite then follows the kind, not the tier the citing design
@@ -363,4 +369,4 @@ Marked as having no mechanical backstop — the checker cannot see these, so a r
 | a decision's `statement` names the choice, not its why or entailments | whether a sentence smuggles in reasoning is a reading, not a match |
 | a fact's `backing` reflects how the fact was really established | the enum value is checkable; its truth is not |
 | a design honours every requirement bound to it | whether a design satisfies a statement is a reading of both, and honouring one is often a matter of what the design does not do |
-| a fact sits at the narrowest scope describing its subject | what a claim is *about* is a reading of the claim, not a property of the file it sits in |
+| a fact sits in the pool file describing its subject | what a claim is *about* is a reading of the claim, not a property of the file it sits in |

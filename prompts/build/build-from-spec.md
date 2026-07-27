@@ -15,7 +15,8 @@ Read, in this order:
 1. **`design/<area>/<design>/spec.md`** — the build instruction. It tells you *what to build and
    how*, with a minimum of *why*. Its Components are the units you build; the prose is the how.
    Build to it.
-2. **`decisions.yaml`, `requirements.yaml`, `facts.yaml`** in and under the design directory — the
+2. **`decisions.yaml` and `requirements.yaml`** in and under the design directory, plus the `facts/`
+   pool — the
    foundations the spec rests on. The spec's `[[f:...]]` / `[[r:...]]` / `[[d:...]]` citations
    point into these; follow one when you need the fact, requirement, or decision behind a claim.
 3. **Wider scopes as needed** — an `[[r:...]]` may live in `design/<area>/` or `design/`, and an

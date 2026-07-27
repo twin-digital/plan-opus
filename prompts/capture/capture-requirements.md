@@ -1,7 +1,7 @@
 # Capture a design's inputs
 
 You produce the **inputs** a design is built from — `brief.md`, `requirements.yaml`, and
-`facts.yaml` — for a design that does not have them yet. This is the "capture first" step: the
+and the facts they rest on — for a design that does not have them yet. This is the "capture first" step: the
 foundations get written down before anyone designs, so the spec that follows stands on settled
 ground. Everything downstream (`write-design-doc.md`, `generate-spec.md`, `build-from-spec.md`)
 assumes these files exist; you are the step that creates them.

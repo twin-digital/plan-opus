@@ -7,17 +7,18 @@ specs. That discipline is the whole point; it is what lets the loop run several 
 your context filling.
 
 **Target.** A design `<area>/<design>` whose `design/<area>/<design>/` holds `brief.md`,
-`requirements.yaml`, `facts.yaml`. The output is `spec.md` + `decisions.yaml` beside them.
+`requirements.yaml`. The output is `spec.md` + `decisions.yaml` beside them; facts live in the
+`facts/` pool.
 
 ---
 
 ## Set up
 
-Confirm the three input files are present. Give yourself a worktree and branch off `origin/main`
+Confirm `brief.md` and `requirements.yaml` are present. Give yourself a worktree and branch off `origin/main`
 (the workspace step in `write-design-doc.md`). Every sub-agent works in that worktree, on
 that branch.
 
-Then dispatch `review-inputs.md` over the three files, before the writer starts. It reads them as a
+Then dispatch `review-inputs.md` over the inputs, before the writer starts. It reads them as a
 set and reports; it changes nothing. Two requirements that contradict each other, or a fact whose
 evidence does not carry its claim, are findable this way in one pass — and left alone, one costs a
 writer, nine reviewers, a triager, a reviser, and a capstone before it reaches the owner as an open
