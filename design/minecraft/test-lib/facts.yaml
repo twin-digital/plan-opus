@@ -954,11 +954,12 @@
         names InvalidEntityError; committed output in
         design/minecraft/test-lib/artifacts/type-probes/throws-annotation-probe.out.txt.
 
-- id: public-packs-reach-past-the-v1-surface
+- id: public-packs-reach-past-entities-and-events
   claim: |
     Across 103 public GitHub behavior-pack repositories (368,385 non-blank source lines,
-    classified against the `@minecraft/server` 2.8.0 declarations), every part of the surface v1
-    leaves out is reached by a large share of packs. `system` scheduling is reached by 84%,
+    classified against the `@minecraft/server` 2.8.0 declarations), every part of the API outside
+    entity state, effects and after-event subscriptions is reached by a large share of packs.
+    `system` scheduling is reached by 84%,
     `beforeEvents` subscriptions by 76%, items and containers by 62%, blocks by 55%, the player
     client surface by 44%, the static type registries by 41%, and the startup and custom-command
     registries by 40%. Exactly one repository of the 103 reaches for none of them.
@@ -966,8 +967,9 @@
     On items and blocks specifically, 69% of repositories reference `ItemStack`, `Block`,
     `Container`, or an item or block component id unambiguously, and 88% either do so or
     subscribe to an event whose payload exposes one of those classes. The two halves are demanded
-    almost equally — items 79%, blocks 78% — and 68% need both, so neither half alone raises the
-    share of fully-covered repositories above 22%. The 12 repositories that reference none are
+    almost equally — items 79%, blocks 78% — and 68% reference both, so a surface covering only
+    one of the two leaves at most 22% of repositories referencing nothing beyond it. The 12
+    repositories that reference none are
     small utility packs: median 394 source lines and largest 1,563, against a median of 1,466 for
     the rest.
 
