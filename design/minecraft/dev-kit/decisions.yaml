@@ -118,7 +118,7 @@
   statement: |
     pack criteria are the `filter` field of `DiscoverOptions`, and `discoverPacks` returns the
     matching entries directly rather than a pack-set object carrying a `search` method
-  status: proposed
+  status: accepted
   falsifiers:
     - a consumer filters one workspace more than once per read, so the repeated whole-workspace reads dominate its cost
     - a consumer needs the whole set alongside a filtered subset of it and has to call twice to get both
