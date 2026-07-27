@@ -1,8 +1,3 @@
-# Requirements scoped to the minecraft/test-lib design. Owner-fiat inputs the spec is built to
-# satisfy. Behavioural fidelity is two general requirements, not a per-behaviour list: modelled
-# behaviour is the engine's, and a behaviour presented as the engine's is sourced. Which
-# behaviours are modelled, and how each one behaves, are decisions the spec makes.
-
 # Fidelity and behaviour
 
 - id: modelled-behaviour-is-the-engines
@@ -112,8 +107,6 @@
     empty and every value unset, whatever the engine would have populated there.
   rationale: |
     Keeping construction empty puts fidelity in presets, which can grow without reopening this rule.
-
-# zero-kinematics-at-spawn stood here. Cut as a spec decision, not owner fiat; id not reused.
 
 - id: presets-are-opt-in
   statement: |
