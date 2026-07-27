@@ -90,8 +90,8 @@ paraphrase, and is the harder failure to see [[r:quote-carries-the-claim]]. A `t
 the parallel question of whose test it was: an entry that does not say reads as the author's own
 work, and the guarantee that whoever wrote the fact can re-run its evidence decays into a file
 existing somewhere. So a test the author did not run is disclosed as such in the source, named to
-whoever ran it, and that disclosure is the whole remedy — the artifacts are re-runnable from
-wherever they already sit [[r:tested-facts-disclose-whose-test]].
+whoever ran it and to where its artifacts sit [[r:tested-facts-disclose-whose-test]]. Nothing more
+is asked of it: an artifacts directory is re-runnable from wherever it already stands.
 
 One test runs before any of those, because a fact recorded twice cannot be corrected once: the
 author searches the repository-wide index for an entry already making the claim, and cites it

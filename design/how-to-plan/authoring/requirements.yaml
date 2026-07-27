@@ -241,20 +241,15 @@
 - id: tested-facts-disclose-whose-test
   statement: |
     a fact backed `tested` whose test its author did not run says so in the source, naming whose
-    test it was and where the artifacts sit. Only a fact whose author ran the test is offered as
-    the author's own. Disclosure is the whole remedy, wherever the artifacts sit
+    test it was and where the artifacts sit
   rationale: |
-    Without it, "I ran this" and "someone else ran this" are the same entry, and the guarantee
-    that the author can re-run the evidence decays into a file existing somewhere. Disclosure is
-    what a reader needs; moving the artifacts to a shared directory told them nothing more, since
-    an unmoved directory is just as readable and re-runnable from where it already sits.
+    Undisclosed, "I ran this" and "someone else ran this" are the same entry, and the guarantee
+    that the author can re-run the evidence decays into a file existing somewhere.
 
 - id: search-before-recording-a-fact
   statement: |
     before recording a fact, its author searches the repository-wide index for one already making
-    the claim, and cites what is there rather than restating it. A fact that says what an existing
-    one says, in other words, is a duplicate to drop
+    the claim, and cites it rather than writing a second
   rationale: |
-    Any design may cite any fact, so a second entry for the same claim is not a local convenience
-    — it is two ids a later reader must reconcile, both looking settled, one of which will go
-    stale unnoticed. Searching first is cheap; reconciling two half-cited duplicates later is not.
+    A duplicate is two ids a later reader must reconcile, both looking settled, one of which goes
+    stale unnoticed.

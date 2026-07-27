@@ -74,8 +74,9 @@ Where the authority comes from also sets how far each kind reaches. A requiremen
 each bind a bounded set of designs, so citing one from outside that set would import an obligation
 its owner never issued — the tiers fence them. A fact issues no obligation at all: it reports what
 is true, on evidence anyone can re-check, and stays true whichever design happened to find it. So a
-fact is citable from anywhere in the repository while a requirement keeps the three-tier fence and a
-decision stays with its own design [[r:facts-resolve-repo-wide]].
+fact is citable from anywhere in the repository [[r:facts-resolve-repo-wide]], while a requirement
+keeps the three-tier fence and a decision stays with the design that made it
+[[r:decisions-belong-to-their-design]].
 
 Only these three kinds are citable, and each lives in a YAML file: facts and requirements in a
 design's own directory or a wider scope, decisions in a `decisions.yaml` beside the `spec.md`.
@@ -101,8 +102,8 @@ verbatim `quote` [[r:facts-require-a-source]]. A `url` pointing inside this repo
 relative to the repo root, not to the file holding it [[r:repo-relative-source-paths]], and a
 `quote` is always a block scalar even when one line [[r:quote-is-block-scalar]]. A `url` under an
 `artifacts/` directory is admissible only on a `tested` fact, where it names output a test actually
-produced; which design's directory holds that output does not bear on whether the fact stands
-[[r:artifact-sources-back-tested-facts]]. That is the
+produced [[r:artifact-sources-back-tested-facts]] — the backing is what makes the locator
+admissible, so which design's directory holds the output does not bear on it. That is the
 one provenance rule with a mechanical shadow; which source is the right one for a given `backing`,
 and what a source must disclose about who produced it, are authoring's to test, not this format's. Optional: a `status`
 of `active` | `retired` (default `active`) — a retired fact adds a `reason` of `superseded` |
@@ -239,8 +240,8 @@ matched against every entry of that kind across all three tiers, and exactly one
 any other count is an error [[r:resolution-is-scope-blind]]. Scope-blind matching is safe only
 because ids are unique per kind repo-wide; without that guarantee resolution would need a precedence
 rule between tiers. What a design may cite then follows the kind, not the tier the citing design
-sits in: every active fact in the repository, the requirements at its own, its area's, and the
-global tier, and only its own decisions [[r:facts-resolve-repo-wide]].
+sits in: every active fact in the repository [[r:facts-resolve-repo-wide]], the requirements at its
+own, its area's, and the global tier, and only its own decisions.
 
 Citing a fact anywhere only helps an author who can see it, and a tree read one file at a time
 hides most of it. So the whole set is available as one generated view — every fact with its id, its
