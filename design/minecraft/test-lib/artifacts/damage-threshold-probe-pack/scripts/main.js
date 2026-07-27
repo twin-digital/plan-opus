@@ -1,8 +1,10 @@
 // Fourth in-engine probe pack for minecraft/test-lib. Three sets, one per spec ruling that no
 // run has yet observed:
-//   nohealth  — applyDamage on an entity that genuinely has no health component
-//   threshold — the killing-hit boundary: a write landing exactly on effectiveMin
-//   handlers  — what the engine does when an after-event handler throws mid-cascade
+//   nohealth     — applyDamage on an entity that genuinely has no health component
+//   threshold    — the killing-hit boundary: a write landing exactly on effectiveMin
+//   handlers     — what the engine does when an after-event handler throws mid-cascade
+//   beforeevents — what a cancelled call returns, and whether a handler's write to the mutable
+//                  `damage` / `duration` fields takes
 // Each probe emits lines tagged with its probe name:
 //   [mctest] <probe-name> :: <observation>
 // Copy every [mctest] line from chat (or the server content log — console.warn mirrors them)
@@ -662,6 +664,249 @@ const handlerProbes = {
 }
 
 // ---------------------------------------------------------------------------------------------
+// Set D — before-event cancellation, and the writable non-`cancel` fields.
+//
+// Two rulings the spec reaches by inference, with the declarations and the API reference both
+// silent:
+//
+//   1. decision: cancelled-actions-return-the-no-op-value — a cancelled applyDamage returns false
+//      and a cancelled addEffect returns undefined. `EntityHurtBeforeEvent.cancel` carries no
+//      TSDoc at all in the pinned 2.8.0 index.d.ts (line 10811, bare `cancel: boolean;`), and
+//      nothing in the declarations states what the gated call returns.
+//
+//   2. The writable fields. In 2.8.0 `EntityHurtBeforeEvent.damage` (line 10817) and
+//      `EffectAddBeforeEvent.duration` (line 8215) are both declared mutable — no `readonly` —
+//      so a handler can rewrite the action rather than only veto it. The spec treats before-events
+//      purely as gates and says nothing about a handler that writes them.
+//
+// Contradicting outcomes: for (1), a cancelled applyDamage returning true or a cancelled addEffect
+// returning an Effect — the falsifier `d:cancelled-actions-return-the-no-op-value` names — or
+// either action landing despite the cancellation. For (2), there is no ruling to contradict; a
+// field write that takes is a behaviour the spec does not model at all.
+//
+// Before-event handlers run in restricted-execution mode, so nothing in one emits or mutates the
+// world. Each handler records into an array and the probe emits after the window closes.
+
+const SPEED = 'minecraft:speed'
+
+/**
+ * Subscribes `handler` to a before-event signal for the duration of `body`, and unsubscribes in a
+ * finally. A leaked before-event subscriber that cancels everything would poison every later probe
+ * and every later run in the same session, so this is the only way set D subscribes.
+ */
+const withBeforeHandler = async (signal, handler, body) => {
+  const subscribed = attempt(() => signal.subscribe(handler))
+  if (!subscribed.ok) return { subscribed: false, outcome: subscribed }
+  try {
+    return { subscribed: true, outcome: await body() }
+  } finally {
+    attempt(() => signal.unsubscribe(subscribed.value))
+  }
+}
+
+const readEffect = (entity) => {
+  const effect = attempt(() => entity.getEffect(SPEED))
+  return {
+    present: effect.ok && effect.value !== undefined,
+    duration: attempt(() => effect.value?.duration).value,
+    amplifier: attempt(() => effect.value?.amplifier).value,
+    outcome: effect,
+  }
+}
+
+const DAMAGE_CASES = [
+  { label: 'cancel', requested: 4, cancel: true, write: undefined },
+  { label: 'control-no-write', requested: 4, cancel: false, write: undefined },
+  { label: 'lower-damage', requested: 10, cancel: false, write: 2 },
+  { label: 'raise-damage', requested: 1, cancel: false, write: 4 },
+]
+
+const EFFECT_CASES = [
+  { label: 'cancel', requested: 200, cancel: true, write: undefined },
+  { label: 'control-no-write', requested: 200, cancel: false, write: undefined },
+  { label: 'extend-duration', requested: 100, cancel: false, write: 600 },
+  { label: 'shorten-duration', requested: 400, cancel: false, write: 100 },
+]
+
+const beforeEventProbes = {
+  // applyDamage under a beforeEvents.entityHurt handler that cancels, or that rewrites `damage`.
+  // `requested` is what the probe asks for; `write` is what the handler puts in the field.
+  'before-entity-hurt': async (ctx) => {
+    emit(
+      `before-entity-hurt :: ${DAMAGE_CASES.length} cases; EntityHurtBeforeEvent.damage is declared mutable in ` +
+        '2.8.0 (index.d.ts:10817, no readonly) and cancel carries no TSDoc (index.d.ts:10811)',
+    )
+    for (const testCase of DAMAGE_CASES) {
+      const spawn = attempt(() => ctx.spawn())
+      if (!spawn.ok) {
+        emit(`before-entity-hurt :: [${testCase.label}] spawn ${show(spawn)} — case skipped`)
+        continue
+      }
+      const sheep = spawn.value
+      const sheepId = safeId(sheep)
+      const notes = []
+      const cascade = recordCascade(sheepId)
+      const component = healthOf(sheep)
+      const before = component ? attempt(() => component.currentValue) : { ok: false, message: 'no component' }
+
+      let handlerRan = false
+      const handler = (event) => {
+        try {
+          if (safeId(event.hurtEntity) !== sheepId) return
+          handlerRan = true
+          notes.push(`handler-entered damage-as-delivered=${json(event.damage)}`)
+          if (testCase.write !== undefined) {
+            event.damage = testCase.write
+            notes.push(`wrote damage=${testCase.write} readback-in-handler=${json(event.damage)}`)
+          }
+          if (testCase.cancel) {
+            event.cancel = true
+            notes.push(`wrote cancel=true readback-in-handler=${json(event.cancel)}`)
+          }
+        } catch (error) {
+          notes.push(`handler-threw ${String(error?.message ?? error)}`)
+        }
+      }
+
+      const { subscribed, outcome } = await withBeforeHandler(world.beforeEvents.entityHurt, handler, async () => {
+        const returned = attempt(() => sheep.applyDamage(testCase.requested))
+        await tick(4)
+        return returned
+      })
+      if (!subscribed) {
+        emit(`before-entity-hurt :: [${testCase.label}] subscribe ${show(outcome)} — case skipped`)
+        cascade.dispose()
+        attempt(() => sheep.remove())
+        continue
+      }
+
+      const after = healthOf(sheep)
+      const afterValue = after ? attempt(() => after.currentValue) : { ok: false, message: 'no component' }
+      const lost = before.ok && afterValue.ok ? before.value - afterValue.value : undefined
+      const expected = testCase.cancel ? 0 : (testCase.write ?? testCase.requested)
+
+      const verdict = !outcome.ok
+        ? 'CALL-THREW'
+        : !handlerRan
+          ? 'BEFORE-EVENT-NOT-RAISED (the handler never ran for this entity, so nothing here bears on cancellation or on the field write)'
+          : testCase.cancel
+          ? outcome.value === true
+            ? 'CONTRADICTS-SPEC-CANCELLED-RETURNED-TRUE'
+            : lost !== 0
+              ? 'CONTRADICTS-SPEC-DAMAGE-LANDED-ANYWAY'
+              : 'MATCHES-SPEC-CANCELLED-RETURNED-FALSE'
+          : testCase.write === undefined
+            ? `control health-lost=${json(lost)}`
+            : lost === testCase.write
+              ? 'FIELD-WRITE-TOOK (the health lost is the value the handler wrote)'
+              : lost === testCase.requested
+                ? 'FIELD-WRITE-IGNORED (the health lost is the value the probe requested)'
+                : 'FIELD-WRITE-NEITHER (the health lost matches neither value — read the numbers)'
+
+      emit(
+        `before-entity-hurt :: [${testCase.label}] requested=${testCase.requested} handler-writes-damage=${json(testCase.write)} ` +
+          `handler-cancels=${testCase.cancel} applyDamage ${show(outcome)} health(${show(before)} -> ${show(afterValue)}) ` +
+          `health-lost=${json(lost)} expected-if-the-write-takes=${expected} cascade=[${cascade.seen.join(', ')}] verdict=${verdict}`,
+      )
+      emit(`before-entity-hurt :: [${testCase.label}] handler-notes=[${notes.join(' | ')}]`)
+
+      cascade.dispose()
+      attempt(() => sheep.remove())
+      await tick(2)
+    }
+    emit('before-entity-hurt :: complete — the after-event `hurt(damage=…)` in each cascade says what the engine reported downstream')
+  },
+
+  // addEffect under a beforeEvents.effectAdd handler that cancels, or that rewrites `duration`.
+  'before-effect-add': async (ctx) => {
+    emit(
+      `before-effect-add :: ${EFFECT_CASES.length} cases; EffectAddBeforeEvent.duration is declared mutable in ` +
+        '2.8.0 (index.d.ts:8215, no readonly)',
+    )
+    for (const testCase of EFFECT_CASES) {
+      const spawn = attempt(() => ctx.spawn())
+      if (!spawn.ok) {
+        emit(`before-effect-add :: [${testCase.label}] spawn ${show(spawn)} — case skipped`)
+        continue
+      }
+      const sheep = spawn.value
+      const sheepId = safeId(sheep)
+      const notes = []
+      const component = healthOf(sheep)
+      const healthBefore = component ? attempt(() => component.currentValue) : { ok: false, message: 'no component' }
+
+      let handlerRan = false
+      const handler = (event) => {
+        try {
+          if (safeId(event.entity) !== sheepId) return
+          handlerRan = true
+          notes.push(`handler-entered effectType=${json(event.effectType)} duration-as-delivered=${json(event.duration)}`)
+          if (testCase.write !== undefined) {
+            event.duration = testCase.write
+            notes.push(`wrote duration=${testCase.write} readback-in-handler=${json(event.duration)}`)
+          }
+          if (testCase.cancel) {
+            event.cancel = true
+            notes.push(`wrote cancel=true readback-in-handler=${json(event.cancel)}`)
+          }
+        } catch (error) {
+          notes.push(`handler-threw ${String(error?.message ?? error)}`)
+        }
+      }
+
+      const { subscribed, outcome } = await withBeforeHandler(world.beforeEvents.effectAdd, handler, async () => {
+        const returned = attempt(() => sheep.addEffect(SPEED, testCase.requested, { amplifier: 1, showParticles: false }))
+        await tick(2)
+        return returned
+      })
+      if (!subscribed) {
+        emit(`before-effect-add :: [${testCase.label}] subscribe ${show(outcome)} — case skipped`)
+        attempt(() => sheep.remove())
+        continue
+      }
+
+      const effect = readEffect(sheep)
+      const afterHealth = healthOf(sheep)
+      const healthAfter = afterHealth ? attempt(() => afterHealth.currentValue) : { ok: false, message: 'no component' }
+      // The readback is 2 ticks after the add, so a duration that took reads its value minus the
+      // ticks elapsed. TOLERANCE covers that without hiding the ~300-tick gap between the cases.
+      const TOLERANCE = 6
+      const near = (a, b) => typeof a === 'number' && typeof b === 'number' && Math.abs(a - b) <= TOLERANCE
+
+      const verdict = !outcome.ok
+        ? 'CALL-THREW'
+        : !handlerRan
+          ? 'BEFORE-EVENT-NOT-RAISED (the handler never ran for this entity, so nothing here bears on cancellation or on the field write)'
+          : testCase.cancel
+          ? outcome.value !== undefined
+            ? 'CONTRADICTS-SPEC-CANCELLED-RETURNED-A-VALUE'
+            : effect.present
+              ? 'CONTRADICTS-SPEC-EFFECT-ADDED-ANYWAY'
+              : 'MATCHES-SPEC-CANCELLED-RETURNED-UNDEFINED'
+          : testCase.write === undefined
+            ? `control effect-present=${effect.present} duration=${json(effect.duration)}`
+            : near(effect.duration, testCase.write)
+              ? 'FIELD-WRITE-TOOK (the effect carries the duration the handler wrote)'
+              : near(effect.duration, testCase.requested)
+                ? 'FIELD-WRITE-IGNORED (the effect carries the duration the probe requested)'
+                : 'FIELD-WRITE-NEITHER (the duration matches neither value — read the numbers)'
+
+      emit(
+        `before-effect-add :: [${testCase.label}] requested=${testCase.requested} handler-writes-duration=${json(testCase.write)} ` +
+          `handler-cancels=${testCase.cancel} addEffect ${show(outcome)} -> effect-present=${effect.present} ` +
+          `duration=${json(effect.duration)} amplifier=${json(effect.amplifier)} getEffect ${show(effect.outcome)} ` +
+          `health(${show(healthBefore)} -> ${show(healthAfter)}) verdict=${verdict}`,
+      )
+      emit(`before-effect-add :: [${testCase.label}] handler-notes=[${notes.join(' | ')}]`)
+
+      attempt(() => sheep.remove())
+      await tick(2)
+    }
+    emit('before-effect-add :: complete — the control case is what says an uncancelled add reads back at all')
+  },
+}
+
+// ---------------------------------------------------------------------------------------------
 // Runner and triggers.
 
 let running = false
@@ -705,6 +950,12 @@ const COMMANDS = [
   ['mctest4:nohealth', noHealthProbes, 'nohealth', 'applyDamage on an entity that has no health component'],
   ['mctest4:threshold', thresholdProbes, 'threshold', 'Drive health to exactly effectiveMin by two paths and watch for entityDie'],
   ['mctest4:handlers', handlerProbes, 'handlers', 'Throw from an after-event handler and record what the engine does with it'],
+  [
+    'mctest4:beforeevents',
+    beforeEventProbes,
+    'beforeevents',
+    'Cancel an action from a before-event handler, and rewrite the mutable damage/duration fields',
+  ],
 ]
 
 system.beforeEvents.startup.subscribe((event) => {

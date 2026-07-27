@@ -1,6 +1,6 @@
 # mc-test-lib damage-threshold probes
 
-A fourth Bedrock behavior pack for `minecraft/test-lib`, covering three rulings the spec makes that
+A fourth Bedrock behavior pack for `minecraft/test-lib`, covering four rulings the spec makes that
 no run has yet observed. Each is currently a reasoned guess, and each has a shape of result that
 would overturn it.
 
@@ -18,6 +18,12 @@ would overturn it.
   propagates out of the call that dispatched it and the remaining subscribers do not run
   (`d:handler-errors-propagate`). Neither half is observed on the engine. This set asks what the
   engine does, which is the input the decision is choosing whether to match.
+- **`mctest4:beforeevents`** — **before-event cancellation, and the writable non-`cancel` fields.**
+  The spec says a cancelled `applyDamage` returns `false` and a cancelled `addEffect` returns
+  `undefined` (`d:cancelled-actions-return-the-no-op-value`); neither the declarations nor the API
+  reference say what a cancelled call returns. Separately, `EntityHurtBeforeEvent.damage` and
+  `EffectAddBeforeEvent.duration` are declared **mutable**, so a handler can rewrite the action
+  rather than only veto it — a pattern the spec does not model at all.
 
 Each probe emits observation lines — it reports what the engine did rather than asserting what it
 should do. There are no results yet: this pack is the instrument, not the answer.
@@ -47,6 +53,7 @@ As a player in the world:
 /mctest4:nohealth
 /mctest4:threshold
 /mctest4:handlers
+/mctest4:beforeevents
 ```
 
 or, from the server console (the path every earlier run actually used), naming a source entity that
@@ -56,6 +63,7 @@ stays inside the loaded ticking area:
 execute as <entity> run scriptevent mctest4:nohealth
 execute as <entity> run scriptevent mctest4:threshold
 execute as <entity> run scriptevent mctest4:handlers
+execute as <entity> run scriptevent mctest4:beforeevents
 ```
 
 A single probe can be named as the message argument:
@@ -66,6 +74,8 @@ execute as <entity> run scriptevent mctest4:nohealth damage-without-health
 execute as <entity> run scriptevent mctest4:threshold effective-minimum-survey
 execute as <entity> run scriptevent mctest4:threshold killing-hit-boundary
 execute as <entity> run scriptevent mctest4:handlers throwing-handler-propagation
+execute as <entity> run scriptevent mctest4:beforeevents before-entity-hurt
+execute as <entity> run scriptevent mctest4:beforeevents before-effect-add
 ```
 
 Run the `scriptevent` form `execute as <player>` or otherwise from inside the loaded ticking area:
@@ -74,8 +84,8 @@ a run driven from outside it fails with `LocationInUnloadedChunkError` when prob
 source crashed every probe in an earlier run once it left the area.
 
 Runtime: each set finishes in **well under a minute** — roughly 5 s for `nohealth`, 20 s for
-`threshold`, 10 s for `handlers`. Nothing here waits on effect decay, so a set that appears to hang
-has stopped.
+`threshold`, 10 s for `handlers`, 5 s for `beforeevents`. Nothing here waits on effect decay, so a
+set that appears to hang has stopped.
 
 Every line appears both in chat (`world.sendMessage`) and in the content log (`console.warn`), so a
 dedicated server can collect them from the log file.
@@ -200,6 +210,92 @@ and the error it throws carries the marker `mctest4-deliberate-handler-throw`. *
 the content log carrying that marker is expected in three of the four cases.** A `PROBE CRASHED`
 line is a different thing entirely, and there should be none.
 
+## Set D — `mctest4:beforeevents`
+
+### What the pinned declarations actually say
+
+Checked against `../type-probes/node_modules/@minecraft/server/index.d.ts` (the pinned 2.8.0
+module), not from memory:
+
+| Member | Declaration | TSDoc |
+|---|---|---|
+| `EntityHurtBeforeEvent.cancel` (line 10811) | `cancel: boolean;` | **none at all** — the member sits bare between `private constructor();` and the next doc comment |
+| `EntityHurtBeforeEvent.damage` (line 10817) | `damage: number;` — **mutable**, no `readonly` | "Describes the amount of damage that will be caused." Nothing about writing it |
+| `EffectAddBeforeEvent.cancel` (line 8209) | `cancel: boolean;` | "When set to true will cancel the event." |
+| `EffectAddBeforeEvent.duration` (line 8215) | `duration: number;` — **mutable**, no `readonly` | "Effect duration." Nothing about writing it |
+
+The two payloads' sibling members are declared `readonly` (`damageSource`, `hurtEntity`,
+`effectType`, `entity`), so the mutability of `damage` and `duration` is a deliberate distinction in
+the declarations rather than a missing modifier. **Nothing in the declarations states what a
+cancelled call returns** — that is what makes the spec's ruling an inference.
+
+### `before-entity-hurt`
+
+Four cases, fresh sheep each, `world.beforeEvents.entityHurt` subscribed for the case and
+unsubscribed in a `finally`. The handler acts only on that case's own entity id.
+
+| Case | Requested | Handler does | What it answers |
+|---|---|---|---|
+| `cancel` | 4 | `cancel = true` | what a cancelled `applyDamage` returns, and whether the damage lands anyway |
+| `control-no-write` | 4 | nothing | the baseline: health lost equals the amount requested |
+| `lower-damage` | 10 | `damage = 2` | does a written-down `damage` take |
+| `raise-damage` | 1 | `damage = 4` | does a written-**up** `damage` take (kept under a sheep's 8 health, so the case stays non-lethal and the health lost stays readable) |
+
+Each line carries the requested amount, what the handler wrote, the `applyDamage` return, the health
+either side, the health actually lost, and the after-event `cascade=[hurt(damage=…), health(…)]` —
+so the *downstream* payload is on the record next to the health that actually moved. The
+`handler-notes=[…]` line carries the value the handler saw delivered and its in-handler readback
+after writing.
+
+### `before-effect-add`
+
+Four cases, same shape, on `world.beforeEvents.effectAdd` with `addEffect('minecraft:speed', …,
+{ amplifier: 1 })`.
+
+| Case | Requested | Handler does | What it answers |
+|---|---|---|---|
+| `cancel` | 200 | `cancel = true` | what a cancelled `addEffect` returns, whether the effect is added anyway, and whether health moved |
+| `control-no-write` | 200 | nothing | the baseline: the effect reads back at all |
+| `extend-duration` | 100 | `duration = 600` | does a written-up `duration` take |
+| `shorten-duration` | 400 | `duration = 100` | does a written-down `duration` take |
+
+The read-back is 2 ticks after the add, so a duration that took reads its value minus the elapsed
+ticks; the comparison allows 6 ticks of slack, which is far short of the ~300-tick gap between the
+two candidate answers.
+
+### Verdicts
+
+| Verdict | Meaning |
+|---|---|
+| `MATCHES-SPEC-CANCELLED-RETURNED-FALSE` / `-UNDEFINED` | the cancelled call returned the no-op value and the action did not land |
+| `CONTRADICTS-SPEC-CANCELLED-RETURNED-TRUE` / `-A-VALUE` | the engine returned `true` / an `Effect` from a cancelled call |
+| `CONTRADICTS-SPEC-DAMAGE-LANDED-ANYWAY` / `-EFFECT-ADDED-ANYWAY` | the cancellation did not gate the action |
+| `FIELD-WRITE-TOOK` | the observed damage or duration is the value the handler wrote |
+| `FIELD-WRITE-IGNORED` | it is the value the probe requested — the write had no effect |
+| `FIELD-WRITE-NEITHER` | neither; read the numbers on the line |
+| `BEFORE-EVENT-NOT-RAISED` | the handler never ran for this entity, so the case discriminates nothing |
+| `CALL-THREW` | the `applyDamage` / `addEffect` call itself threw; the error text is on the line |
+
+**What would contradict the spec:** either `CONTRADICTS-SPEC-CANCELLED-RETURNED-*` verdict is the
+falsifier `d:cancelled-actions-return-the-no-op-value` names outright; either
+`CONTRADICTS-SPEC-*-LANDED-ANYWAY` verdict contradicts `r:before-events-can-cancel` more broadly.
+`FIELD-WRITE-TOOK` contradicts no ruling — there is no ruling — but it is a behaviour the spec's
+gate-only model of before-events does not have, which is the point of probing it.
+
+**`BEFORE-EVENT-NOT-RAISED` is the outcome to read before any other.** Whether the engine raises
+`beforeEvents.entityHurt` and `beforeEvents.effectAdd` for a *script-initiated* `applyDamage` /
+`addEffect` is itself unobserved. If the handler never runs, the cancel case's `applyDamage` returns
+`true` and the damage lands — which would read as a contradiction but is only the before-event not
+firing. The verdict field says so explicitly rather than leaving it to be inferred from an empty
+`handler-notes`.
+
+### Leaked subscribers
+
+Every subscription in set D is taken for one case and released in a `finally`, including on the
+paths where the call throws or the case is skipped. A leaked before-event subscriber that cancels
+everything would silently corrupt every later probe and every later run in the same session; if a
+run of set D ends abnormally, restart the server before running anything else.
+
 ## What a correct run looks like
 
 - The set's `start` line names the probe count, and the `complete` line appears at the end. A run
@@ -219,12 +315,19 @@ line is a different thing entirely, and there should be none.
 - `mctest4:handlers`: four case blocks, each with an `order=[…]` line. The control case must show
   both handlers entering and exiting and a full `cascade=[hurt(…), health(…), die(…)]`; without
   that the other three cases have no baseline.
+- `mctest4:beforeevents`: eight case blocks (four damage, four effect), each with a
+  `handler-notes=[…]` line. Both `control-no-write` cases must show the handler entering and the
+  action landing at the requested value; a control reading `BEFORE-EVENT-NOT-RAISED` means the
+  engine does not raise that before-event for a script-driven call and the other three cases of
+  that probe say nothing.
 - Sample shapes:
 
 ```
 [mctest] damage-without-health :: [minecraft:arrow/plain] applyDamage(2) ok value=boolean:false verdict=MATCHES-SPEC-SILENT-FALSE ours=[] cascade=[] all-signals-in-window=[] count=0
 [mctest] killing-hit-boundary :: [minecraft:sheep/setCurrentValue/at-min] before(currentValue=ok value=number:8 … effectiveMin=ok value=number:0 …) target=0 write(setCurrentValue) ok value=undefined -> readback=ok value=number:0 landed-exactly-on-effectiveMin=true cascade=[health(8->0), die(cause=override)] died=true isValid=true verdict=REACHED-MINIMUM-AND-DIED
 [mctest] throwing-handler-propagation :: [first-of-two-throws] signal=entityHurt thrower=first … applyDamage ok value=boolean:true ran.first=true ran.second=true cascade=[…] propagation=THROW-DID-NOT-REACH-THE-CALLER (…) siblings=OTHER-SUBSCRIBER-STILL-RAN cascade-tail=LATER-CASCADE-EVENTS-STILL-FIRED
+[mctest] before-entity-hurt :: [lower-damage] requested=10 handler-writes-damage=2 handler-cancels=false applyDamage ok value=boolean:true health(ok value=number:8 -> ok value=number:6) health-lost=2 expected-if-the-write-takes=2 cascade=[hurt(damage=2,cause=none), health(8->6)] verdict=FIELD-WRITE-TOOK (…)
+[mctest] before-effect-add :: [cancel] requested=200 handler-writes-duration=undefined handler-cancels=true addEffect ok value=undefined -> effect-present=false duration=undefined … verdict=MATCHES-SPEC-CANCELLED-RETURNED-UNDEFINED
 ```
 
 ## Record the results
@@ -233,7 +336,8 @@ Copy the complete set of `[mctest]` lines into a new file
 `artifacts/mctest-damage-threshold-probe-results.md`, following
 `../mctest-guard-and-effect-probe-results.md`: a **Run provenance** table (date, server build,
 `@minecraft/server` version, pack name/version/uuid, pack source commit, trigger, source entity and
-its coordinates, coverage as `n × nohealth, n × threshold, n × handlers, no PROBE CRASHED lines`), a
+its coordinates, coverage as `n × nohealth, n × threshold, n × handlers, n × beforeevents, no
+PROBE CRASHED lines`), a
 **What answered what** section per set, a **Reading the log** section for any line that misleads
 without the source in hand, run-validity notes, and then the raw log verbatim in delivery order with
 server timestamps, one fenced block per set.
@@ -258,4 +362,8 @@ Caveats:
   attributes are unreadable, its four cases are missing rather than failed; the summary count is
   what says whether the set is complete.
 - **A throwing handler is a state change in the engine session.** If a later probe in the same
-  session behaves oddly, re-run it from a fresh server start before recording it.
+  session behaves oddly, re-run it from a fresh server start before recording it. The same goes for
+  a set D run that ends abnormally, on the chance a before-event subscriber outlived it.
+- **Set D's field writes are one value each.** A `FIELD-WRITE-TOOK` says the engine honoured *that*
+  write, not that it honours every value: a clamp, a floor at zero, or a cap the probe never crossed
+  would not show. Recording the numbers rather than the verdict alone is what leaves that visible.
