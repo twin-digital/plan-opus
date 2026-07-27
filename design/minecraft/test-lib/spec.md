@@ -37,7 +37,9 @@ build with type declarations, no runtime dependencies, and a single peer depende
 `@minecraft/server` at `2.8.0` — the pinned version every behaviour below is read from
 [[r:target-server-version]] [[d:esm-only-typescript-package]]. It depends on no test framework, and
 nothing in a fake knows which runner is driving it; a caller who wants call recording wraps a fake
-with their own spy library [[r:no-test-framework-dependency]].
+with their own spy library [[r:no-test-framework-dependency]]. Everything it exports — every fake
+type and every free function — is reachable from one entry point, `@twin-digital/minecraft-test-lib`
+itself, with no subpath exports [[d:one-public-entry-point]].
 
 The library imports only *types* from `@minecraft/server`. That package ships `index.d.ts`,
 `package.json`, and a README and no JavaScript at all, so an enum member such as
@@ -64,7 +66,8 @@ literal: the bundle's registry properties are typed `typeof BiomeTypes` and its 
 static side carries `prototype`, which only a class declaration supplies — an object literal is not
 assignable there [[r:fakes-are-structurally-assignable]]. All eight registries are declared and
 every member on them throws `NotImplementedError`; no behaviour in this cycle reads one, and
-`withVanillaDimensions` registers dimensions on the world without touching `DimensionTypes`.
+`withVanillaDimensions` registers dimensions on the world without touching `DimensionTypes`
+[[d:registries-are-declared-and-throw]].
 
 The bundle is the only route to `system` and the registries,
 because the library substitutes objects and does not touch the module graph: a pack that reaches
@@ -92,7 +95,8 @@ members delegate to and whose default entry throws `NotImplementedError`, and a 
 each instance carries and the handlers read and write. A behaving member is a handler registered
 against the table for the member it implements. That is what lets several parts of the library layer
 behaviour onto one `FakeEntity` without editing its class or each other's code: the class
-declarations are written once, and everything after them is handlers over the state record.
+declarations are written once, and everything after them is handlers over the state record
+[[d:fakes-are-handler-tables-over-a-state-record]].
 
 A fake exposes no member the real API does not have. Everything the real surface cannot express is
 an exported free function over the fakes [[r:only-real-members-free-functions]]:
@@ -161,7 +165,8 @@ behaviour, and compose freely [[r:presets-are-opt-in]]. Two ship in this cycle
   [[f:fresh-entity-nametag-is-empty-string]]. The zeros are pinned for seven of the eight types
   sampled and not for `minecraft:xp_orb`, which spawns with a randomized rotation and a nonzero
   randomized velocity, so on an entity of that type the preset supplies `nameTag` alone and leaves
-  rotation and velocity unset [[f:spawn-frame-kinematics-zero-except-xp-orb]].
+  rotation and velocity unset [[f:spawn-frame-kinematics-zero-except-xp-orb]]
+  [[d:spawn-frame-preset-skips-xp-orb]].
 
 Neither preset invents per-type vanilla data. A sheep's fourteen components and its 8/8/0/8 health
 are per-type data no preset here supplies; a package built on this one may
@@ -190,7 +195,8 @@ created with no `dimension` is registered with the world and appears in no dimen
 `EntityQueryOptions` filtering is not modelled: a call passing an options argument throws
 `NotImplementedError`, so only the no-argument forms answer. Every other lookup the declarations
 carry — `dimension.getEntitiesAtBlockLocation`, `dimension.getEntitiesFromRay`,
-`entity.getEntitiesFromViewDirection` and the rest — throws `NotImplementedError` like any unmodelled member.
+`entity.getEntitiesFromViewDirection` and the rest — throws `NotImplementedError` like any
+unmodelled member [[d:entity-lookups-are-unfiltered-and-ordered]].
 
 `dimension.spawnEntity(typeId, location)` behaves: it creates an entity of that type at exactly the
 requested location, registers it with the world, fires `entitySpawn`, and returns it. The engine
@@ -209,7 +215,8 @@ that is `invalidate()`'s job.
 `entity.triggerEvent(eventName)` requires the `minecraft:`-prefixed form and throws
 `InvalidArgumentError` with the message ``Invalid value passed to argument [0]. The event <name>
 does not exist on <typeId>`` for a bare id — the one surface where the engine does not assume the
-namespace, contradicting the API reference, which says it does [[f:namespace-prefix-tolerance-is-per-surface]]. It returns
+namespace, contradicting the API reference, which says it does
+[[f:namespace-prefix-tolerance-is-per-surface]]. It returns
 `undefined`, changes no state, and records the call for `getTriggeredEvents`
 [[d:trigger-event-requires-prefix-and-records]].
 
@@ -226,7 +233,8 @@ the four numbers an attribute component holds. It is accepted only on one of the
 attribute-shaped ids below; passing it with any other id throws `InvalidArgumentError`. Any of the
 four left unsupplied is unset, so reading it throws `UnsetValueError` naming the member, and a
 member that needs it — `setCurrentValue`'s bounds check, `resetToDefaultValue` and its siblings —
-throws `UnsetValueError` naming the bound it could not read [[r:no-implicit-defaults]].
+throws `UnsetValueError` naming the bound it could not read [[r:no-implicit-defaults]]
+[[d:component-state-is-the-attribute-four]].
 
 Ids are normalized on entry and stored and reported in the canonical `minecraft:`-prefixed form, so
 a read compares equal against the `@minecraft/vanilla-data` constants a test holds
@@ -241,7 +249,8 @@ runtime, so the attribute-shaped set is also enumerated as a literal array the l
 `addComponent` dispatches on, the derived union serving as the compile-time check that the array is
 complete. On 2.8.0 that array is `minecraft:health`, `minecraft:lava_movement`,
 `minecraft:movement`, `minecraft:player.exhaustion`, `minecraft:player.hunger`,
-`minecraft:player.saturation`, `minecraft:underwater_movement`.
+`minecraft:player.saturation`, `minecraft:underwater_movement`
+[[d:attribute-id-set-is-a-checked-literal-array]].
 
 Those seven components behave in full. Each holds `currentValue`, `defaultValue`,
 `effectiveMin` and `effectiveMax`, and `setCurrentValue` accepts a value exactly at either bound
@@ -259,8 +268,9 @@ that lands exactly on `effectiveMin` also fires `entityDie` with cause `override
 `entity.applyDamage(amount, options?)` subtracts `amount` from the health component's
 `currentValue`, then fires `entityHurt`, `entityHealthChanged` and — on a killing hit — `entityDie`,
 in that order, and returns `true`. A killing hit is one leaving `currentValue` at or below
-`effectiveMin`. On an entity carrying no health component it changes nothing, fires nothing, and
-returns `false`.
+`effectiveMin`, the boundary value included [[d:killing-hit-lands-at-or-below-minimum]]. On an
+entity carrying no health component it changes nothing, fires nothing, and returns `false`
+[[d:damage-without-health-is-a-no-op]].
 
 The damage path writes health directly rather than through `setCurrentValue`: it skips the bounds
 check and does not attach the `override` death cause a component write landing on `effectiveMin`
@@ -311,8 +321,9 @@ for it and throws `UnsetValueError` when the test supplied nothing
 [[f:live-effect-fields-populated]] [[d:effect-display-name-is-supplied]]. The test supplies it with
 `setEffectState(effect, { displayName })`, the effect-side counterpart of `addComponent`'s `state`:
 `addEffect` takes the engine's own `EntityEffectOptions`, which has no display-name field, and
-`Effect` has no member to set one through, so the supply route is a free function
-[[r:only-real-members-free-functions]].
+`Effect` has no member to set one through, so the supply route is a free function applied to an
+effect that already exists [[r:only-real-members-free-functions]]
+[[d:effect-fields-are-supplied-by-a-free-function]].
 
 ## Events
 
@@ -328,8 +339,8 @@ driven by the test calling `emit(signal, payload)`, which delivers the payload a
 
 Subscription is set-shaped: subscribing the same function reference twice delivers one call, and
 distinct subscribers run in subscription order [[f:subscription-semantics-observed]]. A handler
-that throws propagates out of the call that dispatched it, so a test sees the failure rather than
-losing it.
+that throws propagates out of the call that dispatched it and the remaining subscribers do not run,
+so a test sees the failure rather than losing it [[d:handler-errors-propagate]].
 
 After-events are dispatched synchronously, inside the call that caused them, before that call
 returns [[r:synchronous-event-delivery]]. The engine defers them past the mutating call's return
@@ -342,7 +353,8 @@ Before-events are dispatched synchronously ahead of the action they precede. Two
 it: `EntityHurtBeforeEvent` and `EffectAddBeforeEvent` each declare a writable `cancel: boolean`, and
 a handler setting it stops the action — no state changes and no after-event fires
 [[r:before-events-can-cancel]] — with the gated call returning as if it had done nothing, a cancelled
-`applyDamage` returning `false` and a cancelled `addEffect` `undefined`. `entityRemove` is a
+`applyDamage` returning `false` and a cancelled `addEffect` `undefined`
+[[d:cancelled-actions-return-the-no-op-value]]. `entityRemove` is a
 notification and cannot be cancelled: `EntityRemoveBeforeEvent` declares `removedEntity` alone and no
 `cancel`, so the engine gives a handler no hold on the removal and the fake invents none — adding one
 would be a fake-only member and would let a test pass on a cancellation the engine cannot perform
@@ -357,7 +369,8 @@ calls `advanceTicks(server, count)`. The library starts no timer and awaits noth
 `advanceTicks` [[d:current-tick-starts-at-zero]]. `advanceTicks` steps one tick at a time,
 incrementing `currentTick` and then running every callback due at that tick in the order it was
 scheduled; a `run` callback is due on the next tick, `runTimeout(cb, n)` on the nth tick after
-scheduling, and `runInterval(cb, n)` every nth tick until cleared. `runJob`/`clearJob` are
+scheduling, and `runInterval(cb, n)` every nth tick until cleared
+[[d:tick-advance-semantics]]. `runJob`/`clearJob` are
 declared and throw `NotImplementedError`.
 
 ## Persisted state and captured output
@@ -379,7 +392,7 @@ What a fake would send is recorded rather than discarded [[r:output-is-capturabl
 `updateSubtitle` and `setActionBar` each append a record to their target's output log.
 `getOutput(target)` returns that log as an array of `{ kind, value, options? }`, where `kind` is
 one of `message`, `title`, `subtitle`, `actionBar`, `value` is the raw or localized message as
-passed, and `options` is whatever the member carried.
+passed, and `options` is whatever the member carried [[d:output-log-record-shape]].
 
 ## Invalidation and error shapes
 

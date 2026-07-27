@@ -172,3 +172,160 @@
   status: accepted
   falsifiers:
     - a common pack toolchain cannot consume ESM-only, so consumers cannot install the library at all
+
+- id: registries-are-declared-and-throw
+  statement: |
+    all eight registry classes on the bundle are declared with every member throwing
+    NotImplementedError, and no registry tracks world state
+  status: proposed
+  falsifiers:
+    - a pack under test calls DimensionTypes.getAll or EntityTypes.get on a path its tests must
+      exercise, so a throwing registry leaves that pack untestable — 41% of surveyed packs touch
+      the static registries
+    - dimension registration grows past withVanillaDimensions and tests need DimensionTypes.getAll
+      to agree with world.getDimension, which two independent stores cannot do
+
+- id: damage-without-health-is-a-no-op
+  statement: |
+    applyDamage on an entity carrying no health component changes nothing, fires no event, and
+    returns false
+  status: proposed
+  falsifiers:
+    - a probe damages an entity with no health component and observes entityHurt firing or a true
+      return, so the silent false is a fabricated answer
+    - packs call applyDamage before attaching health and rely on the hurt handler running, so the
+      silent no-op hides the handler under test never being reached
+
+- id: killing-hit-lands-at-or-below-minimum
+  statement: |
+    applyDamage fires entityDie when the write leaves currentValue at or below effectiveMin, the
+    boundary value included
+  status: proposed
+  falsifiers:
+    - a probe lands damage exactly on effectiveMin and observes no entityDie, putting the boundary
+      on the survivor side
+    - an entity whose effectiveMin is below zero is damaged into the band between that minimum and
+      zero and the engine fires entityDie there, showing the threshold is zero rather than the
+      component's minimum
+
+- id: entity-lookups-are-unfiltered-and-ordered
+  statement: |
+    the world and dimension entity lookups return everything registered in creation order and throw
+    NotImplementedError on an EntityQueryOptions argument
+  status: proposed
+  falsifiers:
+    - surveyed packs pass EntityQueryOptions on the query that matters — a type, tag or radius
+      filter — so the throwing form makes the common call untestable
+    - a pack orders its own work by the sequence getEntities returns and the engine's order proves
+      to be something creation order does not reproduce
+
+- id: cancelled-actions-return-the-no-op-value
+  statement: |
+    an action a before-event handler cancels returns what it would have returned had it done
+    nothing — applyDamage false, addEffect undefined
+  status: proposed
+  falsifiers:
+    - a probe cancels one of these and observes the engine returning true, or the Effect, so the
+      no-op return contradicts the engine on the path a pack branches over
+    - a cancellable before-event comes to gate an action whose return type has no no-op value, so
+      the rule cannot be stated for every gated call
+
+- id: effect-fields-are-supplied-by-a-free-function
+  statement: |
+    the effect field values a test supplies arrive through setEffectState(effect, { displayName? }),
+    applied to an effect that already exists
+  status: proposed
+  falsifiers:
+    - a source pins displayName per effect type and amplifier, so the value is derived and needs no
+      supply route at all
+    - the code under test reads displayName inside a handler that addEffect itself dispatches, which
+      a setter applied after addEffect returns cannot supply in time
+
+- id: fakes-are-handler-tables-over-a-state-record
+  statement: |
+    each faked class delegates every member to a per-class handler table over a per-instance state
+    record, and behaviour ships as handlers registered against that table
+  status: proposed
+  falsifiers:
+    - the indirection loses a declared signature's type inference — getComponent's return type keyed
+      on its id argument — forcing the class to declare that member directly after all
+    - two parts of the library need handlers on the same member and the table offers no way to
+      order or compose them, so the split that made parallel build possible needs another mechanism
+
+- id: one-public-entry-point
+  statement: |
+    the package exposes a single entry point re-exporting every fake type and free function, with no
+    subpath exports
+  status: proposed
+  falsifiers:
+    - importing one free function pulls the whole library into a bundle a pack toolchain cannot
+      tree-shake, so the single entry point costs size a consumer measures
+    - a sibling design needs part of the surface without the rest — the error classes alone — which
+      one entry point cannot express
+
+- id: attribute-id-set-is-a-checked-literal-array
+  statement: |
+    the seven attribute-shaped component ids ship as a literal array the library maintains, with the
+    type-derived union as the compile-time completeness check
+  status: proposed
+  falsifiers:
+    - a version bump adds an attribute-shaped component and the build stays green, showing the union
+      check does not catch an array gone stale
+    - the same runtime-enumeration need appears for the other derived id sets, making generation
+      from the declarations at build time the cheaper single mechanism
+
+- id: component-state-is-the-attribute-four
+  statement: |
+    addComponent's state argument is the four attribute numbers, is rejected with
+    InvalidArgumentError on any non-attribute id, and leaves any number it omits unset
+  status: proposed
+  falsifiers:
+    - a component outside the seven gains modelled fields, so state must carry per-component shapes
+      rather than one attribute-shaped record
+    - every modelled attribute member reads all four numbers, so a test that omits any of them
+      cannot use the component and the optionality buys nothing
+
+- id: spawn-frame-preset-skips-xp-orb
+  statement: |
+    asSpawnedEntity supplies nameTag alone on a minecraft:xp_orb and nameTag plus the zero rotation
+    and velocity on every other type
+  status: proposed
+  falsifiers:
+    - the xp_orb spawn frame is pinned to a distribution a preset can draw from, so the type no
+      longer needs excluding
+    - tests spawning an xp_orb hit UnsetValueError on rotation often enough that the type-aware
+      preset surprises more readers than uniform zeros would have misled
+
+- id: tick-advance-semantics
+  statement: |
+    advanceTicks increments currentTick and then runs that tick's callbacks in scheduling order,
+    with run due on the next tick, runTimeout(cb, n) on the nth tick after scheduling, and
+    runInterval(cb, n) every nth tick
+  status: proposed
+  falsifiers:
+    - the engine is observed running a run callback on the scheduling tick itself, so the
+      convention here misses every scheduled callback by a tick
+    - packs commonly call runTimeout(cb, 0), which this rule places on the scheduling tick and
+      therefore never runs
+
+- id: output-log-record-shape
+  statement: |
+    getOutput returns an array of { kind, value, options? } with kind one of message, title,
+    subtitle and actionBar
+  status: proposed
+  falsifiers:
+    - tests need the interleaving across targets — a world message and a player message in the
+      order they were sent — which per-target logs of these records cannot express
+    - a modelled output member carries something that is neither the message value nor its options,
+      so the record cannot hold what a test asserts on
+
+- id: handler-errors-propagate
+  statement: |
+    a subscriber that throws propagates out of the call that dispatched it, and the remaining
+    subscribers do not run
+  status: proposed
+  falsifiers:
+    - the engine is observed catching a handler's throw and continuing to the next subscriber, so
+      propagating both misreports the engine and stops a test's other handlers
+    - a modelled action leaves the fake half-mutated when a handler throws mid-dispatch, so a test
+      asserting on the aborted state reads something the engine never produces
