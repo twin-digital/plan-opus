@@ -225,6 +225,16 @@
     - the format is found to give an entry carrying both a defined meaning
     - real manifests carry such entries often enough that consumers cannot use the kit until it picks a field
 
+- id: an-unsatisfied-dependency-names-both-readings
+  statement: |
+    a `dependencies` entry whose `uuid` matches no pack and which carries no version is the single
+    `dependency-unsatisfied` problem, whose message names both readings, rather than two codes a
+    consumer picks between
+  status: proposed
+  falsifiers:
+    - a consumer has to branch on which of the two readings holds
+    - evidence appears that lets the kit tell a wrong uuid from a versionless external dependency
+
 - id: invalidity-propagates-to-a-fixpoint
   statement: |
     the set-wide pass repeats until no entry changes status, so `dependency-invalid` is transitive; a

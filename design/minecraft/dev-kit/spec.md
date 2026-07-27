@@ -165,7 +165,8 @@ type Problem =
   | { code: 'package-version-invalid';            message: string; field: string; packageDir: string; value: string }
   | { code: 'dependency-version-specified';       message: string; field: string; uuid: string }
   | { code: 'dependency-entry-malformed';         message: string; field: string }
-  | { code: 'external-dependency-version-missing'; message: string; field: string; dependency: string }
+  | { code: 'external-dependency-version-missing'; message: string; field: string; moduleName: string }
+  | { code: 'dependency-unsatisfied';              message: string; field: string; uuid: string }
   | { code: 'manifest-missing-uuid';              message: string }
   | { code: 'module-missing-type';                message: string; field: string }
   | { code: 'kind-not-corroborated';              message: string }
@@ -180,7 +181,9 @@ of an array names which; the manifest root itself is the empty string. `packageD
 package whose `package.json` is at fault: the entry's own package when completing `header.version`,
 and the depended-on pack's package when completing a `dependencies` entry. `error` carries the
 underlying read or parse message. `value` is the offending `package.json` `version` as it was
-written. `dependency` carries a dependency entry's `module_name` or `uuid` as the source wrote it.
+written. `moduleName` on `external-dependency-version-missing` carries the dependency entry's
+`module_name` as the source wrote it, and `uuid` on `dependency-unsatisfied` its `uuid`, likewise
+as written.
 
 ## Candidate packages
 
@@ -334,15 +337,19 @@ the kit neither completes nor resolves it rather than picking one of the two fie
 [[d:an-ambiguous-dependency-entry-is-a-problem]]. Uuids are matched against the whole discovered
 set, valid and invalid alike, after lowercasing both sides [[r:uuids-compare-case-insensitively]].
 
-Every entry the match does not claim is external: a `module_name` entry, and a `uuid` entry matching
-no pack in the set. An external entry passes through untouched, is never completed, and must carry
-its own version; a missing one is `external-dependency-version-missing`, whose `dependency` field
-carries the `module_name` or the `uuid` as the source wrote it
-[[r:kit-completes-partial-source-manifests]]. A uuid the set does not claim is therefore an ordinary
-external dependency and not a fault in itself — the pack it names may be built elsewhere — so it
-invalidates nothing so long as it carries its own version. Only the pack's own source manifest
-contributes dependency entries; the owning package's `package.json` `dependencies` are never
-consulted.
+Every entry the match does not claim passes through untouched, is never completed, and must carry
+its own version [[r:kit-completes-partial-source-manifests]]. Which problem a missing version raises
+turns on what the entry names. A `module_name` entry names a built-in scripting module, so it is an
+external dependency whatever the set holds, and a missing version is
+`external-dependency-version-missing`, its `moduleName` carrying the name as the source wrote it. A
+`uuid` entry matching no pack and carrying no version is `dependency-unsatisfied`, because the kit
+cannot tell which of two things went wrong, and the message says both: it "names no pack in the
+workspace and carries no version — either the uuid is wrong, or an external dependency is missing
+its version" [[d:an-unsatisfied-dependency-names-both-readings]]. That entry invalidates the pack
+carrying it [[r:unresolvable-packs-fail-loudly]]. An unmatched `uuid` entry that does carry its own
+version is an ordinary external dependency and not a fault — the pack it names may be built
+elsewhere — so it invalidates nothing. Only the pack's own source manifest contributes dependency
+entries; the owning package's `package.json` `dependencies` are never consulted.
 
 ## Validating
 
@@ -375,8 +382,9 @@ That last is why invalidity propagates along dependency edges [[r:unresolvable-p
 and the set-wide pass repeats until no entry changes status, so invalidity is transitive; a cycle
 among packs that are otherwise sound stays valid, since nothing invalid seeds it
 [[d:invalidity-propagates-to-a-fixpoint]]. A dependency naming a built-in scripting module is never
-a missing pack, and neither is a uuid the set does not claim: both are external and carry their own
-versions [[r:kit-completes-partial-source-manifests]].
+a missing pack, and neither is a uuid the set does not claim that carries its own version: both are
+external [[r:kit-completes-partial-source-manifests]]. One carrying no version is the
+`dependency-unsatisfied` above.
 
 ## Searching
 
