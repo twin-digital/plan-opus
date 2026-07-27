@@ -59,7 +59,7 @@ from [[f:summary-carries-no-citation]], so anything that would need one belongs 
 
 A token belongs on a claim exactly when some decision, component, or other claim would have to
 change were the cited foundation false, and nowhere else — a citation on motivation, illustration,
-or restatement is a false signal rather than added rigour [[r:explicit-intent]]. The obligation is
+or illustration is a false signal rather than added rigour [[r:explicit-intent]]. The obligation is
 symmetric, which is why it reads as a pair of tests and not one: an uncited claim that rests on
 something fails, and so does a cited sentence that rests on nothing. That these rules are
 themselves written as such tests, rather than prose an author pastes in, is what keeps them from
@@ -174,7 +174,7 @@ aimed at whoever writes the entry it governs [[r:a-rule-binds-the-writer-of-what
 | 1 | Summary | Reading only it, can a reviewer name the design's subject, its product, and the problem it addresses — plus the dominant constraint when one leads — with no citation present? |
 | 2 | build content | Does every passage change what gets built, with a *why* only where its absence would misbuild and no surplus a builder never reads? |
 | 3 | build content — stands alone | Strike every citation token — does the specification still say what to build, with every path, literal, format, and default present in the prose or a component? |
-| 4 | citations | Does every claim that would change were a foundation false carry its token, and does no motivation or restatement carry one? |
+| 4 | citations | Does every claim that would change were a foundation false carry its token, and does no motivation or illustration carry one? |
 | 5 | fact — evidence | Does each fact's outside evidence appear verbatim at its source, and each assumed fact carry its mechanism? |
 | 5a | fact — provenance | Does each `documented` fact cite the upstream original rather than a repository file transcribing it, an in-repo source appearing only where that file originates the claim? |
 | 5b | fact — quote fit | Does each quote state the claim its fact makes, rather than being genuine but beside the point? |
