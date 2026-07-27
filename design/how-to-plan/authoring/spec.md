@@ -72,7 +72,8 @@ binds the designs it names, and a bound one is an obligation on this design rath
 a sibling might discharge instead — so the test is an account, not a token count: read the list of
 requirements binding the design, and for each, point to what in the spec satisfies it or to the
 decision that records a departure from it [[r:bound-requirements-are-honoured-or-departed]]. A
-hard requirement admits only the first. The list is printed rather than remembered, which is what
+hard requirement admits only the first. The list is printed rather than remembered —
+`node bin/foundations.mjs <area>/<design>` renders it with the sets resolved — which is what
 makes the test cheap enough to run every time; a design that quietly leaves one unaccounted for
 has a finding against it, not a gap upstream.
 

@@ -49,6 +49,9 @@ The questions iteration never asks, because each input was reviewed alone as it 
   reason for existing.
 - One that is unsatisfiable alongside another, or that no longer has anything to bind.
 - A requirement written to justify something a discarded spec did.
+- One above design scope whose `applies_to` is wrong or missing: it binds designs it plainly was
+  not written for, or omits the field and so binds its whole tier by default when it meant a
+  subset. Every design it binds must honour it, so over-binding is not the harmless reading.
 
 **Facts.**
 - A claim its own cited evidence does not carry, or contradicts.

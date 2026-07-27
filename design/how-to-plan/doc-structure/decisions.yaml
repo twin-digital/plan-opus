@@ -77,6 +77,16 @@
     - a design ships having silently ignored a requirement bound to it, and a citation at settle
       would have caught it
 
+- id: dangling-members-are-reported-not-rejected
+  statement: |
+    a set member, or an `applies_to` entry, naming a design that does not exist is reported as a
+    notice rather than failing the check
+  status: proposed
+  falsifiers:
+    - dangling names accumulate because nothing forces one to resolve, so the notice stops being
+      read and a typo survives as long as a real forward reference
+    - a set is found binding nobody for a whole cycle because its only members were misspelled
+
 - id: binding-coverage-is-reported-not-enforced
   statement: |
     the harness resolves which requirements bind a design and shows them; whether the design

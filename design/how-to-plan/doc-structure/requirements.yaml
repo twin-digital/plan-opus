@@ -154,11 +154,8 @@
 
 - id: requirement-binding-is-explicit
   statement: |
-    a requirement above design scope binds a stated set of designs, and every design it binds
-    must honour it — a hard one without exception, a soft one unless a decision records the
-    departure. The set is `applies_to`; a requirement that omits it binds every design in its
-    own tier, meaning every design in the area or every design in the repository. A
-    design-scoped requirement binds its own design and carries no `applies_to`
+    a requirement names the designs it binds, and every design it binds must honour it. Which
+    designs those are is the requirement's to state, not the tree's to imply
   rationale: |
     A shared requirement had two readings — every design in the tier must satisfy it, or one of
     them must — and nothing chose between them. "Every design it binds" is the reading worth
@@ -169,11 +166,9 @@
 
 - id: binding-sets-are-declared-once
   statement: |
-    a set of designs named by more than one requirement is declared once in design/sets.yaml,
-    mapping a set name to the design scopes it holds. The name is colon-separated kebab-case
-    segments, which group names for a reader and carry no meaning to the machine. A set may hold
-    designs from more than one area, may hold a design that does not exist yet, and never holds
-    another set
+    a set of designs is declared once in design/sets.yaml, mapping a name of colon-separated
+    kebab-case segments to the design scopes it holds. A set may hold designs from more than one
+    area, and never holds another set
   rationale: |
     A product — the testing library, the dev tools, and the packs that share a build — is a set
     of designs, and a directory tree cannot express one that crosses areas or overlaps a

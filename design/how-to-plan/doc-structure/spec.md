@@ -237,8 +237,9 @@ and nothing belonging to another design.
 
 Citing and binding are different relations, and the tier answers only the first. A design *may
 cite* any requirement at its own, its area's, or the global tier; it *is bound by* the ones whose
-`applies_to` names it — every one of them, without exception where the requirement is hard, and
-unless a decision records the departure where it is soft [[r:requirement-binding-is-explicit]]. A
+`applies_to` names it, and it must honour every one of them
+[[r:requirement-binding-is-explicit]] — without exception where the requirement is hard, and
+unless a decision records the departure where it is soft [[r:soft-departures-are-decisions]]. A
 wider-scope requirement that omits `applies_to` binds its whole tier: every design in the area, or
 every design in the repository [[d:omitted-binding-means-the-whole-tier]]. That default is what
 keeps the field off almost every entry — the tier is usually the right answer, and stating it again
@@ -252,8 +253,9 @@ directory. A set may hold designs from more than one area — the case a subtree
 a design belongs to as many sets as describe it, which is the other half: a grouping that overlaps
 a sibling is a set, never a directory. No set holds another, so membership is one lookup deep, and
 that is also the answer to how far the nesting goes: exactly one level, always. A set may name a
-design that does not exist yet, since a product is often named before its last member is written;
-the harness reports the dangling member rather than failing on it. Listing the members in one place
+design that does not exist yet, since a product is often named before its last member is written,
+so a dangling member is reported rather than rejected
+[[d:dangling-members-are-reported-not-rejected]]. Listing the members in one place
 rather than on each design is a bet that a product's roster changes as a unit — adding a pack is
 then a one-line edit rather than an edit to every design that joins it
 [[d:set-membership-is-declared-by-the-set]].
@@ -262,9 +264,9 @@ Binding does not create a citation obligation. A design settles on citing its ow
 requirements and the decisions it kept; a requirement bound to it from a wider scope may be
 honoured silently, because the design honouring it is often a matter of what it *does not* do
 [[r:settled-design-cites-what-it-keeps]] [[d:settle-bar-stays-design-scoped]]. What the harness
-owes instead is visibility: it resolves every set, rejects an `applies_to` naming a design or set
-that does not exist, and can list exactly the requirements binding a given design — the walk up the
-tree that an author would otherwise have to remember to make. Whether each is actually honoured is
+owes instead is visibility: it resolves every set, rejects an `applies_to` naming a set nobody
+declared, and lists exactly the requirements binding a given design — the walk up the tree that an
+author would otherwise have to remember to make. Whether each is actually honoured is
 a reader's judgement, not a check [[d:binding-coverage-is-reported-not-enforced]].
 
 ## Design state
