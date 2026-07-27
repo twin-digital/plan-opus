@@ -1140,3 +1140,193 @@
         singleton-instances=2 and numeric-constants=5, and total=112 statics split
         componentId=86 and everything-else=26, with the 26 listed per class and the 8 registry
         classes named.
+
+# Facts from the mctest4 damage-threshold and mctest5 return-value packs (Bedrock 1.26.31.1,
+# @minecraft/server 2.8.0). Both packs were run by the design's owner, not by the author of these
+# facts; every source below says so, and n=3 throughout.
+
+- id: cancelled-call-return-values-observed
+  claim: |
+    Cancelling a before-event gates the action on every surface where the question can be asked,
+    but the three calls do not agree on what they then return. `entity.applyDamage`,
+    `entity.addEffect` and `dimension.createExplosion` are the complete set of calls that are
+    script-initiable, carry a cancellable before-event, and return non-void. Cancelled,
+    `applyDamage` returns `true` while dealing no damage, `addEffect` returns `undefined`, and
+    `createExplosion` returns `false`. `applyDamage` is the sole surface whose return says the
+    action happened when it did not, so this is a per-surface quirk rather than an engine-wide
+    convention either way.
+  backing: tested
+  sources:
+    - description: |
+        The mctest5 return-value pack cancels each call's before-event and reads the return beside
+        what the action actually did; the createExplosion control confirms the case discriminates,
+        entering the handler, returning true and killing its witness sheep when not cancelled.
+        Three runs, byte-identical SUMMARY blocks.
+        This pack was run by the design's owner, not by this fact's author; its captured
+        output is design/minecraft/test-lib/artifacts/mctest-return-value-probe-results.md and the pack itself is design/minecraft/test-lib/artifacts/return-value-probe-pack.
+    - url: design/minecraft/test-lib/artifacts/mctest-return-value-probe-results.md
+      where: Raw logs — mctest5:returns, returns run 1, the [cancelled] applyDamage line
+      quote: |
+        [2026-07-27 20:44:04.990] [mctest] applydamage-return-semantics :: [cancelled] type=minecraft:sheep amount=4 cancelled-before-event=true applyDamage ok value=boolean:true health(ok value=number:8 -> ok value=number:8) health-lost=0 damage-landed=false cascade=[] verdict=RETURNED-TRUE-BUT-NOTHING-LANDED
+    - url: design/minecraft/test-lib/artifacts/mctest-return-value-probe-results.md
+      where: Raw logs — mctest5:returns, returns run 1, the explosion-cancel-return control and cancel lines
+      quote: |
+        [2026-07-27 20:44:05.546] [mctest] explosion-cancel-return :: [control-no-cancel] createExplosion(radius=3, breaksBlocks=false) ok value=boolean:true witness-health(ok value=number:8 -> ok value=number:0) health-lost=8 after-event-fired=1 explosion-landed=true cascade=[hurt(damage=43), health(8->-35), die] handler-notes=[handler-entered] verdict=control returned=true landed=true
+        [2026-07-27 20:44:06.046] [mctest] explosion-cancel-return :: [cancel] createExplosion(radius=3, breaksBlocks=false) ok value=boolean:false witness-health(ok value=number:8 -> ok value=number:8) health-lost=0 after-event-fired=0 explosion-landed=false cascade=[] handler-notes=[handler-entered | wrote cancel=true readback-in-handler=true] verdict=CANCELLED-RETURNED-FALSE
+    - url: design/minecraft/test-lib/artifacts/mctest-damage-threshold-probe-results.md
+      where: Raw logs — mctest4:beforeevents, beforeevents run 1, the before-effect-add [cancel] lines
+      quote: |
+        [2026-07-27 19:57:37.535] [mctest] before-effect-add :: [cancel] requested=200 handler-writes-duration=undefined handler-cancels=true addEffect ok value=undefined -> effect-present=false duration=undefined amplifier=undefined getEffect ok value=undefined health(ok value=number:8 -> ok value=number:8) verdict=MATCHES-SPEC-CANCELLED-RETURNED-UNDEFINED
+        [2026-07-27 19:57:37.535] [mctest] before-effect-add :: [cancel] handler-notes=[handler-entered effectType="Speed II" duration-as-delivered=200 | wrote cancel=true readback-in-handler=true]
+
+- id: applydamage-boolean-reports-admission
+  claim: |
+    `applyDamage`'s boolean reports that the entity is damageable and the amount is positive —
+    both settled before the call acts — and not whether damage landed. The declared contract
+    ("Whether the entity takes any damage. This can return false if the entity is invulnerable or
+    if the damage applied is less than or equal to 0") holds on its amount clause and fails on its
+    invulnerability clause. On amount: `-1` and `0` return `false` and take nothing, while `0.5`
+    returns `true` and takes exactly 0.5, so the boundary sits at zero and damage is not integral.
+    Two reachable paths return `true` with nothing lost: a cancelled `entityHurt` before-event,
+    and a second hit inside the invulnerability window opened by a first.
+  backing: tested
+  sources:
+    - description: |
+        The mctest5 return-value pack ran seven cases, each on a freshly spawned subject so none
+        inherits the previous case's invulnerability window, reporting the boolean beside the
+        health actually lost. Identical in 3/3 runs. The invulnerability case records the priming
+        hit's own return on the same line, which read true with damage landing in all three runs,
+        so the window is known to have been open.
+        This pack was run by the design's owner, not by this fact's author; its captured
+        output is design/minecraft/test-lib/artifacts/mctest-return-value-probe-results.md and the pack itself is design/minecraft/test-lib/artifacts/return-value-probe-pack.
+    - url: design/minecraft/test-lib/artifacts/mctest-return-value-probe-results.md
+      where: Raw logs — mctest5:returns, returns run 1, the three amount cases
+      quote: |
+        [2026-07-27 20:44:04.490] [mctest] applydamage-return-semantics :: [amount=-1] type=minecraft:sheep amount=-1 cancelled-before-event=false applyDamage ok value=boolean:false health(ok value=number:8 -> ok value=number:8) health-lost=0 damage-landed=false cascade=[] verdict=RETURNED-FALSE-AND-NOTHING-LANDED
+        [2026-07-27 20:44:04.591] [mctest] applydamage-return-semantics :: [amount=0] type=minecraft:sheep amount=0 cancelled-before-event=false applyDamage ok value=boolean:false health(ok value=number:8 -> ok value=number:8) health-lost=0 damage-landed=false cascade=[] verdict=RETURNED-FALSE-AND-NOTHING-LANDED
+        [2026-07-27 20:44:04.691] [mctest] applydamage-return-semantics :: [amount=0.5] type=minecraft:sheep amount=0.5 cancelled-before-event=false applyDamage ok value=boolean:true health(ok value=number:8 -> ok value=number:7.5) health-lost=0.5 damage-landed=true cascade=[hurt(damage=0.5), health(8->7.5)] verdict=RETURNED-TRUE-AND-DAMAGE-LANDED
+    - url: design/minecraft/test-lib/artifacts/mctest-return-value-probe-results.md
+      where: Raw logs — mctest5:returns, returns run 1, the [cancelled] and [invulnerability-window] lines
+      quote: |
+        [2026-07-27 20:44:04.990] [mctest] applydamage-return-semantics :: [cancelled] type=minecraft:sheep amount=4 cancelled-before-event=true applyDamage ok value=boolean:true health(ok value=number:8 -> ok value=number:8) health-lost=0 damage-landed=false cascade=[] verdict=RETURNED-TRUE-BUT-NOTHING-LANDED
+        [2026-07-27 20:44:05.141] [mctest] applydamage-return-semantics :: [invulnerability-window] type=minecraft:sheep amount=2 priming-hit=2 primed-returned=ok value=boolean:true cancelled-before-event=false applyDamage ok value=boolean:true health(ok value=number:6 -> ok value=number:6) health-lost=0 damage-landed=false cascade=[hurt(damage=2), health(8->6)] verdict=RETURNED-TRUE-BUT-NOTHING-LANDED
+
+- id: damage-without-health-returns-false-silently
+  claim: |
+    `applyDamage` on an entity carrying no health component returns `false`, fires nothing, and
+    leaves the entity valid. Six subject calls — `minecraft:arrow`, `minecraft:snowball` and
+    `minecraft:xp_orb`, each on the plain and the options argument form — all read
+    `SILENT-FALSE` with an empty cascade in 3/3 runs, with zero contradictions and no subject
+    invalidated before or during a call. Sheep controls carrying health return `true` on both
+    forms in the same runs, so the case discriminates.
+  backing: tested
+  sources:
+    - description: |
+        The mctest5 return-value pack's isolated no-health set gives every call its own freshly
+        spawned subject and re-checks isValid immediately before the call. This supersedes the
+        earlier mctest4 set, which shared one subject between the two argument forms so that the
+        plain call consumed the projectile and the options call met an already-removed entity;
+        those two CONTRADICTS-SPEC-THREW verdicts were the invalidation guard firing rather than a
+        damage ruling, and do not reproduce here.
+        This pack was run by the design's owner, not by this fact's author; its captured
+        output is design/minecraft/test-lib/artifacts/mctest-return-value-probe-results.md and the pack itself is design/minecraft/test-lib/artifacts/return-value-probe-pack.
+    - url: design/minecraft/test-lib/artifacts/mctest-return-value-probe-results.md
+      where: Raw logs — mctest5:nohealth, nohealth run 1, the SUMMARY lines
+      quote: |
+        [2026-07-27 20:45:10.541] [mctest] damage-without-health-isolated :: SUMMARY subject-calls=6
+        [2026-07-27 20:45:10.541] [mctest] damage-without-health-isolated :: SUMMARY SILENT-FALSE count=6 cases=[minecraft:arrow/plain, minecraft:arrow/options, minecraft:snowball/plain, minecraft:snowball/options, minecraft:xp_orb/plain, minecraft:xp_orb/options]
+        [2026-07-27 20:45:10.541] [mctest] damage-without-health-isolated :: SUMMARY contradicting-the-no-op-ruling=0 — only RETURNED-TRUE counts; an invalidation throw is the validity guard, not a damage ruling
+        [2026-07-27 20:45:10.541] [mctest] damage-without-health-isolated :: SUMMARY control minecraft:sheep/plain CONTROL-HAS-HEALTH-RETURNED-TRUE
+        [2026-07-27 20:45:10.541] [mctest] damage-without-health-isolated :: SUMMARY control minecraft:sheep/options CONTROL-HAS-HEALTH-RETURNED-TRUE
+
+- id: reaching-effective-minimum-is-fatal
+  claim: |
+    A health write landing exactly on `effectiveMin` kills, by either path, and one landing a
+    single point above it does not. `setCurrentValue` and `applyDamage` driving
+    `minecraft:sheep` and `minecraft:cow` to exactly their minimum each fired `entityDie` — with
+    cause `override` from the component write and the damage's own cause from `applyDamage` —
+    while all six `min+1` controls across three types survived with no death event, and no case
+    reached the minimum and lived. A survey of eleven entity types found none with a non-zero
+    `effectiveMin`, so the boundary is observed only where that minimum is zero.
+  backing: tested
+  sources:
+    - description: |
+        The mctest4 damage-threshold pack surveys effectiveMin across eleven types, then drives
+        currentValue to exactly effectiveMin by each path, each paired with a min+1 control.
+        Twelve cases, identical in 3/3 runs. minecraft:armor_stand contributes the two
+        MINIMUM-NOT-REACHED cases, where the write never drove it to its minimum, so that type
+        says nothing about the boundary either way.
+        This pack was run by the design's owner, not by this fact's author; its captured
+        output is design/minecraft/test-lib/artifacts/mctest-damage-threshold-probe-results.md and the pack itself is design/minecraft/test-lib/artifacts/damage-threshold-probe-pack.
+    - url: design/minecraft/test-lib/artifacts/mctest-damage-threshold-probe-results.md
+      where: Raw logs — mctest4:threshold, threshold run 1, the effective-minimum survey line
+      quote: |
+        [2026-07-27 19:53:46.385] [mctest] effective-minimum-survey :: SUMMARY surveyed=11 nonzero-minimum=[]
+    - url: design/minecraft/test-lib/artifacts/mctest-damage-threshold-probe-results.md
+      where: Raw logs — mctest4:threshold, threshold run 1, the killing-hit-boundary SUMMARY block
+      quote: |
+        [2026-07-27 19:53:50.085] [mctest] killing-hit-boundary :: SUMMARY cases=12
+        [2026-07-27 19:53:50.085] [mctest] killing-hit-boundary :: SUMMARY REACHED-MINIMUM-AND-DIED count=4 cases=[minecraft:sheep/setCurrentValue/at-min, minecraft:sheep/applyDamage/at-min, minecraft:cow/setCurrentValue/at-min, minecraft:cow/applyDamage/at-min]
+        [2026-07-27 19:53:50.085] [mctest] killing-hit-boundary :: SUMMARY CONTROL-ABOVE-MINIMUM-LIVED count=6 cases=[minecraft:sheep/setCurrentValue/min+1, minecraft:sheep/applyDamage/min+1, minecraft:cow/setCurrentValue/min+1, minecraft:cow/applyDamage/min+1, minecraft:armor_stand/setCurrentValue/min+1, minecraft:armor_stand/applyDamage/min+1]
+        [2026-07-27 19:53:50.085] [mctest] killing-hit-boundary :: SUMMARY MINIMUM-NOT-REACHED count=2 cases=[minecraft:armor_stand/setCurrentValue/at-min, minecraft:armor_stand/applyDamage/at-min]
+        [2026-07-27 19:53:50.085] [mctest] killing-hit-boundary :: SUMMARY no case reached the minimum and lived
+
+- id: throwing-handler-is-isolated
+  claim: |
+    A subscriber that throws is isolated in all three directions: the throw does not reach the
+    call that caused the event, the other subscribers on the same signal still run, and the later
+    events of the cascade still fire. Observed on `entityHurt` with the thrower first and with
+    the thrower last, 3/3 runs — the engine absorbs the error rather than surfacing it at the call
+    site. The control case pins the ordering independently: `applyDamage` returns before any
+    after-event handler runs.
+  backing: tested
+  sources:
+    - description: |
+        The mctest4 damage-threshold pack subscribes two handlers to entityHurt, has one of them
+        throw deliberately, and records whether the throw reaches the caller, whether the sibling
+        runs, and whether the rest of the cascade fires. Four cases, identical in 3/3 runs.
+        This pack was run by the design's owner, not by this fact's author; its captured
+        output is design/minecraft/test-lib/artifacts/mctest-damage-threshold-probe-results.md and the pack itself is design/minecraft/test-lib/artifacts/damage-threshold-probe-pack.
+    - url: design/minecraft/test-lib/artifacts/mctest-damage-threshold-probe-results.md
+      where: Raw logs — mctest4:handlers, handlers run 1, the [first-of-two-throws] verdict and order lines
+      quote: |
+        [2026-07-27 19:55:43.834] [mctest] throwing-handler-propagation :: [first-of-two-throws] signal=entityHurt thrower=first purpose="does the second subscriber still run, and does the throw reach applyDamage" applyDamage ok value=boolean:true ran.first=true ran.second=true cascade=[hurt(damage=100,cause=none), health(8->-92), die(cause=none)] propagation=THROW-DID-NOT-REACH-THE-CALLER (applyDamage returned normally; the engine absorbed it) siblings=OTHER-SUBSCRIBER-STILL-RAN cascade-tail=LATER-CASCADE-EVENTS-STILL-FIRED
+        [2026-07-27 19:55:43.835] [mctest] throwing-handler-propagation :: [first-of-two-throws] order=[1:applyDamage(100) called | 2:applyDamage returned ok value=boolean:true | 3:first-handler ENTER on entityHurt | 4:first-handler DELIBERATE THROW (by design — not a probe crash) | 5:second-handler ENTER on entityHurt | 6:second-handler EXIT]
+    - url: design/minecraft/test-lib/artifacts/mctest-damage-threshold-probe-results.md
+      where: Raw logs — mctest4:handlers, handlers run 1, the [control-no-throw] order line
+      quote: |
+        [2026-07-27 19:55:43.435] [mctest] throwing-handler-propagation :: [control-no-throw] order=[1:applyDamage(100) called | 2:applyDamage returned ok value=boolean:true | 3:first-handler ENTER on entityHurt | 4:first-handler EXIT | 5:second-handler ENTER on entityHurt | 6:second-handler EXIT]
+
+- id: before-event-field-writes-take-effect
+  claim: |
+    A before-event handler writing a mutable payload field changes what the action does, in both
+    directions, and the written value is what the after-event reports downstream.
+    `EntityHurtBeforeEvent.damage` written to 2 against a requested 10 took 2 health, and written
+    to 4 against a requested 1 took 4; `EffectAddBeforeEvent.duration` written to 600 against a
+    requested 100, and to 100 against a requested 400, each produced an effect carrying the
+    written duration. The `entityHurt` after-event in each cascade carries the written damage
+    rather than the requested amount, so the write is not a private adjustment.
+  backing: tested
+  sources:
+    - description: |
+        The mctest4 damage-threshold pack's before-events set writes each mutable field from a
+        handler and reads back what the action did, against an uncancelled, unwritten control. All
+        four write cases read FIELD-WRITE-TOOK in 3/3 runs. The effect read-backs sit two ticks of
+        decay below the written value (598 for 600, 98 for 100, and 198 in the 200 control),
+        consistent with the one-per-tick decay the earlier effect probes established.
+        This pack was run by the design's owner, not by this fact's author; its captured
+        output is design/minecraft/test-lib/artifacts/mctest-damage-threshold-probe-results.md and the pack itself is design/minecraft/test-lib/artifacts/damage-threshold-probe-pack.
+    - url: design/minecraft/test-lib/artifacts/mctest-damage-threshold-probe-results.md
+      where: Raw logs — mctest4:beforeevents, beforeevents run 1, the lower-damage and raise-damage lines
+      quote: |
+        [2026-07-27 19:57:36.935] [mctest] before-entity-hurt :: [lower-damage] requested=10 handler-writes-damage=2 handler-cancels=false applyDamage ok value=boolean:true health(ok value=number:8 -> ok value=number:6) health-lost=2 expected-if-the-write-takes=2 cascade=[hurt(damage=2,cause=none), health(8->6)] verdict=FIELD-WRITE-TOOK (the health lost is the value the handler wrote)
+        [2026-07-27 19:57:36.935] [mctest] before-entity-hurt :: [lower-damage] handler-notes=[handler-entered damage-as-delivered=10 | wrote damage=2 readback-in-handler=2]
+        [2026-07-27 19:57:37.235] [mctest] before-entity-hurt :: [raise-damage] requested=1 handler-writes-damage=4 handler-cancels=false applyDamage ok value=boolean:true health(ok value=number:8 -> ok value=number:4) health-lost=4 expected-if-the-write-takes=4 cascade=[hurt(damage=4,cause=none), health(8->4)] verdict=FIELD-WRITE-TOOK (the health lost is the value the handler wrote)
+        [2026-07-27 19:57:37.235] [mctest] before-entity-hurt :: [raise-damage] handler-notes=[handler-entered damage-as-delivered=1 | wrote damage=4 readback-in-handler=4]
+    - url: design/minecraft/test-lib/artifacts/mctest-damage-threshold-probe-results.md
+      where: Raw logs — mctest4:beforeevents, beforeevents run 1, the extend-duration and shorten-duration lines
+      quote: |
+        [2026-07-27 19:57:37.935] [mctest] before-effect-add :: [extend-duration] requested=100 handler-writes-duration=600 handler-cancels=false addEffect ok value=object(Effect) -> effect-present=true duration=598 amplifier=1 getEffect ok value=object(Effect) health(ok value=number:8 -> ok value=number:8) verdict=FIELD-WRITE-TOOK (the effect carries the duration the handler wrote)
+        [2026-07-27 19:57:37.935] [mctest] before-effect-add :: [extend-duration] handler-notes=[handler-entered effectType="Speed II" duration-as-delivered=100 | wrote duration=600 readback-in-handler=600]
+        [2026-07-27 19:57:38.135] [mctest] before-effect-add :: [shorten-duration] requested=400 handler-writes-duration=100 handler-cancels=false addEffect ok value=object(Effect) -> effect-present=true duration=98 amplifier=1 getEffect ok value=object(Effect) health(ok value=number:8 -> ok value=number:8) verdict=FIELD-WRITE-TOOK (the effect carries the duration the handler wrote)
+        [2026-07-27 19:57:38.135] [mctest] before-effect-add :: [shorten-duration] handler-notes=[handler-entered effectType="Speed II" duration-as-delivered=400 | wrote duration=100 readback-in-handler=100]

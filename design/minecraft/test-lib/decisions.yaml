@@ -189,21 +189,21 @@
 
 - id: damage-without-health-is-a-no-op
   statement: |
-    applyDamage on an entity carrying no health component changes nothing, fires no event, and
-    returns false
+    applyDamage on an entity carrying no health component changes nothing, fires no event, returns
+    false, and leaves the entity valid
   status: proposed
   falsifiers:
-    - a probe damages an entity with no health component and observes entityHurt firing or a true
-      return, so the silent false is a fabricated answer
+    - a health-less type outside the three observed — arrow, snowball and xp_orb — returns true or
+      fires entityHurt, so the silent false does not generalize across types
 
 - id: killing-hit-lands-at-or-below-minimum
   statement: |
     applyDamage fires entityDie when the write leaves currentValue at or below effectiveMin, the
     boundary value included
-  status: proposed
+  status: accepted
   falsifiers:
-    - a probe lands damage exactly on effectiveMin and observes no entityDie, putting the boundary
-      on the survivor side
+    - a type with a non-zero effectiveMin reaches that minimum and lives, so the rule holds only
+      where the minimum is zero — which is every type the survey reached
 
 - id: entity-lookups-honour-a-filter-subset
   statement: |
@@ -219,17 +219,28 @@
     - a pack orders its own work by the sequence getEntities returns and the engine's order proves
       to be something creation order does not reproduce
 
-- id: cancelled-actions-return-the-no-op-value
+- id: cancelled-actions-return-the-engines-value
   statement: |
-    an action a before-event handler cancels returns what it would have returned had it done
-    nothing — applyDamage false, addEffect undefined
+    a cancelled action returns what the engine was observed to return, not a no-op value:
+    applyDamage true and addEffect undefined
   status: proposed
   falsifiers:
-    - a probe cancels one of these and observes the engine returning true, or the Effect, so the
-      no-op return contradicts the engine on the path a pack branches over
-    - a pack tells a cancelled call from an ordinary failure by its return — false from a missing
-      health component against false from a cancellation — which the no-op value makes
-      indistinguishable
+    - a later engine version returns false from a cancelled applyDamage, so reproducing today's
+      true becomes the deviation the ruling exists to avoid
+    - the same admission-shaped true appears on another cancellable non-void call, making it a
+      general engine convention the fake should express as one rule rather than a per-surface quirk
+
+- id: before-event-field-writes-are-honoured
+  statement: |
+    a handler's write to entityHurt.damage or effectAdd.duration changes what the action does and
+    what its after-event reports; the other four mutable before-event fields are writable and
+    unread, because the fake raises no action that would consume them
+  status: proposed
+  falsifiers:
+    - a modelled action grows behind one of the other four fields — healing or weather — so
+      "writable and unread" becomes a silent wrong answer rather than an honest gap
+    - honouring the write while applyDamage's boolean is settled from the requested amount reads
+      as a contradiction to test authors, who see true returned for a handler-written zero
 
 - id: effect-fields-are-supplied-by-a-free-function
   statement: |
@@ -313,14 +324,14 @@
     - a modelled output member carries something that is neither the message value nor its options,
       so the record cannot hold what a test asserts on
 
-- id: handler-errors-propagate
+- id: handler-errors-are-isolated-and-recorded
   statement: |
-    a subscriber that throws propagates out of the call that dispatched it, and the remaining
-    subscribers do not run
-  status: proposed
+    a subscriber that throws does not reach the caller, does not stop the other subscribers, and
+    does not stop the rest of the cascade, as the engine was observed to behave; the library
+    records the error for getHandlerErrors rather than discarding it as the engine does
+  status: accepted
   falsifiers:
-    - the engine is observed catching a handler's throw and continuing to the next subscriber, so
-      propagating both misreports the engine and stops a test's other handlers
-    - a test's own handler throws to assert an error path and the propagation aborts the library's
-      remaining cascade — entityHealthChanged and entityDie never fire — where the engine delivers
-      them regardless, leaving the test asserting on a state the engine never presents
+    - tests never read getHandlerErrors, so a throwing handler is lost as silently as the engine
+      loses it and the recording buys nothing over plain absorption
+    - the engine is observed propagating a handler's throw on some other signal or dispatch path,
+      so isolation is not universal and the fake generalizes past what was observed on entityHurt

@@ -103,6 +103,7 @@ an exported free function over the fakes [[r:only-real-members-free-functions]]:
 | `advanceTicks(server, count)` | run scheduled callbacks |
 | `getOutput(target)` | the messages and titles sent to a player or the world |
 | `getTriggeredEvents(entity)` | the `triggerEvent` calls made on an entity |
+| `getHandlerErrors(server)` | the errors thrown by subscribers and absorbed at dispatch |
 
 ### What the library models
 
@@ -285,10 +286,30 @@ that lands exactly on `effectiveMin` also fires `entityDie` with cause `override
 
 `entity.applyDamage(amount, options?)` subtracts `amount` from the health component's
 `currentValue`, then fires `entityHurt`, `entityHealthChanged` and — on a killing hit — `entityDie`,
-in that order, and returns `true`. A killing hit is one leaving `currentValue` at or below
-`effectiveMin`, the boundary value included [[d:killing-hit-lands-at-or-below-minimum]]. On an
-entity carrying no health component it changes nothing, fires nothing, and returns `false`
-[[d:damage-without-health-is-a-no-op]].
+in that order. A killing hit is one leaving `currentValue` at or below `effectiveMin`, the boundary
+value included: reaching the minimum exactly was fatal on both the damage and the component-write
+path in every observed case, and every hit landing one point above it was survived
+[[f:reaching-effective-minimum-is-fatal]] [[d:killing-hit-lands-at-or-below-minimum]]. On an entity
+carrying no health component it changes nothing, fires nothing, returns `false`, and leaves the
+entity valid [[f:damage-without-health-returns-false-silently]] [[d:damage-without-health-is-a-no-op]].
+`amount` is not rounded — 0.5 damage takes exactly 0.5 health.
+
+Its boolean reports **admission, not outcome**. The fake returns `true` when the entity carries a
+health component and `amount` is greater than zero, and `false` otherwise — both facts settled
+before the call acts on anything, and the value the engine was observed to return in every case
+[[f:applydamage-boolean-reports-admission]]. A negative amount and zero each return `false` and
+change nothing, so the boundary is at zero rather than at one. The declared contract calls the
+boolean "whether the entity takes any damage", and on two reachable paths it is not: a cancelled
+before-event, and the engine's damage-invulnerability window, each leave it `true` with no health
+lost. Reproducing the admission reading is what [[r:modelled-behaviour-is-the-engines]] asks for,
+and a test asserting on this boolean is asserting on admissibility whether or not it means to.
+
+Of those two paths the fake reproduces one. A cancelled before-event returns `true` with nothing
+lost, exactly as observed [[d:cancelled-actions-return-the-engines-value]]. The invulnerability
+window is not modelled at all: the fake has no i-frames, so consecutive `applyDamage` calls each
+take their full amount, where the engine would absorb the second. A test exercising repeated damage
+therefore sees more health lost against the fake than the engine would take — the one place the
+boolean and the health agree here and disagree there.
 
 The damage path writes health directly rather than through `setCurrentValue`: it skips the bounds
 check and does not attach the `override` death cause a component write landing on `effectiveMin`
@@ -369,9 +390,16 @@ driven by the test calling `emit(signal, payload)`, which delivers the payload a
 [[d:every-signal-exists-few-are-raised]].
 
 Subscription is set-shaped: subscribing the same function reference twice delivers one call, and
-distinct subscribers run in subscription order [[f:subscription-semantics-observed]]. A handler
-that throws propagates out of the call that dispatched it and the remaining subscribers do not run,
-so a test sees the failure rather than losing it [[d:handler-errors-propagate]].
+distinct subscribers run in subscription order [[f:subscription-semantics-observed]].
+
+A handler that throws is isolated, as the engine isolates it: the throw does not reach the call that
+caused the event, the other subscribers on that signal still run, and the rest of the cascade still
+fires [[f:throwing-handler-is-isolated]]. The engine then discards the error, which a test cannot
+afford — a handler failing silently is a test passing for the wrong reason — so the library records
+each absorbed error and `getHandlerErrors(server)` returns them in the order they were thrown,
+carrying the signal and the error itself. Isolation matches the engine; the record is the library's
+own, and a test that asserts no handler failed reads it
+[[d:handler-errors-are-isolated-and-recorded]].
 
 After-events are dispatched synchronously, inside the call that caused them, before that call
 returns [[r:synchronous-event-delivery]]. The engine defers them past the mutating call's return
@@ -383,13 +411,30 @@ handlers, not before. Handlers observe post-write state either way.
 Before-events are dispatched synchronously ahead of the action they precede. Two of the three gate
 it: `EntityHurtBeforeEvent` and `EffectAddBeforeEvent` each declare a writable `cancel: boolean`, and
 a handler setting it stops the action — no state changes and no after-event fires
-[[r:before-events-can-cancel]] — with the gated call returning as if it had done nothing, a cancelled
-`applyDamage` returning `false` and a cancelled `addEffect` `undefined`
-[[d:cancelled-actions-return-the-no-op-value]]. `entityRemove` is a
+[[r:before-events-can-cancel]]. What the gated call then *returns* is not a single convention, and
+the fake does not invent one. A cancelled `addEffect` returns `undefined`, but a cancelled
+`applyDamage` returns `true` while dealing no damage — its boolean having been settled from the
+requested amount before the handler ran. Those are the two of the three script-initiable,
+cancellable, non-void calls that this cycle models, and `applyDamage` is the outlier across the
+complete set [[f:cancelled-call-return-values-observed]]
+[[d:cancelled-actions-return-the-engines-value]]. `entityRemove` is a
 notification and cannot be cancelled: `EntityRemoveBeforeEvent` declares `removedEntity` alone and no
 `cancel`, so the engine gives a handler no hold on the removal and the fake invents none — adding one
 would be a fake-only member and would let a test pass on a cancellation the engine cannot perform
 [[r:only-real-members-free-functions]] [[r:fakes-are-structurally-assignable]].
+
+A before-event payload can carry mutable fields besides `cancel`, and writing one changes what the
+action does. Six of the thirteen declared before-events do: `entityHurt.damage`,
+`effectAdd.duration`, `entityHeal.healing`, `playerBreakBlock.itemStack`,
+`playerGameModeChange.toGameMode`, and `weatherChange`'s `duration` and `newWeather`. On the two the
+fake raises the write is honoured in both directions and reaches downstream — a handler lowering or
+raising `entityHurt.damage` changes the health taken and the damage the `entityHurt` after-event
+reports, and writing `effectAdd.duration` changes the duration the resulting effect carries
+[[f:before-event-field-writes-take-effect]]. The other four fields are writable and nothing reads
+them back, because the fake raises no healing, block-breaking, game-mode or weather action for a
+write to reach [[d:before-event-field-writes-are-honoured]]. One consequence is worth stating: a
+handler writing `damage` to `0` still leaves `applyDamage` returning `true`, because admission was
+decided from the requested amount before the handler ran.
 
 ## Scheduling
 
@@ -530,8 +575,12 @@ not been considered, which is not the same as a promise about it.
 | runtime component attachment and detachment | not modelled | the engine reaches it through data-driven paths; a test uses the `addComponent` / `removeComponent` free functions |
 | bare and prefixed id tolerance | modelled | per-surface, as observed — `triggerEvent` rejects the bare form and the others accept it |
 | `setCurrentValue` bounds check | modelled | including the message and both inclusive bounds |
-| `applyDamage` cascade, order and payloads | modelled | including the unclamped negative health an overkill leaves |
+| `applyDamage` cascade, order and payloads | modelled | including the unclamped negative health an overkill leaves, and unrounded fractional amounts |
+| `applyDamage`'s boolean | modelled | reports admission — damageable entity, positive amount — not whether damage landed, as observed |
 | `applyDamage` cause defaults and the `damagingEntity` carry-through | modelled | |
+| the killing-hit boundary | modelled | reaching `effectiveMin` exactly is fatal on both the damage and the component-write path |
+| `applyDamage` on an entity with no health component | modelled | returns `false`, fires nothing, leaves the entity valid |
+| the damage-invulnerability window | divergence | the fake has no i-frames, so consecutive `applyDamage` calls each take their full amount where the engine absorbs the second — a test driving repeated damage sees more health lost against the fake than the engine would take |
 | the engine's velocity-dependent projectile damage adjustment | divergence | the projectile options form applies the amount requested |
 | `addEffect` / `getEffect` / `getEffects` / `removeEffect` and the amplifier-first replacement rule | modelled | |
 | effect duration decay and expiry | divergence | a duration reads back the value applied and never decays; the engine decays it one per tick and expires the effect |
@@ -540,7 +589,9 @@ not been considered, which is not the same as a promise about it.
 | after-event dispatch timing | divergence | synchronous, inside the causing call; the engine defers past that call's return to later in the same tick |
 | engine-raised signals outside the five after-events and three before-events the fakes raise | not modelled | no fake behaviour raises them; a test drives one with `emit` |
 | before-event cancellation | modelled | on the two signals whose payload declares `cancel` |
-| a subscriber that throws | modelled | propagates out of the dispatching call; the remaining subscribers do not run |
+| what a cancelled call returns | modelled | `addEffect` `undefined`, `applyDamage` `true` — the engine's own per-surface values, quirk included |
+| before-event mutable payload fields | divergence | writes to `entityHurt.damage` and `effectAdd.duration` are honoured; the other four declared mutable fields are writable but unread, since the fake raises no action that consumes them |
+| a subscriber that throws | divergence | isolated as the engine isolates it, but the absorbed error is recorded for `getHandlerErrors` where the engine discards it |
 | the tick loop | divergence | nothing runs on its own; `currentTick` starts at 0 and moves only under `advanceTicks` |
 | `run` / `runTimeout` / `runInterval` / `clearRun` scheduling | modelled | every intervening tick's callbacks run during an advance |
 | `runJob` / `clearJob` | not modelled | |
@@ -580,8 +631,9 @@ components:
   - id: event-bus
     responsibility: >-
       the signal objects on world.afterEvents, world.beforeEvents and system, subscribe/unsubscribe
-      with reference dedupe and subscription order, synchronous dispatch, before-event
-      cancellation on the signals whose payload declares cancel, and the emit free function
+      with reference dedupe and subscription order, synchronous dispatch, handler-throw isolation
+      with the error record behind getHandlerErrors, before-event cancellation and mutable payload
+      fields on the signals whose payload declares them, and the emit free function
     excludes: which fake member raises which signal
     after: [surface-scaffold]
 
