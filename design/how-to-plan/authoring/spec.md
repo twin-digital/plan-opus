@@ -65,18 +65,6 @@ something fails, and so does a cited sentence that rests on nothing. That these 
 themselves written as such tests, rather than prose an author pastes in, is what keeps them from
 turning out stilted and uniform [[r:guidance-is-tests-not-templates]].
 
-## Requirements the design did not write
-
-Citing is not the only relation a spec has to a requirement. A requirement from a wider scope
-binds the designs it names, and a bound one is an obligation on this design rather than something
-a sibling might discharge instead — so the test is an account, not a token count: read the list of
-requirements binding the design, and for each, point to what in the spec satisfies it or to the
-decision that records a departure from it [[r:bound-requirements-are-honoured-or-departed]]. A
-hard requirement admits only the first. The list is printed rather than remembered —
-`node bin/foundations.mjs <area>/<design>` renders it with the sets resolved — which is what
-makes the test cheap enough to run every time; a design that quietly leaves one unaccounted for
-has a finding against it, not a gap upstream.
-
 ## Evidence and inherited facts
 
 The evidence rules bind whoever captures a fact, as the requirement-content rules below bind
@@ -129,6 +117,15 @@ decision [[r:a-requirement-is-a-sentence-or-two]]. The second is what the ration
 belongs only where reversing the requirement casually would be a mistake the statement alone does
 not warn of, and a rationale arguing that the requirement is correct fails whatever else it says
 [[r:rationale-records-what-a-reversal-would-cost]].
+
+Those tests bind whoever writes a requirement. The spec author's own duty toward one is to honour
+it, and citing is not the relation that shows they did: a requirement from a wider scope binds the
+designs it names, so it is an obligation on this design rather than something a sibling might
+discharge instead. The test is an account — read the list of requirements binding the design, and
+for each point to what in the spec satisfies it, or to the decision recording a departure from a
+soft one [[r:bound-requirements-are-honoured-or-departed]]. A hard requirement admits only the
+first. The list is printed rather than remembered: `node bin/foundations.mjs <area>/<design>`
+renders it with the sets resolved, which is what makes the account cheap enough to run every time.
 
 ## Falsifiers that can fire
 

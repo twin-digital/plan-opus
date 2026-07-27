@@ -6,16 +6,11 @@
 
 - id: bound-requirements-are-honoured-or-departed
   statement: |
-    a spec accounts for every requirement bound to its design, whichever scope it came from: a
-    hard one is satisfied, and a soft one is satisfied or departed from in a decision that cites
-    it. One neither satisfied nor departed from is a finding against the spec, not a gap in the
-    requirement
+    a spec accounts for every requirement bound to its design, whichever scope it came from,
+    and leaving one unaccounted for is a finding against the spec
   rationale: |
-    A requirement above design scope binds the designs its applies_to names, so it is an
-    obligation on each of them and not a shared aspiration one sibling might discharge. Nothing
-    mechanical can read whether a spec satisfies a statement, so the account is a reviewer's, run
-    against the list the harness prints — which is why the rule is stated as something to check
-    rather than something to cite.
+    Nothing mechanical reads whether a spec satisfies a statement, so an unhonoured requirement
+    leaves no trace at all until something built on the spec breaks.
 
 - id: requirements-are-owner-reversal-calls
   statement: |
