@@ -20,7 +20,7 @@ that branch.
 Then dispatch `review-inputs.md` over the three files, before the writer starts. It reads them as a
 set and reports; it changes nothing. Two requirements that contradict each other, or a fact whose
 evidence does not carry its claim, are findable this way in one pass — and left alone, one costs a
-writer, eight reviewers, a triager, a reviser, and a capstone before it reaches the owner as an open
+writer, nine reviewers, a triager, a reviser, and a capstone before it reaches the owner as an open
 question they answer anyway.
 
 ---
@@ -98,7 +98,7 @@ The gate runs **once**. A default the writer discovers later is its own to take 
 
 ## Wave 2 — panel review, triage, revise
 
-**One panel review, not a loop to clean.** Eight adversarial reviewers always return findings; a
+**One panel review, not a loop to clean.** Nine adversarial reviewers always return findings; a
 second panel spends most of its budget reviewing the churn the first one caused, and the third
 finds wording. Run the panel once, act on it, then move to the capstone.
 
@@ -187,7 +187,7 @@ moved, the product's type changed, a rule that several parts of the spec were bu
 reversed. An amend that changes a rule, narrows one, or settles an edge case does not earn a fresh
 reader, and running one anyway is how a draft that is done acquires another round of findings. Re-run
 the panel only when the amend reached enough of the spec that it is effectively new; an amend
-touching one section does not earn eight reviewers.
+touching one section does not earn nine reviewers.
 
 ---
 

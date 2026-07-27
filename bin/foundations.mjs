@@ -9,6 +9,7 @@
 import fs from "fs";
 import path from "path";
 import YAML from "yaml";
+import { loadSets, bindsDesign } from "./lib/binding.mjs";
 
 const ROOT = "design";
 const args = process.argv.slice(2);
@@ -38,11 +39,17 @@ const read = (file) => {
   if (!fs.existsSync(file)) return [];
   return (YAML.parse(fs.readFileSync(file, "utf8")) ?? []).filter((e) => !DEAD.includes(e.status));
 };
+const targetDesign = { scope: `${target.area}/${target.name}`, area: target.area };
 const scopes = [
-  { label: `design — ${target.name}`, dir: target.dir },
-  { label: `area — ${target.area}`,    dir: path.join(ROOT, target.area) },
-  { label: "global",                   dir: ROOT },
+  { label: `design — ${target.name}`, dir: target.dir,                  tier: "design", scope: targetDesign.scope },
+  { label: `area — ${target.area}`,   dir: path.join(ROOT, target.area), tier: "area",   scope: target.area },
+  { label: "global",                  dir: ROOT,                        tier: "global", scope: "global" },
 ];
+
+// Requirements that bind some other design are dropped rather than shown here, resolved by the
+// same rule the settle gate uses.
+const { sets } = loadSets(ROOT);  // narrowing means the three scopes below are the whole answer
+let unbound = 0;
 
 // Block scalars are already hand-wrapped; preserve the author's line breaks (and any
 // bullet structure inside them) and quote them so the content is visibly not commentary.
@@ -53,7 +60,8 @@ const quote = (s, prefix = "") => {
 
 const out = [];
 out.push(`# Foundations in scope — ${target.area}/${target.name}`, "");
-out.push(`Everything this design may cite, nearest scope first. Retired entries are omitted.`, "");
+out.push(`Everything this design may cite, nearest scope first. Retired entries are omitted.`,
+  `Requirements are the ones that bind this design — every one listed must be honoured.`, "");
 
 let totals = { req: 0, fact: 0 };
 for (const [kind, file, heading] of [["req", "requirements.yaml", "Requirements"],
@@ -61,7 +69,8 @@ for (const [kind, file, heading] of [["req", "requirements.yaml", "Requirements"
   out.push(`## ${heading}`, "");
   let any = false;
   for (const scope of scopes) {
-    const entries = read(path.join(scope.dir, file))
+    const all = read(path.join(scope.dir, file));
+    const entries = (kind === "req" ? all.filter((e) => bindsDesign(sets, scope, e, targetDesign) || (unbound++, false)) : all)
       .sort((a, b) => String(a.id).localeCompare(String(b.id)));
     if (!entries.length) continue;
     any = true;
@@ -83,5 +92,6 @@ for (const [kind, file, heading] of [["req", "requirements.yaml", "Requirements"
   if (!any) out.push("_none_", "");
 }
 
-out.push("---", "", `${totals.req} requirements, ${totals.fact} facts.`);
+out.push("---", "", `${totals.req} requirements, ${totals.fact} facts.` +
+  (unbound ? ` ${unbound} wider-scope requirement(s) bind other designs and are not shown.` : ""));
 console.log(out.join("\n"));

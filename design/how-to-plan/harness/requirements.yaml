@@ -72,6 +72,49 @@
     consider it makes sense. And the automation opens the gate to building baselines to compare
     against.
 
+- id: check-validates-declared-sets
+  statement: |
+    the checker reads every `sets.yaml` and rejects a set with no members, a name declared
+    twice, a set holding another set, a member naming no design that exists, and — in an area's
+    file — a member from another area
+  rationale: |
+    A set nothing validates fails silently in the direction that looks fine: a misspelt member
+    binds nobody, and the requirement pointing at the set still passes.
+
+- id: check-validates-applies-to
+  statement: |
+    the checker rejects an `applies_to` on a design-scoped requirement, one that is not a
+    non-empty list, any item naming no existing design or undeclared set, and any item outside
+    the requirement's own tier
+  rationale: |
+    The tier bound is what makes the foundations view's three-directory read the whole answer;
+    unenforced, the view and the settle gate disagree exactly where an author cannot see it.
+
+- id: check-resolves-binding-for-the-settle-gate
+  statement: |
+    the checker computes which requirements bind a design — from `applies_to`, the sets it
+    names, and the tier default when it names none — and fails a design otherwise ready to
+    settle for each bound requirement no claim cites
+  rationale: |
+    The gate is the only thing standing between a bound requirement and a design that never
+    read it, since nothing downstream notices an obligation that was simply missed.
+
+- id: bound-requirements-are-rendered-for-an-author
+  statement: |
+    the foundations view renders a design exactly the requirements that bind it, with the sets
+    resolved, so an author never walks the tree to find one
+  rationale: |
+    An obligation an author has to go looking for is one they will meet at the settle gate
+    instead, after the spec is written.
+
+- id: binding-is-resolved-in-one-place
+  statement: |
+    the settle gate and the foundations view answer "which requirements bind this design" from
+    the same resolution, never from two implementations of the rule
+  rationale: |
+    Two resolvers drift toward the worst pairing — a view that omits what the gate demands —
+    and the author sees the disagreement only as a failure they cannot reproduce.
+
 - id: check-identifies-blocks-by-section
   statement: |
     the checker identifies a spec.md's live component and open-question blocks by their

@@ -9,7 +9,7 @@ to build it, asking the questions a panel of dimension reviewers structurally ca
 
 ## What this is for
 
-The panel review is analytic: it takes the spec apart along eight dimensions and checks each
+The panel review is analytic: it takes the spec apart along nine dimensions and checks each
 against a rule. That finds what is *wrong* and is blind to what is *missing as a whole* — whether
 the design coheres, whether it is buildable end to end, whether it is the right design, whether a
 simpler one would do. Those questions have no dimension to live in, because they are about the sum.

@@ -43,8 +43,8 @@ Change what the input changes touch; leave the rest. A review is not a regenerat
 is an amend — do not rewrite past the change. For each input that moved:
 
 - **A new requirement** — add the claim that rests on it and cite it. (Capture is free, so a
-  requirement you do not yet build on can stay uncited — but a *live design-scoped* requirement
-  must be cited for the design to settle.)
+  requirement binding some other design can stay uncited here — but every live requirement that
+  binds *this* one must be cited for the design to settle.)
 - **A removed or renamed entry** — find every claim that cited it and update or drop it. A dangling
   `[[k:id]]` is the most common thing an amend strands.
 - **A decision the owner rejected** — remove its citation and the mechanism it carried; a rejected
