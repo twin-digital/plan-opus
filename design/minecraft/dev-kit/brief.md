@@ -8,7 +8,7 @@ Five capabilities cover the surface:
 
 - **Discover** — given a workspace root, find the pack-bearing packages and return one entry per pack found, each marked valid or invalid, an invalid one carrying the problems that stopped it resolving. Nothing found is left out of the list.
 - **Detail** — for each pack, its owning package, its kind, its source location, where its built output is expected whether or not it is there yet, and its manifest as an object.
-- **Complete** — a source manifest omits what the package already knows, and the kit fills those fields in on the manifest it reports: the header name and version from `package.json`, and the version of any dependency naming a workspace pack by uuid, which is how a dependency on a pack this workspace resolves is declared.
+- **Complete** — a source manifest omits what the package already knows, and the kit fills those fields in on the manifest it reports: the header name and version from `package.json` (productName ?? name), and the version of any dependency naming a workspace pack by uuid, which is how a dependency on a pack this workspace resolves is declared.
 - **Search** — find packs by npm package name, pack name, or pack uuid, matched exactly.
 - **Validate** — the manifest parses; a header uuid is present and unique across the set; the manifest carries a module corroborating the kind its directory declares, and none of the other kind; in-workspace manifest dependencies resolve, exempting a dependency naming a built-in scripting module; the data completion needs is present and well formed.
 
@@ -27,9 +27,3 @@ const selected = packs.filter(p => ['mc-pack-1', 'mc-pack-2'].includes(p.package
 for (const pack of selected) deployToPool(pack)   // the dev server's job, not the kit's
 ```
 
-```
-$ mc-kit validate                      # the deferred CLI, one day
-mc-pack-2  behavior_pack/manifest.json — header uuid duplicates mc-pack-5
-mc-pack-4  no built pack at dist/behavior_pack
-2 problems
-```
