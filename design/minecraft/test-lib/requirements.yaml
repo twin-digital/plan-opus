@@ -142,18 +142,8 @@
     dynamic properties and scoreboard state are real state the fakes hold — readable and writable
     on the world and on entities — and a test reads back what the code under test wrote. Neither
     is a stub.
-  rationale: |
-    Measured, not assumed: dynamic properties are the largest single blocker across the three
-    packs probed in artifacts/testability-probe, stopping 17 of 30 candidate test units, and all
-    three keep their persisted state there. A string-keyed map needs no world geometry, no
-    per-type vanilla data, and no class this package does not ship, so none of the reasons the
-    other absences rest on apply to it.
 
 - id: output-is-capturable
   statement: |
     what a fake would send to a player or to the world — messages, titles, action bars — is
     recorded and readable through the control plane rather than discarded.
-  rationale: |
-    A pack's output is what its tests assert on: SafeGuard alone has 145 sendMessage call sites
-    and, for most of its decisions, no other observable result
-    (artifacts/testability-probe/safeguard.md).
