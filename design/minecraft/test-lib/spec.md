@@ -225,6 +225,14 @@ member that needs it — `setCurrentValue`'s bounds check, `resetToDefaultValue`
 throws `UnsetValueError` naming the bound it could not read [[r:no-implicit-defaults]]
 [[d:component-state-is-the-attribute-four]].
 
+Two shorthands spell the common cases without writing the record out. A single number is
+`currentValue`, with `effectiveMin` 0 and `effectiveMax` equal to it — `addComponent(entity,
+'minecraft:health', 20)` is a full-health entity bounded 0..20 — and a two-element `[min, max]`
+gives those bounds with `currentValue` at `max`. Both leave `defaultValue` unset, and both are
+exactly the record they abbreviate. Neither breaches [[r:no-implicit-defaults]], which governs what
+construction populates unasked: a caller who writes `20` has asked for all three numbers
+[[d:component-state-is-the-attribute-four]].
+
 Ids are normalized on entry and stored and reported in the canonical `minecraft:`-prefixed form, so
 a read compares equal against the `@minecraft/vanilla-data` constants a test holds
 [[r:canonical-prefixed-storage]]. Tolerance of the bare form is per-surface rather than universal —
@@ -361,9 +369,11 @@ calls `advanceTicks(server, count)`. The library starts no timer and awaits noth
 [[r:scheduling-is-test-advanced]]. `system.currentTick` starts at 0 and moves only under
 `advanceTicks` [[d:current-tick-starts-at-zero]]. `advanceTicks` steps one tick at a time,
 incrementing `currentTick` and then running every callback due at that tick in the order it was
-scheduled; a `run` callback is due on the next tick, `runTimeout(cb, n)` on the nth tick after
-scheduling, and `runInterval(cb, n)` every nth tick until cleared
-[[d:tick-advance-semantics]]. `runJob`/`clearJob` are
+scheduled, before it steps again; a `run` callback is due on the next tick, `runTimeout(cb, n)` on
+the nth tick after scheduling, and `runInterval(cb, n)` every nth tick until cleared. An advance
+runs every intervening tick's callbacks, not only those due on the tick it lands on: from tick 0,
+`advanceTicks(server, 10)` fires a `runInterval(cb, 2)` five times and a `runTimeout(cb, 3)` once,
+during the advance rather than at its end [[d:tick-advance-semantics]]. `runJob`/`clearJob` are
 declared and throw `NotImplementedError`.
 
 ## Persisted state and captured output

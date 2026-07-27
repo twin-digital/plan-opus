@@ -1,13 +1,13 @@
 # Decisions for @twin-digital/minecraft-test-lib.
-# The accepted entries are the owner's ruling at the defaults gate; the proposed ones are the
-# spec author's, open to review.
+# The accepted and tolerated entries carry the owner's review verdict; the proposed ones are the
+# spec author's, still open.
 
 - id: server-bundle-mirrors-module-exports
   statement: |
     createServer returns one bundle whose properties are named as `@minecraft/server` exports
     them — world, system, and the eight registry classes — and that bundle is the only route to
     system and the registries
-  status: proposed
+  status: tolerated
   falsifiers:
     - surveyed packs overwhelmingly take `world` alone as a parameter and reach `system` by direct
       import, so a bundle carrying system is a shape no real pack can receive
@@ -19,7 +19,7 @@
     the behaving surface this cycle is the world, dimensions, entity identity and lifecycle, the
     seven attribute-shaped components, effects, events, scheduling, persisted state and output;
     every other entity component carries only typeId, isValid and entity
-  status: proposed
+  status: tolerated
   falsifiers:
     - a component outside the attribute-shaped seven is reached by enough packs that tests written
       against the library routinely hit NotImplementedError on a first attempt
@@ -40,22 +40,24 @@
 
 - id: guard-list-comes-from-the-observation
   statement: |
-    the invalidation guard list is a per-member table transcribed from the reflective engine sweep
-    and its correct-arity follow-up, not derived from the declarations' @throws annotations
-  status: proposed
+    the invalidation guard list is a per-member table transcribed from what the engine was observed
+    to do [[f:invalidation-guard-list-complete]]
+    [[f:invalidation-guard-covers-argument-taking-methods]], not derived from the declarations'
+    @throws annotations
+  status: tolerated
   falsifiers:
-    - the annotations come to name InvalidEntityError on every guarded member, nameTag and
-      isSneaking included, so derivation becomes mechanical and tracks a version bump for free
-      where a transcribed table needs a server run to refresh
-    - guard behaviour is observed to differ between entity types, so one per-member table
-      transcribed from runs against sheep, cow and armor stand cannot describe the engine at all
+    - the annotations come to name InvalidEntityError on every guarded member, so derivation
+      becomes mechanical and tracks a version bump for free where a transcribed table needs a
+      server run to refresh
+    - guard behaviour is observed to differ between entity types, so no single per-member table
+      can describe the engine at all
 
 - id: library-declares-its-error-classes
   statement: |
     the library exports its own InvalidEntityError, ArgumentOutOfBoundsError and
     InvalidArgumentError matching the engine's declared shapes and messages, plus NotImplementedError
     and UnsetValueError of its own
-  status: proposed
+  status: tolerated
   falsifiers:
     - the engine's error classes become reachable at runtime in a test process — `@minecraft/server`
       starts shipping JavaScript, or a runner resolves it to a shim that defines them — so two
@@ -67,7 +69,7 @@
   statement: |
     two presets ship — withVanillaDimensions and asSpawnedEntity — supplying only the dimension and
     spawn-frame values a source pins
-  status: proposed
+  status: tolerated
   falsifiers:
     - nearly every test opens with the same further preamble beyond these two, showing a third
       preset is pinned well enough to ship
@@ -77,7 +79,7 @@
 - id: effect-durations-do-not-decay
   statement: |
     an effect's duration reads back the value applied and never decays or expires as ticks advance
-  status: accepted
+  status: tolerated
   falsifiers:
     - packs commonly branch on a decayed duration, so a non-decaying fake lets the wrong branch pass
     - the duration comparison basis is established and the fake comes to model decay, at which point
@@ -86,7 +88,7 @@
 - id: effect-display-name-is-supplied
   statement: |
     Effect.displayName reads back what the test supplied and throws UnsetValueError otherwise
-  status: accepted
+  status: tolerated
   falsifiers:
     - a source pins the display name for every effect type, making the value derivable rather than
       supplied
@@ -97,7 +99,7 @@
   statement: |
     Entity.triggerEvent requires the prefixed id, throws InvalidArgumentError on a bare one, changes
     no state, and records the call for getTriggeredEvents
-  status: accepted
+  status: tolerated
   falsifiers:
     - a later observation shows the engine does assume the namespace on this surface, making the
       bare-id rejection wrong
@@ -107,7 +109,7 @@
 - id: remove-raises-only-entity-remove
   statement: |
     Entity.remove raises entityRemove and nothing else
-  status: accepted
+  status: tolerated
   falsifiers:
     - a targeted probe attributes another event to removal, showing the fake omits an event handlers
       really receive
@@ -116,7 +118,7 @@
   statement: |
     applyDamage with the projectile options form applies the amount requested and reports cause
     projectile
-  status: accepted
+  status: tolerated
   falsifiers:
     - packs branch on the fractional adjustment the engine applies to projectile damage, so verbatim
       damage hides a real difference
@@ -124,7 +126,7 @@
 - id: placement-and-motion-are-literal
   statement: |
     a fake entity is placed at exactly the requested location and never moves on its own
-  status: accepted
+  status: tolerated
   falsifiers:
     - a pack's logic keys on the engine's placement adjustment or on post-spawn drift, so a static
       entity cannot exercise it
@@ -133,7 +135,7 @@
   statement: |
     a member the cycle does not model is declared and throws NotImplementedError rather than being
     absent or reading undefined
-  status: accepted
+  status: tolerated
   falsifiers:
     - the declared-everything surface costs more to maintain per version bump than the assignability
       it buys
@@ -152,7 +154,7 @@
   statement: |
     an auto-assigned entity id is a decimal string issued sequentially from 1 per bundle and never
     reissued
-  status: accepted
+  status: tolerated
   falsifiers:
     - a pack parses or orders ids in a way the engine's negative-integer spelling supports and this
       one does not
@@ -161,7 +163,7 @@
   statement: |
     an absent component, an unset dynamic property, and an unknown objective or participant read
     undefined rather than throwing
-  status: accepted
+  status: tolerated
   falsifiers:
     - the engine is observed to throw on one of these reads, making undefined a fabricated answer
 
@@ -177,7 +179,7 @@
   statement: |
     all eight registry classes on the bundle are declared with every member throwing
     NotImplementedError, and no registry tracks world state
-  status: proposed
+  status: tolerated
   falsifiers:
     - a pack resolves an id through DimensionTypes.getAll or EntityTypes.get on the path its test
       exercises, rather than in startup code the test never enters, so the throwing registry blocks
@@ -254,7 +256,7 @@
   statement: |
     the package exposes a single entry point re-exporting every fake type and free function, with no
     subpath exports
-  status: proposed
+  status: tolerated
   falsifiers:
     - the library's own parts come to import each other through the single barrel, and the cycle
       that creates cannot be broken without a subpath export a builder can import directly
@@ -265,7 +267,7 @@
   statement: |
     the seven attribute-shaped component ids ship as a literal array the library maintains, with the
     type-derived union as the compile-time completeness check
-  status: proposed
+  status: tolerated
   falsifiers:
     - a component behaves as an attribute without matching the conditional mapping over
       EntityComponentTypeMap, so the derived union no longer describes the set and cannot check the
@@ -275,9 +277,10 @@
 
 - id: component-state-is-the-attribute-four
   statement: |
-    addComponent's state argument is the four attribute numbers, is rejected with
-    InvalidArgumentError on any non-attribute id, and leaves any number it omits unset
-  status: proposed
+    addComponent's state argument is the four attribute numbers, or one of two shorthands for them
+    — a single number, or a [min, max] pair — is rejected with InvalidArgumentError on any
+    non-attribute id, and leaves any number it omits unset
+  status: tolerated
   falsifiers:
     - a component outside the seven gains modelled fields, so state must carry per-component shapes
       rather than one attribute-shaped record
@@ -297,10 +300,11 @@
 
 - id: tick-advance-semantics
   statement: |
-    advanceTicks increments currentTick and then runs that tick's callbacks in scheduling order,
-    with run due on the next tick, runTimeout(cb, n) on the nth tick after scheduling, and
-    runInterval(cb, n) every nth tick
-  status: proposed
+    advanceTicks steps one tick at a time, incrementing currentTick and running that tick's
+    callbacks in scheduling order before it steps again, so an advance of n runs every intervening
+    tick's callbacks; run is due on the next tick, runTimeout(cb, n) on the nth tick after
+    scheduling, and runInterval(cb, n) every nth tick
+  status: tolerated
   falsifiers:
     - the engine is observed running a run callback on the scheduling tick itself, so the
       convention here misses every scheduled callback by a tick
@@ -311,7 +315,7 @@
   statement: |
     getOutput returns an array of { kind, value, options? } with kind one of message, title,
     subtitle and actionBar
-  status: proposed
+  status: tolerated
   falsifiers:
     - tests need the interleaving across targets — a world message and a player message in the
       order they were sent — which per-target logs of these records cannot express
