@@ -90,7 +90,10 @@ interface InvalidPackEntry extends PackEntryBase {
 guarantees rather than what a source file may hold: a field validation demands or completion always
 writes is required, and only a field a valid pack may genuinely lack is optional. It is typed over
 what the kit reads and completes and no further, and each interface carries an index signature so
-keys the kit does not model survive to the consumer unchanged.
+keys the kit does not model survive to the consumer unchanged. Every field it declares is checked to
+the form it declares before an entry is called valid, so no source value reaches a consumer under a
+type it does not have [[r:manifest-fields-are-validated-by-form]]; the checks themselves are under
+Finding packs below.
 
 ```ts
 type ManifestVersion = string | [number, number, number]
@@ -112,8 +115,6 @@ interface ManifestHeader {
 
 interface ManifestModule {
   type: string
-  uuid?: string
-  version?: ManifestVersion
   [key: string]: unknown
 }
 
@@ -132,27 +133,42 @@ interface ManifestModuleDependency {
 }
 ```
 
-Each required field is one the rules below leave a valid entry unable to lack. `header` and its
-`uuid` are required because a manifest declaring no `header.uuid` is `manifest-missing-uuid`, and a
-`header` that is not an object is `manifest-shape-invalid`. `header.name` and `header.version` are
-required because completion always writes both, and `version` is a `string` rather than a
-`ManifestVersion` because completion writes a SemVer string at every format version. `modules` is
-required and non-empty, and every module carries a `type`, because a valid pack has a module
-corroborating its kind and a module with no `type` is `module-missing-type`. A dependency entry
-carries exactly one of `uuid` or `module_name`, since one carrying both or neither is
-`dependency-entry-malformed`, and always a `version`: completion writes it where the `uuid` names a
-pack in the workspace, and an entry the workspace does not complete that carries none is
-`dependency-unsatisfied` or `external-dependency-version-missing`.
+Each required field is one the rules below leave a valid entry unable to lack, and each declared form
+is one they leave it unable to contradict. `header` and its `uuid` are required because a manifest
+declaring no `header.uuid` is `manifest-missing-uuid`, and each holds its declared form because a
+`header` that is not an object, or a `header.uuid` that is not a string, is `manifest-shape-invalid`.
+`header.name` is required and a string because completion always writes
+one and a source that wrote a non-string is `manifest-shape-invalid`. `header.version` is required
+and a `string` rather than a `ManifestVersion` because completion writes a SemVer string at every
+format version: the form check accepts an array there as elsewhere, but an array that is not the
+`[0, 0, 0]` placeholder is `header-version-specified` and a placeholder is completed away, so a valid
+entry's `header.version` is always the string completion wrote. `modules` is required and non-empty,
+and every module carries a string `type`, because a valid pack has a module corroborating its kind —
+which no manifest without a module can — and a module with no `type` is `module-missing-type` while
+one whose `type` is not a string is `manifest-shape-invalid`. A dependency entry carries exactly one
+of `uuid` or `module_name`, since one carrying both or neither is `dependency-entry-malformed`, and
+always a `version`: completion writes it where the `uuid` names a pack in the workspace, and an entry
+the workspace does not complete that carries none is `dependency-unsatisfied` or
+`external-dependency-version-missing`. Those three fields hold the forms declared for them because a
+dependency field of any other form is `manifest-shape-invalid`.
 
 The rest stay optional. `format_version` may be absent, because a missing or unrecognised one
-restricts nothing and passes through; `dependencies` may be absent, because a pack depending on
-nothing is ordinary; and `modules[].uuid` and `modules[].version` may be absent, because the kit
-neither completes nor validates either.
+restricts nothing and passes through — though a present one is a number or a string, since anything
+else is `manifest-shape-invalid`; and `dependencies` may be absent, because a pack depending on
+nothing is ordinary.
+
+`ManifestModule` declares `type` and nothing else. A module's `uuid` and `version` reach the consumer
+through the index signature, as the `unknown` they are: the kit reads neither, completes neither, and
+does not check module uuids for uniqueness [[r:uuids-are-claimed-once-in-a-workspace]], so declaring
+them would buy a form check on data nothing in the pipeline consumes
+[[d:modules-uuid-and-version-are-unmodelled]]. The data still arrives; it arrives untyped.
 
 Only a valid entry's `manifest` is a `PackManifest`. An invalid entry's is typed `unknown`, because a
 file that parsed to something other than a JSON object — or whose `header`, `modules`, or
-`dependencies` is not the container the format documents — is still reported as it parsed (below),
-and a consumer narrows it before reading.
+`dependencies` is not the container the format documents, or whose `header.uuid` is a number — is
+still reported as it parsed (below), and a consumer narrows it before reading. That split is what
+makes the valid entry's type sound: every fault above invalidates the entry it was found in, so a
+value contradicting `PackManifest` is never reported under it.
 
 A valid entry carries every detail with nothing absent or in doubt. An invalid one carries the
 problems that invalidated it plus every detail its sources still hold — always the kind, the owning
@@ -310,14 +326,69 @@ the one problem `manifest-unreadable`, carrying the underlying error message
 [[d:unreadable-and-unparseable-manifests-are-one-problem]]; such an entry has no `uuid`, `version`,
 or `manifest`, and its remaining details still stand.
 
-A manifest that parses may still not have the format's shape. The parsed value must be a JSON
-object; `header`, where present, must be an object; and `modules` and `dependencies`, where present,
-must be arrays whose elements are objects. Anything else is the one problem `manifest-shape-invalid`,
-its `field` naming the offending value — `header`, `modules`, `dependencies[1]`, or the empty string
-for the manifest root — and the checks and completions that read that part are skipped, so one
-misshapen container does not cascade into derived problems
-[[d:manifest-shape-faults-are-one-problem]]. The manifest is still reported as it parsed, and the
+A manifest that parses may still not have the format's shape. Two passes check it, and both report
+the one problem `manifest-shape-invalid`: the code says a value is not the shape the format
+documents, whether that value is a container or a scalar, and its free-form `field` already locates
+either. A separate code for scalars would tell a consumer nothing `field` does not — every consumer
+does the same thing with both, which is report the path and stop — and would spend an entry in a set
+that grows only with a new version [[d:the-problem-code-set-is-closed]]
+[[d:field-type-faults-reuse-the-shape-code]]. The manifest is still reported as it parsed, and the
 entry's remaining details still stand.
+
+The container pass: the parsed value must be a JSON object; `header`, where present, must be an
+object; and `modules` and `dependencies`, where present, must be arrays whose elements are objects.
+Anything else is `manifest-shape-invalid`, its `field` naming the offending value — `header`,
+`modules`, `dependencies[1]`, or the empty string for the manifest root — and the checks and
+completions that read that part are skipped, so one misshapen container does not cascade into derived
+problems [[d:manifest-shape-faults-are-one-problem]].
+
+The form pass then checks every remaining field `PackManifest` declares, inside the containers that
+survived, against the form declared for it
+[[r:manifest-fields-are-validated-by-form]]:
+
+| field | accepted form |
+|---|---|
+| `format_version` | a number or a string |
+| `header.name` | a string |
+| `header.uuid` | a string |
+| `header.version` | a string, or an array of three numbers |
+| `modules[].type` | a string |
+| `dependencies[].uuid` | a string |
+| `dependencies[].module_name` | a string |
+| `dependencies[].version` | a string, or an array of three numbers |
+
+Each row tests form and never value [[r:manifest-fields-are-validated-by-form]]. A uuid is any
+string, not the 8-4-4-4-12 spelling. A version is a string or a three-number array, and whether that
+string parses as SemVer, or names a version that exists, is not asked. A `format_version` is any
+number or string, and the kit holds no list of the format versions that exist — the declared one
+passes through whatever it is [[r:manifest-format-version-passes-through]]. Checking a value against
+a list the format can extend would report problems against packs Minecraft loads happily, which is
+why module types are not enumerated either [[f:module-type-enumerations-disagree]]
+[[r:manifest-corroborates-the-directory-kind]].
+
+Absence is not a form fault: a field the source omits is the business of the completion and
+validation rules below, which is why a manifest with no `header.uuid` is `manifest-missing-uuid` and
+a module with no `type` is `module-missing-type`.
+
+One fault yields one problem, so a form fault suppresses every check and completion that reads the
+field, exactly as a misshapen container suppresses the checks that read it
+[[d:a-form-fault-suppresses-the-checks-that-read-it]]:
+
+| a form fault at | suppresses |
+|---|---|
+| `format_version` | `array-version-at-format-version-3` — a format version the kit cannot read restricts nothing, as a missing one does |
+| `header.name` | `header-name-specified`, and the name completion |
+| `header.uuid` | `manifest-missing-uuid`; the pack claims no uuid, so it joins no `duplicate-uuid` and satisfies no dependency |
+| `header.version` | `header-version-specified`, and the version completion |
+| `modules[].type` | `module-missing-type` for that module, and `kind-not-corroborated` and `foreign-kind-module` for the manifest, since the kit cannot know what that module would have corroborated |
+| `dependencies[].uuid` | every later check on that entry: it matches no pack, is never completed, and raises no `dependency-version-specified`, `dependency-unsatisfied`, or `dependency-invalid` |
+| `dependencies[].module_name` | `external-dependency-version-missing` for that entry |
+| `dependencies[].version` | `dependency-version-specified`, `external-dependency-version-missing`, and `dependency-unsatisfied` for that entry, and the version completion |
+
+The dependency discriminator is read before any of that: an entry carrying both `uuid` and
+`module_name`, or neither, is `dependency-entry-malformed` and none of its fields is form-checked,
+because which fields the entry should carry is what the discriminator settles
+[[d:an-ambiguous-dependency-entry-is-a-problem]].
 
 ## Completing the manifest
 
@@ -335,10 +406,14 @@ version except 3, where it must be the string; a source manifest carrying an arr
 `format_version` 3 is `array-version-at-format-version-3`, placeholder or not. No other format
 version restricts the form, and a missing or unrecognised `format_version` restricts nothing
 [[d:only-format-version-3-restricts-version-form]]. The check reads exactly the two version fields
-completion touches — `header.version` and each `dependencies[].version` — and never a
-`modules[].version`, which the kit neither completes nor validates. A `header.name` of `""` reads
-as unspecified like a placeholder version does; any other present `header.name` is the
-specified-field error [[d:empty-header-name-reads-as-unspecified]].
+completion touches — `header.version` and each `dependencies[].version` — and never a module's
+`version`, which the kit neither models nor reads [[d:modules-uuid-and-version-are-unmodelled]]. A
+`header.name` of `""` reads as unspecified like a placeholder version does; any other present
+`header.name` is the specified-field error [[d:empty-header-name-reads-as-unspecified]].
+
+Specified and unspecified are readings of a well-formed field. A field the form pass faulted is
+neither: its completion and its specified-field error are both skipped, and the form fault is the
+whole of what that field reports [[d:a-form-fault-suppresses-the-checks-that-read-it]].
 
 Three completions run, and each has a matching error when the source specified what it must not:
 
@@ -397,7 +472,8 @@ Per pack, alongside the completion errors above:
 
 Those four types are the whole of what corroboration reads [[r:manifest-corroborates-the-directory-kind]].
 Any other module type is ignored — neither corroborating nor a problem — because the set of module
-types is not enumerable: Microsoft's reference lists four, its own validator names six and says the
+types is not enumerable — the same reason no row of the form pass tests a value
+[[r:manifest-fields-are-validated-by-form]]: Microsoft's reference lists four, its own validator names six and says the
 list merely "include"s them, and the reference page's example behavior pack declares a `client_data`
 module in neither list [[f:module-type-enumerations-disagree]]. Validating against any published
 list would report a problem against Microsoft's own reference pack.
