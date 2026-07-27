@@ -171,18 +171,31 @@ nor a conversion: the entry is already the owner's, already at the bar, and the 
 would strand every reference — and do not rewrite the statement or the rationale to suit the new
 home. If it reads wrong where it now sits, that is a question for the hand-off, not an edit.
 
-Two checks before you move one, and one after:
+Three checks before you move one, and one after:
 
-- **Who cites it.** Requirements are fenced where facts are not, so a design-scoped requirement
-  that moves stops resolving for its old design. Grep the repository for the id first. If a spec
-  cites it and still needs to, the entry does not move to design scope — it goes to the area (or
-  global) tier with an `applies_to` naming both designs. If nothing cites it, design scope is
-  right, and it moves up later only when a second design actually comes to depend on it.
-- **Whether the split is real.** The requirement moves to whichever design would *reverse a spec
-  decision* over it. A requirement whose statement names the sibling by name ("the harness
-  publishes…") usually means the two designs divide as what-is-required versus what-implements-it;
-  say which is which in the brief's out-of-scope, from both sides.
-- **`npm run check` after the move**, which is what catches a citation you missed.
+- **Which designs it constrains** — not which cite it. Requirements are fenced where facts are
+  not, so a design-scoped requirement that moves stops resolving for the design it left. The
+  tempting test is to grep for the id, and it is the wrong one: the sibling you are splitting from
+  is usually `legacy` or `draft` and cites nothing yet, so the grep passes and tells you nothing.
+  Read the statement instead and ask who would have to change their spec if it were reversed. One
+  that names the sibling as the actor — "*the harness* publishes the bundle" — constrains both,
+  whatever the citation count says.
+- **The tier, then the binding — they are different questions.** The tier is what a design may
+  *cite*: its own, its area's, and global. `applies_to` is what a requirement *binds*, it sits only
+  above design scope, and it can only ever narrow — an area requirement that omits it binds every
+  design in the area. So a requirement two designs must both honour goes to the area tier, and
+  carries an `applies_to` naming exactly those two only because the rest of the area is not bound
+  by it. Do not reach for `applies_to` to grant a sibling access; the tier already did that.
+- **One requirement, or a group.** Name the design scopes directly. A set is worth declaring when
+  the split leaves *several* requirements binding the same designs — then the roster lives once in
+  `design/<area>/sets.yaml` (or `design/sets.yaml` where it spans areas) instead of being repeated
+  in every `applies_to`, and adding a design to the group is a one-line edit. One shared
+  requirement does not pay for a set.
+- **`npm run check` after the move**, which catches a citation the reading missed.
+
+The narrowest scope that covers every design the requirement constrains is the right one, and it
+is design scope far more often than a carve-out makes it feel. Elevate on a second design that
+genuinely depends on the entry, not on the suspicion that one might.
 
 Call every relocation out in the hand-off as its own list — moved-verbatim entries are not
 drafted requirements, and the owner reads them differently.
