@@ -59,7 +59,14 @@ exports them — `world`, `system`, and the eight registry classes `BiomeTypes`,
 `BlockTypes`, `DimensionTypes`, `EffectTypes`, `EnchantmentTypes`, `EntityTypes`, `ItemTypes` — so
 the returned value is assignable to a `Pick<>` of the module's namespace type and a pack written to
 receive its engine handles as a parameter can be handed the whole bundle
-[[d:server-bundle-mirrors-module-exports]]. This is the only route to `system` and the registries,
+[[d:server-bundle-mirrors-module-exports]]. Each registry is declared as a `class`, never an object
+literal: the bundle's registry properties are typed `typeof BiomeTypes` and its siblings, whose
+static side carries `prototype`, which only a class declaration supplies — an object literal is not
+assignable there [[r:fakes-are-structurally-assignable]]. All eight registries are declared and
+every member on them throws `NotImplementedError`; no behaviour in this cycle reads one, and
+`withVanillaDimensions` registers dimensions on the world without touching `DimensionTypes`.
+
+The bundle is the only route to `system` and the registries,
 because the library substitutes objects and does not touch the module graph: a pack that reaches
 the engine solely through a direct `import { world } from '@minecraft/server'` is outside its reach
 [[r:object-substitution-not-module-mocking]]. That reach matters — 84% of surveyed public packs use
@@ -80,6 +87,13 @@ throws `NotImplementedError` when called or read — items, blocks, containers a
 surface included — rather than being absent or reading `undefined`
 [[d:out-of-scope-members-throw-not-implemented]] [[r:fakes-never-fabricate]].
 
+Each faked class is a shell over two things: a per-class handler table, whose entries the class's
+members delegate to and whose default entry throws `NotImplementedError`, and a private state record
+each instance carries and the handlers read and write. A behaving member is a handler registered
+against the table for the member it implements. That is what lets several parts of the library layer
+behaviour onto one `FakeEntity` without editing its class or each other's code: the class
+declarations are written once, and everything after them is handlers over the state record.
+
 A fake exposes no member the real API does not have. Everything the real surface cannot express is
 an exported free function over the fakes [[r:only-real-members-free-functions]]:
 
@@ -90,6 +104,7 @@ an exported free function over the fakes [[r:only-real-members-free-functions]]:
 | `createPlayer(server, options)` | as above, a `Player` |
 | `addComponent(entity, componentId, state?)` | attach a component to a live entity |
 | `removeComponent(entity, componentId)` | detach one |
+| `setEffectState(effect, state)` | supply an effect's field values, `state` being `{ displayName?: string }` |
 | `invalidate(entity)` | put the reference into the engine's invalid state |
 | `emit(signal, payload)` | deliver a payload to a signal's subscribers |
 | `advanceTicks(server, count)` | run scheduled callbacks |
@@ -143,7 +158,10 @@ behaviour, and compose freely [[r:presets-are-opt-in]]. Two ship in this cycle
   `dimension.dimensionName0`/`1`/`2` [[f:vanilla-dimensions-resolve-with-populated-fields]].
 - `asSpawnedEntity(entity)` supplies the spawn-frame values a source pins: `nameTag` the empty
   string, `getRotation()` `{x: 0, y: 0}`, and `getVelocity()` `{x: 0, y: 0, z: 0}`
-  [[f:fresh-entity-nametag-is-empty-string]] [[f:spawn-frame-kinematics-zero-except-xp-orb]].
+  [[f:fresh-entity-nametag-is-empty-string]]. The zeros are pinned for seven of the eight types
+  sampled and not for `minecraft:xp_orb`, which spawns with a randomized rotation and a nonzero
+  randomized velocity, so on an entity of that type the preset supplies `nameTag` alone and leaves
+  rotation and velocity unset [[f:spawn-frame-kinematics-zero-except-xp-orb]].
 
 Neither preset invents per-type vanilla data. A sheep's fourteen components and its 8/8/0/8 health
 are per-type data no preset here supplies; a package built on this one may
@@ -164,6 +182,16 @@ negative integers, but `Entity.id` is documented as opaque with no meaning to be
 structure, so the spelling is not something a pack may rely on
 [[f:entity-id-is-documented-opaque]].
 
+Registration is readable back through five lookups, which behave: `world.getEntity(id)` returns the
+registered entity or `undefined` for an id no entity in that world holds, `world.getAllPlayers()`
+and `world.getPlayers()` return the registered players, and `dimension.getEntities()` and
+`dimension.getPlayers()` return those registered in that dimension, in creation order. An entity
+created with no `dimension` is registered with the world and appears in no dimension's listing.
+`EntityQueryOptions` filtering is not modelled: a call passing an options argument throws
+`NotImplementedError`, so only the no-argument forms answer. Every other lookup the declarations
+carry — `dimension.getEntitiesAtBlockLocation`, `dimension.getEntitiesFromRay`,
+`entity.getEntitiesFromViewDirection` and the rest — throws `NotImplementedError` like any unmodelled member.
+
 `dimension.spawnEntity(typeId, location)` behaves: it creates an entity of that type at exactly the
 requested location, registers it with the world, fires `entitySpawn`, and returns it. The engine
 adjusts some placements — a boat lands 0.2 off on x and z — and AI-driven mobs drift within a
@@ -179,9 +207,9 @@ fires no death event, and nothing else [[f:kill-and-remove-cascades]]
 that is `invalidate()`'s job.
 
 `entity.triggerEvent(eventName)` requires the `minecraft:`-prefixed form and throws
-`InvalidArgumentError` with the message ``The event <name> does not exist on <typeId>`` for a bare
-id — the one surface where the engine does not assume the namespace, contradicting the API
-reference, which says it does [[f:namespace-prefix-tolerance-is-per-surface]]. It returns
+`InvalidArgumentError` with the message ``Invalid value passed to argument [0]. The event <name>
+does not exist on <typeId>`` for a bare id — the one surface where the engine does not assume the
+namespace, contradicting the API reference, which says it does [[f:namespace-prefix-tolerance-is-per-surface]]. It returns
 `undefined`, changes no state, and records the call for `getTriggeredEvents`
 [[d:trigger-event-requires-prefix-and-records]].
 
@@ -192,6 +220,14 @@ that only through data-driven paths these fakes do not model
 [[r:control-plane-component-mutation]]. `entity.getComponent(id)` accepts the bare or the prefixed
 form and `getComponents()` returns what is attached.
 
+`addComponent`'s optional third argument is the attached component's field values:
+`{ currentValue?: number, defaultValue?: number, effectiveMin?: number, effectiveMax?: number }`,
+the four numbers an attribute component holds. It is accepted only on one of the seven
+attribute-shaped ids below; passing it with any other id throws `InvalidArgumentError`. Any of the
+four left unsupplied is unset, so reading it throws `UnsetValueError` naming the member, and a
+member that needs it — `setCurrentValue`'s bounds check, `resetToDefaultValue` and its siblings —
+throws `UnsetValueError` naming the bound it could not read [[r:no-implicit-defaults]].
+
 Ids are normalized on entry and stored and reported in the canonical `minecraft:`-prefixed form, so
 a read compares equal against the `@minecraft/vanilla-data` constants a test holds
 [[r:canonical-prefixed-storage]]. Tolerance of the bare form is per-surface rather than universal —
@@ -200,9 +236,14 @@ a read compares equal against the `@minecraft/vanilla-data` constants a test hol
 declarations rather than transcribed: `keyof EntityComponentTypeMap` for every id,
 `` `${EntityComponentTypes}` `` for the canonical ones, and a conditional mapping over the type map
 for the attribute-shaped subset — 68 component classes on 2.8.0, of which 7 are attribute-shaped
-[[f:component-ids-are-derivable-from-types]].
+[[f:component-ids-are-derivable-from-types]]. Those derivations are types and produce nothing at
+runtime, so the attribute-shaped set is also enumerated as a literal array the library ships and
+`addComponent` dispatches on, the derived union serving as the compile-time check that the array is
+complete. On 2.8.0 that array is `minecraft:health`, `minecraft:lava_movement`,
+`minecraft:movement`, `minecraft:player.exhaustion`, `minecraft:player.hunger`,
+`minecraft:player.saturation`, `minecraft:underwater_movement`.
 
-The seven attribute-shaped components behave in full. Each holds `currentValue`, `defaultValue`,
+Those seven components behave in full. Each holds `currentValue`, `defaultValue`,
 `effectiveMin` and `effectiveMax`, and `setCurrentValue` accepts a value exactly at either bound
 and throws `ArgumentOutOfBoundsError` outside them with the message ``Unsupported or out of bounds
 value passed to function argument [0]: value, Value: <value>, Argument bounds: [<min>, <max>]``
@@ -215,15 +256,27 @@ that lands exactly on `effectiveMin` also fires `entityDie` with cause `override
 
 ### Damage and death
 
-`entity.applyDamage(amount, options?)` fires `entityHurt`, then `entityHealthChanged`, then, on a
-killing hit, `entityDie`. `entityHurt.damage` carries the requested amount even when it exceeds
-remaining health [[f:damage-cascade-order-and-payload]]. The health value is not clamped at the
-minimum: 100 damage against 8 health leaves −92 and `entityHealthChanged` reports the negative
-value, where `kill()` and `resetToMinValue` land exactly on the minimum
-[[f:health-not-clamped-at-minimum]]. With no options the cause is `none`; with the projectile
-options form the cause is `projectile` and the damage applied is the amount requested — the engine's
-velocity-dependent adjustment of projectile damage is not reproduced
-[[f:applydamage-cause-defaults]] [[d:projectile-damage-is-verbatim]].
+`entity.applyDamage(amount, options?)` subtracts `amount` from the health component's
+`currentValue`, then fires `entityHurt`, `entityHealthChanged` and — on a killing hit — `entityDie`,
+in that order, and returns `true`. A killing hit is one leaving `currentValue` at or below
+`effectiveMin`. On an entity carrying no health component it changes nothing, fires nothing, and
+returns `false`.
+
+The damage path writes health directly rather than through `setCurrentValue`: it skips the bounds
+check and does not attach the `override` death cause a component write landing on `effectiveMin`
+carries, using the damage's own cause instead. So the value is not clamped — 100 damage against 8
+health leaves −92 and `entityHealthChanged` reports the negative value, where `kill()` and
+`resetToMinValue` land exactly on the minimum [[f:health-not-clamped-at-minimum]]. `entityHurt.damage`
+carries the requested amount even when it exceeds remaining health
+[[f:damage-cascade-order-and-payload]].
+
+With no options the cause is `none`; the plain options form carries a required `cause` and that
+cause is used as given; the projectile options form has no `cause` field and reports `projectile`,
+with the damage applied being the amount requested — the engine's velocity-dependent adjustment of
+projectile damage is not reproduced [[f:applydamage-cause-defaults]]
+[[d:projectile-damage-is-verbatim]]. Either form's optional `damagingEntity` and the projectile
+form's `damagingProjectile` are carried onto the `damageSource` of the `entityHurt` payload, and of
+the `entityDie` payload when the hit kills.
 
 `entity.kill()` returns true. On an entity with a health component it fires `entityHurt` with
 damage equal to current health and cause `selfDestruct`, sets health to exactly `effectiveMin`,
@@ -255,16 +308,22 @@ there.
 `Effect.displayName` is a populated human-readable string in the engine — `"Speed II"` for speed at
 amplifier 1 — which no declaration or constant pins, so the fake reads back what the test supplied
 for it and throws `UnsetValueError` when the test supplied nothing
-[[f:live-effect-fields-populated]] [[d:effect-display-name-is-supplied]].
+[[f:live-effect-fields-populated]] [[d:effect-display-name-is-supplied]]. The test supplies it with
+`setEffectState(effect, { displayName })`, the effect-side counterpart of `addComponent`'s `state`:
+`addEffect` takes the engine's own `EntityEffectOptions`, which has no display-name field, and
+`Effect` has no member to set one through, so the supply route is a free function
+[[r:only-real-members-free-functions]].
 
 ## Events
 
 Every signal the declarations carry exists on `world.afterEvents` (55 signals), `world.beforeEvents`
 (13), and `system`'s own signals, and every one supports `subscribe` and `unsubscribe`
-[[f:world-resting-state-observed]]. A small set is raised by the fakes' own behaviour —
-`entitySpawn`, `entityRemove`, `entityHurt`, `entityHealthChanged`, `entityDie`, and the
-before-event counterparts of the actions modelled here. Any other signal is driven by the test
-calling `emit(signal, payload)`, which delivers the payload as given
+[[f:world-resting-state-observed]]. A small set is raised by the fakes' own behaviour: the
+after-events `entitySpawn`, `entityRemove`, `entityHurt`, `entityHealthChanged` and `entityDie`,
+and three before-events — `entityHurt` ahead of `applyDamage`, `entityRemove` ahead of `remove()`,
+and `effectAdd` ahead of `addEffect`. No other before-event is raised; `kill()` raises none, and
+the declarations carry no before-event for spawn, health change or death. Any other signal is
+driven by the test calling `emit(signal, payload)`, which delivers the payload as given
 [[d:every-signal-exists-few-are-raised]].
 
 Subscription is set-shaped: subscribing the same function reference twice delivers one call, and
@@ -281,7 +340,9 @@ handlers, not before. Handlers observe post-write state either way.
 
 Before-events are dispatched synchronously ahead of the action they gate. A handler that sets
 `cancel = true` stops the action: no state changes and no after-event fires
-[[r:before-events-can-cancel]].
+[[r:before-events-can-cancel]]. The gated call still returns, and returns as if it had done nothing:
+a cancelled `applyDamage` returns `false`, a cancelled `addEffect` returns `undefined`, and
+`remove()` returns `undefined` either way, leaving the entity registered with the world.
 
 ## Scheduling
 
@@ -338,7 +399,7 @@ Components and effects follow their owner, and not with a single error class
 | member | on an invalid owner |
 |---|---|
 | attribute `isValid`, `typeId` | readable; `isValid` is false |
-| attribute `currentValue`, `defaultValue`, `effectiveMax`, `effectiveMin` | plain `Error`, ``Failed to get property '<member>'.`` |
+| attribute `currentValue`, `defaultValue`, `effectiveMax`, `effectiveMin` | plain `Error`, ``Failed to get property '<internal name>'.`` — the engine names its internal field, not the public member: `current`, `value`, `effectiveMaxValue`, `effectiveMinValue` respectively |
 | attribute `resetToDefaultValue`, `resetToMaxValue`, `resetToMinValue` | plain `Error`, ``Failed to call function '<name>'.`` |
 | attribute `setCurrentValue`, `entity` | `InvalidEntityError` |
 | effect `isValid` | readable; false |
@@ -365,8 +426,8 @@ These are the library's own simplifications, not the engine's behaviour:
 - `remove()` raises `entityRemove` alone.
 - Method arity is not checked ahead of the validity guard.
 - Items, blocks, containers, the player client surface, custom commands, the startup registries, and
-  the five registries covering biomes, block states, block types, enchantments and item types are
-  declared and throw `NotImplementedError`.
+  all eight registry classes are declared and throw `NotImplementedError`.
+- Entity queries ignore no filter because they accept none: an `EntityQueryOptions` argument throws.
 
 ## Components
 
@@ -381,8 +442,9 @@ components:
 
   - id: surface-scaffold
     responsibility: >-
-      the declared full public shape of every faked class, with unmodelled members present and
-      throwing NotImplementedError, and the id types derived from EntityComponentTypeMap
+      the declared full public shape of every faked class, each member delegating to a per-class
+      handler table that defaults to throwing NotImplementedError, the per-instance state record
+      handlers read and write, and the id types derived from EntityComponentTypeMap
     excludes: any behaving member
     after: [error-model]
 
@@ -396,10 +458,13 @@ components:
 
   - id: world-and-dimensions
     responsibility: >-
-      createServer, the FakeServer bundle mirroring the module's exported names, the world
-      instance, dimension registration and getDimension resolution including the invalid-id error
-    excludes: dimension contents beyond entity registration
-    after: [surface-scaffold]
+      createServer, the FakeServer bundle mirroring the module's exported names with the eight
+      registry classes, the world instance carrying the event-bus signals, dimension registration
+      and getDimension resolution including the invalid-id error, and the entity registry behind
+      world.getEntity, world.getAllPlayers, world.getPlayers, dimension.getEntities and
+      dimension.getPlayers
+    excludes: dimension contents beyond the entity registry
+    after: [surface-scaffold, event-bus]
 
   - id: entity-model
     responsibility: >-
@@ -410,28 +475,29 @@ components:
 
   - id: component-model
     responsibility: >-
-      addComponent/removeComponent, getComponent id normalization, the seven attribute components
-      with their bounds checks, and the health write and applyDamage cascades
+      addComponent/removeComponent including the attribute state argument, getComponent id
+      normalization, the enumerated seven attribute components with their bounds checks, and the
+      health write and applyDamage cascades
     excludes: effects
     after: [entity-model]
 
   - id: effect-model
     responsibility: >-
       addEffect/getEffect/getEffects/removeEffect, the amplifier-first replacement rule, and effect
-      field storage
+      field storage behind the setEffectState free function
     after: [entity-model]
 
   - id: validity-guards
     responsibility: >-
       the invalidate free function and the per-member guard table for entities, attribute
       components and effects
-    after: [entity-model, component-model, effect-model]
+    after: [entity-model, component-model, effect-model, persisted-state, output-capture]
 
   - id: system-scheduler
     responsibility: >-
       system's run/runTimeout/runInterval/clearRun recording, currentTick, and the advanceTicks free
       function that runs due callbacks
-    after: [surface-scaffold]
+    after: [surface-scaffold, world-and-dimensions]
 
   - id: persisted-state
     responsibility: dynamic property storage on world and entities, and the scoreboard with its objectives, scores and display slots
@@ -444,4 +510,24 @@ components:
   - id: presets
     responsibility: withVanillaDimensions and asSpawnedEntity, each supplying only source-pinned values
     after: [world-and-dimensions, entity-model]
+
+  - id: package-and-exports
+    responsibility: >-
+      the package.json with its peer dependency and ESM-only build, the TypeScript build and
+      declaration emit, and the single public entry point re-exporting every fake type and every
+      free function
+    excludes: the behaviour behind anything it re-exports
+    after:
+      [
+        event-bus,
+        world-and-dimensions,
+        entity-model,
+        component-model,
+        effect-model,
+        validity-guards,
+        system-scheduler,
+        persisted-state,
+        output-capture,
+        presets,
+      ]
 ```

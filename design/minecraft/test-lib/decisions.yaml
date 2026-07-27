@@ -44,10 +44,11 @@
     not derived from the declarations' @throws annotations
   status: proposed
   falsifiers:
-    - a version bump changes a member's guard behaviour and no fresh sweep is available, leaving the
-      table stale with no mechanical way to regenerate it
-    - a member outside the sweep's 62 is found to be guarded, showing the transcribed table is as
-      incomplete as the annotations it replaced
+    - the 27 methods the sweep could not reach — a TypeError on arity fired before the validity
+      guard — are re-probed with correct arguments and some prove unguarded, so the table's blanket
+      "every other member throws" covers members the observation never showed throwing
+    - guard behaviour is observed to differ between entity types, so one per-member table
+      transcribed from a sheep-and-armor-stand sweep cannot describe the engine at all
 
 - id: library-declares-its-error-classes
   statement: |
@@ -56,10 +57,11 @@
     and UnsetValueError of its own
   status: proposed
   falsifiers:
-    - a pack under test catches by `instanceof` against a class it imports from somewhere else, so a
-      library-declared class is never caught by the code being tested
-    - the engine's message text for one of these errors varies by call site, so a single class
-      reproducing one message shape misleads a test asserting on it
+    - the engine's error classes become reachable at runtime in a test process — `@minecraft/server`
+      starts shipping JavaScript, or a runner resolves it to a shim that defines them — so two
+      definitions of InvalidEntityError coexist and a pack's `instanceof` check splits between them
+    - a pack under test imports these classes from a third package that already defines them at
+      runtime, so the library's own class is never the one the code being tested catches
 
 - id: presets-are-vanilla-dimensions-and-spawn-frame
   statement: |
