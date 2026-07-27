@@ -41,13 +41,10 @@ review catches, because a citation reads as an index and the builder's copy has 
 and cannot be acted on the moment they are gone. So the test is run on the stripped document, not
 the annotated one.
 
-The two edges meet without contradiction, because what the prose carries is the value and not the
-entry. The foundations still live as the short lists a reviewer reads first — facts in
-`facts.yaml`, requirements in `requirements.yaml`, decisions in `decisions.yaml`
-[[f:foundations-extracted-into-lists]] — and naming in prose the literal one of them fixes leaves
-that list-first read whole [[r:easily-reviewable-foundations]]. What breaks it is the opposite move:
-a foundation the design stands on that appears *only* in the prose, where no one can review or
-reuse it.
+What the prose carries is the value, not the entry: the foundations still live as the short lists a
+reviewer reads first — facts in `facts.yaml`, requirements in `requirements.yaml`, decisions in
+`decisions.yaml` [[f:foundations-extracted-into-lists]] [[r:easily-reviewable-foundations]]. What
+breaks that read is the opposite move, a foundation the design stands on appearing *only* in prose.
 
 ## Opening by orienting
 
