@@ -118,9 +118,15 @@ here to undo. The inputs are the source of truth; the outputs are yours to rebui
 - **Default simple.** The requirements do not enumerate every edge case and are not meant to.
   Where one is quiet, take the obvious cheap behaviour and state it in a line, rather than
   designing around the gap or raising it as a question. An edge case with documented behaviour
-  is resolved. Reserve a `decisions.yaml` entry for choices that are expensive to reverse —
-  a choice a later cycle could change for the cost of an afternoon belongs in the prose as
-  what the thing does. Say it in the words a builder would use, not the words a reviewer would.
+  is resolved. Say it in the words a builder would use, not the words a reviewer would.
+
+  Defaulting is about not spending a round on it, **not** about keeping it out of
+  `decisions.yaml`. A default still earns an entry whenever a competent agent could have set it
+  differently and a consumer, a builder, or a sibling design could tell the difference. How cheap
+  it is to reverse is not the test: the entry is how the owner finds and reviews a choice without
+  reading the spec, and a cheap choice they cannot find is one they never got to make. Keep out of
+  the list only what nobody could observe or would argue with. The prose still states the value —
+  the builder reads with the tokens struck — and the entry carries the choice and its falsifier.
 
 ---
 
