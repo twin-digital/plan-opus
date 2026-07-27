@@ -143,8 +143,8 @@
   statement: |
     exactly three scopes hold foundations — global, area, and design — each a directory
     holding at most a requirements.yaml and a facts.yaml. There is no fourth tier and areas do
-    not nest. The global root additionally holds sets.yaml, which declares named sets of
-    designs and holds no foundations of its own
+    not nest. The global root and each area may also hold a sets.yaml, which declares named sets
+    of designs and holds no foundations of its own
   rationale: |
     Adding a tier reads like a local change and is not: every path in prose, every artifact
     locator, and the scope of every existing foundation move with it.
@@ -157,13 +157,25 @@
     Reading the binding off the path costs nothing visible until a design moves or a tier grows,
     at which point the set of requirements it must honour changes and no diff says so.
 
+- id: binding-narrows-within-the-tier
+  statement: |
+    the designs a requirement binds are always a subset of the designs in its own tier: an
+    applies_to narrows, and never reaches a design the requirement's position does not already
+    cover
+  rationale: |
+    Reaching across is what makes "which requirements bind me" unanswerable from where a design
+    sits, so an obligation arrives from a file nobody watching that design has reason to read.
+
 - id: binding-sets-are-declared-once
   statement: |
-    a set of designs is declared once in design/sets.yaml, mapping a name to the design scopes it
-    holds. A set may hold designs from more than one area, and never holds another set
+    a set of designs is declared once, in a sets.yaml at global or area scope, mapping a name
+    unique across the repository to the design scopes it holds. An area's sets hold only that
+    area's designs and a global set may span areas; no set holds another
   rationale: |
     Scattering a roster across the designs in it looks equivalent and is not: no diff then shows
-    the roster, and a misspelt name binds nobody rather than failing.
+    the roster, and a misspelt name binds nobody rather than failing. Tiering the file is what
+    keeps a set's reach a property of where it sits rather than a membership list to re-check
+    every time someone edits it.
 
 - id: inputs-outputs-split
   statement: |

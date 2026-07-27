@@ -74,8 +74,9 @@
 
 - id: check-validates-declared-sets
   statement: |
-    the checker reads `design/sets.yaml` and rejects a set with no members, a set holding
-    another set, or a member naming no design that exists
+    the checker reads every `sets.yaml` and rejects a set with no members, a name declared
+    twice, a set holding another set, a member naming no design that exists, and — in an area's
+    file — a member from another area
   rationale: |
     A set nothing validates fails silently in the direction that looks fine: a misspelt member
     binds nobody, and the requirement pointing at the set still passes.
@@ -83,7 +84,11 @@
 - id: check-validates-applies-to
   statement: |
     the checker rejects an `applies_to` on a design-scoped requirement, one that is not a
-    non-empty list, and any item naming no existing design or undeclared set
+    non-empty list, any item naming no existing design or undeclared set, and any item outside
+    the requirement's own tier
+  rationale: |
+    The tier bound is what makes the foundations view's three-directory read the whole answer;
+    unenforced, the view and the settle gate disagree exactly where an author cannot see it.
 
 - id: check-resolves-binding-for-the-settle-gate
   statement: |

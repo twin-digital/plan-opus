@@ -48,7 +48,7 @@ const scopes = [
 
 // Requirements that bind some other design are dropped rather than shown here, resolved by the
 // same rule the settle gate uses.
-const { sets } = loadSets(ROOT);
+const { sets } = loadSets(ROOT);  // narrowing means the three scopes below are the whole answer
 let unbound = 0;
 
 // Block scalars are already hand-wrapped; preserve the author's line breaks (and any

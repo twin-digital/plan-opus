@@ -10,7 +10,7 @@
 import fs from "fs";
 import path from "path";
 import YAML from "yaml";
-import { loadSets, bindsDesign } from "./lib/binding.mjs";
+import { loadSets, bindsDesign, reachable } from "./lib/binding.mjs";
 
 const ROOT = "design";
 const fail = {};
@@ -74,22 +74,28 @@ for (const a of areas) {
   }
 }
 
-// ---- named sets of designs (design/sets.yaml) -------------------------------
+// ---- named sets of designs (sets.yaml, at global or area scope) --------------
 // A set groups designs the tree cannot: a product spanning areas, or one overlapping a sibling.
-// Sets never nest, so membership is one lookup deep.
-const { sets, malformed } = loadSets(ROOT);
-if (malformed) add("sets.yaml is not a mapping of set name to design scopes", path.join(ROOT, "sets.yaml"));
+// Sets never nest, so membership is one lookup deep. An area's sets.yaml holds only that area's
+// designs, which is what makes "is this set inside my area?" a question about where the file sits.
+const { sets, malformed, duplicates } = loadSets(ROOT);
+for (const f of malformed) add("sets.yaml is not a mapping of set name to design scopes", f);
+for (const d of duplicates) add("set name not unique", d);
 const designScopes = new Set(designs.map((d) => d.scope));
-for (const [name, members] of Object.entries(sets)) {
+for (const [name, set] of Object.entries(sets)) {
+  const { members, tier, scope } = set;
   if (!Array.isArray(members) || !members.length) { add("set without members", name); continue; }
-  for (const m of members)
-    if (String(m).startsWith("set:")) add("set holds another set", `${name} -> ${m}`);
-    else if (!designScopes.has(String(m))) add("set member unresolved", `${name} -> ${m}`);
+  for (const m of members) {
+    const s = String(m);
+    if (s.startsWith("set:")) add("set holds another set", `${name} -> ${m}`);
+    else if (!designScopes.has(s)) add("set member unresolved", `${name} -> ${m}`);
+    else if (tier === "area" && !s.startsWith(`${scope}/`)) add("area set holds another area's design", `${name} -> ${m}`);
+  }
 }
 
 // ---- applies_to: which designs a requirement binds ---------------------------
-// Only above design scope, where omitting it binds the whole tier. A design-scoped requirement
-// already binds exactly its own design.
+// Only above design scope, where omitting it binds the whole tier. applies_to narrows within that
+// tier and never widens: an area requirement reaches only its own area's designs and sets.
 for (const rec of Object.values(ent)) {
   if (rec.kind !== "r" || rec.e.applies_to === undefined) continue;
   const tag = `${rec.scope} ${rec.e.id}`;
@@ -97,8 +103,9 @@ for (const rec of Object.values(ent)) {
   if (!Array.isArray(rec.e.applies_to) || !rec.e.applies_to.length) { add("applies_to is not a non-empty list", tag); continue; }
   for (const t of rec.e.applies_to) {
     const s = String(t);
-    if (s.startsWith("set:")) { if (!(s.slice(4) in sets)) add("applies_to names an undeclared set", `${tag} -> ${s}`); }
-    else if (!designScopes.has(s)) add("applies_to names no such design", `${tag} -> ${s}`);
+    if (s.startsWith("set:") && !(s.slice(4) in sets)) { add("applies_to names an undeclared set", `${tag} -> ${s}`); continue; }
+    if (!s.startsWith("set:") && !designScopes.has(s)) { add("applies_to names no such design", `${tag} -> ${s}`); continue; }
+    if (!reachable(sets, rec, s)) add("applies_to reaches outside its tier", `${tag} -> ${s}`);
   }
 }
 
@@ -245,10 +252,12 @@ const ORDER = [
   "bad decision status", "bad force", "bad retire reason", "retired fact without reason",
   "superseded fact without superseded_by", "superseded_by unresolved", "fact supersedes itself",
   "decision without a falsifier", "requirement with sources", "rationale not a block scalar",
-  "sets.yaml is not a mapping of set name to design scopes",
+  "sets.yaml is not a mapping of set name to design scopes", "set name not unique",
   "set without members", "set holds another set", "set member unresolved",
+  "area set holds another area's design",
   "applies_to on a design-scoped requirement", "applies_to is not a non-empty list",
   "applies_to names an undeclared set", "applies_to names no such design",
+  "applies_to reaches outside its tier",
   "fact without a source", "source has both url and description", "source has no locator",
   "url without where", "in-repo url not repo-root-relative", "quote not a block scalar",
   "quote not verbatim at its source",

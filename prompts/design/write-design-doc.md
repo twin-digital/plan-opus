@@ -48,14 +48,15 @@ your output has to pass.
 
 - `design/<area>/requirements.yaml` and `facts.yaml`
 - `design/requirements.yaml` and `facts.yaml`
-- `design/sets.yaml` — named sets of designs a requirement can bind
+- `design/sets.yaml` and `design/<area>/sets.yaml` — named sets of designs a requirement can bind
 
 A citation resolves design → area → global. You may cite anything visible at those three
 tiers and **nothing from another design** — a design's decisions bind only itself.
 
 **Which of them bind you is a separate question from which you may cite.** A wider-scope
-requirement binds the designs its `applies_to` names, or its whole tier when it names none, and
-every requirement that binds you must be honoured — a hard one without exception, a soft one
+requirement binds the designs its `applies_to` names, or its whole tier when it names none — never
+further, so nothing outside those three files can bind you — and every requirement that binds you
+must be honoured — a hard one without exception, a soft one
 unless a decision of yours records the departure. Run `node bin/foundations.mjs <area>/<design>`
 for exactly that list; it resolves the sets for you.
 

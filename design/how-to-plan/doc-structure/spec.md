@@ -18,7 +18,7 @@ tool reads from the raw text.
 
 Foundations live in a directory tree of exactly three tiers — a global root, an area beneath it,
 and a design beneath that — each tier a directory holding at most a `requirements.yaml` and a
-`facts.yaml`, with no fourth tier and no nesting of areas; beside them at the root sits
+`facts.yaml`, with no fourth tier and no nesting of areas; the root and each area may also hold a
 `sets.yaml`, which names groups of designs and holds no foundations
 [[r:three-tiers-hold-foundations]]. The three tiers file a foundation and group it for a reader;
 which designs a requirement *binds* is stated on the requirement, not read off its path (below).
@@ -35,10 +35,11 @@ on disk, the three tiers and the input/output split take this shape [[r:spec-sho
 design/
 ├── requirements.yaml            global-scope inputs
 ├── facts.yaml
-├── sets.yaml                    named sets of designs
+├── sets.yaml                    sets that may span areas
 └── how-to-plan/                 an area
     ├── requirements.yaml        area-scope inputs
     ├── facts.yaml
+    ├── sets.yaml                sets of this area's designs
     └── doc-structure/           a design
         ├── requirements.yaml    design inputs (durable)
         ├── facts.yaml
@@ -103,8 +104,8 @@ id, not a citation token — and a `caveat` recording why the fact might not hol
 `force` of `hard` | `soft` (default `hard`) — a hard requirement is non-negotiable, a soft one a
 preference that may bend with justification — a `status` of `active` | `retired` (default
 `active`), a `rationale`, and `applies_to`, the designs it binds, each item a design scope
-(`<area>/<design>`) or a `set:<name>`. `applies_to` sits only on a requirement above design scope;
-a design-scoped one already binds exactly its own design.
+(`<area>/<design>`) or a `set:<name>`, each within the requirement's own tier. `applies_to` sits
+only on a requirement above design scope; a design-scoped one already binds exactly its own design.
 A requirement carries no `sources`. A design that departs from a soft requirement does
 not amend it or annotate it with an exception; it records the departure as a decision that cites the
 requirement, since bending a soft requirement is a choice with a reason and a falsifier — a decision
@@ -165,8 +166,10 @@ A fact, a requirement, and a decision, as they sit in a `facts.yaml`, `requireme
     - a foundation file grows a need for file-level metadata beside its entries
 ```
 
-The `sets.yaml` that `set:nodejs:libraries` resolves through — this one file is a mapping of set
-name to the design scopes it holds, not a sequence. A design may appear in any number of them:
+The `sets.yaml` that `set:nodejs:libraries` resolves through — a mapping of set name to the design
+scopes it holds, not a sequence. This one sits at the root because its members are meant to span
+areas; a set of one area's designs is declared in that area's file instead. A design may appear in
+any number of them:
 
 ```yaml
 nodejs:libraries:
@@ -243,14 +246,26 @@ answer: a field an author must write out on every shared requirement to say what
 said is exactly the ceremony this process cuts rather than keeps
 [[r:must-beat-doing-it-myself]].
 
+What `applies_to` cannot do is reach further than the tier it sits in: the designs a requirement
+binds are always a subset of the designs its position already covers, so an area-scoped requirement
+narrows within its area and never touches a sibling one [[r:binding-narrows-within-the-tier]]. That
+bound is what keeps "which requirements bind me" answerable from where a design sits — its own
+file, its area's, and global, the same three it could always cite from. Without it the answer is a
+repo-wide scan, and worse than the scan is the review: a change in one area would alter what
+another area's designs must satisfy, in a diff nobody watching them has reason to read. A rule that
+does reach across areas is a global rule with a narrow audience, and is filed as one.
+
 Where the tier is *not* the right answer, `applies_to` names the designs directly, or names a set.
-A set is declared once, in `design/sets.yaml`, mapping a name to the design scopes it holds
-[[r:binding-sets-are-declared-once]]. This is what a product is here: the designs that ship a
-Node.js library, listed by name rather than gathered into a directory. A set may hold designs from
-more than one area — the case a subtree cannot express — and a design appears in as many sets as
-describe it, which is the other half: a grouping that overlaps a sibling is a set, never a
-directory. No set holds another, so membership is one lookup deep, and
-that is also the answer to how far the nesting goes: exactly one level, always. Every member
+A set is declared once, in a `sets.yaml` at global or area scope, mapping a repo-wide unique name to
+the design scopes it holds [[r:binding-sets-are-declared-once]]. This is what a product is here: the
+designs that ship a Node.js library, listed by name rather than gathered into a directory. The two
+scopes divide by reach — an area's sets hold only that area's designs, while a global set may span
+areas, which is the case a subtree cannot express. That is why sets are tiered at all: a requirement
+may name a set its own position already covers, so an area requirement uses its area's sets and a
+global one may use any, and no one has to re-read a membership list to know whether a set stays
+inside an area. A design appears in as many sets as describe it — a grouping that overlaps a
+sibling is a set, never a directory — and no set holds another, so membership is one lookup deep,
+which is also the answer to how far the nesting goes: exactly one level, always. Every member
 resolves to a design that exists, and a name that does not is an error rather than a forward
 reference — a set is written after the designs it groups, because a typo and a plan read the same
 on the page. Listing the members in one place rather than on each design is a bet that a product's
@@ -301,9 +316,10 @@ form, a `url` never carrying a `description`, a `url` always carrying `where`, a
 written repo-relative, an `artifacts/` url only on a `tested` fact and only at that fact's own scope
 or wider, and every `quote` a block scalar; a requirement carries `id` and `statement`,
 a `force` and `status` in their enums, and no `sources`, and carries `applies_to` only above design
-scope, its every item resolving to a design that exists or a set that is declared; every set in
-`sets.yaml` has at least one member, every member resolving to a design that exists, and no member
-that is another set; a decision carries `id`, `statement`, and a
+scope, its every item resolving to a design that exists or a set that is declared and lying within
+the requirement's own tier; every set has a name unique across the repository and at least one
+member, every member resolving to a design that exists and, for an area's set, to one of that
+area's designs, and no member that is another set; a decision carries `id`, `statement`, and a
 written `status` in its enum, plus at least one falsifier unless rejected; any field at its default is
 omitted; a retired fact carries a valid `reason` and, if superseded, a resolvable `superseded_by`. In
 the document: a live block is recognised only under its fixed `## Components` or `## Open questions`
