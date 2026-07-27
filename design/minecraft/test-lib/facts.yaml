@@ -1330,3 +1330,157 @@
         [2026-07-27 19:57:37.935] [mctest] before-effect-add :: [extend-duration] handler-notes=[handler-entered effectType="Speed II" duration-as-delivered=100 | wrote duration=600 readback-in-handler=600]
         [2026-07-27 19:57:38.135] [mctest] before-effect-add :: [shorten-duration] requested=400 handler-writes-duration=100 handler-cancels=false addEffect ok value=object(Effect) -> effect-present=true duration=98 amplifier=1 getEffect ok value=object(Effect) health(ok value=number:8 -> ok value=number:8) verdict=FIELD-WRITE-TOOK (the effect carries the duration the handler wrote)
         [2026-07-27 19:57:38.135] [mctest] before-effect-add :: [shorten-duration] handler-notes=[handler-entered effectType="Speed II" duration-as-delivered=400 | wrote duration=100 readback-in-handler=100]
+
+# Facts from the mctest5 effect display-name and bounds sets (Bedrock 1.26.31.1,
+# @minecraft/server 2.8.0), recorded in artifacts/mctest-effect-name-probe-results.md. The pack was
+# run by the design's owner, not by the author of these facts; every source below says so. n=3, and
+# normalising only the timestamp and the subject entity id, each set's whole log body — not merely
+# its summaries — is byte-identical across its three runs.
+
+- id: addeffect-argument-bounds-observed
+  claim: |
+    `Entity.addEffect` accepts amplifier `0…255` and duration `1…20000000`, rejecting anything
+    outside either range with `ArgumentOutOfBoundsError`. Nothing is clamped: every accepted
+    integer reads back as the value requested, so a value is either taken verbatim or refused.
+    Duration's minimum is 1, not 0 — a zero duration is rejected rather than treated as
+    instantaneous — which resolves the self-contradiction in `addEffect`'s own TSDoc, where the
+    duration parameter says "The value must be within the range [0, 20000000]." and then
+    "Bounds: [1, 20000000]"; the second is right. The two rejections do not share a message shape.
+    Amplifier names its parameter after a colon —
+    `Unsupported or out of bounds value passed to function argument [2]: amplifier, Value: 256, Argument bounds: [0, 255]`
+    — matching the shape `setCurrentValue` produces, while duration ends the argument index with a
+    period and names no parameter —
+    `Unsupported or out of bounds value passed to function argument [1]. Value: 0, Argument bounds: [1, 20000000]`.
+    A duration beyond int32 is reported against the int32 bounds `[-2147483648, 2147483647]`
+    instead of the effect bounds.
+  backing: tested
+  sources:
+    - description: |
+        The mctest5 effect-name pack walks minecraft:speed's amplifier up from 0 and down from -1,
+        and probes duration at its documented boundaries and beyond, recording the read-back beside
+        each accepted value so a clamp is told apart from a bound. Identical in 3/3 runs.
+        This pack was run by the design's owner, not by this fact's author; its captured
+        output is design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md and the
+        pack itself is design/minecraft/test-lib/artifacts/effect-name-probe-pack.
+    - url: design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md
+      where: Raw log — mctest5:effectbounds run 1, the amplifier boundary and read-back SUMMARY lines
+      quote: |
+        [2026-07-27 21:35:55.413] [mctest] amplifier-bound :: [up/256-first-rejected] addEffect(duration=200, amplifier=256) threw name=ArgumentOutOfBoundsError ctor=ArgumentOutOfBoundsError index=2 minValue=0 maxValue=255 value=256 message="Unsupported or out of bounds value passed to function argument [2]: amplifier, Value: 256, Argument bounds: [0, 255]" verdict=REJECTED
+        [2026-07-27 21:35:55.413] [mctest] amplifier-bound :: SUMMARY highest-accepted=255 first-rejected=256 rejection=name=ArgumentOutOfBoundsError minValue=0 maxValue=255 message="Unsupported or out of bounds value passed to function argument [2]: amplifier, Value: 256, Argument bounds: [0, 255]"
+        [2026-07-27 21:35:55.413] [mctest] amplifier-bound :: SUMMARY read-back-echoes-request up-to=255 first-divergence=none — an accepted value whose readback differs is a clamp, not a bound
+    - url: design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md
+      where: Raw log — mctest5:effectbounds run 1, the declared-bounds preamble and the three rejected low durations
+      quote: |
+        [2026-07-27 21:35:56.108] [mctest] duration-bound :: declared (index.d.ts, Entity.addEffect duration param) "The value must be within the range [0, 20000000]." followed by "Bounds: [1, 20000000]" — the two lower bounds disagree, so 0 and 1 are both probed
+        [2026-07-27 21:35:56.108] [mctest] duration-bound :: [duration=-1000] addEffect(duration=-1000, amplifier=0) threw name=ArgumentOutOfBoundsError ctor=ArgumentOutOfBoundsError index=1 minValue=1 maxValue=20000000 value=-1000 message="Unsupported or out of bounds value passed to function argument [1]. Value: -1000, Argument bounds: [1, 20000000]" verdict=REJECTED
+        [2026-07-27 21:35:56.163] [mctest] duration-bound :: [duration=-1] addEffect(duration=-1, amplifier=0) threw name=ArgumentOutOfBoundsError ctor=ArgumentOutOfBoundsError index=1 minValue=1 maxValue=20000000 value=-1 message="Unsupported or out of bounds value passed to function argument [1]. Value: -1, Argument bounds: [1, 20000000]" verdict=REJECTED
+        [2026-07-27 21:35:56.212] [mctest] duration-bound :: [duration=0] addEffect(duration=0, amplifier=0) threw name=ArgumentOutOfBoundsError ctor=ArgumentOutOfBoundsError index=1 minValue=1 maxValue=20000000 value=0 message="Unsupported or out of bounds value passed to function argument [1]. Value: 0, Argument bounds: [1, 20000000]" verdict=REJECTED
+    - url: design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md
+      where: Raw log — mctest5:effectbounds run 1, the duration SUMMARY block
+      quote: |
+        [2026-07-27 21:35:57.013] [mctest] duration-bound :: SUMMARY accepted=[1,2,20,200,19999999,20000000] rejected=[-1000,-1,0,20000001,20000002,100000000,2147483647,2147483648]
+        [2026-07-27 21:35:57.013] [mctest] duration-bound :: SUMMARY lowest-rejected-at-or-below-1=-1000 rejection=name=ArgumentOutOfBoundsError minValue=1 maxValue=20000000 message="Unsupported or out of bounds value passed to function argument [1]. Value: -1000, Argument bounds: [1, 20000000]"
+        [2026-07-27 21:35:57.013] [mctest] duration-bound :: SUMMARY first-rejected-above-1=20000001 rejection=name=ArgumentOutOfBoundsError minValue=1 maxValue=20000000 message="Unsupported or out of bounds value passed to function argument [1]. Value: 20000001, Argument bounds: [1, 20000000]"
+        [2026-07-27 21:35:57.013] [mctest] duration-bound :: SUMMARY read-back=[1=>read 1, 2=>read 2, 20=>read 20, 200=>read 200, 19999999=>read 19999999, 20000000=>read 20000000] — an accepted duration that reads back as a different number is a clamp
+
+- id: addeffect-coerces-non-integer-arguments
+  claim: |
+    `addEffect` truncates a non-integer amplifier or duration toward zero and then applies the
+    bounds check to the truncated value: amplifier `0.5` and `1.5` are accepted and read back as
+    `0` and `1`, duration `1.5` is accepted and reads back `1`, and duration `0.5` is *rejected*
+    because it truncates to `0`, which is below the minimum. `NaN` and `Infinity` are refused
+    earlier and differently, with a `TypeError` rather than `ArgumentOutOfBoundsError`, and the
+    two arguments word even that differently — the amplifier message speaks of an interface
+    property, the duration message of a function argument.
+  backing: tested
+  sources:
+    - description: |
+        The mctest5 effect-name pack's bounds set probes 0.5, 1.5, NaN and Infinity on each
+        argument alongside the integer sweep. Identical in 3/3 runs.
+        This pack was run by the design's owner, not by this fact's author; its captured
+        output is design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md and the
+        pack itself is design/minecraft/test-lib/artifacts/effect-name-probe-pack.
+    - url: design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md
+      where: Raw log — mctest5:effectbounds run 1, the amplifier non-integer cases
+      quote: |
+        [2026-07-27 21:35:56.013] [mctest] amplifier-bound :: [non-integer/0.5] addEffect(duration=200, amplifier=0.5) ok effect-present=true displayName=ok value=string:"Speed" typeId=ok value=string:"minecraft:speed" amplifier=ok value=number:0 duration=ok value=number:200 isValid=ok value=boolean:true read-amplifier=0 read-duration=200 display-name="Speed" verdict=ACCEPTED
+        [2026-07-27 21:35:56.013] [mctest] amplifier-bound :: [non-integer/1.5] addEffect(duration=200, amplifier=1.5) ok effect-present=true displayName=ok value=string:"Speed II" typeId=ok value=string:"minecraft:speed" amplifier=ok value=number:1 duration=ok value=number:200 isValid=ok value=boolean:true read-amplifier=1 read-duration=200 display-name="Speed II" verdict=ACCEPTED
+        [2026-07-27 21:35:56.013] [mctest] amplifier-bound :: [non-integer/NaN] addEffect(duration=200, amplifier=null) threw name=TypeError ctor=TypeError index=undefined minValue=undefined maxValue=undefined value=undefined message="NaN value is not supported. Interface property ['amplifier'] expected type: number | undefined (failed parsing interface to Function argument [2])." verdict=REJECTED
+        [2026-07-27 21:35:56.013] [mctest] amplifier-bound :: [non-integer/Infinity] addEffect(duration=200, amplifier=null) threw name=TypeError ctor=TypeError index=undefined minValue=undefined maxValue=undefined value=undefined message="Infinity value is not supported. Interface property ['amplifier'] expected type: number | undefined (failed parsing interface to Function argument [2])." verdict=REJECTED
+    - url: design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md
+      where: Raw log — mctest5:effectbounds run 1, the duration 0.5 and 1.5 cases
+      quote: |
+        [2026-07-27 21:35:56.808] [mctest] duration-bound :: [duration=0.5] addEffect(duration=0.5, amplifier=0) threw name=ArgumentOutOfBoundsError ctor=ArgumentOutOfBoundsError index=1 minValue=1 maxValue=20000000 value=0 message="Unsupported or out of bounds value passed to function argument [1]. Value: 0, Argument bounds: [1, 20000000]" verdict=REJECTED
+        [2026-07-27 21:35:56.858] [mctest] duration-bound :: [duration=1.5] addEffect(duration=1.5, amplifier=0) ok effect-present=true displayName=ok value=string:"Speed" typeId=ok value=string:"minecraft:speed" amplifier=ok value=number:0 duration=ok value=number:1 isValid=ok value=boolean:true read-amplifier=0 read-duration=1 display-name="Speed" verdict=ACCEPTED
+
+- id: effect-display-name-amplifier-mapping
+  claim: |
+    An effect's `displayName` follows the amplifier only to a point. At amplifier 0 it is the bare
+    base name ("Speed"); at amplifiers 1 through 5 it is the base name plus the Roman numeral of
+    *amplifier + 1* ("Speed II" … "Speed VI"); at amplifier 6 it reverts to the bare base name, and
+    stays there for every amplifier above. Across the full accepted range 0…255 a type therefore has
+    only six distinct names. The reversion holds for all 37 vanilla effect types without exception,
+    over 259 type × amplifier cells all read successfully. A name computed as
+    `base + roman(amplifier + 1)` is correct for exactly five of the 256 accepted amplifiers.
+    Nothing in the engine's registry supplies the base name either: `EffectTypes.getAll()` returns
+    38 types — the 37 `@minecraft/vanilla-data` ships plus `minecraft:empty` — and every one of
+    them answers `getName()` with its own identifier rather than a display name.
+  backing: tested
+  sources:
+    - description: |
+        The mctest5 effect-name pack applies all 37 vanilla effect types at amplifiers 0 through 6
+        to one surviving subject, reading displayName from both the addEffect return and the
+        getEffect read-back and reporting whether the two agree; the bounds set then sweeps
+        minecraft:speed across the whole accepted amplifier range. Identical in 3/3 runs, with
+        subject-respawns=0, so no cell was measured against a different entity than its neighbours.
+        This pack was run by the design's owner, not by this fact's author; its captured
+        output is design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md and the
+        pack itself is design/minecraft/test-lib/artifacts/effect-name-probe-pack.
+    - url: design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md
+      where: Raw log — mctest5:effectnames run 1, the effect-type-registry-survey SUMMARY lines
+      quote: |
+        [2026-07-27 21:33:28.764] [mctest] effect-type-registry-survey :: SUMMARY transcribed=37 engine=38 in-transcribed-not-in-engine=[] in-engine-not-in-transcribed=["minecraft:empty"]
+        [2026-07-27 21:33:28.764] [mctest] effect-type-registry-survey :: SUMMARY getName-differs-from-identifier=0 cases=[] — every id whose getName() is not the id itself
+    - url: design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md
+      where: Raw log — mctest5:effectnames run 1, the minecraft:absorption per-type SUMMARY
+      quote: |
+        [2026-07-27 21:33:28.860] [mctest] effect-display-name-mapping :: SUMMARY type=minecraft:absorption names=[0=>"Absorption", 1=>"Absorption II", 2=>"Absorption III", 3=>"Absorption IV", 4=>"Absorption V", 5=>"Absorption VI", 6=>"Absorption"] readable=7/7 distinct-names=6 numeral-varies-with-amplifier=true verdicts=[READ-OK, READ-OK, READ-OK, READ-OK, READ-OK, READ-OK, READ-OK]
+    - url: design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md
+      where: Raw log — mctest5:effectnames run 1, the mapping SUMMARY lines
+      quote: |
+        [2026-07-27 21:33:30.713] [mctest] effect-display-name-mapping :: SUMMARY types=37 cells=259 subject-respawns=0
+        [2026-07-27 21:33:30.713] [mctest] effect-display-name-mapping :: SUMMARY READ-OK count=259
+        [2026-07-27 21:33:30.713] [mctest] effect-display-name-mapping :: SUMMARY no-name-read-at-any-amplifier=0 types=[] — a type here has no observed name to register or compute
+        [2026-07-27 21:33:30.713] [mctest] effect-display-name-mapping :: SUMMARY one-name-across-all-amplifiers=0 types=[] — these carry no level numeral, which a computed name would have to special-case
+    - url: design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md
+      where: Raw log — mctest5:effectbounds run 1, the amplifier-sweep distinct-name SUMMARY
+      quote: |
+        [2026-07-27 21:35:55.414] [mctest] amplifier-bound :: SUMMARY accepted=256 distinct-names=6 highest-amplifier-whose-name-differs-from-the-next-lower=6 — above this the name stops tracking the amplifier
+
+- id: effect-display-name-carries-raw-whitespace
+  claim: |
+    `minecraft:breath_of_the_nautilus` reads back with a leading space at every amplifier —
+    ` Breath of the Nautilus`, ` Breath of the Nautilus II`, and so on. It is the only one of the
+    37 types whose name carries leading or trailing whitespace, it is identical across all three
+    runs, and it comes straight from the engine's localisation string rather than from the probe.
+    A display name derived from the type identifier cannot reproduce it, so any mechanism that
+    answers `displayName` correctly for this type has to carry the base string verbatim, space
+    included.
+  backing: tested
+  sources:
+    - description: |
+        The mctest5 effect-name pack reads displayName for every type at every amplifier from both
+        the addEffect return and the getEffect read-back, and the two agree on the leading space in
+        all three runs. No other type in the sweep carries edge whitespace.
+        This pack was run by the design's owner, not by this fact's author; its captured
+        output is design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md and the
+        pack itself is design/minecraft/test-lib/artifacts/effect-name-probe-pack.
+    - url: design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md
+      where: Raw log — mctest5:effectnames run 1, the minecraft:breath_of_the_nautilus amplifier 0 and 1 cells
+      quote: |
+        [2026-07-27 21:33:29.013] [mctest] effect-display-name-mapping :: [minecraft:breath_of_the_nautilus/amp=0] subject=-111669149694 addEffect ok value=object(Effect) from-return(displayName=ok value=string:" Breath of the Nautilus" typeId=ok value=string:"minecraft:breath_of_the_nautilus" amplifier=ok value=number:0 duration=ok value=number:400 isValid=ok value=boolean:true) getEffect present=true from-getEffect(displayName=ok value=string:" Breath of the Nautilus" typeId=ok value=string:"minecraft:breath_of_the_nautilus" amplifier=ok value=number:0 duration=ok value=number:400 isValid=ok value=boolean:true) display-name=" Breath of the Nautilus" names-agree=true verdict=READ-OK
+        [2026-07-27 21:33:29.013] [mctest] effect-display-name-mapping :: [minecraft:breath_of_the_nautilus/amp=1] subject=-111669149694 addEffect ok value=object(Effect) from-return(displayName=ok value=string:" Breath of the Nautilus II" typeId=ok value=string:"minecraft:breath_of_the_nautilus" amplifier=ok value=number:1 duration=ok value=number:400 isValid=ok value=boolean:true) getEffect present=true from-getEffect(displayName=ok value=string:" Breath of the Nautilus II" typeId=ok value=string:"minecraft:breath_of_the_nautilus" amplifier=ok value=number:1 duration=ok value=number:400 isValid=ok value=boolean:true) display-name=" Breath of the Nautilus II" names-agree=true verdict=READ-OK
+    - url: design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md
+      where: Raw log — mctest5:effectnames run 1, the minecraft:breath_of_the_nautilus per-type SUMMARY
+      quote: |
+        [2026-07-27 21:33:29.013] [mctest] effect-display-name-mapping :: SUMMARY type=minecraft:breath_of_the_nautilus names=[0=>" Breath of the Nautilus", 1=>" Breath of the Nautilus II", 2=>" Breath of the Nautilus III", 3=>" Breath of the Nautilus IV", 4=>" Breath of the Nautilus V", 5=>" Breath of the Nautilus VI", 6=>" Breath of the Nautilus"] readable=7/7 distinct-names=6 numeral-varies-with-amplifier=true verdicts=[READ-OK, READ-OK, READ-OK, READ-OK, READ-OK, READ-OK, READ-OK]

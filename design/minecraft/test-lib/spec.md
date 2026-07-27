@@ -343,6 +343,36 @@ when adding and when updating — the declared signature governs over the pinned
 prose [[f:addeffect-returns-the-effect]]. With no amplifier option the effect carries amplifier 0
 [[f:effect-amplifier-defaults-to-zero]].
 
+Both numeric arguments are bounds-checked, and the fake checks them as the engine does: amplifier
+must be `0…255` and duration `1…20000000`, and a value outside either throws
+`ArgumentOutOfBoundsError` [[f:addeffect-argument-bounds-observed]]. Nothing is clamped into range —
+an accepted value is stored exactly as passed, so a test never has to ask whether the number it
+reads back was adjusted. Duration's floor is 1 rather than 0: a zero duration is refused, not
+treated as an instantaneous effect. The pinned TSDoc contradicts itself here, saying the duration
+"must be within the range [0, 20000000]" and then `Bounds: [1, 20000000]`; the observation agrees
+with the second, and this document follows the observation and records the disagreement
+[[r:engine-claims-are-sourced]].
+
+The two rejections do not share a message, and the fake reproduces each. Amplifier names its
+parameter after a colon, in the shape `setCurrentValue` also uses
+[[f:set-current-value-bounds-observed]]:
+
+```
+Unsupported or out of bounds value passed to function argument [2]: amplifier, Value: 256, Argument bounds: [0, 255]
+```
+
+Duration ends the argument index with a period and names no parameter at all:
+
+```
+Unsupported or out of bounds value passed to function argument [1]. Value: 0, Argument bounds: [1, 20000000]
+```
+
+A non-integer argument is truncated toward zero and *then* bounds-checked, which the fake also
+reproduces: amplifier `1.5` is accepted and reads back `1`, and duration `0.5` is rejected because
+it truncates to `0` [[f:addeffect-coerces-non-integer-arguments]]. `NaN` and `Infinity` are refused
+by the engine with a `TypeError` before either bound is consulted; the fake does not reproduce that
+error's shape, and is listed below as diverging there.
+
 Re-adding an effect already present replaces it when the new amplifier is higher, or when the
 amplifier is equal and the new duration is longer or equal; a lower amplifier never replaces
 whatever the duration, and an equal amplifier with a shorter duration does not
@@ -360,8 +390,20 @@ there.
 
 `Effect.displayName` is a populated human-readable string in the engine — `"Speed II"` for speed at
 amplifier 1 — and nothing pins it at build time: `@minecraft/vanilla-data` ships ids and no names,
-and `EffectType.getName()` returns the identifier rather than the display name, so the value has to
-come from the test [[f:live-effect-fields-populated]].
+and every one of the 38 types `EffectTypes.getAll()` returns answers `getName()` with its own
+identifier rather than a display name, so the value has to come from the test
+[[f:live-effect-fields-populated]] [[f:effect-display-name-amplifier-mapping]].
+
+What the engine produces is regular but not a formula. At amplifier 0 the name is the bare base
+name; at amplifiers 1 through 5 it is the base plus the Roman numeral of *amplifier + 1*; at
+amplifier 6 it reverts to the bare base name and stays there for every amplifier up to 255. A type
+therefore has six distinct names across the whole accepted range, and the reversion holds for all 37
+vanilla types [[f:effect-display-name-amplifier-mapping]]. Two things follow for anything that
+answers `displayName`. A computed `base + roman(amplifier + 1)` is right for five of the 256
+accepted amplifiers and wrong for the rest. And the base string cannot be derived from the
+identifier either: `minecraft:breath_of_the_nautilus` reads back with a leading space at every
+amplifier, straight from the engine's localisation data, so only a verbatim stored string reproduces
+it [[f:effect-display-name-carries-raw-whitespace]].
 
 It comes per effect *type*. `setEffectDisplayName(server, effectTypeId, displayName)` writes to a
 registry on the world, and every effect of that type in that world reads the registered name;
@@ -583,6 +625,10 @@ not been considered, which is not the same as a promise about it.
 | the damage-invulnerability window | divergence | the fake has no i-frames, so consecutive `applyDamage` calls each take their full amount where the engine absorbs the second — a test driving repeated damage sees more health lost against the fake than the engine would take |
 | the engine's velocity-dependent projectile damage adjustment | divergence | the projectile options form applies the amount requested |
 | `addEffect` / `getEffect` / `getEffects` / `removeEffect` and the amplifier-first replacement rule | modelled | |
+| `addEffect`'s argument bounds | modelled | amplifier `0…255`, duration `1…20000000`, `ArgumentOutOfBoundsError` outside either, nothing clamped, both message shapes reproduced |
+| `addEffect`'s non-integer arguments | modelled | truncated toward zero, then bounds-checked — so duration `0.5` is refused |
+| `addEffect` on `NaN` or `Infinity` | divergence | the engine refuses these with a `TypeError` ahead of the bounds check; the fake does not reproduce that error's shape |
+| the display name's amplifier mapping | divergence | the engine gives the bare base name at amplifier 0, a numeral for 1–5, and the bare name again from 6 up — six distinct names per type; the fake reads back one registered name per type and does not vary it |
 | effect duration decay and expiry | divergence | a duration reads back the value applied and never decays; the engine decays it one per tick and expires the effect |
 | `Effect.displayName` | divergence | the test registers a name per effect type and an unsupplied read throws; the engine derives a populated string from the type *and* amplifier, which one name per type cannot vary |
 | signal existence, `subscribe` / `unsubscribe`, reference dedupe and subscription order | modelled | |
