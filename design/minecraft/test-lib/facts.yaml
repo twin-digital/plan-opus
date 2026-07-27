@@ -51,7 +51,7 @@
         in @minecraft/server 2.8.0's index.d.ts, which the package ships with no importable
         runtime, so a test process has the declared shape and not the class.
 
-- id: namespace-prefix-is-optional
+- id: namespace-prefix-tolerance-is-per-surface
   claim: |
     Whether the `minecraft:` prefix may be omitted is per-surface, not a uniform rule. Bare and
     prefixed ids are both accepted by `addEffect`, `getEffect`, `spawnEntity`, and
@@ -88,6 +88,26 @@
         prefixed form (136 keys = 68 components x 2). Prefixed is canonical: the
         @minecraft/vanilla-data constants report the prefixed form — see
         [[f:vanilla-data-provides-prefixed-id-constants]].
+
+- id: namespace-prefix-is-optional
+  status: retired
+  reason: disproven
+  superseded_by: namespace-prefix-tolerance-is-per-surface
+  claim: |
+    Identifiers in the `minecraft:` namespace may be written with or without the prefix; when a
+    namespace is omitted, `minecraft:` is assumed. The rule is uniform across component ids,
+    effect types, entity events, and entity types — not a per-surface convention — and the
+    canonical (engine-reported) form is the prefixed one.
+  backing: documented
+  sources:
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/entity
+      where: Methods — getComponent, componentId parameter
+      quote: |
+        If no namespace prefix is specified, 'minecraft:' is assumed.
+    - description: |
+        EntityComponentTypeMap in index.d.ts 2.8.0 carries every component id in both bare and
+        prefixed form (136 keys = 68 components x 2). Prefixed is canonical: the
+        @minecraft/vanilla-data constants report the prefixed form.
 
 - id: component-ids-are-derivable-from-types
   claim: |
@@ -277,10 +297,11 @@
     `kill()` fires the full damage cascade — `entityHurt` with damage equal to current
     health and cause `selfDestruct`, then `entityHealthChanged` to exactly the minimum, then
     `entityDie` with cause `selfDestruct` — and returns true; on the still-valid corpse a
-    second `kill()` returns true and fires nothing. `remove()` fires no *death* event, but it
-    is not event-free: with all 55 `world.afterEvents` signals subscribed, `remove()` was
-    followed by five delivered events — one `entitySpawn`, three `dataDrivenEntityTrigger`,
-    and one `entityRemove`.
+    second `kill()` returns true and fires nothing. `remove()` fires no *death* event. With all
+    55 `world.afterEvents` signals subscribed, five events were delivered in the window
+    following `remove()` — one `entitySpawn`, three `dataDrivenEntityTrigger`, and one
+    `entityRemove` — but only the `entityRemove` is attributable to the removal; what else
+    `remove()` raises is unestablished.
   backing: tested
   caveat: |
     "Followed by" is what the run establishes; that `remove()` *caused* all five is inference.
@@ -624,8 +645,8 @@
     `chicken`, `zombie`, `armor_stand`, `arrow`, `boat` — bit-identical in 4/4 runs.
     `minecraft:xp_orb` is the exception: it spawns with a randomized y-rotation and a nonzero
     randomized velocity, drawn afresh per spawn (four runs, four distinct values, no repeats),
-    then decays to near-rest by 22 ticks. Zero rotation and velocity at spawn are therefore an
-    engine constant a fake may assume for most types, but not a universal one.
+    then decays to near-rest by 22 ticks. Zero rotation and velocity at spawn therefore hold for
+    most types sampled, but not universally.
   backing: tested
   sources:
     - description: |
@@ -653,8 +674,7 @@
     `nameTag` on a freshly spawned entity is the empty string, not `undefined` and not a
     type-derived name: it read `""` (`length=0`) for all eight types sampled — `sheep`, `cow`,
     `chicken`, `zombie`, `armor_stand`, `xp_orb`, `arrow`, `boat` — in every run. The empty
-    string is the engine's representation of an unnamed entity, so a fake may treat it as a
-    universal starting value rather than a per-type one.
+    string is the engine's representation of an unnamed entity.
   backing: tested
   sources:
     - description: |
@@ -699,8 +719,7 @@
     and `{x:-72, y:0}` two ticks later, holding that value at 22 ticks — deterministic in 4/4
     runs — while its velocity never leaves zero and it never moves from the spawn point. It also
     stays valid: `isValid=true` at 2 and 22 ticks in 4/4. It is the one type sampled whose
-    rotation is not stable across the spawn frame, so a fake reading rotation back must decide
-    whether to model the settle.
+    rotation is not stable across the spawn frame.
   backing: tested
   sources:
     - description: |
@@ -953,6 +972,9 @@
         EntityHealthComponent with its TSDoc block and splits members by whether the block
         names InvalidEntityError; committed output in
         design/minecraft/test-lib/artifacts/type-probes/throws-annotation-probe.out.txt.
+
+# Facts on the breadth of the engine surface: what public behavior packs reach for
+# (artifacts/pack-api-survey) and what @minecraft/server 2.8.0 exposes outside instances.
 
 - id: public-packs-reach-past-entities-and-events
   claim: |
