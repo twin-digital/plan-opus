@@ -117,6 +117,81 @@
         In the following example, all folders located inside the folder ./packages will be treated
         as workspaces as long as they have valid package.json files inside them:
 
+- id: npm-workspaces-negation-is-order-sensitive
+  claim: |
+    A leading run of `!` characters on an npm `workspaces` entry is counted, not merely detected:
+    an odd run makes the rest of the entry an exclusion, an even one leaves it an ordinary include,
+    so `!!packages/legacy` includes `packages/legacy`. Either way a leading `./` or `/` is stripped.
+    The list is read in order and an include entry cancels every earlier exclusion whose pattern
+    matches it, so `['packages/**', '!packages/b/**', 'packages/b/a']` keeps `packages/b/a`.
+    Whatever survives as an exclusion is handed to the glob call as an ignore pattern, alongside
+    `**/node_modules/**`, and never as a pattern to match.
+  backing: documented
+  caveat: |
+    This is npm's own workspace-enumeration package, published from the npm organisation's
+    repository, read at the tag matching the version on the registry. Nothing here shows the npm
+    CLI consuming this package rather than its own vendored copy of the same code.
+  sources:
+    - url: https://github.com/npm/map-workspaces/blob/v6.0.0/lib/index.js
+      where: appendNegatedPatterns — the whole function, which splits the workspaces array into include and exclusion patterns
+      quote: |
+        function appendNegatedPatterns (allPatterns) {
+          const patterns = []
+          const negatedPatterns = []
+          for (let pattern of allPatterns) {
+            const excl = pattern.match(/^!+/)
+            if (excl) {
+              pattern = pattern.slice(excl[0].length)
+            }
+
+            // strip off any / or ./ from the start of the pattern.  /foo => foo
+            pattern = pattern.replace(/^\.?\/+/, '')
+
+            // an odd number of ! means a negated pattern.  !!foo ==> foo
+            const negate = excl && excl[0].length % 2 === 1
+            if (negate) {
+              negatedPatterns.push(pattern)
+            } else {
+              // remove negated patterns that appeared before this pattern to avoid
+              // ignoring paths that were matched afterwards
+              // e.g: ['packages/**', '!packages/b/**', 'packages/b/a']
+              // in the above list, the last pattern overrides the negated pattern
+              // right before it. In effect, the above list would become:
+              // ['packages/**', 'packages/b/a']
+              // The order matters here which is why we must do it inside the loop
+              // as opposed to doing it all together at the end.
+              for (let i = 0; i < negatedPatterns.length; ++i) {
+                const negatedPattern = negatedPatterns[i]
+                if (minimatch(pattern, negatedPattern)) {
+                  negatedPatterns.splice(i, 1)
+                }
+              }
+              patterns.push(pattern)
+            }
+          }
+
+          // use the negated patterns to eagerly remove all the patterns that
+          // can be removed to avoid unnecessary crawling
+          for (const negated of negatedPatterns) {
+            for (const pattern of minimatch.match(patterns, negated)) {
+              patterns.splice(patterns.indexOf(pattern), 1)
+            }
+          }
+          return { patterns, negatedPatterns }
+        }
+    - url: https://github.com/npm/map-workspaces/blob/v6.0.0/lib/index.js
+      where: mapWorkspaces — getGlobOpts, where the surviving exclusions are used
+      quote: |2
+          const getGlobOpts = () => ({
+            ...opts,
+            ignore: [
+              ...opts.ignore || [],
+              '**/node_modules/**',
+              // just ignore the negated patterns to avoid unnecessary crawling
+              ...negatedPatterns,
+            ],
+          })
+
 - id: manager-enumeration-libraries-need-no-install
   claim: |
     npm and pnpm each publish their own workspace-enumeration implementation to the public npm

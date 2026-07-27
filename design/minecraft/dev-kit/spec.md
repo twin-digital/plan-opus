@@ -163,15 +163,21 @@ Resolution runs in this order [[d:pnpm-marker-wins-npm-is-the-fallback]]:
   applied to the whole match set rather than to what precedes it.
 - **npm** — anything else. The root `package.json`'s `workspaces` array is the pattern list, each
   entry a direct folder path or a glob resolving to folders
-  [[f:npm-workspaces-is-an-array-of-paths-or-globs]]. There is no exclusion syntax here — the field
-  is defined as paths and resolving globs and nothing else — so every entry is an include pattern
-  and a leading `!` is part of the path it is written in. A root carrying no `workspaces` array is a
+  [[f:npm-workspaces-is-an-array-of-paths-or-globs]]. The array is read in order and split into
+  includes and exclusions the way npm's own enumeration splits it: an entry's leading run of `!` is
+  counted, an odd run making the remainder an exclusion and an even one an ordinary include, so
+  `!!packages/legacy` includes `packages/legacy`; a leading `./` or `/` is stripped either way; and
+  an include entry cancels every earlier exclusion whose pattern matches it, so
+  `["packages/**", "!packages/b/**", "packages/b/a"]` keeps `packages/b/a`
+  [[f:npm-workspaces-negation-is-order-sensitive]]. A root carrying no `workspaces` array is a
   workspace of one, so a single non-monorepo package still resolves its own packs. The root package
   is always a candidate here too.
 
-Patterns are expanded with a glob library (`fast-glob`) against the workspace root, matching
-directories only, with pnpm's `!`-prefixed entries passed as ignore patterns. Any matched path lying
-under a `node_modules` segment is dropped [[d:node-modules-directories-are-never-candidates]]. The
+Both branches therefore reach the glob library (`fast-glob`) with the same two lists, run against the
+workspace root and matching directories only: the includes as its pattern list, the exclusions as its
+`ignore` option, every `!` prefix already stripped. No pattern reaches the library with a leading `!`
+still on it, which the library would read as a negation of its own and apply by a different rule than
+either manager's. Any matched path lying under a `node_modules` segment is dropped [[d:node-modules-directories-are-never-candidates]]. The
 surviving directories, plus the root, are the candidate packages, deduplicated by workspace-relative
 path — a pattern list that also matches the root yields one root candidate, not two, so a pack under
 it is never reported twice.
@@ -262,8 +268,10 @@ Three completions run, and each has a matching error when the source specified w
   and otherwise to the package's `name` with its npm scope stripped, so `@scope/mc-pack-1` becomes
   `mc-pack-1` [[d:product-name-must-be-a-non-empty-string]]. A `package.json` that parses but
   declares no string `name` — the ordinary shape of a private root package, and the root is always a
-  candidate — leaves `packageName` absent; where no usable `productName` stands in for it, the field
-  cannot be completed and the problem is `package-name-missing`. A specified `header.name` is
+  candidate — leaves `packageName` absent, and is `package-name-missing` whether or not a
+  `productName` stands in for it in the manifest: `packageName` is a detail every valid entry
+  carries, so an entry that cannot report the owning package's name is invalid even where its
+  `header.name` completed cleanly [[r:pack-discovery]]. A specified `header.name` is
   `header-name-specified`.
 - **`header.version`** — set to the owning package's `package.json` `version`, written as a SemVer
   string at every format version, so completion never branches on the format version and a
