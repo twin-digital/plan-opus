@@ -338,11 +338,15 @@ and delivers them later in the same game tick [[f:after-events-deferred]]
 is real and worth knowing while writing a test: code placed after a mutating call runs *after* its
 handlers, not before. Handlers observe post-write state either way.
 
-Before-events are dispatched synchronously ahead of the action they gate. A handler that sets
-`cancel = true` stops the action: no state changes and no after-event fires
-[[r:before-events-can-cancel]]. The gated call still returns, and returns as if it had done nothing:
-a cancelled `applyDamage` returns `false`, a cancelled `addEffect` returns `undefined`, and
-`remove()` returns `undefined` either way, leaving the entity registered with the world.
+Before-events are dispatched synchronously ahead of the action they precede. Two of the three gate
+it: `EntityHurtBeforeEvent` and `EffectAddBeforeEvent` each declare a writable `cancel: boolean`, and
+a handler setting it stops the action — no state changes and no after-event fires
+[[r:before-events-can-cancel]] — with the gated call returning as if it had done nothing, a cancelled
+`applyDamage` returning `false` and a cancelled `addEffect` `undefined`. `entityRemove` is a
+notification and cannot be cancelled: `EntityRemoveBeforeEvent` declares `removedEntity` alone and no
+`cancel`, so the engine gives a handler no hold on the removal and the fake invents none — adding one
+would be a fake-only member and would let a test pass on a cancellation the engine cannot perform
+[[r:only-real-members-free-functions]] [[r:fakes-are-structurally-assignable]].
 
 ## Scheduling
 
@@ -452,7 +456,7 @@ components:
     responsibility: >-
       the signal objects on world.afterEvents, world.beforeEvents and system, subscribe/unsubscribe
       with reference dedupe and subscription order, synchronous dispatch, before-event
-      cancellation, and the emit free function
+      cancellation on the signals whose payload declares cancel, and the emit free function
     excludes: which fake member raises which signal
     after: [surface-scaffold]
 
