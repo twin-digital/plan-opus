@@ -613,7 +613,74 @@
           RETURNED pnpm-missing-root@0.0.0 -> .
           RETURNED @fixture/good@1.0.0 -> packages/good
 
+- id: enumeration-without-patterns-defaults-under-pnpm-and-returns-nothing-under-npm
+  claim: |
+    Handed no patterns at all, the two managers' enumeration libraries diverge.
+    `@pnpm/workspace.find-packages` 1000.0.65 falls back to its own default patterns and returns
+    the root package **and every nested package in the tree**: against a workspace whose
+    `pnpm-workspace.yaml` declares no `packages` field, it returned the root, `packages/alpha`, and
+    `tooling/nested/beta`. `@npmcli/map-workspaces` 6.0.0 returns an empty Map, without throwing,
+    for a root `package.json` that declares no `workspaces` array and for one declaring an empty
+    array — even where the tree holds a package a conventional pattern would match; given a
+    populated array it returns the matched members only, never the root package itself.
+
+    So a caller forwarding an absent `packages` field unread gets a whole-tree sweep from pnpm and
+    nothing at all from npm, and an npm workspace of one is an empty enumeration rather than an
+    error.
+  backing: tested
+  caveat: |
+    Observed at the versions named, on Node 24.16.0. The pnpm default is read off the returned
+    projects, not off the library's source, so which patterns it defaults to is outside what this
+    evidence covers — only that nested packages come back. A root `package.json` that is absent or
+    unparseable was not probed under either library, and neither was a `pnpm-workspace.yaml` that
+    is present but unparseable.
+  sources:
+    - description: |
+        design/minecraft/dev-kit/artifacts/pnpm-default-patterns-probe/, written and run by this
+        fact's author on 2026-07-27. probe.mjs runs each library against the two fixture workspaces
+        beside it — a pnpm root whose `pnpm-workspace.yaml` holds only a `catalog:`, with two
+        nested packages, and an npm root with no `workspaces` array and one nested package — and
+        prints the patterns read and what each library returned. The fixtures are committed
+        uninstalled, as the probe checks and prints. Captured stdout is OUTPUT.txt beside the
+        script.
+    - url: design/minecraft/dev-kit/artifacts/pnpm-default-patterns-probe/OUTPUT.txt
+      where: the pnpm section — no `packages` field returns the root and both nested packages
+      quote: |
+        === pnpm-no-packages-field-with-members via @pnpm/workspace.find-packages
+          fixture holds: the root, packages/alpha, and tooling/nested/beta
+          patterns read from pnpm-workspace.yaml: undefined
+          RETURNED 3
+            @fixture/pnpm-defaults-root@1.0.0 -> .
+            @fixture/alpha@1.2.3 -> packages/alpha
+            @fixture/beta@0.1.0 -> tooling/nested/beta
+    - url: design/minecraft/dev-kit/artifacts/pnpm-default-patterns-probe/OUTPUT.txt
+      where: the npm section — no `workspaces` array returns an empty Map though a nested package is present
+      quote: |
+        === npm-no-workspaces-with-members via @npmcli/map-workspaces
+          fixture holds: the root and packages/alpha
+          root package.json workspaces: undefined
+          RETURNED 0 entries (empty Map, no throw)
+    - description: |
+        design/minecraft/dev-kit/artifacts/workspace-root-candidate-probe/, written and run by the
+        author of the fact this one supersedes on 2026-07-27, and re-read rather than re-run here.
+        Its OUTPUT.txt carries the empty-`workspaces`-array and populated-array npm cases, which
+        the probe above does not repeat.
+    - url: design/minecraft/dev-kit/artifacts/workspace-root-candidate-probe/OUTPUT.txt
+      where: the npm sections — an empty array returns an empty Map, a populated array returns the member only
+      quote: |
+        === npm-empty-workspaces via @npmcli/map-workspaces
+          root package.json workspaces: []
+          RETURNED 0 entries (empty Map, no throw)
+
+        === npm-with-workspaces via @npmcli/map-workspaces
+          root package.json workspaces: ["packages/*"]
+          RETURNED 1 entry
+            @fixture/good -> packages/good
+
 - id: npm-enumeration-returns-no-members-without-a-workspaces-array
+  status: retired
+  reason: superseded
+  superseded_by: enumeration-without-patterns-defaults-under-pnpm-and-returns-nothing-under-npm
   claim: |
     `@npmcli/map-workspaces` 6.0.0 returns an empty Map, without throwing, for a root
     `package.json` that declares no `workspaces` array and for one declaring an empty array; given a

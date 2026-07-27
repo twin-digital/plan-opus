@@ -228,14 +228,18 @@ Both libraries list an uninstalled workspace from its checked-out definition alo
   directory patterns [[f:pnpm-workspace-packages-is-an-include-exclude-glob-list]] — is passed
   through unread as the `patterns` option of `findWorkspacePackages(workspaceRoot, { patterns })`
   from `@pnpm/workspace.find-packages`. The projects it returns are the candidates, the root package
-  among them; a `pnpm-workspace.yaml` carrying no `packages` field yields the root alone
-  [[f:npm-enumeration-returns-no-members-without-a-workspaces-array]].
+  among them; a `pnpm-workspace.yaml` carrying no `packages` field forwards no patterns, which
+  leaves the library on its own defaults and yields the root plus every nested package in the tree
+  [[f:enumeration-without-patterns-defaults-under-pnpm-and-returns-nothing-under-npm]]. Forwarding
+  unread is what the kit does here too: it passes the absent field on rather than substituting a
+  pattern of its own, so the sweep is the library's answer to a workspace defined that loosely.
 - **npm** — anything else. The kit parses the root `package.json` and hands it to
   `mapWorkspaces({ cwd: workspaceRoot, pkg })` from `@npmcli/map-workspaces`, whose returned
   name-to-directory map is the members. That map never carries the root package itself, and a root
-  declaring no `workspaces` array — or an empty one — comes back empty rather than throwing
-  [[f:npm-enumeration-returns-no-members-without-a-workspaces-array]], so the kit adds the root
-  package as a candidate of its own [[r:the-root-package-is-a-candidate]] and a single non-monorepo
+  declaring no `workspaces` array — or an empty one — comes back empty rather than throwing, even
+  where the tree holds a package a conventional pattern would match
+  [[f:enumeration-without-patterns-defaults-under-pnpm-and-returns-nothing-under-npm]], so
+  the kit adds the root package as a candidate of its own [[r:the-root-package-is-a-candidate]] and a single non-monorepo
   package still resolves its own packs.
 
 The candidate set is what the library returned plus, under npm, the root, deduplicated by
