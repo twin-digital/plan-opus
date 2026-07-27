@@ -3,6 +3,11 @@
 //
 //   node bin/foundations.mjs <design>            e.g. doc-structure, how-to-plan/harness
 //   node bin/foundations.mjs <design> --full     include rationale, caveats and sources
+//   node bin/foundations.mjs --facts             every fact in the repository, one line each
+//
+// A fact is citable from any design, so --facts is the view to search before recording a new
+// one. It is generated on demand and never written to the tree. Facts live in one pool under
+// facts/, so a design view lists only the requirements that bind it.
 //
 // Retired entries are omitted: they are kept in the files so their
 // history survives, but they are not something a design may stand on.
@@ -12,17 +17,46 @@ import YAML from "yaml";
 import { loadSets, bindsDesign } from "./lib/binding.mjs";
 
 const ROOT = "design";
+const FACTS = "facts";
 const args = process.argv.slice(2);
 const full = args.includes("--full");
+const index = args.includes("--facts");
 const query = args.find((a) => !a.startsWith("--"));
+
+const DEAD = ["retired", "rejected"];  // two-state: a retired fact/req or a rejected decision
+const read = (file) => {
+  if (!fs.existsSync(file)) return [];
+  return (YAML.parse(fs.readFileSync(file, "utf8")) ?? []).filter((e) => !DEAD.includes(e.status));
+};
 
 const designs = [];
 for (const area of fs.readdirSync(ROOT, { withFileTypes: true }).filter((d) => d.isDirectory()))
   for (const d of fs.readdirSync(path.join(ROOT, area.name), { withFileTypes: true }).filter((x) => x.isDirectory()))
     designs.push({ area: area.name, name: d.name, dir: path.join(ROOT, area.name, d.name) });
 
+// --facts: the repo-wide index. Every fact is citable from every design, so this is the view an
+// author searches before recording a new one.
+const factFiles = (dir) => fs.existsSync(dir) ? fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
+  e.isDirectory() ? factFiles(path.join(dir, e.name))
+  : /\.ya?ml$/.test(e.name) ? [path.join(dir, e.name)] : []) : [];
+
+if (index) {
+  const rows = factFiles(FACTS)
+    .flatMap((file) => read(file).map((e) => ({ file, e })))
+    .sort((a, b) => String(a.e.id).localeCompare(String(b.e.id)));
+
+  console.log(`# Facts — every design may cite any of these\n`);
+  for (const { file, e } of rows) {
+    const claim = String(e.claim ?? "").replace(/\s+/g, " ").trim();
+    console.log(`- **${e.id}**  _(${e.backing ?? "unknown backing"}, in ${file})_\n  ${claim}`);
+  }
+  console.log(`\n---\n\n${rows.length} facts.`);
+  process.exit(0);
+}
+
 if (!query) {
-  console.error("usage: node bin/foundations.mjs <design> [--full]\n\n" +
+  console.error("usage: node bin/foundations.mjs <design> [--full]\n" +
+    "       node bin/foundations.mjs --facts\n\n" +
     designs.map((d) => `  ${d.area}/${d.name}`).join("\n"));
   process.exit(1);
 }
@@ -34,11 +68,6 @@ if (matches.length !== 1) {
 }
 const target = matches[0];
 
-const DEAD = ["retired", "rejected"];  // two-state: a retired fact/req or a rejected decision
-const read = (file) => {
-  if (!fs.existsSync(file)) return [];
-  return (YAML.parse(fs.readFileSync(file, "utf8")) ?? []).filter((e) => !DEAD.includes(e.status));
-};
 const targetDesign = { scope: `${target.area}/${target.name}`, area: target.area };
 const scopes = [
   { label: `design — ${target.name}`, dir: target.dir,                  tier: "design", scope: targetDesign.scope },
@@ -60,12 +89,12 @@ const quote = (s, prefix = "") => {
 
 const out = [];
 out.push(`# Foundations in scope — ${target.area}/${target.name}`, "");
-out.push(`Everything this design may cite, nearest scope first. Retired entries are omitted.`,
-  `Requirements are the ones that bind this design — every one listed must be honoured.`, "");
+out.push(`The requirements that bind this design, nearest scope first — every one listed must be`,
+  `honoured. Retired entries are omitted. Facts are not scoped: any design may cite any of them,`,
+  "so run `node bin/foundations.mjs --facts` for those.", "");
 
-let totals = { req: 0, fact: 0 };
-for (const [kind, file, heading] of [["req", "requirements.yaml", "Requirements"],
-                                     ["fact", "facts.yaml", "Facts"]]) {
+let totals = { req: 0 };
+for (const [kind, file, heading] of [["req", "requirements.yaml", "Requirements"]]) {
   out.push(`## ${heading}`, "");
   let any = false;
   for (const scope of scopes) {
@@ -92,6 +121,6 @@ for (const [kind, file, heading] of [["req", "requirements.yaml", "Requirements"
   if (!any) out.push("_none_", "");
 }
 
-out.push("---", "", `${totals.req} requirements, ${totals.fact} facts.` +
+out.push("---", "", `${totals.req} requirements.` +
   (unbound ? ` ${unbound} wider-scope requirement(s) bind other designs and are not shown.` : ""));
 console.log(out.join("\n"));

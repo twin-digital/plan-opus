@@ -95,3 +95,29 @@
   falsifiers:
     - a bound requirement's breach turns out to be mechanically detectable often enough that
       reporting alone wastes the signal
+
+- id: fact-index-is-generated-on-demand
+  statement: |
+    the repository-wide view of facts is generated from the foundation files when asked for, and
+    no copy of it is committed to the tree
+  status: accepted
+  falsifiers:
+    - generating the view is slow enough, or awkward enough to invoke, that authors skip it and
+      write duplicates anyway
+    - a reader outside the working copy — a pull-request reviewer, a rendered docs site — needs
+      the index and cannot run the generator
+
+- id: facts-carry-topic-tags
+  statement: |
+    every fact carries a `topics` list drawn from a declared vocabulary, and finding a fact means
+    filtering the tree by topic
+  status: rejected
+
+- id: fact-filing-is-advisory-not-enforced
+  statement: |
+    the harness checks that a fact sits somewhere under facts/ and is well-formed and resolvable,
+    never that it sits in the right file for its subject; a misfiled fact is a reviewer's finding
+  status: tolerated
+  falsifiers:
+    - facts pile into one catch-all file because nothing pushes back, to the point that no file
+      name describes what it holds

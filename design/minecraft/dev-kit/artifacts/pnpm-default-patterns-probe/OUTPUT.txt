@@ -1,0 +1,24 @@
+=== versions
+  @npmcli/map-workspaces@6.0.0
+  @pnpm/workspace.find-packages@1000.0.65
+  @pnpm/workspace.read-manifest@1000.3.1
+  node v24.16.0
+
+=== fixture state (no install has run in either)
+  pnpm-no-packages-field-with-members node_modules present: false
+  pnpm-no-packages-field-with-members lockfile present: false
+  npm-no-workspaces-with-members node_modules present: false
+  npm-no-workspaces-with-members lockfile present: false
+
+=== pnpm-no-packages-field-with-members via @pnpm/workspace.find-packages
+  fixture holds: the root, packages/alpha, and tooling/nested/beta
+  patterns read from pnpm-workspace.yaml: undefined
+  RETURNED 3
+    @fixture/pnpm-defaults-root@1.0.0 -> .
+    @fixture/alpha@1.2.3 -> packages/alpha
+    @fixture/beta@0.1.0 -> tooling/nested/beta
+
+=== npm-no-workspaces-with-members via @npmcli/map-workspaces
+  fixture holds: the root and packages/alpha
+  root package.json workspaces: undefined
+  RETURNED 0 entries (empty Map, no throw)

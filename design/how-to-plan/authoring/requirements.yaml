@@ -168,6 +168,7 @@
     governs a fact binds its capture, not the later spec author who only consumes it.
 
 - id: cross-design-dependency-is-cited-as-a-fact
+  status: retired
   statement: |
     a design depending on another design's output re-expresses each upstream commitment it relies
     on as a fact in its own or a shared scope, sourced by repo-relative url and verbatim quote to
@@ -185,6 +186,15 @@
     from under the quote; the spec is a fallback only where no requirement pins the claim. Drift
     is detectable when the quote is re-checked; only if upstream requirements churn faster than
     that would a real cross-design citation form earn its complexity.
+
+- id: upstream-dependency-is-recorded-as-a-fact
+  statement: |
+    a design relying on another design's output records each upstream commitment it leans on as a
+    fact sourced by repo-relative url and verbatim quote to the upstream's requirement, never by
+    citing that design's decisions or invariants
+  rationale: |
+    An upstream decision cannot be cited and an invariant has no token, so without this the
+    downstream claim has nothing to rest on and quietly goes uncited.
 
 - id: conclude-with-test-summary
   statement: |
@@ -226,6 +236,7 @@
     supporting the claim fails the evidence bar exactly as a paraphrase does
 
 - id: tested-facts-name-whose-test
+  status: retired
   statement: |
     a fact backed `tested` whose test its author did not run says so in the source, naming whose
     test it was and where the artifacts sit. Only a fact whose author ran the test, against
@@ -236,3 +247,24 @@
   rationale: |
     Without it, "I ran this" and "someone else ran this" are the same entry, and the guarantee
     that the author can re-run the evidence decays into a file existing somewhere.
+
+- id: tested-facts-disclose-whose-test
+  statement: |
+    a fact backed `tested` whose test its author did not run says so in the source, naming whose
+    test it was and where the artifacts sit
+  rationale: |
+    Undisclosed, "I ran this" and "someone else ran this" are the same entry, and the guarantee
+    that the author can re-run the evidence decays into a file existing somewhere.
+
+- id: facts-are-filed-by-subject
+  statement: |
+    a fact is filed in the pool file that describes its subject, and gaining a second consumer
+    never moves it
+
+- id: search-before-recording-a-fact
+  statement: |
+    before recording a fact, its author searches the repository-wide index for one already making
+    the claim, and cites it rather than writing a second
+  rationale: |
+    A duplicate is two ids a later reader must reconcile, both looking settled, one of which goes
+    stale unnoticed.

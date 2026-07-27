@@ -62,10 +62,10 @@
     - url: design/minecraft/dev-kit/requirements.yaml
       where: unresolvable-packs-fail-loudly
       quote: |
-        a pack the kit cannot resolve — a manifest that cannot be parsed, a missing identity, a
-        manifest dependency on another pack that the set does not satisfy, invalid or
-        missing manifest completion data — is returned as an `invalid` entry carrying its structured
-        problems, per `r:pack-discovery`.
+        a pack the kit cannot resolve is returned as an `invalid` entry, per `r:pack-discovery`. A pack
+        is unresolvable when its manifest cannot be parsed, when its identity is missing, when its
+        manifest completion data is invalid or missing, or when it carries a manifest dependency the set
+        does not satisfy
     - url: design/minecraft/dev-kit/requirements.yaml
       where: uuids-are-claimed-once-in-a-workspace
       quote: |
@@ -75,11 +75,14 @@
     - url: design/minecraft/dev-kit/requirements.yaml
       where: pack-discovery
       quote: |
+        Every discovered pack is returned as one entry in a single flat list, so that list is the whole
+        of what was found: nothing is reported in one place and omitted from another.
+
         An entry is `valid` or `invalid`, and a consumer reads that status before anything else. A
         valid entry carries every detail `r:pack-record-details` requires, with nothing absent or in
         doubt. An invalid entry carries the structured problems that invalidated it, alongside every
-        detail that does not come from the manifest — so a consumer can always name and locate a pack
-        it cannot use.
+        detail that does not come from the manifest and that its sources hold — so a consumer can always
+        name and locate a pack it cannot use.
 
 - id: compose-watch-actions-and-versions
   claim: |

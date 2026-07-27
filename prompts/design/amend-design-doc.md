@@ -31,7 +31,7 @@ the branch directly — accepting decisions, fixing prose — while you were awa
 those edits first, so your amendment lands on top of them instead of clobbering them. A component
 of coherence is not overwriting a change the owner already made by hand.
 
-Then read what actually moved: `git diff` the input files (`requirements.yaml`, `facts.yaml`, the
+Then read what actually moved: `git diff` the input files (`requirements.yaml`, the pool fact files, the
 brief) at the design and wider scopes, and read the changed entries at their new state. Work from
 that diff, not from a description of it.
 

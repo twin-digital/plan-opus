@@ -1,10 +1,14 @@
 // Validates the design tree against the doc-structure format.
 // Run from the repo root:  node bin/check-design.mjs
 //
-// Foundations (facts, requirements, decisions) are the citable entries. Facts and
-// requirements live in YAML files at three scopes — design (in the design's own dir), area,
-// global; decisions live in a decisions.yaml beside a design's spec.md. Components and open
+// Foundations (facts, requirements, decisions) are the citable entries. Requirements live in
+// YAML files at three scopes — design (in the design's own dir), area, global; decisions live in
+// a decisions.yaml beside a design's spec.md. Facts live in one pool under facts/, in any file
+// and at any depth: the path is filing convenience and carries no meaning. Components and open
 // questions live in spec.md and are never cited. Citations are [[k:id]] with k in f/r/d.
+//
+// A fact resolves from anywhere in the repository; a requirement resolves within the citing
+// design's three tiers, and a decision only within the design that made it.
 //
 // The rule numbers in comments map to the Invariants table in the doc-structure design.
 import fs from "fs";
@@ -13,6 +17,7 @@ import YAML from "yaml";
 import { loadSets, bindsDesign, reachable } from "./lib/binding.mjs";
 
 const ROOT = "design";
+const FACTS = "facts";
 const fail = {};
 const NOTICES = new Set(["legacy format — regenerate"]);
 const add = (k, v) => (fail[k] ??= []).push(v);
@@ -52,12 +57,22 @@ const declare = (id, rec) => {
 };
 
 const loadScope = (dir, tier, scope) => {
-  for (const [kind, name] of [["f", "facts.yaml"], ["r", "requirements.yaml"]]) {
-    const file = path.join(dir, name);
-    if (!fs.existsSync(file)) continue;
-    for (const e of loadYaml(file)) { declare(e.id, { kind, tier, scope, e, file }); checkEntry(kind, e, scope, file); }
-  }
+  const file = path.join(dir, "requirements.yaml");
+  if (!fs.existsSync(file)) return;
+  for (const e of loadYaml(file)) { declare(e.id, { kind: "r", tier, scope, e, file }); checkEntry("r", e, scope, file); }
 };
+
+// Facts live in one pool. Any yaml file under facts/, at any depth, is a fact file; the path is
+// where an author chose to file it and means nothing to resolution.
+const factFiles = (dir) => fs.existsSync(dir) ? fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
+  e.isDirectory() ? factFiles(path.join(dir, e.name))
+  : /\.ya?ml$/.test(e.name) ? [path.join(dir, e.name)] : []) : [];
+for (const file of factFiles(FACTS))
+  for (const e of loadYaml(file)) { declare(e.id, { kind: "f", tier: "pool", scope: file, e, file }); checkEntry("f", e, file, file); }
+
+// A fact file under design/ would be silently invisible, and its entries unresolvable, so it is
+// an error rather than a file nobody reads.
+for (const stray of factFiles(ROOT).filter((f) => /(^|\/)facts\.ya?ml$/.test(f))) add("fact file outside the pool", stray);
 
 const areas = fs.readdirSync(ROOT, { withFileTypes: true }).filter((d) => d.isDirectory());
 const designs = [];
@@ -128,7 +143,7 @@ function checkEntry(kind, e, scope, file) {
         else if (e.superseded_by === e.id) add("fact supersedes itself", tag);
       }
     }
-    checkSources(e, tag, e.backing, scope);
+    checkSources(e, tag, e.backing);
   }
 
   if (kind === "r") {
@@ -148,7 +163,7 @@ function checkEntry(kind, e, scope, file) {
   }
 }
 
-function checkSources(e, tag, backing, scope) { // rule 7
+function checkSources(e, tag, backing) { // rule 7
   const srcs = e.sources ?? [];
   if (!srcs.length) { add("fact without a source", tag); return; }
   for (const s of srcs) {
@@ -164,9 +179,6 @@ function checkSources(e, tag, backing, scope) { // rule 7
     }
     // an artifacts/ path is captured test output, so it backs only a tested fact
     if (hasUrl && backing !== "tested" && /(^|\/)artifacts\//.test(String(s.url))) add("artifact source on a non-tested fact", `${tag}: ${s.url}`);
-    // and only artifacts at the fact's own scope or wider — another design's are promoted, not reached across for
-    const owner = hasUrl && String(s.url).match(/^design\/(.*?)\/artifacts\//)?.[1];
-    if (owner && scope !== owner && !String(scope).startsWith(`${owner}/`)) add("artifact source outside the fact's scope", `${tag}: ${s.url}`);
   }
 }
 
@@ -225,8 +237,9 @@ for (const d of designs) {
     if (t.kind !== k) add("citation kind mismatch", `${tag} [[${k}:${id}]] is ${t.kind}`);
     if (isDead(t.e)) add("citation of dead entry", `${tag} [[${k}:${id}]] (${t.e.status})`); // rule 12
     if (k === "d" && t.scope !== d.scope) add("decision cited across designs", `${tag} [[d:${id}]] (${t.scope})`); // rule 13
-    if (t.tier === "design" && t.scope !== d.scope) add("cites another design's entry", `${tag} [[${k}:${id}]]`); // scope visibility
-    if (t.tier === "area" && t.scope !== d.area) add("cites another area's entry", `${tag} [[${k}:${id}]]`);
+    // a fact carries no obligation, so it resolves from anywhere; a requirement stays fenced by tier
+    if (k === "r" && t.tier === "design" && t.scope !== d.scope) add("cites another design's requirement", `${tag} [[${k}:${id}]]`);
+    if (k === "r" && t.tier === "area" && t.scope !== d.area) add("cites another area's requirement", `${tag} [[${k}:${id}]]`);
   }
 
   // settle gate (rule 14): a settle-eligible design cannot settle while a live requirement that
@@ -252,6 +265,7 @@ const ORDER = [
   "bad decision status", "bad force", "bad retire reason", "retired fact without reason",
   "superseded fact without superseded_by", "superseded_by unresolved", "fact supersedes itself",
   "decision without a falsifier", "requirement with sources", "rationale not a block scalar",
+  "fact file outside the pool",
   "sets.yaml is not a mapping of set name to design scopes", "set name not unique",
   "set without members", "set holds another set", "set member unresolved",
   "area set holds another area's design",
@@ -261,13 +275,14 @@ const ORDER = [
   "fact without a source", "source has both url and description", "source has no locator",
   "url without where", "in-repo url not repo-root-relative", "quote not a block scalar",
   "quote not verbatim at its source",
-  "artifact source on a non-tested fact", "artifact source outside the fact's scope",
+  "artifact source on a non-tested fact",
   "default stated explicitly", "empty questions block", "empty components block",
   "component missing id", "component missing responsibility", "component after unresolved",
   "question missing id", "question missing text", "question closes bad kind",
   "question gates non-local decision", "malformed citation token", "citation unresolved",
   "citation kind mismatch", "citation of dead entry", "citation of non-foundation kind",
-  "decision cited across designs", "cites another design's entry", "cites another area's entry",
+  "decision cited across designs", "cites another design's requirement",
+  "cites another area's requirement",
   "uncited at settle",
 ];
 for (const k of Object.keys(fail)) if (!ORDER.includes(k)) ORDER.push(k);

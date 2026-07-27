@@ -1,0 +1,27 @@
+- id: derived-implementer-view
+  statement: |
+    the artifact a spec's implementers build from is derived from the spec, not authored
+    separately: the spec.md itself with its inline citation tokens stripped, augmented by a
+    streamlined extraction of the decisions and requirements the spec is bound by. The spec's
+    prose is the primary source — it tells the builder what to build and how; the extraction is
+    a crib for the key commitments, and the facts and citation tokens are left out
+
+- id: bundle-is-fetched-by-name-and-version
+  statement: |
+    a builder outside this repository obtains a spec's bundle from the spec's name and a version,
+    or from the name alone to get the latest, without cloning this repository or knowing its
+    layout
+
+- id: published-bundle-versions-are-immutable
+  statement: |
+    a published bundle version's content never changes; a correction of any size is published as
+    a new version
+  rationale: |
+    Reversing this changes the build input under every consumer that pinned a version, without
+    their pin moving.
+
+- id: a-bundle-is-self-contained
+  statement: |
+    a builder handed one bundle needs nothing else to build the spec it covers: what that spec
+    relies on from an upstream design travels inside the bundle
+  force: soft
