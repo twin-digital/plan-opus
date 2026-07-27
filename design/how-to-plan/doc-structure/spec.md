@@ -166,16 +166,12 @@ A fact, a requirement, and a decision, as they sit in a `facts.yaml`, `requireme
 ```
 
 The `sets.yaml` that `set:nodejs:libraries` resolves through — this one file is a mapping of set
-name to the design scopes it holds, not a sequence. A design may belong to any number of sets:
+name to the design scopes it holds, not a sequence. A design may appear in any number of them:
 
 ```yaml
 nodejs:libraries:
   - minecraft/dev-kit
   - minecraft/test-lib
-
-minecraft:dev-tools:
-  - minecraft/dev-kit
-  - minecraft/dev-server
 ```
 
 A component block and an open-question block, in the form each takes inside a `spec.md` — the
@@ -250,10 +246,10 @@ said is exactly the ceremony this process cuts rather than keeps
 Where the tier is *not* the right answer, `applies_to` names the designs directly, or names a set.
 A set is declared once, in `design/sets.yaml`, mapping a name to the design scopes it holds
 [[r:binding-sets-are-declared-once]]. This is what a product is here: the designs that ship a
-Node.js library, or the tooling half of an area, listed by name rather than gathered into a
-directory. A set may hold designs from more than one area — the case a subtree cannot express — and
-a design belongs to as many sets as describe it, which is the other half: a grouping that overlaps
-a sibling is a set, never a directory. No set holds another, so membership is one lookup deep, and
+Node.js library, listed by name rather than gathered into a directory. A set may hold designs from
+more than one area — the case a subtree cannot express — and a design appears in as many sets as
+describe it, which is the other half: a grouping that overlaps a sibling is a set, never a
+directory. No set holds another, so membership is one lookup deep, and
 that is also the answer to how far the nesting goes: exactly one level, always. Every member
 resolves to a design that exists, and a name that does not is an error rather than a forward
 reference — a set is written after the designs it groups, because a typo and a plan read the same

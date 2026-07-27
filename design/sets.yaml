@@ -2,8 +2,7 @@
 # a product spanning several designs, or one whose members sit in more than one area.
 #
 # A set maps a name to design scopes (`<area>/<design>`). Sets do not nest, and a design may
-# belong to any number of them — dev-kit is in both sets below. A requirement names one as
-# `set:<name>` in its `applies_to`.
+# belong to any number of them. A requirement names one as `set:<name>` in its `applies_to`.
 #
 # Every member must resolve to a design that exists: a set is written after the designs it groups,
 # because a typo and a plan read the same on the page.
@@ -12,8 +11,3 @@
 nodejs:libraries:
   - minecraft/dev-kit
   - minecraft/test-lib
-
-# The tooling half of the minecraft area: what a pack author runs, not what ships to a player.
-minecraft:dev-tools:
-  - minecraft/dev-kit
-  - minecraft/dev-server
