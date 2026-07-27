@@ -86,6 +86,21 @@
     Two resolvers drift toward the worst pairing — a view that omits what the gate demands —
     and the author sees the disagreement only as a failure they cannot reproduce.
 
+- id: check-verifies-a-run-source
+  statement: |
+    the checker rejects a run source that resolves to no run or to a retired one, a run whose
+    output file is absent, a run source on a fact not backed `tested`, and a quote absent from
+    the output the run names
+  rationale: |
+    An unverified evidence link is indistinguishable from a correct one right up to the point
+    someone needs to re-run it.
+
+- id: check-counts-unconverted-tested-facts
+  statement: |
+    the checker reports how many tested facts are not yet sourced to a run
+  rationale: |
+    Migration debt nothing counts is migration debt nobody finishes.
+
 - id: check-identifies-blocks-by-section
   statement: |
     the checker identifies a spec.md's live component and open-question blocks by their

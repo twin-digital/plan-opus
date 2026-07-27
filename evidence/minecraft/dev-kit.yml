@@ -1,0 +1,48 @@
+# Runs backing facts about pack detection and workspace enumeration.
+#
+# A run records one execution and the output it captured. It makes no claim: the output says what
+# happened, the fact that cites it says what that means. `ran_at` is the date the captured output
+# was committed — these runs predate the field, and no record of the execution date survives.
+
+- id: pack-detection-probe
+  command: node design/minecraft/dev-kit/artifacts/pack-detection/detect-probe.mjs
+  output: design/minecraft/dev-kit/artifacts/pack-detection/OUTPUT.txt
+  ran_by: the author of minecraft/dev-kit
+  ran_at: 2026-07-25
+  environment: |
+    Scored against /workspace/opus at archive/minecraft-prototype (4e731f5b), a 41-package
+    workspace holding two behavior packs. Packages are read through git, so the probe needs no
+    checkout and no build; one pass reads dist/ on disk for the built-output rule.
+
+- id: registry-probe
+  command: node design/minecraft/dev-kit/artifacts/registry-probe/probe.mjs
+  output: design/minecraft/dev-kit/artifacts/registry-probe/OUTPUT.txt
+  ran_by: the author of minecraft/dev-kit
+  ran_at: 2026-07-27
+
+- id: workspace-enumeration-probe
+  command: node design/minecraft/dev-kit/artifacts/workspace-enumeration-probe/probe.mjs
+  output: design/minecraft/dev-kit/artifacts/workspace-enumeration-probe/OUTPUT.txt
+  ran_by: the author of minecraft/dev-kit
+  ran_at: 2026-07-27
+  environment: |
+    Two uninstalled fixture workspaces under fixtures/, one npm and one pnpm, enumerated through
+    @npmcli/map-workspaces and @pnpm/workspace.find-packages.
+
+- id: workspace-member-fault-probe
+  command: node design/minecraft/dev-kit/artifacts/workspace-member-fault-probe/probe.mjs
+  output: design/minecraft/dev-kit/artifacts/workspace-member-fault-probe/OUTPUT.txt
+  ran_by: the author of minecraft/dev-kit
+  ran_at: 2026-07-27
+  environment: |
+    Fixture workspaces under fixtures/ carrying a malformed member manifest and a missing one,
+    enumerated through @npmcli/map-workspaces 6.0.0 and @pnpm/workspace.find-packages 1000.0.65.
+
+- id: workspace-root-candidate-probe
+  command: node design/minecraft/dev-kit/artifacts/workspace-root-candidate-probe/probe.mjs
+  output: design/minecraft/dev-kit/artifacts/workspace-root-candidate-probe/OUTPUT.txt
+  ran_by: the author of minecraft/dev-kit
+  ran_at: 2026-07-27
+  environment: |
+    Fixture roots under fixtures/ with no workspaces array, an empty one, and a populated one,
+    plus a pnpm root with no packages field.

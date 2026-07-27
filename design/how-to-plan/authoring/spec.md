@@ -90,7 +90,8 @@ paraphrase, and is the harder failure to see [[r:quote-carries-the-claim]]. A `t
 the parallel question of whose test it was: an entry that does not say reads as the author's own
 work, and the guarantee that whoever wrote the fact can re-run its evidence decays into a file
 existing somewhere. So a test the author did not run is disclosed as such in the source, named to
-whoever ran it and to where its artifacts sit [[r:tested-facts-disclose-whose-test]]. Nothing more
+whoever ran it and to where its artifacts sit [[r:tested-facts-disclose-whose-test]] — and where
+the source is a run, the run carries that disclosure once for every fact that reaches it. Nothing more
 is asked of it: an artifacts directory is re-runnable from wherever it already stands.
 
 Two tests run before any of those. The first is where the fact goes: the pool takes any file at

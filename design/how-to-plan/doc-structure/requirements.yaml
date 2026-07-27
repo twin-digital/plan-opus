@@ -361,8 +361,54 @@
     three scopes one design can see
 
 - id: facts-require-a-source
+  status: retired
   statement: every fact carries at least one source, and each source uses exactly one
     locator form — a mechanism description, or a URL with section and quote
+
+- id: fact-sources-take-one-locator
+  statement: |
+    every fact carries at least one source, and each source uses exactly one locator: a `url` to
+    an upstream document with `where` and a verbatim `quote`, a `run` naming captured output held
+    here with the same `where` and `quote`, or a `description` of the mechanism
+  rationale: |
+    Allow two locators on one source and nothing says which the claim rests on, so neither can be
+    checked against it.
+
+- id: run-structure
+  statement: |
+    Runs MUST carry:
+
+      - a stable, kebab-case `id`
+      - a `command` that reproduces the run
+      - an `output`, a repo-relative path to the captured output
+      - `ran_by`, naming who ran it
+      - `ran_at`, the date it was run, as YYYY-MM-DD
+
+    and MAY carry:
+
+      - an `environment`: the versions, fixtures, or state the observation depends on
+      - a `status` of `active` | `retired` (default `active`); a retired run adds a `reason` of
+        `superseded` | `stale` | `invalid`, and a superseded one names its replacement in
+        `superseded_by`
+  rationale: |
+    Field names are the format's public interface. A run carries no claim: the output says what
+    happened and the fact citing it says what that means.
+
+- id: runs-live-in-one-pool
+  statement: |
+    every run lives under evidence/, where any YAML file at any depth is a run file. A run is not
+    a foundation, no claim may cite one, and its id is unique across the repository like any other
+  rationale: |
+    A run a claim could cite directly would let a spec rest on raw output with the interpretation
+    step skipped, which is the reading the fact exists to carry.
+
+- id: one-run-is-one-captured-output
+  statement: |
+    a run records one execution and the output it captured; a directory holding several probes
+    yields several runs
+  rationale: |
+    Let one entry stand for a directory and its provenance describes whichever probe inside it
+    the reader guesses at.
 
 - id: repo-relative-source-paths
   statement: a source URL that points inside this repository is written relative to the

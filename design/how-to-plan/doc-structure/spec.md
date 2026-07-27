@@ -43,6 +43,10 @@ facts/                           the fact pool — any yaml, any depth
 └── minecraft/
     └── pack-format.yml
 
+evidence/                        the run pool — the same shape
+└── minecraft/
+    └── dev-kit.yml
+
 design/
 ├── requirements.yaml            global-scope requirements
 ├── sets.yaml                    sets that may span areas
@@ -90,6 +94,29 @@ Components and open questions live in the document and are never cited [[r:found
 Keeping every citable kind in a file is what makes every citation resolve the same way — to one
 entry in one file — and keeps a citation meaning "this rests on something settled."
 
+## Evidence is not a foundation
+
+A `tested` fact rests on something that was run, and that run is an entry of its own, living in a
+pool under `evidence/` shaped exactly like the fact pool [[r:runs-live-in-one-pool]]. The reason it
+is an entry rather than a path is that evidence behaves like an entity and not like a file: one run
+routinely backs several facts, it is produced once and referenced many times, it has provenance
+worth pinning, and it can be superseded by a re-run that disagrees. A path in a source expresses
+none of that, and a path written into a sentence expresses less.
+
+What a run is not is citable. Only facts, requirements, and decisions may carry a claim
+[[r:foundations-are-the-citable-kinds]], and a spec pointing straight at captured output would be
+resting on bytes with the interpretation step skipped — the step the fact exists to perform. So a
+run is reached only through a fact's `sources`, never through a `[[…]]` token, and its id joins the
+same repo-wide namespace so that reach resolves the same way a citation does.
+
+This is also what lets `ran_by` be said once. Who ran a test is a property of the run, not of each
+fact that leans on it, and the same holds for when and against what.
+
+A `tested` fact may reach a run and is not yet required to, while the facts written before the kind
+existed are converted [[d:run-sources-are-permitted-before-required]]. Until that finishes the
+format carries two ways of pointing at the same output, and the checker reports how many facts are
+still on the older one.
+
 ## Entry shapes
 
 Every field name and enum value below is the format's public interface; the shapes are shown as they
@@ -102,9 +129,10 @@ when it takes that default, so a document carries only what departs from the nor
 
 **Fact** [[r:fact-structure]]. Required: `id`; `claim`, stating the fact; `backing`, exactly one of
 `tested` | `documented` | `assumed`, the three not equal in weight; and `sources`, at least one.
-Each source takes exactly one locator form — either a `description` of the mechanism the fact was
-established by, or a `url` that also carries `where` (a pointer to the relevant section) and a
-verbatim `quote` [[r:facts-require-a-source]]. A `url` pointing inside this repository is written
+Each source takes exactly one locator form: a `description` of the mechanism the fact was
+established by, a `url` to an upstream document, or a `run` naming captured output held here. A
+`url` and a `run` each carry `where` (a pointer to the relevant section) and a verbatim `quote`
+[[r:fact-sources-take-one-locator]]. A `url` pointing inside this repository is written
 relative to the repo root, not to the file holding it [[r:repo-relative-source-paths]], and a
 `quote` is always a block scalar even when one line [[r:quote-is-block-scalar]]. A `url` under an
 `artifacts/` directory is admissible only on a `tested` fact, where it names output a test actually
@@ -126,6 +154,15 @@ A requirement carries no `sources`. A design that departs from a soft requiremen
 not amend it or annotate it with an exception; it records the departure as a decision that cites the
 requirement, since bending a soft requirement is a choice with a reason and a falsifier — a decision
 in every respect [[r:soft-departures-are-decisions]].
+
+**Run** [[r:run-structure]]. Required: `id`; a `command` that reproduces it; an `output`, the
+repo-relative path to what it captured; `ran_by`, naming who ran it; and `ran_at`, the date, as
+`YYYY-MM-DD`. Optional: an `environment` — the versions, fixtures, or state the observation
+depends on — and a `status` of `active` | `retired` (default `active`), a retired run adding a
+`reason` of `superseded` | `stale` | `invalid` and, when superseded, a `superseded_by`. A run
+carries no claim of its own: the output says what happened, and the fact citing it says what that
+means. One run is one captured output, so a directory holding several probes yields several runs
+[[r:one-run-is-one-captured-output]].
 
 **Decision** [[r:decision-structure]]. Required: `id`; a single-line `statement` naming what was
 chosen — not why, not what it entails; `falsifiers`, at least one condition that would invalidate or
@@ -180,6 +217,24 @@ a `decisions.yaml` — each file a bare sequence:
   status: proposed
   falsifiers:
     - a foundation file grows a need for file-level metadata beside its entries
+```
+
+A run, as it sits in a file under `evidence/`, and the source that reaches it:
+
+```yaml
+- id: registry-probe
+  command: node design/minecraft/dev-kit/artifacts/registry-probe/probe.mjs
+  output: design/minecraft/dev-kit/artifacts/registry-probe/OUTPUT.txt
+  ran_by: the author of minecraft/dev-kit
+  ran_at: 2026-07-27
+```
+
+```yaml
+  sources:
+    - run: registry-probe
+      where: both entries — registry status, latest version, and repository of each package
+      quote: |
+        …the verbatim span from that output…
 ```
 
 The `sets.yaml` that `set:nodejs:libraries` resolves through — a mapping of set name to the design
@@ -343,7 +398,9 @@ Mechanically enforced, entry by entry: every id is kebab-case and unique per kin
 carries `id`, `claim`, and a `backing` in the enum, plus at least one source in exactly one locator
 form, a `url` never carrying a `description`, a `url` always carrying `where`, an in-repo `url`
 written repo-relative, an `artifacts/` url only on a `tested` fact, and every `quote` a block
-scalar; a requirement carries `id` and `statement`,
+scalar; a `run` source resolves to a live run, carries `where`, sits only on a `tested` fact, and
+its quote appears in the output that run names; a run carries `id`, `command`, an `output` that
+exists, `ran_by`, and a `ran_at` that is a date, plus a valid `reason` when retired; a requirement carries `id` and `statement`,
 a `force` and `status` in their enums, and no `sources`, and carries `applies_to` only above design
 scope, its every item resolving to a design that exists or a set that is declared and lying within
 the requirement's own tier; every set has a name unique across the repository and at least one
