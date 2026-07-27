@@ -14,6 +14,24 @@ exhaustiveness: whatever the kit finds must appear in the list, so a fault becom
 rather than a thrown error, and every part of the pipeline is written to keep going and record what
 went wrong.
 
+## Open questions
+
+```yaml
+questions:
+  - id: is-an-unnamed-owning-package-a-reported-detail
+    question: |
+      `r:pack-record-details` lists the owning package among the details available for every
+      discovered pack, but the spec leaves `packageName` absent for a pack whose owning
+      `package.json` could not be read or parsed, and for one that parses while declaring no `name` —
+      the ordinary shape of a private root package. There is a reading under which nothing conflicts:
+      `packageDir` is present on every entry, so the owning package is always identified even where
+      it cannot be named, and the requirement's exception list would need no change. Whether that
+      reading holds, or the requirement has to say that a pack's owning package may be identified by
+      directory alone, is the owner's call.
+    closes: requirement
+    gates: [a-package-fault-invalidates-only-its-own-packs, a-pack-outside-any-workspace-package-is-reported-invalid]
+```
+
 ## What the consumer gets
 
 The kit ships as an ESM TypeScript library named `@twin-digital/mc-dev-kit`
