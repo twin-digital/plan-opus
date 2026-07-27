@@ -484,6 +484,11 @@
 # decision-gating questions; whether the fake should match the engine is the residual decision.
 
 - id: effect-replacement-rule-observed
+  caveat: |
+    The duration basis this fact records as undiscriminated is discriminated now: the comparison is
+    against the duration remaining, per effect-replacement-compares-remaining-duration. The
+    amplifier-first rule and the equal-duration readings here are unaffected — that fact refines
+    what "longer" means, and a reader wanting the basis takes it from there.
   claim: |
     addEffect on an already-present effect replaces it iff the re-add has a higher amplifier,
     or the same amplifier and a longer duration; a lower amplifier never replaces regardless of
@@ -859,6 +864,71 @@
         name=InvalidEntityError. Read with the file's "Reading the log" section, which records
         argMethods=0 — the probe's partition failed to separate argument-taking methods, so
         every method was invoked bare, which is what exposed the ordering.
+
+- id: invalidation-guard-covers-argument-taking-methods
+  claim: |
+    Called with correct arguments on a removed entity, every one of the 27 `Entity` methods the
+    reflective sweep could not reach — the ones a bare call answered with a `TypeError` on arity —
+    throws `InvalidEntityError`: `probed=27/27`, `GUARD-OBSERVED count=27` and
+    `no method returned on a removed entity` in 3/3 runs, with an identical method list each time.
+    Each method was probed against a live control taking the same arguments, so an absent guard is
+    told apart from arguments the engine rejected; the `GUARD-ABSENT`,
+    `GUARD-UNOBSERVED-ARGS-REJECTED` and `GUARD-UNOBSERVED-OTHER-ERROR` verdicts appear in no run.
+    With the sweep's 19 zero-argument methods and 12 throwing properties, all 46 methods and all
+    16 properties of `Entity` are now accounted for: the guard is universal across the member
+    surface, save the four properties that stay readable.
+  backing: tested
+  sources:
+    - description: |
+        The guard-and-effect probe pack drives a real Bedrock dedicated server (1.26.31.1,
+        @minecraft/server 2.8.0), removing a subject entity and then calling each of the 27
+        arity-blocked methods with correct arguments, alongside a live control given the same
+        arguments. Three runs, byte-identical summary lines. This probe was run by the design's
+        owner, not by this fact's author; its captured output is
+        design/minecraft/test-lib/artifacts/mctest-guard-and-effect-probe-results.md and the pack
+        itself is design/minecraft/test-lib/artifacts/guard-and-effect-probe-pack.
+    - url: design/minecraft/test-lib/artifacts/mctest-guard-and-effect-probe-results.md
+      where: Raw logs — mctest3:guards, Guards run 1, the SUMMARY lines
+      quote: |
+        [2026-07-27 12:42:15.391] [mctest] guard-with-correct-arity :: SUMMARY probed=27/27
+        [2026-07-27 12:42:15.391] [mctest] guard-with-correct-arity :: SUMMARY GUARD-OBSERVED count=27 methods=[addEffect, addItem, addTag, applyDamage, applyImpulse, applyKnockback, getComponent, getDynamicProperty, getEffect, getProperty, hasComponent, hasTag, lookAt, matches, playAnimation, removeEffect, removeTag, resetProperty, runCommand, setDynamicProperties, setDynamicProperty, setOnFire, setProperty, setRotation, teleport, triggerEvent, tryTeleport]
+        [2026-07-27 12:42:15.391] [mctest] guard-with-correct-arity :: SUMMARY no method returned on a removed entity
+
+- id: effect-replacement-compares-remaining-duration
+  claim: |
+    The duration half of the replacement rule compares against the duration *remaining*, not the
+    duration originally applied. Over a base of amplifier 1 / duration 400 decayed 150 ticks to 250
+    remaining, a re-add at duration 320 — longer than the 250 remaining, shorter than the 400
+    applied — replaces and reads back exactly 320, at equal amplifier and at higher amplifier, in
+    3/3 runs. Duration decays one per tick (`decayPerTick=1` in all 11 cases of all 3 runs).
+
+    The reading rests on those six equal-amplifier and higher-amplifier cases only. The three
+    lower-amplifier cases in the same runs carry a probe-emitted `verdict=ORIGINAL-APPLIED-BASIS`
+    label that is not evidence about the basis: a lower amplifier never replaces whatever the
+    duration, so the amplifier rule rejects the re-add before any duration comparison happens, and
+    those rows are equally consistent with either basis. The two `verdict=anchor` cases read
+    `strictly-between-remaining-and-applied=false` by construction — they are the 200 and 500
+    controls placed deliberately outside the discriminating band.
+  backing: tested
+  sources:
+    - description: |
+        The guard-and-effect probe pack drives a real Bedrock dedicated server (1.26.31.1,
+        @minecraft/server 2.8.0): it applies amplifier 1 / duration 400, waits 150 ticks, re-applies
+        duration 320 at a lower, equal and higher amplifier, and reads the effect back, with 200 and
+        500 re-applications as anchors. Duration 320 lies strictly between the remaining 250 and the
+        applied 400, so the two candidate rules predict different read-backs. Three runs, identical
+        case for case. This probe was run by the design's owner, not by this fact's author; its
+        captured output is
+        design/minecraft/test-lib/artifacts/mctest-guard-and-effect-probe-results.md and the pack
+        itself is design/minecraft/test-lib/artifacts/guard-and-effect-probe-pack.
+    - url: design/minecraft/test-lib/artifacts/mctest-guard-and-effect-probe-results.md
+      where: Raw logs — mctest3:effects, Effects run 1, the equal-amp/between #1 case
+      quote: |
+        [2026-07-27 12:45:34.346] [mctest] effect-duration-basis :: [equal-amp/between #1] applied(amp1,dur400) waited=150ticks remaining=250 remainingAmp=1 decayPerTick=1 reapply(amp1,dur320) strictly-between-remaining-and-applied=true -> readback(amp1,dur320) matches=the-reapplied-value verdict=REMAINING-BASIS (the re-add was treated as longer, so the comparison is against the duration remaining)
+    - url: design/minecraft/test-lib/artifacts/mctest-guard-and-effect-probe-results.md
+      where: Raw logs — mctest3:effects, Effects run 1, the higher-amp/between #1 case
+      quote: |
+        [2026-07-27 12:45:57.441] [mctest] effect-duration-basis :: [higher-amp/between #1] applied(amp1,dur400) waited=150ticks remaining=250 remainingAmp=1 decayPerTick=1 reapply(amp2,dur320) strictly-between-remaining-and-applied=true -> readback(amp2,dur320) matches=the-reapplied-value verdict=REMAINING-BASIS (the re-add was treated as longer, so the comparison is against the duration remaining)
 
 # Retired: superseded by the deep-run measurements. Kept for the record.
 

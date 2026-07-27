@@ -19,17 +19,6 @@ One constraint shapes everything below: the library never replaces or intercepts
 A fake reaches the code under test only as an object the test passes in, so both what the package
 exports and how far it can reach are bounded by what a pack is willing to be handed.
 
-## Open questions
-
-```yaml
-questions:
-  - id: effect-duration-comparison-basis
-    question: >-
-      when addEffect re-adds an effect at the same amplifier, does the engine compare the new
-      duration against the duration originally applied or against the duration remaining?
-    closes: fact
-```
-
 ## The package and how a test reaches a fake
 
 The package is `@twin-digital/minecraft-test-lib`: TypeScript sources published as an ESM-only
@@ -307,7 +296,11 @@ prose [[f:addeffect-returns-the-effect]]. With no amplifier option the effect ca
 Re-adding an effect already present replaces it when the new amplifier is higher, or when the
 amplifier is equal and the new duration is longer or equal; a lower amplifier never replaces
 whatever the duration, and an equal amplifier with a shorter duration does not
-[[f:effect-replacement-rule-observed]].
+[[f:effect-replacement-rule-observed]]. The engine compares against the duration *remaining*, which
+decays one per tick [[f:effect-replacement-compares-remaining-duration]]. The fake compares against
+the duration the effect carries, and that duration never decays
+[[d:effect-durations-do-not-decay]] — so the two bases coincide here, and the comparison is written
+against the stored duration with nothing to subtract.
 
 A fake effect's duration is the number applied and stays that number until the effect is removed:
 advancing ticks does not decay it and never expires an effect
@@ -405,8 +398,12 @@ prototype, not from the declarations' `@throws` annotations, which under-report 
 `isSneaking` carry no annotation and throw anyway [[f:invalidation-guard-list-complete]]
 [[d:guard-list-comes-from-the-observation]]. On an invalidated entity exactly four properties stay
 readable — `id`, `isValid` (false), `typeId`, and `scoreboardIdentity` (`undefined`) — and every
-other member throws `InvalidEntityError`. The engine checks argument count before its validity
-guard, so a wrong-arity call on a removed entity raises a `TypeError` first
+other member throws `InvalidEntityError`. That covers the whole member surface as observed, not a
+generalization past it: the sweep reached 12 throwing properties and 19 zero-argument methods, and
+the remaining 27 methods, called with correct arguments on a removed entity, throw
+`InvalidEntityError` too — all 16 properties and all 46 methods accounted for
+[[f:invalidation-guard-covers-argument-taking-methods]]. The engine checks argument count before its
+validity guard, so a wrong-arity call on a removed entity raises a `TypeError` first
 [[f:arity-checked-before-validity-guard]]; the fake does not reproduce that ordering and throws
 `InvalidEntityError` regardless of how a guarded member was called.
 
@@ -437,7 +434,7 @@ These are the library's own simplifications, not the engine's behaviour:
 
 - After-events dispatch synchronously rather than same-tick-deferred.
 - Construction populates nothing, where a real entity always arrives with components.
-- Effect durations do not decay and effects never expire.
+- Effect durations do not decay and effects never expire, where the engine decays one per tick.
 - Entities never move on their own and land exactly where they are placed.
 - Projectile-form damage is the amount requested.
 - `remove()` raises `entityRemove` alone.

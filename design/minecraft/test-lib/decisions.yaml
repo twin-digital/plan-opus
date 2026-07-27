@@ -40,15 +40,15 @@
 
 - id: guard-list-comes-from-the-observation
   statement: |
-    the invalidation guard list is a per-member table transcribed from the reflective engine sweep,
-    not derived from the declarations' @throws annotations
+    the invalidation guard list is a per-member table transcribed from the reflective engine sweep
+    and its correct-arity follow-up, not derived from the declarations' @throws annotations
   status: proposed
   falsifiers:
-    - the 27 methods the sweep could not reach — a TypeError on arity fired before the validity
-      guard — are re-probed with correct arguments and some prove unguarded, so the table's blanket
-      "every other member throws" covers members the observation never showed throwing
+    - the annotations come to name InvalidEntityError on every guarded member, nameTag and
+      isSneaking included, so derivation becomes mechanical and tracks a version bump for free
+      where a transcribed table needs a server run to refresh
     - guard behaviour is observed to differ between entity types, so one per-member table
-      transcribed from a sheep-and-armor-stand sweep cannot describe the engine at all
+      transcribed from runs against sheep, cow and armor stand cannot describe the engine at all
 
 - id: library-declares-its-error-classes
   statement: |
