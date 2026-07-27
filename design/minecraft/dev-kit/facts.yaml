@@ -117,7 +117,7 @@
   claim: |
     npm and pnpm each publish their own workspace-enumeration implementation to the public npm
     registry — `@npmcli/map-workspaces`, from github.com/npm/map-workspaces, and
-    `@pnpm/workspace.find-packages` with `@pnpm/workspace.read-manifest`, from github.com/pnpm/pnpm.
+    `@pnpm/workspace.find-packages`, from github.com/pnpm/pnpm.
     Each enumerates a workspace in-process from its checked-out definition alone: with no
     `node_modules`, no lockfile, and without invoking the manager's own binary, both return the
     workspace's member packages and the directory of each. pnpm's finder takes the `packages`
@@ -128,9 +128,7 @@
     Both `npm` and `pnpm` were on PATH when the probe ran, so the capture shows the libraries not
     being handed the binary rather than the libraries working while it is absent — non-invocation is
     read off the committed probe script, not observed against a machine without the manager. The
-    enumeration results and the uninstalled fixture state are directly observed. The registry capture
-    covers `@npmcli/map-workspaces` and `@pnpm/workspace.find-packages` only; the claim also names
-    `@pnpm/workspace.read-manifest`, whose registry status no output here records. And what the
+    enumeration results and the uninstalled fixture state are directly observed. And what the
     registry entries carry is that each package is published from the manager's own repository, not
     that either manager's CLI consumes the published package.
   sources:

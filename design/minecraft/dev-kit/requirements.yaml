@@ -20,8 +20,8 @@
     An entry is `valid` or `invalid`, and a consumer reads that status before anything else. A
     valid entry carries every detail `r:pack-record-details` requires, with nothing absent or in
     doubt. An invalid entry carries the structured problems that invalidated it, alongside every
-    detail that does not come from the manifest — so a consumer can always name and locate a pack
-    it cannot use.
+    detail that does not come from the manifest and that its sources hold — so a consumer can always
+    name and locate a pack it cannot use.
 
 - id: packs-enumerable-without-a-build
   statement: |
@@ -108,19 +108,11 @@
       - an empty string
       - the string '0.0.0'
       - the array value `[0, 0, 0]` (not valid if manifest `format_version` is 3)
-      
-    The array form is not valid when manifest `format_version` is 3, and will result in an error
-    instead for that version.
-
-    A specified version is written as a `[major, minor, revision]` array or as a SemVer string, and
-    both forms are accepted at every manifest format version but one: at `format_version` 3 a
-    version must be the string. A source manifest carrying a specified array version at
-    `format_version` 3 is an error; no other format version restricts the form.
 
     A version is written as a `[major, minor, revision]` array or as a SemVer string, and both forms
     are accepted at every manifest format version but one: at `format_version` 3 a version must be
-    the string. A source manifest carrying an array version at `format_version` 3 is an error; no
-    other format version restricts the form, so both placeholder spellings are legal there.
+    the string. A source manifest carrying an array version at `format_version` 3 is an error,
+    placeholder or not; no other format version restricts the form.
 
     Whenever this component provides manifest details for a pack, it populates missing fields
     as follows:
@@ -178,10 +170,10 @@
 
 - id: unresolvable-packs-fail-loudly
   statement: |
-    a pack the kit cannot resolve — a manifest that cannot be parsed, a missing identity, a
-    manifest dependency on another pack that the set does not satisfy, invalid or
-    missing manifest completion data — is returned as an `invalid` entry carrying its structured
-    problems, per `r:pack-discovery`. A dependency naming a built-in scripting module is not a
-    missing pack. Such packs are never omitted silently: every discovered pack appears in the list,
-    valid or not.
+    a pack the kit cannot resolve is returned as an `invalid` entry, per `r:pack-discovery`. A pack
+    is unresolvable when its manifest cannot be parsed, when its identity is missing, when its
+    manifest completion data is invalid or missing, or when it carries a manifest dependency the set
+    does not satisfy — a dependency naming no pack in the set, or one naming a pack that is itself
+    invalid, so invalidity propagates along dependency edges. A dependency naming a built-in
+    scripting module is not a missing pack.
 
