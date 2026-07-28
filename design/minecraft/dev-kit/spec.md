@@ -249,15 +249,17 @@ Both libraries list an uninstalled workspace from its checked-out definition alo
   from `@pnpm/workspace.find-packages`. The projects it returns are the candidates, the root package
   among them; a `pnpm-workspace.yaml` carrying no `packages` field forwards no patterns, which
   leaves the library on its own defaults and yields the root plus every nested package in the tree
-  [[f:enumeration-without-patterns-defaults-under-pnpm-and-returns-nothing-under-npm]]. Forwarding
-  unread is what the kit does here too: it passes the absent field on rather than substituting a
-  pattern of its own, so the sweep is the library's answer to a workspace defined that loosely.
+  outside `node_modules`
+  [[f:enumeration-sweeps-the-tree-outside-node-modules-under-pnpm-and-returns-nothing-under-npm]].
+  Forwarding unread is what the kit does here too: it passes the absent field on rather than
+  substituting a pattern of its own, so the sweep is the library's answer to a workspace defined
+  that loosely.
 - **npm** — anything else. The kit parses the root `package.json` and hands it to
   `mapWorkspaces({ cwd: workspaceRoot, pkg })` from `@npmcli/map-workspaces`, whose returned
   name-to-directory map is the members. That map never carries the root package itself, and a root
   declaring no `workspaces` array — or an empty one — comes back empty rather than throwing, even
   where the tree holds a package a conventional pattern would match
-  [[f:enumeration-without-patterns-defaults-under-pnpm-and-returns-nothing-under-npm]], so
+  [[f:enumeration-sweeps-the-tree-outside-node-modules-under-pnpm-and-returns-nothing-under-npm]], so
   the kit adds the root package as a candidate of its own [[r:the-root-package-is-a-candidate]] and a single non-monorepo
   package still resolves its own packs.
 
@@ -265,7 +267,13 @@ The candidate set is what the library returned plus, under npm, the root, dedupl
 workspace-relative path so a directory reached twice yields one candidate and a pack under it is
 never reported twice. Pattern dialects, exclusion ordering, and the exclusion of anything under a
 `node_modules` path all belong to the libraries: the kit implements none of them and reads no
-pattern of its own — under pnpm it does not even inspect the list it forwards.
+pattern of its own — under pnpm it does not even inspect the list it forwards. The `node_modules`
+exclusion holds on every path enumeration takes: neither library returns a package under such a
+path, whether it is handed a pattern broad enough to reach one, pnpm's own defaults where no
+`packages` field forwards a pattern at all, or npm's
+[[f:enumeration-sweeps-the-tree-outside-node-modules-under-pnpm-and-returns-nothing-under-npm]]. So
+an installed workspace yields the same candidate set as the uninstalled one, and an installed
+dependency's own `package.json` cannot trigger the whole-call rejection below.
 
 Every candidate arrives with its `package.json` already parsed, because parsing it is how the
 libraries enumerate at all: `findWorkspacePackages` returns each project's manifest with it, and the
