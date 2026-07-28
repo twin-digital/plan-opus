@@ -1,0 +1,94 @@
+# The opus monorepo's own mechanisms — how a package there is configured, built, versioned, and
+# released. These are reality any design shipping into that monorepo has to fit, not decisions any
+# design here makes. Sources are pinned to a commit so a quote cannot drift out from under its url.
+
+- id: opus-package-config-is-generated-from-one-root-file
+  claim: |
+    In the opus monorepo a package's shared configuration is not written in the package. It is
+    generated and synced by `@twin-digital/repo-kit` from a single root `.repo-kit.yml` —
+    `eslint.config.js`, `tsconfig*.json`, `package.json` scripts, engines and devDependencies,
+    `.nvmrc`, and `tsdown.config.ts` among the files it owns. A generated file edited in place is
+    overwritten on the next sync, so a package's copy is never the source of truth, and a
+    per-package exception is declared in the root file rather than in the package.
+  backing: documented
+  sources:
+    - url: https://github.com/twin-digital/opus/blob/a3ff0e1a0805202fd24663a8990dcaaa6a9c22a0/CLAUDE.md
+      where: Config is repo-kit–managed — do not hand-edit generated files
+      quote: |
+        Per-package config is **generated/synced** by `@twin-digital/repo-kit` from the root
+        **`.repo-kit.yml`**: `eslint.config.js`, `tsconfig*.json`, `package.json`
+        scripts/engines/devDependencies, `.nvmrc`, `tsdown.config.ts`, and the README package list.
+        These are not the source of truth.
+    - url: https://github.com/twin-digital/opus/blob/a3ff0e1a0805202fd24663a8990dcaaa6a9c22a0/CLAUDE.md
+      where: Config is repo-kit–managed — the sync behaviour and the opt-out
+      quote: |
+        Editing a generated file directly will be overwritten on the next sync. Per-package opt-outs
+        live in `.repo-kit.yml` under `packages.<name>.rules`.
+
+- id: opus-bundler-config-merges-partial-fragments
+  claim: |
+    A package's bundler configuration in the opus monorepo is composed, not written: a shared base
+    plus per-package fragments, where each `*.ts` file in a `tsdown.config.d/` directory beside the
+    package's `tsdown.config.ts` default-exports a partial config. Fragments are applied in filename
+    order and shallow-merged over the base, so a top-level key a fragment sets replaces the base's
+    wholesale and a fragment overriding a nested key must restate what it still needs. Shared build
+    behaviour therefore reaches a package as a value its config merges, never as a command the
+    package runs.
+  backing: documented
+  sources:
+    - url: https://github.com/twin-digital/opus/blob/a3ff0e1a0805202fd24663a8990dcaaa6a9c22a0/nodejs/devtools/tsdown-config/src/index.ts
+      where: defineBundleConfig — the doc comment describing how overrides compose
+      quote: |
+        Overrides live next to the calling `tsdown.config.ts` in a `tsdown.config.d/`
+        directory: each `*.ts` file default-exports a partial config, applied in
+        filename order and **shallow-merged** over the base (a top-level key replaces
+        the base's wholesale — so if you override a nested key like `inputOptions`,
+        re-include what you still need from the base).
+
+- id: opus-release-assets-come-from-a-per-package-script
+  claim: |
+    A package in the opus monorepo puts files on its GitHub release by declaring a `release-assets`
+    script that writes them into a `.release-assets/` directory in the package. Continuous
+    integration runs that script for each published package and uploads what it finds, and a package
+    declaring no such script gets no release assets at all. Only the top-level regular files are
+    uploaded, so an asset is a flat file and a directory of them is not. An artifact therefore
+    reaches a release only through a hook the package itself declares.
+  backing: documented
+  sources:
+    - url: https://github.com/twin-digital/opus/blob/a3ff0e1a0805202fd24663a8990dcaaa6a9c22a0/docs/CICD.md
+      where: Release assets — how a package declares them
+      quote: |
+        A package publishes files to its GitHub release by defining a **`release-assets`** script that
+        writes them into a `.release-assets/` directory in the package (creating it; the directory is
+        gitignored). The script takes no arguments, and packages that don't define one simply get no
+        GitHub-hosted assets.
+    - url: https://github.com/twin-digital/opus/blob/a3ff0e1a0805202fd24663a8990dcaaa6a9c22a0/docs/CICD.md
+      where: Release assets — what is uploaded
+      quote: |
+        A release asset is a flat file, so only the **top-level regular files** in `.release-assets/` are
+        uploaded — subdirectories are ignored.
+
+- id: opus-package-versions-are-written-by-changesets
+  claim: |
+    A package's version in the opus monorepo is written by the changesets release process, not by
+    hand and not by a build: a change declares its affected packages and bump type, and a publish
+    workflow opens and merges a "Version Packages" pull request that applies the bumps and
+    publishes. Private and unpublished packages are versioned and tagged the same way. So a
+    package's `package.json` version is the one record of what version it is, and nothing else may
+    write it.
+  backing: documented
+  sources:
+    - url: https://github.com/twin-digital/opus/blob/a3ff0e1a0805202fd24663a8990dcaaa6a9c22a0/CLAUDE.md
+      where: Deployment & CI/CD — Versioning/publishing
+      quote: |
+        **Versioning/publishing** uses **changesets**. A changeset is **required for every change to
+        project code** — any edit under a package's `src/` (or that otherwise affects a published
+        package) must include a changeset (`pnpm exec changeset`) selecting the affected packages and
+        bump type.
+    - url: https://github.com/twin-digital/opus/blob/a3ff0e1a0805202fd24663a8990dcaaa6a9c22a0/CLAUDE.md
+      where: Deployment & CI/CD — private packages and the publish workflow
+      quote: |
+        the changeset config sets `privatePackages.version: true`, so private packages are versioned
+        and tagged too — a dependency bump or shared-config change that touches them belongs in the
+        changeset just like a published library. The publish workflow opens/merges the "Version
+        Packages" PR and publishes.
