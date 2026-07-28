@@ -7,7 +7,7 @@
     a spec states everything a builder needs to build the thing correctly and nothing else —
     a why is included only where its absence would cause a wrong build, not to justify a choice
     to a reviewer
-  status: proposed
+  status: accepted
   falsifiers:
     - builders routinely produce the wrong artifact at a point the spec left unexplained, showing
       the trimmed why was needed rather than surplus
@@ -19,7 +19,7 @@
     a falsifier counts as real only when it names a concrete condition that could actually arise
     in building or running the thing and that would reverse the decision if it did; a restated
     negation of the choice, or a condition nothing could observe, does not count
-  status: proposed
+  status: accepted
   falsifiers:
     - authors routinely pass this test with conditions that never fire, so it fails to separate
       real falsifiers from ticked boxes
@@ -30,7 +30,7 @@
   statement: |
     the concluding checklist carries the tests of a design's foundation entries alongside the
     tests of its spec prose, in one list whose `judges` column names what each row is applied to
-  status: proposed
+  status: tolerated
   falsifiers:
     - an entry's author reaches the checklist only through the spec it is later cited in, so the
       entry rows are read too late to act on and need their own list at capture time
@@ -42,7 +42,7 @@
     a component is well-drawn when its responsibility is a single dispatchable build task and its
     interface to its siblings — all it carries in responsibility, excludes, and after — is pinned
     tightly enough to build in parallel without reading a sibling's internals
-  status: proposed
+  status: accepted
   falsifiers:
     - components drawn to this test routinely need a sibling's internals to build, so the three
       boundary fields cannot carry enough interface for parallel build
