@@ -1,0 +1,20 @@
+# Requirements at minecraft area scope: those binding more than one design in the area. Each names
+# the designs it binds, since nothing here binds the whole area.
+#
+# rationale is omitted unless the statement's intent is genuinely non-obvious.
+
+- id: deployment-is-not-a-pack-concern
+  statement: |
+    an individual pack package is responsible only for producing a valid built pack and for
+    watching its own sources; how a built pack reaches the dev server, or a release, is the
+    harness's and the pipeline's concern, not the pack's. A pack carries no deploy or publish
+    scripts.
+  applies_to: [set:minecraft-addon-packs, minecraft/dev-server]
+  rationale: |
+    Keeps packs interchangeable and the deploy transport free to change in one place.
+
+- id: packs-unit-test-with-the-shared-test-lib
+  statement: |
+    a pack's unit tests stand up `@minecraft/server` with `@twin-digital/minecraft-test-lib`
+    rather than a hand-rolled double or a module mock.
+  applies_to: [set:minecraft-addon-packs]

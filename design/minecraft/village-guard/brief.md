@@ -39,7 +39,8 @@ by that.
 - **Finding, building, and deploying packs.** `minecraft/dev-kit` answers which packs a workspace
   holds and what each one is; `minecraft/dev-server` runs them against a disposable server. This
   design produces a pack for that machinery to carry, and specifies none of it.
-- **Testing machinery.** `minecraft/test-lib` owns the fakes a pack's tests run against.
+- **Testing machinery.** `minecraft/test-lib` owns the fakes a pack's tests run against, and this
+  design is bound to use them rather than roll its own.
 - **Release and distribution mechanics.** How a built pack becomes a downloadable `.mcpack` is the
   workspace's release pipeline's, not the pack's — this design states only what the pack must be
   for that pipeline to hand someone something that works.
