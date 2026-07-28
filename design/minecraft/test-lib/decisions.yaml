@@ -195,7 +195,7 @@
   statement: |
     applyDamage on an entity carrying no health component changes nothing, fires no event, returns
     false, and leaves the entity valid
-  status: proposed
+  status: accepted
   falsifiers:
     - a health-less type outside the three observed — arrow, snowball and xp_orb — returns true or
       fires entityHurt, so the silent false does not generalize across types
@@ -204,7 +204,7 @@
   statement: |
     applyDamage fires entityDie when the write leaves currentValue at or below effectiveMin, the
     boundary value included
-  status: proposed
+  status: accepted
   falsifiers:
     - a type with a non-zero effectiveMin reaches that minimum and lives, so the rule holds only
       where the minimum is zero — which is every type the survey reached
@@ -215,7 +215,7 @@
     EntityQueryOptions argument — to a lookup or to entity.matches — is honoured on type, tags,
     name, excludeTypes, excludeTags and excludeNames, each of the other eighteen fields throwing
     NotImplementedError that names it
-  status: proposed
+  status: tolerated
   falsifiers:
     - packs filter inside the query on a field outside the six — a distance, family or score filter
       on the path under test rather than in setup — so the honoured subset does not reach the
@@ -227,7 +227,7 @@
   statement: |
     a cancelled action returns what the engine was observed to return, not a no-op value:
     applyDamage true and addEffect undefined
-  status: proposed
+  status: accepted
   falsifiers:
     - a later engine version returns false from a cancelled applyDamage, so reproducing today's
       true becomes the deviation the ruling exists to avoid
@@ -239,7 +239,7 @@
     a handler's write to entityHurt.damage or effectAdd.duration changes what the action does and
     what its after-event reports; the other four mutable before-event fields are writable and
     unread, because the fake raises no action that would consume them
-  status: proposed
+  status: tolerated
   falsifiers:
     - a modelled action grows behind one of the other four fields — healing or weather — so
       "writable and unread" becomes a silent wrong answer rather than an honest gap
@@ -251,7 +251,7 @@
     Effect.displayName resolves with no test setup, from a shipped table of the 37 observed base
     names stored verbatim plus the observed numeral mapping computed over the amplifier, with
     registerEffectBaseName supplying a base for a custom type or overriding a shipped one
-  status: proposed
+  status: accepted
   falsifiers:
     - a version bump changes a vanilla display name, so the transcribed table silently disagrees
       with the engine where a derivation would have tracked it
@@ -268,7 +268,7 @@
     get order being validity guard, caller override, NotImplementedError for an unmodelled member,
     then the modelled member — returning a throwing thunk for any name in the generated method
     manifest so the guard lands on the call
-  status: proposed
+  status: accepted
   falsifiers:
     - a declared member's shape defeats the trap — an overload set the merge cannot carry, or state
       the library must hold as a non-configurable own property, which the proxy invariants reject —
