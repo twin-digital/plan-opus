@@ -1,0 +1,6 @@
+## tsc --noEmit --strict on emit/consumer.ts
+$ npx tsc --noEmit --strict --module node16 --moduleResolution node16 --target es2022 emit/consumer.ts
+exit 0, no diagnostics
+The file carries 1 @ts-expect-error directives. An unused one is itself an error, so
+exit 0 means every negative probe genuinely failed to type-check.
+@minecraft/server 2.8.0
