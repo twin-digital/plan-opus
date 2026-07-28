@@ -121,3 +121,14 @@
   falsifiers:
     - facts pile into one catch-all file because nothing pushes back, to the point that no file
       name describes what it holds
+
+- id: locator-form-is-not-pinned-to-backing
+  statement: |
+    a fact's backing does not determine which locator its sources use
+  status: tolerated
+  falsifiers:
+    - a tested fact is written against a prose path where a run was available, so leaving the
+      form open costs more than the latitude is worth
+    - a backing is found whose evidence no single locator can carry, so pinning the pair would
+      have been wrong in the other direction
+

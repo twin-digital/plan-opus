@@ -249,6 +249,7 @@
     that the author can re-run the evidence decays into a file existing somewhere.
 
 - id: tested-facts-disclose-whose-test
+  status: retired
   statement: |
     a fact backed `tested` whose test its author did not run says so in the source, naming whose
     test it was and where the artifacts sit
@@ -260,6 +261,14 @@
   statement: |
     a fact is filed in the pool file that describes its subject, and gaining a second consumer
     never moves it
+
+- id: a-run-records-what-its-observation-depends-on
+  statement: |
+    a run whose observation would differ against another version, fixture, or state says which it
+    ran against
+  rationale: |
+    Reversing this leaves an observation that cannot be judged stale: the output still reads as
+    true, and nothing in the entry says what would have to hold for it still to be.
 
 - id: search-before-recording-a-fact
   statement: |

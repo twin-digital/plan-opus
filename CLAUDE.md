@@ -16,13 +16,14 @@ a. **Documented elsewhere** — its sources cite the evidence as `doc-structure`
    `r:documented-source-is-primary` and `r:quote-carries-the-claim` in
    `design/how-to-plan/authoring/requirements.yaml`. A file you wrote in this repository is
    never the source, however faithfully it transcribes the original.
-b. **Tested directly** — the agent ran the test itself, and the design's `artifacts/`
-   subfolder holds the actual scripts and inputs used, plus their outputs when the test
-   produces any. The fact's `sources` name those files and state the observed result. What
+b. **Tested directly** — the agent ran the test itself, and an `artifacts/` directory holds the
+   actual scripts and inputs used, plus their outputs when the test produces any. Record the
+   execution as a run under `evidence/` — what was run, what it captured, by whom, when — and
+   reach it from the fact's `sources` with a `run:`, a `where`, and a verbatim quote. What
    an artifact contributes is captured output; a prose conclusion the agent wrote there is
    interpretation, and a fact resting on it belongs under (a) or as an open question. This bar
-   is claimed on your own behalf only: a test you did not run is disclosed per
-   `r:tested-facts-disclose-whose-test`, naming whose test it was and where its artifacts sit.
+   The run is what makes the evidence re-runnable: name the command, the output, and the state it
+   ran against.
 
 A fact meeting neither bar is recorded as an open question instead.
 

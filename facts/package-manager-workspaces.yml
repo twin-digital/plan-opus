@@ -152,14 +152,7 @@
     registry entries carry is that each package is published from the manager's own repository, not
     that either manager's CLI consumes the published package.
   sources:
-    - description: |
-        Two probes under design/minecraft/dev-kit/artifacts/, both written and run by this fact's
-        author on 2026-07-26. registry-probe/probe.mjs queries the public registry for each
-        package and prints its identifying metadata. workspace-enumeration-probe/probe.mjs
-        enumerates the two committed fixture workspaces beside it — neither ever installed, as the
-        probe checks and prints — using the libraries, and reports whether each manager's CLI is on
-        PATH. Captured stdout is OUTPUT.txt beside each script.
-    - url: design/minecraft/dev-kit/artifacts/registry-probe/OUTPUT.txt
+    - run: registry-probe
       where: both entries — registry status, latest version, and repository of each package
       quote: |
         === @npmcli/map-workspaces
@@ -179,7 +172,7 @@
         repository: {"url":"git+https://github.com/pnpm/pnpm.git#main","type":"git"}
         homepage: https://github.com/pnpm/pnpm/tree/main/workspace/find-packages#readme
         dist.tarball: https://registry.npmjs.org/@pnpm/workspace.find-packages/-/workspace.find-packages-1000.0.65.tgz
-    - url: design/minecraft/dev-kit/artifacts/workspace-enumeration-probe/OUTPUT.txt
+    - run: workspace-enumeration-probe
       where: '"fixture state" — neither fixture workspace has been installed'
       quote: |
         === fixture state (no install has run in either)
@@ -189,7 +182,7 @@
         pnpm-ws node_modules present: false
         pnpm-ws package-lock.json present: false
         pnpm-ws pnpm-lock.yaml present: false
-    - url: design/minecraft/dev-kit/artifacts/workspace-enumeration-probe/OUTPUT.txt
+    - run: workspace-enumeration-probe
       where: the two enumeration sections — what each library returned for its fixture
       quote: |
         === npm workspace via @npmcli/map-workspaces
@@ -218,15 +211,7 @@
     manifest (wrong types, missing `name`) was not probed, and neither was a `package.json` that is
     unreadable for other reasons, such as permissions or a directory in its place.
   sources:
-    - description: |
-        design/minecraft/dev-kit/artifacts/workspace-member-fault-probe/, written and run by this
-        fact's author on 2026-07-26. probe.mjs runs each library against the four fixture
-        workspaces beside it — one per (library, fault) pair, each pattern matching both a healthy
-        `packages/good` member and one faulty directory — and prints either what the library
-        returned or the thrown error's class, name, code, and message. The fixtures are committed
-        uninstalled, as the probe checks and prints. Captured output is OUTPUT.txt beside the
-        script.
-    - url: design/minecraft/dev-kit/artifacts/workspace-member-fault-probe/OUTPUT.txt
+    - run: workspace-member-fault-probe
       where: the npm sections — malformed throws, missing is skipped
       quote: |
         === npm-malformed via @npmcli/map-workspaces
@@ -238,7 +223,7 @@
         === npm-missing via @npmcli/map-workspaces
           fault: packages/nomanifest holds no package.json
           RETURNED @fixture/good -> packages/good
-    - url: design/minecraft/dev-kit/artifacts/workspace-member-fault-probe/OUTPUT.txt
+    - run: workspace-member-fault-probe
       where: the pnpm sections — malformed throws, missing is skipped
       quote: |
         === pnpm-malformed via @pnpm/workspace.find-packages
@@ -283,16 +268,7 @@
     not probed under either library, and neither was a `pnpm-workspace.yaml` that is present but
     unparseable.
   sources:
-    - description: |
-        design/minecraft/dev-kit/artifacts/pnpm-node-modules-probe/, written and run by this fact's
-        author on 2026-07-27. probe.mjs runs each library against the three fixture workspaces
-        beside it — a pnpm root with no `packages` field, a pnpm root with `packages: ['**']`, and
-        an npm root with `workspaces: ["**"]`, each holding `packages/alpha` as a control plus
-        `node_modules/plain-dep` and `node_modules/@scope/scoped-dep` — and prints the patterns
-        read, what each library returned, and how many returned projects sit under a `node_modules`
-        path. The fixtures are committed uninstalled, as the probe checks and prints. Captured
-        stdout is OUTPUT.txt beside the script.
-    - url: design/minecraft/dev-kit/artifacts/pnpm-node-modules-probe/OUTPUT.txt
+    - run: pnpm-node-modules-probe
       where: the two pnpm sections — the control comes back, neither node_modules package does, under defaults and under `'**'` alike
       quote: |
         === pnpm-no-packages-field-with-node-modules via @pnpm/workspace.find-packages
@@ -308,7 +284,7 @@
             @fixture/pnpm-nm-starstar-root@1.0.0 -> .
             @fixture/alpha@1.2.3 -> packages/alpha
           under a node_modules path: 0
-    - url: design/minecraft/dev-kit/artifacts/pnpm-node-modules-probe/OUTPUT.txt
+    - run: pnpm-node-modules-probe
       where: 'the npm section — a `workspaces` of `["**"]` returns the control alone, and no node_modules package'
       quote: |
         === npm-explicit-double-star-with-node-modules via @npmcli/map-workspaces
@@ -316,12 +292,7 @@
           RETURNED 1 entries
             @fixture/alpha -> packages/alpha
           under a node_modules path: 0
-    - description: |
-        design/minecraft/dev-kit/artifacts/pnpm-default-patterns-probe/, written and run by the
-        author of the fact this one supersedes on 2026-07-27, and re-read rather than re-run here.
-        Its OUTPUT.txt carries the deeper `tooling/nested/beta` sweep and the npm no-`workspaces`
-        case, which the probe above does not repeat.
-    - url: design/minecraft/dev-kit/artifacts/pnpm-default-patterns-probe/OUTPUT.txt
+    - run: pnpm-default-patterns-probe
       where: the pnpm section — no `packages` field returns the root and both nested packages
       quote: |
         === pnpm-no-packages-field-with-members via @pnpm/workspace.find-packages
@@ -331,19 +302,14 @@
             @fixture/pnpm-defaults-root@1.0.0 -> .
             @fixture/alpha@1.2.3 -> packages/alpha
             @fixture/beta@0.1.0 -> tooling/nested/beta
-    - url: design/minecraft/dev-kit/artifacts/pnpm-default-patterns-probe/OUTPUT.txt
+    - run: pnpm-default-patterns-probe
       where: the npm section — no `workspaces` array returns an empty Map though a nested package is present
       quote: |
         === npm-no-workspaces-with-members via @npmcli/map-workspaces
           fixture holds: the root and packages/alpha
           root package.json workspaces: undefined
           RETURNED 0 entries (empty Map, no throw)
-    - description: |
-        design/minecraft/dev-kit/artifacts/workspace-root-candidate-probe/, written and run by the
-        author of an earlier fact in this chain on 2026-07-27, and re-read rather than re-run here.
-        Its OUTPUT.txt carries the empty-`workspaces`-array and populated-array npm cases, which
-        neither probe above repeats.
-    - url: design/minecraft/dev-kit/artifacts/workspace-root-candidate-probe/OUTPUT.txt
+    - run: workspace-root-candidate-probe
       where: the npm sections — an empty array returns an empty Map, a populated array returns the member only
       quote: |
         === npm-empty-workspaces via @npmcli/map-workspaces
@@ -380,15 +346,7 @@
     unparseable was not probed under either library, and neither was a `pnpm-workspace.yaml` that
     is present but unparseable.
   sources:
-    - description: |
-        design/minecraft/dev-kit/artifacts/pnpm-default-patterns-probe/, written and run by this
-        fact's author on 2026-07-27. probe.mjs runs each library against the two fixture workspaces
-        beside it — a pnpm root whose `pnpm-workspace.yaml` holds only a `catalog:`, with two
-        nested packages, and an npm root with no `workspaces` array and one nested package — and
-        prints the patterns read and what each library returned. The fixtures are committed
-        uninstalled, as the probe checks and prints. Captured stdout is OUTPUT.txt beside the
-        script.
-    - url: design/minecraft/dev-kit/artifacts/pnpm-default-patterns-probe/OUTPUT.txt
+    - run: pnpm-default-patterns-probe
       where: the pnpm section — no `packages` field returns the root and both nested packages
       quote: |
         === pnpm-no-packages-field-with-members via @pnpm/workspace.find-packages
@@ -398,19 +356,14 @@
             @fixture/pnpm-defaults-root@1.0.0 -> .
             @fixture/alpha@1.2.3 -> packages/alpha
             @fixture/beta@0.1.0 -> tooling/nested/beta
-    - url: design/minecraft/dev-kit/artifacts/pnpm-default-patterns-probe/OUTPUT.txt
+    - run: pnpm-default-patterns-probe
       where: the npm section — no `workspaces` array returns an empty Map though a nested package is present
       quote: |
         === npm-no-workspaces-with-members via @npmcli/map-workspaces
           fixture holds: the root and packages/alpha
           root package.json workspaces: undefined
           RETURNED 0 entries (empty Map, no throw)
-    - description: |
-        design/minecraft/dev-kit/artifacts/workspace-root-candidate-probe/, written and run by the
-        author of the fact this one supersedes on 2026-07-27, and re-read rather than re-run here.
-        Its OUTPUT.txt carries the empty-`workspaces`-array and populated-array npm cases, which
-        the probe above does not repeat.
-    - url: design/minecraft/dev-kit/artifacts/workspace-root-candidate-probe/OUTPUT.txt
+    - run: workspace-root-candidate-probe
       where: the npm sections — an empty array returns an empty Map, a populated array returns the member only
       quote: |
         === npm-empty-workspaces via @npmcli/map-workspaces
@@ -440,14 +393,7 @@
     unparseable was not probed under either library, and neither was a `pnpm-workspace.yaml` that is
     present but unparseable.
   sources:
-    - description: |
-        design/minecraft/dev-kit/artifacts/workspace-root-candidate-probe/, written and run by this
-        fact's author on 2026-07-27. probe.mjs runs each library against the four fixture workspaces
-        beside it — an npm root with no `workspaces` array, one with an empty array, one with a
-        populated array and a single member, and a pnpm root whose `pnpm-workspace.yaml` holds no
-        `packages` field — and prints what each returned or threw. The fixtures are committed
-        uninstalled, as the probe checks and prints. Captured stdout is OUTPUT.txt beside the script.
-    - url: design/minecraft/dev-kit/artifacts/workspace-root-candidate-probe/OUTPUT.txt
+    - run: workspace-root-candidate-probe
       where: the three npm sections — no array and an empty array each return an empty Map, a populated array returns the member only
       quote: |
         === npm-no-workspaces via @npmcli/map-workspaces
@@ -462,7 +408,7 @@
           root package.json workspaces: ["packages/*"]
           RETURNED 1 entry
             @fixture/good -> packages/good
-    - url: design/minecraft/dev-kit/artifacts/workspace-root-candidate-probe/OUTPUT.txt
+    - run: workspace-root-candidate-probe
       where: the pnpm section — no `packages` field returns the root package alone
       quote: |
         === pnpm-no-packages-field via @pnpm/workspace.find-packages

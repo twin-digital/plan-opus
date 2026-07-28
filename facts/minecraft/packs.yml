@@ -192,14 +192,7 @@
     as such.
   backing: tested
   sources:
-    - description: |
-        design/minecraft/dev-kit/artifacts/pack-detection/detect-probe.mjs was run against a 41-package
-        pnpm workspace (twin-digital/opus at archive/minecraft-prototype, 4e731f5b) by the author
-        of the design formerly named minecraft/dev-workflow, not by this fact's author; captured
-        stdout is OUTPUT.txt beside the script. Ground truth is derived from pack content under
-        the add-on format — a committed manifest.json with a header uuid and a data or script
-        module — and yielded two packs.
-    - url: design/minecraft/dev-kit/artifacts/pack-detection/OUTPUT.txt
+    - run: pack-detection-probe
       where: '"rules (selected / missed / false positives)" — the heuristic rules and the directory-location rule, with the packages each selects'
       quote: |
         [heuristic] any dependency on @minecraft/server
@@ -231,7 +224,7 @@
           selected(5): @twin-digital/dev-bedrock-server, @twin-digital/hello-world, @twin-digital/mc-pack-config, @twin-digital/mc-scripting-core, @twin-digital/village-guard
           missed: none
           false positives: @twin-digital/dev-bedrock-server, @twin-digital/mc-pack-config, @twin-digital/mc-scripting-core
-    - url: design/minecraft/dev-kit/artifacts/pack-detection/OUTPUT.txt
+    - run: pack-detection-probe
       where: '"rules (selected / missed / false positives)" — the three manifest-blind rules that score cleanly'
       quote: |
         [external] devDependency on the repo's shared pack build config
@@ -248,7 +241,7 @@
           selected(2): @twin-digital/hello-world, @twin-digital/village-guard
           missed: none
           false positives: none
-    - url: design/minecraft/dev-kit/artifacts/pack-detection/OUTPUT.txt
+    - run: pack-detection-probe
       where: "\"rules that diverge from the format's own answer\" — the summary of each heuristic's error counts"
       quote: |2
           [heuristic] any dependency on @minecraft/server: missed=0 falsePositives=1
@@ -272,14 +265,7 @@
     until every pack is edited to add it.
   backing: tested
   sources:
-    - description: |
-        design/minecraft/dev-kit/artifacts/pack-detection/detect-probe.mjs was run against a 41-package
-        pnpm workspace (twin-digital/opus at archive/minecraft-prototype, 4e731f5b) by the author
-        of the design formerly named minecraft/dev-workflow, not by this fact's author; captured
-        stdout is OUTPUT.txt beside the script. Ground truth is derived from pack content under
-        the add-on format — a committed manifest.json with a header uuid and a data or script
-        module — and yielded two packs.
-    - url: design/minecraft/dev-kit/artifacts/pack-detection/OUTPUT.txt
+    - run: pack-detection-probe
       where: "\"rules that diverge from the format's own answer\" — the summary of each heuristic's error counts"
       quote: |2
           [heuristic] any dependency on @minecraft/server: missed=0 falsePositives=1
