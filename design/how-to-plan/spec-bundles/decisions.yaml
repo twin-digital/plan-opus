@@ -86,6 +86,27 @@
     - a change the rule scores as patch breaks a builder consuming the bundle
     - renaming an id without changing what it says scores major often enough that the majors stop meaning anything
 
+- id: version-record-is-a-git-tag
+  statement: a bundle's last published version is recorded by a git tag in this repository, and the registry is distribution only
+  status: accepted
+  falsifiers:
+    - a tag and the registry disagree about a bundle's last version and the tag is the one that turns out to be wrong
+    - a run has to publish from a checkout that cannot carry tags
+
+- id: previous-commitments-are-re-derived-at-the-tag
+  statement: the previous side of the bump diff is re-derived from the commit the tag names, never read out of a published artifact
+  status: accepted
+  falsifiers:
+    - re-deriving at an old commit yields commitments the run at that commit did not publish
+    - re-derivation costs more per bundle than fetching the published artifact saved
+
+- id: tag-names-the-bundle-and-version
+  statement: the tag is the bundle name, an at sign, and the version — `@td-spec/my-app.login@2.1.0`
+  status: proposed
+  falsifiers:
+    - a tool in the publishing path cannot handle a tag name carrying a slash or an at sign
+    - two bundles need tags that sort together and this scheme scatters them
+
 - id: latest-never-moves-backward
   statement: latest always names the highest version published for a bundle, and is never repointed at an earlier one whatever becomes of the spec
   status: accepted

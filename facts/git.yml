@@ -1,0 +1,20 @@
+- id: git-ref-names-admit-at-sign-and-slash
+  claim: |
+    a git tag name may contain `@` and `/`: slashes are allowed as hierarchical separators
+    provided no component begins with a dot or ends with `.lock`, and `@` is barred only as the
+    whole name or as part of the sequence `@{`
+  backing: documented
+  sources:
+    - url: https://git-scm.com/docs/git-check-ref-format
+      where: Description — the numbered rules a reference name must follow, rule on slashes
+      quote: |
+        They can include slash `/` for hierarchical (directory) grouping, but no slash-separated
+        component can begin with a dot `.` or end with the sequence `.lock`.
+    - url: https://git-scm.com/docs/git-check-ref-format
+      where: Description — the numbered rules a reference name must follow, rules on `@`
+      quote: |
+        They cannot contain a sequence `@{`.
+    - url: https://git-scm.com/docs/git-check-ref-format
+      where: Description — the numbered rules a reference name must follow, rules on `@`
+      quote: |
+        They cannot be the single character `@`.
