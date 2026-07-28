@@ -116,12 +116,28 @@ fakes behave like ordinary objects under everything a test might do to them:
   spying.
 - **`'teleport' in entity` is `true`** because `teleport` is really on the prototype, and an unknown
   name is `false`, matching the engine on both [[f:entity-shape-is-identical-valid-or-invalid]].
-- **`Object.keys` matches the engine.** A real entity carries exactly two own enumerable properties,
-  `typeId` and `id`, so `Object.keys`, spread and `JSON.stringify` all agree with the engine — but
-  only if the generator emits methods as prototype methods rather than as class fields. A class field
-  is an own enumerable property, so emitting the 46 methods that way would put all 46 into
-  `Object.keys`. The generator emits `typeId` and `id` as own data properties set in the
-  constructor, and every other member on the prototype.
+- **Enumeration matches the engine, own and inherited alike.** A real entity carries exactly two own
+  enumerable properties, `typeId` and `id`, and about sixty enumerable members on its prototype, so
+  the engine reads `Object.keys` 2, `getOwnPropertyNames` 2 and `for-in` 62
+  [[f:entity-shape-is-identical-valid-or-invalid]]. Matching both numbers takes three things of the
+  generator, and satisfying any two of them without the third gets one of the numbers wrong.
+
+The emission rule, then, in full:
+
+1. `typeId` and `id` are **own data properties**, set in the constructor. They are what `Object.keys`,
+   spread and `JSON.stringify` must find.
+2. **Every other member sits on the prototype.** A class field is an own property, so emitting the 46
+   methods as fields would put all 46 into `Object.keys` and read 48 where the engine reads 2.
+3. **Those prototype members are defined `enumerable: true`**, through an explicit
+   `Object.defineProperties(FakeEntity.prototype, …)` pass the generator emits. `class` syntax alone
+   makes a method non-enumerable, which would leave `for-in` reaching only the two own properties
+   where the engine reaches 62. That is a property of the syntax, not a limit on generated code.
+
+Rules 1 and 2 keep `Object.keys` at 2; rule 3 brings `for-in` to 62 without disturbing it, because
+prototype members are inherited rather than own. Enumerable prototype methods are unusual in
+ordinary JavaScript, and tooling that walks an object with `for-in` expecting data will now meet
+method names — but that is exactly what the engine does, and a pack iterating an entity with `for-in`
+is the case a mismatch here would have bitten, so matching is the point rather than a side effect.
 
 The costs are the generator's own. It is one program whose defects reproduce across every member it
 emits, and it has to run before anything typechecks — both of which the decision's falsifiers name.
@@ -763,8 +779,8 @@ not been considered, which is not the same as a promise about it.
 | reading — not calling — a guarded method on an invalidated reference | modelled | the read returns a function and the throw lands on the call, and a reference captured while valid still throws when it runs, as observed |
 | arity checked ahead of the validity guard | divergence | a guarded member throws `InvalidEntityError` however it was called; the engine raises a `TypeError` on a wrong-arity call first |
 | `in` on a declared but unmodelled member | modelled | the member is really on the prototype, so `'teleport' in entity` is `true` and an unknown name `false`, as the engine answers, valid or invalidated alike |
-| `Object.keys`, spread and `JSON.stringify` over an entity | modelled | `typeId` and `id` are own data properties and every other member sits on the prototype, so all three agree with the engine's two own enumerable properties |
-| `for-in` over an entity | divergence | the engine walks 62 enumerable keys down its prototype chain; a generated class's prototype members are non-enumerable, so `for-in` reaches only the two own properties |
+| `Object.keys`, spread and `JSON.stringify` over an entity | modelled | `typeId` and `id` are own data properties and every other member sits on the prototype, so all three read the engine's two own enumerable properties |
+| `for-in` over an entity | modelled | the generator defines the prototype members `enumerable: true`, so `for-in` walks the engine's 62 while `Object.keys` still reads 2 |
 | items, blocks, containers, the player client surface, custom commands, the startup registries, and the eight registry classes | not modelled | declared in full and throwing |
 
 The divergence rows are not spec-only. Each one describes a way a test can pass against the fake and
@@ -807,8 +823,9 @@ components:
     responsibility: >-
       the Node generator that reads the pinned index.d.ts and the guard data and emits a class per
       faked type implementing its declared interface, each member a guard prologue over a
-      delegation or a NotImplementedError throw; the committed per-class manifests; and the
-      prebuild wiring that makes a fresh clone typecheck
+      delegation or a NotImplementedError throw, laid out by the emission rule — own data
+      properties for typeId and id, everything else on the prototype, defined enumerable; the
+      committed per-class manifests; and the prebuild wiring that makes a fresh clone typecheck
     excludes: any behaving member, and the guard data itself
     after: [error-model, guard-data]
 
