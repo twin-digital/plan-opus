@@ -38,6 +38,8 @@ not a folder one: its `brief.md` and `requirements.yaml` are durable inputs, whi
 take this shape [[r:spec-shows-layout-as-tree]]:
 
 ```text
+products.yaml                    maps a product and feature to the design that publishes it
+
 facts/                           the fact pool — any yaml, any depth
 ├── markdown-rendering.yml
 └── minecraft/
