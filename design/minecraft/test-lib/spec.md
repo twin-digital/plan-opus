@@ -19,6 +19,31 @@ One constraint shapes everything below: the library never replaces or intercepts
 A fake reaches the code under test only as an object the test passes in, so both what the package
 exports and how far it can reach are bounded by what a pack is willing to be handed.
 
+## Open questions
+
+Both of these are properties of the engine that every sweep so far happened not to isolate, and both
+gate the same decision. A probe covering them is being built.
+
+```yaml
+questions:
+  - id: guard-fires-at-access-or-at-call
+    question: >-
+      does the engine's invalidation guard fire when a guarded method is merely read off an invalid
+      entity, or only when that method is called? Every sweep so far read properties and called
+      methods, so bare access of a method name is unobserved. The call-time design specified below
+      is the permissive side of the question: if the engine throws on the bare read, a test passes
+      against the fake where the engine would have thrown.
+    closes: fact
+    gates: [fakes-are-merged-classes-behind-a-guard-proxy]
+  - id: in-operator-on-a-declared-member
+    question: >-
+      does the engine answer `'teleport' in entity` with true for a declared member? The design
+      below adds a has trap on the assumption that it does; without one a get trap alone answers
+      false, which is a divergence either way until the engine's answer is known.
+    closes: fact
+    gates: [fakes-are-merged-classes-behind-a-guard-proxy]
+```
+
 ## The package and how a test reaches a fake
 
 The package is `@twin-digital/minecraft-test-lib`: TypeScript sources published as an ESM-only
@@ -70,22 +95,55 @@ All state a bundle holds belongs to that bundle. The library keeps no module-lev
 so two `createServer()` calls in one process share nothing and tests need no reset hook
 [[r:instance-scoped-world]].
 
-Every fake declares the full public shape of the type it stands in for and is assignable where the
-real declared type is expected, with no cast: the 2.8.0 classes carry no private instance members
-and no brand fields, so a value exposing only a class's public shape satisfies it structurally
-[[f:server-classes-are-structurally-assignable]] [[r:fakes-are-structurally-assignable]]. Declaring
-the whole shape means declaring members this cycle does not model. Every such member exists and
-throws `NotImplementedError` when called or read — items, blocks, containers and the player client
-surface included — rather than being absent or reading `undefined`
-[[d:out-of-scope-members-throw-not-implemented]] [[r:fakes-never-fabricate]].
+Every fake carries the full public shape of the type it stands in for and is assignable where the
+real declared type is expected, with no cast. That shape is not hand-written. Each fake is an
+`interface FakeEntity extends Entity {}` merged with a `class FakeEntity` that writes only the
+members this cycle models: the interface supplies the rest to the type system, and because there is
+no `implements` clause, the compiler asks the class for none of them. Neither obvious alternative
+works — `implements Entity` demands all 62 members, and `extends` is refused outright because the
+engine's classes declare a `private constructor()`
+[[f:server-classes-are-structurally-assignable]] [[r:fakes-are-structurally-assignable]]
+[[d:fakes-are-merged-classes-behind-a-guard-proxy]].
 
-Each faked class is a shell over two things: a per-class handler table, whose entries the class's
-members delegate to and whose default entry throws `NotImplementedError`, and a private state record
-each instance carries and the handlers read and write. A behaving member is a handler registered
-against the table for the member it implements. That is what lets several parts of the library layer
-behaviour onto one `FakeEntity` without editing its class or each other's code: the class
-declarations are written once, and everything after them is handlers over the state record
-[[d:fakes-are-handler-tables-over-a-state-record]].
+At runtime a `get` trap over the class instance supplies what the merge only promised, in one fixed
+order: the validity guard first, then `NotImplementedError` for a member this cycle does not model —
+items, blocks, containers and the player client surface included — then the modelled member itself
+[[d:out-of-scope-members-throw-not-implemented]] [[r:fakes-never-fabricate]]. For any name in the
+class's generated method manifest the trap returns a *throwing thunk* rather than throwing at
+access, so the error lands on the call. One trap discharges three obligations that would otherwise
+be paid separately in hand-written breadth — structural assignability, the unmodelled floor, and the
+non-uniform invalidation guard — and it is outermost by construction, which is the order the engine
+has: the guard runs before any modelled behaviour [[r:invalidation-is-modeled]]. The guard itself
+becomes data rather than code: a four-name readable allowlist for `Entity`, an eleven-row table for
+attribute components, a five-row table for effects.
+
+Four mechanics decide whether an implementation of this is correct, each established by the spike
+under `artifacts/fake-shape-spike`:
+
+- **The trap forwards to the target, not the receiver.** `Reflect.get(t, k, receiver)` runs a getter
+  with `this` bound to the proxy, which makes a `WeakMap`-keyed state lookup miss and a `#private`
+  field throw. Forwarding to the target costs one thing worth knowing: a subclass override reached
+  through `this` is not seen, which is live as soon as `FakePlayer` subclasses `FakeEntity`.
+- **The thunk reads validity when it is called, not when it was read.** A thunk that closes over the
+  validity it saw at access lets a method captured before `invalidate()` still run after it. The
+  spike hit that bug; it is a one-line difference and an invisible one in review.
+- **Library-internal code addresses the state record directly**, never through the trap, or the
+  library's own reads throw on an invalidated fake. The cost is a second vocabulary for the same
+  data.
+- **The target is a class instance, not a plain object.** Only a class instance answers `instanceof`
+  and keeps its members off `Object.keys`. A frozen target, or one carrying non-configurable own
+  properties, defeats the trap's invariants outright.
+
+Two smaller consequences of the merge. Declaration merging does not carry `readonly`: a class field
+merged against `readonly id: string` is writable through the class type, though it stays readonly
+through `Entity`, which is what a test sees — a hazard for library-internal code, not for a test
+author. And a `get` trap alone answers `'teleport' in entity` with `false` where the engine is
+expected to answer `true`; the design adds a `has` trap fed from the same generated manifest, so
+membership tests read the declared surface rather than whatever the class happened to write.
+
+One generic construction serves all 68 entity component classes rather than 68 separate fakes: keyed
+through `EntityComponentTypeMap`, the library pays a single internal cast while `getComponent` and
+`addComponent` still hand the test author the exact component type and its exact members.
 
 A fake exposes no member the real API does not have. Everything the real surface cannot express is
 an exported free function over the fakes [[r:only-real-members-free-functions]]:
@@ -670,8 +728,10 @@ not been considered, which is not the same as a promise about it.
 | `getDynamicPropertyTotalByteCount` | not modelled | no source pins the engine's accounting |
 | the scoreboard — objectives, scores, participants, display slots | modelled | |
 | `sendMessage` and `onScreenDisplay` output | modelled | captured to a per-target log rather than displayed, and read back with `getOutput` |
-| the invalidation guard on entities, attribute components and effects | modelled | the observed per-member table, error class by error class |
+| the invalidation guard on entities, attribute components and effects | modelled | the observed guard data, error class by error class, applied by the trap ahead of every modelled member |
+| reading — not calling — a guarded method on an invalidated reference | divergence | the fake returns a thunk and throws when it is called; whether the engine throws on the bare read is unobserved, so the fake may be the more permissive of the two until the open question closes |
 | arity checked ahead of the validity guard | divergence | a guarded member throws `InvalidEntityError` however it was called; the engine raises a `TypeError` on a wrong-arity call first |
+| `in` on a declared but unmodelled member | modelled | a `has` trap fed from the generated manifest answers `'teleport' in entity` with `true`, on the expectation the engine does; a `get` trap alone would answer `false` |
 | items, blocks, containers, the player client surface, custom commands, the startup registries, and the eight registry classes | not modelled | declared in full and throwing |
 
 The divergence rows are not spec-only. Each one describes a way a test can pass against the fake and
@@ -691,13 +751,22 @@ components:
       builders for the failed-property and failed-call shapes
     excludes: deciding which member raises which error
 
-  - id: surface-scaffold
+  - id: surface-codegen
     responsibility: >-
-      the declared full public shape of every faked class, each member delegating to a per-class
-      handler table that defaults to throwing NotImplementedError, the per-instance state record
-      handlers read and write, and the id types derived from EntityComponentTypeMap
-    excludes: any behaving member
+      the Node generator that reads the pinned index.d.ts and emits the 154 merged interface/class
+      pairs, the per-class method and property manifests the trap reads, and the compile-time
+      assertions that fail the build when a manifest and the declarations disagree
+    excludes: the runtime trap, and any behaving member
     after: [error-model]
+
+  - id: fake-shell
+    responsibility: >-
+      the get and has traps over a generated class instance — guard, then NotImplementedError, then
+      the modelled member, with a throwing thunk for manifest methods that reads validity at call
+      time — the per-instance state record in its WeakMap, the internal direct-access path that
+      never goes through the trap, and the id types derived from EntityComponentTypeMap
+    excludes: any behaving member, and the per-class guard data the trap reads
+    after: [error-model, surface-codegen]
 
   - id: event-bus
     responsibility: >-
@@ -706,7 +775,7 @@ components:
       with the error record behind getHandlerErrors, before-event cancellation and mutable payload
       fields on the signals whose payload declares them, and the emit free function
     excludes: which fake member raises which signal
-    after: [surface-scaffold]
+    after: [fake-shell]
 
   - id: world-and-dimensions
     responsibility: >-
@@ -716,7 +785,7 @@ components:
       world.getEntity, world.getAllPlayers, world.getPlayers, dimension.getEntities and
       dimension.getPlayers
     excludes: dimension contents beyond the entity registry, and query filtering over it
-    after: [surface-scaffold, event-bus]
+    after: [fake-shell, event-bus]
 
   - id: entity-model
     responsibility: >-
@@ -744,15 +813,18 @@ components:
 
   - id: validity-guards
     responsibility: >-
-      the invalidate free function and the per-member guard table for entities, attribute
-      components and effects
-    after: [entity-model, component-model, effect-model, persisted-state, output-capture]
+      the invalidate free function and the guard data the shell's first branch reads — Entity's
+      four-name readable allowlist, the eleven-row attribute-component table, the five-row effect
+      table
+    excludes: >-
+      applying the guard, which the trap does for every member at once rather than per behaviour
+    after: [fake-shell]
 
   - id: system-scheduler
     responsibility: >-
       system's run/runTimeout/runInterval/clearRun recording, currentTick, and the advanceTicks free
       function that runs due callbacks
-    after: [surface-scaffold, world-and-dimensions]
+    after: [fake-shell, world-and-dimensions]
 
   - id: persisted-state
     responsibility: dynamic property storage on world and entities, and the scoreboard with its objectives, scores and display slots

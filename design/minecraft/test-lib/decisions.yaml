@@ -135,14 +135,16 @@
 
 - id: out-of-scope-members-throw-not-implemented
   statement: |
-    a member the cycle does not model is declared and throws NotImplementedError rather than being
-    absent or reading undefined
+    a member the cycle does not model is present in the declared shape and throws
+    NotImplementedError, from the trap's default branch, rather than being absent or reading
+    undefined
   status: tolerated
   falsifiers:
-    - the declared-everything surface costs more to maintain per version bump than the assignability
-      it buys
     - packs commonly feature-detect a member by reading it, so a throwing member breaks code that a
       missing one would not
+    - a test cannot reach the modelled path without first stubbing past unmodelled members it never
+      meant to call, so the throwing floor obstructs more tests than the fabricated answers it
+      prevents
 
 - id: current-tick-starts-at-zero
   statement: |
@@ -259,17 +261,22 @@
     - packs read displayName rarely enough that shipping and maintaining 37 strings costs more than
       the reads it answers
 
-- id: fakes-are-handler-tables-over-a-state-record
+- id: fakes-are-merged-classes-behind-a-guard-proxy
   statement: |
-    each faked class delegates every member to a per-class handler table over a per-instance state
-    record, and behaviour ships as handlers registered against that table
+    each faked class is an interface/class declaration merge over the engine's declared type, and a
+    get trap over the class instance supplies the runtime floor in one order — validity guard, then
+    NotImplementedError for an unmodelled member, then the modelled member — returning a throwing
+    thunk for any name in the generated method manifest so the guard lands on the call
   status: proposed
   falsifiers:
-    - the table-backed members cannot carry the declared overloads, so a fake stops being
-      structurally assignable to Entity and cannot be handed to code typed against the real class
-    - two parts of the library need handlers on the same member — the health write's cascade and
-      the validity guard both sit on setCurrentValue — and the table offers no way to order or
-      compose them, so the split that made parallel build possible needs another mechanism
+    - the engine is observed throwing when a guarded method is merely read off an invalid
+      reference, so the call-time thunk answers a read the engine refuses and a test passes where
+      the engine would have thrown
+    - a declared member's shape defeats the trap — an overload set the merge cannot carry, or state
+      the library must hold as a non-configurable own property, which the proxy invariants reject —
+      so a cast returns to the design that merging removed it from
+    - the generated manifests drift from the declarations across a version bump without failing the
+      build, so the completeness assertions do not hold and the guard silently misses new members
 
 - id: one-public-entry-point
   statement: |
