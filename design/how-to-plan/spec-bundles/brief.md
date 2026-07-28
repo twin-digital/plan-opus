@@ -1,4 +1,4 @@
-# Brief — publishing-specs
+# Brief — spec-bundles
 
 ## What this design is for
 
