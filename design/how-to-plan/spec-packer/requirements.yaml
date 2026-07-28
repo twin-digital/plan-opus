@@ -1,0 +1,37 @@
+- id: packer-derives-and-versions-only
+  statement: |
+    the packer produces a publishable bundle for each design it covers and computes the version
+    that bundle would carry, and it stops there — it does not publish, and it does not decide when
+    a run happens
+
+- id: packer-emits-packed-tarballs
+  statement: |
+    the packer's output is a packed tarball per bundle, ready to publish as-is
+  rationale: |
+    Nothing between packing and publishing can alter the tree.
+
+- id: packer-needs-no-network-or-credentials
+  statement: |
+    a packer run reads the repository and nothing else: it contacts no registry and holds no
+    publishing credential
+
+- id: packer-reads-tags-never-writes-them
+  statement: |
+    the packer reads the git tags that record what has been published and never writes one; a tag
+    is written by whatever publishes, after a publish succeeds
+  rationale: |
+    A tag then means a version reached the registry, rather than that one was computed.
+
+- id: format-has-one-implementation
+  statement: |
+    the packer and this repository's checker read the design format through one shared
+    implementation, so the two cannot disagree about what a design says
+
+- id: packing-is-reproducible
+  statement: |
+    packing the same commit twice produces byte-identical tarballs
+
+- id: packer-ships-from-the-opus-monorepo
+  statement: |
+    the packer ships as a published npm package built in the opus monorepo, like any other product
+    there
