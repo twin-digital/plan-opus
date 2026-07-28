@@ -1,13 +1,6 @@
-- id: library-is-the-one-implementation-of-the-format
-  statement: |
-    every program that reads a planning artifact reads it through this library; no tool carries a
-    second implementation of the format
-
 - id: library-covers-every-planning-artifact
   statement: |
-    the library types and loads every artifact this system produces — designs and their entries,
-    the fact pool and its evidence, citations and scopes, the product manifest, and the published
-    bundle
+    the library types and loads every artifact this system produces, whatever is added later
 
 - id: library-validates-not-just-parses
   statement: |
@@ -38,19 +31,7 @@
   statement: |
     the library produces a spec's prose with its citation tokens removed, as a builder reads it
 
-- id: library-derives-no-bundle
-  statement: |
-    the library stops short of producing a bundle: deriving one, computing its version, and packing
-    it belong to the tool that does that
-
 - id: library-is-a-published-package-from-the-opus-monorepo
   statement: |
     the library ships as a TypeScript package built in the opus monorepo and published in its own
     right, installable by any tool that reads planning artifacts
-
-- id: checker-results-do-not-change
-  statement: |
-    this repository's checker, once it reads the format through the library, reports exactly what
-    it reports today for every design in the tree
-  rationale: |
-    Anything it stops reporting is an invariant silently dropped in the move.

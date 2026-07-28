@@ -1,0 +1,11 @@
+# Sets of this area's designs. A grouping whose members span areas is declared at global scope in
+# design/sets.yaml instead, and only a requirement at the matching tier may bind through it.
+#
+# A set maps a name — unique across the repository — to design scopes (`<area>/<design>`). Sets do
+# not nest, and a design may belong to any number of them. A requirement names one as `set:<name>`
+# in its `applies_to`.
+
+# The programs that read planning artifacts: the library that implements the format, and the tools
+# built on it.
+planning-tooling:
+  - how-to-plan/planning-lib

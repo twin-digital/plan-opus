@@ -44,3 +44,10 @@
     for that spec. A settled spec the manifest does not name publishes nothing. Each spec carries
     its own version line; there is no single repo-wide version
   applies_to: [how-to-plan/spec-bundles, how-to-plan/harness]
+
+- id: library-is-the-one-implementation-of-the-format
+  statement: |
+    the planning format has exactly one implementation — the planning library — and every program
+    that reads a planning artifact reads it through that library rather than parsing the format
+    itself
+  applies_to: [set:planning-tooling]
