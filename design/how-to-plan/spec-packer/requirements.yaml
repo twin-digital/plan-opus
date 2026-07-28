@@ -1,12 +1,17 @@
 - id: packer-derives-and-versions-only
   statement: |
-    the packer produces a publishable bundle for each design it covers and computes the version
+    the packer produces a publishable bundle for the specified design and computes the version
     that bundle would carry, and it stops there — it does not publish, and it does not decide when
     a run happens
 
-- id: packer-emits-packed-tarballs
+- id: a-run-packs-one-design
   statement: |
-    the packer's output is a packed tarball per bundle, ready to publish as-is
+    the packer is invoked within a single design and packs that design alone; covering several is
+    the job of whatever invokes it
+
+- id: packer-emits-one-tarball-inside-the-design
+  statement: |
+    a run writes one packed tarball, ready to publish as-is, at a path inside the design it packed
   rationale: |
     Nothing between packing and publishing can alter the tree.
 
@@ -29,7 +34,7 @@
 
 - id: packing-is-reproducible
   statement: |
-    packing the same commit twice produces byte-identical tarballs
+    packing the same design at the same commit twice produces byte-identical tarballs
 
 - id: packer-ships-from-the-opus-monorepo
   statement: |
