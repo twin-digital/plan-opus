@@ -84,6 +84,16 @@ silently dropped in the move.
 
 ## Relationship to `spec-packer`
 
+Five capabilities `spec-packer` will need are decreed here rather than left for this design to
+discover: settled status, a design's bundle name, its commitment set, its upstream edges, and its
+prose with citation tokens struck. Each is a requirement, and each is pinned by a fact in the pool
+sourced to it, so `spec-packer`'s spec can cite the capability rather than restate it — and the
+dependency edge between the two designs is present in the citing design's cited facts, which is how
+this repository records a cross-design reliance.
+
+What each capability *returns* is not decreed. The requirements say what the library answers, not
+the shape it answers in; the signatures are this design's to draw.
+
 `spec-packer` is captured (#96) and paused pending this design. Its drafted requirement
 `format-has-one-implementation` says the packer and this repository's checker read the format
 through one shared implementation — which is this library. That requirement now overlaps this

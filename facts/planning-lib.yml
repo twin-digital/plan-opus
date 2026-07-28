@@ -1,0 +1,58 @@
+- id: planning-lib-reports-settled-status
+  claim: |
+    a consumer of the planning library is told whether a design is settled rather than computing it
+    from the design's content itself
+  backing: documented
+  sources:
+    - url: design/how-to-plan/planning-lib/requirements.yaml
+      where: library-reports-whether-a-design-is-settled — statement
+      quote: |
+        the library reports whether a design is settled, computed from its content by the format's own
+        rule, so no consumer re-derives that judgement
+
+- id: planning-lib-resolves-bundle-names
+  claim: |
+    a consumer of the planning library resolves a design scope to its bundle name through the
+    library, and is told when the product manifest names none
+  backing: documented
+  sources:
+    - url: design/how-to-plan/planning-lib/requirements.yaml
+      where: library-resolves-a-design-to-its-bundle-name — statement
+      quote: |
+        the library resolves a design scope to the bundle name the product manifest gives it, and
+        reports when the manifest names none
+
+- id: planning-lib-reports-commitment-sets
+  claim: |
+    a consumer of the planning library obtains a design's commitment set — the requirements binding
+    it and the decisions a bundle carries — as entries carrying ids and statements
+  backing: documented
+  sources:
+    - url: design/how-to-plan/planning-lib/requirements.yaml
+      where: library-reports-a-designs-commitment-set — statement
+      quote: |
+        the library reports a design's commitment set — the requirements binding it and the decisions
+        it holds that a bundle carries — as entries with their ids and statements
+
+- id: planning-lib-resolves-upstream-edges
+  claim: |
+    a consumer of the planning library obtains the upstream designs a design depends on from the
+    library, which applies the format's rules for which cited fact sources count as an edge
+  backing: documented
+  sources:
+    - url: design/how-to-plan/planning-lib/requirements.yaml
+      where: library-resolves-upstream-edges-from-cited-fact-sources — statement
+      quote: |
+        the library resolves a design's cited fact sources to the upstream designs it depends on,
+        applying the format's rules for which sources count
+
+- id: planning-lib-strips-citation-tokens
+  claim: |
+    a consumer of the planning library obtains a spec's prose with its citation tokens already
+    removed, in the form a builder reads
+  backing: documented
+  sources:
+    - url: design/how-to-plan/planning-lib/requirements.yaml
+      where: library-strips-citation-tokens-from-spec-prose — statement
+      quote: |
+        the library produces a spec's prose with its citation tokens removed, as a builder reads it
