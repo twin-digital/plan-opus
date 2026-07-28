@@ -108,15 +108,11 @@
       quote: |
         a package's output root always holds one kind-named subdirectory per pack — `behavior_pack`,
         `resource_pack` — mirroring the source layout. A single-pack package still nests.
-    - url: design/minecraft/dev-kit/spec.md
-      where: Finding packs — the source and output locations
+    - url: design/minecraft/dev-kit/requirements.yaml
+      where: kit-produces-no-built-output
       quote: |
-        Both are computed from the package directory and the
-        kind: `outputDir` is reported whether or not it exists, and the kit never reads the output tree
-    - url: design/minecraft/dev-kit/spec.md
-      where: Components — pack-set-api
-      quote: |
-        excludes: producing or deploying built output
+        the kit reports where a pack's built output is expected and produces none of it: it neither
+        reads nor writes the output tree.
 
 - id: compose-watch-actions-and-versions
   claim: |
