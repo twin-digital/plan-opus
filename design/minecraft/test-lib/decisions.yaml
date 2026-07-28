@@ -343,7 +343,7 @@
     a subscriber that throws does not reach the caller, does not stop the other subscribers, and
     does not stop the rest of the cascade, as the engine was observed to behave; the library
     records the error for getHandlerErrors rather than discarding it as the engine does
-  status: proposed
+  status: accepted
   falsifiers:
     - tests never read getHandlerErrors, so a throwing handler is lost as silently as the engine
       loses it and the recording buys nothing over plain absorption
