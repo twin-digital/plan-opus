@@ -52,6 +52,15 @@
     the harness must deploy and activate behavior packs. Support for other kinds of addon content
     — resource packs among them — is optional, at the builder's or designer's discretion.
 
+- id: deployment-is-not-a-pack-concern
+  statement: |
+    an individual pack package is responsible only for producing a valid built pack and for
+    watching its own sources; how a built pack reaches the dev server, or a release, is the
+    harness's and the pipeline's concern, not the pack's. A pack carries no deploy or publish
+    scripts.
+  rationale: |
+    Keeps packs interchangeable and the deploy transport free to change in one place.
+
 - id: built-output-assembly-is-the-package-s-concern
   statement: |
     the harness deploys a package's built output, not its source, and makes no assumption about

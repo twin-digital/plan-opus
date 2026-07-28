@@ -3,20 +3,16 @@
 #
 # rationale is omitted unless the statement's intent is genuinely non-obvious.
 
-- id: deployment-is-not-a-pack-concern
-  statement: |
-    an individual pack package is responsible only for producing a valid built pack and for
-    watching its own sources; how a built pack reaches the dev server, or a release, is the
-    harness's and the pipeline's concern, not the pack's. A pack carries no deploy or publish
-    scripts.
-  applies_to: [set:minecraft-addon-packs, minecraft/dev-server]
-  rationale: |
-    Keeps packs interchangeable and the deploy transport free to change in one place.
-
 - id: pack-uses-the-shared-build-tooling
   statement: |
-    the pack is built and released by the workspace's shared pack tooling — the same build
-    configuration and release path every other pack there uses — and carries none of its own.
+    a pack's bundle is built by the workspace's shared pack-build toolchain; a pack does no more
+    than invoke it, and implements no build of its own.
+  applies_to: [set:minecraft-addon-packs]
+
+- id: a-pack-does-not-deliver-itself
+  statement: |
+    a pack's job ends at a built bundle — it carries no deploy or publish scripts and ships itself
+    nowhere.
   applies_to: [set:minecraft-addon-packs]
 
 - id: packs-unit-test-with-the-shared-test-lib
