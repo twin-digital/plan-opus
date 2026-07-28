@@ -262,6 +262,14 @@
     a fact is filed in the pool file that describes its subject, and gaining a second consumer
     never moves it
 
+- id: a-run-records-what-its-observation-depends-on
+  statement: |
+    a run whose observation would differ against another version, fixture, or state says which it
+    ran against
+  rationale: |
+    Reversing this leaves an observation that cannot be judged stale: the output still reads as
+    true, and nothing in the entry says what would have to hold for it still to be.
+
 - id: search-before-recording-a-fact
   statement: |
     before recording a fact, its author searches the repository-wide index for one already making
