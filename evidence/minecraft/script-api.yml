@@ -111,3 +111,55 @@
   environment: |
     Pairs each declared member of @minecraft/server 2.8.0's index.d.ts with its `@throws`
     annotation. The pairing is that version's and would differ against another.
+
+# Runs added with the fake's spec: five further probe packs against the same server build.
+
+- id: access-guard-probe-run
+  command: execute as <armor stand> run scriptevent mctest6:<set>
+  output: design/minecraft/test-lib/artifacts/mctest-access-guard-probe-results.md
+  ran_at: 2026-07-28
+  environment: |
+    itzg/minecraft-bedrock-server, Bedrock dedicated 1.26.31.1, @minecraft/server 2.8.0 as a pack
+    manifest dependency with no experiments enabled. access-guard-probe-pack 0.1.0, uuid 5cd5653c-fea6-4b32-935b-7a4972a82bd4,
+    triggered from the server console against a stationary armor stand inside the mctest ticking
+    area. Every observation is that engine build's behaviour and would differ against another.
+
+- id: damage-threshold-probe-run
+  command: execute as <armor stand> run scriptevent mctest4:<set>
+  output: design/minecraft/test-lib/artifacts/mctest-damage-threshold-probe-results.md
+  ran_at: 2026-07-27
+  environment: |
+    itzg/minecraft-bedrock-server, Bedrock dedicated 1.26.31.1, @minecraft/server 2.8.0 as a pack
+    manifest dependency with no experiments enabled. damage-threshold-probe-pack 0.1.0, uuid 37965a8f-ab62-4107-b040-d7c7e0587ed4,
+    triggered from the server console against a stationary armor stand inside the mctest ticking
+    area. Every observation is that engine build's behaviour and would differ against another.
+
+- id: effect-name-probe-run
+  command: execute as <armor stand> run scriptevent mctest5:<set>
+  output: design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md
+  ran_at: 2026-07-27
+  environment: |
+    itzg/minecraft-bedrock-server, Bedrock dedicated 1.26.31.1, @minecraft/server 2.8.0 as a pack
+    manifest dependency with no experiments enabled. effect-name-probe-pack 0.1.0, uuid 24b22e44-126c-479d-94f9-32384266dcec,
+    triggered from the server console against a stationary armor stand inside the mctest ticking
+    area. Every observation is that engine build's behaviour and would differ against another.
+
+- id: guard-and-effect-probe-run
+  command: execute as <armor stand> run scriptevent mctest3:<set>
+  output: design/minecraft/test-lib/artifacts/mctest-guard-and-effect-probe-results.md
+  ran_at: 2026-07-27
+  environment: |
+    itzg/minecraft-bedrock-server, Bedrock dedicated 1.26.31.1, @minecraft/server 2.8.0 as a pack
+    manifest dependency with no experiments enabled. guard-and-effect-probe-pack 0.1.0, uuid 2dd3e74b-f52c-4e93-ba18-2a5d4f3f2de2,
+    triggered from the server console against a stationary armor stand inside the mctest ticking
+    area. Every observation is that engine build's behaviour and would differ against another.
+
+- id: return-value-probe-run
+  command: execute as <armor stand> run scriptevent mctest5:<set>
+  output: design/minecraft/test-lib/artifacts/mctest-return-value-probe-results.md
+  ran_at: 2026-07-27
+  environment: |
+    itzg/minecraft-bedrock-server, Bedrock dedicated 1.26.31.1, @minecraft/server 2.8.0 as a pack
+    manifest dependency with no experiments enabled. return-value-probe-pack 0.1.0, uuid 9c4e1f7a-3b62-4d18-a5e0-7f2c8d4b6019,
+    triggered from the server console against a stationary armor stand inside the mctest ticking
+    area. Every observation is that engine build's behaviour and would differ against another.
