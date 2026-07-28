@@ -140,8 +140,8 @@ relative to the repo root, not to the file holding it [[r:repo-relative-source-p
 `artifacts/` directory is admissible only on a `tested` fact, where it names output a test actually
 produced [[r:artifact-sources-back-tested-facts]] — the backing is what makes the locator
 admissible, so which design's directory holds the output does not bear on it. That is the
-one provenance rule with a mechanical shadow; which source is the right one for a given `backing`,
-and what a source must disclose about who produced it, are authoring's to test, not this format's. Optional: a `status`
+one provenance rule with a mechanical shadow; which source is the right one for a given `backing`
+is authoring's to test, not this format's. Optional: a `status`
 of `active` | `retired` (default `active`) — a retired fact adds a `reason` of `superseded` |
 `disproven` | `stale`, and a superseded one names its replacement in `superseded_by` as a bare fact
 id, not a citation token — and a `caveat` recording why the fact might not hold despite its backing.
