@@ -1492,3 +1492,101 @@
       where: Raw log — mctest5:effectnames run 1, the minecraft:breath_of_the_nautilus per-type SUMMARY
       quote: |
         [2026-07-27 21:33:29.013] [mctest] effect-display-name-mapping :: SUMMARY type=minecraft:breath_of_the_nautilus names=[0=>" Breath of the Nautilus", 1=>" Breath of the Nautilus II", 2=>" Breath of the Nautilus III", 3=>" Breath of the Nautilus IV", 4=>" Breath of the Nautilus V", 5=>" Breath of the Nautilus VI", 6=>" Breath of the Nautilus"] readable=7/7 distinct-names=6 numeral-varies-with-amplifier=true verdicts=[READ-OK, READ-OK, READ-OK, READ-OK, READ-OK, READ-OK, READ-OK]
+
+# From the mctest6 access-guard pack (Bedrock 1.26.31.1, @minecraft/server 2.8.0), recorded in
+# design/minecraft/test-lib/artifacts/mctest-access-guard-probe-results.md. Run by the design's
+# owner, not by the author of these facts; n=3, and normalising timestamps and entity ids each
+# set's whole log body is byte-identical across its three runs.
+
+- id: invalidation-guard-fires-at-call-not-access
+  claim: |
+    The engine's invalidation guard is on the call, not on the property read. Reading a method off
+    an entity already removed never throws: all 14 members probed return a `function`
+    (`ACCESS-THREW=0/14`, `ACCESS-CLEAN=14/14`). Capturing that reference while the entity is
+    still valid does not escape the guard either — all 14 captured-then-called cases threw
+    `InvalidEntityError`, so validity is read when the method runs rather than bound when it is
+    taken. Property reads are guarded selectively by name over the same transition: `id`,
+    `typeId` and `isValid` stay readable, while `nameTag`, `location` and `dimension` throw
+    `InvalidEntityError`. So the engine guards some property reads and no method reads.
+  backing: tested
+  sources:
+    - description: |
+        The mctest6 access-guard pack removes a fresh subject per case and then, for each of 14
+        members, reads it without calling, calls it directly, and calls a reference captured before
+        the removal — 70 case lines per run, identical in 3/3 runs. The readable property set
+        agrees with the independently built resting-state pack's.
+        This pack was run by the design's owner, not by this fact's author; its captured
+        output is design/minecraft/test-lib/artifacts/mctest-access-guard-probe-results.md and the
+        pack itself is design/minecraft/test-lib/artifacts/access-guard-probe-pack.
+    - url: design/minecraft/test-lib/artifacts/mctest-access-guard-probe-results.md
+      where: Raw log — mctest6:access run 1, the two HEADLINE SUMMARY lines
+      quote: |
+        [2026-07-28 04:31:49.380] [mctest] access-versus-call :: SUMMARY HEADLINE access-only ACCESS-THREW=0/14 ACCESS-CLEAN=14/14 threw=[] clean=[kill, teleport, hasTag, getComponent, applyDamage, triggerEvent, getTags, getVelocity, getRotation, getHeadLocation, getViewDirection, getEffects, getComponents, getDynamicPropertyIds] — ACCESS-THREW means the engine fires the invalidation guard on the property read; ACCESS-CLEAN means the read is unguarded and the guard is on the call
+        [2026-07-28 04:31:49.380] [mctest] access-versus-call :: SUMMARY HEADLINE capture-before-invalidation returned-anyway=0/14 members=[] — a member that returns here has a guard bound at access time; one that throws reads validity at call time
+    - url: design/minecraft/test-lib/artifacts/mctest-access-guard-probe-results.md
+      where: Raw log — mctest6:access run 1, the six invalid-property-reads lines
+      quote: |
+        [2026-07-28 04:31:49.585] [mctest] invalid-property-reads :: id control-valid ok typeof=string value=string:"-120259084214" subject-invalid ok typeof=string value=string:"-120259084213" verdict=ACCESS-CLEAN-OTHER-string
+        [2026-07-28 04:31:49.585] [mctest] invalid-property-reads :: typeId control-valid ok typeof=string value=string:"minecraft:sheep" subject-invalid ok typeof=string value=string:"minecraft:sheep" verdict=ACCESS-CLEAN-OTHER-string
+        [2026-07-28 04:31:49.585] [mctest] invalid-property-reads :: isValid control-valid ok typeof=boolean value=boolean:true subject-invalid ok typeof=boolean value=boolean:false verdict=ACCESS-CLEAN-OTHER-boolean
+        [2026-07-28 04:31:49.585] [mctest] invalid-property-reads :: nameTag control-valid ok typeof=string value=string:"" subject-invalid threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to set property 'nameTag' due to Entity being invalid (has the Entity been removed?)." verdict=ACCESS-THREW-INVALID-ENTITY
+        [2026-07-28 04:31:49.585] [mctest] invalid-property-reads :: location control-valid ok typeof=object value=object(Object) subject-invalid threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to get property 'location' due to Entity being invalid (has the Entity been removed?)." verdict=ACCESS-THREW-INVALID-ENTITY
+        [2026-07-28 04:31:49.585] [mctest] invalid-property-reads :: dimension control-valid ok typeof=object value=object(Dimension) subject-invalid threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to get property 'dimension' due to Entity being invalid (has the Entity been removed?)." verdict=ACCESS-THREW-INVALID-ENTITY
+
+- id: unbound-native-method-raises-reference-error
+  claim: |
+    A native `Entity` method invoked without its receiver — `const fn = e.kill; fn()` rather than
+    `fn.call(e)` — raises a `ReferenceError` reading
+    `Native function [Entity::<name>] object bound to prototype does not exist.`, not the
+    illegal-invocation `TypeError` such a call raises on ordinary host objects. It is observed on
+    all 14 members probed, and `instanceofInvalidEntityError` is false on every one, so it is
+    cleanly distinguishable from the validity guard firing.
+  backing: tested
+  sources:
+    - description: |
+        The mctest6 access-guard pack records the bound and the unbound invocation on the same case
+        line, so the receiver-less failure cannot be mistaken for a guard throw. 14/14 in 3/3 runs.
+        This pack was run by the design's owner, not by this fact's author; its captured
+        output is design/minecraft/test-lib/artifacts/mctest-access-guard-probe-results.md and the
+        pack itself is design/minecraft/test-lib/artifacts/access-guard-probe-pack.
+    - url: design/minecraft/test-lib/artifacts/mctest-access-guard-probe-results.md
+      where: Raw log — mctest6:access run 1, the [2-access-then-call] kill line carrying both invocations
+      quote: |
+        [2026-07-28 04:31:43.285] [mctest] access-versus-call :: [2-access-then-call] kill subject=-120259084282 access ok typeof=function value=function(name="" length=0) then fn.call(subject, ) threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to call function 'kill' due to Entity being invalid (has the Entity been removed?)." unbound fn(...) threw name=ReferenceError ctor=ReferenceError instanceofInvalidEntityError=false message="Native function [Entity::kill] object bound to prototype does not exist." verdict=ACCESS-THEN-CALL-THREW-INVALID-ENTITY
+
+- id: entity-shape-is-identical-valid-or-invalid
+  claim: |
+    Every structural read a pack could use for feature detection answers identically on a valid
+    `Entity` and on one invalidated by `remove()`. `'teleport' in entity` and
+    `'nameTag' in entity` are `true` and `'notAMember'` is `false`; `typeof entity.teleport` is
+    `"function"` and `typeof entity.notAMember` is `"undefined"`; `instanceof Entity` and
+    `instanceof Object` are true and `instanceof Player` false; `constructor.name` is `"Entity"`.
+    A real `Entity` carries exactly **two own enumerable properties, `typeId` and `id`**, so
+    `Object.keys` and `getOwnPropertyNames` both return `["typeId", "id"]` and
+    `JSON.stringify` yields `{"typeId":…,"id":…}`, while `for-in` walks 62 keys down the
+    prototype chain. Invalidity is therefore undetectable structurally: a pack must read
+    `isValid` or call something and catch.
+  backing: tested
+  sources:
+    - description: |
+        The mctest6 access-guard pack runs the same block of structural reads against a live control
+        and an invalidated subject in one pass, reporting
+        `valid-and-invalid-read-identically=true`. Identical in 3/3 runs. JSON.stringify succeeds
+        on the invalidated entity precisely because the two properties it serialises are among the
+        three that survive invalidation.
+        This pack was run by the design's owner, not by this fact's author; its captured
+        output is design/minecraft/test-lib/artifacts/mctest-access-guard-probe-results.md and the
+        pack itself is design/minecraft/test-lib/artifacts/access-guard-probe-pack.
+    - url: design/minecraft/test-lib/artifacts/mctest-access-guard-probe-results.md
+      where: Raw log — mctest6:shape run 1, the valid-control and invalidated-subject member-visibility blocks
+      quote: |
+        [2026-07-28 04:32:38.235] [mctest] member-visibility :: [valid-control] in-operator 'teleport'=ok typeof=boolean value=boolean:true 'nameTag'=ok typeof=boolean value=boolean:true 'notAMember'=ok typeof=boolean value=boolean:false
+        [2026-07-28 04:32:38.235] [mctest] member-visibility :: [valid-control] Object.keys count=2 first=["typeId","id"] Object.getOwnPropertyNames count=2 first=["typeId","id"] for-in count=62 first=["typeId","id","getVelocity","getViewDirection","getHeadLocation","addTag"]
+        [2026-07-28 04:32:38.235] [mctest] member-visibility :: [valid-control] typeof entity.teleport=ok typeof=string value=string:"function" typeof entity.notAMember=ok typeof=string value=string:"undefined" typeof entity=ok typeof=string value=string:"object"
+        [2026-07-28 04:32:38.236] [mctest] member-visibility :: [valid-control] instanceof Entity=ok typeof=boolean value=boolean:true Player=ok typeof=boolean value=boolean:false Object=ok typeof=boolean value=boolean:true Entity.prototype.isPrototypeOf=ok typeof=boolean value=boolean:true constructor?.name=ok typeof=string value=string:"Entity" prototype-chain=["Entity","Object"]
+        [2026-07-28 04:32:38.236] [mctest] member-visibility :: [valid-control] JSON.stringify=ok typeof=string value=string:"{"typeId":"minecraft:sheep","id":"-120259084211"}" String()=ok typeof=string value=string:"[object Object]" spread-own-keys=["typeId","id"] Entity.prototype descriptor for 'nameTag'={"enumerable":true,"configurable":true}
+        [2026-07-28 04:32:38.236] [mctest] member-visibility :: [invalidated-subject] in-operator 'teleport'=ok typeof=boolean value=boolean:true 'nameTag'=ok typeof=boolean value=boolean:true 'notAMember'=ok typeof=boolean value=boolean:false
+        [2026-07-28 04:32:38.236] [mctest] member-visibility :: [invalidated-subject] Object.keys count=2 first=["typeId","id"] Object.getOwnPropertyNames count=2 first=["typeId","id"] for-in count=62 first=["typeId","id","getVelocity","getViewDirection","getHeadLocation","addTag"]
+        [2026-07-28 04:32:38.236] [mctest] member-visibility :: [invalidated-subject] typeof entity.teleport=ok typeof=string value=string:"function" typeof entity.notAMember=ok typeof=string value=string:"undefined" typeof entity=ok typeof=string value=string:"object"
+        [2026-07-28 04:32:38.236] [mctest] member-visibility :: [invalidated-subject] instanceof Entity=ok typeof=boolean value=boolean:true Player=ok typeof=boolean value=boolean:false Object=ok typeof=boolean value=boolean:true Entity.prototype.isPrototypeOf=ok typeof=boolean value=boolean:true constructor?.name=ok typeof=string value=string:"Entity" prototype-chain=["Entity","Object"]
+        [2026-07-28 04:32:38.236] [mctest] member-visibility :: [invalidated-subject] JSON.stringify=ok typeof=string value=string:"{"typeId":"minecraft:sheep","id":"-120259084210"}" String()=ok typeof=string value=string:"[object Object]" spread-own-keys=["typeId","id"] Entity.prototype descriptor for 'nameTag'={"enumerable":true,"configurable":true}

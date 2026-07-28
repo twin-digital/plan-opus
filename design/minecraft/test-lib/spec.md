@@ -19,31 +19,6 @@ One constraint shapes everything below: the library never replaces or intercepts
 A fake reaches the code under test only as an object the test passes in, so both what the package
 exports and how far it can reach are bounded by what a pack is willing to be handed.
 
-## Open questions
-
-Both of these are properties of the engine that every sweep so far happened not to isolate, and both
-gate the same decision. A probe covering them is being built.
-
-```yaml
-questions:
-  - id: guard-fires-at-access-or-at-call
-    question: >-
-      does the engine's invalidation guard fire when a guarded method is merely read off an invalid
-      entity, or only when that method is called? Every sweep so far read properties and called
-      methods, so bare access of a method name is unobserved. The call-time design specified below
-      is the permissive side of the question: if the engine throws on the bare read, a test passes
-      against the fake where the engine would have thrown.
-    closes: fact
-    gates: [fakes-are-merged-classes-behind-a-guard-proxy]
-  - id: in-operator-on-a-declared-member
-    question: >-
-      does the engine answer `'teleport' in entity` with true for a declared member? The design
-      below adds a has trap on the assumption that it does; without one a get trap alone answers
-      false, which is a divergence either way until the engine's answer is known.
-    closes: fact
-    gates: [fakes-are-merged-classes-behind-a-guard-proxy]
-```
-
 ## The package and how a test reaches a fake
 
 The package is `@twin-digital/minecraft-test-lib`: TypeScript sources published as an ESM-only
@@ -66,9 +41,17 @@ prefixed ids [[f:vanilla-data-provides-prefixed-id-constants]].
 A test obtains everything from one call:
 
 ```ts
+import { createServer } from '@twin-digital/minecraft-test-lib'
+import { installMyPack } from '../src/main.js'   // the pack under test, not this library
+
 const server = createServer()
-install(server)                       // code under test takes { world, system, … }
+installMyPack(server)                            // the pack takes { world, system, … }
 ```
+
+The second line is the *pack's* own entry point, whatever it is called; this library exports nothing
+that installs anything. Handing the bundle to a function the pack already exposes is the whole
+integration, and it is the only one available, since the library never touches the module graph
+[[r:object-substitution-not-module-mocking]].
 
 `createServer()` returns a `FakeServer` whose properties are named exactly as `@minecraft/server`
 exports them — `world`, `system`, and the eight registry classes `BiomeTypes`, `BlockStates`,
@@ -106,16 +89,25 @@ engine's classes declare a `private constructor()`
 [[d:fakes-are-merged-classes-behind-a-guard-proxy]].
 
 At runtime a `get` trap over the class instance supplies what the merge only promised, in one fixed
-order: the validity guard first, then `NotImplementedError` for a member this cycle does not model —
-items, blocks, containers and the player client surface included — then the modelled member itself
-[[d:out-of-scope-members-throw-not-implemented]] [[r:fakes-never-fabricate]]. For any name in the
-class's generated method manifest the trap returns a *throwing thunk* rather than throwing at
-access, so the error lands on the call. One trap discharges three obligations that would otherwise
-be paid separately in hand-written breadth — structural assignability, the unmodelled floor, and the
-non-uniform invalidation guard — and it is outermost by construction, which is the order the engine
-has: the guard runs before any modelled behaviour [[r:invalidation-is-modeled]]. The guard itself
-becomes data rather than code: a four-name readable allowlist for `Entity`, an eleven-row table for
-attribute components, a five-row table for effects.
+order: the validity guard first, then any override the caller installed, then `NotImplementedError`
+for a member this cycle does not model — items, blocks, containers and the player client surface
+included — then the modelled member itself [[d:out-of-scope-members-throw-not-implemented]]
+[[r:fakes-never-fabricate]]. For any name in the class's generated method manifest the trap returns
+a *throwing thunk* rather than throwing at access, so the error lands on the call. One trap
+discharges three obligations that would otherwise be paid separately in hand-written breadth —
+structural assignability, the unmodelled floor, and the non-uniform invalidation guard — and it is
+outermost by construction, which is the order the engine has: the guard runs before any modelled
+behaviour [[r:invalidation-is-modeled]]. The guard itself becomes data rather than code: a four-name
+readable allowlist for `Entity`, an eleven-row table for attribute components, a five-row table for
+effects.
+
+That shape is the engine's, not a convenience. The guard fires on the call and never on a bare read:
+reading a method off a removed entity returns a function every time, while calling it throws, and a
+reference captured while the entity was still valid throws just the same when it eventually runs
+[[f:invalidation-guard-fires-at-call-not-access]]. Property reads are the asymmetric half — `id`,
+`typeId` and `isValid` stay readable where `nameTag`, `location` and `dimension` throw — so the trap
+discriminates by name for properties and is uniform for methods, which is exactly the split the
+guard data encodes.
 
 Four mechanics decide whether an implementation of this is correct, each established by the spike
 under `artifacts/fake-shape-spike`:
@@ -126,24 +118,44 @@ under `artifacts/fake-shape-spike`:
   through `this` is not seen, which is live as soon as `FakePlayer` subclasses `FakeEntity`.
 - **The thunk reads validity when it is called, not when it was read.** A thunk that closes over the
   validity it saw at access lets a method captured before `invalidate()` still run after it. The
-  spike hit that bug; it is a one-line difference and an invisible one in review.
+  spike hit that bug; it is a one-line difference and an invisible one in review, and the engine is
+  unambiguous on the point [[f:invalidation-guard-fires-at-call-not-access]].
 - **Library-internal code addresses the state record directly**, never through the trap, or the
   library's own reads throw on an invalidated fake. The cost is a second vocabulary for the same
   data.
-- **The target is a class instance, not a plain object.** Only a class instance answers `instanceof`
-  and keeps its members off `Object.keys`. A frozen target, or one carrying non-configurable own
+- **The target is a class instance, not a plain object.** Only a class instance answers `instanceof`,
+  which the engine's own entities do. A frozen target, or one carrying non-configurable own
   properties, defeats the trap's invariants outright.
 
-Two smaller consequences of the merge. Declaration merging does not carry `readonly`: a class field
-merged against `readonly id: string` is writable through the class type, though it stays readonly
-through `Entity`, which is what a test sees — a hazard for library-internal code, not for a test
-author. And a `get` trap alone answers `'teleport' in entity` with `false` where the engine is
-expected to answer `true`; the design adds a `has` trap fed from the same generated manifest, so
-membership tests read the declared surface rather than whatever the class happened to write.
+Three smaller consequences. Declaration merging does not carry `readonly`: a class field merged
+against `readonly id: string` is writable through the class type, though it stays readonly through
+`Entity`, which is what a test sees — a hazard for library-internal code, not for a test author.
+A `get` trap alone answers `'teleport' in entity` with `false` where the engine answers `true`, so
+the design adds a `has` trap fed from the same generated manifest, making membership tests read the
+declared surface rather than whatever the class happened to write
+[[f:entity-shape-is-identical-valid-or-invalid]]. And an unbound call on a captured method —
+`const fn = e.kill; fn()` — raises a `ReferenceError` in the engine, not the illegal-invocation
+`TypeError` a host object usually gives; a fake that reproduces that case at all must raise
+`ReferenceError` [[f:unbound-native-method-raises-reference-error]].
+
+A `set` trap goes with the `get` trap, and it is what keeps the spy promise honest. A caller who
+wraps a member — `sinon.spy(entity, 'applyDamage')` and its equivalents — reads the member, wraps
+what it read, and assigns the wrapper back. Without a `set` trap that assignment lands as an own
+property on the target and the `get` trap keeps returning its own thunk, so the spy is installed,
+silently ignored, and records nothing. Writing a member name therefore installs an *override* in the
+state record, which the `get` trap returns ahead of the modelled member and behind the validity
+guard; `deleteProperty` removes it, restoring the underlying member, which is how a spy's `restore`
+gets its object back. Overrides live in the state record rather than as own properties on the target,
+so the proxy invariants that a non-configurable own property would trip never arise. The guard stays
+outermost even over an override, because the engine throws before it would have run the member at
+all [[r:no-test-framework-dependency]] [[d:fakes-are-merged-classes-behind-a-guard-proxy]].
 
 One generic construction serves all 68 entity component classes rather than 68 separate fakes: keyed
 through `EntityComponentTypeMap`, the library pays a single internal cast while `getComponent` and
-`addComponent` still hand the test author the exact component type and its exact members.
+`addComponent` still hand the test author the exact component type and its exact members. That sits
+under the generated breadth rather than against it — `surface-codegen` emits a declaration pair for
+every faked class including each component class, and this one implementation stands behind all of
+them at runtime.
 
 A fake exposes no member the real API does not have. Everything the real surface cannot express is
 an exported free function over the fakes [[r:only-real-members-free-functions]]:
@@ -152,7 +164,7 @@ an exported free function over the fakes [[r:only-real-members-free-functions]]:
 |---|---|
 | `createServer()` | a new bundle: world, system, registries |
 | `createEntity(server, { typeId, id?, dimension?, location? })` | a fake entity registered with that world |
-| `createPlayer(server, options)` | as above, a `Player` |
+| `createPlayer(server, { typeId?, id?, name?, dimension?, location? })` | as above, a `Player` |
 | `addComponent(entity, componentId, state?)` | attach a component to a live entity |
 | `removeComponent(entity, componentId)` | detach one |
 | `registerEffectBaseName(server, effectTypeId, baseName)` | the base name for a custom effect type, or an override for a shipped one |
@@ -230,7 +242,12 @@ applied [[f:get-dimension-unknown-id-error]].
 
 `createEntity` requires a `typeId` and accepts an optional `id`; when none is given the library
 assigns one, because in the engine the spawner never chooses it
-[[r:ids-auto-assigned-typeid-required]]. Assigned ids are opaque decimal strings issued
+[[r:ids-auto-assigned-typeid-required]]. Its `dimension` option takes a `Dimension` — the object a
+preset registered and `world.getDimension` returns — and not an id string, because a string would
+have to resolve against a registry that may hold nothing and would fail late and confusingly where
+the object cannot. `createPlayer` takes the same options plus `name`, which is worth supplying:
+`Player.name` is declared a bare `string`, so on a player created without one every read of it
+throws `UnsetValueError` under the ordinary rule for unsupplied values. Assigned ids are opaque decimal strings issued
 sequentially from `1` within a bundle and never reissued after an entity is removed
 [[f:entity-ids-not-reused]] [[d:entity-ids-are-sequential-opaque-strings]]. The engine's own ids are
 negative integers, but `Entity.id` is documented as opaque with no meaning to be inferred from its
@@ -274,12 +291,30 @@ couple of dozen ticks; the fake reproduces neither, and an entity stays exactly 
 until something moves it [[f:boat-spawn-offset-magnitude-constant]]
 [[f:post-spawn-mob-motion-is-per-run-not-per-type]] [[d:placement-and-motion-are-literal]].
 
-`entity.remove()` detaches the entity from the world and fires `entityRemove`, whose payload
-carries exactly two readonly strings, `removedEntityId` and `typeId`, and no entity reference —
-which is what makes it readable after the entity is gone [[f:entity-remove-after-event-shape]]. It
-fires no death event, and nothing else [[f:kill-and-remove-cascades]]
-[[d:remove-raises-only-entity-remove]]. `remove()` does not invalidate references a test holds;
-that is `invalidate()`'s job.
+`entity.remove()` runs three steps in this order. First it raises the `entityRemove` before-event,
+whose `removedEntity` is the entity itself, still registered and still valid — the event precedes
+the removal, so a handler reading it gets a working reference. `EntityRemoveBeforeEvent` declares
+`removedEntity` alone and no `cancel`, so there is no path where a handler stops the removal
+half-way and no half-invalidated entity to specify. Second, it detaches the entity from the world
+registry and invalidates every reference to it — one act, not two, so a builder cannot order them
+against each other and a test can never observe a detached-but-valid entity or the reverse. Third it
+raises the `entityRemove` after-event, whose payload carries exactly two readonly strings,
+`removedEntityId` and `typeId`, and no entity reference — which is what makes it readable after the
+entity is gone [[f:entity-remove-after-event-shape]]. It fires no death event, and nothing else
+[[f:kill-and-remove-cascades]] [[d:remove-raises-only-entity-remove]].
+
+That the reference goes invalid is the engine's behaviour, not a convenience: every invalidation
+fact in the pool was observed on an entity that `remove()` had invalidated
+[[f:invalidation-guard-list-complete]] [[f:invalidation-guard-fires-at-call-not-access]]. `invalidate()`
+stays, because it reaches a transition `remove()` cannot: the mid-test unload of a reference a test
+already holds, on an entity that is still in the world [[r:invalidation-is-modeled]]. The two are
+distinct acts — `remove()` invalidates as a consequence of removing, `invalidate()` invalidates on
+demand without removing.
+
+`kill()` is the other case and behaves differently on purpose: it never invalidates, because in the
+engine a corpse stays valid for several ticks and when it turns invalid varies by entity type, so a
+test that wants a dead reference invalid says so with `invalidate()`
+[[f:kill-no-health-behaviour]] [[f:death-invalidation-window]].
 
 `entity.triggerEvent(eventName)` requires the `minecraft:`-prefixed form and throws
 `InvalidArgumentError` with the message ``Invalid value passed to argument [0]. The event <name>
@@ -390,9 +425,8 @@ damage equal to current health and cause `selfDestruct`, sets health to exactly 
 fires `entityHealthChanged`, then fires `entityDie` with cause `selfDestruct`. A second `kill()`
 returns true and fires nothing [[f:kill-and-remove-cascades]]. On an entity with no health
 component it returns true and fires only `entityDie` with cause `selfDestruct`
-[[f:kill-no-health-behaviour]]. `kill()` never invalidates the reference — in the engine when a
-corpse becomes invalid varies by entity type and is not a uniform grace period, so a test that
-wants the dead reference invalid says so with `invalidate()` [[f:death-invalidation-window]].
+[[f:kill-no-health-behaviour]]. It leaves the reference valid, unlike `remove()`, for the reason
+given under *Entities*.
 
 ## Effects
 
@@ -489,6 +523,11 @@ display-name field, and `Effect` has no member to set one through
 readable inside the `effectAdd` event `addEffect` itself dispatches, where no effect instance exists
 yet. A registration also overrides a shipped base for a vanilla type, which is how a test targeting
 a locale other than the observed one supplies its own strings.
+
+One vanilla-adjacent type falls on the custom side of that line. `EffectTypes.getAll()` returns 38
+types where `@minecraft/vanilla-data` ships 37, the extra being `minecraft:empty`, which the
+name sweep never applied and for which no base is shipped — so its `displayName` throws like any
+unregistered type until a test registers one [[f:effect-display-name-amplifier-mapping]].
 
 Reading `displayName` for a custom type nothing was registered for throws `UnsetValueError`. The
 fake will not invent a base name from the identifier, because the engine's own strings are not
@@ -595,7 +634,10 @@ passed, and `options` is whatever the member carried [[d:output-log-record-shape
 
 `invalidate(entity)` puts a reference into the state the real API leaves a stale reference in, and
 may be called at any point in a test — including on a reference a handler is holding mid-event
-[[r:invalidation-is-modeled]].
+[[r:invalidation-is-modeled]]. It is not the only route to that state: `remove()` invalidates too,
+as part of removing. What `invalidate()` reaches that `remove()` cannot is the entity that goes
+stale *without* leaving the world — the mid-test unload, and the corpse a `kill()` left valid — which
+is the transition a test otherwise has no way to produce.
 
 The guard list is a per-member table taken from the reflective sweep of the engine's own `Entity`
 prototype, not from the declarations' `@throws` annotations, which under-report it: `nameTag` and
@@ -689,10 +731,10 @@ not been considered, which is not the same as a promise about it.
 | the other entity lookups — `getEntitiesAtBlockLocation`, `getEntitiesFromRay`, `getEntitiesFromViewDirection` and the rest | not modelled | |
 | `dimension.spawnEntity` placement | divergence | the entity lands exactly where asked; the engine adjusts some placements — a boat by 0.2 on x and z |
 | post-spawn motion | divergence | an entity never moves on its own; AI-driven mobs drift within a couple of dozen ticks |
-| `entity.remove()` | divergence | raises `entityRemove` alone; any further event the engine attributes to removal is not reproduced |
+| `entity.remove()` | divergence | detaches from the registry and invalidates the reference as one act, and raises `entityRemove` alone; any further event the engine attributes to removal is not reproduced |
 | `entity.triggerEvent` | divergence | validates the prefixed id and records the call, changing no state; in the engine the event reshapes the entity |
 | `entity.kill()` | modelled | the full cascade, on an entity with and without a health component |
-| invalidation of a dead entity's reference | not modelled | `kill()` never invalidates; when a corpse goes invalid varies by type in the engine, so a test says so with `invalidate()` |
+| invalidation of a corpse after `kill()` | not modelled | `kill()` leaves the reference valid; in the engine a corpse stays valid for several ticks and when it turns invalid varies by type, so a test says so with `invalidate()`. Distinct from `remove()`, which invalidates at once |
 | the seven attribute-shaped components | modelled | all four values, the bounds check, and the health-write cascade |
 | the other 61 entity components | not modelled | attachable, carrying `typeId`, `isValid` and `entity`; every other member throws |
 | runtime component attachment and detachment | not modelled | the engine reaches it through data-driven paths; a test uses the `addComponent` / `removeComponent` free functions |
@@ -729,9 +771,10 @@ not been considered, which is not the same as a promise about it.
 | the scoreboard — objectives, scores, participants, display slots | modelled | |
 | `sendMessage` and `onScreenDisplay` output | modelled | captured to a per-target log rather than displayed, and read back with `getOutput` |
 | the invalidation guard on entities, attribute components and effects | modelled | the observed guard data, error class by error class, applied by the trap ahead of every modelled member |
-| reading — not calling — a guarded method on an invalidated reference | divergence | the fake returns a thunk and throws when it is called; whether the engine throws on the bare read is unobserved, so the fake may be the more permissive of the two until the open question closes |
+| reading — not calling — a guarded method on an invalidated reference | modelled | the read returns a function and the throw lands on the call, and a reference captured while valid still throws when it runs, as observed |
 | arity checked ahead of the validity guard | divergence | a guarded member throws `InvalidEntityError` however it was called; the engine raises a `TypeError` on a wrong-arity call first |
-| `in` on a declared but unmodelled member | modelled | a `has` trap fed from the generated manifest answers `'teleport' in entity` with `true`, on the expectation the engine does; a `get` trap alone would answer `false` |
+| `in` on a declared but unmodelled member | modelled | a `has` trap fed from the generated manifest answers `'teleport' in entity` with `true` and an unknown name with `false`, as the engine does, valid or invalidated alike |
+| `Object.keys`, spread and `JSON.stringify` over an entity | divergence | a real entity carries two own enumerable properties, `typeId` and `id`, so `JSON.stringify` yields both; the fake keeps its state off the instance and serialises as `{}` — the divergence a `toEqual` on a whole entity would surface |
 | items, blocks, containers, the player client surface, custom commands, the startup registries, and the eight registry classes | not modelled | declared in full and throwing |
 
 The divergence rows are not spec-only. Each one describes a way a test can pass against the fake and
@@ -739,6 +782,15 @@ fail against the engine, so this table and its descriptions carry through into t
 user-facing documentation, where someone reading it has the library in hand and the spec nowhere
 near [[r:coverage-is-enumerated]]. Keeping the two in step is `package-and-exports`'s to hold,
 alongside the entry point it already owns.
+
+This table is the part of the document most likely to rot, because nothing mechanical ties a row to
+the prose it summarises: a behaviour can be respecified above and leave a stale row here, and the
+row is what ships to users. Two rules keep it honest, and they are the builder's to follow rather
+than the checker's to enforce. A change to any modelled behaviour is not complete until its row
+says the same thing as the prose — the row is part of the change, not a follow-up. And every row
+carrying `divergence` names the evidence for the difference, so a row that no longer has any is a
+row to delete rather than to reword: that is how the `remove()` and guard-at-access rows were caught
+once the probes closed them.
 
 ## Components
 
@@ -791,16 +843,20 @@ components:
     responsibility: >-
       createEntity and createPlayer, id assignment, typeId and per-entity fields with
       UnsetValueError on unsupplied reads, the per-entity tag set, spawnEntity, triggerEvent
-      recording, remove, kill, and the EntityQueryOptions matcher — the honoured six, the per-field
-      throw on the rest — layered onto entity.matches and onto the lookups' options argument
-    excludes: component and effect state
+      recording, remove with its detach-and-invalidate step, kill's health-less branch, and the
+      EntityQueryOptions matcher — the honoured six, the per-field throw on the rest — layered onto
+      entity.matches and onto the lookups' options argument
+    excludes: >-
+      component and effect state, and therefore kill's health-bearing cascade, which component-model
+      owns beside its twin applyDamage
     after: [world-and-dimensions, event-bus]
 
   - id: component-model
     responsibility: >-
       addComponent/removeComponent including the attribute state argument, getComponent id
-      normalization, the enumerated seven attribute components with their bounds checks, and the
-      health write and applyDamage cascades
+      normalization, the enumerated seven attribute components with their bounds checks, and every
+      cascade that writes health — the component writes, applyDamage, and kill's health-bearing
+      branch
     excludes: effects
     after: [entity-model]
 
@@ -843,7 +899,8 @@ components:
       the package.json with its peer dependency and ESM-only build, the TypeScript build and
       declaration emit, the single public entry point re-exporting every fake type and every free
       function, and the user-facing documentation carrying the coverage table and a description of
-      every divergence in it
+      every divergence in it, kept in step with the spec's own table as a condition of any
+      behaviour change rather than as a later sweep
     excludes: the behaviour behind anything it re-exports, and which coverage a behaviour has
     after:
       [

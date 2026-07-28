@@ -263,20 +263,21 @@
 
 - id: fakes-are-merged-classes-behind-a-guard-proxy
   statement: |
-    each faked class is an interface/class declaration merge over the engine's declared type, and a
-    get trap over the class instance supplies the runtime floor in one order — validity guard, then
-    NotImplementedError for an unmodelled member, then the modelled member — returning a throwing
-    thunk for any name in the generated method manifest so the guard lands on the call
+    each faked class is an interface/class declaration merge over the engine's declared type, and
+    get, has, set and deleteProperty traps over the class instance supply the runtime floor — the
+    get order being validity guard, caller override, NotImplementedError for an unmodelled member,
+    then the modelled member — returning a throwing thunk for any name in the generated method
+    manifest so the guard lands on the call
   status: proposed
   falsifiers:
-    - the engine is observed throwing when a guarded method is merely read off an invalid
-      reference, so the call-time thunk answers a read the engine refuses and a test passes where
-      the engine would have thrown
     - a declared member's shape defeats the trap — an overload set the merge cannot carry, or state
       the library must hold as a non-configurable own property, which the proxy invariants reject —
       so a cast returns to the design that merging removed it from
     - the generated manifests drift from the declarations across a version bump without failing the
       build, so the completeness assertions do not hold and the guard silently misses new members
+    - the spy libraries packs actually use install their wrapper by a route the set trap does not
+      see — defineProperty, or replacing the prototype method — so the override slot does not in
+      fact keep the fakes wrappable
 
 - id: one-public-entry-point
   statement: |
