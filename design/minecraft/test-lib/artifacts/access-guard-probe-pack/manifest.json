@@ -1,0 +1,25 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "mc-test-lib access-guard probes",
+    "description": "Whether the invalidation guard fires when an Entity member is accessed or only when it is called, across four access/call orderings; and what the `in` operator, key enumeration, typeof and instanceof read on a valid and an invalidated entity. Run /scriptevent mctest6:access and mctest6:shape and copy the [mctest] lines.",
+    "uuid": "5cd5653c-fea6-4b32-935b-7a4972a82bd4",
+    "version": [0, 1, 0],
+    "min_engine_version": [1, 26, 0]
+  },
+  "modules": [
+    {
+      "type": "script",
+      "language": "javascript",
+      "entry": "scripts/main.js",
+      "uuid": "b5eca02a-23e9-45f7-a464-e166268ef170",
+      "version": [0, 1, 0]
+    }
+  ],
+  "dependencies": [
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.8.0"
+    }
+  ]
+}
