@@ -13,14 +13,14 @@
 
 - id: product-map-declares-bundle-identity
   statement: a `products.yaml` at the repository root maps each product either to one design scope or to a mapping of feature names to design scopes
-  status: proposed
+  status: tolerated
   falsifiers:
     - a product has to both publish a bundle of its own and hold features
     - the map drifts from the design tree often enough that specs publish under stale names
 
 - id: undeclared-identity-publishes-nothing
   statement: a design absent from `products.yaml` publishes no bundle, and the checker warns rather than failing its settle gate
-  status: proposed
+  status: tolerated
   falsifiers:
     - a settled spec goes unpublished unnoticed and a builder is blocked waiting for it
 
@@ -37,24 +37,35 @@
     - the orientation text is identical across formats, so it belongs in the spec's own prose rather than in every bundle
 
 - id: bundle-is-four-files-plus-incorporated-content
-  statement: a bundle is a directory holding README.md, spec.md, commitments.md, and package.json, plus the content the spec incorporates by reference
-  status: proposed
+  statement: a bundle is a directory holding README.md, spec.md, commitments.yaml, and package.json, plus the content the spec incorporates by reference
+  status: accepted
   falsifiers:
     - a builder routinely needs a file the bundle does not carry
-    - the markdown files are always read together, so the split buys nothing
+    - the spec and its commitments are always read together, so the split buys nothing
 
 - id: orientation-file-is-a-boilerplate-readme
   statement: the orientation file is README.md, fixed boilerplate that varies only by the bundle's own name, written by the deriver rather than by the spec's author
-  status: proposed
+  status: tolerated
   falsifiers:
     - a bundle needs orientation particular to its own design, which boilerplate cannot carry
     - the registry or a consumer's tooling treats README.md as the package's own documentation and the two readings conflict
 
 - id: commitments-are-rendered-markdown
   statement: the requirement and decision extraction is rendered markdown, with no machine-readable copy beside it
+  status: rejected
+
+- id: commitments-are-a-yaml-document
+  statement: the requirement and decision extraction is a YAML document, commitments.yaml
+  status: accepted
+  falsifiers:
+    - a builder reads the bundle only as rendered prose, so the one file it cannot skim is the one holding the commitments
+
+- id: commitments-schema-mirrors-the-source-entries
+  statement: commitments.yaml is a mapping of `requirements` and `decisions` to sequences whose entries carry the same fields, under the same names, as the repository's own foundation files
   status: proposed
   falsifiers:
-    - a builder's tooling needs to enumerate a bundle's commitments programmatically
+    - a consumer needs a field the source entries do not carry, such as the scope a requirement came from
+    - the foundation schemas change often enough that bundles built weeks apart cannot be read by one reader
 
 - id: dependencies-are-derived-from-cited-fact-sources
   statement: a bundle depends on the bundles of the designs whose requirements.yaml or spec.md its spec's cited facts source, each at a caret range on that bundle's latest version
@@ -72,10 +83,10 @@
     - renaming an id without changing what it says scores major often enough that the majors stop meaning anything
 
 - id: latest-never-moves-backward
-  statement: latest always names the highest version published for a bundle, and a superseded or withdrawn spec is deprecated rather than having latest moved
+  statement: latest always names the highest version published for a bundle, and is never repointed at an earlier one whatever becomes of the spec
   status: accepted
   falsifiers:
-    - a consumer builds from a superseded bundle because the deprecation message never reached them
+    - a consumer builds from a superseded bundle because nothing in the registry signalled that its spec was gone
 
 - id: settled-specs-are-backfilled-on-the-first-run
   statement: every spec already settled on main is published by the first publishing run rather than waiting for its next settle
@@ -133,7 +144,4 @@
 
 - id: deprecation-triggers-on-a-name-leaving-the-product-map
   statement: a bundle with published versions whose name products.yaml no longer holds is deprecated across every version, with a fixed message naming the repository
-  status: proposed
-  falsifiers:
-    - a bundle has to be deprecated while its name is still in products.yaml
-    - a consumer needs the deprecation to name what replaced the bundle
+  status: rejected

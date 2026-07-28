@@ -32,14 +32,14 @@ A bundle is a directory of four files, plus whatever the spec incorporates by re
 README.md         how to use a bundle of this format: what the files are, and how to fetch
                   the dependencies
 spec.md           the spec's prose, every citation token struck
-commitments.md    the requirements binding the design and the decisions it holds
+commitments.yaml  the requirements binding the design and the decisions it holds
 package.json      name, version, description, files, repository, dependencies
 ```
 
 `README.md` orients a builder who has just unpacked a bundle and has never seen one
 [[d:bundle-carries-an-orientation-file]]. What it explains is the *format*, not the design: the
 other three files and what each is for, that the spec's prose is the primary source and
-`commitments.md` a crib, that the design's upstream dependencies are not vendored, and the commands
+`commitments.yaml` a crib, that the design's upstream dependencies are not vendored, and the commands
 that fetch them. It is fixed boilerplate written by the deriver, identical in every npm bundle
 except for the bundle's own name, which appears in the example commands
 [[d:orientation-file-is-a-boilerplate-readme]]. `README.md` is the name because it is where both a
@@ -58,52 +58,39 @@ else is rewritten, reordered, or summarised, so the derivation is auditable by d
 files. The `## Open questions` section never survives, because a settled spec is one whose spec.md
 holds no open question [[f:settled-state-is-computed-from-spec-content]].
 
-`commitments.md` is the streamlined extraction the builder reads as a crib beside the prose
-[[r:derived-implementer-view]]. It carries two lists — every active requirement binding the
-design, its own and every wider-scope one whose `applies_to` reaches it, each with its id,
-statement, and `force` [[f:requirement-entry-fields]]; and every decision the design holds at
-`accepted` or `tolerated`, each with its id and statement [[f:decision-status-values]] — which is
-the reviewable foundation list minus the one kind that issues no obligation
-[[r:easily-reviewable-foundations]]. Rejected decisions, retired requirements, and open questions
-are left out [[d:extraction-carries-live-commitments-only]]. Facts are left out entirely, and so
-are the citation tokens that pointed at them: a token marks a claim that would change were its
-foundation false [[r:explicit-intent]], which is the argument the spec was settled on rather than
-anything a builder following it has to re-run [[r:derived-implementer-view]].
+`commitments.yaml` is the streamlined extraction the builder reads as a crib beside the prose
+[[r:derived-implementer-view]], and it is a YAML document [[d:commitments-are-a-yaml-document]]. It
+carries two lists — every active requirement binding the design, its own and every wider-scope one
+whose `applies_to` reaches it; and every decision the design holds at `accepted` or `tolerated`
+[[f:decision-status-values]] — which is the reviewable foundation list minus the one kind that
+issues no obligation [[r:easily-reviewable-foundations]]. Rejected decisions, retired requirements,
+and open questions are left out [[d:extraction-carries-live-commitments-only]]. Facts are left out
+entirely, and so are the citation tokens that pointed at them: a token marks a claim that would
+change were its foundation false [[r:explicit-intent]], which is the argument the spec was settled
+on rather than anything a builder following it has to re-run [[r:derived-implementer-view]].
 
-Its layout is fixed, because the version planner below diffs one release's `commitments.md`
-against the previous one's, and two builders rendering the same commitments differently would diff
-as a change that never happened:
+The document is a mapping of `requirements` and `decisions`, each to a sequence, and an entry
+carries the same fields under the same names its source entry does — `id`, `statement`, and `force`
+for a requirement [[f:requirement-entry-fields]]; `id`, `statement`, and `status` for a decision
+[[f:decision-status-values]] — with a field at its default omitted, exactly as the repository's own
+foundation files write it [[d:commitments-schema-mirrors-the-source-entries]]:
 
-```text
-# Commitments
-
-## Requirements
-
-### <requirement id>
-
-force: hard | soft
-
-<statement>
-
-## Decisions
-
-### <decision id>
-
-status: accepted | tolerated
-
-<statement>
+```yaml
+requirements:
+  - id: bundle-is-fetched-by-name-and-version
+    statement: |
+      a builder outside this repository obtains a spec's bundle from the spec's name and a
+      version, or from the name alone to get the latest
+decisions:
+  - id: first-version-is-one-zero-zero
+    statement: a bundle's first published version is 1.0.0, backfilled bundles included
+    status: accepted
 ```
 
-Both H2 sections are always present, holding no entries where the design has none of that kind.
-Entries sit under their section ordered lexicographically by id. The `force` and `status` lines are
-always written, `force` included where it takes its default of `hard` [[f:requirement-entry-fields]],
-so an absent line never has to be read two ways. A statement is copied verbatim from its entry,
-its internal line breaks kept and its trailing whitespace dropped.
-
-The extraction is rendered markdown and there is no second, machine-readable copy of it
-[[d:commitments-are-rendered-markdown]]. The only thing that parses it is the version planner, for
-which the fixed layout is enough; a second serialisation of the same list is a thing to keep in
-sync for a reader that does not exist [[r:must-beat-doing-it-myself]].
+Both keys are always present, mapping to an empty sequence where the design has no entries of that
+kind. Entries sit in each sequence ordered lexicographically by id — the one rendering rule the
+document keeps, because the publish gate below compares a derived bundle byte for byte against the
+published one, and an unstable order would read as a change that never happened.
 
 A bundle carries its own design in full, so any file the spec links by a repo-relative path that
 resolves inside the design's own directory — an `artifacts/` script, a diagram — is copied into the
@@ -272,7 +259,7 @@ under the bundle's name are the whole record of it, and nothing in this reposito
 copy. A bundle's first published version is `1.0.0` [[d:first-version-is-one-zero-zero]].
 
 Every later version is computed by diffing the new bundle's commitments — the requirement list and
-the decision list in `commitments.md`, plus the components block in `spec.md` — against the previous
+the decision list in `commitments.yaml`, plus the components block in `spec.md` — against the previous
 published version's [[d:bump-is-computed-from-the-commitment-diff]]:
 
 - **major** — a commitment is removed or altered in place: a requirement no longer binds or its
@@ -285,9 +272,9 @@ published version's [[d:bump-is-computed-from-the-commitment-diff]]:
 - **patch** — anything else: prose, vendored content, a dependency's minor or patch.
 
 The previous version is fetched rather than remembered: the planner runs `npm pack
-@td-spec/<product>[.<feature>]@latest`, unpacks the tarball, and reads the `commitments.md` and `spec.md`
-inside it [[f:npm-pack-fetches-a-published-package-by-spec]]. The commitments parse back into ids,
-statements, and force or status by the fixed layout above, the components block out of the unpacked
+@td-spec/<product>[.<feature>]@latest`, unpacks the tarball, and reads the `commitments.yaml` and
+`spec.md` inside it [[f:npm-pack-fetches-a-published-package-by-spec]]. The commitments load as a
+document rather than being reconstructed from prose; the components block comes out of the unpacked
 `spec.md`, and the dependency ranges out of its `package.json`. Nothing else in the repository
 records what a published bundle committed to. A bundle whose name has no published version has
 nothing to diff and takes `1.0.0`.
@@ -330,7 +317,8 @@ Three things stop a publish, each quietly:
   stays fetchable [[d:leaving-settled-publishes-nothing]].
 - The design has no bundle identity [[d:undeclared-identity-publishes-nothing]].
 - The derived bundle matches the current `latest`. The comparison is file by file against the
-  unpacked `latest` tarball — `README.md`, `spec.md`, `commitments.md`, every vendored path, and `package.json`
+  unpacked `latest` tarball — `README.md`, `spec.md`, `commitments.yaml`, every vendored path, and
+  `package.json`
   with `version` excluded, that field differing by construction on every publish. A dependency
   range that moved because an upstream's `latest` moved is a difference like any other and
   publishes a patch; only a bundle unchanged in every other byte is skipped. Nothing is published
@@ -344,23 +332,15 @@ registry does not hold that line for us — publishing sets `latest` to the vers
 published version at all [[f:npm-dist-tag-can-retag-any-version]] — so the publisher enforces it
 itself: it publishes only versions above the current `latest`, and issues no dist-tag command
 against `latest` ever. Reversing that pointer would change what a versionless fetch returns, which
-is the moving-reference behaviour this design exists to avoid. A spec that is superseded or
-withdrawn is therefore deprecated instead, the registry showing the message to anyone installing it
-while the content stays downloadable [[f:npm-deprecate-warns-on-install]]
-[[d:latest-never-moves-backward]].
+is the moving-reference behaviour this design exists to avoid [[d:latest-never-moves-backward]].
 
-`products.yaml` is what triggers that, and it is the only artifact that can: a bundle name it once
-held and no longer does names a spec that has been withdrawn or renamed, and nothing else in the
-repository records a supersession at all [[d:deprecation-triggers-on-a-name-leaving-the-product-map]].
-So the publisher deprecates a bundle when its name has left the map while versions of it stand
-published, and it deprecates the package as a whole rather than a version range, since every version
-of a withdrawn spec is equally out of date. The message is fixed text, the same in every
-deprecation, naming the bundle and pointing at
-`https://github.com/twin-digital/plan-opus` for what replaced it. Nothing records *what* superseded
-a bundle, and nothing needs to: a consumer who has been told the spec is gone goes to the
-repository, where the current `products.yaml` and design tree answer the question better than a
-frozen string would. A feature repointed at a different design keeps its bundle name, so it is not a
-withdrawal at all — the same version line simply continues with the new design's content.
+A spec that is superseded, rejected, or withdrawn therefore stops publishing and nothing else
+happens: `latest` stays on the last version that was published, every published version stays
+fetchable at its pin, and the bundle simply goes quiet. The registry carries no signal that the
+spec is gone, and a consumer who wants to know goes to `products.yaml` and the design tree, where a
+name that has left the map is the record. A feature repointed at a different design is not a
+withdrawal at all — the bundle name is the identity, so the same version line continues with the
+new design's content.
 
 **Cold start.** Specs that settled before any of this existed — `how-to-plan/doc-structure` and
 `minecraft/dev-kit` among them — are published by the first publishing run, at `1.0.0`, rather than
@@ -381,7 +361,7 @@ components:
     excludes: scheduling anything from the edges it emits, deciding any bundle's version, or publishing anything
     after: [product-map]
   - id: bundle-deriver
-    responsibility: produce a bundle directory for one design — the boilerplate README.md, stripped spec.md, commitments.md, vendored content, and a package.json carrying every field but version
+    responsibility: produce a bundle directory for one design — the boilerplate README.md, stripped spec.md, commitments.yaml, vendored content, and a package.json carrying every field but version
     excludes: deciding the version or pushing anything to a registry
     after: [product-map, dependency-resolver]
   - id: version-planner
@@ -389,7 +369,7 @@ components:
     excludes: publishing the version it computed
     after: [bundle-deriver]
   - id: publisher
-    responsibility: stamp a computed version into its derived bundle and publish it with public access, and deprecate a bundle whose name has left products.yaml
+    responsibility: stamp a computed version into its derived bundle and publish it with public access
     excludes: the CI workflow, hooks, and run scheduling that invoke it, which are harness's
     after: [version-planner]
 ```
