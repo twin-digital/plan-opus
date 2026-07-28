@@ -125,14 +125,7 @@
     literal path rule enumerated ahead of time.
   backing: tested
   sources:
-    - description: |
-        Ran design/minecraft/dev-server/artifacts/compose-watch-probes/run.mjs under Compose
-        v5.2.0 against Docker Engine 29.5.3 on a remote daemon (DOCKER_HOST=ssh://…, no bind
-        mount). Each of four compose projects is brought up, `docker compose watch --no-up` is
-        attached, files are written under the watched path, and the container is then inspected
-        with `find`. Captured stdout is OUTPUT.txt beside the script; NOTES.md there records the
-        case table.
-    - url: design/minecraft/dev-server/artifacts/compose-watch-probes/OUTPUT.txt
+    - run: compose-watch-probes
       where: the four cases — what reached the container under each path form
       quote: |
         === directory path that exists when the watcher attaches (sync+exec)
@@ -193,14 +186,7 @@
     side effect.
   backing: tested
   sources:
-    - description: |
-        Ran design/minecraft/dev-server/artifacts/env-file-resolution/run.mjs under Compose
-        v5.2.0. The script builds a cwd and a separate compose-file directory, each holding a
-        `.env` and a `svc-env/` that a relative `env_file`, volume source and watch path all
-        name, then reports `docker compose config` under `-f` alone, `--project-directory .` and
-        `--env-file .env`, with a `.env` in both places (part A) and in the cwd only (part B).
-        Captured stdout is OUTPUT.txt beside the script.
-    - url: design/minecraft/dev-server/artifacts/env-file-resolution/OUTPUT.txt
+    - run: env-file-resolution
       where: part A — a .env beside the compose file and in the cwd, under each of the three invocations
       quote: |
         --- -f alone
@@ -229,7 +215,7 @@
                 WHICH_ENV_FILE: beside-compose
                   source: <work>/project/svc-env
                   target: /mounted
-    - url: design/minecraft/dev-server/artifacts/env-file-resolution/OUTPUT.txt
+    - run: env-file-resolution
       where: part B — no .env beside the compose file, under -f alone
       quote: |
         === B. a .env sits only in the cwd (none beside the compose file)
@@ -250,16 +236,11 @@
   backing: tested
   sources:
     - description: |
-        design/minecraft/dev-server/artifacts/activation-list-probe/run.mjs restarts the server
-        between every activation-list change and reads the Pack Stack line the fresh world load
-        emits, which is what makes the list's effect observable at all; captured stdout is
-        OUTPUT.txt beside it. That probe was run by the author of the design formerly named
-        minecraft/dev-workflow, not by this fact's author. The half the probe does not cover —
-        that editing the list without a restart has no in-game effect — was observed in the same
-        author's prototype, outside this repository, where packs synced into the pool but absent
-        from the world list logged "Pack Stack - None" at load and only appeared after the list
-        was written and the container restarted.
-    - url: design/minecraft/dev-server/artifacts/activation-list-probe/OUTPUT.txt
+        The half the probe does not cover — that editing the list without a restart has no in-game
+        effect — was observed in a prototype outside this repository, where packs synced into the
+        pool but absent from the world list logged "Pack Stack - None" at load and only appeared
+        after the list was written and the container restarted. There is no captured output.
+    - run: activation-list-probe
       where: pool-only versus listed — the same pack, before and after the world list names it
       quote: |
         === pack copied into the pool, world not told about it
@@ -281,14 +262,7 @@
     does not rewrite one it is given.
   backing: tested
   sources:
-    - description: |
-        design/minecraft/dev-server/artifacts/activation-list-probe/run.mjs was run against a
-        remote daemon (DOCKER_HOST=ssh://…, no bind mount) under Compose v5.2.0 by the author of
-        the design formerly named minecraft/dev-workflow, not by this fact's author; captured
-        stdout is OUTPUT.txt beside it and the probe pack is pack/manifest.json, whose header uuid
-        is b1a7d0c2-3f4e-4a5b-8c9d-0e1f2a3b4c5d and whose data module uuid is
-        c2b8e1d3-4a5f-4b6c-9d0e-1f2a3b4c5d6e.
-    - url: design/minecraft/dev-server/artifacts/activation-list-probe/OUTPUT.txt
+    - run: activation-list-probe
       where: the module uuid and the mismatched version, each in place of the working entry
       quote: |
         === activation list with the module uuid instead
@@ -298,7 +272,7 @@
         === activation list with header uuid but a version the pack does not have
           wrote /data/worlds/dev/world_behavior_packs.json = [{"pack_id":"b1a7d0c2-3f4e-4a5b-8c9d-0e1f2a3b4c5d","version":[9,9,9]}]
         [2026-07-24 21:30:18:066 INFO] Pack Stack - None
-    - url: design/minecraft/dev-server/artifacts/activation-list-probe/OUTPUT.txt
+    - run: activation-list-probe
       where: a fresh world directory, before any deploy — the server creates no activation list
       quote: |
         === world directory before any deploy
@@ -306,7 +280,7 @@
         level.dat
         level.dat_old
         levelname.txt
-    - url: design/minecraft/dev-server/artifacts/activation-list-probe/OUTPUT.txt
+    - run: activation-list-probe
       where: the installed file read back off the server after a world load
       quote: |
         file as the server left it:
@@ -409,15 +383,7 @@
     observable from the server's output.
   backing: tested
   sources:
-    - description: |
-        The pool-layout probe at design/minecraft/artifacts/pack-layout/probe/ drives a real
-        itzg/minecraft-bedrock-server container: run.mjs deploys the probe packs (bp/, rp/, each a
-        manifest and content) into the server's pools via the compose project in compose.yaml,
-        writes the world activation lists, and captures the server's load output. Case 2 places the
-        resource pack in the behavior pool and lists it as a behavior pack; case 4 places the
-        behavior pack in the resource pool and lists it as a resource pack. This probe was run by
-        the author of the design formerly named minecraft/dev-workflow, not by this fact's author.
-    - url: design/minecraft/artifacts/pack-layout/probe/OUTPUT.txt
+    - run: pack-layout-probe
       where: case 4 — the behavior pack placed in the resource pool and listed as a resource pack
       quote: |
         === case 4: the behavior pack placed in the resource pool and listed as a resource pack

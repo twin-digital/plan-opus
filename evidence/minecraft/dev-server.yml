@@ -1,0 +1,38 @@
+# Runs backing facts about the Bedrock dev server and the Compose project that drives it.
+#
+# No record of the execution dates survives; ran_at is the date each output was committed.
+
+- id: activation-list-probe
+  command: node design/minecraft/dev-server/artifacts/activation-list-probe/run.mjs
+  output: design/minecraft/dev-server/artifacts/activation-list-probe/OUTPUT.txt
+  ran_at: 2026-07-25
+  environment: |
+    A real itzg/minecraft-bedrock-server container under Compose v5.2.0, against a remote daemon
+    (DOCKER_HOST=ssh://…, no bind mount). The probe restarts the server between every
+    activation-list change and reads the Pack Stack line a fresh world load emits, which is what
+    makes the list's effect observable. Its pack is pack/manifest.json beside the script, header
+    uuid b1a7d0c2-3f4e-4a5b-8c9d-0e1f2a3b4c5d and data module uuid
+    c2b8e1d3-4a5f-4b6c-9d0e-1f2a3b4c5d6e. Observations would differ against another server image or
+    Compose version.
+
+- id: compose-watch-probes
+  command: node design/minecraft/dev-server/artifacts/compose-watch-probes/run.mjs
+  output: design/minecraft/dev-server/artifacts/compose-watch-probes/OUTPUT.txt
+  ran_at: 2026-07-25
+  environment: |
+    Compose v5.2.0 against Docker Engine 29.5.3 on a remote daemon (DOCKER_HOST=ssh://…, no bind
+    mount). Four compose projects beside the script are each brought up, `docker compose watch
+    --no-up` attached, files written under the watched path, and the container inspected with
+    `find`. The behaviour is Compose's own and would differ at another version; NOTES.md beside the
+    output records the case table.
+
+- id: env-file-resolution
+  command: node design/minecraft/dev-server/artifacts/env-file-resolution/run.mjs
+  output: design/minecraft/dev-server/artifacts/env-file-resolution/OUTPUT.txt
+  ran_at: 2026-07-25
+  environment: |
+    Compose v5.2.0. The script builds a cwd and a separate compose-file directory, each holding a
+    `.env` and a `svc-env/` that a relative `env_file`, volume source and watch path all name, then
+    reports `docker compose config` under `-f` alone, `--project-directory .` and `--env-file .env`
+    — with a `.env` in both places, then in the cwd only. Resolution is Compose's own and would
+    differ at another version.
