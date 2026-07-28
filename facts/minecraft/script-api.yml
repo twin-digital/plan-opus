@@ -1570,14 +1570,21 @@
     that sentence for `getComponent` as well, where it does hold.
   backing: tested
   sources:
-    - description: |
-        artifacts/mctest-resting-state-probe-results.md, `namespace-prefix-other-surfaces`
-        lines: addEffect("speed"/"minecraft:speed"), getEffect("speed"/"minecraft:speed"),
-        spawnEntity("sheep"/"minecraft:sheep"), and getComponent("health"/"minecraft:health")
-        all ok, each reporting the prefixed typeId; triggerEvent("entity_born") and
-        triggerEvent("ageable_grow_up") threw name=InvalidArgumentError ("The event
-        <name> does not exist on minecraft:sheep") while the `minecraft:`-prefixed forms of
-        both returned ok.
+    - run: resting-state-probe-run
+      where: "`namespace-prefix-other-surfaces` probe lines"
+      quote: |
+        [2026-07-25 02:26:25.312] [mctest] namespace-prefix-other-surfaces :: addEffect("speed") ok value=object(Effect) reportedTypeId="minecraft:speed"
+        [2026-07-25 02:26:25.312] [mctest] namespace-prefix-other-surfaces :: addEffect("minecraft:speed") ok value=object(Effect) reportedTypeId="minecraft:speed"
+        [2026-07-25 02:26:25.312] [mctest] namespace-prefix-other-surfaces :: getEffect("speed") ok value=object(Effect) reportedTypeId="minecraft:speed"
+        [2026-07-25 02:26:25.312] [mctest] namespace-prefix-other-surfaces :: getEffect("minecraft:speed") ok value=object(Effect) reportedTypeId="minecraft:speed"
+        [2026-07-25 02:26:25.313] [mctest] namespace-prefix-other-surfaces :: spawnEntity("sheep") ok value=object(Entity) reportedTypeId="minecraft:sheep"
+        [2026-07-25 02:26:25.313] [mctest] namespace-prefix-other-surfaces :: spawnEntity("minecraft:sheep") ok value=object(Entity) reportedTypeId="minecraft:sheep"
+        [2026-07-25 02:26:25.313] [mctest] namespace-prefix-other-surfaces :: triggerEvent("entity_born") threw name=InvalidArgumentError ctor=InvalidArgumentError instanceofInvalidEntityError=false message="Invalid value passed to argument [0]. The event entity_born does not exist on minecraft:sheep"
+        [2026-07-25 02:26:25.314] [mctest] namespace-prefix-other-surfaces :: triggerEvent("minecraft:entity_born") ok value=undefined
+        [2026-07-25 02:26:25.314] [mctest] namespace-prefix-other-surfaces :: triggerEvent("ageable_grow_up") threw name=InvalidArgumentError ctor=InvalidArgumentError instanceofInvalidEntityError=false message="Invalid value passed to argument [0]. The event ageable_grow_up does not exist on minecraft:sheep"
+        [2026-07-25 02:26:25.314] [mctest] namespace-prefix-other-surfaces :: triggerEvent("minecraft:ageable_grow_up") ok value=undefined
+        [2026-07-25 02:26:25.314] [mctest] namespace-prefix-other-surfaces :: getComponent("health") ok value=object(EntityHealthComponent) reportedTypeId="minecraft:health"
+        [2026-07-25 02:26:25.314] [mctest] namespace-prefix-other-surfaces :: getComponent("minecraft:health") ok value=object(EntityHealthComponent) reportedTypeId="minecraft:health"
     - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/entity
       where: Methods — getComponent, componentId parameter
       quote: |
@@ -1611,11 +1618,8 @@
         The guard-and-effect probe pack drives a real Bedrock dedicated server (1.26.31.1,
         @minecraft/server 2.8.0), removing a subject entity and then calling each of the 27
         arity-blocked methods with correct arguments, alongside a live control given the same
-        arguments. Three runs, byte-identical summary lines. This probe was run by the design's
-        owner, not by this fact's author; its captured output is
-        design/minecraft/test-lib/artifacts/mctest-guard-and-effect-probe-results.md and the pack
-        itself is design/minecraft/test-lib/artifacts/guard-and-effect-probe-pack.
-    - url: design/minecraft/test-lib/artifacts/mctest-guard-and-effect-probe-results.md
+        arguments. Three runs, byte-identical summary lines.
+    - run: guard-and-effect-probe-run
       where: Raw logs — mctest3:guards, Guards run 1, the SUMMARY lines
       quote: |
         [2026-07-27 12:42:15.391] [mctest] guard-with-correct-arity :: SUMMARY probed=27/27
@@ -1646,15 +1650,12 @@
         duration 320 at a lower, equal and higher amplifier, and reads the effect back, with 200 and
         500 re-applications as anchors. Duration 320 lies strictly between the remaining 250 and the
         applied 400, so the two candidate rules predict different read-backs. Three runs, identical
-        case for case. This probe was run by the design's owner, not by this fact's author; its
-        captured output is
-        design/minecraft/test-lib/artifacts/mctest-guard-and-effect-probe-results.md and the pack
-        itself is design/minecraft/test-lib/artifacts/guard-and-effect-probe-pack.
-    - url: design/minecraft/test-lib/artifacts/mctest-guard-and-effect-probe-results.md
+        case for case.
+    - run: guard-and-effect-probe-run
       where: Raw logs — mctest3:effects, Effects run 1, the equal-amp/between #1 case
       quote: |
         [2026-07-27 12:45:34.346] [mctest] effect-duration-basis :: [equal-amp/between #1] applied(amp1,dur400) waited=150ticks remaining=250 remainingAmp=1 decayPerTick=1 reapply(amp1,dur320) strictly-between-remaining-and-applied=true -> readback(amp1,dur320) matches=the-reapplied-value verdict=REMAINING-BASIS (the re-add was treated as longer, so the comparison is against the duration remaining)
-    - url: design/minecraft/test-lib/artifacts/mctest-guard-and-effect-probe-results.md
+    - run: guard-and-effect-probe-run
       where: Raw logs — mctest3:effects, Effects run 1, the higher-amp/between #1 case
       quote: |
         [2026-07-27 12:45:57.441] [mctest] effect-duration-basis :: [higher-amp/between #1] applied(amp1,dur400) waited=150ticks remaining=250 remainingAmp=1 decayPerTick=1 reapply(amp2,dur320) strictly-between-remaining-and-applied=true -> readback(amp2,dur320) matches=the-reapplied-value verdict=REMAINING-BASIS (the re-add was treated as longer, so the comparison is against the duration remaining)
@@ -1683,18 +1684,16 @@
         what the action actually did; the createExplosion control confirms the case discriminates,
         entering the handler, returning true and killing its witness sheep when not cancelled.
         Three runs, byte-identical SUMMARY blocks.
-        This pack was run by the design's owner, not by this fact's author; its captured
-        output is design/minecraft/test-lib/artifacts/mctest-return-value-probe-results.md and the pack itself is design/minecraft/test-lib/artifacts/return-value-probe-pack.
-    - url: design/minecraft/test-lib/artifacts/mctest-return-value-probe-results.md
+    - run: return-value-probe-run
       where: Raw logs — mctest5:returns, returns run 1, the [cancelled] applyDamage line
       quote: |
         [2026-07-27 20:44:04.990] [mctest] applydamage-return-semantics :: [cancelled] type=minecraft:sheep amount=4 cancelled-before-event=true applyDamage ok value=boolean:true health(ok value=number:8 -> ok value=number:8) health-lost=0 damage-landed=false cascade=[] verdict=RETURNED-TRUE-BUT-NOTHING-LANDED
-    - url: design/minecraft/test-lib/artifacts/mctest-return-value-probe-results.md
+    - run: return-value-probe-run
       where: Raw logs — mctest5:returns, returns run 1, the explosion-cancel-return control and cancel lines
       quote: |
         [2026-07-27 20:44:05.546] [mctest] explosion-cancel-return :: [control-no-cancel] createExplosion(radius=3, breaksBlocks=false) ok value=boolean:true witness-health(ok value=number:8 -> ok value=number:0) health-lost=8 after-event-fired=1 explosion-landed=true cascade=[hurt(damage=43), health(8->-35), die] handler-notes=[handler-entered] verdict=control returned=true landed=true
         [2026-07-27 20:44:06.046] [mctest] explosion-cancel-return :: [cancel] createExplosion(radius=3, breaksBlocks=false) ok value=boolean:false witness-health(ok value=number:8 -> ok value=number:8) health-lost=0 after-event-fired=0 explosion-landed=false cascade=[] handler-notes=[handler-entered | wrote cancel=true readback-in-handler=true] verdict=CANCELLED-RETURNED-FALSE
-    - url: design/minecraft/test-lib/artifacts/mctest-damage-threshold-probe-results.md
+    - run: damage-threshold-probe-run
       where: Raw logs — mctest4:beforeevents, beforeevents run 1, the before-effect-add [cancel] lines
       quote: |
         [2026-07-27 19:57:37.535] [mctest] before-effect-add :: [cancel] requested=200 handler-writes-duration=undefined handler-cancels=true addEffect ok value=undefined -> effect-present=false duration=undefined amplifier=undefined getEffect ok value=undefined health(ok value=number:8 -> ok value=number:8) verdict=MATCHES-SPEC-CANCELLED-RETURNED-UNDEFINED
@@ -1719,15 +1718,13 @@
         health actually lost. Identical in 3/3 runs. The invulnerability case records the priming
         hit's own return on the same line, which read true with damage landing in all three runs,
         so the window is known to have been open.
-        This pack was run by the design's owner, not by this fact's author; its captured
-        output is design/minecraft/test-lib/artifacts/mctest-return-value-probe-results.md and the pack itself is design/minecraft/test-lib/artifacts/return-value-probe-pack.
-    - url: design/minecraft/test-lib/artifacts/mctest-return-value-probe-results.md
+    - run: return-value-probe-run
       where: Raw logs — mctest5:returns, returns run 1, the three amount cases
       quote: |
         [2026-07-27 20:44:04.490] [mctest] applydamage-return-semantics :: [amount=-1] type=minecraft:sheep amount=-1 cancelled-before-event=false applyDamage ok value=boolean:false health(ok value=number:8 -> ok value=number:8) health-lost=0 damage-landed=false cascade=[] verdict=RETURNED-FALSE-AND-NOTHING-LANDED
         [2026-07-27 20:44:04.591] [mctest] applydamage-return-semantics :: [amount=0] type=minecraft:sheep amount=0 cancelled-before-event=false applyDamage ok value=boolean:false health(ok value=number:8 -> ok value=number:8) health-lost=0 damage-landed=false cascade=[] verdict=RETURNED-FALSE-AND-NOTHING-LANDED
         [2026-07-27 20:44:04.691] [mctest] applydamage-return-semantics :: [amount=0.5] type=minecraft:sheep amount=0.5 cancelled-before-event=false applyDamage ok value=boolean:true health(ok value=number:8 -> ok value=number:7.5) health-lost=0.5 damage-landed=true cascade=[hurt(damage=0.5), health(8->7.5)] verdict=RETURNED-TRUE-AND-DAMAGE-LANDED
-    - url: design/minecraft/test-lib/artifacts/mctest-return-value-probe-results.md
+    - run: return-value-probe-run
       where: Raw logs — mctest5:returns, returns run 1, the [cancelled] and [invulnerability-window] lines
       quote: |
         [2026-07-27 20:44:04.990] [mctest] applydamage-return-semantics :: [cancelled] type=minecraft:sheep amount=4 cancelled-before-event=true applyDamage ok value=boolean:true health(ok value=number:8 -> ok value=number:8) health-lost=0 damage-landed=false cascade=[] verdict=RETURNED-TRUE-BUT-NOTHING-LANDED
@@ -1751,9 +1748,7 @@
         plain call consumed the projectile and the options call met an already-removed entity;
         those two CONTRADICTS-SPEC-THREW verdicts were the invalidation guard firing rather than a
         damage ruling, and do not reproduce here.
-        This pack was run by the design's owner, not by this fact's author; its captured
-        output is design/minecraft/test-lib/artifacts/mctest-return-value-probe-results.md and the pack itself is design/minecraft/test-lib/artifacts/return-value-probe-pack.
-    - url: design/minecraft/test-lib/artifacts/mctest-return-value-probe-results.md
+    - run: return-value-probe-run
       where: Raw logs — mctest5:nohealth, nohealth run 1, the SUMMARY lines
       quote: |
         [2026-07-27 20:45:10.541] [mctest] damage-without-health-isolated :: SUMMARY subject-calls=6
@@ -1780,13 +1775,11 @@
         Twelve cases, identical in 3/3 runs. minecraft:armor_stand contributes the two
         MINIMUM-NOT-REACHED cases, where the write never drove it to its minimum, so that type
         says nothing about the boundary either way.
-        This pack was run by the design's owner, not by this fact's author; its captured
-        output is design/minecraft/test-lib/artifacts/mctest-damage-threshold-probe-results.md and the pack itself is design/minecraft/test-lib/artifacts/damage-threshold-probe-pack.
-    - url: design/minecraft/test-lib/artifacts/mctest-damage-threshold-probe-results.md
+    - run: damage-threshold-probe-run
       where: Raw logs — mctest4:threshold, threshold run 1, the effective-minimum survey line
       quote: |
         [2026-07-27 19:53:46.385] [mctest] effective-minimum-survey :: SUMMARY surveyed=11 nonzero-minimum=[]
-    - url: design/minecraft/test-lib/artifacts/mctest-damage-threshold-probe-results.md
+    - run: damage-threshold-probe-run
       where: Raw logs — mctest4:threshold, threshold run 1, the killing-hit-boundary SUMMARY block
       quote: |
         [2026-07-27 19:53:50.085] [mctest] killing-hit-boundary :: SUMMARY cases=12
@@ -1810,14 +1803,12 @@
         The mctest4 damage-threshold pack subscribes two handlers to entityHurt, has one of them
         throw deliberately, and records whether the throw reaches the caller, whether the sibling
         runs, and whether the rest of the cascade fires. Four cases, identical in 3/3 runs.
-        This pack was run by the design's owner, not by this fact's author; its captured
-        output is design/minecraft/test-lib/artifacts/mctest-damage-threshold-probe-results.md and the pack itself is design/minecraft/test-lib/artifacts/damage-threshold-probe-pack.
-    - url: design/minecraft/test-lib/artifacts/mctest-damage-threshold-probe-results.md
+    - run: damage-threshold-probe-run
       where: Raw logs — mctest4:handlers, handlers run 1, the [first-of-two-throws] verdict and order lines
       quote: |
         [2026-07-27 19:55:43.834] [mctest] throwing-handler-propagation :: [first-of-two-throws] signal=entityHurt thrower=first purpose="does the second subscriber still run, and does the throw reach applyDamage" applyDamage ok value=boolean:true ran.first=true ran.second=true cascade=[hurt(damage=100,cause=none), health(8->-92), die(cause=none)] propagation=THROW-DID-NOT-REACH-THE-CALLER (applyDamage returned normally; the engine absorbed it) siblings=OTHER-SUBSCRIBER-STILL-RAN cascade-tail=LATER-CASCADE-EVENTS-STILL-FIRED
         [2026-07-27 19:55:43.835] [mctest] throwing-handler-propagation :: [first-of-two-throws] order=[1:applyDamage(100) called | 2:applyDamage returned ok value=boolean:true | 3:first-handler ENTER on entityHurt | 4:first-handler DELIBERATE THROW (by design — not a probe crash) | 5:second-handler ENTER on entityHurt | 6:second-handler EXIT]
-    - url: design/minecraft/test-lib/artifacts/mctest-damage-threshold-probe-results.md
+    - run: damage-threshold-probe-run
       where: Raw logs — mctest4:handlers, handlers run 1, the [control-no-throw] order line
       quote: |
         [2026-07-27 19:55:43.435] [mctest] throwing-handler-propagation :: [control-no-throw] order=[1:applyDamage(100) called | 2:applyDamage returned ok value=boolean:true | 3:first-handler ENTER on entityHurt | 4:first-handler EXIT | 5:second-handler ENTER on entityHurt | 6:second-handler EXIT]
@@ -1840,16 +1831,14 @@
         four write cases read FIELD-WRITE-TOOK in 3/3 runs. The effect read-backs sit two ticks of
         decay below the written value (598 for 600, 98 for 100, and 198 in the 200 control),
         consistent with the one-per-tick decay the earlier effect probes established.
-        This pack was run by the design's owner, not by this fact's author; its captured
-        output is design/minecraft/test-lib/artifacts/mctest-damage-threshold-probe-results.md and the pack itself is design/minecraft/test-lib/artifacts/damage-threshold-probe-pack.
-    - url: design/minecraft/test-lib/artifacts/mctest-damage-threshold-probe-results.md
+    - run: damage-threshold-probe-run
       where: Raw logs — mctest4:beforeevents, beforeevents run 1, the lower-damage and raise-damage lines
       quote: |
         [2026-07-27 19:57:36.935] [mctest] before-entity-hurt :: [lower-damage] requested=10 handler-writes-damage=2 handler-cancels=false applyDamage ok value=boolean:true health(ok value=number:8 -> ok value=number:6) health-lost=2 expected-if-the-write-takes=2 cascade=[hurt(damage=2,cause=none), health(8->6)] verdict=FIELD-WRITE-TOOK (the health lost is the value the handler wrote)
         [2026-07-27 19:57:36.935] [mctest] before-entity-hurt :: [lower-damage] handler-notes=[handler-entered damage-as-delivered=10 | wrote damage=2 readback-in-handler=2]
         [2026-07-27 19:57:37.235] [mctest] before-entity-hurt :: [raise-damage] requested=1 handler-writes-damage=4 handler-cancels=false applyDamage ok value=boolean:true health(ok value=number:8 -> ok value=number:4) health-lost=4 expected-if-the-write-takes=4 cascade=[hurt(damage=4,cause=none), health(8->4)] verdict=FIELD-WRITE-TOOK (the health lost is the value the handler wrote)
         [2026-07-27 19:57:37.235] [mctest] before-entity-hurt :: [raise-damage] handler-notes=[handler-entered damage-as-delivered=1 | wrote damage=4 readback-in-handler=4]
-    - url: design/minecraft/test-lib/artifacts/mctest-damage-threshold-probe-results.md
+    - run: damage-threshold-probe-run
       where: Raw logs — mctest4:beforeevents, beforeevents run 1, the extend-duration and shorten-duration lines
       quote: |
         [2026-07-27 19:57:37.935] [mctest] before-effect-add :: [extend-duration] requested=100 handler-writes-duration=600 handler-cancels=false addEffect ok value=object(Effect) -> effect-present=true duration=598 amplifier=1 getEffect ok value=object(Effect) health(ok value=number:8 -> ok value=number:8) verdict=FIELD-WRITE-TOOK (the effect carries the duration the handler wrote)
@@ -1892,23 +1881,20 @@
         The mctest5 effect-name pack walks minecraft:speed's amplifier up from 0 and down from -1,
         and probes duration at its documented boundaries and beyond, recording the read-back beside
         each accepted value so a clamp is told apart from a bound. Identical in 3/3 runs.
-        This pack was run by the design's owner, not by this fact's author; its captured
-        output is design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md and the
-        pack itself is design/minecraft/test-lib/artifacts/effect-name-probe-pack.
-    - url: design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md
+    - run: effect-name-probe-run
       where: Raw log — mctest5:effectbounds run 1, the amplifier boundary and read-back SUMMARY lines
       quote: |
         [2026-07-27 21:35:55.413] [mctest] amplifier-bound :: [up/256-first-rejected] addEffect(duration=200, amplifier=256) threw name=ArgumentOutOfBoundsError ctor=ArgumentOutOfBoundsError index=2 minValue=0 maxValue=255 value=256 message="Unsupported or out of bounds value passed to function argument [2]: amplifier, Value: 256, Argument bounds: [0, 255]" verdict=REJECTED
         [2026-07-27 21:35:55.413] [mctest] amplifier-bound :: SUMMARY highest-accepted=255 first-rejected=256 rejection=name=ArgumentOutOfBoundsError minValue=0 maxValue=255 message="Unsupported or out of bounds value passed to function argument [2]: amplifier, Value: 256, Argument bounds: [0, 255]"
         [2026-07-27 21:35:55.413] [mctest] amplifier-bound :: SUMMARY read-back-echoes-request up-to=255 first-divergence=none — an accepted value whose readback differs is a clamp, not a bound
-    - url: design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md
+    - run: effect-name-probe-run
       where: Raw log — mctest5:effectbounds run 1, the declared-bounds preamble and the three rejected low durations
       quote: |
         [2026-07-27 21:35:56.108] [mctest] duration-bound :: declared (index.d.ts, Entity.addEffect duration param) "The value must be within the range [0, 20000000]." followed by "Bounds: [1, 20000000]" — the two lower bounds disagree, so 0 and 1 are both probed
         [2026-07-27 21:35:56.108] [mctest] duration-bound :: [duration=-1000] addEffect(duration=-1000, amplifier=0) threw name=ArgumentOutOfBoundsError ctor=ArgumentOutOfBoundsError index=1 minValue=1 maxValue=20000000 value=-1000 message="Unsupported or out of bounds value passed to function argument [1]. Value: -1000, Argument bounds: [1, 20000000]" verdict=REJECTED
         [2026-07-27 21:35:56.163] [mctest] duration-bound :: [duration=-1] addEffect(duration=-1, amplifier=0) threw name=ArgumentOutOfBoundsError ctor=ArgumentOutOfBoundsError index=1 minValue=1 maxValue=20000000 value=-1 message="Unsupported or out of bounds value passed to function argument [1]. Value: -1, Argument bounds: [1, 20000000]" verdict=REJECTED
         [2026-07-27 21:35:56.212] [mctest] duration-bound :: [duration=0] addEffect(duration=0, amplifier=0) threw name=ArgumentOutOfBoundsError ctor=ArgumentOutOfBoundsError index=1 minValue=1 maxValue=20000000 value=0 message="Unsupported or out of bounds value passed to function argument [1]. Value: 0, Argument bounds: [1, 20000000]" verdict=REJECTED
-    - url: design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md
+    - run: effect-name-probe-run
       where: Raw log — mctest5:effectbounds run 1, the duration SUMMARY block
       quote: |
         [2026-07-27 21:35:57.013] [mctest] duration-bound :: SUMMARY accepted=[1,2,20,200,19999999,20000000] rejected=[-1000,-1,0,20000001,20000002,100000000,2147483647,2147483648]
@@ -1931,17 +1917,14 @@
     - description: |
         The mctest5 effect-name pack's bounds set probes 0.5, 1.5, NaN and Infinity on each
         argument alongside the integer sweep. Identical in 3/3 runs.
-        This pack was run by the design's owner, not by this fact's author; its captured
-        output is design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md and the
-        pack itself is design/minecraft/test-lib/artifacts/effect-name-probe-pack.
-    - url: design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md
+    - run: effect-name-probe-run
       where: Raw log — mctest5:effectbounds run 1, the amplifier non-integer cases
       quote: |
         [2026-07-27 21:35:56.013] [mctest] amplifier-bound :: [non-integer/0.5] addEffect(duration=200, amplifier=0.5) ok effect-present=true displayName=ok value=string:"Speed" typeId=ok value=string:"minecraft:speed" amplifier=ok value=number:0 duration=ok value=number:200 isValid=ok value=boolean:true read-amplifier=0 read-duration=200 display-name="Speed" verdict=ACCEPTED
         [2026-07-27 21:35:56.013] [mctest] amplifier-bound :: [non-integer/1.5] addEffect(duration=200, amplifier=1.5) ok effect-present=true displayName=ok value=string:"Speed II" typeId=ok value=string:"minecraft:speed" amplifier=ok value=number:1 duration=ok value=number:200 isValid=ok value=boolean:true read-amplifier=1 read-duration=200 display-name="Speed II" verdict=ACCEPTED
         [2026-07-27 21:35:56.013] [mctest] amplifier-bound :: [non-integer/NaN] addEffect(duration=200, amplifier=null) threw name=TypeError ctor=TypeError index=undefined minValue=undefined maxValue=undefined value=undefined message="NaN value is not supported. Interface property ['amplifier'] expected type: number | undefined (failed parsing interface to Function argument [2])." verdict=REJECTED
         [2026-07-27 21:35:56.013] [mctest] amplifier-bound :: [non-integer/Infinity] addEffect(duration=200, amplifier=null) threw name=TypeError ctor=TypeError index=undefined minValue=undefined maxValue=undefined value=undefined message="Infinity value is not supported. Interface property ['amplifier'] expected type: number | undefined (failed parsing interface to Function argument [2])." verdict=REJECTED
-    - url: design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md
+    - run: effect-name-probe-run
       where: Raw log — mctest5:effectbounds run 1, the duration 0.5 and 1.5 cases
       quote: |
         [2026-07-27 21:35:56.808] [mctest] duration-bound :: [duration=0.5] addEffect(duration=0.5, amplifier=0) threw name=ArgumentOutOfBoundsError ctor=ArgumentOutOfBoundsError index=1 minValue=1 maxValue=20000000 value=0 message="Unsupported or out of bounds value passed to function argument [1]. Value: 0, Argument bounds: [1, 20000000]" verdict=REJECTED
@@ -1973,26 +1956,23 @@
         getEffect read-back and reporting whether the two agree; the bounds set then sweeps
         minecraft:speed across the whole accepted amplifier range. Identical in 3/3 runs, with
         subject-respawns=0, so no cell was measured against a different entity than its neighbours.
-        This pack was run by the design's owner, not by this fact's author; its captured
-        output is design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md and the
-        pack itself is design/minecraft/test-lib/artifacts/effect-name-probe-pack.
-    - url: design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md
+    - run: effect-name-probe-run
       where: Raw log — mctest5:effectnames run 1, the effect-type-registry-survey SUMMARY lines
       quote: |
         [2026-07-27 21:33:28.764] [mctest] effect-type-registry-survey :: SUMMARY transcribed=37 engine=38 in-transcribed-not-in-engine=[] in-engine-not-in-transcribed=["minecraft:empty"]
         [2026-07-27 21:33:28.764] [mctest] effect-type-registry-survey :: SUMMARY getName-differs-from-identifier=0 cases=[] — every id whose getName() is not the id itself
-    - url: design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md
+    - run: effect-name-probe-run
       where: Raw log — mctest5:effectnames run 1, the minecraft:absorption per-type SUMMARY
       quote: |
         [2026-07-27 21:33:28.860] [mctest] effect-display-name-mapping :: SUMMARY type=minecraft:absorption names=[0=>"Absorption", 1=>"Absorption II", 2=>"Absorption III", 3=>"Absorption IV", 4=>"Absorption V", 5=>"Absorption VI", 6=>"Absorption"] readable=7/7 distinct-names=6 numeral-varies-with-amplifier=true verdicts=[READ-OK, READ-OK, READ-OK, READ-OK, READ-OK, READ-OK, READ-OK]
-    - url: design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md
+    - run: effect-name-probe-run
       where: Raw log — mctest5:effectnames run 1, the mapping SUMMARY lines
       quote: |
         [2026-07-27 21:33:30.713] [mctest] effect-display-name-mapping :: SUMMARY types=37 cells=259 subject-respawns=0
         [2026-07-27 21:33:30.713] [mctest] effect-display-name-mapping :: SUMMARY READ-OK count=259
         [2026-07-27 21:33:30.713] [mctest] effect-display-name-mapping :: SUMMARY no-name-read-at-any-amplifier=0 types=[] — a type here has no observed name to register or compute
         [2026-07-27 21:33:30.713] [mctest] effect-display-name-mapping :: SUMMARY one-name-across-all-amplifiers=0 types=[] — these carry no level numeral, which a computed name would have to special-case
-    - url: design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md
+    - run: effect-name-probe-run
       where: Raw log — mctest5:effectbounds run 1, the amplifier-sweep distinct-name SUMMARY
       quote: |
         [2026-07-27 21:35:55.414] [mctest] amplifier-bound :: SUMMARY accepted=256 distinct-names=6 highest-amplifier-whose-name-differs-from-the-next-lower=6 — above this the name stops tracking the amplifier
@@ -2016,15 +1996,12 @@
         The mctest5 effect-name pack reads displayName for every type at every amplifier from both
         the addEffect return and the getEffect read-back, and the two agree on the leading space in
         all three runs. No other type in the sweep carries edge whitespace.
-        This pack was run by the design's owner, not by this fact's author; its captured
-        output is design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md and the
-        pack itself is design/minecraft/test-lib/artifacts/effect-name-probe-pack.
-    - url: design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md
+    - run: effect-name-probe-run
       where: Raw log — mctest5:effectnames run 1, the minecraft:breath_of_the_nautilus amplifier 0 and 1 cells
       quote: |
         [2026-07-27 21:33:29.013] [mctest] effect-display-name-mapping :: [minecraft:breath_of_the_nautilus/amp=0] subject=-111669149694 addEffect ok value=object(Effect) from-return(displayName=ok value=string:" Breath of the Nautilus" typeId=ok value=string:"minecraft:breath_of_the_nautilus" amplifier=ok value=number:0 duration=ok value=number:400 isValid=ok value=boolean:true) getEffect present=true from-getEffect(displayName=ok value=string:" Breath of the Nautilus" typeId=ok value=string:"minecraft:breath_of_the_nautilus" amplifier=ok value=number:0 duration=ok value=number:400 isValid=ok value=boolean:true) display-name=" Breath of the Nautilus" names-agree=true verdict=READ-OK
         [2026-07-27 21:33:29.013] [mctest] effect-display-name-mapping :: [minecraft:breath_of_the_nautilus/amp=1] subject=-111669149694 addEffect ok value=object(Effect) from-return(displayName=ok value=string:" Breath of the Nautilus II" typeId=ok value=string:"minecraft:breath_of_the_nautilus" amplifier=ok value=number:1 duration=ok value=number:400 isValid=ok value=boolean:true) getEffect present=true from-getEffect(displayName=ok value=string:" Breath of the Nautilus II" typeId=ok value=string:"minecraft:breath_of_the_nautilus" amplifier=ok value=number:1 duration=ok value=number:400 isValid=ok value=boolean:true) display-name=" Breath of the Nautilus II" names-agree=true verdict=READ-OK
-    - url: design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md
+    - run: effect-name-probe-run
       where: Raw log — mctest5:effectnames run 1, the minecraft:breath_of_the_nautilus per-type SUMMARY
       quote: |
         [2026-07-27 21:33:29.013] [mctest] effect-display-name-mapping :: SUMMARY type=minecraft:breath_of_the_nautilus names=[0=>" Breath of the Nautilus", 1=>" Breath of the Nautilus II", 2=>" Breath of the Nautilus III", 3=>" Breath of the Nautilus IV", 4=>" Breath of the Nautilus V", 5=>" Breath of the Nautilus VI", 6=>" Breath of the Nautilus"] readable=7/7 distinct-names=6 numeral-varies-with-amplifier=true verdicts=[READ-OK, READ-OK, READ-OK, READ-OK, READ-OK, READ-OK, READ-OK]
@@ -2057,15 +2034,12 @@
         members, reads it without calling, calls it directly, and calls a reference captured before
         the removal — 70 case lines per run, identical in 3/3 runs. The readable property set
         agrees with the independently built resting-state pack's.
-        This pack was run by the design's owner, not by this fact's author; its captured
-        output is design/minecraft/test-lib/artifacts/mctest-access-guard-probe-results.md and the
-        pack itself is design/minecraft/test-lib/artifacts/access-guard-probe-pack.
-    - url: design/minecraft/test-lib/artifacts/mctest-access-guard-probe-results.md
+    - run: access-guard-probe-run
       where: Raw log — mctest6:access run 1, the two HEADLINE SUMMARY lines
       quote: |
         [2026-07-28 04:31:49.380] [mctest] access-versus-call :: SUMMARY HEADLINE access-only ACCESS-THREW=0/14 ACCESS-CLEAN=14/14 threw=[] clean=[kill, teleport, hasTag, getComponent, applyDamage, triggerEvent, getTags, getVelocity, getRotation, getHeadLocation, getViewDirection, getEffects, getComponents, getDynamicPropertyIds] — ACCESS-THREW means the engine fires the invalidation guard on the property read; ACCESS-CLEAN means the read is unguarded and the guard is on the call
         [2026-07-28 04:31:49.380] [mctest] access-versus-call :: SUMMARY HEADLINE capture-before-invalidation returned-anyway=0/14 members=[] — a member that returns here has a guard bound at access time; one that throws reads validity at call time
-    - url: design/minecraft/test-lib/artifacts/mctest-access-guard-probe-results.md
+    - run: access-guard-probe-run
       where: Raw log — mctest6:access run 1, the six invalid-property-reads lines
       quote: |
         [2026-07-28 04:31:49.585] [mctest] invalid-property-reads :: id control-valid ok typeof=string value=string:"-120259084214" subject-invalid ok typeof=string value=string:"-120259084213" verdict=ACCESS-CLEAN-OTHER-string
@@ -2089,10 +2063,7 @@
     - description: |
         The mctest6 access-guard pack records the bound and the unbound invocation on the same case
         line, so the receiver-less failure cannot be mistaken for a guard throw. 14/14 in 3/3 runs.
-        This pack was run by the design's owner, not by this fact's author; its captured
-        output is design/minecraft/test-lib/artifacts/mctest-access-guard-probe-results.md and the
-        pack itself is design/minecraft/test-lib/artifacts/access-guard-probe-pack.
-    - url: design/minecraft/test-lib/artifacts/mctest-access-guard-probe-results.md
+    - run: access-guard-probe-run
       where: Raw log — mctest6:access run 1, the [2-access-then-call] kill line carrying both invocations
       quote: |
         [2026-07-28 04:31:43.285] [mctest] access-versus-call :: [2-access-then-call] kill subject=-120259084282 access ok typeof=function value=function(name="" length=0) then fn.call(subject, ) threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to call function 'kill' due to Entity being invalid (has the Entity been removed?)." unbound fn(...) threw name=ReferenceError ctor=ReferenceError instanceofInvalidEntityError=false message="Native function [Entity::kill] object bound to prototype does not exist." verdict=ACCESS-THEN-CALL-THREW-INVALID-ENTITY
@@ -2118,10 +2089,7 @@
         `valid-and-invalid-read-identically=true`. Identical in 3/3 runs. JSON.stringify succeeds
         on the invalidated entity precisely because the two properties it serialises are among the
         three that survive invalidation.
-        This pack was run by the design's owner, not by this fact's author; its captured
-        output is design/minecraft/test-lib/artifacts/mctest-access-guard-probe-results.md and the
-        pack itself is design/minecraft/test-lib/artifacts/access-guard-probe-pack.
-    - url: design/minecraft/test-lib/artifacts/mctest-access-guard-probe-results.md
+    - run: access-guard-probe-run
       where: Raw log — mctest6:shape run 1, the valid-control and invalidated-subject member-visibility blocks
       quote: |
         [2026-07-28 04:32:38.235] [mctest] member-visibility :: [valid-control] in-operator 'teleport'=ok typeof=boolean value=boolean:true 'nameTag'=ok typeof=boolean value=boolean:true 'notAMember'=ok typeof=boolean value=boolean:false

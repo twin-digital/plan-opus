@@ -5,8 +5,9 @@
 This design specifies how a settled spec leaves this repository and becomes something an agent
 elsewhere can build from: what the published bundle holds, what it is called, how its version is
 decided, where it lands, and how a consumer reaches it. Its product is a contract — a bundle
-layout, a naming scheme, a bump rule, a dependency manifest, and the store guarantees the
-publishing automation must meet — stated tightly enough that the automation, which belongs to
+layout, a naming scheme, a bump rule, a dependency manifest, a version record kept in this
+repository's own tags, and the store guarantees the publishing automation must meet — stated
+tightly enough that the automation, which belongs to
 `harness`, can be built against it without reopening any of these choices. The problem it answers
 is that builders work in other repositories and nothing crosses the boundary today: the bundle is
 the only thing that will, and none of it exists. The constraint that shapes everything below is
@@ -84,9 +85,9 @@ the spec's own reasoning changes nothing about what to build.
 The `commitments` key is always present, mapping to an empty sequence where a design has none.
 Entries are ordered by the id with its prefix ignored, ties broken by the full id — the one
 rendering rule the document keeps, because the publish gate below compares a derived bundle byte for
-byte against the published one, and an unstable order would read as a change that never happened.
-Ignoring the prefix in the sort is what keeps the list flat on the page rather than grouped into the
-two sections it was just collapsed out of.
+byte against the bundle re-derived at its last tag, and an unstable order would read as a change
+that never happened. Ignoring the prefix in the sort is what keeps the list flat on the page rather
+than grouped into the two sections it was just collapsed out of.
 
 A bundle carries its own design in full, so any file the spec links by a repo-relative path that
 resolves inside the design's own directory — an `artifacts/` script, a diagram — is copied into the
@@ -109,8 +110,8 @@ see the argument the bundle omits:
 ```
 
 `version` is the one field the deriver cannot fill, because the version is computed by diffing the
-derived bundle against what is already published. The deriver emits the manifest without it, and
-the publisher writes the computed version in immediately before publishing.
+derived bundle against the last one this repository tagged. The deriver emits the manifest without
+it, and the publisher writes the computed version in immediately before publishing.
 
 ## Naming a bundle
 
@@ -220,24 +221,24 @@ with no entry in `products.yaml` yields none, and the checker reports it alongsi
 above. And several cited facts sourcing one upstream design yield one entry between them, not one
 apiece.
 
-Each dependency is written as a caret range on the upstream bundle's `latest` version at the moment
-of publish: an upstream at 2.1.0 is depended on as `^2.1.0`. A caret admits later minor and patch
+Each dependency is written as a caret range on the version the upstream bundle's newest tag
+records at the moment of publish: an upstream tagged at 2.1.0 is depended on as `^2.1.0`. A caret admits later minor and patch
 versions, which by the bump rule below add commitments or change prose but never remove or alter
 one, and excludes the next major, which does.
 
 The derivation therefore runs in two passes, and they are separable. The first reads a bundle's
 cited facts and yields its edges alone — which bundles it depends on, with no version attached —
-and it needs nothing published to run. The second fills in that bundle's ranges at the moment the
-bundle is derived, reading each upstream's `latest` then.
+and it needs nothing tagged to run. The second fills in that bundle's ranges at the moment the
+bundle is derived, reading each upstream's newest tag then.
 
-Pinning `latest` is what forces the split, and it puts one precondition on deriving any bundle:
-every bundle it depends on is already published, or has been through the gates below and published
-nothing. A bundle whose upstream has never been published cannot be derived, and waits. That is a
+Pinning the upstream's current version is what forces the split, and it puts one precondition on
+deriving any bundle: every bundle it depends on already carries a tag, either from an earlier run or
+from this one. A bundle whose upstream has never been tagged cannot be derived, and waits. That is a
 condition on one bundle rather than a rule about what a run covers — whoever schedules a run
 satisfies it by taking bundles in the order the first pass's edges give, and scheduling is
-`harness`'s. Because a bundle published moments earlier already has a `latest`, a single run can
-satisfy the precondition for a whole graph, which is what lets the cold-start backfill below stand
-up every bundle at `1.0.0` at once. A bundle inside a dependency cycle can never satisfy it: it is
+`harness`'s. Because a bundle tagged moments earlier is tagged, a single run can satisfy the
+precondition for a whole graph, which is what lets the cold-start backfill below stand up every
+bundle at `1.0.0` at once. A bundle inside a dependency cycle can never satisfy it: it is
 never derived, publishes nothing, and the cycle is reported.
 
 The consumer's verb is `npm install`, not `npm pack`: `npm install @td-spec/my-app.login@2.1.0` in an empty
@@ -252,9 +253,26 @@ to carry only its own design and leave the rest to be fetched separately
 ## Versions and bumps
 
 Each spec carries its own version line; there is no repository-wide version
-[[r:settle-publishes-a-versioned-bundle]]. That line lives in the registry — the versions published
-under the bundle's name are the whole record of it, and nothing in this repository stores a second
-copy. A bundle's first published version is `1.0.0` [[d:first-version-is-one-zero-zero]].
+[[r:settle-publishes-a-versioned-bundle]]. That line is recorded **here, by git tags** — a bundle's
+last published version is the version its newest tag names, and the registry is distribution only
+[[d:version-record-is-a-git-tag]]. A bundle's first published version is `1.0.0`
+[[d:first-version-is-one-zero-zero]].
+
+A tag is the bundle name, an at sign, and the version: `@td-spec/my-app.login@2.1.0`, or
+`@td-spec/some-lib@1.4.0` for a product with no feature
+[[d:tag-names-the-bundle-and-version]]. Git takes that name as written — a ref may carry slashes as
+hierarchical separators so long as no component starts with a dot or ends with `.lock`, and an at
+sign is barred only as the whole name or in the sequence `@{`
+[[f:git-ref-names-admit-at-sign-and-slash]] — so the tag reads as the exact string a consumer would
+type at `npm install`, and the two names never have to be translated into each other. Two bundles
+sharing this repository never collide, because the bundle name is already unique.
+
+The tags have to be in the checkout the run reads. A clone without them is not an error — it looks
+exactly like a repository where nothing has ever been published, so every bundle re-derives, finds
+no prior version, and republishes at `1.0.0`. That is a silent wrong answer rather than a failure,
+and it is the default a workflow falls into: `actions/checkout` fetches one commit and no tags
+unless asked [[f:checkout-action-fetches-no-tags-by-default]]. Fetching the tags is therefore a
+condition the run must meet, and meeting it is `harness`'s.
 
 Every later version is computed by diffing the new bundle's commitments — the requirement list and
 the decision list in `commitments.yaml`, plus the components block in `spec.md` — against the previous
@@ -269,13 +287,21 @@ published version's [[d:bump-is-computed-from-the-commitment-diff]]:
   decision, a new component.
 - **patch** — anything else: prose, vendored content, a dependency's minor or patch.
 
-The previous version is fetched rather than remembered: the planner runs `npm pack
-@td-spec/<product>[.<feature>]@latest`, unpacks the tarball, and reads the `commitments.yaml` and
-`spec.md` inside it [[f:npm-pack-fetches-a-published-package-by-spec]]. The commitments load as a
-document rather than being reconstructed from prose; the components block comes out of the unpacked
-`spec.md`, and the dependency ranges out of its `package.json`. Nothing else in the repository
-records what a published bundle committed to. A bundle whose name has no published version has
-nothing to diff and takes `1.0.0`.
+The previous side of that diff is **re-derived, not downloaded**
+[[d:previous-commitments-are-re-derived-at-the-tag]]. The planner takes the bundle's newest tag,
+reads the commit it names, and runs the deriver over the design as it stood at that commit — the
+same deriver, over the same sources — producing the bundle that commit would have published. It
+then diffs the two derived bundles. Nothing parses a published artifact: the registry is never read
+during a publish, and a bundle unpublished, unpublishable, or simply never fetched changes nothing
+about what version comes next. A bundle with no tag has nothing to diff and takes `1.0.0`.
+
+Re-deriving an old commit gives back what that commit published because the commitments are a
+re-read rather than a re-render: each one is the `statement` of an entry sitting in a
+`requirements.yaml` or a `decisions.yaml` at that commit, and those files do not change under a tag
+that already names the commit. The one thing that can move both sides is the deriver itself — change
+what travels into a bundle and every bundle re-scores at once, on the old side as much as the new.
+That is the honest behaviour rather than a defect to design around, and it is worth knowing before
+the derivation rules are edited.
 
 The diff keys on the entry id [[d:bump-is-computed-from-the-commitment-diff]]. Two versions hold
 the same commitment when they hold the same id, and its content is what the bundle carries for it:
@@ -318,11 +344,10 @@ Three things stop a publish, each quietly:
   been settled and is reopened publishes nothing further, and every version it already published
   stays fetchable [[d:leaving-settled-publishes-nothing]].
 - The design has no bundle identity [[d:undeclared-identity-publishes-nothing]].
-- The derived bundle matches the current `latest`. The comparison is file by file against the
-  unpacked `latest` tarball — `README.md`, `spec.md`, `commitments.yaml`, every vendored path, and
-  `package.json`
-  with `version` excluded, that field differing by construction on every publish. A dependency
-  range that moved because an upstream's `latest` moved is a difference like any other and
+- The derived bundle matches the one re-derived at its newest tag. The comparison is file by file
+  — `README.md`, `spec.md`, `commitments.yaml`, every vendored path, and `package.json` with
+  `version` excluded, that field differing by construction on every publish. A dependency range
+  that moved because an upstream was tagged at a new version is a difference like any other and
   publishes a patch; only a bundle unchanged in every other byte is skipped. Nothing is published
   and no version is burned, so a merge that only touched a brief or a fact does not march the
   version line forward for a consumer who would see no difference [[r:must-beat-doing-it-myself]]
@@ -332,8 +357,8 @@ Three things stop a publish, each quietly:
 registry does not hold that line for us — publishing sets `latest` to the version just published
 [[f:npm-latest-tag-serves-versionless-installs]], and `npm dist-tag add` will point `latest` at any
 published version at all [[f:npm-dist-tag-can-retag-any-version]] — so the publisher enforces it
-itself: it publishes only versions above the current `latest`, and issues no dist-tag command
-against `latest` ever. Reversing that pointer would change what a versionless fetch returns, which
+itself: it publishes only versions above the one this repository's newest tag records for that
+bundle, and issues no dist-tag command against `latest` ever. Reversing that pointer would change what a versionless fetch returns, which
 is the moving-reference behaviour this design exists to avoid [[d:latest-never-moves-backward]].
 
 A spec that is superseded, rejected, or withdrawn therefore stops publishing and nothing else
@@ -359,7 +384,7 @@ components:
     responsibility: parse products.yaml, resolve a design scope to its bundle name, and report settled designs with no identity
     excludes: deciding what a product or feature should be called
   - id: dependency-resolver
-    responsibility: two passes over cited fact sources — emit one bundle's versionless upstream edges, and emit its dependencies block with each upstream at a caret on its published latest; report a bundle whose edges put it in a cycle
+    responsibility: two passes over cited fact sources — emit one bundle's versionless upstream edges, and emit its dependencies block with each upstream at a caret on the version its newest tag records; report a bundle whose edges put it in a cycle
     excludes: scheduling anything from the edges it emits, deciding any bundle's version, or publishing anything
     after: [product-map]
   - id: bundle-deriver
@@ -367,11 +392,11 @@ components:
     excludes: deciding the version or pushing anything to a registry
     after: [product-map, dependency-resolver]
   - id: version-planner
-    responsibility: fetch and unpack the bundle's published latest, diff the derived bundle's commitments, components, and dependency ranges against it, and compute the next version or report that nothing changed
-    excludes: publishing the version it computed
+    responsibility: find the bundle's newest tag, re-derive that commit's bundle, diff the new bundle's commitments, components, and dependency ranges against it, and compute the next version or report that nothing changed
+    excludes: publishing or tagging the version it computed, and reading anything from the registry
     after: [bundle-deriver]
   - id: publisher
-    responsibility: stamp a computed version into its derived bundle and publish it with public access
+    responsibility: stamp a computed version into its derived bundle, publish it with public access, and tag the published commit with the bundle name and version
     excludes: the CI workflow, hooks, and run scheduling that invoke it, which are harness's
     after: [version-planner]
 ```
