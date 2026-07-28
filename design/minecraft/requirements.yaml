@@ -1,0 +1,22 @@
+# Requirements at minecraft area scope: those binding more than one design in the area. Each names
+# the designs it binds, since nothing here binds the whole area.
+#
+# rationale is omitted unless the statement's intent is genuinely non-obvious.
+
+- id: pack-uses-the-shared-build-tooling
+  statement: |
+    a pack's bundle is built by the workspace's shared pack-build toolchain; a pack does no more
+    than invoke it, and implements no build of its own.
+  applies_to: [set:minecraft-addon-packs]
+
+- id: a-pack-does-not-deliver-itself
+  statement: |
+    a pack's job ends at a built bundle — it carries no deploy or publish scripts and ships itself
+    nowhere.
+  applies_to: [set:minecraft-addon-packs]
+
+- id: packs-unit-test-with-the-shared-test-lib
+  statement: |
+    a pack's unit tests stand up `@minecraft/server` with `@twin-digital/minecraft-test-lib`
+    rather than a hand-rolled double or a module mock.
+  applies_to: [set:minecraft-addon-packs]
