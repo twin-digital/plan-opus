@@ -99,8 +99,9 @@ here to undo. The inputs are the source of truth; the outputs are yours to rebui
   not quietly add it.
 - **Facts you may propose, at the bar `CLAUDE.md` sets.** A fact is an objective claim with
   evidence, so an agent that has the evidence may add one: documented upstream with a `url`,
-  a `where`, and a verbatim quote that states the claim, or tested by you with the scripts,
-  inputs, and captured output in the design's `artifacts/`. Same bar for repairing one — an
+  a `where`, and a verbatim quote that states the claim, or tested by you — the scripts, inputs
+  and captured output in an `artifacts/` directory, the execution recorded as a run under
+  `evidence/`, and the fact reaching it with a `run:`, a `where`, and a verbatim quote. Same bar for repairing one — an
   inherited fact you find wrong, or whose evidence does not carry its claim, is corrected
   rather than cited as-is or merely flagged, per `r:facts-proven-wrong-are-corrected`: record
   the properly-evidenced replacement, and retire the fact it contradicts with a `reason` and a

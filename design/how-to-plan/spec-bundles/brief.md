@@ -1,4 +1,4 @@
-# Brief — publishing-specs
+# Brief — spec-bundles
 
 ## What this design is for
 
@@ -19,14 +19,15 @@ nothing is published at all.
   name and version, including a way to ask for the latest without knowing it.
 - **The publishing process** — what happens at the moment a settled spec merges, what it emits,
   and what a consumer sees afterwards.
-- **Upstream dependencies** — whether what a spec relies on from another design travels inside
-  its bundle, and at what cost.
+- **Upstream dependencies** — how a bundle expresses what its spec depends on from another
+  design, so a builder can fetch those bundles separately rather than find them vendored inside.
 
 ## Out of scope
 
 - **The automation that performs any of it** — the CI/CD workflow, the hooks, the checker
-  integration. That is `harness`. This design says what must be published and what a consumer can
-  do with it; `harness` designs the machinery that carries it out.
+  integration. That is `harness`. This design picks the store and states the contract it must
+  meet — naming, immutability, and the latest pointer; `harness` builds the workflow that pushes
+  to it.
 - **What a spec says and what shape it takes** — `authoring` and `doc-structure`.
 - **When a spec settles and who decides** — `process`. This design starts the moment a settled
   spec merges to main.
@@ -35,8 +36,8 @@ nothing is published at all.
 ## Done looks like
 
 An agent in an unrelated repository, given a spec's name and nothing else, fetches that spec's
-bundle at a version or at latest and builds from it without reading this repository or knowing
-its layout. A version pinned last month fetches the same content today.
+bundle at a version or at latest and builds from it without knowing this repository's layout. A
+version pinned last month fetches the same content today.
 
 ## What the design must still decide
 
@@ -52,17 +53,16 @@ its layout. A version pinned last month fetches the same content today.
 - **The bundle's file shape** — one document or a directory, and whether the requirement and
   decision extraction is rendered prose beside the spec or machine-readable data a builder's
   tooling can load.
-- **How self-containment is achieved**, if the soft requirement survives review: inlining an
-  upstream design's material at publish time gives the builder one artifact, and freezes it
-  against an upstream that may later be corrected.
+- **How a bundle expresses its dependencies.** Nothing states them today; a manifest of some kind
+  is the obvious shape but does not exist. Propose a solid solution here — other designs can be
+  amended to accommodate it.
 - **What "latest" points at after a spec is superseded or rejected.** Immutability settles what
   happens to a published version; it does not settle what the moving pointer does.
+- **What happens to specs settled before publishing existed** — backfilled at an initial version,
+  or published only on their next settle.
 
 ## Known tensions
 
-- Self-containment and immutability pull against each other. A bundle that inlines an upstream's
-  material is frozen against a version of that upstream which may since have been corrected, and
-  the consumer holding it has no signal that anything moved.
 - Fetch-by-name-and-version wants a real artifact store, and this repository currently has one
   CI job and no publication of any kind. The gap between the requirement and the machinery is
   most of the design.

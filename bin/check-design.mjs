@@ -18,6 +18,7 @@ import { loadSets, bindsDesign, reachable } from "./lib/binding.mjs";
 
 const ROOT = "design";
 const FACTS = "facts";
+const EVIDENCE = "evidence";
 const fail = {};
 const NOTICES = new Set(["legacy format — regenerate"]);
 const add = (k, v) => (fail[k] ??= []).push(v);
@@ -49,7 +50,9 @@ const quoteMissing = (url, quote) => {
 };
 
 // ---- load foundations across scopes -----------------------------------------
-// ent[id] = {kind:'f'|'r'|'d', tier, scope, e, file}
+// ent[id] = {kind:'f'|'r'|'d'|'e', tier, scope, e, file}. 'e' is a run: evidence a tested fact
+// rests on. A run is not a foundation and no claim may cite one — it is here so that ids stay
+// unique repo-wide and a run: source resolves the same way a citation does.
 const ent = {};
 const declare = (id, rec) => {
   if (ent[id]) add("slug not unique per kind", `${id} (${ent[id].scope} + ${rec.scope})`); // rule 4
@@ -64,9 +67,14 @@ const loadScope = (dir, tier, scope) => {
 
 // Facts live in one pool. Any yaml file under facts/, at any depth, is a fact file; the path is
 // where an author chose to file it and means nothing to resolution.
-const factFiles = (dir) => fs.existsSync(dir) ? fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
-  e.isDirectory() ? factFiles(path.join(dir, e.name))
+const poolFiles = (dir) => fs.existsSync(dir) ? fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
+  e.isDirectory() ? poolFiles(path.join(dir, e.name))
   : /\.ya?ml$/.test(e.name) ? [path.join(dir, e.name)] : []) : [];
+const factFiles = poolFiles;
+
+// Runs are loaded before facts, so a run: source resolves while its fact is being checked.
+for (const file of poolFiles(EVIDENCE))
+  for (const e of loadYaml(file)) { declare(e.id, { kind: "e", tier: "pool", scope: file, e, file }); checkEntry("e", e, file, file); }
 for (const file of factFiles(FACTS))
   for (const e of loadYaml(file)) { declare(e.id, { kind: "f", tier: "pool", scope: file, e, file }); checkEntry("f", e, file, file); }
 
@@ -146,6 +154,19 @@ function checkEntry(kind, e, scope, file) {
     checkSources(e, tag, e.backing);
   }
 
+  if (kind === "e") {
+    for (const f of ["id", "command", "output", "ran_at"]) if (e[f] === undefined) add("missing required field", `${tag}.${f}`);
+    if (e.output !== undefined && !fs.existsSync(String(e.output))) add("run output not found", `${tag}: ${e.output}`);
+    if (e.ran_at !== undefined && !/^\d{4}-\d{2}-\d{2}$/.test(String(e.ran_at))) add("run ran_at not a date", tag);
+    if (e.status !== undefined && !["active", "retired"].includes(e.status)) add("bad run status", tag);
+    if (literalHas(file, e.id, "status") && e.status === "active") add("default stated explicitly", `${tag}.status`);
+    if (e.status === "retired") {
+      if (!e.reason) add("retired run without reason", tag);
+      else if (!["superseded", "stale", "invalid"].includes(e.reason)) add("bad retire reason", tag);
+      if (e.reason === "superseded" && !e.superseded_by) add("superseded run without superseded_by", tag);
+    }
+  }
+
   if (kind === "r") {
     for (const f of ["id", "statement"]) if (e[f] === undefined) add("missing required field", `${tag}.${f}`);
     if (e.force !== undefined && !["hard", "soft"].includes(e.force)) add("bad force", tag);
@@ -163,14 +184,31 @@ function checkEntry(kind, e, scope, file) {
   }
 }
 
+// A source takes exactly one locator: a `url` into an upstream document, a `run` naming captured
+// output held here, or a `description` of the mechanism. A run: is to in-repo output what a url:
+// is to an upstream page — both carry `where` and a verbatim `quote`, verified against the file.
 function checkSources(e, tag, backing) { // rule 7
   const srcs = e.sources ?? [];
   if (!srcs.length) { add("fact without a source", tag); return; }
   for (const s of srcs) {
     const hasUrl = s.url !== undefined, hasWhere = s.where !== undefined, hasDesc = s.description !== undefined;
-    if (hasUrl && hasDesc) add("source has both url and description", tag);
-    if (!hasUrl && !hasDesc) add("source has no locator", tag);
+    const hasRun = s.run !== undefined;
+    if ([hasUrl, hasDesc, hasRun].filter(Boolean).length > 1) add("source has more than one locator", tag);
+    if (!hasUrl && !hasDesc && !hasRun) add("source has no locator", tag);
     if (hasUrl && !hasWhere) add("url without where", tag);
+    if (hasRun) {
+      const run = ent[String(s.run)];
+      if (!run || run.kind !== "e") add("run source unresolved", `${tag} -> ${s.run}`);
+      else {
+        if (isDead(run.e)) add("source cites a retired run", `${tag} -> ${s.run}`);
+        if (!hasWhere) add("run without where", tag);
+        if (s.quote !== undefined && run.e.output) {
+          const why = quoteMissing(String(run.e.output), s.quote);
+          if (why) add("quote not verbatim at its source", `${tag}: ${s.run} — ${why}`);
+        }
+      }
+      if (backing !== "tested") add("run source on a non-tested fact", `${tag} -> ${s.run}`);
+    }
     if (hasUrl && /^(\.\.?\/)/.test(String(s.url))) add("in-repo url not repo-root-relative", `${tag}: ${s.url}`);
     if (s.quote !== undefined && !/\n/.test(String(s.quote))) add("quote not a block scalar", tag);
     if (hasUrl && s.quote !== undefined) {
@@ -272,7 +310,10 @@ const ORDER = [
   "applies_to on a design-scoped requirement", "applies_to is not a non-empty list",
   "applies_to names an undeclared set", "applies_to names no such design",
   "applies_to reaches outside its tier",
-  "fact without a source", "source has both url and description", "source has no locator",
+  "fact without a source", "source has more than one locator", "source has no locator",
+  "run source unresolved", "source cites a retired run", "run without where",
+  "run source on a non-tested fact", "run output not found", "run ran_at not a date",
+  "bad run status", "retired run without reason", "superseded run without superseded_by",
   "url without where", "in-repo url not repo-root-relative", "quote not a block scalar",
   "quote not verbatim at its source",
   "artifact source on a non-tested fact",
@@ -290,6 +331,12 @@ for (const c of ORDER) {
   const mark = fail[c] ? (NOTICES.has(c) ? "note" : "FAIL") : "ok  ";
   console.log(`${mark}  ${c}: ${fail[c]?.join("; ") ?? "—"}`);
 }
+
+// A tested fact whose evidence no run names: its quote is never verified against any output.
+const unnamed = Object.values(ent).filter((r) => r.kind === "f" && !isDead(r.e) && r.e.backing === "tested"
+  && !(r.e.sources ?? []).some((s) => s.run !== undefined));
+const runs = Object.values(ent).filter((r) => r.kind === "e").length;
+console.log(`\n${runs} runs; ${unnamed.length} tested facts rest on evidence no run names`);
 
 const byTier = Object.values(ent).reduce((a, r) => (a[r.tier] = (a[r.tier] ?? 0) + 1, a), {});
 console.log(`\n${designs.length} designs: ${designs.map((d) => `${d.area}/${d.name}${d.state ? ` (${d.state})` : ""}`).join(", ")}`);

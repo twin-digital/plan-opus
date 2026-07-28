@@ -1,0 +1,88 @@
+- id: cross-design-dependency-is-recorded-as-a-fact
+  claim: |
+    a design in this repository records each reliance on another design's output as a fact whose
+    source is a repo-relative url and verbatim quote pointing at the upstream design's
+    requirement, so every cross-design dependency edge is already present among the citing
+    design's cited facts
+  backing: documented
+  caveat: |
+    The sourced requirement is design-scoped to `how-to-plan/authoring` and carries no
+    `applies_to`, so as an entry it binds that design alone. The claim's reach over every design in
+    the repository rests on authoring's spec being the content rules all spec authors follow, which
+    the quote does not state.
+  sources:
+    - url: design/how-to-plan/authoring/requirements.yaml
+      where: upstream-dependency-is-recorded-as-a-fact — statement
+      quote: |
+        a design relying on another design's output records each upstream commitment it leans on as a
+        fact sourced by repo-relative url and verbatim quote to the upstream's requirement, never by
+        citing that design's decisions or invariants
+
+- id: spec-citation-token-grammar
+  claim: |
+    a citation in a spec's prose is the token `[[<k>:<id>]]`, its kind a single letter — `f` fact,
+    `r` requirement, `d` decision
+  backing: documented
+  sources:
+    - url: design/how-to-plan/doc-structure/requirements.yaml
+      where: citation-token-grammar — statement
+      quote: |
+        a citation is `[[<k>:<id>]]` with a single-letter kind — `f` fact, `r`
+        requirement, `d` decision
+
+- id: requirement-entry-fields
+  claim: |
+    a requirement carries an `id` and a `statement`, and may carry a `force` of `hard` | `soft`
+    (default `hard`), a `status` of `active` | `retired` (default `active`), a `rationale`, and,
+    above design scope, an `applies_to` naming the designs it binds — omitting which binds its
+    whole tier
+  backing: documented
+  sources:
+    - url: design/how-to-plan/doc-structure/requirements.yaml
+      where: requirement-entry-structure — statement
+      quote: |
+        Requirements MUST carry:
+
+          - a stable, kebab-case `id`
+          - a `statement` describing the requirement
+
+        and MAY carry:
+
+          - a `force` of `hard` | `soft` (default `hard`): a hard requirement is
+            non-negotiable, a soft one a preference that can bend if justified
+          - a `status` of `active` | `retired` (default `active`)
+          - a `rationale` clarifying the requirement's intent or importance
+          - `applies_to`, the designs it binds — a list whose items are each either a design
+            scope (`<area>/<design>`) or `set:<name>` naming a declared set. Valid only on a
+            requirement above design scope, where omitting it binds the whole tier
+
+- id: decision-status-values
+  claim: |
+    a decision's `status` is exactly one of `proposed`, `accepted`, `tolerated`, or `rejected` —
+    `accepted` an agreed part of the design, `tolerated` cleared but not endorsed, `rejected`
+    considered and turned down
+  backing: documented
+  sources:
+    - url: design/how-to-plan/doc-structure/requirements.yaml
+      where: decision-structure — statement, the status enum
+      quote: |
+        - a `status`, exactly one of:
+          - `proposed`: created (by an agent, presumably) but not yet ratified
+          - `accepted`: an agreed part of the design which future iterations should maintain
+          - `tolerated`: cleared to proceed but not endorsed — the owner does not object and does not
+            mind whether it stays, so a later author may rework it freely
+          - `rejected`: considered, but turned down
+
+- id: settled-state-is-computed-from-spec-content
+  claim: |
+    a design is settled exactly when its `spec.md` holds no proposed decision, no open question,
+    and no uncited live design-scoped requirement or accepted-or-tolerated decision
+  backing: documented
+  sources:
+    - url: design/how-to-plan/doc-structure/requirements.yaml
+      where: status-derived-from-content — statement
+      quote: |
+        a design's state is computed from its artifacts — no spec.md is exploring; a
+        spec.md with a proposed decision, an open question, or an uncited live design-scoped
+        requirement or accepted-or-tolerated decision is draft; a spec.md with none of those is
+        settled

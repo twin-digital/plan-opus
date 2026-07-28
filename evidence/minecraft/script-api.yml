@@ -1,0 +1,113 @@
+# Runs backing facts about @minecraft/server's behaviour.
+#
+# The in-game runs share a results document: each session's provenance table and raw log sit under
+# their own headings in it, so several runs name the same output and a source's `where` picks the
+# probe lines it rests on.
+
+- id: engine-probe-run
+  command: execute as <player> run scriptevent mctest:run
+  output: design/minecraft/test-lib/artifacts/mctest-engine-probe-results.md
+  ran_at: 2026-07-24
+  environment: |
+    itzg/minecraft-bedrock-server, Bedrock dedicated 1.26.31.1, @minecraft/server 2.8.0 as a pack
+    manifest dependency with no experiments enabled. engine-probe-pack 0.1.0, uuid
+    ef5201d2-38eb-4f29-8bc2-e84414de8837, triggered from the server console. 18/18 probes, single
+    run, no PROBE CRASHED lines. Every observation is that engine build's behaviour and would
+    differ against another.
+
+- id: engine-deep-probe-run
+  command: execute as @e[type=armor_stand,c=1] run scriptevent mctest:deep
+  output: design/minecraft/test-lib/artifacts/mctest-engine-probe-results.md
+  ran_at: 2026-07-24
+  environment: |
+    Same server and module version as engine-probe-run, with engine-probe-pack at 0.2.0. 4/4
+    probes, single run, no PROBE CRASHED lines.
+
+- id: resting-state-probe-run
+  command: execute as <entity> run scriptevent mctest2:rest
+  output: design/minecraft/test-lib/artifacts/mctest-resting-state-probe-results.md
+  ran_at: 2026-07-25
+  environment: |
+    itzg/minecraft-bedrock-server, Bedrock dedicated 1.26.31.1, @minecraft/server 2.8.0, no
+    experiments. resting-state-probe-pack 0.1.0, uuid 6b1c9f2a-4d83-4a17-9c0e-1f5a7b3e2d84,
+    triggered from the server console as mctest2:rest and mctest2:gaps. 6/6 rest, 6/6 gaps, no
+    PROBE CRASHED lines.
+
+- id: resting-kinematics-run
+  command: execute as <armor stand> run scriptevent mctest2:rest resting-kinematics
+  output: design/minecraft/test-lib/artifacts/mctest-resting-state-probe-results.md
+  ran_at: 2026-07-25
+  environment: |
+    Same server and module version as resting-state-probe-run, with the pack at 0.2.0. Two source
+    positions — underground and open air on a placed platform — sampled 8/8 types in both runs. The
+    document records that its after-2-ticks sample is confounded.
+
+- id: resting-kinematics-isolated-run
+  command: execute as <armor stand> run scriptevent mctest2:rest resting-kinematics-isolated
+  output: design/minecraft/test-lib/artifacts/mctest-resting-state-probe-results.md
+  ran_at: 2026-07-25
+  environment: |
+    Same server and module version, pack at 0.3.0, re-run with the sample uncontended after the
+    earlier run's confound. 8/8 types, no PROBE CRASHED lines.
+
+- id: package-contents-probe
+  command: node design/minecraft/test-lib/artifacts/type-probes/package-contents-probe.mjs
+  output: design/minecraft/test-lib/artifacts/type-probes/package-contents-probe.out.txt
+  ran_at: 2026-07-26
+  environment: |
+    @minecraft/server 2.8.0 installed in the type-probes project beside the script.
+
+- id: component-ids-probe
+  command: node design/minecraft/test-lib/artifacts/type-probes/component-ids-probe.mjs
+  output: design/minecraft/test-lib/artifacts/type-probes/component-ids-probe.out.txt
+  ran_at: 2026-07-26
+  environment: |
+    Reads the declarations in @minecraft/server 2.8.0's index.d.ts. The counts are that version's
+    and would differ against another.
+
+- id: component-ids-typecheck
+  command: npm run check   # tsc --noEmit, strict, in design/minecraft/test-lib/artifacts/type-probes
+  output: design/minecraft/test-lib/artifacts/type-probes/component-ids-probe.tsc.out.txt
+  ran_at: 2026-07-26
+  environment: |
+    component-ids-probe.ts compiled against @minecraft/server 2.8.0 under strict mode.
+
+- id: assignability-probe
+  command: node design/minecraft/test-lib/artifacts/type-probes/assignability-probe.mjs
+  output: design/minecraft/test-lib/artifacts/type-probes/assignability-probe.out.txt
+  ran_at: 2026-07-26
+  environment: |
+    Parses @minecraft/server 2.8.0's index.d.ts and re-runs assignability-probe.ts under tsc
+    --noEmit, strict, reporting its exit status. Counts are that version's.
+
+- id: vanilla-data-probe
+  command: node design/minecraft/test-lib/artifacts/type-probes/vanilla-data-probe.mjs
+  output: design/minecraft/test-lib/artifacts/type-probes/vanilla-data-probe.out.txt
+  ran_at: 2026-07-26
+  environment: |
+    @minecraft/vanilla-data 1.26.33 installed as a devDependency of the type-probes project.
+
+- id: module-surface-probe
+  command: node design/minecraft/test-lib/artifacts/type-probes/module-surface-probe.mjs
+  output: design/minecraft/test-lib/artifacts/type-probes/module-surface-probe.out.txt
+  ran_at: 2026-07-26
+  environment: |
+    Parses @minecraft/server 2.8.0's index.d.ts for every export const and every static member.
+
+- id: pack-api-survey
+  command: node 1-discover.mjs && node 2-api-index.mjs && node 3-fetch.mjs && node 4-analyze.mjs && node 5-report.mjs
+  output: design/minecraft/test-lib/artifacts/pack-api-survey/5-report.out.txt
+  ran_at: 2026-07-26
+  environment: |
+    A five-stage pipeline in design/minecraft/test-lib/artifacts/pack-api-survey/, each stage's
+    output captured beside it — 1-discover, 2-api-index, 3-fetch, 4-analyze and this report.
+    3-fetch cloned 850 candidate repositories from the public GitHub corpus as it stood on the run
+    date; the population is a snapshot and a later run would draw a different one.
+
+- id: throws-annotation-probe
+  command: node design/minecraft/test-lib/artifacts/type-probes/throws-annotation-probe.mjs
+  output: design/minecraft/test-lib/artifacts/type-probes/throws-annotation-probe.out.txt
+  ran_at: 2026-07-26
+  environment: |
+    Pairs each declared member of @minecraft/server 2.8.0's index.d.ts with its `@throws`
+    annotation. The pairing is that version's and would differ against another.

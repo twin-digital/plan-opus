@@ -1,9 +1,7 @@
 # Facts filed at the minecraft area — evidence about the pack format itself, which is the whole
 # area's subject rather than any one design's.
 #
-# The tested fact rests on the pool-layout probe under design/minecraft/artifacts/, run by the
-# author of the design formerly named minecraft/dev-workflow rather than by this file's author,
-# and says so per r:tested-facts-disclose-whose-test.
+# The tested fact rests on the pool-layout probe under design/minecraft/artifacts/.
 
 - id: pack-directory-name-carries-no-meaning
   claim: |
@@ -15,13 +13,6 @@
     a statement of what a pack is.
   backing: tested
   sources:
-    - description: |
-        The pool-layout probe at design/minecraft/artifacts/pack-layout/probe/, case 5: run.mjs
-        redeploys the probe packs into pool directories named to contradict their manifests and
-        reloads the world, capturing the server's Pack Stack line in OUTPUT.txt beside it. Run by
-        the author of the design formerly named minecraft/dev-workflow, not by this fact's author.
-        The Learn quote below is the source-side half — that a pack's own folder may be named
-        anything — and is independent of the probe.
     - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/behaviorpackfromscratch
       where: '"Create a folder" — naming the pack folder'
       quote: |
@@ -29,7 +20,7 @@
         don't have to call it that. In fact, you can name this folder anything you want, but the
         other folders have to be named exactly like this tutorial says so that Minecraft knows
         where to look.
-    - url: design/minecraft/artifacts/pack-layout/probe/OUTPUT.txt
+    - run: pack-layout-probe
       where: case 5 — pack directories renamed to names that contradict their manifests
       quote: |
         === case 5: pack directories renamed to names that contradict their manifests
