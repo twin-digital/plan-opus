@@ -26,7 +26,8 @@ build with type declarations, no runtime dependencies, and a single peer depende
 `@minecraft/server` at `2.8.0` — the pinned version every behaviour below is read from
 [[r:target-server-version]] [[d:esm-only-typescript-package]]. It depends on no test framework, and
 nothing in a fake knows which runner is driving it; a caller who wants call recording wraps a fake
-with their own spy library [[r:no-test-framework-dependency]]. Everything it exports — every fake
+with their own spy library, which works because the fakes are plain objects with nothing intercepting
+them [[r:no-test-framework-dependency]]. Everything it exports — every fake
 type and every free function — is reachable from one entry point, `@twin-digital/minecraft-test-lib`
 itself, with no subpath exports [[d:one-public-entry-point]].
 
@@ -79,76 +80,60 @@ so two `createServer()` calls in one process share nothing and tests need no res
 [[r:instance-scoped-world]].
 
 Every fake carries the full public shape of the type it stands in for and is assignable where the
-real declared type is expected, with no cast. That shape is not hand-written. Each fake is an
-`interface FakeEntity extends Entity {}` merged with a `class FakeEntity` that writes only the
-members this cycle models: the interface supplies the rest to the type system, and because there is
-no `implements` clause, the compiler asks the class for none of them. Neither obvious alternative
-works — `implements Entity` demands all 62 members, and `extends` is refused outright because the
-engine's classes declare a `private constructor()`
-[[f:server-classes-are-structurally-assignable]] [[r:fakes-are-structurally-assignable]]
-[[d:fakes-are-merged-classes-behind-a-guard-proxy]].
+real declared type is expected, with no cast. That shape is not hand-written and not asserted — it
+is generated and then checked. A build-time generator reads the pinned `index.d.ts` and emits a
+plain TypeScript class per faked type, declaring `implements MC.Entity` and its siblings, with every
+declared member written out [[d:fakes-are-generated-classes-with-guard-prologues]].
 
-At runtime a `get` trap over the class instance supplies what the merge only promised, in one fixed
-order: the validity guard first, then any override the caller installed, then `NotImplementedError`
-for a member this cycle does not model — items, blocks, containers and the player client surface
-included — then the modelled member itself [[d:out-of-scope-members-throw-not-implemented]]
-[[r:fakes-never-fabricate]]. For any name in the class's generated method manifest the trap returns
-a *throwing thunk* rather than throwing at access, so the error lands on the call. One trap
-discharges three obligations that would otherwise be paid separately in hand-written breadth —
-structural assignability, the unmodelled floor, and the non-uniform invalidation guard — and it is
-outermost by construction, which is the order the engine has: the guard runs before any modelled
-behaviour [[r:invalidation-is-modeled]]. The guard itself becomes data rather than code: a four-name
-readable allowlist for `Entity`, an eleven-row table for attribute components, a five-row table for
-effects.
+`implements` is the point. It fails against a partial class precisely because it demands every
+member, which is what defeated the hand-written approaches and is exactly what generation supplies.
+So the compiler verifies completeness on every build: a member the generator misses, or types wrong,
+or a member a version bump adds, is a build error rather than a hole discovered by a test that
+happened to call it. `r:fakes-are-structurally-assignable` moves from satisfied-by-construction to
+satisfied-and-checked [[f:server-classes-are-structurally-assignable]]
+[[r:fakes-are-structurally-assignable]]. The one thing `implements` cannot give is inheritance —
+`extends` is refused outright because the engine's classes declare a `private constructor()` — which
+costs nothing here, since the generator writes the members rather than inheriting them.
 
-That shape is the engine's, not a convenience. The guard fires on the call and never on a bare read:
-reading a method off a removed entity returns a function every time, while calling it throws, and a
-reference captured while the entity was still valid throws just the same when it eventually runs
-[[f:invalidation-guard-fires-at-call-not-access]]. Property reads are the asymmetric half — `id`,
-`typeId` and `isValid` stay readable where `nameTag`, `location` and `dimension` throw — so the trap
-discriminates by name for properties and is uniform for methods, which is exactly the split the
-guard data encodes.
+Each generated member is a guard prologue followed by a body. The prologue throws per the guard data
+for that class and member; the body either delegates to the hand-written behaviour for a modelled
+member, or throws `NotImplementedError` for one this cycle does not model — items, blocks,
+containers and the player client surface included [[d:out-of-scope-members-throw-not-implemented]]
+[[r:fakes-never-fabricate]]. The guard is therefore in every member rather than at one interception
+point, and it runs before any modelled behaviour, which is the order the engine has
+[[r:invalidation-is-modeled]]. Guarding at the member is also what makes the guard *land where the
+engine's does*: a prologue inside a method body runs when the method is called and not when it is
+read, and it reads validity at that moment, so a reference captured while the entity was valid still
+throws when it eventually runs [[f:invalidation-guard-fires-at-call-not-access]].
 
-Four mechanics decide whether an implementation of this is correct, each established by the spike
-under `artifacts/fake-shape-spike`:
+There is no `Proxy` and no runtime interception anywhere in the library. That is what makes the
+fakes behave like ordinary objects under everything a test might do to them:
 
-- **The trap forwards to the target, not the receiver.** `Reflect.get(t, k, receiver)` runs a getter
-  with `this` bound to the proxy, which makes a `WeakMap`-keyed state lookup miss and a `#private`
-  field throw. Forwarding to the target costs one thing worth knowing: a subclass override reached
-  through `this` is not seen, which is live as soon as `FakePlayer` subclasses `FakeEntity`.
-- **The thunk reads validity when it is called, not when it was read.** A thunk that closes over the
-  validity it saw at access lets a method captured before `invalidate()` still run after it. The
-  spike hit that bug; it is a one-line difference and an invisible one in review, and the engine is
-  unambiguous on the point [[f:invalidation-guard-fires-at-call-not-access]].
-- **Library-internal code addresses the state record directly**, never through the trap, or the
-  library's own reads throw on an invalidated fake. The cost is a second vocabulary for the same
-  data.
-- **The target is a class instance, not a plain object.** Only a class instance answers `instanceof`,
-  which the engine's own entities do. A frozen target, or one carrying non-configurable own
-  properties, defeats the trap's invariants outright.
+- **A spy library works natively.** `sinon.spy(entity, 'applyDamage')` reads the prototype method,
+  wraps it, and assigns the wrapper; the next call finds it, because there is nothing in between.
+  That is `r:no-test-framework-dependency`'s promise — fakes a caller wraps with their own spy
+  library — met by the fakes being plain objects rather than by a mechanism that has to anticipate
+  spying.
+- **`'teleport' in entity` is `true`** because `teleport` is really on the prototype, and an unknown
+  name is `false`, matching the engine on both [[f:entity-shape-is-identical-valid-or-invalid]].
+- **`Object.keys` matches the engine.** A real entity carries exactly two own enumerable properties,
+  `typeId` and `id`, so `Object.keys`, spread and `JSON.stringify` all agree with the engine — but
+  only if the generator emits methods as prototype methods rather than as class fields. A class field
+  is an own enumerable property, so emitting the 46 methods that way would put all 46 into
+  `Object.keys`. The generator emits `typeId` and `id` as own data properties set in the
+  constructor, and every other member on the prototype.
 
-Three smaller consequences. Declaration merging does not carry `readonly`: a class field merged
-against `readonly id: string` is writable through the class type, though it stays readonly through
-`Entity`, which is what a test sees — a hazard for library-internal code, not for a test author.
-A `get` trap alone answers `'teleport' in entity` with `false` where the engine answers `true`, so
-the design adds a `has` trap fed from the same generated manifest, making membership tests read the
-declared surface rather than whatever the class happened to write
-[[f:entity-shape-is-identical-valid-or-invalid]]. And an unbound call on a captured method —
-`const fn = e.kill; fn()` — raises a `ReferenceError` in the engine, not the illegal-invocation
-`TypeError` a host object usually gives; a fake that reproduces that case at all must raise
-`ReferenceError` [[f:unbound-native-method-raises-reference-error]].
+The costs are the generator's own. It is one program whose defects reproduce across every member it
+emits, and it has to run before anything typechecks — both of which the decision's falsifiers name.
 
-A `set` trap goes with the `get` trap, and it is what keeps the spy promise honest. A caller who
-wraps a member — `sinon.spy(entity, 'applyDamage')` and its equivalents — reads the member, wraps
-what it read, and assigns the wrapper back. Without a `set` trap that assignment lands as an own
-property on the target and the `get` trap keeps returning its own thunk, so the spy is installed,
-silently ignored, and records nothing. Writing a member name therefore installs an *override* in the
-state record, which the `get` trap returns ahead of the modelled member and behind the validity
-guard; `deleteProperty` removes it, restoring the underlying member, which is how a spy's `restore`
-gets its object back. Overrides live in the state record rather than as own properties on the target,
-so the proxy invariants that a non-configurable own property would trip never arise. The guard stays
-outermost even over an override, because the engine throws before it would have run the member at
-all [[r:no-test-framework-dependency]] [[d:fakes-are-merged-classes-behind-a-guard-proxy]].
+**What is committed and what is not.** The guard data and the per-class manifests are committed:
+they are small, readable, and are what a reviewer needs when a version bump moves the surface, where
+a manifest diff says "these four members appeared" instead of burying it in thousands of mechanical
+lines. The generated classes are gitignored. A `prebuild` script runs the generator and is depended
+on by `build` and by `typecheck`, and `prepare` runs it after `npm install`, so a fresh clone that
+runs install is ready to typecheck. A contributor who opens the repository before the first install
+sees unresolved imports in the hand-written behaviour that refers to generated classes; that is the
+one rough edge, and running install clears it.
 
 One generic construction serves all 68 entity component classes rather than 68 separate fakes: keyed
 through `EntityComponentTypeMap`, the library pays a single internal cast while `getComponent` and
@@ -642,7 +627,11 @@ is the transition a test otherwise has no way to produce.
 The guard list is a per-member table taken from the reflective sweep of the engine's own `Entity`
 prototype, not from the declarations' `@throws` annotations, which under-report it: `nameTag` and
 `isSneaking` carry no annotation and throw anyway [[f:invalidation-guard-list-complete]]
-[[d:guard-list-comes-from-the-observation]]. On an invalidated entity exactly four properties stay
+[[d:guard-list-comes-from-the-observation]]. That table is committed data and it is an *input to
+generation*: the generator reads it and writes the right prologue into each member, so the guard is
+compiled into all 1010 of them rather than applied by anything at runtime. Changing what a member
+does on an invalid reference is an edit to the data and a rebuild, not a change to library code
+[[d:fakes-are-generated-classes-with-guard-prologues]]. On an invalidated entity exactly four properties stay
 readable — `id`, `isValid` (false), `typeId`, and `scoreboardIdentity` (`undefined`) — and every
 other member throws `InvalidEntityError`. That covers the whole member surface as observed, not a
 generalization past it: the sweep reached 12 throwing properties and 19 zero-argument methods, and
@@ -770,11 +759,12 @@ not been considered, which is not the same as a promise about it.
 | `getDynamicPropertyTotalByteCount` | not modelled | no source pins the engine's accounting |
 | the scoreboard — objectives, scores, participants, display slots | modelled | |
 | `sendMessage` and `onScreenDisplay` output | modelled | captured to a per-target log rather than displayed, and read back with `getOutput` |
-| the invalidation guard on entities, attribute components and effects | modelled | the observed guard data, error class by error class, applied by the trap ahead of every modelled member |
+| the invalidation guard on entities, attribute components and effects | modelled | the observed guard data, error class by error class, compiled into each member's prologue ahead of its body |
 | reading — not calling — a guarded method on an invalidated reference | modelled | the read returns a function and the throw lands on the call, and a reference captured while valid still throws when it runs, as observed |
 | arity checked ahead of the validity guard | divergence | a guarded member throws `InvalidEntityError` however it was called; the engine raises a `TypeError` on a wrong-arity call first |
-| `in` on a declared but unmodelled member | modelled | a `has` trap fed from the generated manifest answers `'teleport' in entity` with `true` and an unknown name with `false`, as the engine does, valid or invalidated alike |
-| `Object.keys`, spread and `JSON.stringify` over an entity | divergence | a real entity carries two own enumerable properties, `typeId` and `id`, so `JSON.stringify` yields both; the fake keeps its state off the instance and serialises as `{}` — the divergence a `toEqual` on a whole entity would surface |
+| `in` on a declared but unmodelled member | modelled | the member is really on the prototype, so `'teleport' in entity` is `true` and an unknown name `false`, as the engine answers, valid or invalidated alike |
+| `Object.keys`, spread and `JSON.stringify` over an entity | modelled | `typeId` and `id` are own data properties and every other member sits on the prototype, so all three agree with the engine's two own enumerable properties |
+| `for-in` over an entity | divergence | the engine walks 62 enumerable keys down its prototype chain; a generated class's prototype members are non-enumerable, so `for-in` reaches only the two own properties |
 | items, blocks, containers, the player client surface, custom commands, the startup registries, and the eight registry classes | not modelled | declared in full and throwing |
 
 The divergence rows are not spec-only. Each one describes a way a test can pass against the fake and
@@ -803,21 +793,31 @@ components:
       builders for the failed-property and failed-call shapes
     excludes: deciding which member raises which error
 
-  - id: surface-codegen
+  - id: guard-data
     responsibility: >-
-      the Node generator that reads the pinned index.d.ts and emits the 154 merged interface/class
-      pairs, the per-class method and property manifests the trap reads, and the compile-time
-      assertions that fail the build when a manifest and the declarations disagree
-    excludes: the runtime trap, and any behaving member
+      the per-class guard tables the generator bakes into each member's prologue — Entity's
+      four-name readable allowlist, the eleven-row attribute-component table, the five-row effect
+      table — committed as readable data
+    excludes: >-
+      applying the guard, which the generator writes into every member rather than any component
+      applying at runtime
     after: [error-model]
 
-  - id: fake-shell
+  - id: surface-codegen
     responsibility: >-
-      the get and has traps over a generated class instance — guard, then NotImplementedError, then
-      the modelled member, with a throwing thunk for manifest methods that reads validity at call
-      time — the per-instance state record in its WeakMap, the internal direct-access path that
-      never goes through the trap, and the id types derived from EntityComponentTypeMap
-    excludes: any behaving member, and the per-class guard data the trap reads
+      the Node generator that reads the pinned index.d.ts and the guard data and emits a class per
+      faked type implementing its declared interface, each member a guard prologue over a
+      delegation or a NotImplementedError throw; the committed per-class manifests; and the
+      prebuild wiring that makes a fresh clone typecheck
+    excludes: any behaving member, and the guard data itself
+    after: [error-model, guard-data]
+
+  - id: fake-runtime
+    responsibility: >-
+      the per-instance state record every behaviour reads and writes, the validity flag on it and
+      the invalidate free function that sets it, the naming convention a generated member body
+      delegates through, and the id types derived from EntityComponentTypeMap
+    excludes: any behaving member
     after: [error-model, surface-codegen]
 
   - id: event-bus
@@ -827,7 +827,7 @@ components:
       with the error record behind getHandlerErrors, before-event cancellation and mutable payload
       fields on the signals whose payload declares them, and the emit free function
     excludes: which fake member raises which signal
-    after: [fake-shell]
+    after: [fake-runtime]
 
   - id: world-and-dimensions
     responsibility: >-
@@ -837,7 +837,7 @@ components:
       world.getEntity, world.getAllPlayers, world.getPlayers, dimension.getEntities and
       dimension.getPlayers
     excludes: dimension contents beyond the entity registry, and query filtering over it
-    after: [fake-shell, event-bus]
+    after: [fake-runtime, event-bus]
 
   - id: entity-model
     responsibility: >-
@@ -867,20 +867,11 @@ components:
       free function behind custom types and overrides
     after: [entity-model]
 
-  - id: validity-guards
-    responsibility: >-
-      the invalidate free function and the guard data the shell's first branch reads — Entity's
-      four-name readable allowlist, the eleven-row attribute-component table, the five-row effect
-      table
-    excludes: >-
-      applying the guard, which the trap does for every member at once rather than per behaviour
-    after: [fake-shell]
-
   - id: system-scheduler
     responsibility: >-
       system's run/runTimeout/runInterval/clearRun recording, currentTick, and the advanceTicks free
       function that runs due callbacks
-    after: [fake-shell, world-and-dimensions]
+    after: [fake-runtime, world-and-dimensions]
 
   - id: persisted-state
     responsibility: dynamic property storage on world and entities, and the scoreboard with its objectives, scores and display slots
@@ -909,7 +900,6 @@ components:
         entity-model,
         component-model,
         effect-model,
-        validity-guards,
         system-scheduler,
         persisted-state,
         output-capture,

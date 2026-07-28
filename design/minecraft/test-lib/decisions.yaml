@@ -136,8 +136,8 @@
 - id: out-of-scope-members-throw-not-implemented
   statement: |
     a member the cycle does not model is present in the declared shape and throws
-    NotImplementedError, from the trap's default branch, rather than being absent or reading
-    undefined
+    NotImplementedError, from the body the generator wrote for it, rather than being absent or
+    reading undefined
   status: tolerated
   falsifiers:
     - packs commonly feature-detect a member by reading it, so a throwing member breaks code that a
@@ -261,23 +261,22 @@
     - packs read displayName rarely enough that shipping and maintaining 37 strings costs more than
       the reads it answers
 
-- id: fakes-are-merged-classes-behind-a-guard-proxy
+- id: fakes-are-generated-classes-with-guard-prologues
   statement: |
-    each faked class is an interface/class declaration merge over the engine's declared type, and
-    get, has, set and deleteProperty traps over the class instance supply the runtime floor — the
-    get order being validity guard, caller override, NotImplementedError for an unmodelled member,
-    then the modelled member — returning a throwing thunk for any name in the generated method
-    manifest so the guard lands on the call
+    a build-time generator emits, from the pinned index.d.ts and the committed guard data, plain
+    TypeScript classes declaring `implements MC.Entity` and its siblings, each member carrying its
+    own guard prologue and then either a delegation to hand-written behaviour or a
+    NotImplementedError throw; the manifests are committed and the generated code is not
   status: accepted
   falsifiers:
-    - a declared member's shape defeats the trap — an overload set the merge cannot carry, or state
-      the library must hold as a non-configurable own property, which the proxy invariants reject —
-      so a cast returns to the design that merging removed it from
-    - the generated manifests drift from the declarations across a version bump without failing the
-      build, so the completeness assertions do not hold and the guard silently misses new members
-    - the spy libraries packs actually use install their wrapper by a route the set trap does not
-      see — defineProperty, or replacing the prototype method — so the override slot does not in
-      fact keep the fakes wrappable
+    - the generator is itself the defect surface — a wrong prologue or a mistyped body reproduces
+      across every member it emits, and nothing but the generator's own tests stands between that
+      and every fake in the library
+    - the prebuild step costs a contributor more than it saves — a clone that does not typecheck
+      until it runs, an editor showing errors against code that does not yet exist — so the
+      committed-manifest, generated-output split is the wrong side of the line
+    - the committed manifests drift from the surface they describe, so a version bump moves a member
+      and the manifest diff a reviewer reads no longer says what actually changed
 
 - id: one-public-entry-point
   statement: |
