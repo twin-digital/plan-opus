@@ -347,15 +347,19 @@ already holds, on an entity that is still in the world [[r:invalidation-is-model
 distinct acts — `remove()` invalidates as a consequence of removing, `invalidate()` invalidates on
 demand without removing.
 
-`kill()` is the other case and behaves differently on purpose: it never invalidates, so a test that
-wants a dead reference invalid says so with `invalidate()`. On a mob that is because the engine's
-own answer is unreproducible — a corpse stays valid for several ticks and when it turns invalid
-varies by entity type [[f:death-invalidation-window]]. On an entity carrying no health component it
-is a plain simplification, and the one place `kill()` diverges rather than declines: an arrow reads
-`isValid` false in the same statement sequence as the call and stays false through at least tick+5,
-which is deterministic and reproducible, and the fake leaves the reference valid anyway so that one
-rule covers `kill()` on every type [[f:kill-no-health-behaviour]]. That divergence is recorded below
-in its own right; the corpse row beside it is the mob case and does not describe this one.
+`kill()` is the other case, and it splits, because the engine does. On an entity carrying **no
+health component** the reference goes invalid at once: an arrow reads `isValid` false in the same
+statement sequence as the call and stays false through at least tick+5, so the fake invalidates it
+before raising `entityDie` — the handler meets the same dead reference an engine handler would,
+since the engine's own delivery comes after the call returned [[f:kill-no-health-behaviour]]. On an
+entity **with** one the reference stays valid, which is equally the engine's: inside the `entityDie`
+handler a killed mob's reference is still valid and its guarded members answer, and it stays valid
+for at least ~7 ticks, turning invalid by ~27 when the corpse despawns
+[[f:death-invalidation-window]]. The fake reproduces the valid half and stops there rather than
+inventing a despawn tick the probe left unmeasured, so a mob's corpse stays valid indefinitely and a
+test that wants it gone says so with `invalidate()`. Invalidating on every `kill()` would be the
+worse simplification of the two: it would hand every death handler an already-dead reference where
+the engine hands it a working one.
 
 `entity.triggerEvent(eventName)` requires the `minecraft:`-prefixed form and throws
 `InvalidArgumentError` with the message ``Invalid value passed to argument [0]. The event <name>
@@ -465,9 +469,10 @@ the `entityDie` payload when the hit kills.
 damage equal to current health and cause `selfDestruct`, sets health to exactly `effectiveMin`,
 fires `entityHealthChanged`, then fires `entityDie` with cause `selfDestruct`. A second `kill()`
 returns true and fires nothing [[f:kill-and-remove-cascades]]. On an entity with no health
-component it returns true and fires only `entityDie` with cause `selfDestruct`
-[[f:kill-no-health-behaviour]]. It leaves the reference valid, unlike `remove()`, for the reason
-given under *Entities*.
+component it returns true, invalidates the reference, and fires only `entityDie` with cause
+`selfDestruct` — the handler therefore reads an invalid entity, as it would in the engine
+[[f:kill-no-health-behaviour]]. On an entity with one it leaves the reference valid, unlike
+`remove()`, for the reason given under *Entities*.
 
 ## Effects
 
@@ -682,8 +687,8 @@ passed, and `options` is whatever the member carried [[d:output-log-record-shape
 may be called at any point in a test — including on a reference a handler is holding mid-event
 [[r:invalidation-is-modeled]]. It is not the only route to that state: `remove()` invalidates too,
 as part of removing. What `invalidate()` reaches that `remove()` cannot is the entity that goes
-stale *without* leaving the world — the mid-test unload, and the corpse a `kill()` left valid — which
-is the transition a test otherwise has no way to produce.
+stale *without* leaving the world — the mid-test unload, and the mob corpse a `kill()` left valid —
+which is the transition a test otherwise has no way to produce.
 
 The guard list is a per-member table taken from the reflective sweep of the engine's own `Entity`
 prototype, not from the declarations' `@throws` annotations, which under-report it: `nameTag` and
@@ -788,8 +793,8 @@ not been considered, which is not the same as a promise about it.
 | `entity.remove()` | modelled | raises the `entityRemove` before-event, then detaches from the registry and invalidates the reference as one act, then raises the after-event — the engine's own cascade, which raises no death event either |
 | `entity.triggerEvent` | divergence | validates the prefixed id and records the call, changing no state; in the engine the event reshapes the entity |
 | `entity.kill()` | modelled | the full cascade, on an entity with and without a health component |
-| invalidation of a corpse after `kill()` | not modelled | `kill()` leaves the reference valid; in the engine a corpse stays valid for several ticks and when it turns invalid varies by type, so a test says so with `invalidate()`. Distinct from `remove()`, which invalidates at once |
-| invalidation after `kill()` on an entity with no health component | divergence | `kill()` leaves the reference valid there too; the engine invalidates it in the same statement sequence as the call and keeps it invalid, deterministically rather than in the mob corpse's variable window, so this is a simplification the fake makes to keep one rule for every type — a test holding the reference sees it live where the engine's is already gone |
+| invalidation of a mob's corpse after `kill()` | not modelled | the corpse stays valid, as the engine's does inside the `entityDie` handler and for at least ~7 ticks after; the engine invalidates it by ~27 when it despawns and the boundary is unmeasured, so the fake holds the valid state rather than inventing a tick and a test says so with `invalidate()`. Distinct from `remove()`, which invalidates at once |
+| invalidation after `kill()` on an entity with no health component | modelled | the reference goes invalid before `entityDie` is raised, as the engine's does within the call |
 | the seven attribute-shaped components | modelled | all four values, the bounds check, and the health-write cascade |
 | the other 61 entity components | not modelled | attachable, carrying `typeId`, `isValid` and `entity`; every other member throws |
 | runtime component attachment and detachment | not modelled | the engine reaches it through data-driven paths; a test uses the `addComponent` / `removeComponent` free functions |
