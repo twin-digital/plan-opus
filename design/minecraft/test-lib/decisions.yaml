@@ -1,0 +1,366 @@
+# Decisions for @twin-digital/minecraft-test-lib.
+# The accepted and tolerated entries carry the owner's review verdict; the proposed ones are the
+# spec author's, still open.
+
+- id: server-bundle-mirrors-module-exports
+  statement: |
+    createServer returns one bundle whose properties are named as `@minecraft/server` exports
+    them — world, system, and the eight registry classes — and that bundle is the only route to
+    system and the registries
+  status: tolerated
+  falsifiers:
+    - surveyed packs overwhelmingly take `world` alone as a parameter and reach `system` by direct
+      import, so a bundle carrying system is a shape no real pack can receive
+    - the registry classes turn out to need per-call state a single per-bundle object cannot hold,
+      forcing a registry to be constructed against something narrower than the world
+
+- id: modelled-surface-is-world-entity-effect
+  statement: |
+    the behaving surface this cycle is the world, dimensions, entity identity and lifecycle, the
+    seven attribute-shaped components, effects, events, scheduling, persisted state and output;
+    every other entity component carries only typeId, isValid and entity
+  status: tolerated
+  falsifiers:
+    - a component outside the attribute-shaped seven is reached by enough packs that tests written
+      against the library routinely hit NotImplementedError on a first attempt
+    - the attribute-shaped components turn out to differ from one another in behaviour, so treating
+      the seven as one modelled family produces wrong readings for some of them
+
+- id: every-signal-exists-few-are-raised
+  statement: |
+    every declared event signal exists and accepts subscribers, while the fakes' own behaviour
+    raises only the entity spawn, remove, hurt, health-changed and die signals; any other signal is
+    driven by the emit free function
+  status: tolerated
+  falsifiers:
+    - tests routinely need a payload built for them because hand-constructing an event payload for
+      emit is more work than the assertion it enables
+    - a modelled action turns out to raise a signal outside the named set, so the set as written
+      makes the fake silently miss an event a handler depends on
+
+- id: guard-list-comes-from-the-observation
+  statement: |
+    the invalidation guard list is a per-member table transcribed from what the engine was observed
+    to do [[f:invalidation-guard-list-complete]]
+    [[f:invalidation-guard-covers-argument-taking-methods]], not derived from the declarations'
+    @throws annotations
+  status: tolerated
+  falsifiers:
+    - the annotations come to name InvalidEntityError on every guarded member, so derivation
+      becomes mechanical and tracks a version bump for free where a transcribed table needs a
+      server run to refresh
+    - guard behaviour is observed to differ between entity types, so no single per-member table
+      can describe the engine at all
+
+- id: library-declares-its-error-classes
+  statement: |
+    the library exports its own InvalidEntityError, ArgumentOutOfBoundsError and
+    InvalidArgumentError matching the engine's declared shapes and messages, plus NotImplementedError
+    and UnsetValueError of its own
+  status: tolerated
+  falsifiers:
+    - the engine's error classes become reachable at runtime in a test process — `@minecraft/server`
+      starts shipping JavaScript, or a runner resolves it to a shim that defines them — so two
+      definitions of InvalidEntityError coexist and a pack's `instanceof` check splits between them
+    - a pack under test imports these classes from a third package that already defines them at
+      runtime, so the library's own class is never the one the code being tested catches
+
+- id: presets-are-vanilla-dimensions-and-spawn-frame
+  statement: |
+    two presets ship — withVanillaDimensions and asSpawnedEntity — supplying only the dimension and
+    spawn-frame values a source pins
+  status: tolerated
+  falsifiers:
+    - nearly every test opens with the same further preamble beyond these two, showing a third
+      preset is pinned well enough to ship
+    - the spawn-frame values prove type-dependent often enough that asSpawnedEntity misleads more
+      tests than it saves
+
+- id: effect-durations-do-not-decay
+  statement: |
+    an effect's duration reads back the value applied and never decays or expires as ticks advance
+  status: tolerated
+  falsifiers:
+    - packs commonly branch on a decayed duration, so a non-decaying fake lets the wrong branch pass
+    - the duration comparison basis is established and the fake comes to model decay, at which point
+      the two readings stop coinciding
+
+- id: custom-effect-display-name-is-supplied
+  statement: |
+    a custom effect type's displayName reads back from the base name the test registered, and
+    throws UnsetValueError when none was registered rather than deriving one from the identifier
+  status: tolerated
+  falsifiers:
+    - a base name derived from the identifier turns out to match the engine for custom types, whose
+      strings the engine has no localisation entry for, making the throw an obstacle rather than a
+      guard against fabrication
+    - tests that never touch displayName are forced to register one anyway because some modelled
+      path reads it internally
+
+- id: trigger-event-requires-prefix-and-records
+  statement: |
+    Entity.triggerEvent requires the prefixed id, throws InvalidArgumentError on a bare one, changes
+    no state, and records the call for getTriggeredEvents
+  status: tolerated
+  falsifiers:
+    - a later observation shows the engine does assume the namespace on this surface, making the
+      bare-id rejection wrong
+    - packs depend on a triggered event reshaping components, so recording alone leaves the handler
+      under test reading state that never changed
+
+- id: remove-raises-only-entity-remove
+  statement: |
+    Entity.remove raises entityRemove and nothing else
+  status: tolerated
+  falsifiers:
+    - a targeted probe attributes another event to removal, showing the fake omits an event handlers
+      really receive
+
+- id: projectile-damage-is-verbatim
+  statement: |
+    applyDamage with the projectile options form applies the amount requested and reports cause
+    projectile
+  status: tolerated
+  falsifiers:
+    - packs branch on the fractional adjustment the engine applies to projectile damage, so verbatim
+      damage hides a real difference
+
+- id: placement-and-motion-are-literal
+  statement: |
+    a fake entity is placed at exactly the requested location and never moves on its own
+  status: tolerated
+  falsifiers:
+    - a pack's logic keys on the engine's placement adjustment or on post-spawn drift, so a static
+      entity cannot exercise it
+
+- id: out-of-scope-members-throw-not-implemented
+  statement: |
+    a member the cycle does not model is present in the declared shape and throws
+    NotImplementedError, from the body the generator wrote for it, rather than being absent or
+    reading undefined
+  status: tolerated
+  falsifiers:
+    - packs commonly feature-detect a member by reading it, so a throwing member breaks code that a
+      missing one would not
+    - a test cannot reach the modelled path without first stubbing past unmodelled members it never
+      meant to call, so the throwing floor obstructs more tests than the fabricated answers it
+      prevents
+
+- id: current-tick-starts-at-zero
+  statement: |
+    system.currentTick starts at 0 and advances only under advanceTicks
+  status: accepted
+  falsifiers:
+    - a pack treats a small currentTick as a startup condition, so starting at 0 puts every test in
+      a state the engine rarely presents
+
+- id: entity-ids-are-sequential-opaque-strings
+  statement: |
+    an auto-assigned entity id is a decimal string issued sequentially from 1 per bundle and never
+    reissued
+  status: tolerated
+  falsifiers:
+    - a pack parses or orders ids in a way the engine's negative-integer spelling supports and this
+      one does not
+
+- id: absence-reads-as-undefined
+  statement: |
+    an absent component, an unset dynamic property, and an unknown objective or participant read
+    undefined rather than throwing
+  status: tolerated
+  falsifiers:
+    - the engine is observed to throw on one of these reads, making undefined a fabricated answer
+
+- id: esm-only-typescript-package
+  statement: |
+    the package publishes an ESM-only TypeScript build with no runtime dependencies and
+    `@minecraft/server` 2.8.0 as its single peer dependency
+  status: accepted
+  falsifiers:
+    - a common pack toolchain cannot consume ESM-only, so consumers cannot install the library at all
+
+- id: registries-are-declared-and-throw
+  statement: |
+    all eight registry classes on the bundle are declared with every member throwing
+    NotImplementedError, and no registry tracks world state
+  status: tolerated
+  falsifiers:
+    - a pack resolves an id through DimensionTypes.getAll or EntityTypes.get on the path its test
+      exercises, rather than in startup code the test never enters, so the throwing registry blocks
+      the test itself
+    - dimension registration grows past withVanillaDimensions and tests need DimensionTypes.getAll
+      to agree with world.getDimension, which two independent stores cannot do
+
+- id: damage-without-health-is-a-no-op
+  statement: |
+    applyDamage on an entity carrying no health component changes nothing, fires no event, returns
+    false, and leaves the entity valid
+  status: accepted
+  falsifiers:
+    - a health-less type outside the three observed — arrow, snowball and xp_orb — returns true or
+      fires entityHurt, so the silent false does not generalize across types
+
+- id: killing-hit-lands-at-or-below-minimum
+  statement: |
+    applyDamage fires entityDie when the write leaves currentValue at or below effectiveMin, the
+    boundary value included
+  status: accepted
+  falsifiers:
+    - a type with a non-zero effectiveMin reaches that minimum and lives, so the rule holds only
+      where the minimum is zero — which is every type the survey reached
+
+- id: entity-lookups-honour-a-filter-subset
+  statement: |
+    the world and dimension entity lookups return what is registered in creation order, and an
+    EntityQueryOptions argument — to a lookup or to entity.matches — is honoured on type, tags,
+    name, excludeTypes, excludeTags and excludeNames, each of the other eighteen fields throwing
+    NotImplementedError that names it
+  status: tolerated
+  falsifiers:
+    - packs filter inside the query on a field outside the six — a distance, family or score filter
+      on the path under test rather than in setup — so the honoured subset does not reach the
+      pattern packs actually write
+    - a pack orders its own work by the sequence getEntities returns and the engine's order proves
+      to be something creation order does not reproduce
+
+- id: cancelled-actions-return-the-engines-value
+  statement: |
+    a cancelled action returns what the engine was observed to return, not a no-op value:
+    applyDamage true and addEffect undefined
+  status: accepted
+  falsifiers:
+    - a later engine version returns false from a cancelled applyDamage, so reproducing today's
+      true becomes the deviation the ruling exists to avoid
+    - the same admission-shaped true appears on another cancellable non-void call, making it a
+      general engine convention the fake should express as one rule rather than a per-surface quirk
+
+- id: before-event-field-writes-are-honoured
+  statement: |
+    a handler's write to entityHurt.damage or effectAdd.duration changes what the action does and
+    what its after-event reports; the other four mutable before-event fields are writable and
+    unread, because the fake raises no action that would consume them
+  status: tolerated
+  falsifiers:
+    - a modelled action grows behind one of the other four fields — healing or weather — so
+      "writable and unread" becomes a silent wrong answer rather than an honest gap
+    - honouring the write while applyDamage's boolean is settled from the requested amount reads
+      as a contradiction to test authors, who see true returned for a handler-written zero
+
+- id: display-names-resolve-from-a-shipped-table
+  statement: |
+    Effect.displayName resolves with no test setup, from a shipped table of the 37 observed base
+    names stored verbatim plus the observed numeral mapping computed over the amplifier, with
+    registerEffectBaseName supplying a base for a custom type or overriding a shipped one
+  status: accepted
+  falsifiers:
+    - a version bump changes a vanilla display name, so the transcribed table silently disagrees
+      with the engine where a derivation would have tracked it
+    - the numeral mapping proves locale-dependent — a locale placing the numeral elsewhere, or
+      using different numerals — so computing the suffix cannot be right for every locale the
+      shipped bases might be replaced with
+    - packs read displayName rarely enough that shipping and maintaining 37 strings costs more than
+      the reads it answers
+
+- id: generated-members-check-arity-before-the-guard
+  statement: |
+    each generated member opens with a check that it received at least its declared required
+    parameter count, throwing the engine's TypeError before the validity guard prologue runs; no
+    maximum is checked and extra arguments pass through, because the engine's response to them is
+    unobserved
+  status: accepted
+  falsifiers:
+    - the engine is observed rejecting extra arguments, so letting them through makes the fake
+      permissive on a real difference and a test passes where the engine would have thrown
+    - the engine's minimum turns out not to be the declared required-parameter count — a member
+      accepting fewer arguments at runtime than its signature requires — so a manifest read off the
+      declarations rejects calls the engine allows
+    - the check costs more than it buys, no pack calling a member with too few arguments on
+      purpose, so the branch sits in front of all 1010 members to serve a case tests do not write
+
+- id: fakes-are-generated-classes-with-guard-prologues
+  statement: |
+    a build-time generator emits, from the pinned index.d.ts and the committed guard data, plain
+    TypeScript classes declaring `implements MC.Entity` and its siblings, each member carrying its
+    own guard prologue and then either a delegation to hand-written behaviour or a
+    NotImplementedError throw; the manifests are committed and the generated code is not
+  status: accepted
+  falsifiers:
+    - the generator is itself the defect surface — a wrong prologue or a mistyped body reproduces
+      across every member it emits, and nothing but the generator's own tests stands between that
+      and every fake in the library
+    - the prebuild step costs a contributor more than it saves — a clone that does not typecheck
+      until it runs, an editor showing errors against code that does not yet exist — so the
+      committed-manifest, generated-output split is the wrong side of the line
+    - the committed manifests drift from the surface they describe, so a version bump moves a member
+      and the manifest diff a reviewer reads no longer says what actually changed
+
+- id: one-public-entry-point
+  statement: |
+    the package exposes a single entry point re-exporting every fake type and free function, with no
+    subpath exports
+  status: tolerated
+  falsifiers:
+    - the library's own parts come to import each other through the single barrel, and the cycle
+      that creates cannot be broken without a subpath export a builder can import directly
+    - a sibling package must depend on the error classes at a version cadence independent of the
+      fakes, which one entry point in one package cannot express
+
+- id: attribute-id-set-is-a-checked-literal-array
+  statement: |
+    the seven attribute-shaped component ids ship as a literal array the library maintains, with the
+    type-derived union as the compile-time completeness check
+  status: tolerated
+  falsifiers:
+    - a component behaves as an attribute without matching the conditional mapping over
+      EntityComponentTypeMap, so the derived union no longer describes the set and cannot check the
+      array at all
+    - the same runtime-enumeration need appears for the other derived id sets, making generation
+      from the declarations at build time the cheaper single mechanism
+
+- id: component-state-is-the-attribute-four
+  statement: |
+    addComponent's state argument is the four attribute numbers, or one of two shorthands for them
+    — a single number, or a [min, max] pair — is rejected with InvalidArgumentError on any
+    non-attribute id, and leaves any number it omits unset
+  status: tolerated
+  falsifiers:
+    - a component outside the seven gains modelled fields, so state must carry per-component shapes
+      rather than one attribute-shaped record
+    - tests that supply only currentValue routinely hit UnsetValueError from setCurrentValue's
+      bounds check or a reset, so the optional record forces every test to supply all four anyway
+
+- id: tick-advance-semantics
+  statement: |
+    advanceTicks steps one tick at a time, incrementing currentTick and running that tick's
+    callbacks in scheduling order before it steps again, so an advance of n runs every intervening
+    tick's callbacks; run is due on the next tick, runTimeout(cb, n) on the nth tick after
+    scheduling, and runInterval(cb, n) every nth tick
+  status: tolerated
+  falsifiers:
+    - the engine is observed running a run callback on the scheduling tick itself, so the
+      convention here misses every scheduled callback by a tick
+    - a probe schedules runTimeout(cb, 1) and observes it on the second tick after scheduling, so
+      the convention here lands every scheduled callback a tick early
+
+- id: output-log-record-shape
+  statement: |
+    getOutput returns an array of { kind, value, options? } with kind one of message, title,
+    subtitle and actionBar
+  status: tolerated
+  falsifiers:
+    - tests need the interleaving across targets — a world message and a player message in the
+      order they were sent — which per-target logs of these records cannot express
+    - a modelled output member carries something that is neither the message value nor its options,
+      so the record cannot hold what a test asserts on
+
+- id: handler-errors-are-isolated-and-recorded
+  statement: |
+    a subscriber that throws does not reach the caller, does not stop the other subscribers, and
+    does not stop the rest of the cascade, as the engine was observed to behave; the library
+    records the error for getHandlerErrors rather than discarding it as the engine does
+  status: accepted
+  falsifiers:
+    - tests never read getHandlerErrors, so a throwing handler is lost as silently as the engine
+      loses it and the recording buys nothing over plain absorption
+    - the engine is observed propagating a handler's throw on some other signal or dispatch path,
+      so isolation is not universal and the fake generalizes past what was observed on entityHurt
