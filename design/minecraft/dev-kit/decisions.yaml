@@ -236,7 +236,7 @@
   statement: |
     a source value whose type contradicts what `PackManifest` declares is reported as
     `manifest-shape-invalid`, the code a misshapen container raises, rather than as a new code
-  status: proposed
+  status: tolerated
   falsifiers:
     - a consumer has to branch on whether a container or a scalar was misshapen, so the single code forces it to parse `field`
     - a form fault arises at a position the dotted `field` path cannot name
@@ -245,7 +245,7 @@
   statement: |
     a field whose form is faulted reports that fault alone: every check and completion reading that
     field is skipped, as with a misshapen container
-  status: proposed
+  status: tolerated
   falsifiers:
     - a real manifest is found where the suppressed check named the fault a user had to see and the form fault did not
     - the suppression table grows past what a builder holds while implementing one check
