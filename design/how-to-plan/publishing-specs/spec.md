@@ -32,15 +32,15 @@ A bundle is a directory of four files, plus whatever the spec incorporates by re
 README.md         how to use a bundle of this format: what the files are, and how to fetch
                   the dependencies
 spec.md           the spec's prose, every citation token struck
-commitments.yaml  the requirements binding the design and the decisions it holds
+commitments.yaml  one flat list of what the design is committed to
 package.json      name, version, description, files, repository, dependencies
 ```
 
 `README.md` orients a builder who has just unpacked a bundle and has never seen one
 [[d:bundle-carries-an-orientation-file]]. What it explains is the *format*, not the design: the
 other three files and what each is for, that the spec's prose is the primary source and
-`commitments.yaml` a crib, that the design's upstream dependencies are not vendored, and the commands
-that fetch them. It is fixed boilerplate written by the deriver, identical in every npm bundle
+`commitments.yaml` a flat list of what the design is committed to, that the design's upstream
+dependencies are not vendored, and the commands that fetch them. It is fixed boilerplate written by the deriver, identical in every npm bundle
 except for the bundle's own name, which appears in the example commands
 [[d:orientation-file-is-a-boilerplate-readme]]. `README.md` is the name because it is where both a
 consumer unpacking a tarball and the registry's own package page already look, so the orientation
@@ -60,37 +60,43 @@ holds no open question [[f:settled-state-is-computed-from-spec-content]].
 
 `commitments.yaml` is the streamlined extraction the builder reads as a crib beside the prose
 [[r:derived-implementer-view]], and it is a YAML document [[d:commitments-are-a-yaml-document]]. It
-carries two lists — every active requirement binding the design, its own and every wider-scope one
-whose `applies_to` reaches it; and every decision the design holds at `accepted` or `tolerated`
-[[f:decision-status-values]] — which is the reviewable foundation list minus the one kind that
-issues no obligation [[r:easily-reviewable-foundations]]. Rejected decisions, retired requirements,
+carries every active requirement binding the design — its own and every wider-scope one whose
+`applies_to` reaches it — and every decision the design holds at `accepted` or `tolerated`, which is
+the reviewable foundation list minus the one kind that issues no obligation
+[[r:easily-reviewable-foundations]]. Rejected decisions, retired requirements,
 and open questions are left out [[d:extraction-carries-live-commitments-only]]. Facts are left out
 entirely, and so are the citation tokens that pointed at them: a token marks a claim that would
 change were its foundation false [[r:explicit-intent]], which is the argument the spec was settled
 on rather than anything a builder following it has to re-run [[r:derived-implementer-view]].
 
-The document is a mapping of `requirements` and `decisions`, each to a sequence, and an entry
-carries the same fields under the same names its source entry does — `id`, `statement`, and `force`
-for a requirement [[f:requirement-entry-fields]]; `id`, `statement`, and `status` for a decision
-[[f:decision-status-values]] — with a field at its default omitted, exactly as the repository's own
-foundation files write it [[d:commitments-schema-mirrors-the-source-entries]]:
+The two kinds arrive as **one flat list**, and nothing in the document tells them apart
+[[d:commitments-are-one-flat-list-of-id-and-statement]]. The top-level key `commitments` maps to a
+sequence, and an entry carries exactly two fields: an `id` prefixed with its kind letter — `r:` or
+`d:`, the same letters a citation token uses [[f:spec-citation-token-grammar]] — and a `statement`,
+copied from the source entry:
 
 ```yaml
-requirements:
-  - id: bundle-is-fetched-by-name-and-version
+commitments:
+  - id: d:first-version-is-one-zero-zero
+    statement: a bundle's first published version is 1.0.0, backfilled bundles included
+  - id: r:bundle-is-fetched-by-name-and-version
     statement: |
       a builder outside this repository obtains a spec's bundle from the spec's name and a
       version, or from the name alone to get the latest
-decisions:
-  - id: first-version-is-one-zero-zero
-    statement: a bundle's first published version is 1.0.0, backfilled bundles included
-    status: accepted
 ```
 
-Both keys are always present, mapping to an empty sequence where the design has no entries of that
-kind. Entries sit in each sequence ordered lexicographically by id — the one rendering rule the
-document keeps, because the publish gate below compares a derived bundle byte for byte against the
-published one, and an unstable order would read as a change that never happened.
+The prefix is there to keep two ids from colliding, since the one list draws from two id namespaces,
+and nothing in the bundle explains what it means. A requirement's `force` and a decision's `status`
+do not travel [[f:requirement-entry-fields]] [[f:decision-status-values]]: what reaches the builder
+is that the design is committed to the statement, and whether it got there by the owner's fiat or by
+the spec's own reasoning changes nothing about what to build.
+
+The `commitments` key is always present, mapping to an empty sequence where a design has none.
+Entries are ordered by the id with its prefix ignored, ties broken by the full id — the one
+rendering rule the document keeps, because the publish gate below compares a derived bundle byte for
+byte against the published one, and an unstable order would read as a change that never happened.
+Ignoring the prefix in the sort is what keeps the list flat on the page rather than grouped into the
+two sections it was just collapsed out of.
 
 A bundle carries its own design in full, so any file the spec links by a repo-relative path that
 resolves inside the design's own directory — an `artifacts/` script, a diagram — is copied into the
@@ -263,8 +269,8 @@ the decision list in `commitments.yaml`, plus the components block in `spec.md` 
 published version's [[d:bump-is-computed-from-the-commitment-diff]]:
 
 - **major** — a commitment is removed or altered in place: a requirement no longer binds or its
-  statement changed, a decision's statement changed or its status left `accepted`/`tolerated`
-  [[f:decision-status-values]], a component's `id`, `responsibility`, or `excludes` changed or the
+  statement changed, a decision's statement changed or the decision left the accepted-or-tolerated
+  set [[f:decision-status-values]], a component's `id`, `responsibility`, or `excludes` changed or the
   component is gone — those three being a component's whole interface, so nothing else about one
   can move [[f:component-interface-fields]] — or a dependency's major moved.
 - **minor** — a commitment is added: a newly binding requirement, a newly accepted or tolerated
@@ -281,14 +287,18 @@ nothing to diff and takes `1.0.0`.
 
 The diff keys on the entry id [[d:bump-is-computed-from-the-commitment-diff]]. Two versions hold
 the same commitment when they hold the same id, and its content is what the bundle carries for it:
-the statement plus the `force` or `status` line for a requirement or decision, and the
-`responsibility` and `excludes` for a component. Renaming an id while leaving every one of those
-untouched therefore reads as one commitment removed and another added, and scores major. That is
-the intended reading rather than a gap in the rule: the id is itself part of what a bundle commits
-to, since the crib names entries by it and a builder who noted one down finds nothing under the old
-name. Nothing outside those fields is compared, because nothing else reaches the bundle: a
-requirement that moved from design scope to area scope, or a decision whose falsifiers were
-rewritten, is not a commitment change at all.
+the `statement` for a requirement or decision, and the `responsibility` and `excludes` for a
+component. Renaming an id while leaving those untouched therefore reads as one commitment removed
+and another added, and scores major. That is the intended reading rather than a gap in the rule: the
+id is itself part of what a bundle commits to, since the crib names entries by it and a builder who
+noted one down finds nothing under the old name.
+
+Nothing outside those fields is compared, because nothing else reaches the bundle. A requirement
+that hardened from `soft` to `hard`, or a decision that moved between `accepted` and `tolerated`,
+changes no byte of `commitments.yaml` and so bumps nothing at all — those fields stopped travelling
+when the list went flat, and a builder who never saw them cannot be broken by their moving. What
+still scores is an entry leaving the list outright: a decision rejected, or a requirement retired or
+no longer binding, is a commitment removed, and removal is major as it always was.
 
 Where both a removal and an addition are present, the higher bump wins. The settling author may
 raise the computed bump — a prose rewrite they judge breaking is theirs to call major — but never

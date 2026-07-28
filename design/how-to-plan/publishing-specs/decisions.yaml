@@ -62,10 +62,14 @@
 
 - id: commitments-schema-mirrors-the-source-entries
   statement: commitments.yaml is a mapping of `requirements` and `decisions` to sequences whose entries carry the same fields, under the same names, as the repository's own foundation files
-  status: proposed
+  status: rejected
+
+- id: commitments-are-one-flat-list-of-id-and-statement
+  statement: commitments.yaml is one flat sequence whose entries carry a kind-prefixed `id` and a `statement`, with nothing marking which are fiat and which the spec's own
+  status: accepted
   falsifiers:
-    - a consumer needs a field the source entries do not carry, such as the scope a requirement came from
-    - the foundation schemas change often enough that bundles built weeks apart cannot be read by one reader
+    - a builder builds the wrong thing for want of knowing whether an entry is the owner's fiat or the spec's own call
+    - a builder needs an entry's force or status to resolve two commitments that pull against each other
 
 - id: dependencies-are-derived-from-cited-fact-sources
   statement: a bundle depends on the bundles of the designs whose requirements.yaml or spec.md its spec's cited facts source, each at a caret range on that bundle's latest version
@@ -101,7 +105,7 @@
     - a bundle needs to signal instability through its version line before its first consumer arrives
 
 - id: extraction-carries-live-commitments-only
-  statement: commitments.md carries the active requirements binding the design and its accepted and tolerated decisions, and nothing else
+  statement: commitments.yaml carries the active requirements binding the design and its accepted and tolerated decisions, and nothing else
   status: accepted
   falsifiers:
     - a builder needs a rejected decision or a retired requirement to understand what the spec rules out
