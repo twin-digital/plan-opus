@@ -161,7 +161,7 @@
     works against a remote daemon with no bind mount. This makes a direct push (cp the built
     pack into the container, then issue a reload) a viable deploy transport independent of
     `develop.watch`.
-  backing: tested
+  backing: assumed
   sources:
     - description: |
         Observed in the prototype by the author of the design formerly named
@@ -305,7 +305,7 @@
     — and documents a manifest change as needing the world exited and re-entered rather than
     reloaded. This split is why a source edit can deploy in ~1s while identity or activation
     changes cost a restart.
-  backing: tested
+  backing: assumed
   sources:
     - description: |
         Observed across many prototype iterations by the author of the design formerly named
@@ -344,7 +344,7 @@
     `send-command` helper that writes a command to the running server's console. It is driven
     non-interactively from `docker compose exec` — no attached TTY, no in-game client — and so
     works against a remote daemon, since exec travels over the Docker API like any other call.
-  backing: tested
+  backing: assumed
   sources:
     - description: |
         Observed in the prototype by the author of the design formerly named
@@ -360,7 +360,7 @@
     A Bedrock dedicated server hosts a single active world per instance, selected by the
     `level-name` server property; running multiple worlds means running multiple server
     instances. The deploy target for activation is therefore one unambiguous world directory.
-  backing: tested
+  backing: assumed
   sources:
     - description: |
         Observed in the prototype by the author of the design formerly named

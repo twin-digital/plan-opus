@@ -488,6 +488,16 @@
     An `artifacts/` url on any other backing reads as evidence while pointing at output no test
     produced.
 
+- id: backing-demands-its-locator
+  statement: |
+    a fact carries at least one source in the locator form its backing demands — `tested` a
+    `run`, `documented` a `url`, `assumed` a `description`. Further sources may take any form
+  rationale: |
+    The floor is what makes a backing checkable: a `run` quote is verified against the output it
+    names and a `url` quote against the page, while a `description` is never read. Loosening it
+    back to any-form reopens the case it was written for — evidence that lives only as a path
+    inside a sentence, which reads as provenance and resolves to nothing.
+
 - id: facts-resolve-repo-wide
   statement: |
     any design may cite any active fact, whichever scope files it

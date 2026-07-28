@@ -115,11 +115,12 @@ What a run does not record is who ran it. Every execution here is an agent actin
 instruction, so the field would carry one value and discriminate nothing; what makes an observation
 trustworthy is that its command, output, and environment are written down and can be run again.
 
-Which locator a source uses is not fixed by the fact's backing
-[[d:locator-form-is-not-pinned-to-backing]]: a `tested` fact may reach a run, and may instead point
-at a path or describe the mechanism. The difference is what can be checked — a run's quote is
-verified against the output it names, and a path inside a `description` is not read at all — so the
-checker reports how many tested facts rest on evidence no run names.
+A fact's backing fixes the locator its evidence takes [[r:backing-demands-its-locator]]: a `tested`
+fact carries a run, a `documented` fact a url, an `assumed` fact a description. The demand is a
+floor rather than an exclusion, so corroborating sources in other forms stay admissible and a
+prototype observation may sit beside the upstream page documenting the same behaviour. What the
+floor removes is the case that motivated it — a `tested` fact whose evidence lives only in a
+`description`, where a path written into a sentence looks like provenance and nothing resolves it.
 
 ## Entry shapes
 
@@ -141,9 +142,9 @@ relative to the repo root, not to the file holding it [[r:repo-relative-source-p
 `quote` is always a block scalar even when one line [[r:quote-is-block-scalar]]. A `url` under an
 `artifacts/` directory is admissible only on a `tested` fact, where it names output a test actually
 produced [[r:artifact-sources-back-tested-facts]] — the backing is what makes the locator
-admissible, so which design's directory holds the output does not bear on it. That is the
-one provenance rule with a mechanical shadow; which source is the right one for a given `backing`
-is authoring's to test, not this format's. Optional: a `status`
+admissible, so which design's directory holds the output does not bear on it. Which form at least
+one source must take is fixed by the `backing` (above); whether a given source is the *right* one
+for the claim is authoring's to test, not this format's. Optional: a `status`
 of `active` | `retired` (default `active`) — a retired fact adds a `reason` of `superseded` |
 `disproven` | `stale`, and a superseded one names its replacement in `superseded_by` as a bare fact
 id, not a citation token — and a `caveat` recording why the fact might not hold despite its backing.
