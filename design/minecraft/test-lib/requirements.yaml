@@ -9,11 +9,21 @@
   statement: |
     a behaviour the library presents as the engine's rests on a source: the pinned version's
     declarations and the official API reference, or a recorded observation where those are
-    silent. A simplification is never presented as the engine's behaviour; the spec marks it as
-    the library's own.
+    silent or wrong. Where an observation and the reference disagree, the observation governs
+    and the spec records the disagreement. A simplification is never presented as the engine's
+    behaviour; the spec marks it as the library's own.
   rationale: |
     Requiring a recorded observation for every behaviour puts the library's cost under the
     engine's quirkiness rather than under what the library is for.
+
+- id: coverage-is-enumerated
+  statement: |
+    the library enumerates the engine behaviours within its scope, stating each as modelled, not
+    modelled, or modelled with a divergence; every divergence is described where a user of the
+    library will find it, not only in the spec.
+  rationale: |
+    Reversing this leaves a user to meet a divergence by writing a test that passes against the
+    fake and fails against the engine — the failure the library exists to prevent.
 
 - id: synchronous-event-delivery
   statement: |
@@ -71,9 +81,9 @@
 
 - id: fakes-are-structurally-assignable
   statement: |
-    a fake is assignable where the real declared type is expected, and declares only the members
-    it implements; each of those either behaves or throws, so an unfaked access never reads
-    `undefined`.
+    a fake declares the real type's full public shape, so it is assignable where the real
+    declared type is expected without a cast; every declared member either behaves or throws,
+    so an access never reads `undefined`.
 
 - id: only-real-members-free-functions
   statement: |
@@ -91,8 +101,8 @@
 - id: target-server-version
   statement: |
     the library targets the stable `@minecraft/server` 2.x line, pinned at 2.8.0 and declared
-    as the peer range a consumer must satisfy; every derivation, guard list, and behaviour
-    reading is taken from the pinned version's declarations.
+    as the peer range a consumer must satisfy; every derivation and behaviour reading is taken
+    from the pinned version.
 
 # Construction, ids, and the control plane
 
@@ -112,7 +122,8 @@
   statement: |
     a populated starting point ships as a named preset the caller invokes explicitly, never as
     constructor behaviour, and presets compose. A preset supplies only values a source pins; one
-    needing per-type vanilla data belongs to a package built on this one.
+    needing per-type vanilla data belongs to a package built on this one. Data a modelled member
+    needs to answer its own read is not a preset, and this bar does not reach it.
   rationale: |
     The source-pinned bar is what stops a preset from reintroducing invented values by the back
     door: the three vanilla dimensions, their height ranges and localization keys are recorded
@@ -120,8 +131,9 @@
 
 - id: ids-auto-assigned-typeid-required
   statement: |
-    spawnFake requires a typeId and assigns each entity a unique opaque id, which the caller may
-    override at spawn — in the engine, too, the spawner never chooses the id.
+    constructing a fake entity requires a typeId; the library assigns each entity a unique
+    opaque id, which the caller may override at construction — in the engine, too, the spawner
+    never chooses the id.
 
 - id: control-plane-component-mutation
   statement: |
@@ -135,7 +147,7 @@
   rationale: |
     The engine reports the prefixed form, so reads compare equal against the
     `@minecraft/vanilla-data` constants a test typically holds — but its tolerance of bare ids
-    is surface-dependent, not universal (namespace-prefix-is-optional).
+    is surface-dependent, not universal [[f:namespace-prefix-tolerance-is-per-surface]].
 
 - id: persisted-state-is-modeled
   statement: |
