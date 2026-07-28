@@ -332,11 +332,11 @@ for (const c of ORDER) {
   console.log(`${mark}  ${c}: ${fail[c]?.join("; ") ?? "—"}`);
 }
 
-// Migration debt: a tested fact whose evidence is still prose or a raw path, not a run.
-const preRun = Object.values(ent).filter((r) => r.kind === "f" && !isDead(r.e) && r.e.backing === "tested"
+// A tested fact whose evidence no run names: its quote is never verified against any output.
+const unnamed = Object.values(ent).filter((r) => r.kind === "f" && !isDead(r.e) && r.e.backing === "tested"
   && !(r.e.sources ?? []).some((s) => s.run !== undefined));
 const runs = Object.values(ent).filter((r) => r.kind === "e").length;
-console.log(`\n${runs} runs; ${preRun.length} tested facts not yet sourced to one`);
+console.log(`\n${runs} runs; ${unnamed.length} tested facts rest on evidence no run names`);
 
 const byTier = Object.values(ent).reduce((a, r) => (a[r.tier] = (a[r.tier] ?? 0) + 1, a), {});
 console.log(`\n${designs.length} designs: ${designs.map((d) => `${d.area}/${d.name}${d.state ? ` (${d.state})` : ""}`).join(", ")}`);

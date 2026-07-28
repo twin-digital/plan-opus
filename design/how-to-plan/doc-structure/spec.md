@@ -112,10 +112,11 @@ same repo-wide namespace so that reach resolves the same way a citation does.
 This is also what lets `ran_by` be said once. Who ran a test is a property of the run, not of each
 fact that leans on it, and the same holds for when and against what.
 
-A `tested` fact may reach a run and is not yet required to, while the facts written before the kind
-existed are converted [[d:run-sources-are-permitted-before-required]]. Until that finishes the
-format carries two ways of pointing at the same output, and the checker reports how many facts are
-still on the older one.
+Which locator a source uses is not fixed by the fact's backing
+[[d:locator-form-is-not-pinned-to-backing]]: a `tested` fact may reach a run, and may instead point
+at a path or describe the mechanism. The difference is what can be checked — a run's quote is
+verified against the output it names, and a path inside a `description` is not read at all — so the
+checker reports how many tested facts rest on evidence no run names.
 
 ## Entry shapes
 
