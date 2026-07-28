@@ -31,15 +31,12 @@ does, so nothing touches the main checkout. Do all reading, writing, and `npm ru
 2. **The content rules — `design/how-to-plan/authoring/spec.md`.** Its evidence rules bind whoever
    *captures* a fact — that is you. A fact's outside evidence is quoted verbatim at its source, an
    assumed fact carries the mechanism it rests on, and a claim you cannot evidence is not a fact.
-3. **The process — `design/how-to-plan/process/spec.md`.** The knowledge model (who owns each
-   kind), the autonomy rule, and the trap this step exists to avoid: a *requirement* that is really
-   a bet about reality wearing a requirement's clothes. Read it for those three things only: it
-   predates the current format and the checker classifies it `legacy`, so its ids, its citation
-   tokens, and its "proposals" bucket are not the shape you write to. Where it and
-   `doc-structure` disagree about form, `doc-structure` wins.
-4. **`CLAUDE.md`** — the repository's rule that an agent may *propose* facts only when each meets
-   the evidence bar, and that proposed facts get owner review called out in the PR.
-5. **Existing foundations.** Run `node bin/foundations.mjs --facts` for every fact in the
+3. **`CLAUDE.md`** — who owns each kind and who settles a dispute between them; that an agent may
+   *propose* facts only when each meets the evidence bar, with proposed facts called out for owner
+   review in the pull request; and the trap this step exists to avoid — a *requirement* that is
+   really a bet about reality wearing a requirement's clothes, which is an open question until
+   something checks it.
+4. **Existing foundations.** Run `node bin/foundations.mjs --facts` for every fact in the
    repository — any design may cite any of them, so an existing entry is one to cite, not to
    restate under a new id. File a new fact at the narrowest scope that describes its *subject*,
    not the design that happens to need it; a second consumer never moves it. For requirements,
@@ -51,7 +48,7 @@ does, so nothing touches the main checkout. Do all reading, writing, and `npm ru
    only ever narrow, so a rule reaching designs in more than one area is a **global** requirement,
    not an area one. Sets follow the same line: an area's `design/<area>/sets.yaml` holds that
    area's designs, `design/sets.yaml` holds the ones that span areas.
-6. **Background — `docs/vision.md`.** The problem the whole repository answers.
+5. **Background — `docs/vision.md`.** The problem the whole repository answers.
 
 ---
 

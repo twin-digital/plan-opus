@@ -52,6 +52,10 @@ because a rationale no longer matches a superseded regime, or because a better f
 itself. A fact that contradicts a requirement is still a stop-and-ask; an opinion about phrasing is
 not. Finding nothing to raise is a successful review.
 
+The owner can only decide what is theirs to decide. "Runs a million users on one box" is not a
+requirement, it is a guess about reality wearing one — a bet on what is possible, and so an open
+question until something checks it. Requirements rule the design, not the world.
+
 ## Facts are repo-wide; requirements are not
 
 Any design may cite any fact, whichever scope files it. Before recording one, search
@@ -60,3 +64,22 @@ narrowest scope that describes its **subject** — not the design that needs it 
 there when a second design comes to depend on it. Requirements are fenced: a design cites its
 own, its area's, and the global ones, and is bound by those whose `applies_to` names it. A
 decision is citable only by the design that made it.
+
+## Who settles a dispute
+
+Whether an agent may decide something on its own comes down to one question: who settles a dispute
+here?
+
+- **Build freely on** facts, requirements, and published designs.
+- **Decide alone** where the collision is between two proposed designs — that is design work — or
+  between a proposed design and a fact, where the fact wins and the design changes.
+- **Stop and ask** where the collision is fact against requirement, requirement against
+  requirement, or anything resting on an open question or a decision still proposed.
+
+The one to get right is a requirement meeting a fact that contradicts it — "must work offline" meets
+"the login provider needs a connection". Reality wins on what is true, but the requirement does not
+quietly lose: changing it, designing around it, or accepting the limit is the owner's call and
+nobody else's. An agent quietly resolving that collision is the failure this rule exists to catch.
+
+This only works if it can be applied unprompted. Needing it restated each session means it has
+failed, whatever any document says.
