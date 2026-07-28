@@ -7,9 +7,8 @@ and their entries, the fact pool and its evidence, citations and scopes, the pro
 published bundle — one implementation that types them, loads them, validates them, and resolves
 what they point at.
 
-It exists because more than one program now reads this format. This repository's checker does
-today; `spec-packer` will; harness tooling after it will. Each one that carries its own reading of
-the format is a way for two tools to disagree about what a design says, and a place a
+It exists because more than one program reads this format. Every program that carries its own
+reading of it is a way for two tools to disagree about what a design says, and a place a
 `doc-structure` change has to land twice.
 
 The rules it implements are set elsewhere: `doc-structure` defines the artifacts and their
@@ -25,8 +24,8 @@ becomes an upstream edge. This design specifies the library, not the rules.
   never decides for itself whether an artifact is well-formed.
 - **Resolution** — citations to entries, designs to the requirements that bind them, a design scope
   to its bundle name, a cited fact source to an upstream edge.
-- **Its relationship with this repository's checker** — whether `bin/check-design.mjs` becomes a
-  thin caller, moves out, or stays, and what that costs either way.
+- **Its relationship with this repository's own checker** — whether `bin/check-design.mjs` becomes
+  a thin caller, moves out, or stays, and what that costs either way.
 - **Packaging and publication** — it ships from the opus monorepo and is installable by anything
   that reads planning artifacts.
 
@@ -53,9 +52,9 @@ silently dropped in the move.
   flip a status without hand-editing YAML — at the cost of a formatting contract, since
   round-tripping YAML rarely preserves a file byte for byte and every diff a person reads would pay
   for it.
-- **Whether it touches git.** `spec-packer` re-derives a bundle at a tagged commit, which is a
-  format operation over a past tree. If the library owns that, every consumer needs a real
-  repository rather than a directory; if it does not, the packer builds it.
+- **Whether it touches git.** Reading an artifact as it stood at a past commit is a format
+  operation over a past tree, and something will have to do it. If the library owns that, every
+  consumer needs a real repository rather than a directory.
 - **What becomes of `bin/check-design.mjs` and `bin/foundations.mjs`.** A thin caller over the
   published package, a tool that moves out of this repository entirely, or something else. This
   repository is `private: true` with one dependency today and validates itself with no install
@@ -67,36 +66,27 @@ silently dropped in the move.
   it implements, and a consumer pinned to an old library reads a new tree with old rules. Whether
   that is stated as a compatibility contract, detected, or simply allowed is open.
 
+## Capabilities decreed rather than discovered
+
+Five of this design's requirements decree a capability outright — settled status, a design's bundle
+name, its commitment set, its upstream edges, and its prose with citation tokens struck — and each
+is pinned by a fact in the pool sourced to it. They are fixed points a dependent design can cite
+rather than restate.
+
+What each capability *returns* is not decreed. The requirements say what the library answers, not
+the shape it answers in; the signatures are this design's to draw.
+
 ## Known tensions
 
 - The format lives here and the library is built elsewhere. A `doc-structure` change lands in this
   repository and reaches the library only when someone updates it — and the library is the format's
   implementation, so the gap between them is the format itself being two things at once.
-- Serving the checker and serving the packer pull in different directions. The library carries
-  product manifests and dependency edges, which are publishing vocabulary the checker never uses,
-  and a checker-shaped library would not have them.
+- Validating a tree and preparing one for publication pull in different directions. The library
+  carries product manifests and dependency edges, which are publishing vocabulary a validator never
+  uses, and a validation-shaped library would not have them.
 - One implementation removes drift and creates a release dependency where there is none today. The
   drift is silent and the dependency is loud, which is an argument for the trade and also the reason
   it will be felt.
 - Checker parity is easy to state as a migration test and becomes a standing obligation: every
   future format change has to keep two consumers in step, and the second one is in another
   repository.
-
-## Relationship to `spec-packer`
-
-Five capabilities `spec-packer` will need are decreed here rather than left for this design to
-discover: settled status, a design's bundle name, its commitment set, its upstream edges, and its
-prose with citation tokens struck. Each is a requirement, and each is pinned by a fact in the pool
-sourced to it, so `spec-packer`'s spec can cite the capability rather than restate it — and the
-dependency edge between the two designs is present in the citing design's cited facts, which is how
-this repository records a cross-design reliance.
-
-What each capability *returns* is not decreed. The requirements say what the library answers, not
-the shape it answers in; the signatures are this design's to draw.
-
-`spec-packer` is captured (#96) and paused pending this design. Its drafted requirement
-`format-has-one-implementation` says the packer and this repository's checker read the format
-through one shared implementation — which is this library. That requirement now overlaps this
-design's `library-is-the-one-implementation-of-the-format`, and the owner should decide whether it
-stays as the packer's own constraint, is reworded to name the library, or moves to area scope to
-bind both.
