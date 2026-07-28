@@ -1,0 +1,361 @@
+- id: ecosystem-models-one-pack-per-kind-per-project
+  status: retired
+  reason: stale
+  claim: |
+    Every pack config and build tool surveyed models a project as at most one pack of each kind.
+    The Bedrock-OSS project config standard — shared by Regolith and bridge. — keys its `packs` map
+    by pack type with one path each, both tools let a pack's path move while the pack-type keys
+    stay fixed, and Microsoft's `@minecraft/core-build-tasks` merges every listed source folder
+    into one `development_behavior_packs/<PROJECT_NAME>` directory. What no surveyed tool can
+    express is two packs of the *same* kind in one project.
+  backing: documented
+  caveat: |
+    The operative half of the claim — at most one pack of a *given* kind — is carried by the
+    project-config-standard `packs` map and Regolith's `Packs` struct, each holding one path per
+    pack type. The other two legs are weaker than they look: the bridge. quote counts pack *types*
+    ("up to four different pack types"), not packs per type, and no quote here states that bridge.
+    shares the Bedrock-OSS standard; the `core-build-tasks` merge argument needs
+    `copyToBehaviorPacks` to be a list of folders, which the quoted call site does not show.
+  sources:
+    - url: https://github.com/Bedrock-OSS/project-config-standard
+      where: README — the `packs` field of the config interface
+      quote: |
+        	/**
+        	 * Maps the id of packs this project contains to a path relative to the config.json
+        	 *
+        	 * @example { "behaviorPack": "./BP", "resourcePack": "./RP" }
+        	 */
+        	packs: {
+        		[
+        			packId:
+        				| 'behaviorPack'
+        				| 'resourcePack'
+        				| 'skinPack'
+        				| 'worldTemplate'
+        				| 'dataPack'
+        		]: string
+        	}
+    - url: https://github.com/Bedrock-OSS/regolith/blob/main/regolith/config.go
+      where: the `Packs` struct
+      quote: |
+        type Packs struct {
+        	BehaviorFolder string `json:"behaviorPack,omitempty"`
+        	ResourceFolder string `json:"resourcePack,omitempty"`
+        }
+    - url: https://bridge-core.app/extensions/misc/pack-types.html
+      where: Pack Types — Basics
+      quote: |
+        Each bridge. project can contain up to four different pack types.
+    - url: https://github.com/Mojang/minecraft-scripting-libraries/blob/main/tools/core-build-tasks/src/tasks/copy.ts
+      where: the deploy pool path constants
+      quote: |
+        const BehaviorPacksPath = 'development_behavior_packs';
+        const ResourcePacksPath = 'development_resource_packs';
+    - url: https://github.com/Mojang/minecraft-scripting-libraries/blob/main/tools/core-build-tasks/src/tasks/copy.ts
+      where: copyTask — every listed source folder copied into one per-project directory
+      quote: |2
+                copyFiles(params.copyToBehaviorPacks, path.join(deploymentPath, BehaviorPacksPath, projectName));
+                copyFiles(params.copyToScripts, path.join(deploymentPath, BehaviorPacksPath, projectName, 'scripts'));
+
+- id: module-type-enumerations-disagree
+  claim: |
+    The set of module `type` values a manifest may declare is not enumerable from the format's own
+    documentation. Microsoft's add-on manifest reference lists four — `resources`, `data`,
+    `world_template`, `script`. Its Creator Tools manifest validator raises an error on an
+    unrecognised type but names six, and says its list "include"s them rather than that they are the
+    set. And the reference page's own example behavior-pack manifest declares a `client_data` module
+    that appears in neither list. A kit validating a module type against any published enumeration
+    would report a problem against Microsoft's own reference pack.
+  backing: documented
+  sources:
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
+      where: modules — type
+      quote: |
+        This is the type of the module. Can be any of the following: `resources`, `data`,
+        `world_template` or `script`.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/mctoolsvalreference/chkmanif
+      where: CHKMANIF109 — Invalid Module, severity Error
+      quote: |
+        A module has an unrecognized type. Valid module types include: persona\_piece,
+        world\_template, skin\_pack, data, script, and resources.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
+      where: Examples — Behavior Pack, the second entry of its modules array
+      quote: |
+        {
+                    "description": "Example client scripts module",
+                    "type": "client_data",
+                    "uuid": "c05a992e-482a-455f-898c-58bbb4975e47",
+                    "version": [1, 0, 0]
+                }
+
+- id: manifest-declares-pack-identity-version-and-module-kinds
+  claim: |
+    A Bedrock add-on pack is defined by its own `manifest.json`: the header's `uuid` uniquely
+    identifies the pack and the header's `version` is the pack version, while the `modules`
+    array's `type` states what kind of pack it is — `data` for behavior content, `script` for
+    scripting code, which is embedded within behavior packs, and `resources` for a resource
+    pack. A pack's own content therefore carries what kind of content it holds, without reference
+    to how it is stored or built.
+  backing: documented
+  sources:
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/manifestreference/packmanifestdocument
+      where: opening paragraph — the root structure of a manifest.json
+      quote: |
+        The root structure of a manifest.json file that defines an add-on pack. Every behavior
+        pack and resource pack requires a manifest with a unique UUID, version info, and module
+        declarations. This is the entry point Minecraft uses to identify and load your content.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/manifestreference/packmanifestdocument
+      where: 3.0.0.Module — what a module declares
+      quote: |
+        Declares a module within the pack. Modules define what the pack contains: 'data' for
+        behavior packs, 'resources' for resource packs, or 'script' for packs with
+        JavaScript/TypeScript code. Script modules require an entry point file path.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
+      where: Properties — header — uuid
+      quote: |
+        This is a special type of identifier that uniquely identifies this pack from any other
+        pack. UUIDs are written in the format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx where each x
+        is a hexadecimal value (0-9 or a-f).
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
+      where: Properties — header — version, the full row including its Type column
+      quote: |
+        version | Vector [a, b, c] or SemVer String | This is the version of your pack in the
+        format [majorVersion, minorVersion, revision]. The version number is used when importing
+        a pack that has been imported before. The new pack will replace the old one if the
+        version is higher, and ignored if it's the same or lower. In version 3, currently in
+        preview, you must use a string for version.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
+      where: modules — type
+      quote: |
+        This is the type of the module. Can be any of the following: `resources`, `data`,
+        `world_template` or `script`.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/bedrockserver/scripting
+      where: '"Enable differentiated module permissions" — opening sentence'
+      quote: |
+        You can set different permissions for different references to scripts that are embedded
+        as modules within behavior packs.
+
+- id: bedrock-manifest-declares-pack-identity-and-kind
+  status: retired
+  reason: superseded
+  superseded_by: manifest-declares-pack-identity-version-and-module-kinds
+  claim: |
+    A Bedrock add-on pack is defined by its own `manifest.json`: the header's `uuid` uniquely
+    identifies the pack and the header's `version` is the pack version, while the `modules`
+    array's `type` states what kind of pack it is — `data` for behavior content, `script` for
+    scripting, `resources` for a resource pack. A pack's own content therefore states both that
+    it is a pack and which kind, with no reference to how it is stored or built.
+  backing: documented
+  sources:
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/manifestreference/packmanifestdocument
+      where: opening paragraph — the root structure of a manifest.json
+      quote: |
+        The root structure of a manifest.json file that defines an add-on pack. Every behavior
+        pack and resource pack requires a manifest with a unique UUID, version info, and module
+        declarations. This is the entry point Minecraft uses to identify and load your content.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/manifestreference/packmanifestdocument
+      where: 3.0.0.Module — what a module declares
+      quote: |
+        Declares a module within the pack. Modules define what the pack contains: 'data' for
+        behavior packs, 'resources' for resource packs, or 'script' for packs with
+        JavaScript/TypeScript code. Script modules require an entry point file path.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
+      where: Properties — header — uuid
+      quote: |
+        This is a special type of identifier that uniquely identifies this pack from any other
+        pack. UUIDs are written in the format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx where each x
+        is a hexadecimal value (0-9 or a-f).
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
+      where: Properties — header — version
+      quote: |
+        This is the version of your pack in the format [majorVersion, minorVersion, revision].
+        The version number is used when importing a pack that has been imported before. The new
+        pack will replace the old one if the version is higher, and ignored if it's the same or
+        lower.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
+      where: modules — type
+      quote: |
+        This is the type of the module. Can be any of the following: `resources`, `data`,
+        `world_template` or `script`.
+
+- id: name-dependency-script-and-location-heuristics-misfire
+  claim: |
+    Detection rules keyed on a package's name, its dependencies, its scripts, or its position in
+    the tree misclassify real workspaces. Scored against a 41-package monorepo holding two
+    behavior packs, a dependency on the Minecraft scripting API also selects a shared library
+    that scripts against that API without being a pack; the presence of build and watch scripts
+    selects three unrelated packages; a package name matching `pack` selects a build config and
+    misses both packs; and living under a `minecraft/` directory also selects a build config,
+    the dev harness itself, and that same shared scripting library. A package.json marker field
+    or pack keyword selects nothing at all, missing both packs. Other rules that read no manifest
+    do score cleanly on this workspace, so what misfires is these signals, not manifest-blindness
+    as such.
+  backing: tested
+  sources:
+    - description: |
+        design/minecraft/dev-kit/artifacts/pack-detection/detect-probe.mjs was run against a 41-package
+        pnpm workspace (twin-digital/opus at archive/minecraft-prototype, 4e731f5b) by the author
+        of the design formerly named minecraft/dev-workflow, not by this fact's author; captured
+        stdout is OUTPUT.txt beside the script. Ground truth is derived from pack content under
+        the add-on format — a committed manifest.json with a header uuid and a data or script
+        module — and yielded two packs.
+    - url: design/minecraft/dev-kit/artifacts/pack-detection/OUTPUT.txt
+      where: '"rules (selected / missed / false positives)" — the heuristic rules and the directory-location rule, with the packages each selects'
+      quote: |
+        [heuristic] any dependency on @minecraft/server
+          selected(3): @twin-digital/hello-world, @twin-digital/mc-scripting-core, @twin-digital/village-guard
+          missed: none
+          false positives: @twin-digital/mc-scripting-core
+
+        [heuristic] has both build and watch scripts
+          selected(5): @twin-digital/bookify, @twin-digital/bookify-cli, @twin-digital/bookify-render-api, @twin-digital/hello-world, @twin-digital/village-guard
+          missed: none
+          false positives: @twin-digital/bookify, @twin-digital/bookify-cli, @twin-digital/bookify-render-api
+
+        [heuristic] package.json keywords contain a pack keyword
+          selected(0): (none)
+          missed: @twin-digital/hello-world, @twin-digital/village-guard
+          false positives: none
+
+        [heuristic] explicit package.json marker field (minecraft/mcpack/bedrock key)
+          selected(0): (none)
+          missed: @twin-digital/hello-world, @twin-digital/village-guard
+          false positives: none
+
+        [heuristic] package name matches /pack/
+          selected(1): @twin-digital/mc-pack-config
+          missed: @twin-digital/hello-world, @twin-digital/village-guard
+          false positives: @twin-digital/mc-pack-config
+
+        [external] directory location under a minecraft/ folder
+          selected(5): @twin-digital/dev-bedrock-server, @twin-digital/hello-world, @twin-digital/mc-pack-config, @twin-digital/mc-scripting-core, @twin-digital/village-guard
+          missed: none
+          false positives: @twin-digital/dev-bedrock-server, @twin-digital/mc-pack-config, @twin-digital/mc-scripting-core
+    - url: design/minecraft/dev-kit/artifacts/pack-detection/OUTPUT.txt
+      where: '"rules (selected / missed / false positives)" — the three manifest-blind rules that score cleanly'
+      quote: |
+        [external] devDependency on the repo's shared pack build config
+          selected(2): @twin-digital/hello-world, @twin-digital/village-guard
+          missed: none
+          false positives: none
+
+        [external] a build-tool fragment the repo's sync tool writes
+          selected(2): @twin-digital/hello-world, @twin-digital/village-guard
+          missed: none
+          false positives: none
+
+        [external] the repo's release-assets script
+          selected(2): @twin-digital/hello-world, @twin-digital/village-guard
+          missed: none
+          false positives: none
+    - url: design/minecraft/dev-kit/artifacts/pack-detection/OUTPUT.txt
+      where: "\"rules that diverge from the format's own answer\" — the summary of each heuristic's error counts"
+      quote: |2
+          [heuristic] any dependency on @minecraft/server: missed=0 falsePositives=1
+          [heuristic] has both build and watch scripts: missed=0 falsePositives=3
+          [heuristic] package.json keywords contain a pack keyword: missed=2 falsePositives=0
+          [heuristic] explicit package.json marker field (minecraft/mcpack/bedrock key): missed=2 falsePositives=0
+          [heuristic] package name matches /pack/: missed=2 falsePositives=1
+          [external] directory location under a minecraft/ folder: missed=0 falsePositives=3
+
+- id: content-independent-pack-heuristics-misfire
+  status: retired
+  reason: superseded
+  superseded_by: name-dependency-script-and-location-heuristics-misfire
+  claim: |
+    Detection rules that do not read a pack's manifest misclassify real workspaces. Scored
+    against a 41-package monorepo holding two behavior packs, a dependency on the Minecraft
+    scripting API also selects a shared library that scripts against that API without being a
+    pack; the presence of build and watch scripts selects three unrelated packages; and living
+    under a `minecraft/` directory also selects a build config and the dev harness itself. A
+    package.json marker field or pack keyword selects nothing, because no package carries one
+    until every pack is edited to add it.
+  backing: tested
+  sources:
+    - description: |
+        design/minecraft/dev-kit/artifacts/pack-detection/detect-probe.mjs was run against a 41-package
+        pnpm workspace (twin-digital/opus at archive/minecraft-prototype, 4e731f5b) by the author
+        of the design formerly named minecraft/dev-workflow, not by this fact's author; captured
+        stdout is OUTPUT.txt beside the script. Ground truth is derived from pack content under
+        the add-on format — a committed manifest.json with a header uuid and a data or script
+        module — and yielded two packs.
+    - url: design/minecraft/dev-kit/artifacts/pack-detection/OUTPUT.txt
+      where: "\"rules that diverge from the format's own answer\" — the summary of each heuristic's error counts"
+      quote: |2
+          [heuristic] any dependency on @minecraft/server: missed=0 falsePositives=1
+          [heuristic] has both build and watch scripts: missed=0 falsePositives=3
+          [heuristic] package.json keywords contain a pack keyword: missed=2 falsePositives=0
+          [heuristic] explicit package.json marker field (minecraft/mcpack/bedrock key): missed=2 falsePositives=0
+          [heuristic] package name matches /pack/: missed=2 falsePositives=1
+          [external] directory location under a minecraft/ folder: missed=0 falsePositives=3
+
+- id: pack-is-a-directory-with-a-manifest-at-its-root
+  claim: |
+    A Bedrock pack is a directory whose only required file is `manifest.json`, sitting at that
+    directory's root; everything else is optional content in format-named subfolders. A directory
+    holding a `manifest.json` at its root is therefore the format's own definition of a pack, with
+    nothing outside the directory needed to recognise it.
+  backing: documented
+  sources:
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/comprehensivepackcontents
+      where: intro, before "Comprehensive Behavior Pack"
+      quote: |
+        The only required file in either type of pack is manifest.json.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/behaviorpackfromscratch
+      where: opening paragraph
+      quote: |
+        A behavior pack is a folder structure that contains files that drive entity behaviors,
+        loot drops, spawn rules, items, recipes, and trade tables.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/behaviorpackfromscratch
+      where: '"Create the manifest file", step 1 — where the manifest goes'
+      quote: |
+        Create a new document in your My_BEHAVIOR_Pack folder and name it manifest.json.
+
+- id: pack-dependency-entries-name-a-uuid-or-a-module-name-plus-a-version
+  claim: |
+    A pack declares what it requires in its manifest's `dependencies` array. An entry carries a
+    `version` — the specific version depended on, which should match the depended-on pack's own,
+    written as a `[a, b, c]` vector or a SemVer string — alongside either a `uuid`, which must be
+    the exact header uuid of the depended-on pack, or a `module_name` naming a built-in scripting
+    module such as `@minecraft/server`. The documented behavior-pack manifest shows both shapes in
+    one array, a uuid entry and a `module_name` entry with no uuid, so a dependency entry does not
+    always name another pack.
+  backing: documented
+  caveat: |
+    The sources define the `uuid`, `module_name`, and `version` fields and show one entry of each
+    shape. None of them states that an entry must carry exactly one of `uuid` and `module_name`, so
+    an entry carrying neither, or both, is outside what this evidence covers.
+  sources:
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
+      where: Properties table — dependencies row
+      quote: |
+        Section containing definitions for any other packs that are required in order for this
+        manifest.json file to work.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
+      where: dependencies table — uuid row
+      quote: |
+        This is the unique identifier of the pack that this pack depends on. It needs to be the
+        exact same UUID that the pack has defined in the header section of its manifest file.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
+      where: dependencies table — version row, Type and Description cells
+      quote: |
+        Vector [a, b, c] or SemVer String | This is the specific version of the pack that your
+        pack depends on. Should match the version the other pack has in its manifest file.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
+      where: dependencies table — module_name row
+      quote: |
+        For dependencies on built-in scripting modules, contains the name of the module. (for
+        example, @minecraft/server)
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/packmanifest
+      where: Examples — Behavior Pack manifest, `dependencies` array
+      quote: |
+        "dependencies": [
+            {
+                "uuid": "66c6e9a8-3093-462a-9c36-dbb052165822",
+                "version": [1, 0, 0]
+            },
+            {
+                "module_name": "@minecraft/server",
+                "version": "1.9.0"
+            }
+        ],
