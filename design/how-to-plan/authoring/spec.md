@@ -87,12 +87,9 @@ file is where the claim originates, which is why a cross-design dependency sourc
 upstream's own requirement [[r:upstream-dependency-is-recorded-as-a-fact]]. The second is whether
 the quote does the work: a passage genuine, verbatim, and beside the point fails as surely as a
 paraphrase, and is the harder failure to see [[r:quote-carries-the-claim]]. A `tested` fact faces
-the parallel question of whose test it was: an entry that does not say reads as the author's own
-work, and the guarantee that whoever wrote the fact can re-run its evidence decays into a file
-existing somewhere. So a test the author did not run is disclosed as such in the source, named to
-whoever ran it and to where its artifacts sit [[r:tested-facts-disclose-whose-test]] — and where
-the source is a run, the run carries that disclosure once for every fact that reaches it. Nothing more
-is asked of it: an artifacts directory is re-runnable from wherever it already stands.
+the parallel question of whether its evidence can be run again: the command, the output it
+produced, and the state it ran against are what answer that, and a source that names a run reaches
+all three.
 
 Two tests run before any of those. The first is where the fact goes: the pool takes any file at
 any depth and the path binds nothing, so the choice is the author's and the test is a reading —
@@ -205,9 +202,8 @@ aimed at whoever writes the entry it governs [[r:a-rule-binds-the-writer-of-what
 | 5 | fact — evidence | Does each fact's outside evidence appear verbatim at its source, and each assumed fact carry its mechanism? |
 | 5a | fact — provenance | Does each `documented` fact cite the upstream original rather than a repository file transcribing it, an in-repo source appearing only where that file originates the claim? |
 | 5b | fact — quote fit | Does each quote state the claim its fact makes, rather than being genuine but beside the point? |
-| 5c | fact — whose test | Does each `tested` fact its author did not run say so and name whose test it was, and where its artifacts sit? |
-| 5d | fact — filing | Is each fact in the pool file whose subject describes its claim, rather than the one the design that needed it happened to own? |
-| 5e | fact — duplicates | Was the repository-wide fact index searched before each new fact was recorded, so no entry restates a claim already held under another id? |
+| 5c | fact — filing | Is each fact in the pool file whose subject describes its claim, rather than the one the design that needed it happened to own? |
+| 5d | fact — duplicates | Was the repository-wide fact index searched before each new fact was recorded, so no entry restates a claim already held under another id? |
 | 6 | inherited fact — wrong | Is every inherited fact the spec found wrong corrected by a superseding evidenced fact, not cited as-is or merely flagged? |
 | 7 | inherited fact — discovery | Is every discovery a decision or component rests on recorded as a fact, not left implicit in prose? |
 | 8 | cross-design dependency | Is each reliance on another design's output a fact sourced to the upstream's requirement, not a direct citation of that design's decisions or invariants? |

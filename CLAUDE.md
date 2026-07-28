@@ -22,8 +22,8 @@ b. **Tested directly** — the agent ran the test itself, and an `artifacts/` di
    reach it from the fact's `sources` with a `run:`, a `where`, and a verbatim quote. What
    an artifact contributes is captured output; a prose conclusion the agent wrote there is
    interpretation, and a fact resting on it belongs under (a) or as an open question. This bar
-   is claimed on your own behalf only: a test you did not run is disclosed per
-   `r:tested-facts-disclose-whose-test`, naming whose test it was and where its artifacts sit.
+   The run is what makes the evidence re-runnable: name the command, the output, and the state it
+   ran against.
 
 A fact meeting neither bar is recorded as an open question instead.
 

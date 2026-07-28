@@ -155,7 +155,7 @@ function checkEntry(kind, e, scope, file) {
   }
 
   if (kind === "e") {
-    for (const f of ["id", "command", "output", "ran_by", "ran_at"]) if (e[f] === undefined) add("missing required field", `${tag}.${f}`);
+    for (const f of ["id", "command", "output", "ran_at"]) if (e[f] === undefined) add("missing required field", `${tag}.${f}`);
     if (e.output !== undefined && !fs.existsSync(String(e.output))) add("run output not found", `${tag}: ${e.output}`);
     if (e.ran_at !== undefined && !/^\d{4}-\d{2}-\d{2}$/.test(String(e.ran_at))) add("run ran_at not a date", tag);
     if (e.status !== undefined && !["active", "retired"].includes(e.status)) add("bad run status", tag);

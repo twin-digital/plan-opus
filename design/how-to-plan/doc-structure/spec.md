@@ -109,8 +109,9 @@ resting on bytes with the interpretation step skipped — the step the fact exis
 run is reached only through a fact's `sources`, never through a `[[…]]` token, and its id joins the
 same repo-wide namespace so that reach resolves the same way a citation does.
 
-This is also what lets `ran_by` be said once. Who ran a test is a property of the run, not of each
-fact that leans on it, and the same holds for when and against what.
+What a run does not record is who ran it. Every execution here is an agent acting on the owner's
+instruction, so the field would carry one value and discriminate nothing; what makes an observation
+trustworthy is that its command, output, and environment are written down and can be run again.
 
 Which locator a source uses is not fixed by the fact's backing
 [[d:locator-form-is-not-pinned-to-backing]]: a `tested` fact may reach a run, and may instead point
@@ -157,8 +158,7 @@ requirement, since bending a soft requirement is a choice with a reason and a fa
 in every respect [[r:soft-departures-are-decisions]].
 
 **Run** [[r:run-structure]]. Required: `id`; a `command` that reproduces it; an `output`, the
-repo-relative path to what it captured; `ran_by`, naming who ran it; and `ran_at`, the date, as
-`YYYY-MM-DD`. Optional: an `environment` — the versions, fixtures, or state the observation
+repo-relative path to what it captured; and `ran_at`, the date, as `YYYY-MM-DD`. Optional: an `environment` — the versions, fixtures, or state the observation
 depends on — and a `status` of `active` | `retired` (default `active`), a retired run adding a
 `reason` of `superseded` | `stale` | `invalid` and, when superseded, a `superseded_by`. A run
 carries no claim of its own: the output says what happened, and the fact citing it says what that
@@ -226,7 +226,6 @@ A run, as it sits in a file under `evidence/`, and the source that reaches it:
 - id: registry-probe
   command: node design/minecraft/dev-kit/artifacts/registry-probe/probe.mjs
   output: design/minecraft/dev-kit/artifacts/registry-probe/OUTPUT.txt
-  ran_by: the author of minecraft/dev-kit
   ran_at: 2026-07-27
 ```
 
