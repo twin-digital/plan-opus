@@ -207,19 +207,13 @@ verbatim quote to the upstream's requirement [[f:cross-design-dependency-is-reco
 so the dependency edge is already in the tree and needs only reading, and the facts themselves can
 be dropped from the bundle without losing it.
 
-Those two filenames are the whole of the rule, and the narrowness is the point: a source pointing
-anywhere else under a design directory is evidence provenance rather than a commitment leaned on.
-An `artifacts/` url in particular is captured test output, which a fact may cite from any design's
-directory — twenty of the pool's thirty-seven in-repo sources today — and deriving a dependency
-from one puts a spurious edge into the publish order and a spurious entry into the manifest.
-
-A directory counts as a design for this rule when it holds a `spec.md` or is named in
-`products.yaml`; `design/minecraft/artifacts/`, which is neither, is not one. Three further rules
-keep the derivation from over-reaching. A source resolving inside the citing design's *own*
-directory yields no dependency; a bundle never depends on itself. A source resolving into a design
-with no entry in `products.yaml` yields none, and the checker reports it alongside the warning
-above. And several cited facts sourcing one upstream design yield one entry between them, not one
-apiece.
+Those two filenames are the whole of the rule, and the narrowness is the point: any other source is
+evidence provenance rather than a commitment leaned on. A `run` names captured output and carries no
+url at all, so it yields no edge — deliberately, since what a probe observed is not something an
+upstream promised. Two limits are worth stating because the filenames alone do not give them: a
+source resolving inside the citing design's own directory yields nothing, a bundle never depending
+on itself; and a source resolving into a design with no entry in `products.yaml` yields nothing
+either, reported alongside the warning above, since there is no bundle there to depend on.
 
 Each dependency is written as a caret range on the version the upstream bundle's newest tag
 records at the moment of publish: an upstream tagged at 2.1.0 is depended on as `^2.1.0`. A caret admits later minor and patch
