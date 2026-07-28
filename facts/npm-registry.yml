@@ -1,0 +1,159 @@
+- id: npm-version-identity-is-permanent
+  claim: |
+    a name and version combination published to an npm registry can never be republished with
+    different content, even after the version is removed
+  backing: documented
+  sources:
+    - url: https://docs.npmjs.com/cli/v11/commands/npm-publish
+      where: Description — the paragraph on republishing a name and version
+      quote: |
+        Once a package is published with a given name and version, that specific name and version
+        combination can never be used again, even if it is removed with `npm unpublish`.
+
+- id: npm-unpublish-is-conditional-not-time-limited
+  claim: |
+    the public npm registry's unpublish policy has no expiry: a package of any age can be
+    unpublished while nothing in the registry depends on it, it had under 300 downloads in the
+    last week, and it has a single owner. Within the first 72 hours only the no-dependents
+    condition applies. So a version's content is immutable, but a low-traffic single-owner
+    package's availability is never guaranteed by the registry, at any age
+  backing: documented
+  sources:
+    - url: https://docs.npmjs.com/policies/unpublish
+      where: Packages published more than 72 hours ago
+      quote: |
+        Regardless of how long ago a package was published, you can unpublish a package that meets
+        all of the following conditions:
+
+        - no other packages in the npm Public Registry depend on it
+        - it had less than 300 downloads over the last week
+        - it has a single owner/maintainer
+    - url: https://docs.npmjs.com/policies/unpublish
+      where: Packages published less than 72 hours ago
+      quote: |
+        For newly created packages, as long as no other packages in the npm Public Registry depend
+        on your package, you can unpublish anytime within the first 72 hours after publishing.
+
+- id: npm-unpublish-window-is-72-hours
+  claim: |
+    a published version can be withdrawn from the public npm registry within 72 hours of
+    publishing while nothing depends on it, so a version's content is immutable but its
+    availability is not guaranteed for the first three days
+  backing: documented
+  status: retired
+  reason: superseded
+  superseded_by: npm-unpublish-is-conditional-not-time-limited
+  sources:
+    - url: https://docs.npmjs.com/policies/unpublish
+      where: Packages published less than 72 hours ago
+      quote: |
+        For newly created packages, as long as no other packages in the npm Public Registry depend
+        on your package, you can unpublish anytime within the first 72 hours after publishing.
+
+- id: npm-package-name-may-contain-a-dot
+  claim: |
+    an npm package name may carry a period inside the name part, scoped names included: npm's own
+    name validator reports `@jane/foo.js` valid for new and old packages
+  backing: documented
+  sources:
+    - url: https://github.com/npm/validate-npm-package-name
+      where: README — Valid Names, the example call list
+      quote: |
+        validate("@jane/foo.js")
+    - url: https://github.com/npm/validate-npm-package-name
+      where: README — Valid Names, the sentence following the example call list
+      quote: |
+        All of the above names are valid, so you'll get this object back:
+
+- id: npm-latest-tag-serves-versionless-installs
+  claim: |
+    an npm registry keeps a moving `latest` tag per package: an install with no version specifier
+    resolves through it, and publishing moves it to the version just published unless `--tag`
+    says otherwise
+  backing: documented
+  caveat: |
+    The quoted docs state the resolution for `npm install` with no version specifier. They do not
+    say that other commands taking a package spec — `npm pack`, `npm view` — resolve a bare name
+    through `latest` the same way, so a versionless fetch by any command but `npm install` rests on
+    the shared spec-resolution path rather than on this evidence.
+  sources:
+    - url: https://docs.npmjs.com/cli/v11/commands/npm-dist-tag
+      where: Description — the paragraphs describing the `latest` tag
+      quote: |
+        By default, `npm install <pkg>` (without any `@<version>` or `@<tag>` specifier) installs
+        the `latest` tag.
+    - url: https://docs.npmjs.com/cli/v11/commands/npm-dist-tag
+      where: Description — the paragraphs describing the `latest` tag
+      quote: |
+        Publishing a package sets the `latest` tag to the published version unless the `--tag`
+        option is used.
+
+- id: npm-deprecate-warns-on-install
+  claim: |
+    `npm deprecate` attaches a message to a package or a version range of it that the registry
+    shows to anyone installing it, and the package stays downloadable — the npm docs recommend it
+    as the alternative to unpublishing for exactly that reason
+  backing: documented
+  sources:
+    - url: https://docs.npmjs.com/cli/v11/commands/npm-deprecate
+      where: Description — first sentence
+      quote: |
+        This command will update the npm registry entry for a package, providing a deprecation
+        warning to all who attempt to install it.
+    - url: https://docs.npmjs.com/cli/v11/commands/npm-deprecate
+      where: Description — the sentence introducing the version-range example
+      quote: |
+        It works on version ranges as well as specific versions, so you can do something like
+        this:
+    - url: https://docs.npmjs.com/policies/unpublish
+      where: What to do if your package does not meet the unpublish criteria?
+      quote: |
+        If your package does not meet the unpublish policy criteria, we recommend deprecating the
+        package. This allows the package to be downloaded but publishes a clear warning message
+        (that you get to write) every time the package is downloaded, and on the package's
+        npmjs.com page.
+
+- id: npm-install-fetches-a-package-and-its-dependencies
+  claim: |
+    `npm install <spec>` fetches the named package *and* the packages it depends on, so a
+    manifest's `dependencies` are resolved and downloaded by the same one command
+  backing: documented
+  sources:
+    - url: https://docs.npmjs.com/cli/v11/commands/npm-install
+      where: Description — first sentence
+      quote: |
+        This command installs a package and any packages that it depends on.
+
+- id: npm-dist-tag-can-retag-any-version
+  claim: |
+    `npm dist-tag add` points a tag — `latest` included, it having no special status beyond being
+    the one an unspecified install resolves through — at any published version of a package, so
+    the registry does not itself keep `latest` moving only forward
+  backing: documented
+  sources:
+    - url: https://docs.npmjs.com/cli/v11/commands/npm-dist-tag
+      where: Description — the `add` subcommand
+      quote: |
+        add: Tags the specified version of the package with the specified tag, or the `--tag`
+        config if not specified.
+    - url: https://docs.npmjs.com/cli/v11/commands/npm-dist-tag
+      where: Purpose — the paragraphs on the `latest` tag
+      quote: |
+        By default, the `latest` tag is used by npm to identify the current version of a package,
+        and `npm install <pkg>` (without any `@<version>` or `@<tag>` specifier) installs the
+        `latest` tag.
+
+- id: npm-pack-fetches-a-published-package-by-spec
+  claim: |
+    `npm pack <spec>` fetches an installable package spec — `name@version`, `name@tag`, or a bare
+    (optionally scoped) name — from the registry and writes it to the working directory as a
+    tarball, needing nothing but the spec
+  backing: documented
+  sources:
+    - url: https://docs.npmjs.com/cli/v11/commands/npm-pack
+      where: Description
+      quote: |
+        For anything that's installable (that is, a package folder, tarball, tarball url, git url,
+        name@tag, name@version, name, or scoped name), this command will fetch it to the cache,
+        copy the tarball to the current working directory as `<name>-<version>.tgz`, and then
+        write the filenames out to stdout.

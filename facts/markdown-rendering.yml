@@ -24,3 +24,16 @@
         The line with the opening code fence may optionally contain some text following the
         code fence; this is trimmed of leading and trailing spaces or tabs and called the
         info string.
+
+- id: trailing-spaces-are-a-hard-line-break
+  claim: |
+    a line ending preceded by two or more spaces, other than at the end of a block, is parsed as a
+    hard line break and rendered as a `<br />`, so trailing whitespace changes what a reader sees
+  backing: documented
+  sources:
+    - url: https://spec.commonmark.org/0.31.2/
+      where: §6.7 Hard line breaks — the definition
+      quote: |
+        A line ending (not in a code span or HTML tag) that is preceded by two or more spaces and
+        does not occur at the end of a block is parsed as a hard line break (rendered in HTML as a
+        `<br />` tag)
