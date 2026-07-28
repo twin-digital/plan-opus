@@ -1,0 +1,471 @@
+- id: pnpm-workspace-packages-is-an-include-exclude-glob-list
+  claim: |
+    A `pnpm-workspace.yaml` defines the root of a workspace, and its `packages` field is the list of
+    directory patterns the workspace includes or excludes: a direct subdirectory path, a `*` or `**`
+    glob, or a pattern prefixed with `!` excluding the directories it matches. Omitting the field
+    leaves only the root package, and the root package is a member whatever the patterns say.
+  backing: documented
+  caveat: |
+    The documentation states only that the field includes or excludes directories; it says nothing
+    about the patterns being evaluated in order, so whether a `!` pattern can be undone by a later
+    include is outside what this evidence covers.
+  sources:
+    - url: https://pnpm.io/pnpm-workspace_yaml
+      where: pnpm-workspace.yaml — opening paragraph, before the example
+      quote: |
+        pnpm-workspace.yaml defines the root of the workspace and enables you to include / exclude
+        directories from the workspace. If the packages field is omitted, only the root package is
+        included in the workspace.
+    - url: https://pnpm.io/pnpm-workspace_yaml
+      where: pnpm-workspace.yaml — the packages example
+      quote: |
+        packages:
+          # specify a package in a direct subdir of the root
+          - 'my-app'
+          # all packages in direct subdirs of packages/
+          - 'packages/*'
+          # all packages in subdirs of components/
+          - 'components/**'
+          # exclude packages that are inside test directories
+          - '!**/test/**'
+    - url: https://pnpm.io/pnpm-workspace_yaml
+      where: pnpm-workspace.yaml — the note following the packages example
+      quote: |
+        The root package is always included, even when custom location wildcards are used.
+
+- id: npm-workspaces-is-an-array-of-paths-or-globs
+  claim: |
+    A root `package.json`'s `workspaces` field is an array of file patterns naming the folders that
+    are the workspace's members; each entry is either a direct path to a folder or a glob that
+    resolves to such folders. A folder a pattern matches is treated as a workspace only where it
+    holds a valid `package.json`, so matching a pattern is not by itself membership.
+  backing: documented
+  sources:
+    - url: https://docs.npmjs.com/cli/v10/configuring-npm/package-json
+      where: workspaces — the field's definition
+      quote: |
+        The optional workspaces field is an array of file patterns that describes locations within
+        the local file system that the install client should look up to find each workspace that
+        needs to be symlinked to the top level node_modules folder.
+    - url: https://docs.npmjs.com/cli/v10/configuring-npm/package-json
+      where: workspaces — the sentence following the definition
+      quote: |
+        It can describe either the direct paths of the folders to be used as workspaces or it can
+        define globs that will resolve to these same folders.
+    - url: https://docs.npmjs.com/cli/v10/configuring-npm/package-json
+      where: workspaces — the sentence introducing the glob example
+      quote: |
+        In the following example, all folders located inside the folder ./packages will be treated
+        as workspaces as long as they have valid package.json files inside them:
+
+- id: npm-workspaces-negation-is-order-sensitive
+  claim: |
+    A leading run of `!` characters on an npm `workspaces` entry is counted, not merely detected:
+    an odd run makes the rest of the entry an exclusion, an even one leaves it an ordinary include,
+    so `!!packages/legacy` includes `packages/legacy`. Either way a leading `./` or `/` is stripped.
+    The list is read in order and an include entry cancels every earlier exclusion whose pattern
+    matches it, so `['packages/**', '!packages/b/**', 'packages/b/a']` keeps `packages/b/a`.
+    Whatever survives as an exclusion is handed to the glob call as an ignore pattern, alongside
+    `**/node_modules/**`, and never as a pattern to match.
+  backing: documented
+  caveat: |
+    This is npm's own workspace-enumeration package, published from the npm organisation's
+    repository, read at the tag matching the version on the registry. Nothing here shows the npm
+    CLI consuming this package rather than its own vendored copy of the same code.
+  sources:
+    - url: https://github.com/npm/map-workspaces/blob/v6.0.0/lib/index.js
+      where: appendNegatedPatterns — the whole function, which splits the workspaces array into include and exclusion patterns
+      quote: |
+        function appendNegatedPatterns (allPatterns) {
+          const patterns = []
+          const negatedPatterns = []
+          for (let pattern of allPatterns) {
+            const excl = pattern.match(/^!+/)
+            if (excl) {
+              pattern = pattern.slice(excl[0].length)
+            }
+
+            // strip off any / or ./ from the start of the pattern.  /foo => foo
+            pattern = pattern.replace(/^\.?\/+/, '')
+
+            // an odd number of ! means a negated pattern.  !!foo ==> foo
+            const negate = excl && excl[0].length % 2 === 1
+            if (negate) {
+              negatedPatterns.push(pattern)
+            } else {
+              // remove negated patterns that appeared before this pattern to avoid
+              // ignoring paths that were matched afterwards
+              // e.g: ['packages/**', '!packages/b/**', 'packages/b/a']
+              // in the above list, the last pattern overrides the negated pattern
+              // right before it. In effect, the above list would become:
+              // ['packages/**', 'packages/b/a']
+              // The order matters here which is why we must do it inside the loop
+              // as opposed to doing it all together at the end.
+              for (let i = 0; i < negatedPatterns.length; ++i) {
+                const negatedPattern = negatedPatterns[i]
+                if (minimatch(pattern, negatedPattern)) {
+                  negatedPatterns.splice(i, 1)
+                }
+              }
+              patterns.push(pattern)
+            }
+          }
+
+          // use the negated patterns to eagerly remove all the patterns that
+          // can be removed to avoid unnecessary crawling
+          for (const negated of negatedPatterns) {
+            for (const pattern of minimatch.match(patterns, negated)) {
+              patterns.splice(patterns.indexOf(pattern), 1)
+            }
+          }
+          return { patterns, negatedPatterns }
+        }
+    - url: https://github.com/npm/map-workspaces/blob/v6.0.0/lib/index.js
+      where: mapWorkspaces — getGlobOpts, where the surviving exclusions are used
+      quote: |2
+          const getGlobOpts = () => ({
+            ...opts,
+            ignore: [
+              ...opts.ignore || [],
+              '**/node_modules/**',
+              // just ignore the negated patterns to avoid unnecessary crawling
+              ...negatedPatterns,
+            ],
+          })
+
+- id: manager-enumeration-libraries-need-no-install
+  claim: |
+    npm and pnpm each publish their own workspace-enumeration implementation to the public npm
+    registry — `@npmcli/map-workspaces`, from github.com/npm/map-workspaces, and
+    `@pnpm/workspace.find-packages`, from github.com/pnpm/pnpm.
+    Each enumerates a workspace in-process from its checked-out definition alone: with no
+    `node_modules`, no lockfile, and without invoking the manager's own binary, both return the
+    workspace's member packages and the directory of each. pnpm's finder takes the `packages`
+    patterns its caller reads from `pnpm-workspace.yaml`, honours a `!` exclusion among them, and
+    returns the workspace root package alongside the members; npm's returns the members only.
+  backing: tested
+  caveat: |
+    Both `npm` and `pnpm` were on PATH when the probe ran, so the capture shows the libraries not
+    being handed the binary rather than the libraries working while it is absent — non-invocation is
+    read off the committed probe script, not observed against a machine without the manager. The
+    enumeration results and the uninstalled fixture state are directly observed. And what the
+    registry entries carry is that each package is published from the manager's own repository, not
+    that either manager's CLI consumes the published package.
+  sources:
+    - description: |
+        Two probes under design/minecraft/dev-kit/artifacts/, both written and run by this fact's
+        author on 2026-07-26. registry-probe/probe.mjs queries the public registry for each
+        package and prints its identifying metadata. workspace-enumeration-probe/probe.mjs
+        enumerates the two committed fixture workspaces beside it — neither ever installed, as the
+        probe checks and prints — using the libraries, and reports whether each manager's CLI is on
+        PATH. Captured stdout is OUTPUT.txt beside each script.
+    - url: design/minecraft/dev-kit/artifacts/registry-probe/OUTPUT.txt
+      where: both entries — registry status, latest version, and repository of each package
+      quote: |
+        === @npmcli/map-workspaces
+        GET https://registry.npmjs.org/@npmcli%2Fmap-workspaces -> 200
+        name: @npmcli/map-workspaces
+        latest: 6.0.0
+        description: Retrieves a name:pathname Map for a given workspaces config
+        repository: {"url":"git+https://github.com/npm/map-workspaces.git","type":"git"}
+        homepage: https://github.com/npm/map-workspaces#readme
+        dist.tarball: https://registry.npmjs.org/@npmcli/map-workspaces/-/map-workspaces-6.0.0.tgz
+
+        === @pnpm/workspace.find-packages
+        GET https://registry.npmjs.org/@pnpm%2Fworkspace.find-packages -> 200
+        name: @pnpm/workspace.find-packages
+        latest: 1000.0.65
+        description: Finds packages inside a workspace
+        repository: {"url":"git+https://github.com/pnpm/pnpm.git#main","type":"git"}
+        homepage: https://github.com/pnpm/pnpm/tree/main/workspace/find-packages#readme
+        dist.tarball: https://registry.npmjs.org/@pnpm/workspace.find-packages/-/workspace.find-packages-1000.0.65.tgz
+    - url: design/minecraft/dev-kit/artifacts/workspace-enumeration-probe/OUTPUT.txt
+      where: '"fixture state" — neither fixture workspace has been installed'
+      quote: |
+        === fixture state (no install has run in either)
+        npm-ws node_modules present: false
+        npm-ws package-lock.json present: false
+        npm-ws pnpm-lock.yaml present: false
+        pnpm-ws node_modules present: false
+        pnpm-ws package-lock.json present: false
+        pnpm-ws pnpm-lock.yaml present: false
+    - url: design/minecraft/dev-kit/artifacts/workspace-enumeration-probe/OUTPUT.txt
+      where: the two enumeration sections — what each library returned for its fixture
+      quote: |
+        === npm workspace via @npmcli/map-workspaces
+          @fixture/delta -> packages/delta
+          @fixture/gamma -> packages/gamma
+
+        === pnpm workspace via @pnpm/workspace.find-packages
+          patterns read from pnpm-workspace.yaml: ["packages/*","!packages/ignored"]
+          pnpm-ws-root@0.0.0 -> .
+          @fixture/alpha@1.2.3 -> packages/alpha
+          @fixture/beta@0.1.0 -> packages/beta
+
+- id: a-malformed-member-manifest-fails-the-whole-enumeration
+  claim: |
+    A directory a workspace pattern matches but that holds no `package.json` is skipped by both
+    managers' enumeration libraries, which return the workspace's other members normally. A
+    directory holding a `package.json` that is not valid JSON is not skipped: both libraries throw,
+    returning nothing at all. `@npmcli/map-workspaces` 6.0.0 throws a `JSONParseError` with code
+    `EJSONPARSE`; `@pnpm/workspace.find-packages` 1000.0.65 throws an error named `JSONError` with
+    code `ERR_PNPM_JSON_PARSE`, naming the offending file's path. So one unparseable member manifest
+    is a workspace-wide failure under either library, not a per-member one.
+  backing: tested
+  caveat: |
+    Observed for one malformed shape — a truncated value making the file invalid JSON — at the
+    versions named, on Node 24.16.0. A `package.json` that parses as JSON but is not a valid
+    manifest (wrong types, missing `name`) was not probed, and neither was a `package.json` that is
+    unreadable for other reasons, such as permissions or a directory in its place.
+  sources:
+    - description: |
+        design/minecraft/dev-kit/artifacts/workspace-member-fault-probe/, written and run by this
+        fact's author on 2026-07-26. probe.mjs runs each library against the four fixture
+        workspaces beside it — one per (library, fault) pair, each pattern matching both a healthy
+        `packages/good` member and one faulty directory — and prints either what the library
+        returned or the thrown error's class, name, code, and message. The fixtures are committed
+        uninstalled, as the probe checks and prints. Captured output is OUTPUT.txt beside the
+        script.
+    - url: design/minecraft/dev-kit/artifacts/workspace-member-fault-probe/OUTPUT.txt
+      where: the npm sections — malformed throws, missing is skipped
+      quote: |
+        === npm-malformed via @npmcli/map-workspaces
+          fault: packages/broken holds invalid JSON
+          THREW JSONParseError name=JSONParseError code=EJSONPARSE
+            Invalid package.json: JSONParseError: Unexpected token "}" (0x7D), ..."version": }
+            " is not valid JSON while parsing '{ "name": "@fixture/broken", "version": '
+
+        === npm-missing via @npmcli/map-workspaces
+          fault: packages/nomanifest holds no package.json
+          RETURNED @fixture/good -> packages/good
+    - url: design/minecraft/dev-kit/artifacts/workspace-member-fault-probe/OUTPUT.txt
+      where: the pnpm sections — malformed throws, missing is skipped
+      quote: |
+        === pnpm-malformed via @pnpm/workspace.find-packages
+          fault: packages/broken holds invalid JSON
+          THREW ErrorEXError name=JSONError code=ERR_PNPM_JSON_PARSE
+            Unexpected token '}', ..."version": }" is not valid JSON while parsing '{ "name": "@fixture/broken", "version": ' in /workspace/plan-opus/.claude/worktrees/dev-kit-spec-2/design/minecraft/dev-kit/artifacts/workspace-member-fault-probe/fixtures/pnpm-malformed/packages/broken/package.json
+
+        === pnpm-missing via @pnpm/workspace.find-packages
+          fault: packages/nomanifest holds no package.json
+          RETURNED pnpm-missing-root@0.0.0 -> .
+          RETURNED @fixture/good@1.0.0 -> packages/good
+
+- id: enumeration-sweeps-the-tree-outside-node-modules-under-pnpm-and-returns-nothing-under-npm
+  claim: |
+    Neither manager's enumeration library returns a package sitting under a `node_modules` path,
+    whether it is handed patterns or not. Handed no patterns at all the two otherwise diverge.
+    `@pnpm/workspace.find-packages` 1000.0.65 falls back to its own default patterns and returns the
+    root package **and every nested package in the tree outside `node_modules`**: against a
+    workspace whose `pnpm-workspace.yaml` declares no `packages` field it returned the root,
+    `packages/alpha`, and `tooling/nested/beta`, and against one holding `packages/alpha`,
+    `node_modules/plain-dep`, and `node_modules/@scope/scoped-dep` it returned the root and
+    `packages/alpha` alone — the same two it returned when that field was set to the explicit `'**'`,
+    so the no-patterns and with-patterns paths agree on the exclusion.
+    `@npmcli/map-workspaces` 6.0.0 returns an empty Map, without throwing, for a root `package.json`
+    that declares no `workspaces` array and for one declaring an empty array — even where the tree
+    holds a package a conventional pattern would match; given a populated array it returns the
+    matched members only, never the root package itself, and a `workspaces` of `["**"]` over the same
+    tree returned `packages/alpha` alone.
+
+    So a caller forwarding an absent `packages` field unread gets a whole-tree sweep from pnpm and
+    nothing at all from npm, an npm workspace of one is an empty enumeration rather than an error,
+    and neither sweep reaches an installed dependency.
+  backing: tested
+  caveat: |
+    Observed at the versions named, on Node 24.16.0. The `node_modules` trees probed are
+    hand-authored fixture directories holding ordinary packages, not the product of an install, so
+    what is shown is the path being excluded rather than any real store layout — pnpm's own
+    `node_modules/.pnpm` and its member symlinks were not exercised, and neither was a
+    `node_modules` nested inside a workspace member rather than at the root. The pnpm default is
+    read off the returned projects, not off the library's source, so which patterns it defaults to
+    is outside what this evidence covers. A root `package.json` that is absent or unparseable was
+    not probed under either library, and neither was a `pnpm-workspace.yaml` that is present but
+    unparseable.
+  sources:
+    - description: |
+        design/minecraft/dev-kit/artifacts/pnpm-node-modules-probe/, written and run by this fact's
+        author on 2026-07-27. probe.mjs runs each library against the three fixture workspaces
+        beside it — a pnpm root with no `packages` field, a pnpm root with `packages: ['**']`, and
+        an npm root with `workspaces: ["**"]`, each holding `packages/alpha` as a control plus
+        `node_modules/plain-dep` and `node_modules/@scope/scoped-dep` — and prints the patterns
+        read, what each library returned, and how many returned projects sit under a `node_modules`
+        path. The fixtures are committed uninstalled, as the probe checks and prints. Captured
+        stdout is OUTPUT.txt beside the script.
+    - url: design/minecraft/dev-kit/artifacts/pnpm-node-modules-probe/OUTPUT.txt
+      where: the two pnpm sections — the control comes back, neither node_modules package does, under defaults and under `'**'` alike
+      quote: |
+        === pnpm-no-packages-field-with-node-modules via @pnpm/workspace.find-packages
+          patterns read from pnpm-workspace.yaml: undefined
+          RETURNED 2
+            @fixture/pnpm-nm-defaults-root@1.0.0 -> .
+            @fixture/alpha@1.2.3 -> packages/alpha
+          under a node_modules path: 0
+
+        === pnpm-explicit-double-star-with-node-modules via @pnpm/workspace.find-packages
+          patterns read from pnpm-workspace.yaml: ["**"]
+          RETURNED 2
+            @fixture/pnpm-nm-starstar-root@1.0.0 -> .
+            @fixture/alpha@1.2.3 -> packages/alpha
+          under a node_modules path: 0
+    - url: design/minecraft/dev-kit/artifacts/pnpm-node-modules-probe/OUTPUT.txt
+      where: 'the npm section — a `workspaces` of `["**"]` returns the control alone, and no node_modules package'
+      quote: |
+        === npm-explicit-double-star-with-node-modules via @npmcli/map-workspaces
+          root package.json workspaces: ["**"]
+          RETURNED 1 entries
+            @fixture/alpha -> packages/alpha
+          under a node_modules path: 0
+    - description: |
+        design/minecraft/dev-kit/artifacts/pnpm-default-patterns-probe/, written and run by the
+        author of the fact this one supersedes on 2026-07-27, and re-read rather than re-run here.
+        Its OUTPUT.txt carries the deeper `tooling/nested/beta` sweep and the npm no-`workspaces`
+        case, which the probe above does not repeat.
+    - url: design/minecraft/dev-kit/artifacts/pnpm-default-patterns-probe/OUTPUT.txt
+      where: the pnpm section — no `packages` field returns the root and both nested packages
+      quote: |
+        === pnpm-no-packages-field-with-members via @pnpm/workspace.find-packages
+          fixture holds: the root, packages/alpha, and tooling/nested/beta
+          patterns read from pnpm-workspace.yaml: undefined
+          RETURNED 3
+            @fixture/pnpm-defaults-root@1.0.0 -> .
+            @fixture/alpha@1.2.3 -> packages/alpha
+            @fixture/beta@0.1.0 -> tooling/nested/beta
+    - url: design/minecraft/dev-kit/artifacts/pnpm-default-patterns-probe/OUTPUT.txt
+      where: the npm section — no `workspaces` array returns an empty Map though a nested package is present
+      quote: |
+        === npm-no-workspaces-with-members via @npmcli/map-workspaces
+          fixture holds: the root and packages/alpha
+          root package.json workspaces: undefined
+          RETURNED 0 entries (empty Map, no throw)
+    - description: |
+        design/minecraft/dev-kit/artifacts/workspace-root-candidate-probe/, written and run by the
+        author of an earlier fact in this chain on 2026-07-27, and re-read rather than re-run here.
+        Its OUTPUT.txt carries the empty-`workspaces`-array and populated-array npm cases, which
+        neither probe above repeats.
+    - url: design/minecraft/dev-kit/artifacts/workspace-root-candidate-probe/OUTPUT.txt
+      where: the npm sections — an empty array returns an empty Map, a populated array returns the member only
+      quote: |
+        === npm-empty-workspaces via @npmcli/map-workspaces
+          root package.json workspaces: []
+          RETURNED 0 entries (empty Map, no throw)
+
+        === npm-with-workspaces via @npmcli/map-workspaces
+          root package.json workspaces: ["packages/*"]
+          RETURNED 1 entry
+            @fixture/good -> packages/good
+
+- id: enumeration-without-patterns-defaults-under-pnpm-and-returns-nothing-under-npm
+  status: retired
+  reason: superseded
+  superseded_by: enumeration-sweeps-the-tree-outside-node-modules-under-pnpm-and-returns-nothing-under-npm
+  claim: |
+    Handed no patterns at all, the two managers' enumeration libraries diverge.
+    `@pnpm/workspace.find-packages` 1000.0.65 falls back to its own default patterns and returns
+    the root package **and every nested package in the tree**: against a workspace whose
+    `pnpm-workspace.yaml` declares no `packages` field, it returned the root, `packages/alpha`, and
+    `tooling/nested/beta`. `@npmcli/map-workspaces` 6.0.0 returns an empty Map, without throwing,
+    for a root `package.json` that declares no `workspaces` array and for one declaring an empty
+    array — even where the tree holds a package a conventional pattern would match; given a
+    populated array it returns the matched members only, never the root package itself.
+
+    So a caller forwarding an absent `packages` field unread gets a whole-tree sweep from pnpm and
+    nothing at all from npm, and an npm workspace of one is an empty enumeration rather than an
+    error.
+  backing: tested
+  caveat: |
+    Observed at the versions named, on Node 24.16.0. The pnpm default is read off the returned
+    projects, not off the library's source, so which patterns it defaults to is outside what this
+    evidence covers — only that nested packages come back. A root `package.json` that is absent or
+    unparseable was not probed under either library, and neither was a `pnpm-workspace.yaml` that
+    is present but unparseable.
+  sources:
+    - description: |
+        design/minecraft/dev-kit/artifacts/pnpm-default-patterns-probe/, written and run by this
+        fact's author on 2026-07-27. probe.mjs runs each library against the two fixture workspaces
+        beside it — a pnpm root whose `pnpm-workspace.yaml` holds only a `catalog:`, with two
+        nested packages, and an npm root with no `workspaces` array and one nested package — and
+        prints the patterns read and what each library returned. The fixtures are committed
+        uninstalled, as the probe checks and prints. Captured stdout is OUTPUT.txt beside the
+        script.
+    - url: design/minecraft/dev-kit/artifacts/pnpm-default-patterns-probe/OUTPUT.txt
+      where: the pnpm section — no `packages` field returns the root and both nested packages
+      quote: |
+        === pnpm-no-packages-field-with-members via @pnpm/workspace.find-packages
+          fixture holds: the root, packages/alpha, and tooling/nested/beta
+          patterns read from pnpm-workspace.yaml: undefined
+          RETURNED 3
+            @fixture/pnpm-defaults-root@1.0.0 -> .
+            @fixture/alpha@1.2.3 -> packages/alpha
+            @fixture/beta@0.1.0 -> tooling/nested/beta
+    - url: design/minecraft/dev-kit/artifacts/pnpm-default-patterns-probe/OUTPUT.txt
+      where: the npm section — no `workspaces` array returns an empty Map though a nested package is present
+      quote: |
+        === npm-no-workspaces-with-members via @npmcli/map-workspaces
+          fixture holds: the root and packages/alpha
+          root package.json workspaces: undefined
+          RETURNED 0 entries (empty Map, no throw)
+    - description: |
+        design/minecraft/dev-kit/artifacts/workspace-root-candidate-probe/, written and run by the
+        author of the fact this one supersedes on 2026-07-27, and re-read rather than re-run here.
+        Its OUTPUT.txt carries the empty-`workspaces`-array and populated-array npm cases, which
+        the probe above does not repeat.
+    - url: design/minecraft/dev-kit/artifacts/workspace-root-candidate-probe/OUTPUT.txt
+      where: the npm sections — an empty array returns an empty Map, a populated array returns the member only
+      quote: |
+        === npm-empty-workspaces via @npmcli/map-workspaces
+          root package.json workspaces: []
+          RETURNED 0 entries (empty Map, no throw)
+
+        === npm-with-workspaces via @npmcli/map-workspaces
+          root package.json workspaces: ["packages/*"]
+          RETURNED 1 entry
+            @fixture/good -> packages/good
+
+- id: npm-enumeration-returns-no-members-without-a-workspaces-array
+  status: retired
+  reason: superseded
+  superseded_by: enumeration-without-patterns-defaults-under-pnpm-and-returns-nothing-under-npm
+  claim: |
+    `@npmcli/map-workspaces` 6.0.0 returns an empty Map, without throwing, for a root
+    `package.json` that declares no `workspaces` array and for one declaring an empty array; given a
+    populated array it returns the matched members only, never the root package itself.
+    `@pnpm/workspace.find-packages` 1000.0.65 handed no patterns — a `pnpm-workspace.yaml` with no
+    `packages` field — returns the root package alone. So a root's own package is enumerated by
+    pnpm's library and by npm's not at all, and an npm workspace of one is an empty enumeration
+    rather than an error.
+  backing: tested
+  caveat: |
+    Observed at the versions named, on Node 24.16.0. A root `package.json` that is absent or
+    unparseable was not probed under either library, and neither was a `pnpm-workspace.yaml` that is
+    present but unparseable.
+  sources:
+    - description: |
+        design/minecraft/dev-kit/artifacts/workspace-root-candidate-probe/, written and run by this
+        fact's author on 2026-07-27. probe.mjs runs each library against the four fixture workspaces
+        beside it — an npm root with no `workspaces` array, one with an empty array, one with a
+        populated array and a single member, and a pnpm root whose `pnpm-workspace.yaml` holds no
+        `packages` field — and prints what each returned or threw. The fixtures are committed
+        uninstalled, as the probe checks and prints. Captured stdout is OUTPUT.txt beside the script.
+    - url: design/minecraft/dev-kit/artifacts/workspace-root-candidate-probe/OUTPUT.txt
+      where: the three npm sections — no array and an empty array each return an empty Map, a populated array returns the member only
+      quote: |
+        === npm-no-workspaces via @npmcli/map-workspaces
+          root package.json workspaces: undefined
+          RETURNED 0 entries (empty Map, no throw)
+
+        === npm-empty-workspaces via @npmcli/map-workspaces
+          root package.json workspaces: []
+          RETURNED 0 entries (empty Map, no throw)
+
+        === npm-with-workspaces via @npmcli/map-workspaces
+          root package.json workspaces: ["packages/*"]
+          RETURNED 1 entry
+            @fixture/good -> packages/good
+    - url: design/minecraft/dev-kit/artifacts/workspace-root-candidate-probe/OUTPUT.txt
+      where: the pnpm section — no `packages` field returns the root package alone
+      quote: |
+        === pnpm-no-packages-field via @pnpm/workspace.find-packages
+          patterns read from pnpm-workspace.yaml: undefined
+          RETURNED 1
+            @fixture/pnpm-nopatterns-root@1.0.0 -> .

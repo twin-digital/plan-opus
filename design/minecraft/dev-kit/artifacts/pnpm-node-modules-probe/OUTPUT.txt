@@ -1,0 +1,40 @@
+=== versions
+  @npmcli/map-workspaces@6.0.0
+  @pnpm/workspace.find-packages@1000.0.65
+  @pnpm/workspace.read-manifest@1000.3.1
+  node v24.16.0
+
+=== fixture state (no install has run in any; the node_modules trees are committed fixture content)
+  pnpm-no-packages-field-with-node-modules lockfile present: false
+  pnpm-no-packages-field-with-node-modules node_modules/.package-lock.json present: false
+  pnpm-no-packages-field-with-node-modules node_modules/.modules.yaml present: false
+  pnpm-no-packages-field-with-node-modules fixture packages: packages/alpha, node_modules/plain-dep, node_modules/@scope/scoped-dep
+  pnpm-explicit-double-star-with-node-modules lockfile present: false
+  pnpm-explicit-double-star-with-node-modules node_modules/.package-lock.json present: false
+  pnpm-explicit-double-star-with-node-modules node_modules/.modules.yaml present: false
+  pnpm-explicit-double-star-with-node-modules fixture packages: packages/alpha, node_modules/plain-dep, node_modules/@scope/scoped-dep
+  npm-explicit-double-star-with-node-modules lockfile present: false
+  npm-explicit-double-star-with-node-modules node_modules/.package-lock.json present: false
+  npm-explicit-double-star-with-node-modules node_modules/.modules.yaml present: false
+  npm-explicit-double-star-with-node-modules fixture packages: packages/alpha, node_modules/plain-dep, node_modules/@scope/scoped-dep
+
+=== pnpm-no-packages-field-with-node-modules via @pnpm/workspace.find-packages
+  patterns read from pnpm-workspace.yaml: undefined
+  RETURNED 2
+    @fixture/pnpm-nm-defaults-root@1.0.0 -> .
+    @fixture/alpha@1.2.3 -> packages/alpha
+  under a node_modules path: 0
+
+=== pnpm-explicit-double-star-with-node-modules via @pnpm/workspace.find-packages
+  patterns read from pnpm-workspace.yaml: ["**"]
+  RETURNED 2
+    @fixture/pnpm-nm-starstar-root@1.0.0 -> .
+    @fixture/alpha@1.2.3 -> packages/alpha
+  under a node_modules path: 0
+
+=== npm-explicit-double-star-with-node-modules via @npmcli/map-workspaces
+  root package.json workspaces: ["**"]
+  RETURNED 1 entries
+    @fixture/alpha -> packages/alpha
+  under a node_modules path: 0
+
