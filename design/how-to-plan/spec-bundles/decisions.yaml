@@ -19,7 +19,7 @@
     - the map drifts from the design tree often enough that specs publish under stale names
 
 - id: undeclared-identity-publishes-nothing
-  statement: a design absent from `products.yaml` publishes no bundle, and the checker warns rather than failing its settle gate
+  statement: a settled design the product manifest does not name draws a checker warning rather than a failed settle gate
   status: tolerated
   falsifiers:
     - a settled spec goes unpublished unnoticed and a builder is blocked waiting for it

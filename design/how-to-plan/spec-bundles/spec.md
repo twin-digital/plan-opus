@@ -13,16 +13,6 @@ the only thing that will, and none of it exists. The constraint that shapes ever
 that a version, once fetched, must resolve to the same bytes forever, which rules out every store
 whose content is a moving reference and makes the choice of store the first thing settled.
 
-## Open questions
-
-```yaml
-questions:
-  - id: settle-gate-fails-or-warns-without-an-identity
-    question: r:settle-publishes-a-versioned-bundle is hard and unconditional, while d:undeclared-identity-publishes-nothing exempts a design absent from products.yaml and has the checker warn — should the requirement be qualified to admit that exemption, or should the gate fail the merge instead?
-    closes: requirement
-    gates: [undeclared-identity-publishes-nothing]
-```
-
 ## What a bundle holds
 
 A bundle is a directory of four files, plus whatever the spec incorporates by reference
@@ -146,9 +136,10 @@ separator needs nothing from the registry beyond what it already does. The login
 `my-app` product therefore publishes as `@td-spec/my-app.login`, and a consumer fetches
 `@td-spec/my-app.login@2.1.0`, or `@td-spec/my-app.login` for the latest.
 
-Because the mapping is not derivable from the tree, it is declared. The file `products.yaml` at the
-repository root — the path `products.yaml`, outside the `design/` tree — maps each product name to
-what it publishes: either one design scope directly, for a product with no features, or a mapping
+Because the mapping is not derivable from the tree, it is declared. The **product manifest** is the
+file `products.yaml` at the repository root — the path `products.yaml`, outside the `design/` tree
+— and naming a spec there is what makes it publishable at all
+[[r:settle-publishes-a-versioned-bundle]]. It maps each product name to what it publishes: either one design scope directly, for a product with no features, or a mapping
 of feature names to design scopes [[d:product-map-declares-bundle-identity]]:
 
 ```yaml
@@ -165,10 +156,11 @@ bundle of its own holds no features, and one that holds features publishes no bu
 within their product, and a design scope appears at most once in the whole file, since a spec has
 one bundle identity. Every design scope named must resolve to a design that exists.
 
-A design with no entry in `products.yaml` publishes nothing. The checker reports a settled spec
-with no bundle identity as a warning and does not fail its settle gate, because a design that
-produces no software has nothing to publish and should not be forced to invent a product
-[[d:undeclared-identity-publishes-nothing]].
+A design the manifest does not name publishes nothing [[r:settle-publishes-a-versioned-bundle]],
+and that is a perfectly good end state — a design that produces no software has nothing to publish
+and is not made to invent a product for the sake of it. The checker still reports a settled spec
+with no bundle identity, as a warning: not a gate on the merge, but a nudge for the case where the
+manifest entry was simply forgotten [[d:undeclared-identity-publishes-nothing]].
 
 ## Where bundles land
 
