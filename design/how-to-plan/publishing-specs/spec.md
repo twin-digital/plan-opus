@@ -21,22 +21,31 @@ questions:
     question: r:settle-publishes-a-versioned-bundle is hard and unconditional, while d:undeclared-identity-publishes-nothing exempts a design absent from products.yaml and has the checker warn — should the requirement be qualified to admit that exemption, or should the gate fail the merge instead?
     closes: requirement
     gates: [undeclared-identity-publishes-nothing]
-  - id: deprecation-trigger-and-message
-    question: what records that a design has been superseded and by what, so a bundle can be deprecated — and what version range and message does the deprecation carry?
-    closes: decision
-    gates: [latest-never-moves-backward]
 ```
 
 ## What a bundle holds
 
-A bundle is a directory of three files, plus whatever the spec incorporates by reference
-[[d:bundle-is-three-files-plus-incorporated-content]]:
+A bundle is a directory of four files, plus whatever the spec incorporates by reference
+[[d:bundle-is-four-files-plus-incorporated-content]]:
 
 ```text
+README.md         how to use a bundle of this format: what the files are, and how to fetch
+                  the dependencies
 spec.md           the spec's prose, every citation token struck
 commitments.md    the requirements binding the design and the decisions it holds
 package.json      name, version, description, files, repository, dependencies
 ```
+
+`README.md` orients a builder who has just unpacked a bundle and has never seen one
+[[d:bundle-carries-an-orientation-file]]. What it explains is the *format*, not the design: the
+other three files and what each is for, that the spec's prose is the primary source and
+`commitments.md` a crib, that the design's upstream dependencies are not vendored, and the commands
+that fetch them. It is fixed boilerplate written by the deriver, identical in every npm bundle
+except for the bundle's own name, which appears in the example commands
+[[d:orientation-file-is-a-boilerplate-readme]]. `README.md` is the name because it is where both a
+consumer unpacking a tarball and the registry's own package page already look, so the orientation
+lands without a builder being told where to look for it. Its content is tied to the publication
+format: were bundles to move off npm, this file is what changes, since the commands in it are npm's.
 
 `spec.md` is the source spec byte-for-byte apart from the removal of every citation token — the
 token being `[[<k>:<id>]]` with a kind letter of `f`, `r`, or `d`
@@ -106,7 +115,7 @@ and fetched separately (below).
 
 `package.json` carries exactly six fields — `name`, `version`, `description`, `files`,
 `repository`, and `dependencies` — and no others [[d:bundle-manifest-is-minimal]]. `name` is the
-scoped bundle name and `dependencies` the derived block, both below. `files` lists the three files
+scoped bundle name and `dependencies` the derived block, both below. `files` lists the four files
 plus any vendored paths. `description` is the first sentence of the bundle's own `spec.md`
 `## Summary` — its text up to the first period followed by whitespace, collapsed onto one line.
 `repository` is the same literal in every bundle, in the object form, and is where a reader goes to
@@ -231,19 +240,20 @@ of publish: an upstream at 2.1.0 is depended on as `^2.1.0`. A caret admits late
 versions, which by the bump rule below add commitments or change prose but never remove or alter
 one, and excludes the next major, which does.
 
-The derivation therefore runs in two passes, and they happen at different moments. The first reads
-every bundle's cited facts and yields the edges alone — which bundle depends on which, with no
-version attached — and it runs for the whole set before anything is derived, because the run's
-order is the topological sort of those edges. The second fills in one bundle's ranges at the moment
-that bundle is derived, reading each upstream's `latest` then.
+The derivation therefore runs in two passes, and they are separable. The first reads a bundle's
+cited facts and yields its edges alone — which bundles it depends on, with no version attached —
+and it needs nothing published to run. The second fills in that bundle's ranges at the moment the
+bundle is derived, reading each upstream's `latest` then.
 
-Pinning `latest` is what forces that split: the upstream must already be published when the
-downstream's manifest is derived, so a publishing run takes its bundles in dependency order and
-each upstream is derived, versioned, and published before any bundle depending on it is derived. An
-upstream published in the same run therefore has a `latest` by the time its dependent reads for
-one, which is what lets the cold-start backfill below publish a whole graph of bundles at `1.0.0`
-in a single run. The order exists only where the graph is acyclic: a cycle publishes nothing, the
-run leaving every bundle in it unpublished and reporting the cycle.
+Pinning `latest` is what forces the split, and it puts one precondition on deriving any bundle:
+every bundle it depends on is already published, or has been through the gates below and published
+nothing. A bundle whose upstream has never been published cannot be derived, and waits. That is a
+condition on one bundle rather than a rule about what a run covers — whoever schedules a run
+satisfies it by taking bundles in the order the first pass's edges give, and scheduling is
+`harness`'s. Because a bundle published moments earlier already has a `latest`, a single run can
+satisfy the precondition for a whole graph, which is what lets the cold-start backfill below stand
+up every bundle at `1.0.0` at once. A bundle inside a dependency cycle can never satisfy it: it is
+never derived, publishes nothing, and the cycle is reported.
 
 The consumer's verb is `npm install`, not `npm pack`: `npm install @td-spec/my-app.login@2.1.0` in an empty
 directory fetches that bundle *and* the packages it depends on
@@ -282,6 +292,17 @@ statements, and force or status by the fixed layout above, the components block 
 records what a published bundle committed to. A bundle whose name has no published version has
 nothing to diff and takes `1.0.0`.
 
+The diff keys on the entry id [[d:bump-is-computed-from-the-commitment-diff]]. Two versions hold
+the same commitment when they hold the same id, and its content is what the bundle carries for it:
+the statement plus the `force` or `status` line for a requirement or decision, and the
+`responsibility` and `excludes` for a component. Renaming an id while leaving every one of those
+untouched therefore reads as one commitment removed and another added, and scores major. That is
+the intended reading rather than a gap in the rule: the id is itself part of what a bundle commits
+to, since the crib names entries by it and a builder who noted one down finds nothing under the old
+name. Nothing outside those fields is compared, because nothing else reaches the bundle: a
+requirement that moved from design scope to area scope, or a decision whose falsifiers were
+rewritten, is not a commitment change at all.
+
 Where both a removal and an addition are present, the higher bump wins. The settling author may
 raise the computed bump — a prose rewrite they judge breaking is theirs to call major — but never
 lower it; the rule is the floor, not the proposal.
@@ -289,13 +310,13 @@ lower it; the rule is the floor, not the proposal.
 ## Publishing at settle
 
 Publishing happens when a settled spec merges to main [[r:settle-publishes-a-versioned-bundle]].
-The moment is the merge, so `main` is the only thing published from. A run derives *every* bundle
-in `products.yaml`, not the ones a diff suggests changed: the ones that did not change fall out at
-the third gate below having published nothing, which is what that gate is for, and no rule is
-needed for deciding which merge touched what [[d:every-bundle-is-derived-each-run]]. Each bundle
-goes through the same sequence — resolve its dependencies, derive it, compute its version, publish
-— and the run takes them in the dependency order set out above. The harness is the actor that
-publishes [[r:settle-publishes-a-versioned-bundle]]: the components below are what it runs, and
+The moment is the merge, so `main` is the only thing published from. Everything below is stated of
+one bundle, taken on its own: it goes through the same sequence whenever it is put through — resolve
+its dependencies, derive it, compute its version, publish — and a bundle nothing has changed under
+falls out at the third gate having published nothing. So which bundles a given merge puts through is
+not this design's to say: putting every bundle through each time is correct, and so is any narrower
+selection, because the gates make the two indistinguishable to a consumer. The harness is the actor
+that publishes [[r:settle-publishes-a-versioned-bundle]]: the components below are what it runs, and
 building the workflow around them — along with holding the npm credential that authenticates to the
 `@td-spec` organization — belongs to `harness`. What is fixed here is the contract it publishes
 against.
@@ -309,7 +330,7 @@ Three things stop a publish, each quietly:
   stays fetchable [[d:leaving-settled-publishes-nothing]].
 - The design has no bundle identity [[d:undeclared-identity-publishes-nothing]].
 - The derived bundle matches the current `latest`. The comparison is file by file against the
-  unpacked `latest` tarball — `spec.md`, `commitments.md`, every vendored path, and `package.json`
+  unpacked `latest` tarball — `README.md`, `spec.md`, `commitments.md`, every vendored path, and `package.json`
   with `version` excluded, that field differing by construction on every publish. A dependency
   range that moved because an upstream's `latest` moved is a difference like any other and
   publishes a patch; only a bundle unchanged in every other byte is skipped. Nothing is published
@@ -326,8 +347,20 @@ against `latest` ever. Reversing that pointer would change what a versionless fe
 is the moving-reference behaviour this design exists to avoid. A spec that is superseded or
 withdrawn is therefore deprecated instead, the registry showing the message to anyone installing it
 while the content stays downloadable [[f:npm-deprecate-warns-on-install]]
-[[d:latest-never-moves-backward]]. What records that a design was superseded, and what the
-deprecation says, is the open question above: no artifact in the repository carries that today.
+[[d:latest-never-moves-backward]].
+
+`products.yaml` is what triggers that, and it is the only artifact that can: a bundle name it once
+held and no longer does names a spec that has been withdrawn or renamed, and nothing else in the
+repository records a supersession at all [[d:deprecation-triggers-on-a-name-leaving-the-product-map]].
+So the publisher deprecates a bundle when its name has left the map while versions of it stand
+published, and it deprecates the package as a whole rather than a version range, since every version
+of a withdrawn spec is equally out of date. The message is fixed text, the same in every
+deprecation, naming the bundle and pointing at
+`https://github.com/twin-digital/plan-opus` for what replaced it. Nothing records *what* superseded
+a bundle, and nothing needs to: a consumer who has been told the spec is gone goes to the
+repository, where the current `products.yaml` and design tree answer the question better than a
+frozen string would. A feature repointed at a different design keeps its bundle name, so it is not a
+withdrawal at all — the same version line simply continues with the new design's content.
 
 **Cold start.** Specs that settled before any of this existed — `how-to-plan/doc-structure` and
 `minecraft/dev-kit` among them — are published by the first publishing run, at `1.0.0`, rather than
@@ -344,11 +377,11 @@ components:
     responsibility: parse products.yaml, resolve a design scope to its bundle name, and report settled designs with no identity
     excludes: deciding what a product or feature should be called
   - id: dependency-resolver
-    responsibility: two passes over cited fact sources — emit the versionless upstream edges for every bundle in the run, and emit one bundle's dependencies block with each upstream at a caret on its published latest
-    excludes: ordering the run from the edges it emits, deciding any bundle's version, or publishing anything
+    responsibility: two passes over cited fact sources — emit one bundle's versionless upstream edges, and emit its dependencies block with each upstream at a caret on its published latest; report a bundle whose edges put it in a cycle
+    excludes: scheduling anything from the edges it emits, deciding any bundle's version, or publishing anything
     after: [product-map]
   - id: bundle-deriver
-    responsibility: produce a bundle directory for one design — stripped spec.md, commitments.md, vendored content, and a package.json carrying every field but version
+    responsibility: produce a bundle directory for one design — the boilerplate README.md, stripped spec.md, commitments.md, vendored content, and a package.json carrying every field but version
     excludes: deciding the version or pushing anything to a registry
     after: [product-map, dependency-resolver]
   - id: version-planner
@@ -356,7 +389,7 @@ components:
     excludes: publishing the version it computed
     after: [bundle-deriver]
   - id: publisher
-    responsibility: order a run's bundles from the resolver's edge graph or report a cycle, then stamp each computed version into its derived bundle and publish it with public access
-    excludes: the CI workflow and hooks that invoke it, which are harness's
+    responsibility: stamp a computed version into its derived bundle and publish it with public access, and deprecate a bundle whose name has left products.yaml
+    excludes: the CI workflow, hooks, and run scheduling that invoke it, which are harness's
     after: [version-planner]
 ```
