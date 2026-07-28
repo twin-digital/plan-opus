@@ -22,6 +22,7 @@
 
 - id: a-bundle-is-self-contained
   statement: |
-    a builder handed one bundle needs nothing else to build the spec it covers: what that spec
-    relies on from an upstream design travels inside the bundle
+    a bundle carries its own design in full — the spec, and any other content it incorporates by
+    reference. What the spec depends on from another design need not be vendored inside the
+    bundle, and may be fetched separately
   force: soft

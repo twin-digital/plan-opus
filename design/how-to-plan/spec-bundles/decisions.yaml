@@ -1,0 +1,151 @@
+- id: bundle-identity-is-product-and-feature
+  statement: a bundle is named by a product and, where the product subdivides, a feature within it — never by the planning repository or a design's area
+  status: accepted
+  falsifiers:
+    - a design's identity needs a level the product and feature pair cannot carry
+
+- id: bundle-name-is-a-scoped-package
+  statement: a bundle publishes as `@td-spec/<product>`, or as `@td-spec/<product>.<feature>` where the product subdivides
+  status: accepted
+  falsifiers:
+    - a registry the bundles must reach rejects a package name carrying a dot
+    - a product needs subdivision more than one level deep, which a single dot cannot express
+
+- id: product-map-declares-bundle-identity
+  statement: a `products.yaml` at the repository root maps each product either to one design scope or to a mapping of feature names to design scopes
+  status: tolerated
+  falsifiers:
+    - a product has to both publish a bundle of its own and hold features
+    - the map drifts from the design tree often enough that specs publish under stale names
+
+- id: undeclared-identity-publishes-nothing
+  statement: a settled design the product manifest does not name draws a checker warning rather than a failed settle gate
+  status: tolerated
+  falsifiers:
+    - a settled spec goes unpublished unnoticed and a builder is blocked waiting for it
+
+- id: npm-registry-is-the-publication-target
+  statement: bundles are published as packages on the public npm registry at registry.npmjs.org
+  status: tolerated
+  falsifiers:
+    - a consumer needs a bundle without an npm client available
+
+- id: bundle-carries-an-orientation-file
+  statement: a bundle carries a file telling a builder how to use a bundle of that publication format, including how to read and fetch its dependencies
+  status: accepted
+  falsifiers:
+    - the orientation text is identical across formats, so it belongs in the spec's own prose rather than in every bundle
+
+- id: bundle-is-four-files-plus-incorporated-content
+  statement: a bundle is a directory holding README.md, spec.md, commitments.yaml, and package.json, plus the content the spec incorporates by reference
+  status: accepted
+  falsifiers:
+    - a builder routinely needs a file the bundle does not carry
+    - the spec and its commitments are always read together, so the split buys nothing
+
+- id: orientation-file-is-a-boilerplate-readme
+  statement: the orientation file is README.md, fixed boilerplate that varies only by the bundle's own name, written by the deriver rather than by the spec's author
+  status: tolerated
+  falsifiers:
+    - a bundle needs orientation particular to its own design, which boilerplate cannot carry
+    - the registry or a consumer's tooling treats README.md as the package's own documentation and the two readings conflict
+
+- id: commitments-are-rendered-markdown
+  statement: the requirement and decision extraction is rendered markdown, with no machine-readable copy beside it
+  status: rejected
+
+- id: commitments-are-a-yaml-document
+  statement: the requirement and decision extraction is a YAML document, commitments.yaml
+  status: accepted
+  falsifiers:
+    - a builder reads the bundle only as rendered prose, so the one file it cannot skim is the one holding the commitments
+
+- id: commitments-schema-mirrors-the-source-entries
+  statement: commitments.yaml is a mapping of `requirements` and `decisions` to sequences whose entries carry the same fields, under the same names, as the repository's own foundation files
+  status: rejected
+
+- id: commitments-are-one-flat-list-of-id-and-statement
+  statement: commitments.yaml is one flat sequence whose entries carry a kind-prefixed `id` and a `statement`, with nothing marking which are fiat and which the spec's own
+  status: accepted
+  falsifiers:
+    - a builder builds the wrong thing for want of knowing whether an entry is the owner's fiat or the spec's own call
+    - a builder needs an entry's force or status to resolve two commitments that pull against each other
+
+- id: dependencies-are-derived-from-cited-fact-sources
+  statement: a bundle depends on the bundles of the designs whose requirements.yaml or spec.md its spec's cited facts source, each at a caret range on that bundle's latest version
+  status: tolerated
+  falsifiers:
+    - a spec leans on another design without citing a fact sourced to that design's requirements
+    - a caret range admits an upstream bundle a downstream builder cannot build against
+
+- id: bump-is-computed-from-the-commitment-diff
+  statement: the bump is computed from the commitment diff against the previous version — removed or altered is major, added is minor, otherwise patch — keyed on entry id, and the settling author may raise it, never lower it
+  status: tolerated
+  falsifiers:
+    - authors override the computed bump on most publishes
+    - a change the rule scores as patch breaks a builder consuming the bundle
+    - renaming an id without changing what it says scores major often enough that the majors stop meaning anything
+
+- id: latest-never-moves-backward
+  statement: latest always names the highest version published for a bundle, and is never repointed at an earlier one whatever becomes of the spec
+  status: accepted
+  falsifiers:
+    - a consumer builds from a superseded bundle because nothing in the registry signalled that its spec was gone
+
+- id: settled-specs-are-backfilled-on-the-first-run
+  statement: every spec already settled on main is published by the first publishing run rather than waiting for its next settle
+  status: tolerated
+  falsifiers:
+    - a spec already settled on main is found stale enough that publishing it at 1.0.0 would send a builder off the current design
+
+- id: first-version-is-one-zero-zero
+  statement: a bundle's first published version is 1.0.0, backfilled bundles included
+  status: accepted
+  falsifiers:
+    - a bundle needs to signal instability through its version line before its first consumer arrives
+
+- id: extraction-carries-live-commitments-only
+  statement: commitments.yaml carries the active requirements binding the design and its accepted and tolerated decisions, and nothing else
+  status: accepted
+  falsifiers:
+    - a builder needs a rejected decision or a retired requirement to understand what the spec rules out
+
+- id: identical-bundle-skips-publish
+  statement: a derived bundle byte-identical to the current latest is not published and burns no version
+  status: accepted
+  falsifiers:
+    - a consumer needs a version bump to record that a spec was re-settled without content change
+
+- id: leaving-settled-publishes-nothing
+  statement: a spec that stops being settled publishes nothing further, and its existing versions stay fetchable
+  status: accepted
+  falsifiers:
+    - a consumer builds from a bundle whose spec has been reopened and needed to know it
+
+- id: incorporated-content-is-vendored-by-relative-path
+  statement: files the spec links inside its own design directory are copied into the bundle at the same relative path, and links outside it are left as written
+  status: accepted
+  falsifiers:
+    - a spec routinely incorporates content from outside its own directory, so the bundle arrives with dead links
+
+- id: bundles-publish-publicly
+  statement: bundles are published with public access
+  status: accepted
+  falsifiers:
+    - a design has to be published that the repository does not already expose
+
+- id: bundle-manifest-is-minimal
+  statement: package.json carries name, version, description, files, repository, and dependencies, and nothing else
+  status: accepted
+  falsifiers:
+    - a registry or a consumer's tooling rejects or misreads a manifest missing a field the bundle does not carry
+
+- id: token-strip-repairs-the-line
+  statement: stripping a citation token collapses the doubled spacing it leaves to one space, and drops the space before a token that ended a line
+  status: accepted
+  falsifiers:
+    - a stripped spec.md renders differently from its source anywhere but where a token stood
+
+- id: deprecation-triggers-on-a-name-leaving-the-product-map
+  statement: a bundle with published versions whose name products.yaml no longer holds is deprecated across every version, with a fixed message naming the repository
+  status: rejected
