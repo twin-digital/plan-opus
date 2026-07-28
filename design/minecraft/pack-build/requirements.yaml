@@ -13,7 +13,12 @@
 - id: build-is-an-exported-bundler-config
   statement: |
     what this design produces is a tsdown configuration fragment, exported for a consuming package
-    to merge into its own config. It ships no command of its own and embeds no bundler.
+    to merge into its own config. It embeds no bundler and ships no command line of its own.
+
+- id: a-released-pack-is-an-archive-of-its-output-tree
+  statement: |
+    a pack's release archive is produced from that pack's built output tree by this design, exported
+    for the pack's release hook to call.
 
 - id: the-exported-config-is-documented
   statement: |

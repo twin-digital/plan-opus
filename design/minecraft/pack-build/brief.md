@@ -10,8 +10,14 @@ wants a loadable pack, and a package that copies them slightly wrong ships outpu
 server with nothing reporting why.
 
 What this design produces is a tsdown configuration fragment a pack package merges into its own
-config, plus documentation of what merging it produces. No command, no bundler embedded here, and
-nothing for a pack to implement.
+config, plus documentation of what merging it produces, plus the archive a released pack is cut
+into. No command line, no bundler embedded here, and nothing for a pack to implement.
+
+The form follows the monorepo it ships into rather than a choice made here: shared build behaviour
+reaches a package there as a value its config merges, never as a command the package runs
+(`f:opus-bundler-config-merges-partial-fragments`), and an artifact reaches a GitHub release only
+through a hook the package itself declares (`f:opus-release-assets-come-from-a-per-package-script`).
+Those two facts are why the product is an export and why the archive is one too.
 
 It ships in the same distributable as `minecraft/dev-kit` — one package, two designs, a split of
 subject matter rather than of artifacts. The kit's side reads a workspace, validates it, normalises
@@ -35,18 +41,24 @@ details `f:dev-kit-pack-set-entry-names-package-kind-source-and-identity` alread
   nothing. That splits rebuilds in two: a source change that rebundles, and a manifest-input change
   that only brings the completed manifests up to date.
 - **Versioning** — a pack's version comes from `package.json`, so raising it and building is what
-  produces a new version of the pack.
+  produces a new version of the pack. The bump itself is the release process's
+  (`f:opus-package-versions-are-written-by-changesets`); nothing here writes a version.
+- **The release archive** — what a pack is cut into for distribution, produced from the output tree
+  this design already owns. A `.mcpack` is one zipped pack and an `.mcaddon` a zip of those
+  (`f:release-archives-follow-pack-content`); which one a pack ships is the design's to choose.
 - **The documentation of the export** — what a consumer merges, and what merging it produces.
 
 ## Out of scope
 
-- **How a monorepo wires the fragment into its packages.** Opus has a `tsdown.config.d/` merge
-  convention and a `repo-kit` rule that writes the per-package snippet; that is the monorepo's
-  config management, not this design's. It shapes the export — a partial config that shallow-merges
-  over a shared base — and that is the whole of its bearing here.
-- **Turning a built tree into a release artifact.** Archiving and publishing sit past the far edge
-  of this design, which stops at the output tree, and `r:a-pack-does-not-deliver-itself` puts them
-  outside the pack as well. No design owns that step today.
+- **How a monorepo wires the fragment and the archive into its packages.** A package's config is
+  generated from the monorepo's own declarative configuration
+  (`f:opus-package-config-is-generated-from-one-root-file`), and which rule generates it, when it
+  fires, and what the generated snippet looks like are that config manager's. This design produces
+  what those files point at, and nothing about the pointing.
+- **Getting the archive onto a release.** Where an asset lands and who uploads it is the monorepo's
+  release convention — a per-package hook, a `.release-assets/` directory, a CI job
+  (`f:opus-release-assets-come-from-a-per-package-script`). This design produces the archive that
+  hook calls for, and neither declares the hook nor publishes anything.
 - **Discovery, validation, and manifest completion** — `minecraft/dev-kit`.
 - **Watching at the workspace level, deploying into a server pool, activating, and reloading** —
   `minecraft/dev-server`.
@@ -64,7 +76,9 @@ pack package does the same, with no build rule copied between the two.
 
 - **What the exported fragment needs from its consumer.** The prototype's took `import.meta.url` to
   locate the package directory; whether that is the right interface, and what else it has to be
-  told, is open.
+  told, is open. The archive export faces the same question separately.
+- **What the archive holds and what format it takes** — one pack or a package's packs together, and
+  whether anything beside the output tree goes in.
 - **A package holding two packs.** The kit fixes the shape: a package structurally holds at most one
   pack of each kind, and each reported pack carries its own output location, so two packs means two
   entries and two output trees. What is open is this side — one config across both trees, when only

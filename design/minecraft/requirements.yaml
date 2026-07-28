@@ -15,8 +15,9 @@
 
 - id: a-pack-does-not-deliver-itself
   statement: |
-    a pack's job ends at a built bundle — it carries no deploy or publish scripts and ships itself
-    nowhere.
+    a pack implements no delivery of its own: whatever release or deploy hook the monorepo's
+    conventions require of it delegates to shared tooling, and the pack itself publishes and deploys
+    nothing.
   applies_to: [set:minecraft-addon-packs]
 
 - id: packs-unit-test-with-the-shared-test-lib
