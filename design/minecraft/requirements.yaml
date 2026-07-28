@@ -13,6 +13,12 @@
   rationale: |
     Keeps packs interchangeable and the deploy transport free to change in one place.
 
+- id: pack-uses-the-shared-build-tooling
+  statement: |
+    the pack is built and released by the workspace's shared pack tooling — the same build
+    configuration and release path every other pack there uses — and carries none of its own.
+  applies_to: [set:minecraft-addon-packs]
+
 - id: packs-unit-test-with-the-shared-test-lib
   statement: |
     a pack's unit tests stand up `@minecraft/server` with `@twin-digital/minecraft-test-lib`
