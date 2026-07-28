@@ -161,18 +161,18 @@
     works against a remote daemon with no bind mount. This makes a direct push (cp the built
     pack into the container, then issue a reload) a viable deploy transport independent of
     `develop.watch`.
-  backing: tested
+  backing: assumed
   sources:
     - description: |
-        Observed in the prototype by the author of the design formerly named
-        minecraft/dev-workflow, not by this fact's author, and outside this repository — there
-        are no artifacts to promote. Built pack directories were copied into a running Bedrock
-        container with `docker compose cp <dist>/. bedrock:<pool>/<pack>` against a daemon on
-        another host (socket, no bind mount); the server subsequently reported the pack in its
-        Pack Stack and `/reload` picked up script changes. Copy succeeded with no volume or mount
-        configured. The in-repo probes at design/minecraft/dev-server/artifacts/ and
-        design/minecraft/artifacts/pack-layout/probe/ all deploy this way against a remote daemon
-        and corroborate that `compose cp` needs no mount.
+        Observed in the prototype by the author of minecraft/dev-server, not by this fact's
+        author, and outside this repository — there are no artifacts to promote. Built pack
+        directories were copied into a running Bedrock container with `docker compose cp <dist>/.
+        bedrock:<pool>/<pack>` against a daemon on another host (socket, no bind mount); the
+        server subsequently reported the pack in its Pack Stack and `/reload` picked up script
+        changes. Copy succeeded with no volume or mount configured. The in-repo probes at
+        design/minecraft/dev-server/artifacts/ and design/minecraft/artifacts/pack-layout/probe/
+        all deploy this way against a remote daemon and corroborate that `compose cp` needs no
+        mount.
 
 - id: compose-env-file-not-loaded-from-cwd
   claim: |
@@ -305,15 +305,15 @@
     — and documents a manifest change as needing the world exited and re-entered rather than
     reloaded. This split is why a source edit can deploy in ~1s while identity or activation
     changes cost a restart.
-  backing: tested
+  backing: assumed
   sources:
     - description: |
-        Observed across many prototype iterations by the author of the design formerly named
-        minecraft/dev-workflow, not by this fact's author, and outside this repository — there
-        are no artifacts to promote. After `docker compose cp` of a rebuilt script bundle,
-        `send-command reload` produced "Function and script files have been reloaded" and the new
-        behavior was live within ~1s without disconnecting a connected client; whereas adding a
-        pack, or changing the activation list, only took effect after a container restart.
+        Observed across many prototype iterations by the author of minecraft/dev-server, not by
+        this fact's author, and outside this repository — there are no artifacts to promote. After
+        `docker compose cp` of a rebuilt script bundle, `send-command reload` produced "Function
+        and script files have been reloaded" and the new behavior was live within ~1s without
+        disconnecting a connected client; whereas adding a pack, or changing the activation list,
+        only took effect after a container restart.
     - url: https://learn.microsoft.com/en-us/minecraft/creator/commands/commands/reload
       where: page lead sentence, above the Permission Level table
       quote: |
@@ -344,13 +344,12 @@
     `send-command` helper that writes a command to the running server's console. It is driven
     non-interactively from `docker compose exec` — no attached TTY, no in-game client — and so
     works against a remote daemon, since exec travels over the Docker API like any other call.
-  backing: tested
+  backing: assumed
   sources:
     - description: |
-        Observed in the prototype by the author of the design formerly named
-        minecraft/dev-workflow, not by this fact's author, and outside this repository — there
-        are no artifacts to promote. It is the same run recorded by
-        bedrock-reload-updates-scripts-not-pool-or-manifest and
+        Observed in the prototype by the author of minecraft/dev-server, not by this fact's
+        author, and outside this repository — there are no artifacts to promote. It is the same
+        run recorded by bedrock-reload-updates-scripts-not-pool-or-manifest and
         compose-cp-copies-without-bind-mounts, whose daemon ran on another host: `send-command
         reload`, executed inside the running container with no interactive session attached,
         produced "Function and script files have been reloaded" on the server console.
@@ -360,16 +359,15 @@
     A Bedrock dedicated server hosts a single active world per instance, selected by the
     `level-name` server property; running multiple worlds means running multiple server
     instances. The deploy target for activation is therefore one unambiguous world directory.
-  backing: tested
+  backing: assumed
   sources:
     - description: |
-        Observed in the prototype by the author of the design formerly named
-        minecraft/dev-workflow, not by this fact's author, and outside this repository — there
-        are no artifacts to promote. The itzg/minecraft-bedrock-server container logged a single
-        active world at boot — "[INFO] Level Name: dev" and "Opening level 'worlds/dev/db'" — and
-        the world files (including world_behavior_packs.json) lived under
-        /data/worlds/<level-name>. One instance served one world; no configuration produced two
-        active worlds in one container. The in-repo probes at
+        Observed in the prototype by the author of minecraft/dev-server, not by this fact's
+        author, and outside this repository — there are no artifacts to promote. The
+        itzg/minecraft-bedrock-server container logged a single active world at boot — "[INFO]
+        Level Name: dev" and "Opening level 'worlds/dev/db'" — and the world files (including
+        world_behavior_packs.json) lived under /data/worlds/<level-name>. One instance served one
+        world; no configuration produced two active worlds in one container. The in-repo probes at
         design/minecraft/dev-server/artifacts/activation-list-probe/ and
         design/minecraft/artifacts/pack-layout/probe/ both address exactly one world directory,
         /data/worlds/dev, and corroborate the deploy target being unambiguous.

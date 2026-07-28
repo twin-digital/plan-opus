@@ -190,6 +190,10 @@ function checkEntry(kind, e, scope, file) {
 function checkSources(e, tag, backing) { // rule 7
   const srcs = e.sources ?? [];
   if (!srcs.length) { add("fact without a source", tag); return; }
+  // the backing demands one locator form as a floor; further sources may take any form
+  const FLOOR = { tested: "run", documented: "url", assumed: "description" };
+  const want = FLOOR[backing];
+  if (want && !srcs.some((s) => s[want] !== undefined)) add(`${backing} fact without a ${want} source`, tag);
   for (const s of srcs) {
     const hasUrl = s.url !== undefined, hasWhere = s.where !== undefined, hasDesc = s.description !== undefined;
     const hasRun = s.run !== undefined;
@@ -311,6 +315,8 @@ const ORDER = [
   "applies_to names an undeclared set", "applies_to names no such design",
   "applies_to reaches outside its tier",
   "fact without a source", "source has more than one locator", "source has no locator",
+  "tested fact without a run source", "documented fact without a url source",
+  "assumed fact without a description source",
   "run source unresolved", "source cites a retired run", "run without where",
   "run source on a non-tested fact", "run output not found", "run ran_at not a date",
   "bad run status", "retired run without reason", "superseded run without superseded_by",
@@ -332,11 +338,8 @@ for (const c of ORDER) {
   console.log(`${mark}  ${c}: ${fail[c]?.join("; ") ?? "—"}`);
 }
 
-// A tested fact whose evidence no run names: its quote is never verified against any output.
-const unnamed = Object.values(ent).filter((r) => r.kind === "f" && !isDead(r.e) && r.e.backing === "tested"
-  && !(r.e.sources ?? []).some((s) => s.run !== undefined));
 const runs = Object.values(ent).filter((r) => r.kind === "e").length;
-console.log(`\n${runs} runs; ${unnamed.length} tested facts rest on evidence no run names`);
+console.log(`\n${runs} runs`);
 
 const byTier = Object.values(ent).reduce((a, r) => (a[r.tier] = (a[r.tier] ?? 0) + 1, a), {});
 console.log(`\n${designs.length} designs: ${designs.map((d) => `${d.area}/${d.name}${d.state ? ` (${d.state})` : ""}`).join(", ")}`);
