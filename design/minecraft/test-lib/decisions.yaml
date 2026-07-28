@@ -263,18 +263,18 @@
 
 - id: generated-members-check-arity-before-the-guard
   statement: |
-    each generated member opens with an argument-count check against a per-member arity manifest the
-    generator derives from the declared signature, throwing the engine's TypeError before the
-    validity guard prologue runs, so a wrong-arity call on an invalidated reference reports arity
-    rather than invalidity
+    each generated member opens with a check that it received at least its declared required
+    parameter count, throwing the engine's TypeError before the validity guard prologue runs; no
+    maximum is checked and extra arguments pass through, because the engine's response to them is
+    unobserved
   status: accepted
   falsifiers:
-    - a version bump introduces an overloaded member, which one min/max range cannot describe, so
-      the widest-range fallback accepts a call the engine rejects on arity
-    - the engine's arity bounds turn out not to be the declared ones — a member accepting fewer
-      arguments at runtime than its signature requires, or more — so a manifest read off the
+    - the engine is observed rejecting extra arguments, so letting them through makes the fake
+      permissive on a real difference and a test passes where the engine would have thrown
+    - the engine's minimum turns out not to be the declared required-parameter count — a member
+      accepting fewer arguments at runtime than its signature requires — so a manifest read off the
       declarations rejects calls the engine allows
-    - the check costs more than it buys, no pack calling a member with the wrong argument count on
+    - the check costs more than it buys, no pack calling a member with too few arguments on
       purpose, so the branch sits in front of all 1010 members to serve a case tests do not write
 
 - id: fakes-are-generated-classes-with-guard-prologues

@@ -96,17 +96,28 @@ satisfied-and-checked [[f:server-classes-are-structurally-assignable]]
 costs nothing here, since the generator writes the members rather than inheriting them.
 
 Each generated member is an arity check, then a guard prologue, then a body. The arity check comes
-first because that is where the engine puts it: a wrong-arity call on a removed entity raises a
-`TypeError` and never reaches the validity guard [[f:arity-checked-before-validity-guard]]. The
-generator derives each member's bounds from its declared signature — the minimum is the count of
-required parameters, the maximum the count of all of them — and emits them as a per-member arity
-manifest. A call carrying fewer than the minimum or more than the maximum throws a `TypeError`
-reading `Incorrect number of arguments to function. Expected <n>, received <m>`, with the expected
-part written `<min>-<max>` when the two differ and as the single number when they do not, which is
-the engine's own wording: `addEffect` reports `Expected 2-3`, `addTag` reports `Expected 1`
-[[d:generated-members-check-arity-before-the-guard]]. The observation covers the too-few case only,
-since the sweep called every member with no arguments; the fake applies the same message and shape
-to a too-many call rather than inventing a second one.
+first because that is where the engine puts it: a call with too few arguments on a removed entity
+raises a `TypeError` and never reaches the validity guard [[f:arity-checked-before-validity-guard]].
+The generator emits a per-member arity manifest from the declared signature, and the check enforces
+**the minimum only** — a call carrying fewer arguments than the member has required parameters
+throws `Incorrect number of arguments to function. Expected <n>, received <m>`, where the expected
+part is written `<min>-<max>` when the two differ and as the single number when they do not, which
+is the engine's own wording: `addEffect` reports `Expected 2-3`, `addTag` reports `Expected 1`. The
+manifest therefore carries both bounds because the *message* names both, while only the lower one
+gates the call [[d:generated-members-check-arity-before-the-guard]].
+
+**No maximum is checked, and extra arguments pass through**, because nothing has ever observed the
+engine receiving too many. Every arity observation in the record is of too few: the reflective sweep
+called all 46 `Entity` methods with zero arguments, 19 reached the guard because zero was right for
+them, and 27 threw on arity; the follow-up then called those 27 with correct arguments and all 27
+reached the guard [[f:arity-checked-before-validity-guard]]
+[[f:invalidation-guard-covers-argument-taking-methods]]. Every observed line reads `received 0`.
+Native bindings commonly ignore extra arguments rather than rejecting them, so a fake that threw
+would risk being *stricter* than the engine — failing a test that real code passes, and inviting
+someone to change correct code to satisfy it. Inventing that rejection is what
+[[r:fakes-never-fabricate]] and [[r:engine-claims-are-sourced]] forbid. Where the engine's behaviour
+is unknown, permissive is the right direction to be wrong: it cannot fail a test that would pass
+against the engine.
 
 The guard prologue throws per the guard data
 for that class and member; the body either delegates to the hand-written behaviour for a modelled
@@ -119,14 +130,16 @@ engine's does*: a prologue inside a method body runs when the method is called a
 read, and it reads validity at that moment, so a reference captured while the entity was valid still
 throws when it eventually runs [[f:invalidation-guard-fires-at-call-not-access]].
 
-A single min/max range describes every member exactly, because **no class in the declarations
-carries an overloaded member**: a scan of all 438 declared classes and their 613 method signatures
-finds no name declared twice. `getComponent` is generic rather than overloaded — one parameter list
-with a type-map return — and `teleport` and `setDynamicProperties` are likewise single signatures.
-Should a version bump introduce an overload, the generator takes the widest range across the set,
-which is exact on neither bound: the fake would then accept a call the engine rejects on arity for
-that member. That is the shape of the failure rather than a present one, and it is what the
-decision's first falsifier watches for.
+Overloads need no special case today and little tomorrow. **No class in the declarations carries an
+overloaded member**: a scan of all 438 declared classes and their 613 method signatures finds no
+name declared twice, so every member has one required-parameter count and the minimum is exact.
+`getComponent` is generic rather than overloaded — one parameter list with a type-map return — and
+`teleport` and `setDynamicProperties` are likewise single signatures. Should a version bump
+introduce an overload, the generator takes the **narrowest required-parameter count across the set**,
+which rejects only calls that no overload could accept. The consequence is worth stating: a call
+that satisfies no individual overload but clears that narrowest minimum is accepted by the fake,
+where the engine may reject it. That errs permissive, in the same direction and for the same reason
+as leaving the maximum unchecked. Rest parameters need no handling at all once there is no maximum.
 
 There is no `Proxy` and no runtime interception anywhere in the library. That is what makes the
 fakes behave like ordinary objects under everything a test might do to them:
@@ -678,8 +691,8 @@ the remaining 27 methods, called with correct arguments on a removed entity, thr
 [[f:invalidation-guard-covers-argument-taking-methods]]. The engine checks argument count before its
 validity guard, so a wrong-arity call on a removed entity raises a `TypeError` first
 [[f:arity-checked-before-validity-guard]], and the fake reproduces that ordering: its arity check
-runs ahead of the guard prologue, so the same call reports arity rather than invalidity
-[[d:generated-members-check-arity-before-the-guard]].
+runs ahead of the guard prologue, so a call with too few arguments reports arity rather than
+invalidity [[d:generated-members-check-arity-before-the-guard]].
 
 Components and effects follow their owner, and not with a single error class
 [[f:attribute-guard-classes-observed]] [[f:effect-members-throw-plain-error]]:
@@ -707,8 +720,9 @@ read of a value the test never supplied. Both name the member they came from.
 Five rules govern a call or read with no value behind it, and they apply in this order. The order is the
 whole of it: a member matching an earlier rule never reaches a later one.
 
-1. **A wrong argument count throws `TypeError` first of all**, ahead of the guard, on a valid and
-   an invalidated reference alike [[d:generated-members-check-arity-before-the-guard]].
+1. **Too few arguments throw `TypeError` first of all**, ahead of the guard, on a valid and an
+   invalidated reference alike. Extra arguments are ignored rather than rejected
+   [[d:generated-members-check-arity-before-the-guard]].
 2. **The validity guard fires next.** On an invalidated reference every guarded member throws
    `InvalidEntityError` — or the plain `Error` its owner's table above gives — whatever the member
    would otherwise have done [[d:guard-list-comes-from-the-observation]].
@@ -802,7 +816,8 @@ not been considered, which is not the same as a promise about it.
 | `sendMessage` and `onScreenDisplay` output | modelled | captured to a per-target log rather than displayed, and read back with `getOutput` |
 | the invalidation guard on entities, attribute components and effects | modelled | the observed guard data, error class by error class, compiled into each member's prologue ahead of its body |
 | reading — not calling — a guarded method on an invalidated reference | modelled | the read returns a function and the throw lands on the call, and a reference captured while valid still throws when it runs, as observed |
-| argument count checked ahead of the validity guard | modelled | each member's arity check runs before its guard prologue, so a wrong-arity call on an invalidated entity reports `TypeError` rather than `InvalidEntityError`, as the engine does |
+| too few arguments checked ahead of the validity guard | modelled | each member's arity check runs before its guard prologue, so a call with too few arguments on an invalidated entity reports `TypeError` rather than `InvalidEntityError`, as the engine does |
+| extra arguments to a member | modelled | *with a caveat.* The fake ignores them. The engine has never been observed receiving too many — every arity observation is of too few — so no difference is claimed; if the engine rejects them, the fake is the more permissive of the two |
 | `in` on a declared but unmodelled member | modelled | the member is really on the prototype, so `'teleport' in entity` is `true` and an unknown name `false`, as the engine answers, valid or invalidated alike |
 | `Object.keys`, spread and `JSON.stringify` over an entity | modelled | `typeId` and `id` are own data properties and every other member sits on the prototype, so all three read the engine's two own enumerable properties |
 | `for-in` over an entity | modelled | the generator defines the prototype members `enumerable: true`, so `for-in` walks the engine's 62 while `Object.keys` still reads 2 |
