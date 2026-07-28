@@ -261,6 +261,22 @@
     - packs read displayName rarely enough that shipping and maintaining 37 strings costs more than
       the reads it answers
 
+- id: generated-members-check-arity-before-the-guard
+  statement: |
+    each generated member opens with an argument-count check against a per-member arity manifest the
+    generator derives from the declared signature, throwing the engine's TypeError before the
+    validity guard prologue runs, so a wrong-arity call on an invalidated reference reports arity
+    rather than invalidity
+  status: accepted
+  falsifiers:
+    - a version bump introduces an overloaded member, which one min/max range cannot describe, so
+      the widest-range fallback accepts a call the engine rejects on arity
+    - the engine's arity bounds turn out not to be the declared ones — a member accepting fewer
+      arguments at runtime than its signature requires, or more — so a manifest read off the
+      declarations rejects calls the engine allows
+    - the check costs more than it buys, no pack calling a member with the wrong argument count on
+      purpose, so the branch sits in front of all 1010 members to serve a case tests do not write
+
 - id: fakes-are-generated-classes-with-guard-prologues
   statement: |
     a build-time generator emits, from the pinned index.d.ts and the committed guard data, plain

@@ -95,7 +95,20 @@ satisfied-and-checked [[f:server-classes-are-structurally-assignable]]
 `extends` is refused outright because the engine's classes declare a `private constructor()` — which
 costs nothing here, since the generator writes the members rather than inheriting them.
 
-Each generated member is a guard prologue followed by a body. The prologue throws per the guard data
+Each generated member is an arity check, then a guard prologue, then a body. The arity check comes
+first because that is where the engine puts it: a wrong-arity call on a removed entity raises a
+`TypeError` and never reaches the validity guard [[f:arity-checked-before-validity-guard]]. The
+generator derives each member's bounds from its declared signature — the minimum is the count of
+required parameters, the maximum the count of all of them — and emits them as a per-member arity
+manifest. A call carrying fewer than the minimum or more than the maximum throws a `TypeError`
+reading `Incorrect number of arguments to function. Expected <n>, received <m>`, with the expected
+part written `<min>-<max>` when the two differ and as the single number when they do not, which is
+the engine's own wording: `addEffect` reports `Expected 2-3`, `addTag` reports `Expected 1`
+[[d:generated-members-check-arity-before-the-guard]]. The observation covers the too-few case only,
+since the sweep called every member with no arguments; the fake applies the same message and shape
+to a too-many call rather than inventing a second one.
+
+The guard prologue throws per the guard data
 for that class and member; the body either delegates to the hand-written behaviour for a modelled
 member, or throws `NotImplementedError` for one this cycle does not model — items, blocks,
 containers and the player client surface included [[d:out-of-scope-members-throw-not-implemented]]
@@ -105,6 +118,15 @@ point, and it runs before any modelled behaviour, which is the order the engine 
 engine's does*: a prologue inside a method body runs when the method is called and not when it is
 read, and it reads validity at that moment, so a reference captured while the entity was valid still
 throws when it eventually runs [[f:invalidation-guard-fires-at-call-not-access]].
+
+A single min/max range describes every member exactly, because **no class in the declarations
+carries an overloaded member**: a scan of all 438 declared classes and their 613 method signatures
+finds no name declared twice. `getComponent` is generic rather than overloaded — one parameter list
+with a type-map return — and `teleport` and `setDynamicProperties` are likewise single signatures.
+Should a version bump introduce an overload, the generator takes the widest range across the set,
+which is exact on neither bound: the fake would then accept a call the engine rejects on arity for
+that member. That is the shape of the failure rather than a present one, and it is what the
+decision's first falsifier watches for.
 
 There is no `Proxy` and no runtime interception anywhere in the library. That is what makes the
 fakes behave like ordinary objects under everything a test might do to them:
@@ -655,8 +677,9 @@ the remaining 27 methods, called with correct arguments on a removed entity, thr
 `InvalidEntityError` too — all 16 properties and all 46 methods accounted for
 [[f:invalidation-guard-covers-argument-taking-methods]]. The engine checks argument count before its
 validity guard, so a wrong-arity call on a removed entity raises a `TypeError` first
-[[f:arity-checked-before-validity-guard]]; the fake does not reproduce that ordering and throws
-`InvalidEntityError` regardless of how a guarded member was called.
+[[f:arity-checked-before-validity-guard]], and the fake reproduces that ordering: its arity check
+runs ahead of the guard prologue, so the same call reports arity rather than invalidity
+[[d:generated-members-check-arity-before-the-guard]].
 
 Components and effects follow their owner, and not with a single error class
 [[f:attribute-guard-classes-observed]] [[f:effect-members-throw-plain-error]]:
@@ -681,33 +704,35 @@ read of a value the test never supplied. Both name the member they came from.
 
 ### What a read that finds nothing does
 
-Four rules govern a read with no value behind it, and they apply in this order. The order is the
+Five rules govern a call or read with no value behind it, and they apply in this order. The order is the
 whole of it: a member matching an earlier rule never reaches a later one.
 
-1. **The validity guard fires first.** On an invalidated reference every guarded member throws
+1. **A wrong argument count throws `TypeError` first of all**, ahead of the guard, on a valid and
+   an invalidated reference alike [[d:generated-members-check-arity-before-the-guard]].
+2. **The validity guard fires next.** On an invalidated reference every guarded member throws
    `InvalidEntityError` — or the plain `Error` its owner's table above gives — whatever the member
    would otherwise have done [[d:guard-list-comes-from-the-observation]].
-2. **An out-of-scope member throws `NotImplementedError`.** A member this cycle does not model
+3. **An out-of-scope member throws `NotImplementedError`.** A member this cycle does not model
    never answers a read, however its declaration is typed
    [[d:out-of-scope-members-throw-not-implemented]].
-3. **A modelled member reading an absence the engine can exhibit returns `undefined`** — an
+4. **A modelled member reading an absence the engine can exhibit returns `undefined`** — an
    unattached component, an unset dynamic property, an unknown objective or participant
    [[d:absence-reads-as-undefined]].
-4. **A modelled member reading a value the test never supplied throws `UnsetValueError`**, because
+5. **A modelled member reading a value the test never supplied throws `UnsetValueError`**, because
    the engine could not have lacked it [[r:fakes-never-fabricate]].
 
-Rules 3 and 4 are told apart by the declaration's own type: a member declared `T | undefined` has an
+Rules 4 and 5 are told apart by the declaration's own type: a member declared `T | undefined` has an
 absence the engine itself can present, so the fake presents it; a member declared bare `T` has none,
 so an unsupplied read throws rather than inventing one. `Effect.displayName` is declared `string`,
 which is why a custom effect type with no registered base name throws rather than reading
-`undefined` [[d:custom-effect-display-name-is-supplied]] — rule 4 applied, not an exception to it.
-A vanilla type never reaches rule 4 at all: its name resolves from the shipped table, so there is no
-unsupplied value to read [[d:display-names-resolve-from-a-shipped-table]]. Rule 4 governs what a
+`undefined` [[d:custom-effect-display-name-is-supplied]] — rule 5 applied, not an exception to it.
+A vanilla type never reaches rule 5 at all: its name resolves from the shipped table, so there is no
+unsupplied value to read [[d:display-names-resolve-from-a-shipped-table]]. Rule 5 governs what a
 modelled member does when a value it needs was never supplied, and shipping the value is one way to
 make sure that never happens.
 
-Rules 1 and 2 are what rule 3 must not swallow. A member that is both out of scope and declared
-`T | undefined` — and the declarations carry many — takes rule 2 and throws. Returning `undefined`
+Rules 2 and 3 are what rule 4 must not swallow. A member that is both out of scope and declared
+`T | undefined` — and the declarations carry many — takes rule 3 and throws. Returning `undefined`
 there would be the library asserting the engine had nothing, on a member it never modelled
 [[r:fakes-never-fabricate]].
 
@@ -736,7 +761,7 @@ not been considered, which is not the same as a promise about it.
 | the other entity lookups — `getEntitiesAtBlockLocation`, `getEntitiesFromRay`, `getEntitiesFromViewDirection` and the rest | not modelled | |
 | `dimension.spawnEntity` placement | divergence | the entity lands exactly where asked; the engine adjusts some placements — a boat by 0.2 on x and z |
 | post-spawn motion | divergence | an entity never moves on its own; AI-driven mobs drift within a couple of dozen ticks |
-| `entity.remove()` | divergence | detaches from the registry and invalidates the reference as one act, and raises `entityRemove` alone; any further event the engine attributes to removal is not reproduced |
+| `entity.remove()` | modelled | raises the `entityRemove` before-event, then detaches from the registry and invalidates the reference as one act, then raises the after-event — the engine's own cascade, which raises no death event either |
 | `entity.triggerEvent` | divergence | validates the prefixed id and records the call, changing no state; in the engine the event reshapes the entity |
 | `entity.kill()` | modelled | the full cascade, on an entity with and without a health component |
 | invalidation of a corpse after `kill()` | not modelled | `kill()` leaves the reference valid; in the engine a corpse stays valid for several ticks and when it turns invalid varies by type, so a test says so with `invalidate()`. Distinct from `remove()`, which invalidates at once |
@@ -777,7 +802,7 @@ not been considered, which is not the same as a promise about it.
 | `sendMessage` and `onScreenDisplay` output | modelled | captured to a per-target log rather than displayed, and read back with `getOutput` |
 | the invalidation guard on entities, attribute components and effects | modelled | the observed guard data, error class by error class, compiled into each member's prologue ahead of its body |
 | reading — not calling — a guarded method on an invalidated reference | modelled | the read returns a function and the throw lands on the call, and a reference captured while valid still throws when it runs, as observed |
-| arity checked ahead of the validity guard | divergence | a guarded member throws `InvalidEntityError` however it was called; the engine raises a `TypeError` on a wrong-arity call first |
+| argument count checked ahead of the validity guard | modelled | each member's arity check runs before its guard prologue, so a wrong-arity call on an invalidated entity reports `TypeError` rather than `InvalidEntityError`, as the engine does |
 | `in` on a declared but unmodelled member | modelled | the member is really on the prototype, so `'teleport' in entity` is `true` and an unknown name `false`, as the engine answers, valid or invalidated alike |
 | `Object.keys`, spread and `JSON.stringify` over an entity | modelled | `typeId` and `id` are own data properties and every other member sits on the prototype, so all three read the engine's two own enumerable properties |
 | `for-in` over an entity | modelled | the generator defines the prototype members `enumerable: true`, so `for-in` walks the engine's 62 while `Object.keys` still reads 2 |
@@ -822,8 +847,9 @@ components:
   - id: surface-codegen
     responsibility: >-
       the Node generator that reads the pinned index.d.ts and the guard data and emits a class per
-      faked type implementing its declared interface, each member a guard prologue over a
-      delegation or a NotImplementedError throw, laid out by the emission rule — own data
+      faked type implementing its declared interface, each member an arity check over a guard
+      prologue over a delegation or a NotImplementedError throw, the per-member arity manifest it
+      derives from the declared signatures, laid out by the emission rule — own data
       properties for typeId and id, everything else on the prototype, defined enumerable; the
       committed per-class manifests; and the prebuild wiring that makes a fresh clone typecheck
     excludes: any behaving member, and the guard data itself
