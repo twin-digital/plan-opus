@@ -1,23 +1,24 @@
-# Requirements scoped to the minecraft/build-kit design. Every entry is DRAFTED from a design
+# Requirements scoped to the minecraft/pack-build design. Every entry is DRAFTED from a design
 # conversation for the owner to accept, amend, or reject — none has been ratified.
 #
 # rationale is omitted unless the statement's intent is genuinely non-obvious.
 
-# Where the build lives
+# Where the build lives, and what it is
 
 - id: build-ships-in-the-kit-package
   statement: |
     the build capability ships in the same distributable as minecraft/dev-kit — one package, two
     designs. Nothing here is published, versioned, or installed separately from the kit.
 
-- id: build-is-a-generated-bundler-config
+- id: build-is-an-exported-bundler-config
   statement: |
-    what this design produces is a configuration fragment for the repository's canonical bundler,
-    exported by the kit's package, plus a repo-kit feature that writes the per-package config
-    snippet into a package that depends on the kit. It ships no command of its own and embeds no
-    bundler: the repository's existing `build` and `watch` scripts detect the generated config and
-    run the bundler unchanged, and ordering across packages and caching stay the workspace task
-    runner's.
+    what this design produces is a tsdown configuration fragment, exported for a consuming package
+    to merge into its own config. It ships no command of its own and embeds no bundler.
+
+- id: the-exported-config-is-documented
+  statement: |
+    the exported fragment carries documentation of what a consumer merges and what merging it
+    produces.
 
 # What a build produces
 
@@ -37,7 +38,7 @@
     the output tree holds what the current source declares and nothing else: a file deleted or
     renamed in source is gone from the output after the next build, with no clean step first.
   rationale: |
-    Otherwise a deleted file survives in the output and ships in the release archive.
+    Otherwise a deleted file survives in the output and ships in whatever is cut from that tree.
 
 - id: rebuild-triggers-are-declared-not-inferred
   statement: |
@@ -46,14 +47,8 @@
     change rebundles; a change to a manifest input alone brings the output's manifests up to date
     without rebundling.
 
-- id: built-packs-come-only-from-this-build
+- id: the-package-version-is-the-pack-version
   statement: |
-    every route to a built pack — a package's `build` script, a watch rebuild, and a
-    continuous-integration run — produces it this way. No built output is assembled any other way.
-  rationale: |
-    Manifest completion can then never be skipped, since there is no second path around it.
-
-- id: release-is-a-version-bump-and-a-build
-  statement: |
-    releasing a package is raising its `package.json` version, building, and archiving the built
-    output. No version is recorded anywhere else and no separate release manifest is maintained.
+    a pack's version comes from its `package.json` and nowhere else — raising that version and
+    building is what produces a new version of the pack. No separate release manifest is
+    maintained.
