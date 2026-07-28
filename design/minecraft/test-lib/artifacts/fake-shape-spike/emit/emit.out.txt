@@ -1,0 +1,18 @@
+## Declaration emit of a merged interface/class
+
+$ npx tsc --declaration --emitDeclarationOnly --outDir emit/dist --strict ... emit/lib.ts
+exit 0, no diagnostics
+
+emitted emit/dist/lib.d.ts:
+
+import type { Entity } from '@minecraft/server';
+export interface FakeEntity extends Entity {
+}
+export declare class FakeEntity {
+    readonly typeId: string;
+    constructor(typeId: string);
+    kill(): boolean;
+}
+export declare function createEntity(typeId: string): Entity;
+
+@minecraft/server 2.8.0

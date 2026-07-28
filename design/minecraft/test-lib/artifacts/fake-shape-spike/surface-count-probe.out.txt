@@ -1,0 +1,69 @@
+# Declared member surface, @minecraft/server 2.8.0 (TypeScript checker, inherited members included)
+
+typescript 5.9.3
+exported classes in index.d.ts: 439
+
+## Core classes the library fakes
+
+| class | properties | methods | total | private ctor | abstract | extends |
+|---|---|---|---|---|---|---|
+| Entity | 16 | 46 | 62 | true | false |  |
+| Player | 34 | 68 | 102 | true | false | Entity |
+| World | 9 | 27 | 36 | true | false |  |
+| Dimension | 3 | 28 | 31 | true | false |  |
+| Effect | 5 | 0 | 5 | true | false |  |
+| EffectType | 0 | 1 | 1 | true | false |  |
+| System | 5 | 8 | 13 | true | false |  |
+| Scoreboard | 0 | 8 | 8 | true | false |  |
+| ScoreboardObjective | 3 | 7 | 10 | true | false |  |
+| ScoreboardIdentity | 4 | 1 | 5 | true | false |  |
+| ScreenDisplay | 1 | 8 | 9 | true | false |  |
+| WorldAfterEvents | 55 | 0 | 55 | true | false |  |
+| WorldBeforeEvents | 13 | 0 | 13 | true | false |  |
+| SystemAfterEvents | 1 | 0 | 1 | true | false |  |
+
+core subtotal: 351
+
+## Entity, member by member
+
+properties (16): dimension, id, isClimbing, isFalling, isInWater, isOnGround, isSleeping, isSneaking, isSprinting, isSwimming, isValid, localizationKey, location, nameTag, scoreboardIdentity, typeId
+
+methods (46): addEffect, addItem, addTag, applyDamage, applyImpulse, applyKnockback, clearDynamicProperties, clearVelocity, extinguishFire, getAABB, getAllBlocksStandingOn, getBlockFromViewDirection, getBlockStandingOn, getComponent, getComponents, getDynamicProperty, getDynamicPropertyIds, getDynamicPropertyTotalByteCount, getEffect, getEffects, getEntitiesFromViewDirection, getHeadLocation, getProperty, getRotation, getTags, getVelocity, getViewDirection, hasComponent, hasTag, kill, lookAt, matches, playAnimation, remove, removeEffect, removeTag, resetProperty, runCommand, setDynamicProperties, setDynamicProperty, setOnFire, setProperty, setRotation, teleport, triggerEvent, tryTeleport
+
+Player adds over Entity: 40
+
+## Entity component classes
+
+EntityComponent: 3 members (entity, isValid, typeId)
+EntityAttributeComponent: 11 members (currentValue, defaultValue, effectiveMax, effectiveMin, entity, isValid, typeId, resetToDefaultValue, resetToMaxValue, resetToMinValue, setCurrentValue)
+concrete Entity*Component classes: 69
+their declared members, inherited included: 507
+their members beyond EntityComponent's 3: 300
+
+EntityAddRiderComponent=5 EntityAgeableComponent=8 EntityBaseMovementComponent=4 EntityBreathableComponent=13 EntityCanClimbComponent=3 EntityCanFlyComponent=3 EntityCanPowerJumpComponent=3 EntityColor2Component=4 EntityColorComponent=4 EntityEnderInventoryComponent=4 EntityEquippableComponent=8 EntityExhaustionComponent=11 EntityFireImmuneComponent=3 EntityFloatsInLiquidComponent=3 EntityFlyingSpeedComponent=4 EntityFrictionModifierComponent=4 EntityHealableComponent=5 EntityHealthComponent=11 EntityHungerComponent=11 EntityInventoryComponent=10 EntityIsBabyComponent=3 EntityIsChargedComponent=3 EntityIsChestedComponent=3 EntityIsDyeableComponent=3 EntityIsHiddenWhenInvisibleComponent=3 EntityIsIgnitedComponent=3 EntityIsIllagerCaptainComponent=3 EntityIsSaddledComponent=3 EntityIsShakingComponent=3 EntityIsShearedComponent=3 EntityIsStackableComponent=3 EntityIsStunnedComponent=3 EntityIsTamedComponent=3 EntityItemComponent=4 EntityLavaMovementComponent=11 EntityLeashableComponent=12 EntityMarkVariantComponent=4 EntityMovementAmphibiousComponent=4 EntityMovementBasicComponent=4 EntityMovementComponent=11 EntityMovementFlyComponent=4 EntityMovementGenericComponent=4 EntityMovementGlideComponent=6 EntityMovementHoverComponent=4 EntityMovementJumpComponent=4 EntityMovementSkipComponent=4 EntityMovementSwayComponent=6 EntityNavigationClimbComponent=22 EntityNavigationComponent=22 EntityNavigationFloatComponent=22 EntityNavigationFlyComponent=22 EntityNavigationGenericComponent=22 EntityNavigationHoverComponent=22 EntityNavigationWalkComponent=22 EntityOnFireComponent=4 EntityProjectileComponent=18 EntityPushThroughComponent=4 EntityRideableComponent=16 EntityRidingComponent=4 EntitySaturationComponent=11 EntityScaleComponent=4 EntitySkinIdComponent=4 EntityStrengthComponent=5 EntityTameableComponent=9 EntityTameMountComponent=9 EntityTypeFamilyComponent=5 EntityUnderwaterMovementComponent=11 EntityVariantComponent=4 EntityWantsJockeyComponent=3
+
+## Event signal classes
+
+world.afterEvents: 55 signal classes, 110 declared members in total
+world.beforeEvents: 13 signal classes, 26 declared members in total
+system.afterEvents: 1 signal classes, 2 declared members in total
+
+## Registry classes (static side)
+
+BiomeTypes: 2 static members (get, getAll)
+BlockStates: 2 static members (get, getAll)
+BlockTypes: 2 static members (get, getAll)
+DimensionTypes: 2 static members (get, getAll)
+EffectTypes: 2 static members (get, getAll)
+EnchantmentTypes: 2 static members (get, getAll)
+EntityTypes: 2 static members (get, getAll)
+ItemTypes: 2 static members (get, getAll)
+registry subtotal: 16
+
+## Grand total
+
+154 classes, 1010 declared instance members
+
+## Payload interfaces (event payloads are interfaces/classes a fake constructs, not declares)
+
+classes named *AfterEvent / *BeforeEvent: 70

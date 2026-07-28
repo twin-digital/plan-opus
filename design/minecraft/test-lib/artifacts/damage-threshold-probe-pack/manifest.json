@@ -1,0 +1,25 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "mc-test-lib damage-threshold probes",
+    "description": "In-engine probes for four unobserved rulings: applyDamage on an entity with no health component, the killing-hit boundary at effectiveMin, what the engine does when an after-event handler throws mid-cascade, and what a before-event cancellation returns and whether a handler's write to the mutable damage/duration fields takes. Run /mctest4:nohealth, /mctest4:threshold, /mctest4:handlers and /mctest4:beforeevents (or the /scriptevent equivalents) and copy the [mctest] lines from chat or the content log.",
+    "uuid": "37965a8f-ab62-4107-b040-d7c7e0587ed4",
+    "version": [0, 1, 0],
+    "min_engine_version": [1, 26, 0]
+  },
+  "modules": [
+    {
+      "type": "script",
+      "language": "javascript",
+      "entry": "scripts/main.js",
+      "uuid": "b8199988-c9e2-44a6-802d-65ac00e084a8",
+      "version": [0, 1, 0]
+    }
+  ],
+  "dependencies": [
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.8.0"
+    }
+  ]
+}

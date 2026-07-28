@@ -1,0 +1,134 @@
+# Proxy runtime probe — @minecraft/server has no runtime, so these shapes stand in for the fakes
+
+node v24.16.0
+
+## 0. Receiver forwarding: the trap that eats a proxied fake's own state
+
+WeakMap state, Reflect.get(t, k, receiver) -> threw TypeError: Cannot read properties of undefined (reading 'typeId')
+WeakMap state, Reflect.get(t, k, target) -> returned "minecraft:sheep"
+#private field, Reflect.get(t, k, receiver) -> threw TypeError: Cannot read private member #typeId from an object whose class did not declare it
+#private field, Reflect.get(t, k, target) -> returned "minecraft:cow"
+so every proxied fake forwards to the target, not the receiver — and a subclass that
+overrides a getter the base calls through `this` will not be reached. Worth knowing before
+FakePlayer subclasses FakeEntity.
+
+## 1. Trap A (guard at access), on a valid entity
+
+e.typeId -> returned "minecraft:sheep"
+e.getTags() -> threw TypeError: Cannot read properties of undefined (reading 'tags')
+e.kill (accessed, not called) -> returned function
+e.location (declared, unmodelled property) -> threw NotImplementedError: Entity.location is declared but not modelled by this library.
+e.teleport (declared, unmodelled method, accessed) -> threw NotImplementedError: Entity.teleport is declared but not modelled by this library.
+e.teleport({x:0,y:0,z:0}) (called) -> threw NotImplementedError: Entity.teleport is declared but not modelled by this library.
+
+## 2. Trap A, after invalidation of a reference the test already holds
+
+the test holds `held` from before the transition; the same object is guarded after it
+held.id -> returned "1"
+held.isValid -> returned false
+held.typeId -> returned "minecraft:sheep"
+held.scoreboardIdentity -> returned undefined
+held.nameTag -> threw InvalidEntityError: Failed to call function or property on an invalid entity.
+held.getTags() -> threw InvalidEntityError: Failed to call function or property on an invalid entity.
+held.kill (accessed, NOT called) -> threw InvalidEntityError: Failed to call function or property on an invalid entity.
+  ^ the engine does not throw here: the guard is on the call, not the property read
+
+## 3. Trap B (guard at call for methods), same transition
+
+valid: e.getTags() -> returned ["friendly"]
+valid: e.kill accessed -> returned function
+valid: e.location (unmodelled property) -> threw NotImplementedError: Entity.location is declared but not modelled by this library.
+valid: e.teleport accessed (unmodelled method) -> returned function
+valid: e.teleport(...) called -> threw NotImplementedError: Entity.teleport is declared but not modelled by this library.
+invalid: e.id -> returned "1"
+invalid: e.nameTag -> threw InvalidEntityError: Failed to call function or property on an invalid entity.
+invalid: e.kill accessed -> returned function
+invalid: e.kill() called -> threw InvalidEntityError: Failed to call function or property on an invalid entity.
+invalid: e.teleport(...) called -> threw InvalidEntityError: Failed to call function or property on an invalid entity.
+
+## 4. Arity: the engine checks argument count before the validity guard
+
+modelled members carry a real arity through the thunk:
+  e.applyDamage.length = 2 (engine expects 1-2)
+  e.kill.length = 0
+invalid: e.applyDamage() with no arguments -> threw InvalidEntityError: Failed to call function or property on an invalid entity.
+  ^ the engine raises TypeError "Incorrect number of arguments to function." first
+unmodelled members have no implementation to take an arity from:
+  f.teleport.length = 0 (engine expects 1-2)
+so reproducing the arity-first ordering needs a per-member arity manifest under every option
+
+## 5. A method captured before the transition
+
+kill() — captured while valid, called while invalid (trap B) -> threw InvalidEntityError: Failed to call function or property on an invalid entity.
+kill2() — captured while valid, called while invalid (trap A) -> threw TypeError: Cannot set properties of undefined (setting 'dead')
+  ^ trap A captured the raw method at access time, so the guard never runs
+
+## 6. Internal reads on an invalidated fake
+
+library reads through the proxy: e.nameTag -> threw InvalidEntityError: Failed to call function or property on an invalid entity.
+library reads the state record directly: nameTag="Dolly" health=3 tags=["friendly"]
+cost: library code addresses the record, not the fake — a second vocabulary for the same data
+
+## 7. The non-uniform attribute-component guard, as a table
+
+valid: c.currentValue -> returned 8
+invalid: c.isValid -> returned false
+invalid: c.typeId -> returned "minecraft:health"
+invalid: c.currentValue -> threw Error: Failed to get property 'current'.
+invalid: c.effectiveMin -> threw Error: Failed to get property 'effectiveMinValue'.
+invalid: c.resetToMaxValue() -> threw Error: Failed to call function 'resetToMaxValue'.
+invalid: c.setCurrentValue(1) -> threw InvalidEntityError: Failed to call function or property on an invalid entity.
+invalid: c.entity -> threw InvalidEntityError: Failed to call function or property on an invalid entity.
+the table is 11 rows and covers every attribute member
+
+## 8. What the proxy does to the ordinary JS a test or a pack might run
+
+'kill' in e -> returned true
+'teleport' in e (declared, unmodelled) -> returned false
+Object.keys(e) -> returned []
+e instanceof FakeEntity -> returned true
+typeof e -> returned "object"
+JSON.stringify(e) -> returned "{}"
+{...e} (spread) -> returned []
+String(e) -> returned "[object Object]"
+e === e -> returned true
+a Set keyed by the proxy finds it again -> returned true
+
+## 9. Proxy invariants: a frozen or sealed target defeats the trap
+
+get trap over a frozen target with a non-configurable own property -> threw TypeError: 'get' on proxy: property 'id' is a read-only and non-configurable data property on the proxy target but the proxy did not return its actual value (expected '1' but got 'from the trap')
+get trap that throws, over a non-configurable non-writable own property -> threw Error: guard
+a class instance with accessor-based state stays configurable, so the traps above are safe;
+a fake built from Object.freeze or from own data properties defined non-configurably is not
+
+## 10. Plain-object target versus class-instance target
+
+plain object: p instanceof FakeEntity -> returned false
+plain object: p.typeId -> returned "minecraft:sheep"
+plain object: Object.keys(p) -> returned ["id","typeId"]
+class instance: q instanceof FakeEntity -> returned true
+class instance: Object.keys(q) -> returned []
+a class instance keeps its members on the prototype, so Object.keys reads empty either way;
+only the class-instance target answers instanceof, and only it can carry accessor getters
+
+## 11. No proxy at all: generated stubs installed on the prototype
+
+valid: e.getTags() -> returned ["friendly"]
+valid: e.location -> threw NotImplementedError: Entity.location is declared but not modelled by this library.
+valid: e.teleport accessed -> returned function
+valid: e.teleport(...) called -> threw NotImplementedError: Entity.teleport is declared but not modelled by this library.
+e instanceof FakeEntity -> returned true
+invalid: e.id -> returned "1"
+invalid: e.typeId -> returned "minecraft:sheep"
+invalid: e.nameTag -> threw InvalidEntityError: Failed to call function or property on an invalid entity.
+invalid: e.kill accessed -> returned function
+invalid: e.kill() called -> threw InvalidEntityError: Failed to call function or property on an invalid entity.
+invalid: e.location -> threw InvalidEntityError: Failed to call function or property on an invalid entity.
+this needs no Proxy and no cast, but every member has to be installed — from a manifest
+or by hand — and the guard has to be wrapped around each modelled member individually
+
+## 12. Composing two behaviours on one member
+
+decorator order: guard -> write 5 -> cascade
+the proxy is the outermost decorator by construction, which is the order the engine has:
+the validity guard runs before any modelled behaviour

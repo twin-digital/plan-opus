@@ -1,0 +1,10 @@
+## Whole-folder run (tsconfig.json)
+
+$ npx tsc --noEmit
+exit 0, no diagnostics
+
+augmentation-probe.ts is excluded from this run: a module augmentation is program-wide,
+and its widening of `keyof Entity` breaks consumer-typing-probe.ts's completeness
+assertions. That interaction is the probe's finding, not an accident of layout.
+
+@minecraft/server 2.8.0
