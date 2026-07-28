@@ -226,6 +226,30 @@
     - a consumer has to branch on which part of the manifest was misshapen
     - a manifest the server loads happily is rejected by the shape check
 
+- id: modules-uuid-and-version-are-unmodelled
+  statement: |
+    `ManifestModule` declares only `type`; a module's `uuid` and `version` reach the consumer
+    through the index signature as `unknown`
+  status: rejected
+
+- id: field-type-faults-reuse-the-shape-code
+  statement: |
+    a source value whose type contradicts what `PackManifest` declares is reported as
+    `manifest-shape-invalid`, the code a misshapen container raises, rather than as a new code
+  status: tolerated
+  falsifiers:
+    - a consumer has to branch on whether a container or a scalar was misshapen, so the single code forces it to parse `field`
+    - a form fault arises at a position the dotted `field` path cannot name
+
+- id: a-form-fault-suppresses-the-checks-that-read-it
+  statement: |
+    a field whose form is faulted reports that fault alone: every check and completion reading that
+    field is skipped, as with a misshapen container
+  status: tolerated
+  falsifiers:
+    - a real manifest is found where the suppressed check named the fault a user had to see and the form fault did not
+    - the suppression table grows past what a builder holds while implementing one check
+
 - id: an-ambiguous-dependency-entry-is-a-problem
   statement: |
     a `dependencies` entry carrying both `uuid` and `module_name`, or neither, is
