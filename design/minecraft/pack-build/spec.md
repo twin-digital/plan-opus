@@ -14,6 +14,25 @@ half is that it has no invocation of its own: a package's bundler configuration 
 assembled from merged partial fragments, so everything a build does has to travel inside that
 configuration — as values a fragment sets, and as a plugin the bundler runs.
 
+## Open questions
+
+```yaml
+questions:
+  - id: how-far-the-declared-watch-set-reaches
+    question: |
+      `r:rebuild-triggers-are-declared-not-inferred` says a rebuild is triggered by a change to any
+      input a build reads. The declared list below covers the inputs of this package's own build.
+      Through the kit the build also reads the workspace's `pnpm-workspace.yaml`, whose `packages`
+      list decides the candidate set; every other pack's source `manifest.json`, which is what maps
+      a dependency uuid to the package whose version completes it; and every workspace member's
+      `package.json`, which enumeration parses. A sibling pack's uuid corrected to satisfy this
+      pack's dependency flips this pack from invalid to valid, and nothing rebuilds. Does the
+      requirement reach those files, so the declared set is workspace-wide, or does it mean the
+      inputs of this package's own build, which is what is declared today?
+    closes: requirement
+    gates: [the-build-reads-the-kit-pack-set, the-workspace-root-is-the-nearest-pnpm-workspace-file]
+```
+
 ## What a pack package takes up
 
 Both halves ship in `@twin-digital/mc-dev-kit`, the package the dev kit publishes
@@ -64,6 +83,12 @@ own and cannot see move — stays out of its interface.
 - `plugins` — a single Rolldown plugin named `mc-pack-build`, which performs everything below the
   bundler does not do itself
 
+Those four keys are the package's build: each replaces the base's wholesale
+[[f:opus-bundler-config-merges-partial-fragments]], and the prune below owns everything in
+`<package>/dist/`. So a package that takes up the export builds its packs and nothing else — a
+library built from the same package would have its entry displaced and its output deleted
+[[d:the-export-takes-over-the-packages-build]].
+
 `noExternal` is deliberately absent from that list, so the fragment inherits the shared base's
 `noExternal: () => true` [[f:opus-bundler-base-forces-every-import-bundled]]. That is what makes
 the external set this design's own rather than an upstream default's: tsdown otherwise leaves an
@@ -94,8 +119,8 @@ symbol to hang TSDoc on, so the README section is the whole of its documentation
 
 ## What the build works from
 
-At `buildStart` the plugin reads `<package>/package.json` for the package's name, walks up from the
-package directory to the nearest ancestor holding a `pnpm-workspace.yaml`, and calls the kit's
+At `buildStart` the plugin walks up from the package directory to the nearest ancestor holding a
+`pnpm-workspace.yaml`, and calls the kit's
 `discoverPacks({ workspace: <that ancestor> })`. That one file is the whole test: it is what defines
 a pnpm workspace's root [[f:pnpm-workspace-packages-is-an-include-exclude-glob-list]], and a package
 directory with no such ancestor fails the build naming the directory the walk started from. A
@@ -103,8 +128,13 @@ directory with no such ancestor fails the build naming the directory the walk st
 is not the shape this ships into, and a second marker with no case behind it is a second thing to be
 wrong [[d:the-workspace-root-is-the-nearest-pnpm-workspace-file]]. The call passes no filter, so what comes back is
 every pack in the workspace [[f:dev-kit-discovery-returns-the-whole-workspace-set-unfiltered]]; the
-plugin selects this package's packs from it in memory, by the owning package name each entry
-carries. One unfiltered call rather than a filtered one because the build needs the rest of the set
+plugin selects this package's packs from it in memory, matching each entry's `packageDir` against
+`packageDir` made relative to the workspace root. The match is on the directory rather than on the
+owning package name, which the entry also carries, because a package declaring no `name` is reported
+under its directory basename with that omission among its problems
+[[f:dev-kit-pack-entry-paths-are-workspace-relative]]: a name match would find nothing there and
+fail with "no pack in this package", hiding the fault the kit had already found. One unfiltered call
+rather than a filtered one because the build needs the rest of the set
 too — it is what maps a manifest's dependency uuids to the packages whose versions complete them
 (below), and reading the workspace twice per rebuild is a cost felt in a watch loop
 [[d:the-build-reads-the-kit-pack-set]]. Each entry carries the pack's kind, its source location, its
@@ -179,6 +209,14 @@ naming both — a pack with script sources nothing loads is a mistake worth repo
 sources still builds and still writes: its script is the empty module the virtual entry loads
 [[d:a-script-less-package-builds-through-a-virtual-entry]].
 
+Which of the two entries the build has was settled when the configuration was evaluated, and a watch
+session evaluates it once. So a `behavior_pack/scripts/main.ts` created mid-session triggers a
+rebuild — the pack source directory is watched — and that rebuild still runs on the virtual entry,
+writing the empty script over sources that now exist. The plugin holds both halves at `buildStart`,
+the entry it was configured with and whether that file is on disk, so it fails there naming the file
+and saying the build must be restarted, rather than shipping an empty script with nothing reporting
+why [[d:a-stale-virtual-entry-fails-the-build]].
+
 The bundler has one entry and writes it whatever the packs turn out to say, so those cases — and a
 package holding only a resource pack — get `main.js` written into
 `<package>/dist/behavior_pack/scripts/` anyway. The plugin does not record it among the files the
@@ -188,8 +226,8 @@ bundler's files are already on disk when `writeBundle` runs and nothing rewrites
 [[f:a-file-the-bundler-wrote-can-be-deleted-from-writebundle]].
 
 The script is ESM, unminified, with no `.d.ts` and no sourcemap; a chunk the bundler splits out is
-written beside the entry in the same directory, under the bundler's own hashed name and its `.mjs`
-extension, which nothing here renames because no manifest names it
+written beside the entry in the same directory, under whatever name the bundler gives it, which
+nothing here renames because no manifest names it — only the entry's name is fixed
 [[d:the-bundle-is-one-unminified-esm-chunk]] [[f:tsdown-entry-chunk-name-comes-from-entryfilenames]].
 Sourcemaps and declarations are the bundler's own emit again now that the bundler does the writing,
 so turning sourcemaps on is the `sourcemap` key and nothing else: the map arrives as its own entry in
@@ -203,7 +241,8 @@ and the assets, and stays authoritative over the tree the bundler wrote into
 [[r:assembly-is-authoritative-over-the-output-tree]]
 [[d:the-bundler-writes-its-chunks-and-the-plugin-writes-the-rest]]. What makes that authority hold
 across two writers is that the bundle object names every file the bundler wrote, entry chunk, split
-chunk and sourcemap alike, and the plugin reads that list in `writeBundle` before it prunes
+chunk and sourcemap alike, so the plugin reads those names in `writeBundle` rather than predicting
+what the bundler's naming options produce, and prunes with them in hand
 [[f:the-bundle-object-names-every-file-the-bundler-writes]]. `clean` stays `false` for the same
 reason the prune exists: `clean` empties the whole output directory before the first plugin hook
 runs [[f:tsdown-clean-empties-the-whole-output-directory-before-buildstart]], which on this `outDir`
@@ -305,6 +344,9 @@ on each of [[r:rebuild-triggers-are-declared-not-inferred]]:
   manifest this build writes changes when that file does, and a build that reads it is a build it
   triggers. The workspace set already read at `buildStart` is what maps each dependency uuid to the
   package directory that owns it
+
+That list is the inputs of this package's own build. The workspace-wide files the kit reads on the
+build's behalf are not in it, and whether they belong there is the open question above.
 
 A change to any of them triggers a rebuild, and a rebuild is the whole build: the pack set is read
 again, the module graph is bundled again, and every file the plugin places is written again through

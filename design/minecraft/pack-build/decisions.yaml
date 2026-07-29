@@ -254,3 +254,22 @@
   falsifiers:
     - the usage instructions outgrow a README section
     - the monorepo generates package READMEs, so a hand-written section there does not survive
+
+- id: a-stale-virtual-entry-fails-the-build
+  statement: |
+    a build configured with the virtual entry fails at `buildStart` when
+    `<package>/behavior_pack/scripts/main.ts` is on disk, rather than writing the empty script over
+    sources the configuration was evaluated too early to see
+  status: proposed
+  falsifiers:
+    - a watch session re-evaluates the bundler configuration when a package's files change, so the configured entry can never be stale
+    - the export gains a way to choose its entry per build, so the two cases stop being fixed at config time
+
+- id: the-export-takes-over-the-packages-build
+  statement: |
+    a package taking up the export gives it the whole of its tsdown configuration and the whole of
+    its `dist/`, so a pack package builds its packs and nothing else
+  status: proposed
+  falsifiers:
+    - a pack package needs to publish a library, or any second artifact, out of the same package
+    - the monorepo's tooling puts something of its own in a package's `dist/`, which the prune would delete

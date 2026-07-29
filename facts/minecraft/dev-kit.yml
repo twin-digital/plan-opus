@@ -134,7 +134,9 @@
     rejoin them to that workspace root before opening or writing anything they name. Those
     locations, and the pack's kind, come from the sources rather than from the manifest, so an entry
     the kit reports invalid carries them just as a valid one does — they are what names and locates
-    a pack whose manifest could not be read.
+    a pack whose manifest could not be read. The owning package's name is carried too, but it falls
+    back to the package directory's basename where the `package.json` declares none, so the
+    directory is the identifier that is always the package's own and the name is not.
   backing: documented
   sources:
     - url: design/minecraft/dev-kit/requirements.yaml

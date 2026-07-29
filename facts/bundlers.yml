@@ -134,6 +134,11 @@
     manifest naming the file it loads — gets that name from the configuration rather than from a
     plugin writing the chunk itself.
   backing: tested
+  caveat: |
+    The split chunk's name is what the probe's fixture produced, and the fixture set no naming
+    options beyond `entryFileNames`: a configuration that disables hashing or sets `chunkFileNames`
+    names that chunk differently. What the observation settles is that `entryFileNames` governs the
+    entry and not the chunks split out of it, not what any particular split chunk ends up called.
   sources:
     - run: tsdown-entry-name-probe
       where: the default case and the `entryFileNames` case — what was written into outDir
