@@ -18,10 +18,11 @@ runs [[f:server-import-fails-without-an-alias]]. `@minecraft/vanilla-data`, the 
 family that does ship runtime JavaScript, exports 12 id-constant namespaces and no API enum, so it
 does not close that gap [[f:vanilla-data-ships-no-api-enums]]. Second, most packs reach the engine
 through the module-scope `world` and `system` rather than through an injected parameter, so even a
-loadable module has nothing to be driven by. The test library deliberately does not answer either:
-it substitutes objects and does not intercept the module import
-[[f:test-lib-supplies-the-module-surface-and-the-runner-tooling]], which is precisely why the shim is a separate
-deliverable owned here.
+loadable module has nothing to be driven by. Neither gap is closed by fakes alone: an injected fake
+reaches only a pack written to take one as a parameter. Closing both is what this design specifies,
+and its product ships inside `@twin-digital/minecraft-test-lib`
+[[f:test-lib-supplies-the-module-surface-and-the-runner-tooling]] — a separate design, not a separate
+package.
 
 That the shape works is established rather than assumed: a shim of this kind, aliased into vitest,
 loads two unmodified public packs and lets 26 tests drive them against the library's fakes
@@ -53,12 +54,11 @@ loads two unmodified public packs and lets 26 tests drive them against the libra
 
 ## Done looks like
 
-A pack author adds the shim and one entry to their runner config (and, in TypeScript, whatever the
-type story requires), writes a test that imports their
-pack's engine-facing module unmodified, and it runs: the value imports resolve, `instanceof Player`
-answers true for a fake player, and the pack's `world.getDimension(...)` reaches the world the test
-created. Removing the shim's entry from the config puts the suite back to a resolution failure. No
-line of the pack changes, and no enum value is hand-written by the author.
+A pack author adds the package and one plugin entry to their runner config, writes a test that
+imports their pack's engine-facing module unmodified, and it runs: the value imports resolve,
+`instanceof Player` answers true for a fake player, and the pack's `world.getDimension(...)` reaches
+the world the test created. Removing the plugin puts the suite back to a resolution failure. No line
+of the pack changes, and no enum value is hand-written by the author.
 
 ## What the design must still decide
 
@@ -111,7 +111,8 @@ line of the pack changes, and no enum value is hand-written by the author.
   actually do, and pulls module-level mutable state into a project that has none.
 - **Fidelity versus staleness.** Enum values generated from a pinned version are exact for that
   version and silently wrong for another. A consumer whose pack declares `^1.17.0` (as one
-  validation subject does) gets values from 2.8.0 and no warning.
+  validation subject does) cannot install under npm at all, and under pnpm or yarn installs with a
+  warning and gets 2.8.0 values.
 - **Reach versus surface.** Supporting more runners and both module formats is what makes the shim
   usable by the ecosystem it was measured against; each one is a build target, a test matrix entry,
   and an install path to document.
