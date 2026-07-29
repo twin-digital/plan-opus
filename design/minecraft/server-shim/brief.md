@@ -18,10 +18,10 @@ runs [[f:server-import-fails-without-an-alias]]. `@minecraft/vanilla-data`, the 
 family that does ship runtime JavaScript, exports 12 id-constant namespaces and no API enum, so it
 does not close that gap [[f:vanilla-data-ships-no-api-enums]]. Second, most packs reach the engine
 through the module-scope `world` and `system` rather than through an injected parameter, so even a
-loadable module has nothing to be driven by. The test library deliberately does not answer either:
-it substitutes objects and does not intercept the module import
-[[f:test-lib-does-not-intercept-the-module-import]], which is precisely why the shim is a separate
-deliverable owned here.
+loadable module has nothing to be driven by. Neither gap is closed by an injected fake, which
+reaches only a pack written to take one as a parameter; the module surface a consumer aliases is
+supplied alongside the fakes [[f:test-lib-supplies-the-module-surface-and-the-runner-tooling]], and
+specifying it is the work owned here.
 
 That the shape works is established rather than assumed: a shim of this kind, aliased into vitest,
 loads two unmodified public packs and lets 26 tests drive them against the library's fakes
@@ -89,8 +89,9 @@ line of the pack changes, and no enum value is hand-written by the author.
 
 ## Known tensions
 
-- **The library's fiat versus the consumer's need.** `minecraft/test-lib` decrees that it does not
-  intercept the module import [[f:test-lib-does-not-intercept-the-module-import]], and the whole
+- **The library's fiat versus the consumer's need.** `minecraft/test-lib` decrees that a suite
+  written against injected fakes keeps working whatever else ships
+  [[f:test-lib-supplies-the-module-surface-and-the-runner-tooling]], and the whole
   value of this design is a module interception. The boundary is that the interception is the
   consumer's own runner configuration, and the shim is the material they configure it with — but
   the closer the shim sits to the library (a shipped setup file, an `installInVitest` helper), the

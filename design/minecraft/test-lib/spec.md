@@ -15,9 +15,12 @@ conditions that break real packs — a component that is absent, a reference tha
 middle of the event that fired — and a double that returns a plausible-looking payload lets a
 handler take the wrong branch while the test still passes.
 
-One constraint shapes everything below: the library never replaces or intercepts the module import.
-A fake reaches the code under test only as an object the test passes in, so both what the package
-exports and how far it can reach are bounded by what a pack is willing to be handed.
+A fake reaches the code under test two ways, and the package supplies both: as an object a test
+hands to the pack, and through the `@minecraft/server` module surface a consumer aliases, which the
+package publishes along with the runner tooling that configures the alias. A suite written against
+injection stays supported and nothing the package ships breaks one. Everything below specifies the
+fakes themselves, which are the same objects on either route; the module surface's own shape is
+specified separately, by the `minecraft/server-shim` design.
 
 ## The package and how a test reaches a fake
 
@@ -28,9 +31,12 @@ build with type declarations, targeting active Node LTS
 [[r:target-server-version]] [[d:test-lib-has-one-peer-dependency]]. It depends on no test framework, and
 nothing in a fake knows which runner is driving it; a caller who wants call recording wraps a fake
 with their own spy library, which works because the fakes are plain objects with nothing intercepting
-them [[r:no-test-framework-dependency]]. Everything it exports — every fake
-type and every free function — is reachable from one entry point, `@twin-digital/minecraft-test-lib`
-itself, with no subpath exports [[d:one-public-entry-point]].
+them [[r:no-test-framework-dependency]]. Every fake type and every free function is reachable from
+the root entry point, `@twin-digital/minecraft-test-lib` itself. The package additionally publishes
+the aliased `@minecraft/server` module surface and the runner tooling that configures the alias
+[[r:injection-suites-stay-supported]]; what those are called and how they are laid out is the
+`minecraft/server-shim` design's to settle, and this document does not fix an entry-point inventory
+ahead of it [[d:one-public-entry-point]].
 
 The library imports only *types* from `@minecraft/server`. That package ships `index.d.ts`,
 `package.json`, and a README and no JavaScript at all, so an enum member such as
@@ -50,10 +56,11 @@ const server = createServer()
 installMyPack(server)                            // the pack takes { world, system, … }
 ```
 
-The second line is the *pack's* own entry point, whatever it is called; this library exports nothing
-that installs anything. Handing the bundle to a function the pack already exposes is the whole
-integration, and it is the only one available, since the library never touches the module graph
-[[r:object-substitution-not-module-mocking]].
+The second line is the *pack's* own entry point, whatever it is called. Handing the bundle to a
+function the pack already exposes is the whole integration for a pack written to receive its engine
+handles, and a suite built that way keeps working whatever else the package ships
+[[r:injection-suites-stay-supported]]. A pack that takes no such parameter is reached the other way,
+through the aliased module surface.
 
 `createServer()` returns a `FakeServer` whose properties are named exactly as `@minecraft/server`
 exports them — `world`, `system`, and the eight registry classes `BiomeTypes`, `BlockStates`,
@@ -68,17 +75,29 @@ every member on them throws `NotImplementedError`; no behaviour in this cycle re
 `withVanillaDimensions` registers dimensions on the world without touching `DimensionTypes`
 [[d:registries-are-declared-and-throw]].
 
-The bundle is the only route to `system` and the registries,
-because the library substitutes objects and does not touch the module graph: a pack that reaches
-the engine solely through a direct `import { world } from '@minecraft/server'` is outside its reach
-[[r:object-substitution-not-module-mocking]]. That reach matters — 84% of surveyed public packs use
-`system` scheduling and 41% touch the static registries, and `world` and `system` are module-level
-singletons rather than anything an instance hands out
-[[f:public-packs-reach-past-entities-and-events]] [[f:engine-surface-outside-instances]].
+For an injected pack the bundle is the route to `system` and the registries. A pack that reaches the
+engine solely through a direct `import { world } from '@minecraft/server'` is served by the aliased
+module surface, which the package supplies for exactly that case
+[[f:test-lib-supplies-the-module-surface-and-the-runner-tooling]]. Both routes carry weight — 84% of
+surveyed public packs use `system` scheduling and 41% touch the static registries, and `world` and
+`system` are module-level singletons rather than anything an instance hands out
+[[f:public-packs-reach-past-entities-and-events]] [[f:engine-surface-outside-instances]], so the
+direct import is the common shape rather than an edge case.
 
-All state a bundle holds belongs to that bundle. The library keeps no module-level mutable state,
-so two `createServer()` calls in one process share nothing and tests need no reset hook
-[[r:instance-scoped-world]].
+All state a bundle holds belongs to that bundle, and no fake's state lives at module scope, so two
+`createServer()` calls in one process share nothing [[r:fake-state-is-instance-scoped]]. The library
+ships no reset of a server's state, so a test wanting a clean world makes another server
+[[d:server-state-has-no-in-place-reset]]. A reset that cleared entities, the scoreboard, dynamic
+properties, captured output and the tick clock in place, preserving the signal objects with their
+subscriber sets so those handlers stayed bound, was considered and declined — not because it cannot
+be built, but because every shape of it classifies each piece of a server's state as wiring to
+preserve or state to clear, and every field added from then on is one more such judgement, quiet
+when it goes wrong. The cost of declining is stated rather than hidden: without a reset the test
+file is the isolation unit for a module-scope pack, and an earlier test's entities, objectives and
+tick clock are there for the next one to find. What does
+live at module scope is the `world`/`system` bindings the aliased surface reads, which a test
+installs and controls; what a suite does with those between tests belongs to the
+`minecraft/server-shim` design, not here.
 
 Every fake carries the full public shape of the type it stands in for and is assignable where the
 real declared type is expected, with no cast. That shape is not hand-written and not asserted — it
@@ -95,6 +114,24 @@ satisfied-and-checked [[f:server-classes-are-structurally-assignable]]
 [[r:fakes-are-structurally-assignable]]. The one thing `implements` cannot give is inheritance —
 `extends` is refused outright because the engine's classes declare a `private constructor()` — which
 costs nothing here, since the generator writes the members rather than inheriting them.
+
+What the fake does inherit is a prototype, at runtime. Every fake standing in for a declared
+`@minecraft/server` class carries that class's prototype as the package's aliased module surface
+exports it, so `attacker instanceof Player` in unmodified pack code answers natively, with no brand,
+no symbol protocol, no exported predicate and no member check anywhere
+[[r:fakes-carry-their-declared-class-prototype]]. `playerFake instanceof Entity` answers too, because
+those exported classes carry the declarations' own `extends` chains and the prototype chain does the
+walking. A fake with no declared counterpart carries no such prototype and answers `instanceof`
+false against everything, which is correct. The mechanism is a module-scope
+`Object.setPrototypeOf` linking each generated fake class's prototype to the surface class's, rather
+than constructing fakes through that class — a runtime link `tsc` never sees, so the `private
+constructor()` that refuses `extends` does not bear on it
+[[d:fakes-splice-the-surface-prototype-into-their-chain]]. Structural assignability is untouched by
+any of this: the surface's classes are generated from the same pinned declarations the fakes are
+typed against [[r:fakes-are-structurally-assignable]]. The accepted limit is duplication — prototype
+identity does not survive the package installed at two `node_modules` depths, where two `Player`
+classes exist and `instanceof` answers false with no diagnostic, and nothing here mitigates,
+falls back, or detects it.
 
 Each generated member is an arity check, then a guard prologue, then a body. The arity check comes
 first because that is where the engine puts it: a call with too few arguments on a removed entity

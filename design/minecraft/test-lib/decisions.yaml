@@ -5,8 +5,8 @@
 - id: server-bundle-mirrors-module-exports
   statement: |
     createServer returns one bundle whose properties are named as `@minecraft/server` exports
-    them — world, system, and the eight registry classes — and that bundle is the only route to
-    system and the registries
+    them — world, system, and the eight registry classes — and that bundle is how an injected pack
+    reaches system and the registries
   status: tolerated
   falsifiers:
     - surveyed packs overwhelmingly take `world` alone as a parameter and reach `system` by direct
@@ -340,14 +340,42 @@
 
 - id: one-public-entry-point
   statement: |
-    the package exposes a single entry point re-exporting every fake type and free function, with no
-    subpath exports
-  status: tolerated
+    the package's root entry point re-exports every fake type and free function, and the entry
+    points carrying the aliased module surface and the runner tooling are the server-shim design's
+    to lay out
+  status: proposed
   falsifiers:
-    - the library's own parts come to import each other through the single barrel, and the cycle
+    - the library's own parts come to import each other through the root barrel, and the cycle
       that creates cannot be broken without a subpath export a builder can import directly
     - a sibling package must depend on the error classes at a version cadence independent of the
       fakes, which one entry point in one package cannot express
+    - the server-shim design's layout needs the fakes reachable from somewhere other than the root,
+      so the two halves of the package cannot both be laid out as this says
+
+- id: fakes-splice-the-surface-prototype-into-their-chain
+  statement: |
+    each generated fake class links its own prototype to the corresponding aliased-surface class's
+    prototype with a module-scope Object.setPrototypeOf, rather than constructing fakes through
+    that class or extending it
+  status: proposed
+  falsifiers:
+    - the aliased surface exports a declared type as something other than a class object carrying a
+      usable prototype, so there is nothing to link a fake's chain onto
+    - the surface's classes come to run construction work a fake needs, which constructing through
+      the class would perform and a prototype link skips
+    - the linked chain changes what `in`, `Object.keys`, or `for-in` report over a fake, which the
+      coverage table pins as matching the engine
+
+- id: server-state-has-no-in-place-reset
+  statement: |
+    the library exposes no reset of a server's state; a suite wanting a clean world makes another
+    server, and a pack that registered at module scope is re-evaluated per test
+  status: accepted
+  falsifiers:
+    - re-evaluating a pack's module per test proves materially worse across a real suite than a
+      reset would be, measured rather than reported as friction
+    - a second consumer needs a clean world beneath registrations already bound, for a reason
+      re-evaluating the pack's module cannot serve
 
 - id: attribute-id-set-is-a-checked-literal-array
   statement: |
