@@ -122,24 +122,13 @@
   statement: |
     the shim reads a brand to answer instanceof and does not define the protocol — the fake library
     owns the symbol and value shape, and the shim conforms to whatever it settles
-  status: proposed
-  falsifiers:
-    - the test library declines to carry the brand, so every consumer using it has to brand each
-      fake by hand often enough that a direct dependency on the library's own predicates would have
-      been less work
-    - a second faking library adopts a conflicting brand convention, so the shim answers instanceof
-      for one and not the other
-    - the protocol the library settles cannot be read without importing the library, so the reader
-      cannot stay library-agnostic
+  status: rejected
 
 - id: instanceof-answers-only-to-the-brand
   statement: |
     instanceof answers true only for a value branded with the class or with a declared descendant of
     it, and false for everything else, a real engine object included
-  status: proposed
-  falsifiers:
-    - the declared extends chain in index.d.ts turns out not to match the engine's real hierarchy for
-      a class packs test against
+  status: rejected
 
 - id: control-surface-is-a-real-subpath
   statement: |
@@ -182,7 +171,7 @@
 - id: constant-statics-are-emitted-onto-the-classes
   statement: |
     the generator emits each declared class's constant static members — the 86 componentId strings
-    and the four other literal statics — as own properties of the exported class object
+    and the four other literal statics — as static members of the emitted class
   status: proposed
   falsifiers:
     - a declared constant static's value cannot be read out of index.d.ts as a literal, so the
@@ -201,10 +190,7 @@
   statement: |
     src/generated/classes.ts exports one record mapping each declared class name to its self-inclusive
     ancestor list, and one record mapping each class name to its constant statics
-  status: proposed
-  falsifiers:
-    - a declared class's ancestry is not fixed at generation time — a conditional or generic extends
-      clause — so a flattened list cannot represent it
+  status: rejected
 
 - id: unset-bindings-hold-a-throwing-proxy
   statement: |
@@ -225,10 +211,7 @@
   statement: |
     a second brandAs call unions its class names with the brand already on the value, and a class
     name the generated table does not declare throws
-  status: proposed
-  falsifiers:
-    - a consumer needs to re-brand a pooled fake as a different class between tests, so the union
-      leaves it answering instanceof for a class it is no longer standing in for
+  status: rejected
 
 - id: install-documentation-lives-with-the-shim
   statement: |
@@ -248,12 +231,7 @@
     the generator emits src/generated/class-exports.ts, one literal export line per declared class
     calling a makeClass factory the hand-written brands module supplies, rather than the export list
     being hand-maintained
-  status: proposed
-  falsifiers:
-    - a declared class needs an export shape makeClass cannot produce from the generated records, so
-      the uniform one-line-per-class emission cannot cover the surface
-    - the emitted file is large enough that a consumer's bundler or type checker pays a measurable
-      cost for classes their pack never imports
+  status: rejected
 
 - id: constructible-classes-throw-unsupported
   statement: |
@@ -343,3 +321,27 @@
   falsifiers:
     - the great majority of packs fail on their first world read against a bare server, so the
       empty default is a step every consumer takes and the option is a default in the wrong place
+
+- id: fakes-are-instances-of-the-shims-classes
+  statement: |
+    the shim's exported classes are real class declarations with the declared extends, and instanceof
+    is answered by the prototype chain — the fake library depends on this package and constructs its
+    fakes from these prototypes; there is no brand, no protocol and no hasInstance implementation
+  status: proposed
+  falsifiers:
+    - the shim resolves to two instances in one run — installed at two node_modules depths — so a
+      fake built from one answers false against the other, with no diagnostic
+    - a third party wants to fake the engine without depending on this package, which the prototype
+      answer gives them no way to do
+
+- id: class-exports-are-generated-class-declarations
+  statement: |
+    src/generated/class-exports.ts holds one real class declaration per declared class, with its
+    declared extends, statics and constructor written out by the generator rather than built by a
+    factory at run time
+  status: proposed
+  falsifiers:
+    - a declared class needs a shape the generator cannot write out from index.d.ts alone, so the
+      uniform emission cannot cover the surface
+    - the emitted file is large enough that a consumer's bundler or type checker pays a measurable
+      cost for classes their pack never imports

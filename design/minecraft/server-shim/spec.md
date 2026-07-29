@@ -55,7 +55,7 @@ how a plugin option selects an entirely different server factory
 `@twin-digital/minecraft-test-lib`'s `createServer`.
 
 That default is the only place the shim touches a fake library, and it is deliberately the *only* one:
-the core — the aliased root, `./control`, the brands — imports nothing from any library, so the
+the core — the aliased root, `./control`, the classes — imports nothing from any library, so the
 library enters as an **optional peer that only the `./vitest` subpath imports**
 [[d:the-library-is-an-optional-peer-of-the-setup-subpath-alone]]. A consumer faking the engine their own
 way points `serverModule` at their own factory, or skips the plugin and uses `./control` directly, and
@@ -134,8 +134,7 @@ the capability has to come from there [[f:a-fake-server-can-be-cleared-in-place-
 
 When the reset lands the consumer's config does not change: the plugin registers the per-test reset
 hook in the setup module it already contributes, the way `msw`'s `setupServer` and
-`@testing-library/jest-dom` register theirs, and the same setup module brands the library's fakes
-instead of leaving that to a consumer's `brandAs`. Two things about it are unsettled and stay that way
+`@testing-library/jest-dom` register theirs. Two things about it are unsettled and stay that way
 until the capability exists. **Whether the reset runs in `beforeEach` or `afterEach` is unmeasured** —
 the install has to sit at the setup module's module scope so a pack's module-scope subscriptions land
 on the right server, while a `beforeEach` reset is the more robust of the two against a test file that
@@ -212,25 +211,34 @@ pack imports resolves [[d:every-declared-class-is-exported]] [[f:engine-surface-
 
 An ESM named export must be written out statically, so a record of class names cannot become 439
 exports at run time. The generator therefore emits the export list itself, as a third generated file,
-`src/generated/class-exports.ts`: one literal `export const <Name> = makeClass('<Name>')` line per
-declared class, calling a factory the hand-written brands module supplies. Every class name a bump
-adds or removes moves that file, so the `generate`-then-clean-tree check covers the export surface the
-same way it covers the values [[d:class-exports-are-generated-lines-over-a-hand-written-factory]].
-`makeClass` reads the generated records to build one export: its `Symbol.hasInstance`, its constant
-statics, its throwing lookup statics, and — for the error classes — a real constructor.
+`src/generated/class-exports.ts`, holding one real `class` declaration per declared class with the
+declared `extends` written out — `export class Player extends Entity { … }`. Every class name or
+`extends` clause a bump changes moves that file, so the `generate`-then-clean-tree check covers the
+class surface the same way it covers the values
+[[d:class-exports-are-generated-class-declarations]].
 
-What each export *is* depends on whether it is an error type. A declared class whose ancestry reaches
-`Error` — `InvalidEntityError` and its siblings — is emitted as a real class extending `Error` whose
-constructor takes the ordinary `(message?: string)` and sets `name` to its own class name, so a test
-can construct and throw one. Its declared readonly members are left unset; a thrower who wants one
-populated assigns it on the instance after construction
-[[d:declared-error-classes-are-real-classes]] [[f:invalid-entity-error-shape]]. Every other class is an
-object carrying a `Symbol.hasInstance` implementation and its statics, callable only where the
-declarations leave it constructible (below).
+They are real classes because a fake that is a real instance of one is how `instanceof` answers.
+`@twin-digital/minecraft-test-lib` depends on this package and constructs its fakes with these
+prototypes, so a pack's `attacker instanceof Player` is answered by the language, over the prototype
+chain, with nothing in the shim implementing it and nothing in the consumer's test declaring it
+[[r:instanceof-answers-for-a-fake]] [[d:fakes-are-instances-of-the-shims-classes]]. `extends` does the
+rest: a fake `Player` satisfies `instanceof Entity` because `Player.prototype` inherits from
+`Entity.prototype`, so no ancestry table exists to fall out of step with the declarations. A value
+whose prototype came from somewhere else answers false, which is what a pack's guard needs in order to
+fall through.
+
+A declared class whose ancestry reaches `Error` — `InvalidEntityError` and its siblings — is a real
+class extending `Error` whose constructor takes the ordinary `(message?: string)` and sets `name` to
+its own class name, so a test can construct and throw one. Its declared readonly members are left
+unset; a thrower who wants one populated assigns it on the instance after construction
+[[d:declared-error-classes-are-real-classes]] [[f:invalid-entity-error-shape]]. Every other class
+carries its statics and is constructible only where the declarations leave it so (below); the shim
+declares no members on any prototype, because members are behaviour and the fakes hold that
+[[r:shim-supplies-values-not-behaviour]].
 
 ### The statics a class carries
 
-A class export that carries only `Symbol.hasInstance` is short of what a pack imports it for. The
+A bare class declaration is short of what a pack imports it for. The
 pinned declarations put 112 static members on the 439 exported classes, and the largest group is
 values, not behaviour: 86 `static readonly componentId` strings, one per component class
 [[f:engine-surface-outside-instances]]. `entity.getComponent(EntityHealthComponent.componentId)` is
@@ -239,8 +247,8 @@ gets nothing back, with no error to read. A `componentId` is a constant string i
 kind of thing a module import must carry [[r:shim-supplies-values-not-behaviour]] — so the generator
 emits it, along with the four other literal statics the declarations carry
 (`AimAssistRegistry.DefaultCategoryId`, `AimAssistRegistry.DefaultPresetId`,
-`FluidContainer.maxFillLevel` 6, `FluidContainer.minFillLevel` 0), as own properties of the exported
-class object [[d:constant-statics-are-emitted-onto-the-classes]].
+`FluidContainer.maxFillLevel` 6, `FluidContainer.minFillLevel` 0), as `static` members of the emitted
+class [[d:constant-statics-are-emitted-onto-the-classes]].
 
 The remaining 22 are methods that perform a lookup: the `get`/`getAll` pairs on the eight registry
 classes, five on `Potions`, and `BlockPermutation.resolve` — the only way to obtain a
@@ -262,62 +270,34 @@ engine too, so leaving those non-callable is the engine's own behaviour. The oth
 declare a public constructor — `AimAssistCategorySettings`, `AimAssistPresetSettings`, `BlockVolume`,
 `EnchantmentType`, `EntityWaypoint`, `ItemStack`, `ListBlockVolume`, `LocationWaypoint`,
 `PlayerWaypoint`, `TextPrimitive`, `Trigger` — and three declare no constructor at all and so carry a
-default one: `CatmullRomSpline`, `LinearSpline`, `MolangVariableMap`. The generator marks those 14 in
-`classes.ts` and the factory emits each as a callable that throws `ShimUnsupportedError` naming the
-class, since constructing a working `ItemStack` would be modelling engine behaviour the shim does not
-model [[r:shim-supplies-values-not-behaviour]] [[d:constructible-classes-throw-unsupported]]. The
+default one: `CatmullRomSpline`, `LinearSpline`, `MolangVariableMap`. The generator marks those 14 and
+emits each with a constructor that throws `ShimUnsupportedError` naming the class, since constructing a
+working `ItemStack` would be modelling engine behaviour the shim does not model
+[[r:shim-supplies-values-not-behaviour]] [[d:constructible-classes-throw-unsupported]]. The
 constructible set is read out of the declarations, not listed by hand, so a bump that makes a class
-constructible carries it along.
+constructible carries it along. The other 425 keep the declarations' `private constructor()` and throw
+on `new` as the engine does — but the library, which builds its fakes from these prototypes, is not
+constructing them through `new` from outside the package.
 
-`instanceof` answers from a nominal brand and from nothing else. The shim reads the well-known
-symbol `Symbol.for('@twin-digital/minecraft-server-shim.classes')` off the value; the property holds
-an iterable of class-name strings. `value instanceof Player` is true when that iterable contains
-`Player`, or contains any class the pinned declarations declare as a descendant of `Player` — so a value branded
-`Player` also satisfies `instanceof Entity` [[d:instanceof-answers-only-to-the-brand]]. The ancestry is
-generated rather than walked at run time: `src/generated/classes.ts` exports `classAncestry`, a record
-from each declared class name to its self-inclusive ancestor list — the class first, then each declared
-ancestor outward, `Error` included where the chain reaches it — so `instanceof C` is the test
-`classAncestry[b]?.includes(C)` over the value's branded names `b`, and the error classes are exactly
-those whose list contains `Error` [[d:class-table-is-a-self-inclusive-ancestry-record]]. An error
-class answers the same brand check, or a genuine prototype-chain match for an instance the test
-constructed. A value branded with a different class name answers false, which is what a pack's
-`attacker instanceof Player` guard needs in order to fall through
-[[r:instanceof-answers-for-a-fake]].
+### What prototype identity costs
 
-The brand is a protocol the shim **reads**, not one it owns. The shim implements `Symbol.hasInstance`
-because it owns the `Player` object a pack tests against, but who brands a fake and what the brand
-looks like belong to whoever builds the fakes: the owner has ruled that
-`@twin-digital/minecraft-test-lib` brands its own at construction and defines the protocol, raised as
-plan-opus issue #125 and not yet ruled there [[d:shim-cooperates-through-a-registered-brand-symbol]].
-Until it is, the symbol and value shape above are the shim's provisional definition, and they move to
-whatever #125 settles. Nothing in the shim assumes a library fake arrives branded today.
+Two limits come with answering `instanceof` natively rather than by a portable mark, and both are
+accepted rather than designed around.
 
-That is what keeps `brandAs(value, ...classNames)` on the control entry, returning the value. Its
-permanent job is a hand-rolled double — a consumer faking the engine their own way brands their own
-objects, whatever any library does. Its temporary job is library fakes: today a consumer's test, or
-the plugin's setup module, brands them; once #125 lands, nobody does. `Symbol.for` reads from the
-global registry, so a fake satisfies the check by setting the property with no import of the shim, and
-the shim imports no library to read it.
+A fake whose prototype does not come from this package answers `false`. A third party faking the
+engine their own way imports the shim's classes and extends them; there is no mark to apply instead
+[[d:fakes-are-instances-of-the-shims-classes]]. For a **real** engine object the answer is false too,
+which is safe because the case does not arise — the alias exists only in a runner's configuration, so
+a process holding a real engine object never resolved `@minecraft/server` to the shim.
 
-Three things about `brandAs` a consumer can tell apart, and so are fixed here
-[[d:brandas-unions-and-rejects-unknown-classes]]. It **unions**: a value branded `Player` and then
-branded `Entity` carries both, and stays a `Player`, because a second call narrowing a fake's identity
-by surprise is the failure a test would spend an afternoon on. It **rejects an undeclared name**: a
-class name `classAncestry` does not hold throws a `TypeError` naming it, since a typo'd brand would
-otherwise leave `instanceof` quietly false forever, which is the silence
-[[r:instanceof-answers-for-a-fake]] is there to prevent. And it writes the property with
-`Object.defineProperty` as non-enumerable, writable and configurable, so the brand does not appear in
-a fake's `Object.keys` or spread and a later call can extend it; on a frozen value the define throws,
-so a fake that is frozen is branded before it is frozen.
-
-For a real engine object the answer is false. A real object carries no brand, and the shim's classes
-declare no other check — the engine's own classes have no private members or brand fields to test
-for, and a valid and an invalidated `Entity` are structurally identical, so no member check
-distinguishes reliably [[f:server-classes-are-structurally-assignable]]
-[[f:entity-shape-is-identical-valid-or-invalid]]. Answering false is safe because the case does not
-arise: the alias exists only in a runner's configuration, so a process holding a real engine object
-never resolved `@minecraft/server` to the shim in the first place
-[[d:instanceof-answers-only-to-the-brand]].
+The shim installed at two `node_modules` depths yields two `Player` objects, and a fake built from one
+fails `instanceof` against the other with no diagnostic. This is a known limit and the design does
+nothing about it: no fallback, no duplicate detection. The pack's `Player` and the library's are the
+same object for the same reason the aliased entry and `./control` are — one resolution, one instance,
+measured across two alias shapes and two install shapes
+[[f:alias-and-control-subpath-are-one-module-instance]]. What that fact measured was two entry points
+of one package, not a second package importing it, so the extension here is reasoning on a mechanism
+that was measured rather than a result that was.
 
 ## The module singletons and the control surface
 
@@ -359,8 +339,8 @@ measured: a property read, a method call, a call of the binding itself, a `new`,
 is a property read and throws; binding `const w = world` alone does not. A consumer who reaches the
 unset state has skipped the `setupFiles` entry, which is what the error message names.
 
-That is the whole of what the shim does at run time. It holds two bindings, a brand table, and a set
-of generated constants; it models no engine behaviour, dispatches no event, and stores no state of
+That is the whole of what the shim does at run time. It holds two bindings, a set of generated
+constants, and a set of memberless classes; it models no engine behaviour, dispatches no event, and stores no state of
 its own beyond the two bindings. Every behaviour a test observes comes from the server object the
 test installed [[r:shim-supplies-values-not-behaviour]].
 
@@ -374,7 +354,7 @@ package, which is exactly why the runtime import fails and the type check does n
 The half that does is the test file, which imports a control surface `@minecraft/server`'s
 declarations do not declare. The shim answers it by putting that surface on a specifier that really
 exists: `@twin-digital/minecraft-server-shim/control`, a published subpath exporting `__useServer`,
-`brandAs`, `ShimNotInstalledError`, `ShimUnsupportedError` and `__serverVersion`, with its own
+`ShimNotInstalledError`, `ShimUnsupportedError` and `__serverVersion`, with its own
 declarations [[d:control-surface-is-a-real-subpath]]. Because a test imports the control surface by its own name
 rather than from the aliased specifier, `tsc` resolves it by ordinary node resolution and the
 consumer adds no `paths` entry to any `tsconfig`. A TypeScript consumer's suite therefore typechecks
@@ -387,8 +367,7 @@ must not carry `__useServer`, or the control surface would be extra exports of t
 which is what `./control` exists to avoid [[d:control-surface-is-a-real-subpath]] — so both entries
 re-export from one internal module, `src/state.ts`, which holds the two bindings, `__useServer`, and
 the shim's error classes. The root takes `world` and `system` from it; `./control` takes `__useServer`
-and the errors from it, and `brandAs` — which holds no state — from the brands module
-[[d:both-entries-re-export-one-internal-module]].
+and the errors from it [[d:both-entries-re-export-one-internal-module]].
 
 That shape is measured, not hoped for. Under vitest 4.1.10 on node 24, a `resolve.alias` from
 `@minecraft/server` to the shim and an ordinary import of its `./control` subpath reach the same
@@ -415,20 +394,23 @@ accident to paper over.
 ## The boundary with the test library
 
 The library stays its own package and the shim stays its own; neither ships inside the other
-[[d:one-package-one-aliasable-module]]. The shim's core imports nothing from
-`@twin-digital/minecraft-test-lib` — the only import is the `./vitest` setup module's default factory,
-behind an optional peer [[d:the-library-is-an-optional-peer-of-the-setup-subpath-alone]] — so no part
-of the core build waits on the library. Three consequences a builder acts on.
+[[d:one-package-one-aliasable-module]]. The dependency between them runs one way: the library depends
+on the shim and builds its fakes as instances of the shim's classes
+[[d:fakes-are-instances-of-the-shims-classes]]. The shim imports nothing from
+`@twin-digital/minecraft-test-lib` anywhere in its core; the one import is the `./vitest` setup
+module's default factory, behind an optional peer
+[[d:the-library-is-an-optional-peer-of-the-setup-subpath-alone]]. Three consequences a builder acts
+on.
 
 The enum values are the shim's to generate and it does not ask the library for them
 [[d:values-are-generated-and-committed]]. If the library later ships enums of its own, nothing
 collides: both derive from the same pinned 2.8.0 declarations, so a test importing `GameMode` from the
 library and a pack importing it from the aliased module hold the same literal strings.
 
-`instanceof` needs no predicate export from the library. The shim reads a brand and answers
-`Symbol.hasInstance`; it never calls an `isPlayer` or `isEntity` and must not be built against one
-[[d:shim-cooperates-through-a-registered-brand-symbol]]. What it does not own is the protocol's
-definition, which is the library's under plan-opus issue #125 and is not settled there.
+`instanceof` needs no predicate export from the library and no protocol between the two packages.
+The dependency runs one way — the library imports these classes and builds its fakes as instances of
+them — so the answer comes from the prototype chain and the shim never calls an `isPlayer` or an
+`isEntity` [[d:fakes-are-instances-of-the-shims-classes]].
 
 The install documentation lives here. The shim's README is the sole normative install document — the
 plugin entry and its options, the `./vitest` fallback and the setup-file ordering, the
@@ -439,6 +421,11 @@ shim asks nothing of any fake library's documentation and does not depend on one
 the library first: the failure they meet is the unresolved import, before any shim code exists to
 improve the message [[f:server-import-fails-without-an-alias]], and nothing this design ships puts a
 pointer in their path.
+
+The two together are a package-level cycle — the library depends on the shim, the shim's `./vitest`
+subpath optionally peers on the library — and it needs no fix. The module graph is acyclic because the
+two edges land on different entry points: the library imports the root, and only the setup module
+imports the library, which nothing in the root reaches.
 
 None of this reaches the library's own fiat that it substitutes objects and does not intercept the
 module import [[f:test-lib-does-not-intercept-the-module-import]]. The interception is the consumer's
@@ -495,11 +482,10 @@ The manifest sets `"type": "module"` and an `exports` map with exactly those fou
 Every subpath the plugin names has to be declared there: a `setupFiles` entry naming an undeclared
 subpath fails to resolve [[f:setup-files-resolve-as-modules-from-the-project-root]].
 
-Nine source files sit behind that — six hand-written, three generated. Hand-written:
+Eight source files sit behind that — five hand-written, three generated. Hand-written:
 `src/index.ts`, the aliased root entry, re-exporting the generated values, the class exports, and
 `world`/`system`; `src/control.ts`, the control entry; `src/state.ts`, the internal module both entries
-re-export from; `src/brands.ts`, holding the brand symbol, `brandAs`, and the `makeClass` factory;
-`src/vite.ts`, the plugin and its option type; and `src/vitest.ts`, the setup module.
+re-export from; `src/vite.ts`, the plugin and its option type; and `src/vitest.ts`, the setup module.
 Generated: `src/generated/values.ts`, `src/generated/classes.ts`, and
 `src/generated/class-exports.ts`, which nothing outside the package imports directly. `tsc` compiles `src/`
 to `dist/` with declarations emitted; `dist/` is published and not committed. The package scripts are
@@ -508,7 +494,7 @@ and `check`, which runs `generate`, fails on a dirty tree, then `build` and `tes
 invokes.
 
 A consumer who wants nothing but the enum values takes the same package and imports them; there is no separate values-only package,
-because the runtime cost of the rest is a brand table and two bindings.
+because the runtime cost of the rest is a set of memberless classes and two bindings.
 
 A second `@minecraft/*` module — `server-ui`, `server-net` — is out of this cycle, and a consumer
 meets that on day one rather than eventually: the validation pack imports `@minecraft/server-ui`, and
@@ -536,13 +522,13 @@ cover, at minimum:
 - a consumer setup file of the suite's own beside the plugin, asserting both ran and the plugin's ran
   second [[f:a-plugins-config-merges-with-the-consumers-own-entries]];
 - the control run with the plugin removed, asserting the resolution failure returns;
-- `instanceof` answering true for a branded fake, true for a branded subclass against its declared
-  ancestor, and false for a fake branded as a different class; `brandAs` unioning across two calls, and
-  throwing on an undeclared class name;
+- `instanceof` answering true for an instance of an exported class, true for an instance of a
+  declared subclass against its ancestor, and false for a plain object and for an instance of a
+  different class;
 - `EntityHealthComponent.componentId` reading the declared id string, a registry static throwing
   `ShimUnsupportedError`, and `new ItemStack('minecraft:stone', 1)` throwing it too;
-- a count of the export lines in `src/generated/class-exports.ts` against the classes `classAncestry`
-  holds, so a class the generator stopped emitting fails a test rather than a consumer's import;
+- a count of the classes `src/generated/class-exports.ts` declares against the declarations' own, so
+  a class the generator stopped emitting fails a test rather than a consumer's import;
 - a property access on `world` before install throwing `ShimNotInstalledError`;
 - the peer range refusing an install against a 1.x consumer under npm, exercised through a packed
   tarball rather than a `file:` spec, which npm does not enforce the range on
@@ -559,19 +545,13 @@ components:
     responsibility: >-
       emit all three generated files from the pinned @minecraft/server index.d.ts —
       src/generated/values.ts (one named export per enum and module constant),
-      src/generated/classes.ts (the classAncestry, constant-statics, lookup-statics and
-      constructible-class records), and src/generated/class-exports.ts (one export line per declared
-      class, calling makeClass)
+      src/generated/classes.ts (the constant-statics, lookup-statics and constructible-class
+      records), and src/generated/class-exports.ts (one real class declaration per declared class,
+      with its declared extends, its statics, and its constructor)
     excludes: >-
-      the makeClass factory and the brand implementation those export lines call, which class-brands
-      supplies
-  - id: class-brands
-    responsibility: >-
-      src/brands.ts — the registered brand symbol, brandAs, the makeClass factory, the
-      Symbol.hasInstance implementation answering instanceof over classAncestry, the constant and
-      throwing statics it hangs on each class, and the real Error subclasses
-    excludes: emitting the export lines themselves, which values-generator writes
-    after: [values-generator, shim-state]
+      the shim's own error classes, which shim-state holds and the emitted classes' throwing
+      constructors and statics raise
+    after: [shim-state]
   - id: shim-state
     responsibility: >-
       src/state.ts — the live world and system bindings, the throwing sentinel Proxy they hold while
@@ -579,12 +559,12 @@ components:
     excludes: any state beyond the two bindings
   - id: root-entry
     responsibility: >-
-      src/index.ts — the module a consumer aliases, re-exporting the generated values, the class
-      objects, and world and system, and nothing from the control surface
-    after: [class-brands, shim-state]
+      src/index.ts — the module the alias points at, re-exporting the generated values, the
+      generated classes, and world and system, and nothing from the control surface
+    after: [values-generator, shim-state]
   - id: control-entry
     responsibility: the ./control subpath, its exports and its declarations
-    after: [class-brands, shim-state]
+    after: [values-generator, shim-state]
   - id: setup-module
     responsibility: >-
       src/vitest.ts — read the options off process.env, import the factory serverModule names,
@@ -608,7 +588,7 @@ components:
   - id: conformance-suite
     responsibility: >-
       the two fixture packs installed by the plugin alone, the plugin-removed control, the options
-      and setup-ordering cases, the instanceof, brandAs, statics and unset-access cases, the
+      and setup-ordering cases, the instanceof, statics and unset-access cases, the
       packed-tarball peer check, and the typecheck of a consumer-shaped test file
     after: [package-and-recipes]
 ```
