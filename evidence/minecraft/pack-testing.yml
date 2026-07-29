@@ -1,6 +1,6 @@
 # Runs backing facts about how a pack's engine-facing code is stood up under a test runner.
 #
-# Both runs use the same harness directory; `node fetch-packs.mjs` and `npm install` there
+# All three runs use the same harness directory; `node fetch-packs.mjs` and `npm install` there
 # reproduce its inputs.
 
 - id: alias-shim-harness-run
@@ -13,6 +13,16 @@
     (unpublished, aliased from source via MC_TEST_LIB). Subjects cloned by fetch-packs.mjs:
     bencrob/marron-town-mod at 2c025b4 and xigma0512/GunFight-Arena at 0f16e88. Absolute paths in
     the captured output are rewritten to <harness>.
+
+- id: alias-shim-enum-generation-run
+  command: node generate-enums.mjs
+  output: design/minecraft/server-shim/artifacts/alias-shim-harness/generate-enums.out.txt
+  ran_at: 2026-07-29
+  environment: |
+    Run in design/minecraft/server-shim/artifacts/alias-shim-harness on node 24 after
+    `npm install`, against the installed @minecraft/server 2.8.0 `index.d.ts`. The script rewrites
+    stub/enums.generated.js in place; the committed file was reproduced byte for byte (`git diff`
+    reported no change). Absolute paths in the captured output are rewritten to <harness>.
 
 - id: alias-shim-control-run
   command: MC_TEST_LIB=<opus>/nodejs/minecraft/test-lib/src/index.ts npx vitest run -c no-alias.config.ts
