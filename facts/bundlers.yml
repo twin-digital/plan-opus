@@ -8,6 +8,10 @@
     cannot be supplied on the command line, so behaviour a design wants a tsdown build to perform
     travels as a plugin inside the configuration rather than as an invocation.
   backing: documented
+  caveat: |
+    The quotes carry the Rolldown half — all Rolldown plugins are supported, and a plugin is
+    declared in the `plugins` array and not on the CLI. They say nothing about Rollup or Unplugin
+    plugins, so a design relying on one of those needs its own evidence.
   sources:
     - url: https://tsdown.dev/advanced/plugins
       where: Rolldown Plugins — what tsdown accepts
@@ -21,10 +25,11 @@
 
 - id: a-rolldown-plugin-can-declare-extra-watch-inputs
   claim: |
-    A Rolldown plugin's context carries `addWatchFile(id)`, which registers a file or directory the
-    bundler watches so a change to it triggers a rebuild. A file no module graph reaches — an asset,
-    a manifest, a `package.json` — can therefore be made a rebuild trigger by the plugin that reads
-    it, which nothing outside a plugin can do.
+    A Rolldown plugin's context carries `addWatchFile(id)`, which registers a path the bundler
+    watches so a change to it triggers a rebuild. The path may name a file or a directory, so a file
+    no module graph reaches — an asset, a manifest, a `package.json` — can be made a rebuild trigger
+    by the plugin that reads it, and a directory can be registered for the files it does not hold
+    yet.
   backing: documented
   sources:
     - url: https://rolldown.rs/reference/Interface.PluginContext
@@ -32,3 +37,8 @@
       quote: |
         Adds additional files to be monitored in watch mode so that changes to these files will
         trigger rebuilds.
+    - url: https://rolldown.rs/reference/Interface.PluginContext
+      where: addWatchFile — the `id` parameter
+      quote: |
+        The path to be monitored. This can be an absolute path to a file or directory or a path
+        relative to the current working directory.

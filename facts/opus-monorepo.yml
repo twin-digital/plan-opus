@@ -45,6 +45,31 @@
         the base's wholesale — so if you override a nested key like `inputOptions`,
         re-include what you still need from the base).
 
+- id: opus-bundler-base-forces-every-import-bundled
+  claim: |
+    The shared base config in the opus monorepo sets `noExternal: () => true`, its default being
+    that every import is bundled. The setting is a top-level key like any other, so a fragment that
+    does not set `noExternal` itself inherits it from the base.
+  backing: documented
+  sources:
+    - url: https://github.com/twin-digital/opus/blob/a3ff0e1a0805202fd24663a8990dcaaa6a9c22a0/nodejs/devtools/tsdown-config/src/index.ts
+      where: base — the exported base config object
+      quote: |
+        export const base: UserConfig = {
+          dts: true,
+          entry: 'src/**/*.ts',
+          fixedExtension: false,
+          hash: false,
+          inputOptions: {
+            resolve: {
+              conditionNames: ['source'],
+            },
+          },
+          noExternal: () => true,
+          shims: true,
+          unbundle: false,
+        }
+
 - id: opus-release-assets-come-from-a-per-package-script
   claim: |
     A package in the opus monorepo puts files on its GitHub release by declaring a `release-assets`

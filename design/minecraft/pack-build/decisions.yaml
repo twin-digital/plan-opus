@@ -61,11 +61,12 @@
 - id: externals-come-from-the-manifests-module-dependencies
   statement: |
     the external set is exactly the `module_name` dependencies the pack's completed manifest
-    declares, and an import resolving to an undeclared `@minecraft/`-scoped package fails the build
+    declares, and an undeclared `@minecraft/`-scoped import fails the build only when nothing
+    importable resolves for it
   status: proposed
   falsifiers:
     - the game provides a module at runtime that a manifest dependency entry cannot name
-    - a pack legitimately bundles a package under the `@minecraft/` scope
+    - a module the game provides starts shipping importable JavaScript, so resolution stops separating it from a bundlable package
 
 - id: the-plugin-places-every-output-file-itself
   statement: |

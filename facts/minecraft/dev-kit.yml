@@ -1,6 +1,6 @@
 # What minecraft/dev-kit commits to, as its requirements state it — the interface a design that
 # builds on the kit leans on. Each is sourced by repo-relative url and verbatim quote to the kit's
-# requirements, its pinned artifact.
+# requirements, and to its spec where the claim is one no requirement pins.
 
 - id: dev-kit-library-is-published-as-mc-dev-kit
   claim: |
@@ -12,6 +12,77 @@
       where: dev-kit-library-name
       quote: |
         the name of the npm package containing the dev-kit library is `@twin-digital/mc-dev-kit`
+
+- id: dev-kit-pack-search-narrows-by-the-owning-package-name
+  claim: |
+    A discovery call narrows its result with a `filter` taking four criteria — the owning npm
+    package name, the pack name, the pack uuid, and the entry status — each matched exactly and all
+    of them conjunctively, and an unconstrained criterion narrows nothing. The criterion naming the
+    owning package is the key `package`, whose value is that package's name; a call meaning to
+    select one package's packs passes `{ package: <name> }`, and a filter naming no criterion the
+    kit recognises returns every pack in the workspace.
+  backing: documented
+  sources:
+    - url: design/minecraft/dev-kit/requirements.yaml
+      where: pack-search — the criteria a search takes and how they combine
+      quote: |
+        the kit allows users to search for packs using the following criteria:
+
+          - npm package name
+          - pack name
+          - pack uuid
+          - entry status
+
+        Every criterion matches on the exact name, identity, or status; no substring or
+        case-insensitive matching. Where more than one criterion is given, an entry matches only if it
+        satisfies all of them. No filter is applied by default: a search that does not constrain status
+        returns every pack regardless of status.
+    - url: design/minecraft/dev-kit/spec.md
+      where: Filtering — the `PackCriteria` interface, whose package criterion is `package`
+      quote: |
+        interface PackCriteria {
+          package?: string          // the owning package's name, e.g. '@scope/mc-pack-1'
+
+- id: dev-kit-completes-a-workspace-dependency-version-from-the-owning-package
+  claim: |
+    A source manifest leaves the version off a `dependencies` entry naming a pack in the same
+    workspace, and the kit completes it from that pack's owning package's `package.json` version.
+    A pack's completed manifest therefore changes whenever a `package.json` other than its own is
+    edited, so anything that keeps a completed manifest current reads those files too.
+  backing: documented
+  sources:
+    - url: design/minecraft/dev-kit/requirements.yaml
+      where: kit-completes-partial-source-manifests — how a workspace dependency's version is populated
+      quote: |
+        a `dependencies` entry whose `uuid` names a pack within the same workspace has its `version`
+        set to that pack's owning package's `package.json` version, using the same parsing and error
+        reporting rules described for `header.version`
+
+- id: dev-kit-pack-entry-paths-are-workspace-relative
+  claim: |
+    The locations a pack entry carries — the owning package's directory, the pack's source
+    directory, and its build output directory — are all written relative to the workspace root
+    handed to the discovery call, not to the package. A consumer holding a package directory has to
+    rejoin them to that workspace root before opening or writing anything they name. Those
+    locations, and the pack's kind, come from the sources rather than from the manifest, so an entry
+    the kit reports invalid carries them just as a valid one does — they are what names and locates
+    a pack whose manifest could not be read.
+  backing: documented
+  sources:
+    - url: design/minecraft/dev-kit/requirements.yaml
+      where: pack-discovery — what an invalid entry still carries
+      quote: |
+        An invalid entry carries the structured problems that invalidated it, alongside every
+        detail that does not come from the manifest and that its sources hold — so a consumer can always
+        name and locate a pack it cannot use.
+    - url: design/minecraft/dev-kit/spec.md
+      where: the shared pack-entry fields — kind, packageDir, sourceDir and outputDir
+      quote: |
+        kind: PackKind          // from the source directory name, corroborated by the manifest
+        packageName: string     // the owning package's name, or its directory basename when it has none
+        packageDir: string      // workspace-relative, e.g. 'packages/mc-pack-1'
+        sourceDir: string       // workspace-relative, e.g. 'packages/mc-pack-1/behavior_pack'
+        outputDir: string       // workspace-relative, e.g. 'packages/mc-pack-1/dist/behavior_pack'
 
 - id: pack-sources-sit-at-fixed-kind-named-directories
   claim: |
