@@ -97,7 +97,7 @@
 
 - id: format-violations-are-diagnostics-with-two-severities
   statement: every format violation is a diagnostic on the loaded tree carrying a category, a severity of error or warning, and the subject it is about
-  status: proposed
+  status: accepted
   falsifiers:
     - a violation needs a third severity a consumer must act on differently
     - a consumer needs a violation to stop the load the way a read failure does
@@ -124,7 +124,7 @@
 
 - id: commitments-carry-a-prefixed-id-and-statement
   statement: a commitment entry carries exactly two fields — a statement, and an id prefixed with its kind letter
-  status: proposed
+  status: accepted
   falsifiers:
     - a consumer needs the kind as a typed value often enough that splitting it out of every id is felt
     - spec-bundles stops publishing the flat prefixed list, so the shape matches no consumer
