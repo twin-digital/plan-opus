@@ -90,10 +90,10 @@
     package exports that returns runner config
   status: proposed
   falsifiers:
-    - consumers' alias entries diverge in shape across runners or versions enough that the
-      documented snippet is wrong for most of them
-    - a runner changes its config schema in a way that silently makes an existing copied snippet a
-      no-op rather than an error
+    - a consumer maintains the alias in several config files at once — a workspace with a config
+      per project — so a helper returning the entry is less work than repeating the snippet
+    - the alias entry stops being sufficient on its own, needing a setup file or a resolver plugin
+      beside it, so what the README calls the whole install no longer is
 
 - id: values-are-generated-and-committed
   statement: |
@@ -109,14 +109,15 @@
 
 - id: pinned-version-is-declared-as-a-peer-range
   statement: |
-    @minecraft/server is declared as a peer dependency at ^2.8.0, so a consumer outside that range
-    is told by their package manager at install time
+    @minecraft/server is declared as a plain peer dependency at ^2.8.0, with no
+    peerDependenciesMeta.optional entry
   status: proposed
   falsifiers:
     - a 2.x release within the range changes an enum member's value, so the range admits a consumer
       the generated values are wrong for
-    - consumers' package managers are configured to install peers silently, so the warning never
-      reaches anyone
+    - consumers pinned to a 1.x range are common enough that npm's hard install failure walls them
+      out of testing entirely, where declaring no peer at all would have let them in with values
+      they could at least see were stale
 
 - id: shim-cooperates-through-a-registered-brand-symbol
   statement: |
@@ -136,15 +137,13 @@
     it, and false for everything else, a real engine object included
   status: proposed
   falsifiers:
-    - a real engine object reaches code loaded through the shim — a mixed process nobody expected —
-      and the false answer sends a pack down its no-op path
     - the declared extends chain in index.d.ts turns out not to match the engine's real hierarchy for
       a class packs test against
 
 - id: control-surface-is-a-real-subpath
   statement: |
     the control surface ships on the package's own ./control subpath rather than as extra exports of
-    the aliased @minecraft/server specifier, so a TypeScript consumer adds no tsconfig paths entry
+    the aliased @minecraft/server specifier
   status: proposed
   falsifiers:
     - a runner resolves the alias and the control subpath to two module instances, so a test's
@@ -155,8 +154,9 @@
     the shim publishes ESM only; no CJS build is produced
   status: proposed
   falsifiers:
-    - a consumer the shim is meant to serve is on a runner that cannot load ESM at all, so the
-      single format excludes them outright
+    - the share of consumers reachable only as CJS measures large enough to outweigh the
+      split-instance hazard a dual build carries, so the reach a second format buys is worth its
+      risk after all
 
 - id: vitest-is-the-covered-runner
   statement: |
@@ -168,3 +168,68 @@
       that never functioned
     - enough consumers arrive on one of the untested runners that its breakage is reported before
       vitest's
+
+- id: both-entries-re-export-one-internal-module
+  statement: |
+    the root entry and ./control each re-export from one internal module holding the mutable state
+    and the brand table; neither entry re-exports from the other
+  status: proposed
+  falsifiers:
+    - a bundler or runner splits the internal module across the two entry points into two instances,
+      so the shared state the re-export was chosen to guarantee is not shared
+
+- id: constant-statics-are-emitted-onto-the-classes
+  statement: |
+    the generator emits each declared class's constant static members — the 86 componentId strings
+    and the four other literal statics — as own properties of the exported class object
+  status: proposed
+  falsifiers:
+    - a declared constant static's value cannot be read out of index.d.ts as a literal, so the
+      generator would have to hand-author or omit it
+
+- id: behavioural-statics-throw-unsupported
+  statement: |
+    the declared static methods that perform a lookup — the registry get/getAll pairs, the five on
+    Potions, and BlockPermutation.resolve — are emitted as functions throwing ShimUnsupportedError
+  status: proposed
+  falsifiers:
+    - packs call one of these statics often enough that the throw is the routine outcome of a test
+      run, so routing the call to the installed server would have been the cheaper answer
+
+- id: class-table-is-a-self-inclusive-ancestry-record
+  statement: |
+    src/generated/classes.ts exports one record mapping each declared class name to its self-inclusive
+    ancestor list, and one record mapping each class name to its constant statics
+  status: proposed
+  falsifiers:
+    - a declared class's ancestry is not fixed at generation time — a conditional or generic extends
+      clause — so a flattened list cannot represent it
+
+- id: unset-bindings-hold-a-throwing-proxy
+  statement: |
+    while no server is installed, world and system hold a Proxy whose every trap throws
+    ShimNotInstalledError, rather than undefined or an accessor export
+  status: proposed
+  falsifiers:
+    - a pack passes world or system somewhere that inspects it without touching a property — a
+      truthiness guard, a null check, an equality test — and takes the wrong branch silently
+
+- id: pack-module-loads-after-install
+  statement: |
+    the pack module under test is reached by a dynamic import the test performs after __useServer,
+    not by a static import at the top of the test file
+  status: proposed
+  falsifiers:
+    - a consumer's pack is reachable only through a statically imported barrel or a runner transform
+      that hoists the import, so the documented ordering cannot be followed
+    - the per-test resetModules-and-reimport shape costs enough boilerplate across a real suite that
+      a setup file the shim ships would have been less work
+
+- id: brandas-unions-and-rejects-unknown-classes
+  statement: |
+    a second brandAs call unions its class names with the brand already on the value, and a class
+    name the generated table does not declare throws
+  status: proposed
+  falsifiers:
+    - a consumer needs to re-brand a pooled fake as a different class between tests, so the union
+      leaves it answering instanceof for a class it is no longer standing in for
