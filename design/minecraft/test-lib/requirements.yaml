@@ -72,13 +72,12 @@
 
 - id: object-substitution-not-module-mocking
   statement: |
-    the library substitutes fake objects passed into code under test, and ships a module a
-    consumer may alias over `@minecraft/server` in their own runner configuration. The library
-    never installs that alias itself.
+    the library substitutes fake objects passed into code under test; it does not replace or
+    intercept the `@minecraft/server` module import. Code that can only reach the engine
+    through a direct module import is outside its reach.
   rationale: |
-    Object substitution remains the primary style and suites written against it are
-    unaffected; the aliasable module extends the library's reach to code that reaches the
-    engine only through a direct module import.
+    A later module-shim story would invalidate whole suites written against object
+    substitution, so this is fiat, not open to reargument.
 
 - id: fakes-are-structurally-assignable
   statement: |
@@ -109,9 +108,8 @@
 
 - id: instance-scoped-world
   statement: |
-    all fake state belongs to a world instance a test creates. The library's only module-level
-    mutable state is the `world`/`system` bindings a test installs and controls; no fake's
-    state lives there.
+    all fake state belongs to a world instance a test creates; the library holds no
+    module-level mutable state.
 
 - id: no-implicit-defaults
   statement: |
