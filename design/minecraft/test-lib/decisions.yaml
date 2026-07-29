@@ -281,14 +281,54 @@
 - id: before-event-field-writes-are-honoured
   statement: |
     a handler's write to entityHurt.damage or effectAdd.duration changes what the action does and
-    what its after-event reports; the other four mutable before-event fields are writable and
-    unread, because the fake raises no action that would consume them
+    what its after-event reports — the duration write once normalised, per
+    handler-written-effect-duration-is-normalised; the other four mutable before-event fields are
+    writable and unread, because the fake raises no action that would consume them
   status: tolerated
   falsifiers:
     - a modelled action grows behind one of the other four fields — healing or weather — so
       "writable and unread" becomes a silent wrong answer rather than an honest gap
     - honouring the write while applyDamage's boolean is settled from the requested amount reads
       as a contradiction to test authors, who see true returned for a handler-written zero
+
+- id: subscribe-options-filter-on-the-raised-signals
+  statement: |
+    an options argument to subscribe filters delivery on the five raised signals that declare one,
+    honouring every field they carry — entities, entityTypes, allowedDamageCauses, and entityFilter
+    through the same six-field matcher entity lookups run — against the subject entity the payload
+    names. Any other field, and any options argument on a signal the fakes do not raise, throws
+    NotImplementedError naming the field at the subscribe call rather than at dispatch
+  status: proposed
+  falsifiers:
+    - packs subscribe with a block, item or container filter on the same install path a test drives,
+      so the throw at subscription blocks tests that never meant to exercise that handler — a cost a
+      dropped filter would not have carried on a signal the fake raises nothing for anyway
+    - the engine is observed filtering against a payload member other than the subject named per
+      signal here, so the fake withholds events the engine delivers and delivers ones it withholds,
+      on exactly the signals a pack's handlers are hung off
+    - the engine's fields prove to union rather than intersect — an options object naming both
+      entityTypes and entityFilter firing for a match on either — so every subscriber carrying two
+      fields hears less from the fake than from the engine
+
+- id: handler-written-effect-duration-is-normalised
+  statement: |
+    a handler's write to EffectAddBeforeEvent.duration is truncated toward zero and then checked
+    against addEffect's own 1…20000000 bounds
+    [[f:addeffect-coerces-non-integer-arguments]] [[f:addeffect-argument-bounds-observed]]; a
+    written value that does not land in range makes the add produce no effect, addEffect returning
+    undefined with nothing attached and any effect of that type already present left as it was. The
+    engine's response to an out-of-range handler write is unobserved, so the boundary is stated as
+    the library's own rule and no divergence from the engine is claimed
+  status: proposed
+  falsifiers:
+    - a probe writes an out-of-range duration from an effectAdd handler and the engine applies it as
+      given — an effect readable at 0, or one carrying a fraction of a tick — so the fake refuses an
+      add the engine performs, which is the probe this entry is waiting for
+    - the engine raises ArgumentOutOfBoundsError back at the addEffect caller on such a write, so
+      returning undefined swallows an error the pack under test was written to catch
+    - the handler path coerces differently from the argument path — a written 2.5 rounding rather
+      than truncating — so borrowing addEffect's own coercion is the wrong rule even where the
+      bounds agree
 
 - id: display-names-resolve-from-a-shipped-table
   statement: |

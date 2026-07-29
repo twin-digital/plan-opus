@@ -546,7 +546,9 @@ duration, and it is reached as the `Effect` `addEffect` returns, through `getEff
 through `getEffects()`, plus the replacement comparison `addEffect` makes internally — all four
 reading the same decaying value. `EffectAddBeforeEvent.duration` is not one of them: it is the
 *requested* duration of a pending add, writable by a handler
-[[f:before-event-field-writes-take-effect]], and decay never touches it. The pinned TSDoc calls
+[[f:before-event-field-writes-take-effect]], and decay never touches it. What a handler leaves there
+is normalised on the way in, so no write of it can hand an `Effect` a duration `addEffect`'s own
+argument could not have carried [[d:handler-written-effect-duration-is-normalised]]. The pinned TSDoc calls
 `Effect.duration` "the entire specified duration, in ticks, of this effect", which the observation
 contradicts — a base applied at 400 reads 250 once 150 ticks have passed. The observation governs
 and the disagreement is recorded here [[r:engine-claims-are-sourced]].
@@ -556,8 +558,9 @@ when a duration reaches zero — whether the effect is removed, whether it stays
 it hits zero, or whether the boundary sits at 0 or below. So the library takes the cheap answer and
 marks it as its own rather than presenting it as the engine's [[r:engine-claims-are-sourced]]
 [[d:effect-expiry-is-the-librarys-own]]: an effect is removed on the tick its duration reaches 0,
-making the last tick it is readable on the one where it reads 1, and it is never readable at 0.
-`getEffect(typeId)` then returns `undefined` and `getEffects()` omits it — the absence the engine
+making the last tick it is readable on the one where it reads 1, and it is never readable at 0 by
+any route — the handler-write path reaches no effect at all rather than a zero-duration one
+[[d:handler-written-effect-duration-is-normalised]]. `getEffect(typeId)` then returns `undefined` and `getEffects()` omits it — the absence the engine
 can exhibit, read back as one [[d:absence-reads-as-undefined]]. An `Effect` handle a test still
 holds is left in the state `removeEffect` leaves one: `isValid` false, and its other members
 throwing the plain `Error` shape the guard table below gives
@@ -638,6 +641,56 @@ driven by the test calling `emit(signal, payload)`, which delivers the payload a
 Subscription is set-shaped: subscribing the same function reference twice delivers one call, and
 distinct subscribers run in subscription order [[f:subscription-semantics-observed]].
 
+### The filter a subscriber can carry
+
+27 of the declared signals take an optional second argument to `subscribe`, and its type is not one
+shape but fifteen. `EntityEventOptions` carries `entities` and `entityTypes`;
+`EntityHurtAfterEventOptions` carries those two plus `allowedDamageCauses` and `entityFilter`;
+`EntityHurtBeforeEventOptions` carries `allowedDamageCauses` and `entityFilter` alone;
+`EntityDataDrivenTriggerEventOptions` adds `eventTypes`; and the block, container, item, input,
+hotbar, swing and script-event variants carry `blockTypes`, `permutations`, `blockFilter`,
+`accessSourceFilter`, `itemFilter`, `includeItems`, `allowedSlots`, `buttons`, `namespaces` and
+their siblings. Three of the eight signals the fakes raise — `entitySpawn`, and the `entityRemove`
+and `effectAdd` before-events — declare no options parameter at all.
+
+Across the five that do, the whole declared field set comes to four, and the fake honours all four.
+The declarations give each one its meaning — an event that "will only fire if the impacted entities'
+type matches this parameter" — so this is the engine's filter rather than an invented one
+[[r:engine-claims-are-sourced]]:
+
+| field | what the fake evaluates it against |
+|---|---|
+| `entityTypes` | the subject entity's `typeId`, ids normalized on entry as everywhere else [[r:canonical-prefixed-storage]] |
+| `entities` | reference identity against the subject entity |
+| `allowedDamageCauses` | the `entityHurt` payload's `damageSource.cause`, which the fake already models in full |
+| `entityFilter` | the subject entity, through the very matcher `EntityQueryOptions` runs — the same six honoured fields, and the same per-field `NotImplementedError` on `EntityFilter`'s other twelve [[d:entity-lookups-honour-a-filter-subset]] |
+
+The subject entity is the one the payload names as the event's own: `hurtEntity` on the
+`entityHurt` before- and after-events, `deadEntity` on `entityDie`, and `entity` on
+`entityHealthChanged`. `EntityRemoveAfterEvent` carries no entity
+reference at all — only `removedEntityId` and `typeId` [[f:entity-remove-after-event-shape]] — so
+`entityTypes` reads that `typeId` and `entities` compares each listed entity's `id` against
+`removedEntityId`, which works because `id` stays readable on an invalidated reference. Fields given
+together intersect, as they do on a query. `emit` runs the same filter over the payload it delivers,
+so a test driving one of these signals by hand reaches the same subscribers the fake's own behaviour
+would.
+
+**Everything else throws `NotImplementedError` naming the field, and it throws at the `subscribe`
+call rather than at dispatch** [[d:subscribe-options-filter-on-the-raised-signals]]. That covers
+`EntityFilter`'s twelve unhonoured fields, and it covers every field of every options type on a
+signal the fakes do not raise. Throwing at subscription puts the failure where the test wrote the
+field, ahead of any delivery, where a throw during dispatch would land inside the causing call and
+read as one more absorbed handler error.
+
+Two things make the unraised signals a throw rather than a subset. Their fields are all expressed
+over surfaces this cycle does not model — blocks, items, containers, the client input surface — so
+there is nothing to evaluate them against. And which payload member the engine filters on is not
+settled for them: `EntityHitEntityAfterEvent` declares both `damagingEntity` and `hitEntity`, and
+picking one would be a guess presented as the engine's [[r:fakes-never-fabricate]]
+[[r:engine-claims-are-sourced]]. The cost is real and is the divergence's own: a pack that
+subscribes with a block or item filter in the same install path a test drives cannot install
+against the fake at all.
+
 A handler that throws is isolated, as the engine isolates it: the throw does not reach the call that
 caused the event, the other subscribers on that signal still run, and the rest of the cascade still
 fires [[f:throwing-handler-is-isolated]]. The engine then discards the error, which a test cannot
@@ -681,6 +734,25 @@ them back, because the fake raises no healing, block-breaking, game-mode or weat
 write to reach [[d:before-event-field-writes-are-honoured]]. One consequence is worth stating: a
 handler writing `damage` to `0` still leaves `applyDamage` returning `true`, because admission was
 decided from the requested amount before the handler ran.
+
+**A written `effectAdd.duration` is normalised before it is applied.** The observation records
+in-range writes only — 100 raised to 600, 400 lowered to 100 — so what the engine does with a
+handler-written duration outside `addEffect`'s own range is not something any source settles
+[[f:before-event-field-writes-take-effect]]. The library therefore applies to the written value the
+two steps `addEffect` applies to its own argument: truncation toward zero, then the `1…20000000`
+bounds [[f:addeffect-coerces-non-integer-arguments]] [[f:addeffect-argument-bounds-observed]]. A
+write of `2.5` produces an effect of duration 2. A written value that does not land in that range —
+zero, negative, past the maximum, or not a number at all — makes the add produce no effect:
+`addEffect` returns `undefined`, nothing is attached, and an effect of that type already present is
+left as it was [[d:handler-written-effect-duration-is-normalised]]. That is the shape a cancelled
+add already has, reached by a different route.
+
+The boundary is the library's rule and is not claimed as the engine's [[r:engine-claims-are-sourced]].
+What it buys is that the expiry rule below stays absolute: without it, `e.duration = Math.max(0,
+e.duration - penalty)` — ordinary pack code — leaves an effect readable at 0 before any advance, a
+value the engine has never been seen to produce and so one the fake would be inventing
+[[r:fakes-never-fabricate]]. Where the engine's own behaviour is unknown, the stricter of the two
+answers is the one that fails a test rather than passing it on fiction.
 
 ## Scheduling
 
@@ -868,11 +940,13 @@ whose verdict moved rather than a disappearance and an arrival.
 | `effect-display-name-locale` | `Effect.displayName` in a locale other than the observed one | divergence | the shipped bases are the strings one server returned, and the API documents only a "player-friendly name" with no locale contract; until a second locale is observed the table is that locale's, and a test needing another registers its own bases |
 | `custom-effect-display-name` | `Effect.displayName` for a custom effect type | divergence | no base is shipped, so an unregistered custom type throws `UnsetValueError` where the engine would answer with whatever its own data holds |
 | `signal-subscription` | signal existence, `subscribe` / `unsubscribe`, reference dedupe and subscription order | modelled | |
+| `subscribe-event-filter-options` | the options argument to `subscribe`, which the engine uses to filter what it delivers | divergence | honoured on the five raised signals that declare one, across all four fields they carry — `entities`, `entityTypes`, `allowedDamageCauses` and `entityFilter`, the last through the six-field query matcher. Every other field, `EntityFilter`'s other twelve included, and any options argument on a signal the fakes do not raise, throws `NotImplementedError` naming the field at the `subscribe` call, where the engine honours them all |
 | `after-event-dispatch-timing` | after-event dispatch timing | divergence | synchronous, inside the causing call; the engine defers past that call's return to later in the same tick |
 | `unraised-engine-signals` | engine-raised signals outside the five after-events and three before-events the fakes raise | not modelled | no fake behaviour raises them; a test drives one with `emit` |
 | `before-event-cancellation` | before-event cancellation | modelled | on the two signals whose payload declares `cancel` |
 | `cancelled-call-return-value` | what a cancelled call returns | modelled | `addEffect` `undefined`, `applyDamage` `true` — the engine's own per-surface values, quirk included |
-| `before-event-payload-writes` | before-event mutable payload fields | divergence | writes to `entityHurt.damage` and `effectAdd.duration` are honoured; the other four declared mutable fields are writable but unread, since the fake raises no action that consumes them |
+| `before-event-payload-writes` | before-event mutable payload fields | divergence | writes to `entityHurt.damage` and `effectAdd.duration` are honoured — the duration once normalised, per the row below; the other four declared mutable fields are writable but unread, since the fake raises no action that consumes them |
+| `handler-written-effect-duration-normalisation` | what the engine does with an `effectAdd` handler's write of a duration outside `addEffect`'s own range | not modelled | unobserved, so there is nothing to reproduce: the library truncates the written value toward zero and checks it against `1…20000000`, and one that does not land in range makes the add produce no effect — `addEffect` returns `undefined`, nothing is attached, and any effect of that type already present is untouched. That rule is the library's own, and no difference from the engine is claimed here because none has been measured |
 | `throwing-subscriber` | a subscriber that throws | divergence | isolated as the engine isolates it, but the absorbed error is recorded for `getHandlerErrors` where the engine discards it |
 | `tick-loop` | the tick loop | divergence | nothing runs on its own; `currentTick` starts at 0 and moves only under `advanceTicks` |
 | `system-scheduling` | `run` / `runTimeout` / `runInterval` / `clearRun` scheduling | modelled | every intervening tick's callbacks run during an advance |
@@ -962,7 +1036,9 @@ components:
   - id: event-bus
     responsibility: >-
       the signal objects on world.afterEvents, world.beforeEvents and system, subscribe/unsubscribe
-      with reference dedupe and subscription order, synchronous dispatch, handler-throw isolation
+      with reference dedupe and subscription order, the subscribe options filter — the four honoured
+      fields, the per-field NotImplementedError at the subscribe call, and the per-signal subject
+      entity it reads — synchronous dispatch, handler-throw isolation
       with the error record behind getHandlerErrors, before-event cancellation and mutable payload
       fields on the signals whose payload declares them, and the emit free function
     excludes: which fake member raises which signal
@@ -1001,7 +1077,8 @@ components:
 
   - id: effect-model
     responsibility: >-
-      addEffect/getEffect/getEffects/removeEffect, the amplifier-first replacement rule, and the
+      addEffect/getEffect/getEffects/removeEffect, the normalisation of a handler-written
+      effectAdd duration, the amplifier-first replacement rule, and the
       shipped table of verbatim base names with the computed numeral, and the registerEffectBaseName
       free function behind custom types and overrides
     after: [entity-model]
