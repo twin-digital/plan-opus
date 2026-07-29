@@ -86,6 +86,9 @@
       - its kind (behavior pack or resource pack)
       - its source location
       - its build output location (even if that location is not present because the pack is unbuilt),
+      - its built script location, where a behavior pack's bundled script module belongs (even if
+        that location is not present because the pack is unbuilt, and reported as absent for a
+        resource pack, which has no script)
       - the full content of its manifest in object form (including content auto-populated as
         described by `r:kit-completes-partial-source-manifests`)
 
@@ -97,6 +100,15 @@
 - id: built-output-defaults-to-dist
   statement: |
     a pack's built output is found at `dist/` within its package.
+
+- id: built-script-defaults-to-scripts-main-js
+  statement: |
+    a behavior pack's built script is found at `scripts/main.js` within that pack's build output
+    location. The kit computes it rather than reading it from the manifest, and does not probe for
+    script sources: the location is where a built script belongs, not a claim that one is there.
+  rationale: |
+    A consumer that builds the script and a consumer that deploys it must agree on the path without
+    negotiating it, and the kit is the one place both already read.
 
 - id: built-output-mirrors-the-source-layout
   statement: |
