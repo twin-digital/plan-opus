@@ -387,7 +387,7 @@ improve the message [[f:server-import-fails-without-an-alias]], and nothing this
 pointer in their path.
 
 None of this reaches the library's own fiat that it substitutes objects and does not intercept the
-module import [[f:test-lib-does-not-intercept-the-module-import]]. The interception is the consumer's
+module import [[f:test-lib-ships-the-aliasable-module-but-never-installs-the-alias]]. The interception is the consumer's
 runner configuration and the shim is the material they configure it with: the shim registers no setup
 file with the library, the library holds no code path into the shim, and the two packages can be built
 and released without either knowing the other exists.

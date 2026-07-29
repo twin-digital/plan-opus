@@ -42,20 +42,39 @@
         export enum declarations in index.d.ts: 64
         enums generated from the pinned declarations: 64
 
-- id: test-lib-does-not-intercept-the-module-import
+- id: test-lib-ships-the-aliasable-module-but-never-installs-the-alias
   claim: |
     `@twin-digital/minecraft-test-lib` commits, as owner fiat, to substituting fake objects passed
-    into code under test and to not replacing or intercepting the `@minecraft/server` module
-    import — code reachable only through a direct module import is outside its reach. Anything
-    that makes that import resolve is therefore something other than the library.
+    into code under test and to shipping a module a consumer may alias over `@minecraft/server` in
+    their own runner configuration, while never installing that alias itself. The material that
+    makes the import resolve is the library's; the act of pointing the runner at it is the
+    consumer's.
   backing: documented
   sources:
     - url: design/minecraft/test-lib/requirements.yaml
       where: r:object-substitution-not-module-mocking
       quote: |
-        the library substitutes fake objects passed into code under test; it does not replace or
-        intercept the `@minecraft/server` module import. Code that can only reach the engine
-        through a direct module import is outside its reach.
+        the library substitutes fake objects passed into code under test, and ships a module a
+        consumer may alias over `@minecraft/server` in their own runner configuration. The library
+        never installs that alias itself.
+
+- id: test-lib-does-not-intercept-the-module-import
+  status: retired
+  reason: superseded
+  superseded_by: test-lib-ships-the-aliasable-module-but-never-installs-the-alias
+  claim: |
+    `@twin-digital/minecraft-test-lib` commits, as owner fiat, to substituting fake objects passed
+    into code under test and to not replacing or intercepting the `@minecraft/server` module
+    import — code reachable only through a direct module import is outside its reach. Anything
+    that makes that import resolve is therefore something other than the library.
+  backing: assumed
+  sources:
+    - description: |
+        Recorded the wording `r:object-substitution-not-module-mocking` carried in
+        `design/minecraft/test-lib/requirements.yaml` until the owner amended it on 2026-07-29 to
+        permit the library to ship an aliasable module. The quoted span no longer exists at that
+        source, so the original `documented` backing is no longer verifiable; the superseding fact
+        carries the current wording.
 
 - id: alias-and-control-subpath-are-one-module-instance
   claim: |
