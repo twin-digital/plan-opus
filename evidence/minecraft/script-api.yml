@@ -189,3 +189,19 @@
     evidence; the 0.1.0 ones are kept because the excluded cases are what the fix is evidence for.
     No PROBE CRASHED lines and every complete line present. Every observation is that engine
     build's behaviour and would differ against another.
+
+- id: arity-expiry-and-filter-probe-run
+  command: execute as <armor stand> run scriptevent mctest8:<set>
+  output: design/minecraft/test-lib/artifacts/mctest-arity-expiry-and-filter-probe-results.md
+  ran_at: 2026-07-29
+  environment: |
+    itzg/minecraft-bedrock-server, Bedrock dedicated 1.26.31.1, @minecraft/server 2.8.0 as a pack
+    manifest dependency with no experiments enabled. arity-expiry-and-filter-probe-pack 0.1.0, uuid
+    080eede9-d882-4606-a68d-9240d3fc3f92, triggered from the server console against a stationary
+    armor stand at (38.5, 81, 22.5) on a 17x17 stone platform inside the mctest ticking area. The
+    pack was run by the design's owner, not by the author of the facts citing it. Each of the four
+    sets ran three times, with no PROBE CRASHED lines and every complete line present, and each
+    set's whole body is byte-identical across its three runs once the timestamp and the entity ids
+    are normalised. The arity set's 18 controls all read CONTROL-RETURNED, the handlerwrite set's
+    11 cases all read handler-ran=true, and both filter RUN-VALIDITY gates pass, so no reading is
+    vacuous. Every observation is that engine build's behaviour and would differ against another.

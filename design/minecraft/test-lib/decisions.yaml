@@ -94,22 +94,20 @@
       after a tick has passed, so agreeing with the engine here breaks the packs rather than the
       tests
 
-- id: effect-expiry-is-the-librarys-own
+- id: effect-expiry-matches-the-observed-boundary
   statement: |
     the library removes an effect on the tick its decaying duration reaches 0 — never readable at 0,
-    getEffect undefined, absent from getEffects, the handle left as removeEffect leaves one — and
-    dispatches nothing, 2.8.0 declaring no effect-remove or effect-expire signal. The engine's own
-    boundary is unobserved, so this is stated as the library's rule and no divergence from the
-    engine is claimed
+    getEffect undefined, absent from getEffects, the handle left as removeEffect leaves one — which
+    is the boundary the engine was measured at [[f:effect-expiry-boundary-observed]]. It dispatches
+    nothing on the way, 2.8.0 declaring no effect-remove or effect-expire signal
   status: tolerated
   falsifiers:
-    - a probe fixes the engine's boundary and it is not this one — an effect readable at 0, or gone
-      a tick earlier — so every test asserting on an effect's last tick reads the wrong side of it,
-      which is the probe this entry is waiting for
-    - the engine leaves an expired effect in place with a duration that stops at 0 rather than
-      removing it, so absence is a fabricated answer where the engine still has one to give
+    - the boundary proves duration-dependent, the three short durations measured landing where a
+      long one does not, so a rule read off 3, 5 and 8 misses the case a pack actually applies
     - the engine raises something on expiry that a later version's declarations expose, so silent
       removal misses an event a handler depends on
+    - a version bump moves the boundary a tick, so the fake and the engine disagree on the last tick
+      an effect is readable and every test asserting on it reads the wrong side
 
 - id: coverage-rows-carry-stable-ids
   statement: |
@@ -281,8 +279,8 @@
 - id: before-event-field-writes-are-honoured
   statement: |
     a handler's write to entityHurt.damage or effectAdd.duration changes what the action does and
-    what its after-event reports — the duration write once normalised, per
-    handler-written-effect-duration-is-normalised; the other four mutable before-event fields are
+    what its after-event reports — the duration write as the engine treats it, per
+    handler-written-effect-duration-follows-the-engine; the other four mutable before-event fields are
     writable and unread, because the fake raises no action that would consume them
   status: tolerated
   falsifiers:
@@ -294,41 +292,42 @@
 - id: subscribe-options-filter-on-the-raised-signals
   statement: |
     an options argument to subscribe filters delivery on the five raised signals that declare one,
-    honouring every field they carry — entities, entityTypes, allowedDamageCauses, and entityFilter
-    through the same six-field matcher entity lookups run — against the subject entity the payload
-    names. Any other field, and any options argument on a signal the fakes do not raise, throws
-    NotImplementedError naming the field at the subscribe call rather than at dispatch
+    honouring every field they carry — entities as an instance filter, entityTypes against the
+    subject entity's prefixed typeId with no normalisation, allowedDamageCauses, and entityFilter
+    through the same six-field matcher entity lookups run — intersecting where two are given, as the
+    engine was observed to [[f:subscribe-filter-fields-intersect]]
+    [[f:subscribe-filter-entity-types-requires-the-prefix]]. Any other field, and any options
+    argument on a signal the fakes do not raise, throws NotImplementedError naming the field at the
+    subscribe call rather than at dispatch
   status: proposed
   falsifiers:
     - packs subscribe with a block, item or container filter on the same install path a test drives,
       so the throw at subscription blocks tests that never meant to exercise that handler — a cost a
       dropped filter would not have carried on a signal the fake raises nothing for anyway
-    - the engine is observed filtering against a payload member other than the subject named per
-      signal here, so the fake withholds events the engine delivers and delivers ones it withholds,
-      on exactly the signals a pack's handlers are hung off
-    - the engine's fields prove to union rather than intersect — an options object naming both
-      entityTypes and entityFilter firing for a match on either — so every subscriber carrying two
-      fields hears less from the fake than from the engine
+    - the subject entity differs on one of the three signals the probe did not reach —
+      entityHealthChanged, entityRemove or the entityHurt before-event — so the reading taken from
+      entityHurt and entityDie does not generalize across the five
+    - a later version starts assuming the namespace on the filter, so matching the prefixed form
+      exactly rejects a bare id the engine would by then honour
 
-- id: handler-written-effect-duration-is-normalised
+- id: handler-written-effect-duration-follows-the-engine
   statement: |
-    a handler's write to EffectAddBeforeEvent.duration is truncated toward zero and then checked
-    against addEffect's own 1…20000000 bounds
-    [[f:addeffect-coerces-non-integer-arguments]] [[f:addeffect-argument-bounds-observed]]; a
-    written value that does not land in range makes the add produce no effect, addEffect returning
-    undefined with nothing attached and any effect of that type already present left as it was. The
-    engine's response to an out-of-range handler write is unobserved, so the boundary is stated as
-    the library's own rule and no divergence from the engine is claimed
+    a handler's write to EffectAddBeforeEvent.duration is treated as the engine treats it
+    [[f:handler-written-effect-duration-is-validated-separately]], which is not how addEffect
+    validates its own argument: truncated toward zero, dropped entirely at or below zero so that
+    addEffect returns undefined and nothing is attached, and clamped to 20000000 above the maximum.
+    The setter itself throws the engine's TypeError on NaN and Infinity, leaving the requested
+    duration in place
   status: proposed
   falsifiers:
-    - a probe writes an out-of-range duration from an effectAdd handler and the engine applies it as
-      given — an effect readable at 0, or one carrying a fraction of a tick — so the fake refuses an
-      add the engine performs, which is the probe this entry is waiting for
-    - the engine raises ArgumentOutOfBoundsError back at the addEffect caller on such a write, so
-      returning undefined swallows an error the pack under test was written to catch
-    - the handler path coerces differently from the argument path — a written 2.5 rounding rather
-      than truncating — so borrowing addEffect's own coercion is the wrong rule even where the
-      bounds agree
+    - the clamp proves not to cover the whole band above the maximum, some value between 20000001
+      and 100000000 behaving differently from both, so a single clamp rule is wider than the two
+      points it was read from
+    - a handler's throw on the NaN setter, absorbed by handler isolation, leaves test authors
+      unable to tell a rejected write from a write that never ran, where a fake refusing the add
+      outright would have failed loudly
+    - the split between the two validation paths closes in a later version — the field write coming
+      to reject what the argument rejects — so reproducing today's asymmetry becomes the deviation
 
 - id: display-names-resolve-from-a-shipped-table
   statement: |
@@ -347,14 +346,15 @@
 
 - id: generated-members-check-arity-before-the-guard
   statement: |
-    each generated member opens with a check that it received at least its declared required
-    parameter count, throwing the engine's TypeError before the validity guard prologue runs; no
-    maximum is checked and extra arguments pass through, because the engine's response to them is
-    unobserved
+    each generated member opens with a check on both bounds — at least its declared required
+    parameter count and at most its declared parameter count — throwing the engine's TypeError
+    before the validity guard prologue runs, in the engine's own single message shape for either
+    direction [[f:surplus-arguments-are-rejected]] [[f:arity-checked-before-validity-guard]]
   status: accepted
   falsifiers:
-    - the engine is observed rejecting extra arguments, so letting them through makes the fake
-      permissive on a real difference and a test passes where the engine would have thrown
+    - a member accepts more arguments at runtime than its declaration lists — a rest parameter, or a
+      trailing option the declarations do not carry — so a maximum read off the declarations rejects
+      calls the engine allows, which is the direction that fails a test the engine would pass
     - the engine's minimum turns out not to be the declared required-parameter count — a member
       accepting fewer arguments at runtime than its signature requires — so a manifest read off the
       declarations rejects calls the engine allows

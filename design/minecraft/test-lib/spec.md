@@ -100,25 +100,24 @@ Each generated member is an arity check, then a guard prologue, then a body. The
 first because that is where the engine puts it: a call with too few arguments on a removed entity
 raises a `TypeError` and never reaches the validity guard [[f:arity-checked-before-validity-guard]].
 The generator emits a per-member arity manifest from the declared signature, and the check enforces
-**the minimum only** — a call carrying fewer arguments than the member has required parameters
-throws `Incorrect number of arguments to function. Expected <n>, received <m>`, where the expected
-part is written `<min>-<max>` when the two differ and as the single number when they do not, which
-is the engine's own wording: `addEffect` reports `Expected 2-3`, `addTag` reports `Expected 1`. The
-manifest therefore carries both bounds because the *message* names both, while only the lower one
-gates the call [[d:generated-members-check-arity-before-the-guard]].
+**both bounds**: a call carrying fewer arguments than the member has required parameters, or more
+than it declares in all, throws `Incorrect number of arguments to function. Expected <n>, received
+<m>`, where the expected part is written `<min>-<max>` when the two differ and as the single number
+when they do not, and the received part is the count actually passed. That one message serves either
+direction, which is the engine's own wording: `addEffect` reports `Expected 2-3, received 4` on a
+surplus argument and `Expected 2-3, received 0` on none
+[[d:generated-members-check-arity-before-the-guard]].
 
-**No maximum is checked, and extra arguments pass through**, because nothing has ever observed the
-engine receiving too many. Every arity observation in the record is of too few: the reflective sweep
-called all 46 `Entity` methods with zero arguments, 19 reached the guard because zero was right for
-them, and 27 threw on arity; the follow-up then called those 27 with correct arguments and all 27
-reached the guard [[f:arity-checked-before-validity-guard]]
-[[f:invalidation-guard-covers-argument-taking-methods]]. Every observed line reads `received 0`.
-Native bindings commonly ignore extra arguments rather than rejecting them, so a fake that threw
-would risk being *stricter* than the engine — failing a test that real code passes, and inviting
-someone to change correct code to satisfy it. Inventing that rejection is what
-[[r:fakes-never-fabricate]] and [[r:engine-claims-are-sourced]] forbid. Where the engine's behaviour
-is unknown, permissive is the right direction to be wrong: it cannot fail a test that would pass
-against the engine.
+**The maximum is the engine's and not a convenience.** Called one and two arguments past its
+declared maximum, every one of 18 `Entity` members threw, and so did all five zero-arity members
+among them — which have no minimum to fail, so their throw is the upper bound alone. Every member's
+control call at its declared arity returned in the same run, so what the throw rejects is the
+surplus argument rather than a malformed call [[f:surplus-arguments-are-rejected]]. This is where
+the arity manifest earns carrying both bounds. It once carried them only because the *message* names
+both, on the reasoning that native bindings commonly ignore surplus arguments and a fake that threw
+would risk being stricter than the engine; the engine's own message had declared an upper bound all
+along, and treating that as a hint rather than as evidence was the error. Rest parameters would need
+handling if any member declared one, and none does.
 
 The guard prologue throws per the guard data
 for that class and member; the body either delegates to the hand-written behaviour for a modelled
@@ -136,11 +135,11 @@ overloaded member**: a scan of all 438 declared classes and their 613 method sig
 name declared twice, so every member has one required-parameter count and the minimum is exact.
 `getComponent` is generic rather than overloaded — one parameter list with a type-map return — and
 `teleport` and `setDynamicProperties` are likewise single signatures. Should a version bump
-introduce an overload, the generator takes the **narrowest required-parameter count across the set**,
-which rejects only calls that no overload could accept. The consequence is worth stating: a call
-that satisfies no individual overload but clears that narrowest minimum is accepted by the fake,
-where the engine may reject it. That errs permissive, in the same direction and for the same reason
-as leaving the maximum unchecked. Rest parameters need no handling at all once there is no maximum.
+introduce an overload, the generator takes the **narrowest required-parameter count and the widest
+declared parameter count across the set**, which rejects only calls that no overload could accept.
+The consequence is worth stating: a call that satisfies no individual overload but sits inside that
+outer envelope is accepted by the fake, where the engine may reject it. That is the one place the
+arity check errs permissive, and it costs a member with a single signature nothing.
 
 There is no `Proxy` and no runtime interception anywhere in the library. That is what makes the
 fakes behave like ordinary objects under everything a test might do to them:
@@ -398,8 +397,10 @@ construction populates unasked: a caller who writes `20` has asked for all three
 Ids are normalized on entry and stored and reported in the canonical `minecraft:`-prefixed form, so
 a read compares equal against the `@minecraft/vanilla-data` constants a test holds
 [[r:canonical-prefixed-storage]]. Tolerance of the bare form is per-surface rather than universal —
-`getComponent`, `addEffect`, `getEffect` and `spawnEntity` accept both, and `triggerEvent` does not
-[[f:namespace-prefix-tolerance-is-per-surface]]. The accepted id sets are derived from the
+`getComponent`, `addEffect`, `getEffect` and `spawnEntity` accept both, `triggerEvent` rejects the
+bare form, and a subscribe filter's `entityTypes` accepts it and matches nothing with it
+[[f:namespace-prefix-tolerance-is-per-surface]]
+[[f:subscribe-filter-entity-types-requires-the-prefix]]. The accepted id sets are derived from the
 declarations rather than transcribed: `keyof EntityComponentTypeMap` for every id,
 `` `${EntityComponentTypes}` `` for the canonical ones, and a conditional mapping over the type map
 for the attribute-shaped subset — 68 component classes on 2.8.0, of which 7 are attribute-shaped
@@ -547,20 +548,18 @@ through `getEffects()`, plus the replacement comparison `addEffect` makes intern
 reading the same decaying value. `EffectAddBeforeEvent.duration` is not one of them: it is the
 *requested* duration of a pending add, writable by a handler
 [[f:before-event-field-writes-take-effect]], and decay never touches it. What a handler leaves there
-is normalised on the way in, so no write of it can hand an `Effect` a duration `addEffect`'s own
-argument could not have carried [[d:handler-written-effect-duration-is-normalised]]. The pinned TSDoc calls
+passes through the engine's own validation of that field on the way in, which is not the validation
+`addEffect`'s argument gets [[d:handler-written-effect-duration-follows-the-engine]]. The pinned TSDoc calls
 `Effect.duration` "the entire specified duration, in ticks, of this effect", which the observation
 contradicts — a base applied at 400 reads 250 once 150 ticks have passed. The observation governs
 and the disagreement is recorded here [[r:engine-claims-are-sourced]].
 
-**Expiry is the library's own rule, not the engine's.** Nothing observed says what the engine does
-when a duration reaches zero — whether the effect is removed, whether it stays readable on the tick
-it hits zero, or whether the boundary sits at 0 or below. So the library takes the cheap answer and
-marks it as its own rather than presenting it as the engine's [[r:engine-claims-are-sourced]]
-[[d:effect-expiry-is-the-librarys-own]]: an effect is removed on the tick its duration reaches 0,
-making the last tick it is readable on the one where it reads 1, and it is never readable at 0 by
-any route — the handler-write path reaches no effect at all rather than a zero-duration one
-[[d:handler-written-effect-duration-is-normalised]]. `getEffect(typeId)` then returns `undefined` and `getEffects()` omits it — the absence the engine
+**Expiry is the engine's boundary, measured.** An effect is removed on the tick its duration reaches
+0, making the last tick it is readable on the one where it reads 1, and it is never readable at 0
+[[d:effect-expiry-matches-the-observed-boundary]]. That is where the engine puts it: durations 3, 5
+and 8 each read the applied number on the tick of the add and were first absent exactly that many
+ticks later, with `getEffect` and `getEffects` agreeing on every tick and no case reading 0 at all
+[[f:effect-expiry-boundary-observed]]. `getEffect(typeId)` then returns `undefined` and `getEffects()` omits it — the absence the engine
 can exhibit, read back as one [[d:absence-reads-as-undefined]]. An `Effect` handle a test still
 holds is left in the state `removeEffect` leaves one: `isValid` false, and its other members
 throwing the plain `Error` shape the guard table below gives
@@ -653,27 +652,41 @@ hotbar, swing and script-event variants carry `blockTypes`, `permutations`, `blo
 their siblings. Three of the eight signals the fakes raise — `entitySpawn`, and the `entityRemove`
 and `effectAdd` before-events — declare no options parameter at all.
 
-Across the five that do, the whole declared field set comes to four, and the fake honours all four.
-The declarations give each one its meaning — an event that "will only fire if the impacted entities'
-type matches this parameter" — so this is the engine's filter rather than an invented one
-[[r:engine-claims-are-sourced]]:
+Across the five that do, the whole declared field set comes to four, and the fake honours all four,
+each the way the engine was measured to read it [[f:subscribe-filter-fields-intersect]]:
 
 | field | what the fake evaluates it against |
 |---|---|
-| `entityTypes` | the subject entity's `typeId`, ids normalized on entry as everywhere else [[r:canonical-prefixed-storage]] |
-| `entities` | reference identity against the subject entity |
+| `entityTypes` | the subject entity's `typeId`, matched on the prefixed form alone |
+| `entities` | reference identity against the subject entity — an instance filter, so one of two sheep receives only its own events |
 | `allowedDamageCauses` | the `entityHurt` payload's `damageSource.cause`, which the fake already models in full |
 | `entityFilter` | the subject entity, through the very matcher `EntityQueryOptions` runs — the same six honoured fields, and the same per-field `NotImplementedError` on `EntityFilter`'s other twelve [[d:entity-lookups-honour-a-filter-subset]] |
 
-The subject entity is the one the payload names as the event's own: `hurtEntity` on the
-`entityHurt` before- and after-events, `deadEntity` on `entityDie`, and `entity` on
-`entityHealthChanged`. `EntityRemoveAfterEvent` carries no entity
-reference at all — only `removedEntityId` and `typeId` [[f:entity-remove-after-event-shape]] — so
-`entityTypes` reads that `typeId` and `entities` compares each listed entity's `id` against
-`removedEntityId`, which works because `id` stays readable on an invalidated reference. Fields given
-together intersect, as they do on a query. `emit` runs the same filter over the payload it delivers,
-so a test driving one of these signals by hand reaches the same subscribers the fake's own behaviour
-would.
+**Fields given together intersect**, as they do on a query: five crossings on `entityHurt` and
+`entityDie` each delivered only the events matching both fields, including the pairing of
+`entityTypes` with an `entityFilter` on `tags` that matched a different entity, where the tag filter
+alone did fire. The subject entity is the one the payload names as the event's own: `entityTypes`
+was measured reading the **hurt** entity rather than the damaging one, a handler filtering on
+`minecraft:pig` receiving nothing although a pig damaged three of the four subjects. So the subject
+is `hurtEntity` on the `entityHurt` before- and after-events, `deadEntity` on `entityDie`, and
+`entity` on `entityHealthChanged`. `EntityRemoveAfterEvent` carries no entity reference at all —
+only `removedEntityId` and `typeId` [[f:entity-remove-after-event-shape]] — so `entityTypes` reads
+that `typeId` and `entities` compares each listed entity's `id` against `removedEntityId`, which
+works because `id` stays readable on an invalidated reference. `emit` runs the same filter over the
+payload it delivers, so a test driving one of these signals by hand reaches the same subscribers the
+fake's own behaviour would.
+
+**`entityTypes` is the one id-taking input the library does not normalise.** Two handlers subscribed
+side by side, one on `minecraft:sheep` and one on bare `sheep`, received three events and none: the
+engine matches the prefixed form only, and it neither throws nor matches everything on the bare one
+— it quietly matches nothing [[f:subscribe-filter-entity-types-requires-the-prefix]]. That is a
+third behaviour for the prefix, beside the surfaces that accept either form and `triggerEvent`,
+which rejects the bare one [[f:namespace-prefix-tolerance-is-per-surface]]. A fake that normalised
+here would deliver events to a subscriber the engine leaves silent, which is the permissive
+direction in its worst form: the test passes and the pack's handler never runs in the world.
+[[r:canonical-prefixed-storage]] is untouched by this — it normalises *wherever the engine accepts
+both forms*, and here the engine does not — but the exception is worth stating so a later reader
+does not take the rule as universal and normalise this input back.
 
 **Everything else throws `NotImplementedError` naming the field, and it throws at the `subscribe`
 call rather than at dispatch** [[d:subscribe-options-filter-on-the-raised-signals]]. That covers
@@ -735,24 +748,29 @@ write to reach [[d:before-event-field-writes-are-honoured]]. One consequence is 
 handler writing `damage` to `0` still leaves `applyDamage` returning `true`, because admission was
 decided from the requested amount before the handler ran.
 
-**A written `effectAdd.duration` is normalised before it is applied.** The observation records
-in-range writes only — 100 raised to 600, 400 lowered to 100 — so what the engine does with a
-handler-written duration outside `addEffect`'s own range is not something any source settles
-[[f:before-event-field-writes-take-effect]]. The library therefore applies to the written value the
-two steps `addEffect` applies to its own argument: truncation toward zero, then the `1…20000000`
-bounds [[f:addeffect-coerces-non-integer-arguments]] [[f:addeffect-argument-bounds-observed]]. A
-write of `2.5` produces an effect of duration 2. A written value that does not land in that range —
-zero, negative, past the maximum, or not a number at all — makes the add produce no effect:
-`addEffect` returns `undefined`, nothing is attached, and an effect of that type already present is
-left as it was [[d:handler-written-effect-duration-is-normalised]]. That is the shape a cancelled
-add already has, reached by a different route.
+**A written `effectAdd.duration` is validated by a different path from `addEffect`'s own argument,
+and the fake reproduces that split.** The two disagree on the same numbers: the argument refuses `0`
+and `20000001` with `ArgumentOutOfBoundsError` and clamps nothing
+[[f:addeffect-argument-bounds-observed]], while a handler writing those values reaches an effect
+either way — one silently dropping the add, the other landing at the maximum. Four rules cover the
+field write, all four measured [[f:handler-written-effect-duration-is-validated-separately]]
+[[d:handler-written-effect-duration-follows-the-engine]]:
 
-The boundary is the library's rule and is not claimed as the engine's [[r:engine-claims-are-sourced]].
-What it buys is that the expiry rule below stays absolute: without it, `e.duration = Math.max(0,
-e.duration - penalty)` — ordinary pack code — leaves an effect readable at 0 before any advance, a
-value the engine has never been seen to produce and so one the fake would be inventing
-[[r:fakes-never-fabricate]]. Where the engine's own behaviour is unknown, the stricter of the two
-answers is the one that fails a test rather than passing it on fiction.
+- **Truncated toward zero.** A write of `2.5` produces an effect of duration 2, `300.7` one of 300.
+- **At or below zero, no effect at all.** `addEffect` returns `undefined`, nothing is attached, and
+  an effect of that type already present is left as it was. `0`, `−1` and `−400` behave alike. This
+  is what keeps the expiry rule above absolute on every route: `e.duration = Math.max(0, e.duration
+  - penalty)` — ordinary pack code — produces no effect rather than one readable at 0.
+- **Above the maximum, clamped to 20000000.** Measured at `20000001` and at `100000000`, both of
+  which read back 20000000, so the whole tested band above the maximum lands on the same value.
+- **`NaN` and `Infinity` are rejected by the setter itself**, which throws the engine's
+  `TypeError` — `NaN value is not supported. Function return value expected type: number` — so the
+  field keeps the duration the caller requested and the add proceeds with it. A handler that does
+  not catch that throw has it absorbed and recorded like any other, and the effect carries the
+  requested duration.
+
+Nothing here is the library's own boundary and no divergence is claimed: every case above is a
+reading, not a rule the library chose [[r:engine-claims-are-sourced]].
 
 ## Scheduling
 
@@ -850,8 +868,8 @@ read of a value the test never supplied. Both name the member they came from.
 Five rules govern a call or read with no value behind it, and they apply in this order. The order is the
 whole of it: a member matching an earlier rule never reaches a later one.
 
-1. **Too few arguments throw `TypeError` first of all**, ahead of the guard, on a valid and an
-   invalidated reference alike. Extra arguments are ignored rather than rejected
+1. **A wrong argument count throws `TypeError` first of all**, ahead of the guard, on a valid and an
+   invalidated reference alike — too few and too many alike
    [[d:generated-members-check-arity-before-the-guard]].
 2. **The validity guard fires next.** On an invalidated reference every guarded member throws
    `InvalidEntityError` — or the plain `Error` its owner's table above gives — whatever the member
@@ -935,18 +953,19 @@ whose verdict moved rather than a disappearance and an arrival.
 | `add-effect-nan-and-infinity` | `addEffect` on `NaN` or `Infinity` | divergence | the engine refuses these with a `TypeError` ahead of the bounds check; the fake does not reproduce that error's shape |
 | `display-name-amplifier-mapping` | the display name's amplifier mapping | modelled | bare base at amplifier 0, base plus the Roman numeral of amplifier + 1 at 1–5, bare base again from 6 to 255 — reproduced for all 37 vanilla types across the whole accepted amplifier range |
 | `effect-duration-decay` | effect duration decay | modelled | one per tick the test advances, the observed rate, applied ahead of that tick's callbacks; nothing decays unless the test advances |
-| `effect-duration-expiry-boundary` | what the engine does when a duration reaches zero | not modelled | unobserved, so there is nothing to reproduce: the library removes the effect on the tick it reaches 0 — never readable at 0, `getEffect` `undefined`, absent from `getEffects()` — and dispatches nothing, 2.8.0 declaring no effect-remove or effect-expire signal. That rule is the library's own, and no difference from the engine is claimed here because none has been measured |
+| `effect-duration-expiry-boundary` | what the engine does when a duration reaches zero | modelled | the effect is removed on the tick it reaches 0 — never readable at 0, `getEffect` `undefined`, absent from `getEffects()` — which is where the engine was measured to put it, across durations 3, 5 and 8. Expiry dispatches nothing, 2.8.0 declaring no effect-remove or effect-expire signal |
 | `vanilla-effect-display-names` | `Effect.displayName` for the 37 vanilla types | modelled | resolves with no test setup, from verbatim shipped base names and the computed numeral |
 | `effect-display-name-locale` | `Effect.displayName` in a locale other than the observed one | divergence | the shipped bases are the strings one server returned, and the API documents only a "player-friendly name" with no locale contract; until a second locale is observed the table is that locale's, and a test needing another registers its own bases |
 | `custom-effect-display-name` | `Effect.displayName` for a custom effect type | divergence | no base is shipped, so an unregistered custom type throws `UnsetValueError` where the engine would answer with whatever its own data holds |
 | `signal-subscription` | signal existence, `subscribe` / `unsubscribe`, reference dedupe and subscription order | modelled | |
-| `subscribe-event-filter-options` | the options argument to `subscribe`, which the engine uses to filter what it delivers | divergence | honoured on the five raised signals that declare one, across all four fields they carry — `entities`, `entityTypes`, `allowedDamageCauses` and `entityFilter`, the last through the six-field query matcher. Every other field, `EntityFilter`'s other twelve included, and any options argument on a signal the fakes do not raise, throws `NotImplementedError` naming the field at the `subscribe` call, where the engine honours them all |
+| `subscribe-event-filter-options` | the options argument to `subscribe`, which the engine uses to filter what it delivers | divergence | honoured on the five raised signals that declare one, across all four fields they carry — `entities`, `entityTypes`, `allowedDamageCauses` and `entityFilter`, the last through the six-field query matcher — intersecting where two are given, against the event's subject entity, as observed. Every other field, `EntityFilter`'s other twelve included, and any options argument on a signal the fakes do not raise, throws `NotImplementedError` naming the field at the `subscribe` call, where the engine honours them all |
+| `subscribe-filter-id-format` | the id format a subscribe filter's `entityTypes` matches | modelled | the `minecraft:`-prefixed form only, with a bare id matching nothing and raising nothing, as observed — the one id-taking input the library does not normalise |
 | `after-event-dispatch-timing` | after-event dispatch timing | divergence | synchronous, inside the causing call; the engine defers past that call's return to later in the same tick |
 | `unraised-engine-signals` | engine-raised signals outside the five after-events and three before-events the fakes raise | not modelled | no fake behaviour raises them; a test drives one with `emit` |
 | `before-event-cancellation` | before-event cancellation | modelled | on the two signals whose payload declares `cancel` |
 | `cancelled-call-return-value` | what a cancelled call returns | modelled | `addEffect` `undefined`, `applyDamage` `true` — the engine's own per-surface values, quirk included |
-| `before-event-payload-writes` | before-event mutable payload fields | divergence | writes to `entityHurt.damage` and `effectAdd.duration` are honoured — the duration once normalised, per the row below; the other four declared mutable fields are writable but unread, since the fake raises no action that consumes them |
-| `handler-written-effect-duration-normalisation` | what the engine does with an `effectAdd` handler's write of a duration outside `addEffect`'s own range | not modelled | unobserved, so there is nothing to reproduce: the library truncates the written value toward zero and checks it against `1…20000000`, and one that does not land in range makes the add produce no effect — `addEffect` returns `undefined`, nothing is attached, and any effect of that type already present is untouched. That rule is the library's own, and no difference from the engine is claimed here because none has been measured |
+| `before-event-payload-writes` | before-event mutable payload fields | divergence | writes to `entityHurt.damage` and `effectAdd.duration` are honoured — the duration as the row below gives it; the other four declared mutable fields are writable but unread, since the fake raises no action that consumes them |
+| `handler-written-effect-duration-validation` | how a handler's write to `EffectAddBeforeEvent.duration` is validated | modelled | as the engine validates it, which is not how `addEffect` validates its own argument: truncated toward zero, no effect at all at or below zero with `addEffect` returning `undefined`, clamped to 20000000 above the maximum, and `NaN` or `Infinity` rejected by the setter itself so the requested duration survives |
 | `throwing-subscriber` | a subscriber that throws | divergence | isolated as the engine isolates it, but the absorbed error is recorded for `getHandlerErrors` where the engine discards it |
 | `tick-loop` | the tick loop | divergence | nothing runs on its own; `currentTick` starts at 0 and moves only under `advanceTicks` |
 | `system-scheduling` | `run` / `runTimeout` / `runInterval` / `clearRun` scheduling | modelled | every intervening tick's callbacks run during an advance |
@@ -957,8 +976,8 @@ whose verdict moved rather than a disappearance and an arrival.
 | `message-and-title-output` | `sendMessage` and `onScreenDisplay` output | modelled | captured to a per-target log rather than displayed, and read back with `getOutput` |
 | `invalidation-guard` | the invalidation guard on entities, attribute components and effects | modelled | the observed guard data, error class by error class, compiled into each member's prologue ahead of its body |
 | `guard-fires-at-call` | reading — not calling — a guarded method on an invalidated reference | modelled | the read returns a function and the throw lands on the call, and a reference captured while valid still throws when it runs, as observed |
-| `arity-before-guard` | too few arguments checked ahead of the validity guard | modelled | each member's arity check runs before its guard prologue, so a call with too few arguments on an invalidated entity reports `TypeError` rather than `InvalidEntityError`, as the engine does |
-| `extra-arguments` | extra arguments to a member | modelled | *with a caveat.* The fake ignores them. The engine has never been observed receiving too many — every arity observation is of too few — so no difference is claimed; if the engine rejects them, the fake is the more permissive of the two |
+| `arity-before-guard` | a wrong argument count checked ahead of the validity guard | modelled | each member's arity check runs before its guard prologue, so a call with the wrong number of arguments on an invalidated entity reports `TypeError` rather than `InvalidEntityError`, as the engine does |
+| `extra-arguments` | extra arguments to a member | modelled | rejected, as the engine rejects them — 18 members and both surplus sizes, the five zero-arity members included, in the engine's own single arity message |
 | `in-operator-on-members` | `in` on a declared but unmodelled member | modelled | the member is really on the prototype, so `'teleport' in entity` is `true` and an unknown name `false`, as the engine answers, valid or invalidated alike |
 | `own-enumerable-properties` | `Object.keys`, spread and `JSON.stringify` over an entity | modelled | `typeId` and `id` are own data properties and every other member sits on the prototype, so all three read the engine's two own enumerable properties |
 | `for-in-enumeration` | `for-in` over an entity | modelled | the generator defines the prototype members `enumerable: true`, so `for-in` walks the engine's 62 while `Object.keys` still reads 2 |
@@ -1037,8 +1056,9 @@ components:
     responsibility: >-
       the signal objects on world.afterEvents, world.beforeEvents and system, subscribe/unsubscribe
       with reference dedupe and subscription order, the subscribe options filter — the four honoured
-      fields, the per-field NotImplementedError at the subscribe call, and the per-signal subject
-      entity it reads — synchronous dispatch, handler-throw isolation
+      fields intersecting, the prefixed-only entityTypes match, the per-field NotImplementedError at
+      the subscribe call, and the per-signal subject entity it reads — synchronous dispatch,
+      handler-throw isolation
       with the error record behind getHandlerErrors, before-event cancellation and mutable payload
       fields on the signals whose payload declares them, and the emit free function
     excludes: which fake member raises which signal
@@ -1077,7 +1097,7 @@ components:
 
   - id: effect-model
     responsibility: >-
-      addEffect/getEffect/getEffects/removeEffect, the normalisation of a handler-written
+      addEffect/getEffect/getEffects/removeEffect, the engine's own validation of a handler-written
       effectAdd duration, the amplifier-first replacement rule, and the
       shipped table of verbatim base names with the computed numeral, and the registerEffectBaseName
       free function behind custom types and overrides
