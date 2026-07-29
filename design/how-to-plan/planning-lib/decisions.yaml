@@ -1,0 +1,158 @@
+- id: load-takes-one-repo-root-path
+  statement: the library's entry point is handed one repository-root directory path and reads the tree beneath it
+  status: accepted
+  falsifiers:
+    - a consumer needs to load artifacts spread across two roots, or to override where a subtree lives
+
+- id: missing-artifact-files-load-as-empty
+  statement: an absent requirements.yaml, decisions.yaml, sets.yaml, or products.yaml loads as no entries rather than as a failure
+  status: accepted
+  falsifiers:
+    - a design's requirements.yaml going missing turns out to be a real breakage a consumer needs told about
+    - the format makes one of those files mandatory
+
+- id: read-and-parse-failures-throw
+  statement: a file the library cannot read or cannot parse as YAML aborts the load with one aggregate error naming every such file
+  status: accepted
+  falsifiers:
+    - a consumer needs the diagnostics from the rest of a tree that holds one unparseable file
+    - the negative corpus shows the rebuilt checker reporting materially less than today's on a malformed-YAML input
+
+- id: parse-failures-are-diagnostics-on-a-partial-tree
+  statement: an unreadable or unparseable file is reported as a diagnostic on a tree loaded around the hole, rather than aborting the load
+  status: rejected
+
+- id: returned-collections-are-deterministically-ordered
+  statement: entries the library returns are ordered by id and diagnostics by category then subject, on every load
+  status: accepted
+  falsifiers:
+    - a consumer needs entries in source order to report a line number or reproduce a file's layout
+
+- id: entry-ids-share-one-namespace
+  statement: facts, requirements, decisions, and runs share one repository-wide id namespace, and a repeat is a diagnostic
+  status: accepted
+  falsifiers:
+    - the format admits the same id for two entries of different kinds
+
+- id: pool-discovery-takes-any-yaml-at-any-depth
+  statement: every .yml or .yaml file at any depth under facts/ and evidence/ is loaded, and anything else there is ignored
+  status: accepted
+  falsifiers:
+    - the format gives the pool path meaning, so that where a file sits changes how it resolves
+    - a non-YAML file under the pool needs reporting rather than skipping
+
+- id: tokens-are-scanned-outside-code
+  statement: the library implements the in-code rule by stripping fenced blocks and inline-code spans before scanning for tokens, as the current checker does
+  status: accepted
+  falsifiers:
+    - the strip drops a token the current checker reads as live, or keeps one it ignores, so the two readings disagree
+    - a construct the format admits — a nested or unterminated fence, a token spanning one — cannot be stripped correctly by removing spans before scanning
+
+- id: closed-schema-enforcement-stays-unimplemented
+  statement: an entry field outside its kind's schema draws no diagnostic
+  status: accepted
+  falsifiers:
+    - a misspelled field reaches a settled design and changes what a consumer builds
+    - the repository's checker begins rejecting unknown fields, putting the two readings out of step
+
+- id: model-paths-are-repo-relative-posix
+  statement: every path the model carries is repository-relative and POSIX-separated
+  status: accepted
+  falsifiers:
+    - a consumer needs an absolute path from the model to open a file without knowing the root it loaded
+
+- id: library-holds-no-state-between-loads
+  statement: the library caches nothing, watches nothing, and writes nothing; a fresh reading means loading again
+  status: accepted
+  falsifiers:
+    - a consumer loading the same tree repeatedly makes the cost of re-reading it visible
+
+- id: package-name-is-twin-digital-planning-lib
+  statement: the package publishes as @twin-digital/planning-lib, under the organisation's own scope rather than the @td-spec bundle scope
+  status: accepted
+  falsifiers:
+    - a consumer looks for the format's implementation under @td-spec and does not find it
+    - the opus monorepo publishes its packages under a scope this name cannot sit in
+
+- id: library-is-read-only
+  statement: the library reads planning artifacts and never serialises one back
+  status: tolerated
+  falsifiers:
+    - a tool is asked to flip a decision's status or add an entry without a person editing YAML
+    - hand-editing an entry becomes the slow step in a routine workflow
+
+- id: library-does-not-touch-git
+  statement: the library reads a directory tree and knows nothing of git, so reading a past commit means materialising that commit as a directory first
+  status: tolerated
+  falsifiers:
+    - a consumer needs an artifact's history, blame, or ref state and cannot get it beside the library
+    - materialising a commit as a worktree proves too slow for the version planner's per-bundle re-derivation
+
+- id: repo-tools-become-thin-callers
+  statement: bin/check-design.mjs and bin/foundations.mjs are rebuilt as thin callers over the published package, and this repository takes it as a dependency
+  status: accepted
+  falsifiers:
+    - a format change is blocked here for want of a library release, often enough to be felt
+    - the negative corpus cannot be made to agree, so parity is unreachable without keeping the old reading
+
+- id: format-violations-are-diagnostics-with-two-severities
+  statement: every format violation is a diagnostic on the loaded tree carrying a category, a severity of error or warning, and the subject it is about
+  status: proposed
+  falsifiers:
+    - a violation needs a third severity a consumer must act on differently
+    - a consumer needs a violation to stop the load the way a read failure does
+
+- id: capabilities-hang-off-the-loaded-design
+  statement: the five decreed capabilities are reached from the loaded Design object rather than as free functions taking a tree and a scope
+  status: tolerated
+  falsifiers:
+    - a consumer needs a capability for a scope no design in the tree matches
+    - computing a capability eagerly at load costs more than a consumer that never asks for it can bear
+
+- id: bundle-name-is-null-when-unnamed
+  statement: a design the product manifest does not name reports a bundle name of null
+  status: tolerated
+  falsifiers:
+    - a consumer silently treats the missing name as a name and publishes under it
+    - the format grows a second reason for a design to have no bundle name, which null cannot tell apart
+
+- id: commitments-carry-kind-id-and-statement
+  statement: a commitment entry carries a kind of requirement or decision, a bare id, and a statement, with no kind prefix baked into the id
+  status: rejected
+  falsifiers:
+    - every consumer of the commitment set turns out to want the prefixed id and re-derives it identically
+
+- id: commitments-carry-a-prefixed-id-and-statement
+  statement: a commitment entry carries exactly two fields — a statement, and an id prefixed with its kind letter
+  status: proposed
+  falsifiers:
+    - a consumer needs the kind as a typed value often enough that splitting it out of every id is felt
+    - spec-bundles stops publishing the flat prefixed list, so the shape matches no consumer
+
+- id: upstream-edges-are-design-scopes
+  statement: the upstream edges the library resolves are design scopes, and turning one into a bundle name is a separate call
+  status: tolerated
+  falsifiers:
+    - every consumer of the edges wants bundle names and drops the scopes on the floor
+    - an edge is needed to a thing that has a bundle name but no design scope
+
+- id: format-drift-is-a-major-version-contract
+  statement: a format change that alters what validates is a major version of the library, and nothing detects a consumer running an old major against a new tree
+  status: tolerated
+  falsifiers:
+    - a consumer reports green against a tree its pinned library predates
+    - the repository grows a format-version marker the library could read instead
+
+- id: negative-corpus-is-one-tree-per-check-category
+  statement: the parity corpus is one minimal malformed tree per diagnostic category, each asserted to draw the same category from both readings
+  status: tolerated
+  falsifiers:
+    - a category's failure depends on a whole realistic tree, so a minimal one cannot provoke it
+    - the corpus grows faster than the categories it covers and stops being worth maintaining
+
+- id: library-publishes-before-the-repository-migrates
+  statement: the library publishes its first version from the opus monorepo before this repository's tools are rebuilt on it
+  status: accepted
+  falsifiers:
+    - the library cannot be validated well enough to publish without a real tree to run against
+    - the first release proves wrong in a way only this repository's tree would have shown
