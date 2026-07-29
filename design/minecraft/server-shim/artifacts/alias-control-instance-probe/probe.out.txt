@@ -1,0 +1,88 @@
+=== install: file: dependency (symlink) | alias shape: bare specifier (bare-specifier.config.ts) ===
+exit code: 0
+
+
+ RUN  v4.1.10 <probe>
+
+stdout | instance-identity.test.ts > alias entry and ./control entry > resolve to one module instance
+same-instance=true state-module-evaluations=1
+control-instance-id=e3ae07cd-a75a-4b16-81f9-de65ad13c0a5 pack-instance-id=e3ae07cd-a75a-4b16-81f9-de65ad13c0a5
+
+stdout | instance-identity.test.ts > alias entry and ./control entry > let a control-side __useServer reach the pack side
+pack-world={"tag":"fake-world"} pack-system={"tag":"fake-system"}
+
+ ✓ instance-identity.test.ts > alias entry and ./control entry > resolve to one module instance 2ms
+ ✓ instance-identity.test.ts > alias entry and ./control entry > let a control-side __useServer reach the pack side 0ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  02:47:09
+   Duration  144ms (transform 23ms, setup 0ms, import 37ms, tests 3ms, environment 0ms)
+
+
+=== install: file: dependency (symlink) | alias shape: resolved entry file (entry-file.config.ts) ===
+exit code: 0
+
+
+ RUN  v4.1.10 <probe>
+
+stdout | instance-identity.test.ts > alias entry and ./control entry > resolve to one module instance
+same-instance=true state-module-evaluations=1
+control-instance-id=5d1db609-2ec8-469b-881c-2e46babde922 pack-instance-id=5d1db609-2ec8-469b-881c-2e46babde922
+
+stdout | instance-identity.test.ts > alias entry and ./control entry > let a control-side __useServer reach the pack side
+pack-world={"tag":"fake-world"} pack-system={"tag":"fake-system"}
+
+ ✓ instance-identity.test.ts > alias entry and ./control entry > resolve to one module instance 2ms
+ ✓ instance-identity.test.ts > alias entry and ./control entry > let a control-side __useServer reach the pack side 0ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  02:47:09
+   Duration  141ms (transform 23ms, setup 0ms, import 37ms, tests 3ms, environment 0ms)
+
+
+=== install: unpacked tarball (real directory) | alias shape: bare specifier (bare-specifier.config.ts) ===
+exit code: 0
+
+
+ RUN  v4.1.10 <probe>
+
+stdout | instance-identity.test.ts > alias entry and ./control entry > resolve to one module instance
+same-instance=true state-module-evaluations=1
+control-instance-id=15869273-1ecc-4c0e-9c0e-f8c76794e366 pack-instance-id=15869273-1ecc-4c0e-9c0e-f8c76794e366
+
+stdout | instance-identity.test.ts > alias entry and ./control entry > let a control-side __useServer reach the pack side
+pack-world={"tag":"fake-world"} pack-system={"tag":"fake-system"}
+
+ ✓ instance-identity.test.ts > alias entry and ./control entry > resolve to one module instance 2ms
+ ✓ instance-identity.test.ts > alias entry and ./control entry > let a control-side __useServer reach the pack side 0ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  02:47:10
+   Duration  136ms (transform 19ms, setup 0ms, import 32ms, tests 3ms, environment 0ms)
+
+
+=== install: unpacked tarball (real directory) | alias shape: resolved entry file (entry-file.config.ts) ===
+exit code: 0
+
+
+ RUN  v4.1.10 <probe>
+
+stdout | instance-identity.test.ts > alias entry and ./control entry > resolve to one module instance
+same-instance=true state-module-evaluations=1
+control-instance-id=e5d07423-1dbf-4e58-9c9c-cfb405f0a433 pack-instance-id=e5d07423-1dbf-4e58-9c9c-cfb405f0a433
+
+stdout | instance-identity.test.ts > alias entry and ./control entry > let a control-side __useServer reach the pack side
+pack-world={"tag":"fake-world"} pack-system={"tag":"fake-system"}
+
+ ✓ instance-identity.test.ts > alias entry and ./control entry > resolve to one module instance 2ms
+ ✓ instance-identity.test.ts > alias entry and ./control entry > let a control-side __useServer reach the pack side 0ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  02:47:11
+   Duration  137ms (transform 19ms, setup 0ms, import 32ms, tests 3ms, environment 0ms)
+
+

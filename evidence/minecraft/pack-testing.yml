@@ -32,3 +32,16 @@
     The same harness and versions as alias-shim-harness-run, with the `@minecraft/server` alias
     removed and one suite selected. @minecraft/server 2.8.0 is installed, so the failure is the
     package's missing entry points and not a missing package.
+
+- id: alias-control-instance-probe-run
+  command: node run.mjs
+  output: design/minecraft/server-shim/artifacts/alias-control-instance-probe/probe.out.txt
+  ran_at: 2026-07-29
+  environment: |
+    Run in design/minecraft/server-shim/artifacts/alias-control-instance-probe after `npm install`.
+    vitest 4.1.10 on node 24.16.0, against the probe's own `@twin-digital/minecraft-server-shim`
+    package (an `exports` map with `.` and `./control`, both re-exporting one `state.js`). The
+    script runs the same suite four times — the two alias shapes (bare package specifier, resolved
+    entry file) crossed with the two install shapes (`npm i file:./shim`, which symlinks the source
+    into node_modules, and an unpacked `npm pack` tarball, a real directory) — and captures each
+    run's exit code and output. Absolute paths in the captured output are rewritten to <probe>.

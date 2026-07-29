@@ -48,3 +48,35 @@
         the library substitutes fake objects passed into code under test; it does not replace or
         intercept the `@minecraft/server` module import. Code that can only reach the engine
         through a direct module import is outside its reach.
+
+- id: alias-and-control-subpath-are-one-module-instance
+  claim: |
+    Under vitest 4.1.10 on node 24, a `resolve.alias` from `@minecraft/server` to a shim package
+    and an ordinary node-resolved import of that package's `./control` subpath reach the same
+    instance of the module holding the shared mutable state, so state written through the control
+    subpath is what the aliased specifier reads. Both alias shapes hold: aliasing to the shim's
+    bare package name and aliasing to its resolved entry file each report `same-instance=true`
+    with the state module evaluated once, under both a `file:` install (a node_modules symlink to
+    the source) and an unpacked `npm pack` tarball (a real node_modules directory) — four runs,
+    all four passing. A `__useServer` called through `./control` is therefore visible to pack code
+    that imports `@minecraft/server`: the pack read back the exact `world` and `system` objects the
+    test installed.
+  backing: tested
+  caveat: |
+    Measured on vitest 4.1.10 / node 24.16.0 with an ESM-only package and both entries re-exporting
+    one internal module; jest, bun and CJS were not exercised, and neither was a duplicate install
+    of the shim at two node_modules depths.
+  sources:
+    - run: alias-control-instance-probe-run
+      where: the identity line each of the four runs logs
+      quote: |
+        same-instance=true state-module-evaluations=1
+    - run: alias-control-instance-probe-run
+      where: what the pack side read back after the control side's __useServer
+      quote: |
+        pack-world={"tag":"fake-world"} pack-system={"tag":"fake-system"}
+    - run: alias-control-instance-probe-run
+      where: the suite totals, identical in all four runs
+      quote: |
+         Test Files  1 passed (1)
+              Tests  2 passed (2)
