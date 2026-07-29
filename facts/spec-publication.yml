@@ -30,18 +30,13 @@
     fields — an `id` prefixed with its kind letter, `r:` or `d:`, and a `statement` — with nothing
     telling the two kinds apart
   backing: documented
-  caveat: |
-    The shape is fixed by a spec-bundles decision rather than by one of its requirements, so it is
-    that design's to rework while it is being worked on, and a later revision may change it without
-    the owner reversing anything.
   sources:
-    - url: design/how-to-plan/spec-bundles/spec.md
-      where: the derived implementer view — the commitments block
+    - url: design/how-to-plan/spec-bundles/requirements.yaml
+      where: commitments-are-a-flat-id-and-statement-list — statement
       quote: |
-        The top-level key `commitments` maps to a
-        sequence, and an entry carries exactly two fields: an `id` prefixed with its kind letter — `r:` or
-        `d:`, the same letters a citation token uses [[f:spec-citation-token-grammar]] — and a `statement`,
-        copied from the source entry
+        a bundle's commitments are one flat sequence whose entries carry exactly two fields: an `id`
+        prefixed with its kind letter, `r:` or `d:`, and a `statement`. Nothing marks which entries are
+        the owner's fiat and which the spec's own
 
 - id: bundle-edges-come-from-cited-fact-sources
   claim: |

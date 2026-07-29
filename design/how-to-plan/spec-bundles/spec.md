@@ -61,7 +61,7 @@ change were its foundation false [[r:explicit-intent]], which is the argument th
 on rather than anything a builder following it has to re-run [[r:derived-implementer-view]].
 
 The two kinds arrive as **one flat list**, and nothing in the document tells them apart
-[[d:commitments-are-one-flat-list-of-id-and-statement]]. The top-level key `commitments` maps to a
+[[r:commitments-are-a-flat-id-and-statement-list]]. The top-level key `commitments` maps to a
 sequence, and an entry carries exactly two fields: an `id` prefixed with its kind letter — `r:` or
 `d:`, the same letters a citation token uses [[f:spec-citation-token-grammar]] — and a `statement`,
 copied from the source entry:
