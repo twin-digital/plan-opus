@@ -21,6 +21,14 @@
     module-scope bindings are reset by an explicit setter call in each suite's `beforeEach`; and
     the runner is vitest and ESM only — no jest, bun or CJS consumer was exercised. GunFight-Arena
     declares `@minecraft/server` `^1.17.0` against the shim's 2.8.0 values.
+
+    The quoted evidence carries the suite totals and the generator's enum counts, and nothing about
+    how the extraction works. That the shipped `index.d.ts` is read as CRLF, that reserved-word
+    member names arrive quoted, and that the script reproduces the committed generated module byte
+    for byte are visible in the harness script and in the run's `environment`, not in any quoted
+    passage; the 476-member total is in the generator's captured output but outside the quote. A
+    design leaning on those specifics is leaning on the artifacts rather than on this fact's
+    sources.
   sources:
     - run: alias-shim-harness-run
       where: the suite totals
