@@ -287,7 +287,35 @@
       quote: |
         [2026-07-25 02:26:23.218] [mctest] remove-event-sweep :: subscribed=55 skipped=0 skipped-names=[]
         [2026-07-25 02:26:23.412] [mctest] remove-event-sweep :: after remove() fired=[entitySpawn(other), dataDrivenEntityTrigger(other), dataDrivenEntityTrigger(other), dataDrivenEntityTrigger(other), entityRemove(other)] count=5
+- id: corpse-invalidation-is-twenty-one-ticks
+  claim: |
+    A killed mob's reference turns invalid exactly 21 ticks after `kill()`, and the boundary is a
+    constant: 72 observations — 8 mob types x 3 internal repeats x 3 runs — all report
+    `first-invalid-tick=21`, with no variation by type or between runs. Within each repeat every
+    type is killed on the same tick and sampled together, so the uniformity cannot be tick
+    alignment. The same sweep confirms the two readings either side of that boundary: the reference
+    is valid in the same statement sequence as the call (72/72) and valid inside the `entityDie`
+    handler (72/72), which is what a health-bearing `kill()` leaves behind until the corpse
+    despawns. Measured on sheep, cow, pig, chicken, zombie, skeleton, creeper and villager_v2.
+  backing: tested
+  sources:
+    - description: |
+        The mctest7 corpse probe spawns one of each of eight mob types, kills them all in one tick,
+        and reads isValid on every subject once per tick for 60 ticks, recording the first tick each
+        answers false. Three internal repeats per run, three runs; identical in 3/3.
+    - run: death-invalidation-probe-run
+      where: Raw log — mctest7:corpse run 1, the SUMMARY HEADLINE line
+      quote: |
+        [2026-07-28 23:57:04.184] [mctest] corpse-invalidation-boundary :: SUMMARY HEADLINE observations=24 distinct-first-invalid-ticks=["21"] uniform-across-types-and-repeats=true — one value here means the boundary is a constant the fake could model; several mean it is per-type or drawn per death
+    - run: death-invalidation-probe-run
+      where: Raw log — mctest7:corpse run 3, the SUMMARY HEADLINE line, identical to runs 1 and 2
+      quote: |
+        [2026-07-29 00:04:13.684] [mctest] corpse-invalidation-boundary :: SUMMARY HEADLINE observations=24 distinct-first-invalid-ticks=["21"] uniform-across-types-and-repeats=true — one value here means the boundary is a constant the fake could model; several mean it is per-type or drawn per death
+
 - id: death-invalidation-window
+  status: retired
+  reason: superseded
+  superseded_by: corpse-invalidation-is-twenty-one-ticks
   claim: |
     Inside an `entityDie` handler the dead entity's reference is still valid — `isValid`
     reads true and guarded members answer — and it stays valid for at least ~7 ticks after
@@ -594,18 +622,30 @@
         [2026-07-24 19:26:01.477] [mctest] invalidation-guard-enumeration :: method getDynamicPropertyTotalByteCount() threw name=InvalidEntityError ctor=InvalidEntityError instanceofInvalidEntityError=true message="Failed to call function 'getDynamicPropertyTotalByteCount' due to Entity being invalid (has the Entity been removed?)."
 - id: kill-no-health-behaviour
   claim: |
-    `kill()` on an entity that has no health component (an arrow) returns true and fires only
-    `entityDie` with cause `selfDestruct` — no `entityHurt`, no `entityHealthChanged` — and the
-    entity reads invalid synchronously, in the same statement sequence as the `kill()` call and
-    before the next tick, staying invalid through at least tick+5. A killed mob's corpse by
-    contrast stays valid for several ticks: post-death validity is not a uniform grace period;
-    despawn timing varies by entity.
+    `kill()` on an entity that has no health component returns true and fires only `entityDie` with
+    cause `selfDestruct` — no `entityHurt`, no `entityHealthChanged` — and the entity reads invalid
+    synchronously, in the same statement sequence as the `kill()` call and before the next tick,
+    staying invalid through at least tick+5. Observed on five types — `arrow`, `snowball`, `egg`,
+    `xp_orb` and `xp_bottle` — over 45 observations with no disagreement. A killed mob's corpse
+    behaves differently, staying valid for a fixed 21 ticks
+    [[f:corpse-invalidation-is-twenty-one-ticks]], so post-death validity is not one rule: it turns
+    on whether the entity carries health.
+  caveat: |
+    Four further health-less candidates — `ender_pearl`, `small_fireball`, `llama_spit` and
+    `shulker_bullet` — set `is_summonable` false and cannot be spawned by `dimension.spawnEntity`,
+    so the probe could not reach them at all. That is a spawnability limit rather than a
+    behavioural unknown, and measuring them needs a fired projectile captured as an entity rather
+    than a longer candidate list. The claim covers the five types observed.
   backing: tested
   sources:
     - run: engine-deep-probe-run
       where: "`kill-no-health-and-repeat` probe lines"
       quote: |
         [2026-07-24 19:26:01.776] [mctest] kill-no-health-and-repeat :: arrow healthComponent=undefined kill ok value=boolean:true sequence=[die(cause=selfDestruct)] stillValid=false
+    - run: death-invalidation-probe-run
+      where: Raw log — mctest7:healthless (pack 0.2.0) run 1, the SUMMARY HEADLINE line
+      quote: |
+        [2026-07-29 00:17:04.505] [mctest] healthless-kill-invalidation :: SUMMARY HEADLINE candidates=8 observed=5 types=[minecraft:arrow, minecraft:snowball, minecraft:egg, minecraft:xp_orb, minecraft:xp_bottle] disagreeing-with-arrow=0 cases=[] — the fact widens to the observed types only; an unobserved type is not evidence either way
     - run: resting-state-probe-run
       where: "`kill-no-health-invalidation-timing` probe lines"
       quote: |
