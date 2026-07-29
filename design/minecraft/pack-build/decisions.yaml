@@ -21,7 +21,7 @@
   statement: |
     the exported function takes one required option, `packageDir`, the filesystem path of the
     package directory the build is for
-  status: proposed
+  status: accepted
   falsifiers:
     - a consumer cannot name its package directory as a path at the point it calls the export
     - the build needs a second location the package directory does not reach
@@ -63,17 +63,23 @@
   statement: |
     the bundle is written to `scripts/main.js` within the behavior pack's output directory, a path
     this design fixes rather than reading from the pack's manifest
+  status: rejected
+
+- id: the-bundle-lands-where-the-pack-entry-says
+  statement: |
+    the bundle is written to the script output location the pack set entry reports, and a pack whose
+    entry reports none has no bundle written
   status: proposed
   falsifiers:
-    - a pack needs its built script at a path this convention does not name
-    - the kit starts reporting a pack's script output location, so the entry can be followed rather than assumed
+    - a pack needs its built script somewhere the kit's reported location does not name
+    - the kit's reported location and the pack's own manifest `entry` disagree in practice, so following the kit ships a broken pack
 
 - id: externals-come-from-the-manifests-module-dependencies
   statement: |
     the external set is exactly the `module_name` dependencies the pack's completed manifest
     declares, and an undeclared `@minecraft/`-scoped import fails the build only when nothing
     importable resolves for it
-  status: proposed
+  status: accepted
   falsifiers:
     - the game provides a module at runtime that a manifest dependency entry cannot name
     - a module the game provides starts shipping importable JavaScript, so resolution stops separating it from a bundlable package
@@ -101,7 +107,7 @@
 - id: a-rebuild-emits-no-report
   statement: |
     a build writes no record of which packs it changed; a watching consumer reads the output tree
-  status: proposed
+  status: accepted
   falsifiers:
     - a consumer cannot tell from the output tree which packs a rebuild touched, and redeploys everything as a result
     - the dev server needs to distinguish a manifest change from a script change to choose between a reload and a restart

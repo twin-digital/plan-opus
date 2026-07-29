@@ -5,8 +5,8 @@
 The dev kit answers, for a workspace of Minecraft Bedrock packages, which packs exist here and what
 each one is. It produces an npm package, `@twin-digital/mc-dev-kit`, whose export hands back a
 normalised pack set as typed data: one entry per pack found, marked valid or invalid, carrying
-identity, version, kind, source and output locations, the owning package, and the pack's manifest
-completed with what the package already knew. The problem it answers is that everything above it —
+identity, version, kind, source, output and script-output locations, the owning package, and the
+pack's manifest completed with what the package already knew. The problem it answers is that everything above it —
 deployment, activation, reload, watching, the selection UX — needs one already-validated answer to
 "what is here", and a source manifest is partial by design, so the answer has to be assembled and
 checked before a consumer can act on it. The constraint that shapes the whole design is
@@ -15,6 +15,24 @@ rather than a thrown error, and every part of the pipeline is written to keep go
 went wrong. That guarantee starts after enumeration, which each package manager's own library
 performs: a member `package.json` that will not parse fails the whole call, and a pack-holding
 directory that is no workspace package is never handed to the kit at all.
+
+## Open questions
+
+```yaml
+questions:
+  - id: a-source-manifest-that-names-its-own-script-entry
+    question: |
+      the kit computes `scriptOutput` from the pack's kind and reads the source manifest's script
+      module `entry` for nothing, so a manifest naming a different path is reported as it was
+      written and nothing says the two disagree — a build placing the script where the kit says
+      then ships a pack whose manifest names a file that is not there. The rule that would close
+      it is the one already governing what a partial source manifest may not specify: a script
+      module `entry` joins `header.name`, `header.version` and a workspace dependency's `version`
+      as a field the source must leave out and completion writes. That is an addition to
+      `r:kit-completes-partial-source-manifests`, which is the owner's to make.
+    closes: requirement
+    gates: [the-script-output-path-is-computed-from-the-kind]
+```
 
 ## What the consumer gets
 
@@ -67,6 +85,7 @@ interface PackEntryBase {
   packageDir: string      // workspace-relative, e.g. 'packages/mc-pack-1'
   sourceDir: string       // workspace-relative, e.g. 'packages/mc-pack-1/behavior_pack'
   outputDir: string       // workspace-relative, e.g. 'packages/mc-pack-1/dist/behavior_pack'
+  scriptOutput: string | null   // where a built script goes; null on a resource pack
 }
 
 interface ValidPackEntry extends PackEntryBase {
@@ -117,6 +136,7 @@ interface ManifestModule {
   type: string
   uuid?: string
   version?: ManifestVersion
+  entry?: string
   [key: string]: unknown
 }
 
@@ -157,14 +177,18 @@ dependency field of any other form is `manifest-shape-invalid`.
 The rest stay optional. `format_version` may be absent, because a missing or unrecognised one
 restricts nothing and passes through — though a present one is a number or a string, since anything
 else is `manifest-shape-invalid`; `dependencies` may be absent, because a pack depending on nothing
-is ordinary; and a module's `uuid` and `version` may be absent, because no rule here leaves a valid
-entry unable to lack either. Both are declared and both are form-checked all the same: a module's
-`uuid` reaches the consumer as the string it is and its `version` as the `ManifestVersion` it is, and
+is ordinary; and a module's `uuid`, `version` and `entry` may be absent, because no rule here leaves
+a valid entry unable to lack any of them — a `data` or `resources` module names no entry point at
+all. All three are declared and all three are form-checked the same: a module's
+`uuid` reaches the consumer as the string it is, its `version` as the `ManifestVersion` it is, and
+its `entry` as the string it is, and
 a source that wrote anything else is `manifest-shape-invalid`
-[[r:manifest-fields-are-validated-by-form]]. That the kit reads neither — it completes no module
-field and does not check module uuids for uniqueness
-[[r:uuids-are-claimed-once-in-a-workspace]] — bears on what a fault there suppresses (below), not on
-whether the field is typed.
+[[r:manifest-fields-are-validated-by-form]]. That the kit reads none of the three — it completes no module
+field, does not check module uuids for uniqueness
+[[r:uuids-are-claimed-once-in-a-workspace]], and takes `scriptOutput` from the kind rather than from
+`entry` — bears on what a fault there suppresses (below), not on
+whether the field is typed. `entry` is declared because the kit names it, and naming a field is what
+obliges the kit to declare and check it [[r:manifest-fields-are-validated-by-form]].
 
 Only a valid entry's `manifest` is a `PackManifest`. An invalid entry's is typed `unknown`, because a
 file that parsed to something other than a JSON object — or whose `header`, `modules`, or
@@ -333,6 +357,19 @@ kind: `outputDir` is reported whether or not it exists, and the kit neither read
 output tree, producing none of the output it names
 [[d:output-locations-are-computed-not-probed]] [[r:kit-produces-no-built-output]].
 
+`scriptOutput` is the third location, and it is computed the same way: `<outputDir>/scripts/main.js`
+on a behavior pack, and `null` on a resource pack, which has no script module to build
+[[r:manifest-corroborates-the-directory-kind]] [[d:the-script-output-path-is-computed-from-the-kind]].
+A build that puts a pack's script anywhere else produces a pack whose manifest names a file that is
+not there, so the location belongs beside the other two rather than in each builder's head. Three
+things follow from computing it rather than reading it. It says where a script *would* go, not that
+one exists — a behavior pack with no script sources and a behavior pack with no script module both
+report the same path, exactly as an unbuilt pack still reports an `outputDir`. It is not
+manifest-derived, so it is present on every entry, invalid ones included
+[[d:invalid-entries-omit-only-manifest-derived-details]] — which is why a resource pack reports
+`null` rather than the field being absent. And the kit does not read the source manifest's own
+script `entry` to get it: what that field says, and whether it agrees, is below.
+
 Each located `manifest.json` is read and parsed as JSON. Any failure to open, read, or parse it is
 the one problem `manifest-unreadable`, carrying the underlying error message
 [[d:unreadable-and-unparseable-manifests-are-one-problem]]; such an entry has no `uuid`, `version`,
@@ -368,6 +405,7 @@ goes unchecked and a field the type gains gains a row with it:
 | `modules[].type` | a string |
 | `modules[].uuid` | a string |
 | `modules[].version` | a string, or an array of three numbers |
+| `modules[].entry` | a string |
 | `dependencies[].uuid` | a string |
 | `dependencies[].module_name` | a string |
 | `dependencies[].version` | a string, or an array of three numbers |
@@ -398,13 +436,14 @@ field, exactly as a misshapen container suppresses the checks that read it
 | `modules[].type` | `module-missing-type` for that module, and `kind-not-corroborated` and `foreign-kind-module` for the manifest, since the kit cannot know what that module would have corroborated |
 | `modules[].uuid` | nothing downstream — no check or completion reads a module's uuid, uniqueness included |
 | `modules[].version` | nothing downstream — no check or completion reads a module's version, `array-version-at-format-version-3` included |
+| `modules[].entry` | nothing downstream — no check or completion reads a module's entry, and `scriptOutput` is computed from the kind |
 | `dependencies[].uuid` | every later check on that entry: it matches no pack, is never completed, and raises no `dependency-version-specified`, `dependency-unsatisfied`, or `dependency-invalid` |
 | `dependencies[].module_name` | `external-dependency-version-missing` for that entry |
 | `dependencies[].version` | `dependency-version-specified`, `external-dependency-version-missing`, and `dependency-unsatisfied` for that entry, and the version completion |
 
-Two rows suppress nothing, and that is the honest entry rather than an omission: the kit reads
-neither a module's `uuid` nor its `version`, so a fault there costs the entry its validity — every
-problem does — and nothing further follows from it.
+Three rows suppress nothing, and that is the honest entry rather than an omission: the kit reads
+none of a module's `uuid`, `version` or `entry`, so a fault in one costs the entry its validity —
+every problem does — and nothing further follows from it.
 
 The dependency discriminator is read before any of that: an entry carrying both `uuid` and
 `module_name`, or neither, is `dependency-entry-malformed` and none of its fields is form-checked,
@@ -553,7 +592,7 @@ components:
     responsibility: pick the manager for the workspace root, call that manager's enumeration library, and add the root under npm, yielding candidate packages each with its package.json fields
     excludes: locating or reading any pack manifest
   - id: pack-locator
-    responsibility: probe each candidate's two fixed source manifest paths, read the manifests found, and build each entry's kind and its source and output locations
+    responsibility: probe each candidate's two fixed source manifest paths, read the manifests found, and build each entry's kind and its source, output, and script-output locations
     excludes: interpreting or completing manifest content
     after: [workspace-enumerator]
   - id: manifest-completion

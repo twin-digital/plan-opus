@@ -3,6 +3,19 @@
 # A run records one execution and the output it captured. It makes no claim: the output says what
 # happened, the fact that cites it says what that means.
 
+- id: tsdown-emit-probe
+  command: NO_COLOR=1 node design/minecraft/pack-build/artifacts/tsdown-emit-probe/probe.mjs
+  output: design/minecraft/pack-build/artifacts/tsdown-emit-probe/OUTPUT.txt
+  ran_at: 2026-07-29
+  environment: |
+    tsdown 0.22.14 on node v24.16.0, with tsdown resolvable from the working directory
+    (`npm i -D tsdown@0.22.14`). The probe synthesises its fixture in a temp directory: a
+    `src/main.ts` importing a `src/helper.ts`, built with `format: ['esm']`, `dts: false` and
+    `clean: false` in every case. The three cases differ only in whether the plugin deletes every
+    key from the bundle object in `generateBundle` and writes a file of its own, and whether a file
+    was seeded into `outDir` beforehand. The reading turns on `clean: false`, which is what leaves
+    an existing `outDir` alone.
+
 - id: tsdown-externals-probe
   command: NO_COLOR=1 node design/minecraft/pack-build/artifacts/tsdown-externals-probe/probe.mjs
   output: design/minecraft/pack-build/artifacts/tsdown-externals-probe/OUTPUT.txt

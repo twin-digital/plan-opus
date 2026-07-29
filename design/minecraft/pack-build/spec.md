@@ -14,23 +14,6 @@ half is that it has no invocation of its own: a package's bundler configuration 
 assembled from merged partial fragments, so everything a build does has to travel inside that
 configuration — as values a fragment sets, and as a plugin the bundler runs.
 
-## Open questions
-
-```yaml
-questions:
-  - id: the-kit-should-report-a-packs-script-output-path
-    question: |
-      a pack's built script belongs at the path its manifest's script module declares in `entry`,
-      but the kit's pack entry reports only the pack's output directory, and `ManifestModule`
-      declares `type`, `uuid` and `version` and not `entry` — so the path is reachable today only
-      as an unmodelled key the kit form-checks nothing about, which is manifest handling this
-      design should not be doing. Until the kit reports a pack's script output path beside its
-      source and output directories, this design fixes the path itself and nothing checks that a
-      pack's manifest agrees with it. Should minecraft/dev-kit be amended to carry it?
-    closes: decision
-    gates: [the-bundle-lands-at-a-path-this-design-fixes]
-```
-
 ## What a pack package takes up
 
 Both halves ship in `@twin-digital/mc-dev-kit`, the package the dev kit publishes
@@ -164,27 +147,55 @@ entry, serialised as JSON with two-space indentation and a trailing newline. The
 produces a new version of the pack and nothing here writes a version of its own
 [[r:the-package-version-is-the-pack-version]] [[f:opus-package-versions-are-written-by-changesets]].
 
-**The script bundle.** The bundle is written to `<package>/dist/behavior_pack/scripts/main.js`, a
-path this design fixes [[d:the-bundle-lands-at-a-path-this-design-fixes]]. A behavior pack's script
-sources sit at `behavior_pack/scripts/main.ts` [[d:script-sources-live-in-the-packs-scripts-directory]],
-and the output path mirrors that rather than being read from the manifest — a pack's manifest module
-of type `script` does name its entry-point file in an `entry` string
-[[f:a-script-module-names-its-entry-point-path]], but the kit models no such field and reports no
-script location [[f:dev-kit-pack-entries-report-no-script-output-path]], so following it would mean
-this design doing manifest handling of its own. A pack
-taking up this export therefore declares `scripts/main.js` as its script module's `entry`, and
-nothing today checks that it did (above).
+**The script bundle.** The bundle goes where the pack set entry says: the entry's script output
+location, `<package>/dist/behavior_pack/scripts/main.js`, which the kit computes from the pack's kind
+and reports beside the pack's source and output directories
+[[f:dev-kit-reports-a-packs-script-output-location]] [[d:the-bundle-lands-where-the-pack-entry-says]].
+This design reads that path rather than fixing one of its own or taking it from the manifest — a
+manifest module of type `script` does name its entry-point file in an `entry` string
+[[f:a-script-module-names-its-entry-point-path]], and reading it here would be manifest handling that
+belongs to whoever completes manifests.
 
-It is ESM, unminified, with no `.d.ts` and no
+A resource pack's entry reports no script location, so nothing is bundled into it. A behavior pack
+whose manifest declares no module of type `script` gets no bundle written either, and one whose
+manifest declares no script module while `behavior_pack/scripts/main.ts` exists fails the build
+naming both — a pack with script sources nothing loads is a mistake worth reporting, and
+`modules[].type` is a field the kit declares and checks. A behavior pack with a script module and no
+sources still builds and still writes: its bundle is the empty module the virtual entry loads
+[[d:a-script-less-package-builds-through-a-virtual-entry]].
+
+The bundle is ESM, unminified, with no `.d.ts` and no
 sourcemap; any further chunk the bundler produces is written beside it in the same directory
 [[d:the-bundle-is-one-unminified-esm-chunk]]. The plugin deletes every chunk from the bundle object
 in `generateBundle` and writes the code out itself, so the bundler's own emit never lands in the
-output tree [[d:the-plugin-places-every-output-file-itself]]. That is what puts the bundle under the
-same two rules as every other file: a write is skipped when the bytes already match
-[[d:output-files-are-written-only-when-their-bytes-change]], and a path the build did not write is
-pruned [[d:stale-output-is-pruned-not-wiped]]. A bundler writing its own chunk writes unconditionally
-and into a tree it does not know the prune's rules for, which is a second writer in the one place
-this design is required to keep authoritative [[r:assembly-is-authoritative-over-the-output-tree]].
+output tree [[d:the-plugin-places-every-output-file-itself]]. Three things make that safe to do and
+worth doing.
+
+It puts the bundle under the same two rules as every other file in the tree: a write is skipped when
+the bytes already match [[d:output-files-are-written-only-when-their-bytes-change]], and a path the
+build did not write is pruned [[d:stale-output-is-pruned-not-wiped]]. A bundler writing its own chunk
+writes unconditionally and into a tree it does not know the prune's rules for, which is a second
+writer in the one place this design is required to keep authoritative
+[[r:assembly-is-authoritative-over-the-output-tree]].
+
+The two writers cannot race or clobber each other, because after the plugin empties the bundle there
+is only one. Emptying it in `generateBundle` leaves the bundler nothing to write: `writeBundle`
+receives an empty bundle, no chunk file appears, and the output directory holds only what the plugin
+wrote. The hooks are ordered, not concurrent — `generateBundle` runs to completion before any file is
+written — so the plugin's write and the bundler's never overlap in time even before the bundle is
+emptied. And with `clean` set to `false` the bundler creates and removes nothing else: a file already
+in the output directory is there, unchanged, after the build, so the prune is the only thing deleting
+from that tree [[f:emptying-the-bundle-in-generatebundle-leaves-the-bundler-nothing-to-write]].
+
+What is given up is narrower than it looks. Nothing about *bundling* is reimplemented: resolution,
+transformation, tree-shaking, chunking and code generation all stay the bundler's, and what the
+plugin takes over is the last step, writing a chunk's finished code to a path. What that step carries
+with it is the bundler's own output conventions — its file naming, its directory layout, its
+sourcemap and declaration emit — and those this design has already set aside: no `.d.ts`, no
+sourcemap, one unminified ESM chunk at a path the pack's manifest names rather than one the bundler
+chose [[d:the-bundle-is-one-unminified-esm-chunk]]. A bundler feature that only works through its own
+write path is the falsifier on this decision rather than a limit designed around; a sourcemap, the
+likeliest one, would be a second file written from the same hook off the same chunk.
 
 The modules the game provides at runtime stay external
 [[r:script-module-is-bundled-with-game-modules-external]]. The set is read from the pack's completed

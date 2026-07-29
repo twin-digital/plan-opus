@@ -54,6 +54,37 @@
         noExternal () => true, plugin externalises dep-a: dep-a=EXTERNAL dep-b=BUNDLED
         noExternal () => false, plugin externalises dep-a: dep-a=EXTERNAL dep-b=EXTERNAL
 
+- id: emptying-the-bundle-in-generatebundle-leaves-the-bundler-nothing-to-write
+  claim: |
+    A plugin that deletes every key from the bundle object in `generateBundle` leaves the bundler
+    nothing to write: `writeBundle` receives an empty bundle and no chunk file appears in the output
+    directory, which then holds only what the plugin wrote itself. Left alone, the same build writes
+    its chunk there. The two never overlap in time — `generateBundle` runs to completion before any
+    file is written — so a plugin writing from that hook is not racing the bundler's write. With
+    `clean: false` the bundler creates and removes nothing else: a file already in the output
+    directory is still there, unchanged, after the build.
+  backing: tested
+  sources:
+    - run: tsdown-emit-probe
+      where: the emptied case — what each hook saw and what the output directory held afterwards
+      quote: |
+        --- plugin empties the bundle and writes its own file
+            generateBundle saw: main.mjs
+            plugin wrote: dist/plugin-empties-the-bundle-and-writes-its-own-file/scripts/main.js
+            writeBundle saw: (nothing)
+            outDir after: scripts/main.js
+    - run: tsdown-emit-probe
+      where: the untouched case, and the seeded case under clean false
+      quote: |
+        --- plugin leaves the bundle alone
+            generateBundle saw: main.mjs
+            outDir after: main.mjs
+    - run: tsdown-emit-probe
+      where: the seeded case — what clean false leaves alone
+      quote: |
+        outDir after: left-over.txt | scripts/main.js
+            seeded left-over.txt: STALE-SEED
+
 - id: a-rolldown-plugin-can-declare-extra-watch-inputs
   claim: |
     A Rolldown plugin's context carries `addWatchFile(id)`, which registers a path the bundler

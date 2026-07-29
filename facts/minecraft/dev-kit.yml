@@ -87,30 +87,28 @@
         `PackManifest` with the header, module, and dependency shapes it uses are declared below and
         exported alongside the options type and the function.
 
-- id: dev-kit-pack-entries-report-no-script-output-path
+- id: dev-kit-reports-a-packs-script-output-location
   claim: |
-    The kit reports a pack's output location as one directory for the whole pack, and nothing
-    narrower: no field names where that pack's built script belongs. Its manifest module type
-    declares `type`, `uuid` and `version` and not the script module's `entry`, so a consumer
-    wanting the declared script path reads it through the index signature as an unmodelled key the
-    kit form-checks nothing about.
+    A pack entry names where that pack's built script belongs, beside its source and output
+    directories: `<outputDir>/scripts/main.js` on a behavior pack and `null` on a resource pack,
+    which has no script module. The kit computes it from the pack's kind rather than reading the
+    manifest's script module `entry`, so it is reported whether or not a script exists — a behavior
+    pack with no script sources reports the same path an unbuilt pack's `outputDir` is reported at —
+    and it is present on every entry, invalid ones included. A build therefore learns where to put a
+    pack's bundle from the pack set rather than fixing the path itself.
   backing: documented
   sources:
     - url: design/minecraft/dev-kit/spec.md
-      where: the shared pack-entry fields — one output directory per pack, and no script path
+      where: the shared pack-entry fields — the script output location beside the other two
       quote: |
-        packageDir: string      // workspace-relative, e.g. 'packages/mc-pack-1'
         sourceDir: string       // workspace-relative, e.g. 'packages/mc-pack-1/behavior_pack'
         outputDir: string       // workspace-relative, e.g. 'packages/mc-pack-1/dist/behavior_pack'
+        scriptOutput: string | null   // where a built script goes; null on a resource pack
     - url: design/minecraft/dev-kit/spec.md
-      where: ManifestModule — the fields the kit declares on a manifest module
+      where: how the script output location is computed, and what follows from computing it
       quote: |
-        interface ManifestModule {
-          type: string
-          uuid?: string
-          version?: ManifestVersion
-          [key: string]: unknown
-        }
+        `scriptOutput` is the third location, and it is computed the same way: `<outputDir>/scripts/main.js`
+        on a behavior pack, and `null` on a resource pack, which has no script module to build
 
 - id: dev-kit-completes-a-workspace-dependency-version-from-the-owning-package
   claim: |
