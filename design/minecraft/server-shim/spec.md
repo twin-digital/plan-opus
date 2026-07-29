@@ -74,6 +74,29 @@ the capability has to come from there [[f:a-fake-server-can-be-cleared-in-place-
 [[f:test-lib-ships-no-reset-hook]]. That ask is open, not settled, and nothing here is built against it
 [[d:per-test-isolation-waits-on-a-library-reset]].
 
+Where the install goes when it lands — recorded so the shape now is not mistaken for the destination,
+and built by nobody until the reset exists (plan-opus issue #124). The shim would ship a
+self-registering setup subpath, `@twin-digital/minecraft-server-shim/vitest`, which on import installs
+a server and registers the per-test reset itself, the way `msw`'s `setupServer` and
+`@testing-library/jest-dom` do. The consumer writes no setup file at all — `setupFiles:
+['@twin-digital/minecraft-server-shim/vitest']` beside the alias — and the subpath can brand the
+library's fakes as it goes, which is a consumer's own `brandAs` call today. Four things it turns on,
+none of them settled here. **It costs library independence, and only on that subpath**: the core must
+keep importing nothing from `@twin-digital/minecraft-test-lib`, so the library enters as an optional
+peer that only `/vitest` imports, and a consumer faking the engine their own way uses `./control` and
+never loads it — `peerDependenciesMeta.optional` does cover a peer that is simply *absent*, which is
+that case [[f:an-unsatisfiable-peer-range-fails-npm-and-warns-pnpm-and-yarn]]. **`setupFiles` takes no
+arguments**, so zero-config means baked-in defaults — which fake library, and what the default world
+holds — with an exported helper a consumer calls from their own setup file when they want presets or
+their own fakes; the subpath is the opinionated path, not the only one. **What the default world holds
+is the open one**: `createServer()` populates nothing, so a zero-config server means a pack's first
+`world.getDimension('overworld')` throws, while baking in the library's vanilla-dimensions preset is an
+opinion about world contents in a package that models none [[r:shim-supplies-values-not-behaviour]].
+Neither horn is chosen here; it wants a pack survey behind it when the shape is built. And **whether
+the reset runs in `beforeEach` or `afterEach` is unmeasured** — the install has to sit at the setup
+module's module scope so a pack's module-scope subscriptions land on the right server, while a
+`beforeEach` reset is the more robust of the two against a test file that adds setup of its own.
+
 The alias is what makes the pack's own `import { world, EntityDamageCause } from '@minecraft/server'`
 resolve. Without it the suite does not fail a test, it fails to start: `@minecraft/server` 2.8.0
 publishes no `main`, `module`, `types` or `exports` key, so node reports `ERR_MODULE_NOT_FOUND` and

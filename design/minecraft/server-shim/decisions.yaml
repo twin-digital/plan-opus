@@ -283,10 +283,14 @@
 - id: per-test-isolation-waits-on-a-library-reset
   statement: |
     per-test isolation is out of this cycle and the shim adds no mechanism for it; the route is a
-    reset the fake library exposes, which it does not today
+    reset the fake library exposes, which it does not today, and the shape gated on that reset is a
+    self-registering /vitest setup subpath taking the library as an optional peer
   status: proposed
   falsifiers:
     - the leakage a file-scoped server carries changes a consumer's assertion rather than merely
       accumulating, often enough that suites are unwritable without a reset
     - a per-test mechanism turns out to be available from the shim's side alone, without the library
       clearing a server in place
+    - a self-registering subpath cannot keep its library import off the core — a runner or bundler
+      that loads every published entry point, or an optional peer a manager installs regardless — so
+      the shape costs the library independence the core is built on
