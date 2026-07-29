@@ -12,13 +12,15 @@
 
 - id: build-is-an-exported-bundler-config
   statement: |
-    what this design produces is exported for a consuming package's bundler configuration to use —
-    not a command the package runs. It embeds no bundler and ships no command line of its own.
+    the build half of this design is exported for a consuming package's bundler configuration to
+    use — not a command the package runs. It embeds no bundler and ships no command line of its
+    own. The archive half is not bound by this: it may ship a command line.
 
 - id: a-released-pack-is-an-archive-of-its-output-tree
   statement: |
-    a pack's release archive is produced from that pack's built output tree by this design, exported
-    for the pack's release hook to call.
+    an npm package is an addon pack, and its whole output tree is released together as one archive,
+    produced by this design from that built output tree and exported for the package's release hook
+    to call. The packs a package contains are not separately releasable.
 
 - id: the-exported-config-is-documented
   statement: |
@@ -37,6 +39,14 @@
     every file a pack is made of, and not only what the bundler emits — functions, entity and item
     definitions, textures, `.lang` files, and the rest — is placed into the output tree, so a
     finished build is loadable with no further processing by anything downstream.
+
+- id: built-manifests-are-the-completed-ones
+  statement: |
+    the manifest in a pack's output tree is the completed manifest, not the partial source
+    manifest — a build never copies a source `manifest.json` through unchanged.
+  rationale: |
+    A source manifest is required to omit `header.name` and `header.version`, so a pack whose built
+    manifest is the source one does not load.
 
 - id: assembly-is-authoritative-over-the-output-tree
   statement: |

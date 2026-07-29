@@ -10,14 +10,15 @@ wants a loadable pack, and a package that copies them slightly wrong ships outpu
 server with nothing reporting why.
 
 What this design produces is exported for a pack package's bundler configuration to use, plus
-documentation of how to use it, plus the archive a released pack is cut into. No command line, no
-bundler embedded here, and nothing for a pack to implement.
+documentation of how to use it, plus the archive a released package is cut into. No bundler embedded
+here, and nothing for a pack to implement.
 
-The form follows the monorepo it ships into rather than a choice made here: shared build behaviour
-reaches a package there as a value its config merges, never as a command the package runs
+The form follows the monorepo it ships into rather than a choice made here: a package's bundler
+configuration there is assembled from merged values rather than written in the package
 (`f:opus-bundler-config-merges-partial-fragments`), and an artifact reaches a GitHub release only
 through a hook the package itself declares (`f:opus-release-assets-come-from-a-per-package-script`).
-Those two facts are why the product is an export and why the archive is one too.
+The first is why the build half is an export; the second is why the archive half is something a
+declared hook can call.
 
 It ships in the same distributable as `minecraft/dev-kit` — one package, two designs, a split of
 subject matter rather than of artifacts. The kit's side reads a workspace, validates it, normalises
@@ -44,9 +45,9 @@ details `f:dev-kit-pack-set-entry-names-package-kind-source-and-identity` alread
 - **Versioning** — a pack's version comes from `package.json`, so raising it and building is what
   produces a new version of the pack. The bump itself is the release process's
   (`f:opus-package-versions-are-written-by-changesets`); nothing here writes a version.
-- **The release archive** — what a pack is cut into for distribution, produced from the output tree
-  this design already owns. A `.mcpack` is one zipped pack and an `.mcaddon` a zip of those
-  (`f:release-archives-follow-pack-content`); which one a pack ships is the design's to choose.
+- **The release archive** — what a package is cut into for distribution, produced from the output
+  tree this design already owns. A `.mcpack` is one zipped pack and an `.mcaddon` a zip of those
+  (`f:release-archives-follow-pack-content`); which one a package ships is the design's to choose.
 - **The documentation of the export** — how a consumer uses it, and what using it produces.
 
 ## Out of scope
@@ -86,8 +87,10 @@ pack package does the same, with no build rule copied between the two.
 - **What the export needs from its consumer.** The prototype's took `import.meta.url` to locate the
   package directory; whether that is the right interface, and what else it has to be told, is open.
   The archive export faces the same question separately.
-- **What the archive holds and what format it takes** — one pack or a package's packs together, and
-  whether anything beside the output tree goes in.
+- **What format the archive takes**, and whether anything beside the output tree goes in.
+- **How the external set is determined** — a fixed `@minecraft/*` pattern, a list the consumer hands
+  over, or the built-in module dependencies the pack's own manifest already declares. A module
+  wrongly bundled fails at the server rather than at build time.
 - **A package holding two packs.** The kit fixes the shape: a package structurally holds at most one
   pack of each kind, and each reported pack carries its own output location, so two packs means two
   entries and two output trees. What is open is this side — one config across both trees, when only
@@ -102,10 +105,6 @@ pack package does the same, with no build rule copied between the two.
   reads the output tree, so the seam is one-way; which way this side crosses it is open.
 - **What a rebuild reports.** A watching consumer needs to know which packs a rebuild changed before
   it can redeploy them; nothing here fixes how it learns that.
-- **Whether a non-default output root is needed at all.** The kit settled this by not having one: an
-  output location is computed from the package directory and the kind and is never probed, so there
-  is nowhere for a package to state its own. If this design needs one, that is a change to the kit
-  rather than an open question here.
 
 ## Known tensions
 

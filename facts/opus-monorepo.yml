@@ -31,9 +31,9 @@
     plus per-package fragments, where each `*.ts` file in a `tsdown.config.d/` directory beside the
     package's `tsdown.config.ts` default-exports a partial config. Fragments are applied in filename
     order and shallow-merged over the base, so a top-level key a fragment sets replaces the base's
-    wholesale and a fragment overriding a nested key must restate what it still needs. Shared build
-    behaviour therefore reaches a package as a value its config merges, never as a command the
-    package runs.
+    wholesale and a fragment overriding a nested key must restate what it still needs. A package's
+    bundler configuration is therefore assembled from merged values rather than written in the
+    package.
   backing: documented
   sources:
     - url: https://github.com/twin-digital/opus/blob/a3ff0e1a0805202fd24663a8990dcaaa6a9c22a0/nodejs/devtools/tsdown-config/src/index.ts
