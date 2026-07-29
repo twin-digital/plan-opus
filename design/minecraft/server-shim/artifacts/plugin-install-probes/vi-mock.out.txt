@@ -1,0 +1,84 @@
+=== vi-mock: control: no alias, no mock (no-install.config.ts) ===
+exit code: 1
+
+
+ RUN  v4.1.10 <probe>
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  05:16:29
+   Duration  148ms (transform 26ms, setup 0ms, import 0ms, tests 0ms, environment 0ms)
+
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  no-install.test.ts [ no-install.test.ts ]
+Error: Failed to resolve entry for package "@minecraft/server". The package may have incorrect main/module/exports specified in its package.json.
+ ❯ marron-town-mod/src/main.ts:1:1
+      1| import { world, system, type Player } from '@minecraft/server';
+       | ^
+      2| import { ScoreboardSkillRepository } from './infrastructure/scoreboard…
+      3| import { ScoreboardWorldStore } from './infrastructure/scoreboard-worl…
+ ❯ no-install.test.ts:4:1
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+=== vi-mock: vi.mock in the test file, no alias (mock-in-test.config.ts) ===
+exit code: 0
+
+
+ RUN  v4.1.10 <probe>
+
+stdout | mock-in-test.test.ts
+[vi.mock factory] built and installed a server
+
+stdout | mock-in-test.test.ts > the pack subscribed on the server the mock factory installed
+[census] {"label":"vi.mock factory","subscriptions":["after.entityHurtx1","after.itemCompleteUsex1","after.itemUsex1","after.playerBreakBlockx1","after.playerSpawnx1"],"subscriptionCount":5,"intervals":2,"queuedRuns":1,"dimensions":["overworld"],"messages":0}
+
+ ✓ mock-in-test.test.ts > the pack subscribed on the server the mock factory installed 2ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  05:16:29
+   Duration  321ms (transform 159ms, setup 0ms, import 201ms, tests 2ms, environment 0ms)
+
+
+=== vi-mock: vi.mock in a setup file, no alias, two test files (mock-in-setup.config.ts) ===
+exit code: 0
+
+
+ RUN  v4.1.10 <probe>
+
+stdout | mock-live-binding.test.ts
+[setup-mock] setup module evaluated
+
+stdout | mock-in-setup.test.ts
+[setup-mock] setup module evaluated
+
+stdout | mock-live-binding.test.ts
+[setup vi.mock factory] built and installed a server
+
+stdout | mock-in-setup.test.ts
+[setup vi.mock factory] built and installed a server
+
+stdout | mock-live-binding.test.ts > this file’s pack subscriptions are its own
+[second file census] {"label":"setup vi.mock factory","subscriptions":["after.entityHurtx1","after.itemCompleteUsex1","after.itemUsex1","after.playerBreakBlockx1","after.playerSpawnx1"],"subscriptionCount":5,"intervals":2,"queuedRuns":1,"dimensions":["overworld"],"messages":0}
+
+stdout | mock-live-binding.test.ts > reinstalling through ./control — where the mocked binding points afterwards
+[after reinstall] world.label=reinstalled server system.currentTick=0
+
+ ✓ mock-live-binding.test.ts > this file’s pack subscriptions are its own 2ms
+ ✓ mock-live-binding.test.ts > reinstalling through ./control — where the mocked binding points afterwards 0ms
+stdout | mock-in-setup.test.ts > the pack subscribed on the server the setup file’s mock factory installed
+[census] {"label":"setup vi.mock factory","subscriptions":["after.entityHurtx1","after.itemCompleteUsex1","after.itemUsex1","after.playerBreakBlockx1","after.playerSpawnx1"],"subscriptionCount":5,"intervals":2,"queuedRuns":1,"dimensions":["overworld"],"messages":0}
+
+ ✓ mock-in-setup.test.ts > the pack subscribed on the server the setup file’s mock factory installed 2ms
+
+ Test Files  2 passed (2)
+      Tests  3 passed (3)
+   Start at  05:16:30
+   Duration  291ms (transform 271ms, setup 46ms, import 320ms, tests 6ms, environment 0ms)
+
+
