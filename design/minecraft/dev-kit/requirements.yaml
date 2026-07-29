@@ -103,6 +103,11 @@
     a package's output root always holds one kind-named subdirectory per pack — `behavior_pack`,
     `resource_pack` — mirroring the source layout. A single-pack package still nests.
 
+- id: kit-produces-no-built-output
+  statement: |
+    the kit reports where a pack's built output is expected and produces none of it: it neither
+    reads nor writes the output tree.
+
 - id: manifest-format-version-passes-through
   statement: |
     a source `manifest.json` is accepted whatever manifest format version it declares, and the

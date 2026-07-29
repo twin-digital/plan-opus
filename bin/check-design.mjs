@@ -200,6 +200,8 @@ function checkSources(e, tag, backing) { // rule 7
     if ([hasUrl, hasDesc, hasRun].filter(Boolean).length > 1) add("source has more than one locator", tag);
     if (!hasUrl && !hasDesc && !hasRun) add("source has no locator", tag);
     if (hasUrl && !hasWhere) add("url without where", tag);
+    // a url or a run points at a passage; without the passage there is nothing to verify
+    if ((hasUrl || hasRun) && s.quote === undefined) add("source without a quote", tag);
     if (hasRun) {
       const run = ent[String(s.run)];
       if (!run || run.kind !== "e") add("run source unresolved", `${tag} -> ${s.run}`);
@@ -320,7 +322,8 @@ const ORDER = [
   "run source unresolved", "source cites a retired run", "run without where",
   "run source on a non-tested fact", "run output not found", "run ran_at not a date",
   "bad run status", "retired run without reason", "superseded run without superseded_by",
-  "url without where", "in-repo url not repo-root-relative", "quote not a block scalar",
+  "url without where", "source without a quote",
+  "in-repo url not repo-root-relative", "quote not a block scalar",
   "quote not verbatim at its source",
   "artifact source on a non-tested fact",
   "default stated explicitly", "empty questions block", "empty components block",

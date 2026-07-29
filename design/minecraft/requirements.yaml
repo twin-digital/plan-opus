@@ -5,14 +5,19 @@
 
 - id: pack-uses-the-shared-build-tooling
   statement: |
-    a pack's bundle is built by the workspace's shared pack-build toolchain; a pack does no more
-    than invoke it, and implements no build of its own.
+    a pack's bundle is built by the workspace's shared pack-build toolchain: its build
+    configuration merges the fragment that toolchain exports, and it implements no build logic of
+    its own. Every route to a built pack — a build script, a watch rebuild, a
+    continuous-integration run — goes through it.
   applies_to: [set:minecraft-addon-packs]
+  rationale: |
+    A second path to a built pack is a path around manifest completion.
 
 - id: a-pack-does-not-deliver-itself
   statement: |
-    a pack's job ends at a built bundle — it carries no deploy or publish scripts and ships itself
-    nowhere.
+    a pack implements no delivery of its own: whatever release or deploy hook the monorepo's
+    conventions require of it delegates to shared tooling, and the pack itself publishes and deploys
+    nothing.
   applies_to: [set:minecraft-addon-packs]
 
 - id: packs-unit-test-with-the-shared-test-lib

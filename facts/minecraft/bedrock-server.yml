@@ -85,6 +85,35 @@
         detail that does not come from the manifest and that its sources hold — so a consumer can always
         name and locate a pack it cannot use.
 
+- id: dev-kit-reports-a-fixed-kind-named-output-location-and-writes-none
+  claim: |
+    minecraft/dev-kit reports, for every pack it finds, where that pack's built output is expected —
+    `dist/` within the owning package, holding one kind-named subdirectory per pack, a single-pack
+    package included — and produces none of it. The location is computed from the package directory
+    and the pack's kind rather than probed, so it is reported whether or not anything has been built
+    there, and the kit neither reads nor writes the output tree. A build therefore has one place to
+    put a pack's output and learns it from the pack set, and nothing in the kit competes with it for
+    that tree.
+  backing: documented
+  caveat: |
+    The layout is fixed by the kit's requirements, so a package cannot state an output root of its
+    own; whether one is ever needed is outside what this records.
+  sources:
+    - url: design/minecraft/dev-kit/requirements.yaml
+      where: built-output-defaults-to-dist
+      quote: |
+        a pack's built output is found at `dist/` within its package.
+    - url: design/minecraft/dev-kit/requirements.yaml
+      where: built-output-mirrors-the-source-layout
+      quote: |
+        a package's output root always holds one kind-named subdirectory per pack — `behavior_pack`,
+        `resource_pack` — mirroring the source layout. A single-pack package still nests.
+    - url: design/minecraft/dev-kit/requirements.yaml
+      where: kit-produces-no-built-output
+      quote: |
+        the kit reports where a pack's built output is expected and produces none of it: it neither
+        reads nor writes the output tree.
+
 - id: compose-watch-actions-and-versions
   claim: |
     Docker Compose's `develop.watch` offers the actions a live deploy needs, but the two most
