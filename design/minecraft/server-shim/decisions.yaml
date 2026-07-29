@@ -75,26 +75,24 @@
 
 - id: one-package-one-aliasable-module
   statement: |
-    the shim ships as one package with exactly two entry points — the aliasable module and ./control
-    — with no separate values-only package and no runtime dependency on a fake library
+    the shim ships as its own package, separate from any fake library, with four entry points — the
+    aliasable module, ./control, ./vite and ./vitest — and a runner integration is a subpath of it
+    rather than a package of its own
   status: proposed
   falsifiers:
     - a consumer wants the enum values in production pack code, where taking the brand table and the
       mutable singleton bindings along is not acceptable
     - a second @minecraft/* module's shim needs a build or peer range this package cannot carry
       alongside the first
+    - a runner integration needs a release cadence or a dependency range the shim package cannot
+      carry, so the subpath has to become a package after all
 
 - id: install-is-a-documented-snippet
   statement: |
     installing the shim is documented snippets the consumer copies — the two runner-config entries
     and the setup file — not a helper the package exports that returns runner config or registers
     itself
-  status: proposed
-  falsifiers:
-    - a consumer maintains the entries in several config files at once — a workspace with a config
-      per project — so a helper returning them is less work than repeating the snippets
-    - the copied setup file has to differ per consumer beyond the library they construct a server
-      with, so what the README ships as one snippet is not one snippet
+  status: rejected
 
 - id: values-are-generated-and-committed
   statement: |
@@ -122,8 +120,8 @@
 
 - id: shim-cooperates-through-a-registered-brand-symbol
   statement: |
-    the shim depends on no fake library; anything that fakes the engine cooperates by setting a
-    property keyed with Symbol.for('@twin-digital/minecraft-server-shim.classes')
+    the shim reads a brand to answer instanceof and does not define the protocol — the fake library
+    owns the symbol and value shape, and the shim conforms to whatever it settles
   status: proposed
   falsifiers:
     - the test library declines to carry the brand, so every consumer using it has to brand each
@@ -131,6 +129,8 @@
       been less work
     - a second faking library adopts a conflicting brand convention, so the shim answers instanceof
       for one and not the other
+    - the protocol the library settles cannot be read without importing the library, so the reader
+      cannot stay library-agnostic
 
 - id: instanceof-answers-only-to-the-brand
   statement: |
@@ -273,12 +273,7 @@
     a setup file registered with the runner installs one server per test file at module scope, and
     it is the only install shape the shim documents — no dynamic-import recipe and no per-test
     install hook
-  status: proposed
-  falsifiers:
-    - a runner the shim documents evaluates its setup files after the test file's own module
-      evaluation, so a statically imported pack reaches the singletons before the install
-    - consumers routinely need two servers in one file — a scenario the file-scoped install cannot
-      express — so the single documented shape does not cover ordinary use
+  status: rejected
 
 - id: per-test-isolation-waits-on-a-library-reset
   statement: |
@@ -294,3 +289,57 @@
     - a self-registering subpath cannot keep its library import off the core — a runner or bundler
       that loads every published entry point, or an optional peer a manager installs regardless — so
       the shape costs the library independence the core is built on
+
+- id: the-plugin-is-the-install-shape
+  statement: |
+    a vite plugin the consumer lists in plugins is the documented install — its config hook
+    contributes the resolve.alias entry and the test.setupFiles entry naming the package's ./vitest
+    subpath — with that subpath also exported for a consumer who wants no plugin
+  status: proposed
+  falsifiers:
+    - vitest or vite stops honouring a plugin-contributed test.setupFiles entry, so the plugin can
+      contribute the alias but not the install
+    - consumers routinely need the alias without the setup file, or the reverse, so the single
+      plugin entry is the wrong granularity and they configure around it
+
+- id: plugin-options-travel-in-test-env
+  statement: |
+    the plugin passes its options to the setup module as JSON on test.env, read off process.env,
+    rather than through vite's define
+  status: proposed
+  falsifiers:
+    - an option value cannot survive a JSON round trip through the environment — a function, a
+      module instance — so the channel cannot carry what the plugin needs to pass
+    - a runner the shim documents provides no equivalent of test.env, so the channel does not
+      generalise past vitest
+
+- id: the-alias-is-the-substitution-mechanism
+  statement: |
+    the shim substitutes @minecraft/server by a resolver alias, not by vi.mock, even though vi.mock
+    alone is sufficient to make the specifier importable
+  status: proposed
+  falsifiers:
+    - a runner the shim documents offers a mock hook but no resolver alias, so the alias cannot be
+      the mechanism there
+    - an object-literal vi.mock factory turns out to keep the shim's live bindings live and removes
+      a config entry the alias needs, so the alias buys nothing
+
+- id: the-library-is-an-optional-peer-of-the-setup-subpath-alone
+  statement: |
+    the fake library is an optional peer dependency imported only by the ./vitest setup module,
+    which the serverModule option can point elsewhere; the core entries import no library
+  status: proposed
+  falsifiers:
+    - a bundler or runner loads every published entry point of the package, so the setup module's
+      import reaches a consumer who never asked for the library
+    - the setup module cannot select a factory by module specifier under a runner the shim
+      documents, so the default becomes a hard dependency
+
+- id: the-default-world-is-what-the-factory-builds
+  statement: |
+    the setup module installs what the server factory returns, adding nothing; a populated starting
+    world is the plugin's world option, not the default
+  status: proposed
+  falsifiers:
+    - the great majority of packs fail on their first world read against a bare server, so the
+      empty default is a step every consumer takes and the option is a default in the wrong place

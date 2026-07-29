@@ -2,11 +2,11 @@
 
 ## Summary
 
-This design specifies the module a pack author aliases over `@minecraft/server` in their test
-runner's configuration, so that unmodified behavior-pack code loads and runs under test. Its
-product is one published package: the enum and constant values a pack imports, a stand-in for every
-class the engine declares so that `instanceof` answers, and the module-scope `world` and `system`
-bindings a test points at its own fakes. The problem it answers sits before any fake can be used —
+This design specifies the module that stands in for `@minecraft/server` under a test runner, so that
+unmodified behavior-pack code loads and runs. Its product is one published package: the enum and
+constant values a pack imports, a stand-in for every class the engine declares so that `instanceof`
+answers, the module-scope `world` and `system` bindings a test points at its own fakes, and the vite
+plugin that installs all of it from one entry in a consumer's config. The problem it answers sits before any fake can be used —
 the published `@minecraft/server` package has no entry point, so a module importing a value from it
 cannot be resolved by a runner at all, and the test library deliberately does not intercept that
 import. The constraint that shapes everything below is that the shim carries mutable module state
@@ -15,32 +15,90 @@ the type checker's view all have to arrive at the same module.
 
 ## What a consumer installs
 
-The consumer adds `@twin-digital/minecraft-server-shim` as a dev dependency and three things: two
-entries in their runner config and a setup file. No pack source is edited and no `tsconfig` entry is
-added [[r:unmodified-pack-code-loads-under-test]]. The config entries are the alias, mapping the
-specifier `@minecraft/server` to the bare specifier `@twin-digital/minecraft-server-shim`, and a
-`setupFiles` entry naming the setup file. Under vitest those are `resolve.alias` and
-`test.setupFiles`.
-
-The setup file is three lines and names nothing about the consumer's pack:
+The consumer adds `@twin-digital/minecraft-server-shim` as a dev dependency and one entry to their
+runner config: the shim's vite plugin. No alias, no `setupFiles` entry, no setup file in their tree,
+no pack source edited, and no `tsconfig` change [[r:unmodified-pack-code-loads-under-test]]
+[[d:the-plugin-is-the-install-shape]].
 
 ```ts
-import { __useServer } from '@twin-digital/minecraft-server-shim/control'
-import { createServer } from '@twin-digital/minecraft-test-lib'
+import { defineConfig } from 'vitest/config'
+import { minecraftShim } from '@twin-digital/minecraft-server-shim/vite'
 
-__useServer(createServer())
+export default defineConfig({ plugins: [minecraftShim()] })
 ```
 
-Both entries and the setup file ship as documented snippets in the package README rather than as a
-helper the shim exports [[d:install-is-a-documented-snippet]]. This is the one install shape the shim
-documents; there is no second recipe [[d:the-setup-file-is-the-install-shape]].
+The plugin is a vite plugin with one `config` hook, contributing two things to the resolved config: a
+`resolve.alias` entry mapping `@minecraft/server` to the bare specifier
+`@twin-digital/minecraft-server-shim`, and a `test.setupFiles` entry naming the package's own
+`./vitest` subpath. A consumer config listing only the plugin runs an unmodified pack's suite green
+[[f:a-vite-plugin-contributes-an-alias-and-a-setup-file]].
 
-What that buys is a test file with no install code in it at all. Vitest evaluates `setupFiles` before
-the test file's own module evaluation, so a pack's module-scope `subscribe` and `runInterval` calls
-land on the installed server even though the pack is imported statically at the top of the test — the
-ordering the shim needs is the runner's, not the consumer's to arrange
-[[f:a-setup-file-server-makes-a-pack-test-file-boilerplate-free]]. A consumer's test file is static
-imports and assertions:
+Three things about that hook a builder gets wrong by default. **The `setupFiles` entry must name a
+real file.** `setupFiles` is resolved by ordinary node resolution from the project root, not through
+the plugin pipeline, so a virtual module id the plugin's own `resolveId` answers fails with
+`ERR_MODULE_NOT_FOUND`; a bare specifier naming a subpath the package's `exports` map declares
+resolves and runs [[f:setup-files-resolve-as-modules-from-the-project-root]]. **The options travel
+out-of-band**, because a setup module takes no arguments: the same `config` hook writes them as JSON
+into `test.env`, and the setup module reads them off `process.env`
+[[d:plugin-options-travel-in-test-env]]. **The plugin's setup file runs second.** A consumer's own
+setup file runs first and the plugin's after it, so the plugin overwrites a server the consumer
+installed themselves — the sharp edge, and the README states it. Everything else merges: both alias
+tables survive, in either of vite's forms, and both setup files run
+[[f:a-plugins-config-merges-with-the-consumers-own-entries]].
+
+### What the setup module installs, and what that costs
+
+The `./vitest` setup module builds a server and hands it to `__useServer` at module scope. It does not
+construct one itself: it imports the factory named by the `serverModule` option and calls it, which is
+how a plugin option selects an entirely different server factory
+[[f:plugin-options-reach-a-setup-file-through-env-or-define]]. The default is
+`@twin-digital/minecraft-test-lib`'s `createServer`.
+
+That default is the only place the shim touches a fake library, and it is deliberately the *only* one:
+the core — the aliased root, `./control`, the brands — imports nothing from any library, so the
+library enters as an **optional peer that only the `./vitest` subpath imports**
+[[d:the-library-is-an-optional-peer-of-the-setup-subpath-alone]]. A consumer faking the engine their own
+way points `serverModule` at their own factory, or skips the plugin and uses `./control` directly, and
+never loads it. `peerDependenciesMeta.optional` covers a peer that is simply *absent*, which is that
+case [[f:an-unsatisfiable-peer-range-fails-npm-and-warns-pnpm-and-yarn]].
+
+What the world contains at the start of a file is an option rather than an argument the design has to
+win. `createServer()` populates nothing, so a pack's first `world.getDimension('overworld')` throws
+against a bare one; the plugin's `world` option names the presets the setup module applies before
+installing, and a consumer whose pack needs the vanilla dimensions sets it in the same line that
+installs the plugin. The default is the bare factory result with nothing added, because a default world
+holding contents the shim chose is the shim modelling engine state
+[[r:shim-supplies-values-not-behaviour]] [[d:the-default-world-is-what-the-factory-builds]].
+
+The `./vitest` setup subpath stays exported for a consumer who wants no plugin in their config: naming
+it in `setupFiles` beside an alias of their own does the same job, measured with no plugin present
+[[f:setup-files-resolve-as-modules-from-the-project-root]] [[d:the-plugin-is-the-install-shape]]. What
+it cannot take is options — that is what the plugin buys.
+
+### What the alias substitutes, and the one alternative
+
+The alias is what makes the pack's own `import { world, EntityDamageCause } from '@minecraft/server'`
+resolve, and it is not the only thing that could. `vi.mock('@minecraft/server', factory)` with **no
+alias configured at all** substitutes a specifier the resolver cannot resolve, reaching the pack's own
+nested import rather than only the test file's, and from a setup file it applies to every test file
+that follows with the factory re-run per file
+[[f:vi-mock-substitutes-a-specifier-vite-cannot-resolve]]
+[[f:a-setup-file-vi-mock-applies-to-every-test-file]]. The shim does not use it
+[[d:the-alias-is-the-substitution-mechanism]]: it removes the alias entry but not the install — a
+factory still has to build and install a server — and the measured factory returned the module
+namespace of a real import, an object-literal factory being unmeasured, so the live `export let`
+bindings the shim turns on rest on a shape nobody has pinned. The alias is the mechanism; `vi.mock` is
+recorded here so a later author does not rediscover it as an unexplored option.
+
+### What the install buys
+
+A test file with no install code in it at all. Vitest evaluates `setupFiles` before the test file's own
+module evaluation, so a pack's module-scope `subscribe` and `runInterval` calls land on the installed
+server even though the pack is imported statically at the top of the test — the ordering the shim
+needs is the runner's, not the consumer's to arrange
+[[f:a-setup-file-server-makes-a-pack-test-file-boilerplate-free]]
+[[f:a-vite-plugin-contributes-an-alias-and-a-setup-file]]. A consumer's test file is static imports and
+assertions:
 
 ```ts
 import '../src/main.js'                                    // the pack, for its side effects
@@ -64,7 +122,7 @@ between tests because nothing can: the state belongs to the one server the file 
 
 The shape that works is **one scenario per file**. A consumer who wants a clean world writes another
 test file; a suite that puts three unrelated scenarios in one file will read another test's entities
-and another test's tick clock. The README says this in those words, beside the setup snippet, because a
+and another test's tick clock. The README says this in those words, beside the plugin snippet, because a
 consumer discovering it from a failing assertion is discovering it the expensive way.
 
 There is no supported path to per-test isolation in this cycle. The route to one is not a shim change:
@@ -74,36 +132,22 @@ the capability has to come from there [[f:a-fake-server-can-be-cleared-in-place-
 [[f:test-lib-ships-no-reset-hook]]. That ask is open, not settled, and nothing here is built against it
 [[d:per-test-isolation-waits-on-a-library-reset]].
 
-Where the install goes when it lands — recorded so the shape now is not mistaken for the destination,
-and built by nobody until the reset exists (plan-opus issue #124). The shim would ship a
-self-registering setup subpath, `@twin-digital/minecraft-server-shim/vitest`, which on import installs
-a server and registers the per-test reset itself, the way `msw`'s `setupServer` and
-`@testing-library/jest-dom` do. The consumer writes no setup file at all — `setupFiles:
-['@twin-digital/minecraft-server-shim/vitest']` beside the alias — and the subpath can brand the
-library's fakes as it goes, which is a consumer's own `brandAs` call today. Four things it turns on,
-none of them settled here. **It costs library independence, and only on that subpath**: the core must
-keep importing nothing from `@twin-digital/minecraft-test-lib`, so the library enters as an optional
-peer that only `/vitest` imports, and a consumer faking the engine their own way uses `./control` and
-never loads it — `peerDependenciesMeta.optional` does cover a peer that is simply *absent*, which is
-that case [[f:an-unsatisfiable-peer-range-fails-npm-and-warns-pnpm-and-yarn]]. **`setupFiles` takes no
-arguments**, so zero-config means baked-in defaults — which fake library, and what the default world
-holds — with an exported helper a consumer calls from their own setup file when they want presets or
-their own fakes; the subpath is the opinionated path, not the only one. **What the default world holds
-is the open one**: `createServer()` populates nothing, so a zero-config server means a pack's first
-`world.getDimension('overworld')` throws, while baking in the library's vanilla-dimensions preset is an
-opinion about world contents in a package that models none [[r:shim-supplies-values-not-behaviour]].
-Neither horn is chosen here; it wants a pack survey behind it when the shape is built. And **whether
-the reset runs in `beforeEach` or `afterEach` is unmeasured** — the install has to sit at the setup
-module's module scope so a pack's module-scope subscriptions land on the right server, while a
-`beforeEach` reset is the more robust of the two against a test file that adds setup of its own.
+When the reset lands the consumer's config does not change: the plugin registers the per-test reset
+hook in the setup module it already contributes, the way `msw`'s `setupServer` and
+`@testing-library/jest-dom` register theirs, and the same setup module brands the library's fakes
+instead of leaving that to a consumer's `brandAs`. Two things about it are unsettled and stay that way
+until the capability exists. **Whether the reset runs in `beforeEach` or `afterEach` is unmeasured** —
+the install has to sit at the setup module's module scope so a pack's module-scope subscriptions land
+on the right server, while a `beforeEach` reset is the more robust of the two against a test file that
+adds setup of its own. And **what a reset must preserve** is the library's to fix, not the shim's.
+Nothing here is built against either [[d:per-test-isolation-waits-on-a-library-reset]].
 
-The alias is what makes the pack's own `import { world, EntityDamageCause } from '@minecraft/server'`
-resolve. Without it the suite does not fail a test, it fails to start: `@minecraft/server` 2.8.0
+Without the plugin the suite does not fail a test, it fails to start: `@minecraft/server` 2.8.0
 publishes no `main`, `module`, `types` or `exports` key, so node reports `ERR_MODULE_NOT_FOUND` and
 vitest reports `Failed to resolve entry for package "@minecraft/server"` before any test code runs
-[[f:server-import-fails-without-an-alias]]. Removing the alias must put a consumer's suite back to
-exactly that failure; that is the check that the shim, and not something else, is carrying the
-import.
+[[f:server-import-fails-without-an-alias]]. Taking the plugin out of a consumer's config, with no alias
+and no `vi.mock` standing in for it, must put their suite back to exactly that failure; that is the
+check that the shim, and not something else, is carrying the import.
 
 ## The values the shim supplies
 
@@ -240,13 +284,20 @@ constructed. A value branded with a different class name answers false, which is
 `attacker instanceof Player` guard needs in order to fall through
 [[r:instanceof-answers-for-a-fake]].
 
-The brand is a protocol, not a dependency. `Symbol.for` reads from the global registry, so anything
-that fakes the engine — `@twin-digital/minecraft-test-lib` or a consumer's own double — can satisfy
-the shim's `instanceof` by setting that property, with no import of the shim and no import of the
-library by the shim [[d:shim-cooperates-through-a-registered-brand-symbol]]. For a fake that carries
-no brand at all, the shim's control entry exports
-`brandAs(value, ...classNames)`, which returns the value, so a test can brand its own doubles in one
-call and satisfy the requirement without any change to the library.
+The brand is a protocol the shim **reads**, not one it owns. The shim implements `Symbol.hasInstance`
+because it owns the `Player` object a pack tests against, but who brands a fake and what the brand
+looks like belong to whoever builds the fakes: the owner has ruled that
+`@twin-digital/minecraft-test-lib` brands its own at construction and defines the protocol, raised as
+plan-opus issue #125 and not yet ruled there [[d:shim-cooperates-through-a-registered-brand-symbol]].
+Until it is, the symbol and value shape above are the shim's provisional definition, and they move to
+whatever #125 settles. Nothing in the shim assumes a library fake arrives branded today.
+
+That is what keeps `brandAs(value, ...classNames)` on the control entry, returning the value. Its
+permanent job is a hand-rolled double — a consumer faking the engine their own way brands their own
+objects, whatever any library does. Its temporary job is library fakes: today a consumer's test, or
+the plugin's setup module, brands them; once #125 lands, nobody does. `Symbol.for` reads from the
+global registry, so a fake satisfies the check by setting the property with no import of the shim, and
+the shim imports no library to read it.
 
 Three things about `brandAs` a consumer can tell apart, and so are fixed here
 [[d:brandas-unions-and-rejects-unknown-classes]]. It **unions**: a value branded `Player` and then
@@ -349,12 +400,11 @@ runs reporting one evaluation of the state module
 duplicate install of the shim at two `node_modules` depths were not exercised, which is the same reach
 the runner choice below already commits to.
 
-The second alias shape is therefore a documented option rather than a repair: a consumer who prefers to
-alias `@minecraft/server` to the shim's resolved entry *file* — the shape one surveyed pack already
-uses — gets the same single instance, measured alongside the first. The README leads with the
-bare-specifier recipe and documents the file shape beside it.
+The plugin contributes the bare-specifier alias, and a consumer who writes an alias of their own
+instead may use either shape: the resolved entry *file* — what one surveyed pack does — gets the same
+single instance, measured alongside the first.
 
-Neither recipe carries a `tsconfig` `paths` entry, and the README says so rather than leaving it to
+No install shape carries a `tsconfig` `paths` entry, and the README says so rather than leaving it to
 inference [[d:control-surface-is-a-real-subpath]]. A `paths` entry pointing `@minecraft/server` at the
 shim's declarations would break the half that already works: pack code uses these names in type
 position — `(p: Player)`, `cause: EntityDamageCause` — and in the shim's declarations `Player` is a
@@ -364,22 +414,26 @@ accident to paper over.
 
 ## The boundary with the test library
 
-The shim needs no change to `@twin-digital/minecraft-test-lib` and imports nothing from it, so no part
-of the build waits on the library. Three consequences a builder acts on.
+The library stays its own package and the shim stays its own; neither ships inside the other
+[[d:one-package-one-aliasable-module]]. The shim's core imports nothing from
+`@twin-digital/minecraft-test-lib` — the only import is the `./vitest` setup module's default factory,
+behind an optional peer [[d:the-library-is-an-optional-peer-of-the-setup-subpath-alone]] — so no part
+of the core build waits on the library. Three consequences a builder acts on.
 
 The enum values are the shim's to generate and it does not ask the library for them
 [[d:values-are-generated-and-committed]]. If the library later ships enums of its own, nothing
 collides: both derive from the same pinned 2.8.0 declarations, so a test importing `GameMode` from the
 library and a pack importing it from the aliased module hold the same literal strings.
 
-`instanceof` needs no predicate export from the library. The registered brand symbol is the whole
-protocol and `brandAs` is the fallback for an unbranded fake
-[[d:shim-cooperates-through-a-registered-brand-symbol]], so the shim never calls an `isPlayer` or
-`isEntity` and must not be built against one.
+`instanceof` needs no predicate export from the library. The shim reads a brand and answers
+`Symbol.hasInstance`; it never calls an `isPlayer` or `isEntity` and must not be built against one
+[[d:shim-cooperates-through-a-registered-brand-symbol]]. What it does not own is the protocol's
+definition, which is the library's under plan-opus issue #125 and is not settled there.
 
 The install documentation lives here. The shim's README is the sole normative install document — the
-two config entries, the setup file, the one-scenario-per-file cost, the `2.8.0` version statement, the
-uncovered `@minecraft/*` modules, and the runner recipes — and the
+plugin entry and its options, the `./vitest` fallback and the setup-file ordering, the
+one-scenario-per-file cost, the `2.8.0` version statement, the uncovered `@minecraft/*` modules, and
+the non-vitest recipes — and the
 shim asks nothing of any fake library's documentation and does not depend on one mentioning it
 [[d:install-documentation-lives-with-the-shim]]. What that leaves open is a consumer who arrives at
 the library first: the failure they meet is the unresolved import, before any shim code exists to
@@ -388,9 +442,12 @@ pointer in their path.
 
 None of this reaches the library's own fiat that it substitutes objects and does not intercept the
 module import [[f:test-lib-does-not-intercept-the-module-import]]. The interception is the consumer's
-runner configuration and the shim is the material they configure it with: the shim registers no setup
-file with the library, the library holds no code path into the shim, and the two packages can be built
-and released without either knowing the other exists.
+runner configuration and the shim is the material they configure it with — the plugin contributes the
+alias to the *consumer's* config, and the library holds no code path into the shim. The rub is real
+and worth naming: the plugin is a config entry a consumer adds once and stops thinking about, which is
+as close to the library doing the intercepting as this design goes. It stays on the shim's side of the
+line because the shim is the package they install for it, and the library can be built and released
+knowing nothing about it.
 
 ## Module format and reach
 
@@ -412,12 +469,15 @@ or jest-ESM consumer is following a recipe nobody here has run [[d:vitest-is-the
 
 One package, `@twin-digital/minecraft-server-shim`, written in TypeScript, shipping its own type
 declarations, targeting active Node LTS with `engines.node` `>=22`
-[[d:package-identity-and-runtime-target]]. It has two entry points and no more: `.`, the module a
-consumer aliases, and `./control`. It depends on no test framework and on no fake library at run
-time; `@minecraft/server` is a peer dependency and a dev dependency, present only so the generator
-has declarations to read [[d:one-package-one-aliasable-module]].
+[[d:package-identity-and-runtime-target]]. It has four entry points: `.`, the module the alias points
+at; `./control`; `./vite`, the plugin; and `./vitest`, the setup module the plugin names. A runner
+integration is a subpath of this package, never a package of its own — a `./jest` or `./bun` entry
+joins it if those runners come [[d:one-package-one-aliasable-module]]. It depends on no test framework
+at run time; `@minecraft/server` is a peer and a dev dependency, present only so the generator has
+declarations to read, `vite` is a peer of the `./vite` entry, and the fake library is an optional peer
+of `./vitest` alone [[d:the-library-is-an-optional-peer-of-the-setup-subpath-alone]].
 
-The manifest sets `"type": "module"` and an `exports` map with exactly those two keys, each carrying a
+The manifest sets `"type": "module"` and an `exports` map with exactly those four keys, each carrying a
 `types` and a `default` condition:
 
 ```json
@@ -425,15 +485,21 @@ The manifest sets `"type": "module"` and an `exports` map with exactly those two
   "type": "module",
   "exports": {
     ".":        { "types": "./dist/index.d.ts",   "default": "./dist/index.js" },
-    "./control":{ "types": "./dist/control.d.ts", "default": "./dist/control.js" }
+    "./control":{ "types": "./dist/control.d.ts", "default": "./dist/control.js" },
+    "./vite":   { "types": "./dist/vite.d.ts",    "default": "./dist/vite.js" },
+    "./vitest": { "types": "./dist/vitest.d.ts",  "default": "./dist/vitest.js" }
   }
 }
 ```
 
-Seven source files sit behind that — four hand-written, three generated. Hand-written:
+Every subpath the plugin names has to be declared there: a `setupFiles` entry naming an undeclared
+subpath fails to resolve [[f:setup-files-resolve-as-modules-from-the-project-root]].
+
+Nine source files sit behind that — six hand-written, three generated. Hand-written:
 `src/index.ts`, the aliased root entry, re-exporting the generated values, the class exports, and
 `world`/`system`; `src/control.ts`, the control entry; `src/state.ts`, the internal module both entries
-re-export from; and `src/brands.ts`, holding the brand symbol, `brandAs`, and the `makeClass` factory.
+re-export from; `src/brands.ts`, holding the brand symbol, `brandAs`, and the `makeClass` factory;
+`src/vite.ts`, the plugin and its option type; and `src/vitest.ts`, the setup module.
 Generated: `src/generated/values.ts`, `src/generated/classes.ts`, and
 `src/generated/class-exports.ts`, which nothing outside the package imports directly. `tsc` compiles `src/`
 to `dist/` with declarations emitted; `dist/` is published and not committed. The package scripts are
@@ -463,9 +529,13 @@ cover, at minimum:
   driven through the singletons;
 - a second fixture pack whose entry module subscribes at module scope — `world.afterEvents…subscribe`
   and `system.runInterval` at import time — driven from a test file that carries no install code, only
-  a static import of the pack and of `world`/`system`, with the server installed by the suite's own
-  setup file;
-- the control run with the alias removed, asserting the resolution failure returns;
+  a static import of the pack and of `world`/`system`, with the server installed by the plugin alone —
+  a config carrying `plugins: [minecraftShim()]` and nothing else;
+- the `./vitest` subpath named directly in `setupFiles` with no plugin, and a plugin run whose options
+  select a non-default `serverModule` and a non-empty `world`, asserting the setup module saw them;
+- a consumer setup file of the suite's own beside the plugin, asserting both ran and the plugin's ran
+  second [[f:a-plugins-config-merges-with-the-consumers-own-entries]];
+- the control run with the plugin removed, asserting the resolution failure returns;
 - `instanceof` answering true for a branded fake, true for a branded subclass against its declared
   ancestor, and false for a fake branded as a different class; `brandAs` unioning across two calls, and
   throwing on an undeclared class name;
@@ -479,7 +549,7 @@ cover, at minimum:
   [[f:an-unsatisfiable-peer-range-fails-npm-and-warns-pnpm-and-yarn]];
 - and a typecheck, run by the `build` script, of a consumer-shaped TypeScript pair: a test file
   importing the control surface, and a pack module using `Player` and `EntityDamageCause` in type
-  position, checked under both alias recipes and with no `paths` entry.
+  position, checked under the plugin and with no `paths` entry.
 
 ## Components
 
@@ -515,16 +585,30 @@ components:
   - id: control-entry
     responsibility: the ./control subpath, its exports and its declarations
     after: [class-brands, shim-state]
+  - id: setup-module
+    responsibility: >-
+      src/vitest.ts — read the options off process.env, import the factory serverModule names,
+      apply the world presets, and install the server at module scope
+    excludes: registering any per-test hook, which waits on the library reset
+    after: [control-entry]
+  - id: vite-plugin
+    responsibility: >-
+      src/vite.ts — the minecraftShim plugin and its option type, whose config hook contributes the
+      resolve.alias entry, the test.setupFiles entry naming the ./vitest subpath, and the options as
+      JSON in test.env
+    excludes: doing any install work itself; the setup module it names does that
+    after: [setup-module]
   - id: package-and-recipes
     responsibility: >-
-      the manifest — name, type module, exports map, peer range, engines, scripts — the tsc build,
-      and the README — the two config entries, the setup file, the one-scenario-per-file cost, and the
-      bun and jest-ESM recipes
-    after: [root-entry, control-entry]
+      the manifest — name, type module, the four-key exports map, peer and optional-peer ranges,
+      engines, scripts — the tsc build, and the README — the plugin entry and its options, the
+      ./vitest fallback and the setup-file ordering, the one-scenario-per-file cost, and the bun and
+      jest-ESM recipes
+    after: [root-entry, control-entry, vite-plugin]
   - id: conformance-suite
     responsibility: >-
-      the two fixture packs loaded through the alias, the no-alias control, the instanceof, brandAs,
-      statics and unset-access cases, the packed-tarball peer check, and the typecheck of a
-      consumer-shaped test file
+      the two fixture packs installed by the plugin alone, the plugin-removed control, the options
+      and setup-ordering cases, the instanceof, brandAs, statics and unset-access cases, the
+      packed-tarball peer check, and the typecheck of a consumer-shaped test file
     after: [package-and-recipes]
 ```
