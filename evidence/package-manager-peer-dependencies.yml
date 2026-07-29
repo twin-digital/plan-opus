@@ -1,0 +1,16 @@
+# Runs backing facts about how package managers treat peer dependencies.
+
+- id: peer-range-mismatch-probe
+  command: node design/minecraft/server-shim/artifacts/peer-range-mismatch-probe/run.mjs
+  output: design/minecraft/server-shim/artifacts/peer-range-mismatch-probe/peer-range-mismatch.out.txt
+  ran_at: 2026-07-29
+  environment: |
+    node v24.16.0, npm 11.13.0, pnpm 11.17.0, yarn 1.22.22 (yarn classic, via corepack), each
+    reported by the probe from its own `--version`. Twelve cases: three managers × two
+    `peerDependenciesMeta` variants × two install shapes. The consumer depends on
+    `@minecraft/server` at `^1.17.0`, which the public registry resolved to 1.19.0, and on a
+    fixture package peer-declaring `@minecraft/server` at `^2.8.0`. The two install shapes are a
+    `file:` spec pointing at the fixture's source directory and one pointing at its `npm pack`
+    tarball. Each case runs in its own work directory with no lockfile and its own fixture version,
+    so no manager's content cache carries one case's manifest into another. Every observation is
+    of those manager versions and would differ against others.
