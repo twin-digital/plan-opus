@@ -50,13 +50,6 @@
   statement: commitments.yaml is a mapping of `requirements` and `decisions` to sequences whose entries carry the same fields, under the same names, as the repository's own foundation files
   status: rejected
 
-- id: commitments-are-one-flat-list-of-id-and-statement
-  statement: commitments.yaml is one flat sequence whose entries carry a kind-prefixed `id` and a `statement`, with nothing marking which are fiat and which the spec's own
-  status: accepted
-  falsifiers:
-    - a builder builds the wrong thing for want of knowing whether an entry is the owner's fiat or the spec's own call
-    - a builder needs an entry's force or status to resolve two commitments that pull against each other
-
 - id: dependency-ranges-are-carets-on-the-latest-tag
   statement: each dependency is written as a caret range on the version the upstream bundle's newest tag records at the moment of publish
   status: tolerated

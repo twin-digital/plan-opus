@@ -37,6 +37,15 @@
     A second design now emits this name, so the scope and the separator are fixed rather than left
     to this design to rework.
 
+- id: commitments-are-a-flat-id-and-statement-list
+  statement: |
+    a bundle's commitments are one flat sequence whose entries carry exactly two fields: an `id`
+    prefixed with its kind letter, `r:` or `d:`, and a `statement`. Nothing marks which entries are
+    the owner's fiat and which the spec's own
+  rationale: |
+    A second design now reads this file, so the field set and the prefix are fixed rather than left
+    to this design to rework.
+
 - id: bundle-dependencies-come-from-cited-fact-sources
   statement: |
     a bundle depends on the bundles of the designs whose `requirements.yaml` or `spec.md` its

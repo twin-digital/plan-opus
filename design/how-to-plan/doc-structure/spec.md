@@ -127,7 +127,8 @@ floor removes is the case that motivated it — a `tested` fact whose evidence l
 Every field name and enum value below is the format's public interface; the shapes are shown as they
 sit on disk. Each kind's field set is closed — a field outside its schema is an error, not a note the
 format silently keeps [[r:entry-schemas-are-closed]]; rejecting unknown fields is enforcement still to
-land in the harness, not something the checker does today. A field with a sensible default is omitted
+land in the harness, not something the checker does today
+[[f:unknown-field-rejection-is-not-yet-in-the-harness]]. A field with a sensible default is omitted
 when it takes that default, so a document carries only what departs from the norm
 [[r:foundation-default-fields]] [[r:defaults-are-omitted]] — the sole exception is a decision's
 `status`, always written even at `proposed`. Every id is kebab-case.
@@ -307,7 +308,8 @@ any other count is an error [[r:resolution-is-scope-blind]]. Scope-blind matchin
 because ids are unique per kind repo-wide; without that guarantee resolution would need a precedence
 rule between tiers. What a design may cite then follows the kind, not the tier the citing design
 sits in: every active fact in the repository [[r:facts-resolve-repo-wide]], the requirements at its
-own, its area's, and the global tier, and only its own decisions.
+own, its area's, and the global tier, and only its own decisions
+[[r:decision-citations-stay-in-their-design]].
 
 Citing a fact anywhere only helps an author who can see it, and a tree read one file at a time
 hides most of it. So the whole set is available as one generated view — every fact with its id, its
@@ -422,7 +424,8 @@ citations: every token matches the grammar,
 resolves to exactly one live entry of the named kind, points at no requirement outside the citing
 design's three tiers and no decision outside the citing design; a fact resolves from anywhere. A
 live entry is an active fact or requirement, or a decision that
-is not rejected; a retired fact or requirement and a rejected decision are dead and may not be cited.
+is not rejected; a retired fact or requirement and a rejected decision are dead and may not be cited
+[[r:retired-entries-are-closed]].
 At settle: no live requirement binding the design — its own, or a wider-scope one whose
 `applies_to` reaches it — and no accepted-or-tolerated decision goes uncited.
 

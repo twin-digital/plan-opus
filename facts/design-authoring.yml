@@ -168,18 +168,43 @@
 
 - id: unknown-field-rejection-is-not-yet-in-the-harness
   claim: |
-    the closed-schema rule is not enforced today: rejecting a field outside an entry kind's schema is
-    enforcement still to land in the harness, and the repository's checker does not do it
-  backing: documented
+    the closed-schema rule is not enforced today: a fact, requirement, decision, component, or open
+    question carrying a field outside its schema draws no diagnostic from the repository's checker,
+    which passes the tree
+  backing: tested
   caveat: |
-    The claim reports the state of the harness at the time the sourced spec was written, and a later
-    release may implement the enforcement without that sentence changing.
+    The observation is of the checker at the run's commit; a later release may implement the
+    enforcement, at which point the fact is stale rather than wrong.
   sources:
-    - url: design/how-to-plan/doc-structure/spec.md
-      where: Entry shapes — the closed-schema paragraph
+    - run: closed-schema-enforcement-probe
+      where: the observation block
       quote: |
-        rejecting unknown fields is enforcement still to
-        land in the harness, not something the checker does today
+        unknown fields injected: 5
+        diagnostics naming an injected field: 0
+        failing checks reported: 0
+        checker exit status: 0
+
+- id: citation-resolves-to-one-entry-within-its-fence
+  claim: |
+    a citation token resolves by matching its id against every entry of the named kind in the three
+    scopes the citing design sees, exactly one match being required; a decision is reachable only in
+    the design that holds it, while a fact resolves from anywhere in the repository
+  backing: documented
+  sources:
+    - url: design/how-to-plan/doc-structure/requirements.yaml
+      where: resolution-is-scope-blind — statement
+      quote: |
+        a token resolves by matching its id against every entry of that kind in all
+        three scopes; exactly one match is required and any other count is an error
+    - url: design/how-to-plan/doc-structure/requirements.yaml
+      where: decision-citations-stay-in-their-design — statement
+      quote: |
+        a claim may cite only a decision its own design holds; a decision recorded by another design is
+        out of reach however well it fits
+    - url: design/how-to-plan/doc-structure/requirements.yaml
+      where: facts-resolve-repo-wide — statement
+      quote: |
+        any design may cite any active fact, whichever scope files it
 
 - id: citation-resolves-to-one-live-entry-within-its-fence
   claim: |
@@ -187,6 +212,9 @@
     outside the citing design's three tiers and no decision outside the citing design, while a fact
     resolves from anywhere
   backing: documented
+  status: retired
+  reason: superseded
+  superseded_by: citation-resolves-to-one-entry-within-its-fence
   sources:
     - url: design/how-to-plan/doc-structure/spec.md
       where: Invariants — the citation clause
@@ -214,13 +242,16 @@
     or requirement and a rejected decision are dead and may not be cited
   backing: documented
   sources:
-    - url: design/how-to-plan/doc-structure/spec.md
-      where: Invariants — the definition of a live entry
+    - url: design/how-to-plan/doc-structure/requirements.yaml
+      where: retired-entries-are-closed — statement
       quote: |
-        A
-        live entry is an active fact or requirement, or a decision that
-        is not rejected; a retired fact or requirement and a rejected decision are dead and may not
-        be cited.
+        a retired fact or requirement is retained as a record and may not be cited: a claim rests only
+        on an active one
+    - url: design/how-to-plan/doc-structure/requirements.yaml
+      where: rejected-decisions-are-closed — statement
+      quote: |
+        a rejected decision is retained as a record, blocks nothing, and may not be
+        cited
 
 - id: settle-gate-covers-every-binding-requirement
   claim: |
