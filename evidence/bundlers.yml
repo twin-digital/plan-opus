@@ -3,6 +3,18 @@
 # A run records one execution and the output it captured. It makes no claim: the output says what
 # happened, the fact that cites it says what that means.
 
+- id: tsdown-clean-probe
+  command: NO_COLOR=1 node design/minecraft/pack-build/artifacts/tsdown-clean-probe/probe.mjs
+  output: design/minecraft/pack-build/artifacts/tsdown-clean-probe/OUTPUT.txt
+  ran_at: 2026-07-29
+  environment: |
+    tsdown 0.22.14 on node v24.16.0, with tsdown resolvable from the working directory
+    (`npm i -D tsdown@0.22.14`). The probe synthesises its fixture in a temp directory and seeds the
+    output directory before each build with the files a previous build of a pack would have left —
+    `behavior_pack/manifest.json` and `behavior_pack/textures/a.png` — none of which the entry
+    graph reaches. The two builds differ only in `clean`. The reading turns on the seeded files
+    being unreachable from the entry, which is what makes them stand for a pack's assets.
+
 - id: tsdown-emit-probe
   command: NO_COLOR=1 node design/minecraft/pack-build/artifacts/tsdown-emit-probe/probe.mjs
   output: design/minecraft/pack-build/artifacts/tsdown-emit-probe/OUTPUT.txt

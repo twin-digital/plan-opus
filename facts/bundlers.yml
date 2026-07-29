@@ -54,6 +54,25 @@
         noExternal () => true, plugin externalises dep-a: dep-a=EXTERNAL dep-b=BUNDLED
         noExternal () => false, plugin externalises dep-a: dep-a=EXTERNAL dep-b=EXTERNAL
 
+- id: tsdown-clean-empties-the-whole-output-directory-before-buildstart
+  claim: |
+    tsdown's `clean` option empties the entire output directory before the build's first plugin hook
+    runs: a plugin's `buildStart` sees an empty directory, whatever a previous build left there, and
+    files no module graph reaches are deleted along with the rest. So a build whose output directory
+    holds more than the bundler's own emit cannot use `clean` to prune its stale output — the option
+    removes everything, and it removes it too early for a plugin to read what was there.
+  backing: tested
+  sources:
+    - run: tsdown-clean-probe
+      where: the seeded tree under each `clean` setting, at buildStart and after the build
+      quote: |
+        clean=false buildStart sees: behavior_pack/manifest.json | behavior_pack/textures/a.png
+        clean=false generateBundle sees: behavior_pack/manifest.json | behavior_pack/textures/a.png
+        clean=false after build: behavior_pack/manifest.json | behavior_pack/textures/a.png | main.mjs
+        clean=true buildStart sees: (empty)
+        clean=true generateBundle sees: (empty)
+        clean=true after build: main.mjs
+
 - id: emptying-the-bundle-in-generatebundle-leaves-the-bundler-nothing-to-write
   claim: |
     A plugin that deletes every key from the bundle object in `generateBundle` leaves the bundler
