@@ -47,6 +47,9 @@
           - its kind (behavior pack or resource pack)
           - its source location
           - its build output location (even if that location is not present because the pack is unbuilt),
+          - its built script location, where a behavior pack's bundled script module belongs (even if
+            that location is not present because the pack is unbuilt, and reported as absent for a
+            resource pack, which has no script)
           - the full content of its manifest in object form (including content auto-populated as
             described by `r:kit-completes-partial-source-manifests`)
 

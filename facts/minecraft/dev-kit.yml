@@ -89,26 +89,27 @@
 
 - id: dev-kit-reports-a-packs-script-output-location
   claim: |
-    A pack entry names where that pack's built script belongs, beside its source and output
-    directories: `<outputDir>/scripts/main.js` on a behavior pack and `null` on a resource pack,
-    which has no script module. The kit computes it from the pack's kind rather than reading the
-    manifest's script module `entry`, so it is reported whether or not a script exists — a behavior
-    pack with no script sources reports the same path an unbuilt pack's `outputDir` is reported at —
-    and it is present on every entry, invalid ones included. A build therefore learns where to put a
-    pack's bundle from the pack set rather than fixing the path itself.
+    A pack entry names where that pack's built script belongs, beside its build output location:
+    `scripts/main.js` within the pack's output location on a behavior pack, and absent on a resource
+    pack, which has no script. The kit computes it rather than reading the manifest, and probes for
+    no script sources, so it is reported whether or not a script exists — a behavior pack with no
+    script sources reports the same location an unbuilt pack's output location is reported at. A
+    build therefore learns where to put a pack's bundle from the pack set rather than fixing the path
+    itself, and a consumer that deploys the built pack reads the same answer.
   backing: documented
   sources:
-    - url: design/minecraft/dev-kit/spec.md
-      where: the shared pack-entry fields — the script output location beside the other two
+    - url: design/minecraft/dev-kit/requirements.yaml
+      where: pack-record-details — the built script location among the details reported per pack
       quote: |
-        sourceDir: string       // workspace-relative, e.g. 'packages/mc-pack-1/behavior_pack'
-        outputDir: string       // workspace-relative, e.g. 'packages/mc-pack-1/dist/behavior_pack'
-        scriptOutput: string | null   // where a built script goes; null on a resource pack
-    - url: design/minecraft/dev-kit/spec.md
-      where: how the script output location is computed, and what follows from computing it
+        - its built script location, where a behavior pack's bundled script module belongs (even if
+          that location is not present because the pack is unbuilt, and reported as absent for a
+          resource pack, which has no script)
+    - url: design/minecraft/dev-kit/requirements.yaml
+      where: built-script-defaults-to-scripts-main-js — the location's value and how it is arrived at
       quote: |
-        `scriptOutput` is the third location, and it is computed the same way: `<outputDir>/scripts/main.js`
-        on a behavior pack, and `null` on a resource pack, which has no script module to build
+        a behavior pack's built script is found at `scripts/main.js` within that pack's build output
+        location. The kit computes it rather than reading it from the manifest, and does not probe for
+        script sources: the location is where a built script belongs, not a claim that one is there.
 
 - id: dev-kit-completes-a-workspace-dependency-version-from-the-owning-package
   claim: |

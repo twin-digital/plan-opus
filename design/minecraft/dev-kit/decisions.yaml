@@ -271,11 +271,11 @@
     - a transitively invalidated pack is usable in practice, so consumers ignore the propagated status
     - a cycle among packs is found that must be reported as a problem in its own right
 
-- id: the-script-output-path-is-computed-from-the-kind
+- id: an-absent-script-location-is-null-not-a-missing-field
   statement: |
-    `scriptOutput` is `<outputDir>/scripts/main.js` on a behavior pack and `null` on a resource
-    pack, computed from the kind rather than read from the manifest's script module `entry`
+    `scriptOutput` is present on every entry and carries `null` where a pack has no script location,
+    rather than being an optional field a resource pack's entry omits
   status: proposed
   falsifiers:
-    - a behavior pack needs its built script at a path this one does not name, so a consumer has to override what the kit reports
-    - a source manifest naming a different `entry` reaches a server often enough that reporting a path nothing checks against it is worse than reporting none
+    - consumers routinely forget the null branch, so an optional field TypeScript forces them to narrow would catch more
+    - a further location arises that a valid entry can genuinely lack, so absence needs a representation anyway

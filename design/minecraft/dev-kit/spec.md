@@ -31,7 +31,6 @@ questions:
       as a field the source must leave out and completion writes. That is an addition to
       `r:kit-completes-partial-source-manifests`, which is the owner's to make.
     closes: requirement
-    gates: [the-script-output-path-is-computed-from-the-kind]
 ```
 
 ## What the consumer gets
@@ -357,18 +356,23 @@ kind: `outputDir` is reported whether or not it exists, and the kit neither read
 output tree, producing none of the output it names
 [[d:output-locations-are-computed-not-probed]] [[r:kit-produces-no-built-output]].
 
-`scriptOutput` is the third location, and it is computed the same way: `<outputDir>/scripts/main.js`
-on a behavior pack, and `null` on a resource pack, which has no script module to build
-[[r:manifest-corroborates-the-directory-kind]] [[d:the-script-output-path-is-computed-from-the-kind]].
-A build that puts a pack's script anywhere else produces a pack whose manifest names a file that is
-not there, so the location belongs beside the other two rather than in each builder's head. Three
-things follow from computing it rather than reading it. It says where a script *would* go, not that
-one exists — a behavior pack with no script sources and a behavior pack with no script module both
-report the same path, exactly as an unbuilt pack still reports an `outputDir`. It is not
-manifest-derived, so it is present on every entry, invalid ones included
-[[d:invalid-entries-omit-only-manifest-derived-details]] — which is why a resource pack reports
-`null` rather than the field being absent. And the kit does not read the source manifest's own
-script `entry` to get it: what that field says, and whether it agrees, is below.
+`scriptOutput` is the third location a pack entry reports, and it is computed the same way:
+`<outputDir>/scripts/main.js` on a behavior pack, which is where a behavior pack's built script
+belongs [[r:built-script-defaults-to-scripts-main-js]] [[r:pack-record-details]], and nothing on a
+resource pack, which has no script module to build [[r:manifest-corroborates-the-directory-kind]].
+It is computed from the kind rather than read from the manifest, and no source directory is probed
+for it, so it says where a script *would* go and never that one is there
+[[r:built-script-defaults-to-scripts-main-js]]: a behavior pack with no script sources and a
+behavior pack with no script module report the same path, exactly as an unbuilt pack still reports
+an `outputDir`.
+
+The resource pack's "nothing" is a `null` on a field every entry carries, rather than the field
+being absent [[d:an-absent-script-location-is-null-not-a-missing-field]]. Nothing about
+`scriptOutput` is manifest-derived — it follows from the kind and the package directory alone — so
+it survives every fault that invalidates an entry, and an invalid entry omits only the three details
+a manifest fault can take away [[d:invalid-entries-omit-only-manifest-derived-details]]. A field that
+went missing on resource packs would put a fourth name on that list for a reason that is not a fault
+at all. What the source manifest's own script `entry` says, and whether it agrees, is below.
 
 Each located `manifest.json` is read and parsed as JSON. Any failure to open, read, or parse it is
 the one problem `manifest-unreadable`, carrying the underlying error message
