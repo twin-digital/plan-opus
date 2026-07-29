@@ -1,4 +1,4 @@
-# Decisions for @twin-digital/minecraft-server-shim.
+# Decisions for the @minecraft/server module surface, shipped in @twin-digital/minecraft-test-lib.
 # The accepted entries are the owner's ruling at the defaults gate; the proposed ones are the spec
 # author's, still open.
 
@@ -60,9 +60,7 @@
   statement: |
     the shim publishes as @twin-digital/minecraft-server-shim, written in TypeScript, shipping its
     own declarations, with engines.node >=22
-  status: accepted
-  falsifiers:
-    - a consumer the shim is meant to serve runs a Node version below the active LTS floor
+  status: rejected
 
 - id: undeclared-exports-stay-absent
   statement: |
@@ -78,14 +76,22 @@
     the shim ships as its own package, separate from any fake library, with four entry points — the
     aliasable module, ./control, ./vite and ./vitest — and a runner integration is a subpath of it
     rather than a package of its own
+  status: rejected
+
+- id: one-package-carries-the-module-surface-and-the-fakes
+  statement: |
+    the module surface, the control surface and the runner tooling ship as entry points of
+    @twin-digital/minecraft-test-lib beside the fakes, and a second @minecraft/* module or a second
+    runner integration is another subpath of it rather than a package of its own
   status: proposed
   falsifiers:
-    - a consumer wants the enum values in production pack code, where taking the brand table and the
+    - a consumer wants the enum values in production pack code, where taking the fakes and the
       mutable singleton bindings along is not acceptable
-    - a second @minecraft/* module's shim needs a build or peer range this package cannot carry
-      alongside the first
-    - a runner integration needs a release cadence or a dependency range the shim package cannot
-      carry, so the subpath has to become a package after all
+    - the module surface and the fakes need release cadences far enough apart that one version
+      number cannot serve both — a declarations bump forcing a release of behaviour nobody changed,
+      often enough to be a cost
+    - a second @minecraft/* module or a runner integration needs a build or dependency range this
+      package cannot carry alongside the fakes
 
 - id: install-is-a-documented-snippet
   statement: |
@@ -134,10 +140,19 @@
   statement: |
     the control surface ships on the package's own ./control subpath rather than as extra exports of
     the aliased @minecraft/server specifier
+  status: rejected
+
+- id: control-surface-joins-the-package-root
+  statement: |
+    __useServer, the shim's error classes and __serverVersion are exports of the package root beside
+    the fakes' own, and the module the alias points at is the ./server subpath carrying only names
+    @minecraft/server declares
   status: proposed
   falsifiers:
-    - a runner resolves the alias and the control subpath to two module instances, so a test's
-      __useServer writes bindings the pack under test never reads
+    - a runner resolves the package root and the ./server subpath to two module instances, so a
+      test's __useServer writes bindings the pack under test never reads
+    - a name the fakes add to the root collides with one the control surface exports, so the two
+      surfaces cannot share an entry point
 
 - id: esm-only-single-format
   statement: |
@@ -161,8 +176,8 @@
 
 - id: both-entries-re-export-one-internal-module
   statement: |
-    the root entry and ./control each re-export from one internal module holding the mutable state
-    and the shim's error classes; neither entry re-exports from the other
+    the ./server entry and the package root each re-export from one internal module holding the
+    mutable state and the shim's error classes; neither entry re-exports from the other
   status: proposed
   falsifiers:
     - a bundler or runner splits the internal module across the two entry points into two instances,
@@ -215,16 +230,16 @@
 
 - id: install-documentation-lives-with-the-shim
   statement: |
-    the shim's own README is the sole normative install document — alias entry, load-order contract,
-    version statement and runner recipes — and the shim asks nothing of any fake library's
-    documentation
+    the package's own README is the sole normative install document — plugin entry, load-order
+    contract, version statement and runner recipes — carried in the same document as the fakes'
+    rather than a document of its own
   status: proposed
   falsifiers:
-    - consumers routinely arrive through the test library, hit the unresolved-import failure, and
-      report it against the library, so the shim's README is documentation nobody reaches until
-      after the failure they needed it to prevent
-    - a fake library documents an install recipe for the shim of its own and the two drift, so a
-      consumer copies an entry wrong for the version they have
+    - the fakes' documentation and the install story together make a README a consumer cannot find
+      the install entry in, so the install half needs a document of its own
+    - a consumer's first stop is a recipe published somewhere other than this README — a runner's
+      own docs, a starter template — and the two drift, so they copy an entry wrong for the version
+      they have
 
 - id: class-exports-are-generated-lines-over-a-hand-written-factory
   statement: |
@@ -256,17 +271,16 @@
 - id: per-test-isolation-waits-on-a-library-reset
   statement: |
     per-test isolation is out of this cycle and the shim adds no mechanism for it; the route is a
-    reset the fake library exposes, which it does not today, and the shape gated on that reset is a
-    self-registering /vitest setup subpath taking the library as an optional peer
+    reset the fakes expose, which they do not today, and the shape gated on that reset is a per-test
+    hook the ./vitest setup module registers
   status: proposed
   falsifiers:
     - the leakage a file-scoped server carries changes a consumer's assertion rather than merely
       accumulating, often enough that suites are unwritable without a reset
-    - a per-test mechanism turns out to be available from the shim's side alone, without the library
-      clearing a server in place
-    - a self-registering subpath cannot keep its library import off the core — a runner or bundler
-      that loads every published entry point, or an optional peer a manager installs regardless — so
-      the shape costs the library independence the core is built on
+    - a per-test mechanism turns out to be available from the shim's side alone, without a server
+      being cleared in place
+    - a hook the setup module registers cannot run late enough to catch a test file that adds setup
+      of its own, so the reset needs a shape the setup module cannot provide
 
 - id: the-plugin-is-the-install-shape
   statement: |
@@ -306,12 +320,18 @@
   statement: |
     the fake library is an optional peer dependency imported only by the ./vitest setup module,
     which the serverModule option can point elsewhere; the core entries import no library
+  status: rejected
+
+- id: the-setup-module-builds-the-servers-the-package-ships
+  statement: |
+    the ./vitest setup module calls the package's own createServer by internal import, and there is
+    no option naming a different factory module
   status: proposed
   falsifiers:
-    - a bundler or runner loads every published entry point of the package, so the setup module's
-      import reaches a consumer who never asked for the library
-    - the setup module cannot select a factory by module specifier under a runner the shim
-      documents, so the default becomes a hard dependency
+    - consumers routinely need the plugin's alias and setup with a server object this package's
+      factory does not build, so hand-configuring the alias is a cost the option would have removed
+    - a bundler or runner loads every published entry point, so the setup module's import of the
+      fakes reaches a consumer who wanted only the module surface
 
 - id: the-default-world-is-what-the-factory-builds
   statement: |
@@ -325,11 +345,11 @@
 - id: fakes-are-instances-of-the-shims-classes
   statement: |
     the shim's exported classes are real class declarations with the declared extends, and instanceof
-    is answered by the prototype chain — the fake library depends on this package and constructs its
-    fakes from these prototypes; there is no brand, no protocol and no hasInstance implementation
+    is answered by the prototype chain — the fakes are built from these prototypes by internal
+    import; there is no brand, no protocol and no hasInstance implementation
   status: proposed
   falsifiers:
-    - the shim resolves to two instances in one run — installed at two node_modules depths — so a
+    - the package resolves to two instances in one run — installed at two node_modules depths — so a
       fake built from one answers false against the other, with no diagnostic
     - a third party wants to fake the engine without depending on this package, which the prototype
       answer gives them no way to do
