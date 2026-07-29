@@ -516,22 +516,68 @@ error's shape, and is listed below as diverging there.
 Re-adding an effect already present replaces it when the new amplifier is higher, or when the
 amplifier is equal and the new duration is longer or equal; a lower amplifier never replaces
 whatever the duration, and an equal amplifier with a shorter duration does not
-[[f:effect-replacement-rule-observed]]. The engine compares against the duration *remaining*, which
-decays one per tick [[f:effect-replacement-compares-remaining-duration]]. The fake compares against
-the duration the effect carries, and that duration never decays
-[[d:effect-durations-do-not-decay]], so the comparison is written against the stored duration with
-nothing to subtract. The two bases agree on the tick an effect was applied and part company after
-that: against an effect applied with duration 400 and 150 ticks old, a re-add at the same amplifier
-carrying 320 replaces in the engine, where 320 exceeds the 250 remaining, and is refused by the
-fake, where 320 falls short of the 400 stored. That is a second consequence of not decaying, and it
-is recorded as its own divergence below rather than folded into the decay row: a test whose
-re-add straddles an advance is where it bites.
-
-A fake effect's duration is the number applied and stays that number until the effect is removed:
-advancing ticks does not decay it and never expires an effect
-[[d:effect-durations-do-not-decay]]. `getEffect(typeId)` returns the effect or `undefined`;
+[[f:effect-replacement-rule-observed]]. The duration half of that comparison is against the duration
+*remaining*, not the duration originally applied: over a base of amplifier 1 and duration 400 aged
+150 ticks, a re-add carrying 320 — longer than the 250 remaining, shorter than the 400 applied —
+replaces and reads back 320, at equal and at higher amplifier, in three runs of three
+[[f:effect-replacement-compares-remaining-duration]]. The fake compares the same way, because the
+duration it stores *is* the remaining one. `getEffect(typeId)` returns the effect or `undefined`;
 `getEffects()` returns those present; `removeEffect(typeId)` removes one and returns whether it was
 there.
+
+**A duration decays on the advance clock.** An effect's duration is the number applied and
+decreases by one for every tick the test advances, the rate the engine was measured at —
+`decayPerTick=1` in all eleven cases of all three runs
+[[f:effect-replacement-compares-remaining-duration]] [[d:effect-durations-decay-on-the-advance-clock]].
+Nothing decays on its own: the library starts no timer, so an effect on a bundle the test never
+advances reads back the applied number indefinitely [[r:scheduling-is-test-advanced]].
+
+Where the decay lands within an advance is fixed. `advanceTicks` steps one tick at a time,
+incrementing `currentTick` and then running that tick's due callbacks
+[[d:tick-advance-semantics]]; decay goes between those two steps, so each tick the advance takes,
+every live effect loses one and *then* that tick's callbacks run. Two things follow, and both are
+the point of fixing the order: a callback reading `duration` reads the value for the tick it is
+running on rather than the previous tick's, and an effect whose duration runs out partway through a
+multi-tick advance is already gone for the remaining ticks' callbacks rather than lingering to the
+end of the advance [[d:effect-durations-decay-on-the-advance-clock]].
+
+That number is read four ways and no more. `Effect.duration` is the only instance member exposing a
+duration, and it is reached as the `Effect` `addEffect` returns, through `getEffect(type)`, and
+through `getEffects()`, plus the replacement comparison `addEffect` makes internally — all four
+reading the same decaying value. `EffectAddBeforeEvent.duration` is not one of them: it is the
+*requested* duration of a pending add, writable by a handler
+[[f:before-event-field-writes-take-effect]], and decay never touches it. The pinned TSDoc calls
+`Effect.duration` "the entire specified duration, in ticks, of this effect", which the observation
+contradicts — a base applied at 400 reads 250 once 150 ticks have passed. The observation governs
+and the disagreement is recorded here [[r:engine-claims-are-sourced]].
+
+**Expiry is the library's own rule, not the engine's.** Nothing observed says what the engine does
+when a duration reaches zero — whether the effect is removed, whether it stays readable on the tick
+it hits zero, or whether the boundary sits at 0 or below. So the library takes the cheap answer and
+marks it as its own rather than presenting it as the engine's [[r:engine-claims-are-sourced]]
+[[d:effect-expiry-is-the-librarys-own]]: an effect is removed on the tick its duration reaches 0,
+making the last tick it is readable on the one where it reads 1, and it is never readable at 0.
+`getEffect(typeId)` then returns `undefined` and `getEffects()` omits it — the absence the engine
+can exhibit, read back as one [[d:absence-reads-as-undefined]]. An `Effect` handle a test still
+holds is left in the state `removeEffect` leaves one: `isValid` false, and its other members
+throwing the plain `Error` shape the guard table below gives
+[[f:effect-members-throw-plain-error]].
+
+Expiry dispatches nothing, because there is nothing to dispatch. 2.8.0 declares `effectAdd` on
+`world.afterEvents` and on `world.beforeEvents` and no effect-remove or effect-expire signal on
+either, so no handler can subscribe to an expiry in the engine and the fake raises none
+[[d:every-signal-exists-few-are-raised]].
+
+Decay puts back a hazard a non-decaying fake did not have: a test that advances ticks for some
+unrelated scheduling reason ages the effects it set up, and can advance past them. What makes that
+liveable is that expiry is loud. An expired effect is absent rather than stale, so an assertion on
+its duration, amplifier or display name meets an `undefined` and fails, and the test that advanced
+too far learns it did. The case that stays quiet is a test asserting an effect is *gone* and getting
+that for free from expiry rather than from the code under test — and the remedy there is the
+engine's own, which is to give a set-up effect a duration that outlasts the advance. A duration that
+did not decay would be quiet in the worse direction: it reads back a number the engine never
+reports, so the test asserting on it passes while asserting something false
+[[r:modelled-behaviour-is-the-engines]].
 
 `Effect.displayName` is a populated human-readable string in the engine — `"Speed II"` for speed at
 amplifier 1 — and nothing pins it at build time: `@minecraft/vanilla-data` ships ids and no names,
@@ -661,6 +707,11 @@ runs every intervening tick's callbacks, not only those due on the tick it lands
 `advanceTicks(server, 10)` fires a `runInterval(cb, 2)` five times and a `runTimeout(cb, 3)` once,
 during the advance rather than at its end [[d:tick-advance-semantics]]. `runJob`/`clearJob` are
 declared and throw `NotImplementedError`.
+
+Two modelled behaviours ride this clock besides the scheduled callbacks, and both move only when the
+test advances: a killed mob's corpse turns invalid 21 ticks after `kill()`, and every live effect's
+duration loses one per tick, applied ahead of that tick's callbacks
+[[d:effect-durations-decay-on-the-advance-clock]].
 
 ## Persisted state and captured output
 
@@ -810,13 +861,13 @@ not been considered, which is not the same as a promise about it.
 | `applyDamage` on an entity with no health component | modelled | returns `false`, fires nothing, leaves the entity valid |
 | the damage-invulnerability window | divergence | the fake has no i-frames, so consecutive `applyDamage` calls each take their full amount where the engine absorbs the second — a test driving repeated damage sees more health lost against the fake than the engine would take |
 | the engine's velocity-dependent projectile damage adjustment | divergence | the projectile options form applies the amount requested |
-| `addEffect` / `getEffect` / `getEffects` / `removeEffect` and the amplifier-first replacement rule | modelled | |
+| `addEffect` / `getEffect` / `getEffects` / `removeEffect` and the amplifier-first replacement rule | modelled | including the duration half of the rule, compared against the duration remaining as observed |
 | `addEffect`'s argument bounds | modelled | amplifier `0…255`, duration `1…20000000`, `ArgumentOutOfBoundsError` outside either, nothing clamped, both message shapes reproduced |
 | `addEffect`'s non-integer arguments | modelled | truncated toward zero, then bounds-checked — so duration `0.5` is refused |
 | `addEffect` on `NaN` or `Infinity` | divergence | the engine refuses these with a `TypeError` ahead of the bounds check; the fake does not reproduce that error's shape |
 | the display name's amplifier mapping | modelled | bare base at amplifier 0, base plus the Roman numeral of amplifier + 1 at 1–5, bare base again from 6 to 255 — reproduced for all 37 vanilla types across the whole accepted amplifier range |
-| effect duration decay and expiry | divergence | a duration reads back the value applied and never decays; the engine decays it one per tick and expires the effect |
-| the duration the replacement rule compares against | divergence | the rule reads the duration the effect carries, the engine the duration remaining; the two agree on the tick an effect was applied and part company after it, so a re-add straddling an advance can be refused where the engine would have replaced |
+| effect duration decay | modelled | one per tick the test advances, the observed rate, applied ahead of that tick's callbacks; nothing decays unless the test advances |
+| what the engine does when a duration reaches zero | not modelled | unobserved, so there is nothing to reproduce: the library removes the effect on the tick it reaches 0 — never readable at 0, `getEffect` `undefined`, absent from `getEffects()` — and dispatches nothing, 2.8.0 declaring no effect-remove or effect-expire signal. That rule is the library's own, and no difference from the engine is claimed here because none has been measured |
 | `Effect.displayName` for the 37 vanilla types | modelled | resolves with no test setup, from verbatim shipped base names and the computed numeral |
 | `Effect.displayName` in a locale other than the observed one | divergence | the shipped bases are the strings one server returned, and the API documents only a "player-friendly name" with no locale contract; until a second locale is observed the table is that locale's, and a test needing another registers its own bases |
 | `Effect.displayName` for a custom effect type | divergence | no base is shipped, so an unregistered custom type throws `UnsetValueError` where the engine would answer with whatever its own data holds |
