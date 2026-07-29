@@ -17,8 +17,7 @@
 - id: instanceof-answers-for-a-fake
   statement: |
     `instanceof` against a class the shim exports answers true for the corresponding fake and
-    false for a value that is not one, without the consumer naming a member or other
-    implementation detail of the fakes.
+    false for a value of a different class.
   rationale: |
     A silently false `instanceof` leaves a handler returning early and its test passing while
     exercising nothing.
@@ -33,9 +32,10 @@
   statement: |
     the shim supplies only what a module import must carry — values, classes, and the singleton
     bindings — and models no engine behaviour of its own; every behaviour a test observes comes
-    from `@twin-digital/minecraft-test-lib`.
+    from the fakes the test installs, never from the shim.
 
 - id: a-consumer-suite-still-typechecks
   statement: |
-    a TypeScript pack's test suite typechecks with the shim installed, without a cast or an `any`
-    at the seam between the shim and the pack's `@minecraft/server` types.
+    a TypeScript pack's test suite typechecks with the shim installed — both the pack's own
+    imports from `@minecraft/server` and the test's use of the shim's control surface — without
+    a cast or an `any`.

@@ -53,7 +53,8 @@ loads two unmodified public packs and lets 26 tests drive them against the libra
 
 ## Done looks like
 
-A pack author adds the shim and one entry to their runner config, writes a test that imports their
+A pack author adds the shim and one entry to their runner config (and, in TypeScript, whatever the
+type story requires), writes a test that imports their
 pack's engine-facing module unmodified, and it runs: the value imports resolve, `instanceof Player`
 answers true for a fake player, and the pack's `world.getDimension(...)` reaches the world the test
 created. Removing the shim's entry from the config puts the suite back to a resolution failure. No
@@ -79,7 +80,13 @@ line of the pack changes, and no enum value is hand-written by the author.
 - **Whether the shim depends on the library or merely cooperates with it.** A dependency lets
   `instanceof` use exported brand predicates (issue #115) and lets `__useServer`-style installation
   take a library server object; cooperation keeps the shim usable by someone who fakes the engine
-  their own way.
+  their own way. Riding on it: whether the consumer must expose a distinguishing member for the
+  brand, or the shim asks the library.
+- **How the shim is typed.** Whether it ships its own declarations, whether a TypeScript consumer
+  must add a `tsconfig` `paths` entry alongside the runner alias, and how the control surface a
+  test calls (`__useServer`-style) is typed when `@minecraft/server`'s declarations do not declare
+  it. To weigh: the runner alias is invisible to `tsc`, so anything a test imports from the shim
+  is a second install step the consumer must get right.
 - **How a consumer resets `world`/`system` between tests.** A setter the test calls in
   `beforeEach`, a runner setup file the shim ships, or per-test module isolation. To weigh: the
   live-binding module state is the one piece of the shim that is not per-test by construction.
@@ -98,8 +105,8 @@ line of the pack changes, and no enum value is hand-written by the author.
   state, and it will not satisfy both readings.
 - **Ecosystem shape versus the library's shape.** Every surveyed public pack that tests
   engine-facing code at all does it by aliasing `@minecraft/server` onto a hand-written stub — 6 of
-  103, none by injecting the engine as a parameter (`design/minecraft/test-lib/artifacts/
-  pack-testing-survey.md`). The library was designed for injection. A shim that only makes value
+  103, and none by injection alone; the one repository that injects a fake world does it alongside
+  its alias (`design/minecraft/test-lib/artifacts/pack-testing-survey.md`). The library was designed for injection. A shim that only makes value
   imports resolve serves the injection style; one that also holds the singletons serves what packs
   actually do, and pulls module-level mutable state into a project that has none.
 - **Fidelity versus staleness.** Enum values generated from a pinned version are exact for that
@@ -108,6 +115,3 @@ line of the pack changes, and no enum value is hand-written by the author.
 - **Reach versus surface.** Supporting more runners and both module formats is what makes the shim
   usable by the ecosystem it was measured against; each one is a build target, a test matrix entry,
   and an install path to document.
-- **Doing nothing is a live option.** A reading exists in which this is `@minecraft/server`'s defect
-  and the right answer is a documented recipe rather than a shipped package. The design should say
-  why shipping beats documenting, or ship documentation.

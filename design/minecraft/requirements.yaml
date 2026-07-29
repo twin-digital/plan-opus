@@ -17,6 +17,7 @@
 
 - id: packs-unit-test-with-the-shared-test-lib
   statement: |
-    a pack's unit tests stand up `@minecraft/server` with `@twin-digital/minecraft-test-lib`
-    rather than a hand-rolled double or a module mock.
+    a pack's unit tests stand up `@minecraft/server` with `@twin-digital/minecraft-test-lib`,
+    reached either directly or through the shared module shim, rather than a hand-rolled double
+    or a pack-authored module mock.
   applies_to: [set:minecraft-addon-packs]
