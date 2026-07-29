@@ -399,11 +399,12 @@ to this format throughout produces a conforming spec [[r:instructs-readers-to-fo
 
 Mechanically enforced, entry by entry: every id is kebab-case and unique per kind repo-wide; a fact
 carries `id`, `claim`, and a `backing` in the enum, plus at least one source in exactly one locator
-form, a `url` never carrying a `description`, a `url` always carrying `where`, an in-repo `url`
+form and at least one in the form its backing demands, a `url` never carrying a `description`, a
+`url` or `run` always carrying `where` and a `quote`, an in-repo `url`
 written repo-relative, an `artifacts/` url only on a `tested` fact, and every `quote` a block
-scalar; a `run` source resolves to a live run, carries `where`, sits only on a `tested` fact, and
+scalar; a `run` source resolves to a live run, sits only on a `tested` fact, and
 its quote appears in the output that run names; a run carries `id`, `command`, an `output` that
-exists, `ran_by`, and a `ran_at` that is a date, plus a valid `reason` when retired; a requirement carries `id` and `statement`,
+exists, and a `ran_at` that is a date, plus a valid `reason` when retired; a requirement carries `id` and `statement`,
 a `force` and `status` in their enums, and no `sources`, and carries `applies_to` only above design
 scope, its every item resolving to a design that exists or a set that is declared and lying within
 the requirement's own tier; every set has a name unique across the repository and at least one

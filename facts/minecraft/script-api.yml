@@ -9,6 +9,16 @@
   sources:
     - run: package-contents-probe
       where: the file list and byte counts
+      quote: |
+        ## Files shipped by @minecraft/server
+        README.md (278 bytes)
+        index.d.ts (751641 bytes)
+        package.json (384 bytes)
+    - run: package-contents-probe
+      where: the runtime-JavaScript check and the import attempt
+      quote: |
+        ## Runtime JavaScript present?
+        .js/.cjs/.mjs files: none
 - id: invalid-entity-error-shape
   claim: |
     `@minecraft/server` 2.8.0 declares `InvalidEntityError` as an exported class extending
@@ -99,8 +109,18 @@
   sources:
     - run: component-ids-typecheck
       where: the strict tsc --noEmit result
+      quote: |
+        $ npx tsc --noEmit --strict --module node16 --moduleResolution node16 --target es2022 component-ids-probe.ts
+        exit 0, no diagnostics
     - run: component-ids-probe
       where: the EntityComponentTypeMap key counts
+      quote: |
+        bare keys: 68; "minecraft:"-prefixed keys: 68
+        bare keys with no prefixed twin: none
+    - run: component-ids-probe
+      where: the attribute-shaped subset
+      quote: |
+        ## Attribute-shaped ids (14) from 7 classes
 - id: server-classes-are-structurally-assignable
   claim: |
     The classes `@minecraft/server` 2.8.0 declares carry no private instance members and no brand
@@ -114,8 +134,16 @@
   sources:
     - run: assignability-probe
       where: the exported-class and private-declaration counts
+      quote: |
+        exported classes: 439
+        private constructor(): 425
+        private declarations of any kind: 425
+        private instance members (private declarations that are not constructors): 0
     - run: assignability-probe
-      where: the exported-class and private-declaration counts
+      where: the strict tsc --noEmit result on assignability-probe.ts
+      quote: |
+        ## tsc --noEmit on assignability-probe.ts (strict)
+        exit 0, no diagnostics
 - id: vanilla-data-provides-prefixed-id-constants
   claim: |
     `@minecraft/vanilla-data`, unlike `@minecraft/server`, ships runtime JavaScript: named
@@ -126,7 +154,13 @@
   backing: tested
   sources:
     - run: vanilla-data-probe
-      where: the shipped files and the prefixed constants
+      where: the shipped files, which include runtime JavaScript
+      quote: |
+        lib/index.js (217395 bytes)
+    - run: vanilla-data-probe
+      where: the constant value shapes — every namespace prefixed but MinecraftPotionDeliveryTypes
+      quote: |
+        MinecraftPotionDeliveryTypes: 3 members, 3 string-valued, 0 start with "minecraft:"; unprefixed samples: Consume="Consume", ThrownLingering="ThrownLingering", ThrownSplash="ThrownSplash"
 # Facts from the engine probe. Server, module version and coverage are on the run;
 # each source names the [mctest] lines it rests on.
 
@@ -1493,7 +1527,15 @@
   backing: tested
   sources:
     - run: throws-annotation-probe
-      where: the member-to-annotation pairing
+      where: the Entity section — the annotated members and the six carrying no @throws
+      quote: |
+        @throws without InvalidEntityError (0):
+        no @throws (6): id, isSneaking, isValid, nameTag, scoreboardIdentity, typeId
+    - run: throws-annotation-probe
+      where: the EntityAttributeComponent section — the coarser attribute-class pairing
+      quote: |
+        InvalidEntityError in TSDoc (1): setCurrentValue
+        @throws without InvalidEntityError (7): currentValue, defaultValue, effectiveMax, effectiveMin, resetToDefaultValue, resetToMaxValue, resetToMinValue
 - id: public-packs-reach-past-entities-and-events
   claim: |
     Across 103 public GitHub behavior-pack repositories (368,385 non-blank source lines,
@@ -1525,7 +1567,19 @@
     objects without naming `@minecraft/server` are not analysed at all, which undercounts.
   sources:
     - run: pack-api-survey
-      where: the reach counts across the surveyed packs
+      where: "\"Surface absent from v1\" — the per-surface reach table and the repositories touching none"
+      quote: |
+        System scheduling (runInterval, runTimeout, ...)           87    84%
+        beforeEvents subscriptions                                 78    76%
+        items, item components, containers                         64    62%
+        blocks, permutations, block components                     57    55%
+        player client surface (ScreenDisplay, Camera, ...)         45    44%
+        static type registries                                     42    41%
+        startup phase and custom command/component registries      41    40%
+    - run: pack-api-survey
+      where: "\"Surface absent from v1\" — the repositories reaching for none of it"
+      quote: |
+        repositories touching none of the above: 1 (1%)
 - id: engine-surface-outside-instances
   claim: |
     `@minecraft/server` 2.8.0 exposes a surface that is not reached through any instance, in two
@@ -1551,7 +1605,16 @@
   backing: tested
   sources:
     - run: module-surface-probe
-      where: the export const and static member listing
+      where: the module-level exported constants and their split
+      quote: |
+        total=7 singleton-instances=2 numeric-constants=5
+        singletons=[system, world]
+    - run: module-surface-probe
+      where: the static-member totals on exported classes
+      quote: |
+        total=112
+          static readonly componentId  = 86 (one per component class)
+          everything else              = 26
 
 
 - id: namespace-prefix-tolerance-is-per-surface
