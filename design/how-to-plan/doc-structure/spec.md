@@ -299,7 +299,9 @@ one entry the reader never has to search for [[r:claims-can-cite-foundations]]. 
 format's; how much of a design must be cited is a claim's obligation only where some decision,
 component, or other claim would have to change were the cited foundation false
 [[r:explicit-intent]]. A citation is the token `[[<k>:<id>]]`, its kind a single letter — `f` fact,
-`r` requirement, `d` decision [[r:citation-token-grammar]]. It resolves scope-blind: the id is
+`r` requirement, `d` decision [[r:citation-token-grammar]] — written anywhere but a fenced block or
+an inline-code span, where the same characters are an example and resolve to nothing
+[[r:citations-in-code-are-not-citations]]. It resolves scope-blind: the id is
 matched against every entry of that kind in the repository, and exactly one match is required —
 any other count is an error [[r:resolution-is-scope-blind]]. Scope-blind matching is safe only
 because ids are unique per kind repo-wide; without that guarantee resolution would need a precedence

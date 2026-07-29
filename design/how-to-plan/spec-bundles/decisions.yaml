@@ -4,20 +4,6 @@
   falsifiers:
     - a design's identity needs a level the product and feature pair cannot carry
 
-- id: bundle-name-is-a-scoped-package
-  statement: a bundle publishes as `@td-spec/<product>`, or as `@td-spec/<product>.<feature>` where the product subdivides
-  status: accepted
-  falsifiers:
-    - a registry the bundles must reach rejects a package name carrying a dot
-    - a product needs subdivision more than one level deep, which a single dot cannot express
-
-- id: product-map-declares-bundle-identity
-  statement: a `products.yaml` at the repository root maps each product either to one design scope or to a mapping of feature names to design scopes
-  status: tolerated
-  falsifiers:
-    - a product has to both publish a bundle of its own and hold features
-    - the map drifts from the design tree often enough that specs publish under stale names
-
 - id: undeclared-identity-publishes-nothing
   statement: a settled design the product manifest does not name draws a checker warning rather than a failed settle gate
   status: tolerated
@@ -71,11 +57,10 @@
     - a builder builds the wrong thing for want of knowing whether an entry is the owner's fiat or the spec's own call
     - a builder needs an entry's force or status to resolve two commitments that pull against each other
 
-- id: dependencies-are-derived-from-cited-fact-sources
-  statement: a bundle depends on the bundles of the designs whose requirements.yaml or spec.md its spec's cited facts source, each at a caret range on that bundle's latest version
+- id: dependency-ranges-are-carets-on-the-latest-tag
+  statement: each dependency is written as a caret range on the version the upstream bundle's newest tag records at the moment of publish
   status: tolerated
   falsifiers:
-    - a spec leans on another design without citing a fact sourced to that design's requirements
     - a caret range admits an upstream bundle a downstream builder cannot build against
 
 - id: bump-is-computed-from-the-commitment-diff
@@ -160,12 +145,6 @@
   status: accepted
   falsifiers:
     - a registry or a consumer's tooling rejects or misreads a manifest missing a field the bundle does not carry
-
-- id: token-strip-repairs-the-line
-  statement: stripping a citation token collapses the doubled spacing it leaves to one space, and drops the space before a token that ended a line
-  status: accepted
-  falsifiers:
-    - a stripped spec.md renders differently from its source anywhere but where a token stood
 
 - id: deprecation-triggers-on-a-name-leaving-the-product-map
   statement: a bundle with published versions whose name products.yaml no longer holds is deprecated across every version, with a fixed message naming the repository

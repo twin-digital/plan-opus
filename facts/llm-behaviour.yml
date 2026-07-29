@@ -103,6 +103,9 @@
 - id: fact-source-is-quote-or-mechanism
   claim: a fact's evidence takes exactly one locator form — a url with a verbatim quote, or a description of the mechanism
   backing: documented
+  status: retired
+  reason: superseded
+  superseded_by: fact-source-takes-one-of-three-locators
   sources:
     - url: design/how-to-plan/doc-structure/requirements.yaml
       where: facts-require-a-source
@@ -123,6 +126,11 @@
 - id: component-interface-fields
   claim: a component requires an id and a one-line responsibility, and may additionally name the nearby responsibility it does not hold and the components that must land before it — and nothing else
   backing: documented
+  caveat: |
+    The quote establishes the required and optional fields; it does not say the set is exhaustive.
+    The "and nothing else" rests on doc-structure's separate `entry-schemas-are-closed`, which
+    records unknown-field rejection as enforcement not yet implemented — so a component carrying a
+    further field is out of format but draws no diagnostic today.
   sources:
     - url: design/how-to-plan/doc-structure/requirements.yaml
       where: component-structure

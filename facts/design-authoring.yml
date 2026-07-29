@@ -30,6 +30,20 @@
         a citation is `[[<k>:<id>]]` with a single-letter kind — `f` fact, `r`
         requirement, `d` decision
 
+- id: fact-source-takes-one-of-three-locators
+  claim: |
+    every fact carries at least one source, and each source uses exactly one locator: a `url` to an
+    upstream document with `where` and a verbatim `quote`, a `run` naming captured output held in
+    this repository with the same `where` and `quote`, or a `description` of the mechanism
+  backing: documented
+  sources:
+    - url: design/how-to-plan/doc-structure/requirements.yaml
+      where: fact-sources-take-one-locator — statement
+      quote: |
+        every fact carries at least one source, and each source uses exactly one locator: a `url` to
+        an upstream document with `where` and a verbatim `quote`, a `run` naming captured output held
+        here with the same `where` and `quote`, or a `description` of the mechanism
+
 - id: requirement-entry-fields
   claim: |
     a requirement carries an `id` and a `statement`, and may carry a `force` of `hard` | `soft`
@@ -72,6 +86,154 @@
           - `tolerated`: cleared to proceed but not endorsed — the owner does not object and does not
             mind whether it stays, so a later author may rework it freely
           - `rejected`: considered, but turned down
+
+- id: fact-pool-takes-any-yaml-at-any-depth
+  claim: |
+    every fact lives under `facts/`, where any YAML file at any depth is a fact file, and the path
+    is filing convenience carrying no meaning to resolution
+  backing: documented
+  sources:
+    - url: design/how-to-plan/doc-structure/requirements.yaml
+      where: facts-live-in-one-pool — statement
+      quote: |
+        every fact lives under facts/, where any YAML file at any depth is a fact file. The path is
+        filing convenience and carries no meaning to resolution, so the tree may be reorganised
+        freely
+
+- id: run-pool-takes-any-yaml-at-any-depth
+  claim: |
+    every run lives under `evidence/`, where any YAML file at any depth is a run file, and a run's
+    id is unique across the repository like any other entry's
+  backing: documented
+  sources:
+    - url: design/how-to-plan/doc-structure/requirements.yaml
+      where: runs-live-in-one-pool — statement
+      quote: |
+        every run lives under evidence/, where any YAML file at any depth is a run file. A run is not
+        a foundation, no claim may cite one, and its id is unique across the repository like any other
+
+- id: requirement-tiers-are-global-area-design
+  claim: |
+    requirements sit in exactly three tiers — global, area, and design — each a directory holding at
+    most a `requirements.yaml`, with no fourth tier and no nesting of areas; the global root and each
+    area may also hold a `sets.yaml`
+  backing: documented
+  sources:
+    - url: design/how-to-plan/doc-structure/requirements.yaml
+      where: three-tiers-hold-requirements — statement
+      quote: |
+        exactly three scopes hold requirements — global, area, and design — each a directory holding
+        at most a requirements.yaml. There is no fourth tier and areas do not nest. The global root
+        and each area may also hold a sets.yaml, which declares named sets of designs
+
+- id: design-directory-splits-inputs-from-outputs
+  claim: |
+    a design's directory holds `brief.md` and `requirements.yaml` as durable inputs and
+    `decisions.yaml` and `spec.md` as the outputs the design produces
+  backing: documented
+  sources:
+    - url: design/how-to-plan/doc-structure/requirements.yaml
+      where: design-inputs-and-outputs-split — statement
+      quote: |
+        a design directory separates its durable inputs from its regenerable outputs by file, not by
+        folder: brief.md and requirements.yaml are inputs, while decisions.yaml and spec.md are
+        outputs the design produces and nothing upstream may write into
+
+- id: live-block-sits-under-its-fixed-section
+  claim: |
+    a spec's live components and open questions each appear in exactly one fenced `yaml` block under
+    its fixed `## Components` or `## Open questions` section; a `yaml` block anywhere else is
+    illustrative rather than live
+  backing: documented
+  sources:
+    - url: design/how-to-plan/doc-structure/requirements.yaml
+      where: one-block-per-kind — statement
+      quote: |
+        a design's live components and open questions each appear in exactly one fenced
+        block — the single yaml block under its fixed section (`## Components`, `## Open questions`);
+        a yaml block outside those sections is illustrative, not live
+
+- id: entry-field-sets-are-closed
+  claim: |
+    each entry kind's field set is closed: a fact, requirement, decision, component, or open question
+    carries only the fields its schema defines, and a field outside that set is an error
+  backing: documented
+  sources:
+    - url: design/how-to-plan/doc-structure/requirements.yaml
+      where: entry-schemas-are-closed — statement
+      quote: |
+        each entry kind's field set is closed: a fact, requirement, decision, component, or open
+        question carries only the fields its schema defines, and a field outside that set is an
+        error rather than silently ignored
+
+- id: unknown-field-rejection-is-not-yet-in-the-harness
+  claim: |
+    the closed-schema rule is not enforced today: rejecting a field outside an entry kind's schema is
+    enforcement still to land in the harness, and the repository's checker does not do it
+  backing: documented
+  caveat: |
+    The claim reports the state of the harness at the time the sourced spec was written, and a later
+    release may implement the enforcement without that sentence changing.
+  sources:
+    - url: design/how-to-plan/doc-structure/spec.md
+      where: Entry shapes — the closed-schema paragraph
+      quote: |
+        rejecting unknown fields is enforcement still to
+        land in the harness, not something the checker does today
+
+- id: citation-resolves-to-one-live-entry-within-its-fence
+  claim: |
+    a citation token resolves to exactly one live entry of the named kind, points at no requirement
+    outside the citing design's three tiers and no decision outside the citing design, while a fact
+    resolves from anywhere
+  backing: documented
+  sources:
+    - url: design/how-to-plan/doc-structure/spec.md
+      where: Invariants — the citation clause
+      quote: |
+        every token matches the grammar,
+        resolves to exactly one live entry of the named kind, points at no requirement outside the
+        citing design's three tiers and no decision outside the citing design; a fact resolves from
+        anywhere
+
+- id: citation-token-in-code-is-not-a-citation
+  claim: |
+    a citation token inside a fenced block or an inline-code span is text rather than a citation: it
+    resolves to nothing and satisfies no obligation
+  backing: documented
+  sources:
+    - url: design/how-to-plan/doc-structure/requirements.yaml
+      where: citations-in-code-are-not-citations — statement
+      quote: |
+        a citation token inside a fenced block or an inline-code span is text, not a
+        citation, so it resolves to nothing and satisfies no obligation
+
+- id: live-entry-excludes-retired-and-rejected
+  claim: |
+    a live entry is an active fact or requirement, or a decision that is not rejected; a retired fact
+    or requirement and a rejected decision are dead and may not be cited
+  backing: documented
+  sources:
+    - url: design/how-to-plan/doc-structure/spec.md
+      where: Invariants — the definition of a live entry
+      quote: |
+        A
+        live entry is an active fact or requirement, or a decision that
+        is not rejected; a retired fact or requirement and a rejected decision are dead and may not
+        be cited.
+
+- id: settle-gate-covers-every-binding-requirement
+  claim: |
+    the requirements a design must have cited before it can settle are every live requirement binding
+    it — its own and every wider-scope one whose `applies_to` reaches it — alongside the accepted and
+    tolerated decisions it holds
+  backing: documented
+  sources:
+    - url: design/how-to-plan/doc-structure/requirements.yaml
+      where: settled-design-cites-what-binds-it — statement
+      quote: |
+        a design cannot settle while a live requirement binding it, or an accepted or tolerated
+        decision it holds, has no claim in the design citing it. Facts carry no such obligation
 
 - id: settled-state-is-computed-from-spec-content
   claim: |

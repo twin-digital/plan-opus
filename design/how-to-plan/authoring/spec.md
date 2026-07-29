@@ -76,9 +76,10 @@ own rules rather than re-deriving or reopening them
 cites, and for evidence drawn from outside the author the words it
 rests on are there on the page, verbatim — a paraphrase fails because it is the agent's voice
 standing where the source's should be, and an assumed fact instead carries the mechanism it rests
-on. A source takes one of exactly two forms, and which one is the first thing the test looks at: a
-`url` with a `where` and a verbatim `quote`, or a `description` of the mechanism the fact was
-established by [[f:fact-source-is-quote-or-mechanism]] [[r:evidence-is-verbatim]]. Two further tests run at
+on. A source takes exactly one locator, and which one is the first thing the test looks at: a
+`url` with a `where` and a verbatim `quote`, a `run` with the same `where` and `quote` naming
+captured output held here, or a `description` of the mechanism the fact was
+established by [[f:fact-source-takes-one-of-three-locators]] [[r:evidence-is-verbatim]]. Two further tests run at
 that same source. The first is whose page it is: a `documented` fact cites the upstream original,
 and a repository file transcribing that original is a convenience copy the fact must point past —
 citing it instead makes the author's own output the evidence, and a drifted or invented quote
@@ -116,7 +117,7 @@ evidence bar, where it can be checked and reused, while a passing observation is
 appears as a fact, sourced by a `url` written relative to the repository root and a verbatim
 `quote`, pointing at the upstream design's `requirements.yaml` — never as a direct citation of that
 design's decisions or invariants [[f:in-repo-source-url-is-repo-relative]]
-[[f:fact-source-is-quote-or-mechanism]] [[r:upstream-dependency-is-recorded-as-a-fact]]. Its
+[[f:fact-source-takes-one-of-three-locators]] [[r:upstream-dependency-is-recorded-as-a-fact]]. Its
 `spec.md` is a fallback only where no requirement pins the claim, since regenerable prose drifts
 out from under a quote. One such fact serves every design that leans on the same commitment: the
 pool holds it once, and a second dependent cites it rather than restating it.

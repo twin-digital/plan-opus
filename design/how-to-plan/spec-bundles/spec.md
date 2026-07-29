@@ -43,7 +43,7 @@ token being `[[<k>:<id>]]` with a kind letter of `f`, `r`, or `d`
 [[f:spec-citation-token-grammar]]. Removing one leaves the line's spacing to repair, and the repair
 is stated because it is what a reader sees: a run of spaces the removal left doubled collapses to
 one, and a token that ended a line takes the space before it with it, so no line ends in whitespace
-[[d:token-strip-repairs-the-line]] — two trailing spaces are a hard line break
+[[r:token-strip-leaves-the-line-as-written]] — two trailing spaces are a hard line break
 [[f:trailing-spaces-are-a-hard-line-break]], a rendering change the strip never intends. Nothing
 else is rewritten, reordered, or summarised, so the derivation is auditable by diffing the two
 files. The `## Open questions` section never survives, because a settled spec is one whose spec.md
@@ -123,7 +123,7 @@ one of them and it distinguishes nothing [[d:bundle-identity-is-product-and-feat
 
 Every bundle publishes under one fixed npm scope, the literal `@td-spec`, which is a registered npm
 organization and does not vary. The product follows the slash and the feature, where there is one,
-follows a dot [[d:bundle-name-is-a-scoped-package]]:
+follows a dot [[r:bundle-name-is-the-td-spec-scope]]:
 
 ```text
 @td-spec/<product>              a product that does not subdivide
@@ -141,7 +141,7 @@ Because the mapping is not derivable from the tree, it is declared. The **produc
 file `products.yaml` at the repository root — the path `products.yaml`, outside the `design/` tree
 — and naming a spec there is what makes it publishable at all
 [[r:settle-publishes-a-versioned-bundle]]. It maps each product name to what it publishes: either one design scope directly, for a product with no features, or a mapping
-of feature names to design scopes [[d:product-map-declares-bundle-identity]]:
+of feature names to design scopes [[r:product-manifest-declares-bundle-identity]]:
 
 ```yaml
 my-app:
@@ -201,7 +201,7 @@ A bundle states what it depends on in `package.json`'s `dependencies`, as bundle
 ranges. That list is derived, not authored: for each fact the spec cites, if the fact's source is a
 `url` written relative to the repository root [[f:in-repo-source-url-is-repo-relative]] and
 resolves to another design's `requirements.yaml` or `spec.md`, that design's bundle is a dependency
-[[d:dependencies-are-derived-from-cited-fact-sources]]. This works because a reliance on
+[[r:bundle-dependencies-come-from-cited-fact-sources]]. This works because a reliance on
 another design's output is already recorded that way — as a fact sourced by repo-relative url and
 verbatim quote to the upstream's requirement [[f:cross-design-dependency-is-recorded-as-a-fact]] —
 so the dependency edge is already in the tree and needs only reading, and the facts themselves can
@@ -216,7 +216,8 @@ on itself; and a source resolving into a design with no entry in `products.yaml`
 either, reported alongside the warning above, since there is no bundle there to depend on.
 
 Each dependency is written as a caret range on the version the upstream bundle's newest tag
-records at the moment of publish: an upstream tagged at 2.1.0 is depended on as `^2.1.0`. A caret admits later minor and patch
+records at the moment of publish: an upstream tagged at 2.1.0 is depended on as `^2.1.0`
+[[d:dependency-ranges-are-carets-on-the-latest-tag]]. A caret admits later minor and patch
 versions, which by the bump rule below add commitments or change prose but never remove or alter
 one, and excludes the next major, which does.
 
