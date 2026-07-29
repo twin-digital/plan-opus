@@ -165,3 +165,132 @@
       where: both observations the callback recorded
       quote: |
         [deferred] observations=["world-resolved-as=owner tick=1","world-resolved-as=other tick=0"]
+
+- id: a-proxy-target-swap-strands-a-completed-registration
+  claim: |
+    A stable `Proxy` binding whose target is swapped does not carry across a callback that a
+    completed call already deposited. `subscribe(handler)` resolves through the proxy to the target
+    installed at the moment of the call and puts the handler in that object's subscriber set;
+    swapping the target afterwards leaves it there. Measured with a module that registers at module
+    evaluation and is never re-evaluated: the module's 5 subscriptions and 3 scheduled runs stayed
+    on the first target, `subscribers=5 scheduled=3`, and every target installed after the swap read
+    `subscribers=0 scheduled=0` and reacted to nothing. Making the proxying recursive — one proxy per
+    property path, so every object reached through the binding has fixed identity and re-resolves
+    its own target on every access — produced the identical readings: what a completed call already
+    did is not a property access that a later read can redirect. Nothing raises: driving the new
+    target reported `drive outcome: no throw` and zero handler errors, and only an assertion on what
+    the module should have done noticed.
+  backing: tested
+  caveat: |
+    The registration side of the measurement is `@twin-digital/minecraft-test-lib`'s fakes, whose
+    signal objects hold their subscribers in a `Set` on a per-server state record — the ordinary
+    shape for a callback registry, but one shape. A registry that looked its subscribers up in a
+    module-global table keyed by name, rather than holding them on the object the call reached,
+    would not be stranded by a swap; none was measured. vitest 4.1.10 on node 24.16.0 only.
+  sources:
+    - run: proxy-target-swap-probe-run
+      where: one stable Proxy per binding — where the module's registrations are, and where they are not
+      quote: |
+        [test 1: server A] subscribers=5 scheduled=3 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+        [test 1: current server] subscribers=0 scheduled=0 objectives=0 entities=0 tick=0 signals=none
+    - run: proxy-target-swap-probe-run
+      where: the swap under recursive proxying, one proxy per property path
+      quote: |
+        [swap] installs=2 carried-registrations=0 proxy-nodes=15
+    - run: proxy-target-swap-probe-run
+      where: what the recursively proxied run's swapped-in target held before and after being driven
+      quote: |
+        [test 1: current server] subscribers=0 scheduled=0 objectives=0 entities=0 tick=0 signals=none
+        [test 1: server A after driving] subscribers=5 scheduled=3 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+        [test 1: current server after driving] subscribers=0 scheduled=0 objectives=0 entities=1 tick=40 signals=none
+    - run: proxy-target-swap-probe-run
+      where: how the failure presents — the new target driven, with nothing raised
+      quote: |
+        [test 1] drive outcome: no throw
+        [test 1] handler errors on current: 0
+
+- id: replaying-a-modules-calls-carries-its-registrations-across-a-target-swap
+  claim: |
+    Registrations can be carried across a target swap without re-evaluating the module that made
+    them, by journalling every call made through the proxy tree while the module evaluated and
+    re-issuing that journal against each new target. The rule is positional — replay what was called
+    before the first swap — so the shim needs no list of which members register: 8 journalled calls
+    over 7 distinct paths carried a module's 5 subscriptions and 2 interval loops onto every
+    swapped-in target, which then read `subscribers=5 scheduled=3` and ran the module's handlers.
+    Per-subscriber throw isolation is untouched, because each handler is still subscribed
+    individually: a first subscriber that throws still leaves the second running.
+
+    The alternative — the shim holding the subscriber sets itself and installing one trampoline
+    subscriber per signal on each new target — also carries them, and costs more. It needs the
+    member names (`subscribe`, `unsubscribe`, and each scheduler member) written into the shim,
+    since a scheduled callback has no set to hold and can only be re-issued. And one trampoline in
+    place of N subscribers collapses the registry's throw isolation onto itself: with two handlers
+    behind one trampoline the first's throw stopped the second, `ran=first`, and by the next test
+    the accumulated handlers meant none ran at all, `ran=none`.
+  backing: tested
+  caveat: |
+    Neither shape restores anything but the calls
+    [[f:a-target-swap-cannot-restore-module-scope-state]]. Replay re-issues side effects
+    indiscriminately, which is right for a registration and merely tolerable for the module's other
+    startup calls; the module measured made one (`system.run`), and nothing was measured about a
+    module whose startup calls are expensive or not idempotent. The recording window — everything
+    before the first swap — has to be told to the shim by whoever installs the first target. The
+    journal also pins every argument the module passed, so a swapped-away target's objects stay
+    reachable for the life of the process. vitest 4.1.10 on node 24.16.0, one module, one registry
+    implementation.
+  sources:
+    - run: proxy-target-swap-probe-run
+      where: what the journal held, with no member names in the shim
+      quote: |
+        [swap] installs=2 carried-registrations=8 journalled-paths=system.run,world.afterEvents.playerSpawn.subscribe,world.afterEvents.itemUse.subscribe,world.afterEvents.itemCompleteUse.subscribe,world.afterEvents.entityHurt.subscribe,world.afterEvents.playerBreakBlock.subscribe,system.runInterval
+    - run: proxy-target-swap-probe-run
+      where: the swapped-in target under replay — the registrations arrived and the module's handlers ran
+      quote: |
+        [test 1: current server after driving] subscribers=5 scheduled=2 objectives=11 entities=1 tick=40 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+        [test 1] drive outcome: no throw
+        [test 1] handler errors on current: 0
+        [test 1] handler isolation on current: ran=first+second threw-to-caller=no
+    - run: proxy-target-swap-probe-run
+      where: the trampoline shape — the registrations arrive, and throw isolation does not survive
+      quote: |
+        [test 1] handler isolation on current: ran=first threw-to-caller=no
+    - run: proxy-target-swap-probe-run
+      where: the same reading in the next test, with the previous test's handlers still in the shim's set
+      quote: |
+        [swap] installs=3 carried-signals=5 carried-handlers=7 carried-scheduler-calls=3
+
+- id: a-target-swap-cannot-restore-module-scope-state
+  claim: |
+    Carrying a module's registration calls across a target swap does not carry the rest of what the
+    module's evaluation set up, and the residue is observable from the module's own handlers. A
+    value the module took from a *call* — `world.getDimension('overworld')` — is the first target's
+    object, and stays so: after the swap the handler running on the new target reported
+    `home-is-current-overworld=false entities-home-can-see=0`, so it was reading a world nothing in
+    the test touches. A value the module took from a *property path* survives, because the path
+    re-resolves; the same module's captured scoreboard wrote to the new target correctly. And the
+    module's own mutable state never resets: its counters read `spawns-seen=1 ticks-seen=5` in the
+    first test and `spawns-seen=2 ticks-seen=10` in the second. Both the journal-and-replay shape
+    and the trampoline shape produced identical readings, so this is what a target swap cannot
+    reach rather than a weakness of either.
+  backing: tested
+  caveat: |
+    Measured with a module written for the probe, doing at module scope what a module may do — take
+    a dimension and a scoreboard, keep two counters. How often real modules capture a call's return
+    at module scope was not surveyed; the one public pack in the same probe
+    (`bencrob/marron-town-mod` at `2c025b4`) captures none, so a swap-based scheme can be right for
+    a given module and wrong for the next one with nothing in the shim to tell them apart.
+  sources:
+    - run: proxy-swap-captured-value-probe-run
+      where: what the module's handler saw on the swapped-in target, trampoline shape
+      quote: |
+        [test 1] pack counters: spawns-seen=1 ticks-seen=5
+        [test 1] handler saw: home-is-current-overworld=false entities-home-can-see=0
+    - run: proxy-swap-captured-value-probe-run
+      where: the second test, the counters still climbing
+      quote: |
+        [test 2] pack counters: spawns-seen=2 ticks-seen=10
+        [test 2] handler saw: home-is-current-overworld=false entities-home-can-see=0
+    - run: proxy-swap-captured-value-probe-run
+      where: the journalled paths, showing the captured `getDimension` call was re-issued and its result discarded
+      quote: |
+        [swap] installs=2 carried-registrations=3 journalled-paths=world.getDimension,world.afterEvents.playerSpawn.subscribe,system.runInterval

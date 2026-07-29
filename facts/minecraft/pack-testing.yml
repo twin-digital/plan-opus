@@ -209,3 +209,76 @@
       quote: |
         All state a bundle holds belongs to that bundle. The library keeps no module-level mutable state,
         so two `createServer()` calls in one process share nothing and tests need no reset hook
+
+- id: pack-isolation-comes-from-under-the-fakes-not-from-the-shim
+  claim: |
+    For a behavior pack that registers at module scope, per-test isolation cannot come from the
+    shim repointing `world` and `system` at a different server; it has to come from beneath the
+    fakes. Pointing the shim's bindings at a freshly created `@twin-digital/minecraft-test-lib`
+    server between tests left bencrob/marron-town-mod's 5 subscribers and 3 scheduled runs on the
+    server that was installed while the pack evaluated, and every swapped-in server saw
+    `subscribers=0 scheduled=0` and none of the pack's behaviour
+    [[f:a-proxy-target-swap-strands-a-completed-registration]]. Leaving the bindings on one server
+    and replacing the state under its fakes instead — clearing entities, scoreboard, dynamic
+    properties, output and the tick clock, leaving `signals` alone — kept all 5 subscribers, and
+    each test started from an empty world and drove the pack to the same 11 objectives.
+  backing: tested
+  caveat: |
+    The lower layer is reached by writing the library's private `ServerState` through aliases to
+    `src/runtime/state.ts` and `src/runtime/member.ts`; the library exposes no such hook and has
+    decided against one [[f:test-lib-ships-no-reset-hook]], so this says where the capability has to
+    live, not that it exists. What a swap *can* carry, at a price, is measured separately
+    [[f:replaying-a-modules-calls-carries-its-registrations-across-a-target-swap]]. One pack, vitest
+    4.1.10 on node 24.16.0.
+  sources:
+    - run: proxy-target-swap-probe-run
+      where: the swap at the shim's layer — where the pack's registrations stayed
+      quote: |
+        [test 1: server A] subscribers=5 scheduled=3 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+        [test 1: current server] subscribers=0 scheduled=0 objectives=0 entities=0 tick=0 signals=none
+    - run: state-swapped-beneath-the-fakes-probe-run
+      where: the same pack with the bindings never moved and the state under them replaced
+      quote: |
+        [test 1: before] subscribers=5 scheduled=3 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+        [test 1: after] subscribers=5 scheduled=2 objectives=11 entities=1 tick=40 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+    - run: state-swapped-beneath-the-fakes-probe-run
+      where: the second test, starting clean with the subscriptions still bound
+      quote: |
+        [test 2: before] subscribers=5 scheduled=2 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+
+- id: signals-are-shape-discoverable-but-scheduler-members-are-not
+  claim: |
+    A shim can find every event signal from the shape alone, and cannot find the scheduler
+    registrations that way. On a `@twin-digital/minecraft-test-lib` server built from the
+    @minecraft/server 2.8.0 manifests, all 69 members of the three signal containers — 55 on
+    `world.afterEvents`, 13 on `world.beforeEvents`, 1 on `system.afterEvents` — are readable and
+    every one of them carries both a `subscribe` and an `unsubscribe` function, so
+    `subscribe`/`unsubscribe` is a complete structural test for a signal. `system` offers no such
+    test: 8 of its 13 prototype members are plain functions — `clearJob,clearRun,run,runInterval,
+    runJob,runTimeout,sendScriptEvent,waitTicks` — and the 4 that hold a callback for later are
+    indistinguishable from the 4 that do not, including by arity, where `run/1` matches `clearRun/1`
+    and `runInterval/2` matches `runTimeout/2`. A shim that must treat registrations specially can
+    therefore be generic about events and only hardcoded about scheduling.
+  backing: tested
+  caveat: |
+    Measured against the library's fakes, whose containers are generated from the pinned 2.8.0
+    declarations, not against the engine; the counts are what those declarations carry at that
+    version and move with it. `subscribe`/`unsubscribe` being a complete test *here* rests on every
+    declared signal existing on the fake [[f:subscription-semantics-observed]]; a real engine object
+    that answered the same shape without being a signal would defeat it, and none was looked for.
+  sources:
+    - run: signal-and-scheduler-shape-probe-run
+      where: the three signal containers, every member readable and every one signal-shaped
+      quote: |
+        [container] world.afterEvents members=55 reachable=55 subscribe+unsubscribe-shaped=55 threw=0
+        [container] world.beforeEvents members=13 reachable=13 subscribe+unsubscribe-shaped=13 threw=0
+        [container] system.afterEvents members=1 reachable=1 subscribe+unsubscribe-shaped=1 threw=0
+    - run: signal-and-scheduler-shape-probe-run
+      where: what `system` offers instead — plain functions, with the schedulers among them
+      quote: |
+        [system] members=13 function-valued=8
+        [system] function-valued members: clearJob,clearRun,run,runInterval,runJob,runTimeout,sendScriptEvent,waitTicks
+    - run: signal-and-scheduler-shape-probe-run
+      where: arity, the only other thing a call site exposes
+      quote: |
+        [system] arity of the scheduler members: run/1 runInterval/2 runTimeout/2 clearRun/1

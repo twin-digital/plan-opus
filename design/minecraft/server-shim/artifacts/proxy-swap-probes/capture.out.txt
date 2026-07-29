@@ -1,0 +1,72 @@
+=== capture: C — a pack that keeps what the engine gave it (capture-signal.config.ts) ===
+exit code: 0
+
+
+ RUN  v4.1.10 <probe>
+
+stdout | capture.test.ts
+[setup] server A installed at module scope (shim=signal)
+
+stdout | capture.test.ts > test 1
+[swap] installs=2 carried-signals=1 carried-handlers=1 carried-scheduler-calls=1
+
+stdout | capture.test.ts > test 1
+[test 1: server A] subscribers=1 scheduled=1 objectives=0 entities=0 tick=0 signals=world.afterEvents.playerSpawn
+[test 1: current server] subscribers=1 scheduled=1 objectives=1 entities=1 tick=5 signals=world.afterEvents.playerSpawn
+[test 1] pack counters: spawns-seen=1 ticks-seen=5
+[test 1] handler saw: home-is-current-overworld=false entities-home-can-see=0
+
+stdout | capture.test.ts > test 2
+[swap] installs=3 carried-signals=1 carried-handlers=1 carried-scheduler-calls=1
+
+stdout | capture.test.ts > test 2
+[test 2: server A] subscribers=1 scheduled=1 objectives=0 entities=0 tick=0 signals=world.afterEvents.playerSpawn
+[test 2: current server] subscribers=1 scheduled=1 objectives=1 entities=1 tick=5 signals=world.afterEvents.playerSpawn
+[test 2] pack counters: spawns-seen=2 ticks-seen=10
+[test 2] handler saw: home-is-current-overworld=false entities-home-can-see=0
+
+ ✓ capture.test.ts > test 1 3ms
+ ✓ capture.test.ts > test 2 1ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  04:54:45
+   Duration  624ms (transform 405ms, setup 507ms, import 10ms, tests 4ms, environment 0ms)
+
+
+=== capture: D — the same pack, journal and replay (capture-replay.config.ts) ===
+exit code: 0
+
+
+ RUN  v4.1.10 <probe>
+
+stdout | capture.test.ts
+[setup] server A installed at module scope (shim=replay)
+
+stdout | capture.test.ts > test 1
+[swap] installs=2 carried-registrations=3 journalled-paths=world.getDimension,world.afterEvents.playerSpawn.subscribe,system.runInterval
+
+stdout | capture.test.ts > test 1
+[test 1: server A] subscribers=1 scheduled=1 objectives=0 entities=0 tick=0 signals=world.afterEvents.playerSpawn
+[test 1: current server] subscribers=1 scheduled=1 objectives=1 entities=1 tick=5 signals=world.afterEvents.playerSpawn
+[test 1] pack counters: spawns-seen=1 ticks-seen=5
+[test 1] handler saw: home-is-current-overworld=false entities-home-can-see=0
+
+stdout | capture.test.ts > test 2
+[swap] installs=3 carried-registrations=3 journalled-paths=world.getDimension,world.afterEvents.playerSpawn.subscribe,system.runInterval
+
+stdout | capture.test.ts > test 2
+[test 2: server A] subscribers=1 scheduled=1 objectives=0 entities=0 tick=0 signals=world.afterEvents.playerSpawn
+[test 2: current server] subscribers=1 scheduled=1 objectives=1 entities=1 tick=5 signals=world.afterEvents.playerSpawn
+[test 2] pack counters: spawns-seen=2 ticks-seen=10
+[test 2] handler saw: home-is-current-overworld=false entities-home-can-see=0
+
+ ✓ capture.test.ts > test 1 3ms
+ ✓ capture.test.ts > test 2 1ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  04:54:46
+   Duration  594ms (transform 389ms, setup 477ms, import 10ms, tests 4ms, environment 0ms)
+
+
