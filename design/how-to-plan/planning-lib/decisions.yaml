@@ -13,10 +13,24 @@
 
 - id: read-and-parse-failures-throw
   statement: a file the library cannot read or cannot parse as YAML aborts the load with one aggregate error naming every such file
-  status: accepted
+  status: rejected
   falsifiers:
     - a consumer needs the diagnostics from the rest of a tree that holds one unparseable file
     - the negative corpus shows the rebuilt checker reporting materially less than today's on a malformed-YAML input
+
+- id: load-returns-a-discriminated-result
+  statement: loadPlanningTree returns a discriminated result — ok with the tree, or not-ok with the failures and no tree key — rather than throwing
+  status: accepted
+  falsifiers:
+    - a consumer reaches the tree without discriminating, so the absent tree key is not what stops it
+    - call sites unwrap the result so mechanically that a helper which throws becomes the idiom, putting the silent swallow back
+
+- id: repo-tools-are-typescript
+  statement: this repository's two tools are rebuilt as TypeScript rather than plain ESM JavaScript
+  status: proposed
+  falsifiers:
+    - this repository cannot run a TypeScript entry point without a build step it is unwilling to carry
+    - the tools' call sites prove few enough that reviewing the discrimination by hand is as reliable as compiling it
 
 - id: parse-failures-are-diagnostics-on-a-partial-tree
   statement: an unreadable or unparseable file is reported as a diagnostic on a tree loaded around the hole, rather than aborting the load

@@ -1,0 +1,11 @@
+- id: union-member-access-requires-narrowing
+  claim: |
+    TypeScript permits an operation on a union-typed value only where that operation is valid for
+    every member of the union, so reading a property carried by only one member is a compile error
+    until the union has been narrowed
+  backing: documented
+  sources:
+    - url: https://www.typescriptlang.org/docs/handbook/2/everyday-types.html
+      where: Working with Union Types — the rule for operating on a union
+      quote: |
+        TypeScript will only allow an operation if it is valid for every member of the union.

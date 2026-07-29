@@ -23,19 +23,17 @@ right [[r:library-is-a-published-package-from-the-opus-monorepo]]. It is an ESM-
 package, shipping its own type declarations and targeting active Node LTS
 [[r:node-libraries-are-esm-typescript]]. Its build follows the monorepo's own conventions
 for a published package; nothing here overrides them. The `@twin-digital` scope is deliberately not
-`@td-spec`: that scope means "a published spec bundle", and a bundle and the code that reads one are
-different namespaces.
+`@td-spec`, which is the scope a published spec bundle takes
+[[f:bundle-package-name-is-td-spec-scoped]]: a bundle and the code that reads one are different
+namespaces.
 
 Every program that reads a planning artifact reads it through this package rather than parsing the
 format itself [[r:library-is-the-one-implementation-of-the-format]]. That is the whole return on the
 design, so the library has to be worth reaching for: it reads, it does not write
-[[d:library-is-read-only]], and it knows nothing about git [[d:library-does-not-touch-git]]. Nothing
-writes these files by program today — agents author them as text — and a serialiser would buy a
-formatting contract in exchange, since round-tripping YAML does not preserve a file byte for byte
-and every diff a person reads would pay for it. Git is left out for the mirror reason: a consumer
-that wants a design as it stood at a past commit materialises that commit as a directory
-(`git worktree add`, `git archive`) and points the library at it, which costs the consumer one
-command and spares every other consumer having to hold a real repository rather than a directory.
+[[d:library-is-read-only]], and it knows nothing about git [[d:library-does-not-touch-git]]. What the
+second costs a consumer is one command: a design as it stood at a past commit is reached by
+materialising that commit as a directory (`git worktree add`, `git archive`) and pointing the library
+at it, so every other consumer holds a directory rather than a repository.
 
 The consequence worth stating: the library reports a design's `exploring` | `draft` | `settled`
 state, and never reports whether it is published, because publication is a property of a git ref and
@@ -50,7 +48,7 @@ One entry point takes one repository-root directory path and reads the tree bene
 [[d:load-takes-one-repo-root-path]]:
 
 ```ts
-function loadPlanningTree(root: string): PlanningTree;   // throws TreeReadError
+function loadPlanningTree(root: string): LoadResult;
 ```
 
 It reads, in this order: `products.yaml` at the root
@@ -71,58 +69,33 @@ rather than as a failure, and so does an empty one [[d:missing-artifact-files-lo
 design directory with no `spec.md` loads as a design whose `spec` is `undefined`.
 
 A file the library **can** find but cannot read, or cannot parse as YAML, is different in kind: the
-tree was never loaded, so there is nothing to report findings against. The load aborts and throws a
-single `TreeReadError` carrying every such file — `{ path, reason }` per failure — rather than
-returning a model with holes in it [[d:read-and-parse-failures-throw]]. A consumer cannot succeed
-past a thrown error, which is the point: a tree that half-read is not a tree that validated.
+tree was never loaded, so there is nothing to report findings against. The load returns a
+discriminated result carrying every such file, and there is no tree on the failure arm
+[[d:load-returns-a-discriminated-result]]:
 
 ```ts
-class TreeReadError extends Error {
-  readonly failures: readonly { path: string; reason: string }[];
-}
+type LoadResult =
+  | { readonly ok: true; readonly tree: PlanningTree }
+  | { readonly ok: false; readonly failures: readonly { path: string; reason: string }[] };
 ```
 
-The alternative is to report an unreadable file the way a malformed entry is reported — a diagnostic
-on a tree that loaded around the hole. It is not a straw man: it is what this repository's checker
-does today, so it is worth working against the consumers one at a time rather than dismissing.
+The absent `tree` key is the whole mechanism. `tree` is carried by one member of the union, so
+reading it before `ok` is tested is a compile error [[f:union-member-access-requires-narrowing]] and
+the failure cannot be passed over in silence. A thrown error buys none of that: it is invisible to
+the type checker, and a bare `catch` discards it with nothing left for a reviewer to see.
 
-The checker is the one consumer it suits. It runs once, in a terminal, with a person reading the
-whole report, and a hole costs it some findings the person can attribute to the named file. Under
-the throw it gets less: the reporter catches `TreeReadError`, prints the files it could not read,
-and exits non-zero without the rest of the report. That is a real loss, and it is the price the
-other three are worth.
-
-The bundle deriver is where a hole does the most damage, because what it produces outlives the run.
-A design's upstream edges come from its cited fact sources, so an unreadable file in the fact pool
-does not break the derivation — it quietly shortens it, and a bundle publishes with a dependency
-missing. The version planner then compares that bundle against one re-derived at an earlier commit
-and reads a difference that was a read failure rather than a change. Nothing in the artifact says
-so, and it is on a registry by the time anyone asks.
-
-An agent querying a workspace mid-task fails a third way. It asks what binds a design, gets a list,
-and builds on it inside the same turn. A short list looks exactly like a complete one, so the error
-never surfaces as an error: it surfaces later as generated work that ignored a requirement, in a
-diff whose reviewer has no reason to suspect the query behind it. The throw puts the failure in the
-agent's own turn, at the call, where re-reading the file or reporting it is still cheap.
-
-This repository's settle gate fails the same way, and it is the case the decision turns on: an
-unreadable `requirements.yaml` makes the requirements in it vanish, so `uncited at settle` cannot
-fire for them and a design settles green without having cited what binds it. A check that is absent
-reports nothing, which is the definition of easy to ignore silently.
-
-The middle option — a tree that loads with a completeness flag beside it — is the diagnostic option
-with a step added. Every consumer above still has to test the flag before trusting the answer, and
-one that forgets gets the identical silent hole; a value every caller must check to be safe is a
-throw with more ceremony and less enforcement.
+Reporting a read failure as a diagnostic on a tree loaded around the hole is the alternative, and it
+is rejected for the reason it was always rejected: a design's answers are derived from what the load
+found, so a missing file shortens an answer rather than breaking it, and a short answer is
+indistinguishable from a complete one. The result shape does not soften that — there is still no
+partial tree to hand back, only a result the caller has to open.
 
 Every path the model carries — a design's directory, a fact file, a run's `output`, a diagnostic's
 subject — is repository-relative and POSIX-separated, so a diagnostic reads identically on any
 platform and a consumer can join it to whatever root it loaded
 [[d:model-paths-are-repo-relative-posix]]. Every collection the library returns is deterministically
 ordered: entries by id, diagnostics by category and then by subject
-[[d:returned-collections-are-deterministically-ordered]]. Determinism is not cosmetic here — the
-bundle deriver compares a bundle against one re-derived at a past commit, and an unstable order
-reads as a change that never happened.
+[[d:returned-collections-are-deterministically-ordered]].
 
 ## The typed model
 
@@ -426,13 +399,13 @@ than the loader's: verifying a quote opens the file a source's `url` names, `run
 stats the path a run's `output` names, and `fact file outside the pool` walks `design/**` for a file
 named `facts.yaml` or `facts.yml`, filed where its entries would resolve nowhere. Every one of those reads is a diagnostic
 when it fails — an unreadable or absent quote source reports `quote not verbatim at its source`, an
-absent run output reports `run output not found` — and none of them throws `TreeReadError`. The
-throw belongs to the load and says the tree was never read; a validator that threw it would abort a
-tree it had already read successfully.
+absent run output reports `run output not found` — and none of them turns the load into a failure.
+The failure arm belongs to the load and says the tree was never read; a validator that returned it
+would discard a tree that had already been read.
 
 One category needs its scope named, because malformed YAML reaches the library two ways and only one
-of them is a finding. A file that does not parse aborts the load
-[[d:read-and-parse-failures-throw]] and never becomes a diagnostic, so `yaml parse` means exactly the
+of them is a finding. A file that does not parse ends the load on its failure arm
+[[d:load-returns-a-discriminated-result]] and never becomes a diagnostic, so `yaml parse` means exactly the
 other case: a live `yaml` block under `## Components` or `## Open questions` whose body does not
 parse [[f:live-block-sits-under-its-fixed-section]]. The parser reports it, reads past the block, and
 the design's remaining checks all still run — which is what the corpus entry for the category has to
@@ -441,7 +414,7 @@ provoke, and the only thing it can.
 Diagnostics never abort the load. A tree full of violations is still a tree the library read, and
 reporting all of them in one pass is the reason a consumer runs the checker at all
 [[r:must-beat-doing-it-myself]] — stopping at the first would turn one run into a dozen. Only a file
-the library could not read stops it [[d:read-and-parse-failures-throw]].
+the library could not read stops it [[d:load-returns-a-discriminated-result]].
 
 The citation checks are where the format's intent rule becomes mechanical: a claim points at the
 foundation it rests on [[r:explicit-intent]], so every token must resolve to exactly one live entry
@@ -463,8 +436,7 @@ findings that all say the same thing. Such a design reports `legacyFormat: true`
 `draft`: the format fixes the state enum at three values computed from content
 [[f:settled-state-is-computed-from-spec-content]], so the legacy condition travels beside the state
 rather than as a fourth member of it, and a design whose document cannot be read is plainly not
-settled. Two designs in this repository are in that condition today, and a reporter prints `legacy`
-for them from the flag.
+settled. A reporter prints `legacy` for such a design from the flag.
 
 ## The five capabilities
 
@@ -509,8 +481,9 @@ why the settle rule lives with the binding resolution rather than beside the sta
 `@td-spec`, then the product, then a dot and the feature where the product subdivides — and is
 `null` for a design the manifest does not name [[r:library-resolves-a-design-to-its-bundle-name]]
 [[f:bundle-identity-comes-from-the-product-manifest]] [[f:bundle-package-name-is-td-spec-scoped]]. `null` is the report, not an exception: a
-design with no bundle is an ordinary end state and not an error, and a nullable type makes a
-consumer that ignores the case fail to compile [[d:bundle-name-is-null-when-unnamed]].
+design with no bundle is an ordinary end state and not an error, and `null` in the union is what
+makes a consumer that ignores the case fail to compile
+[[f:union-member-access-requires-narrowing]] [[d:bundle-name-is-null-when-unnamed]].
 
 **Commitment set.** `commitments` is the design's commitment set as entries carrying their ids and
 statements [[r:library-reports-a-designs-commitment-set]] — every active requirement binding the
@@ -575,9 +548,12 @@ prose.
 
 `bin/check-design.mjs` and `bin/foundations.mjs` are rebuilt as thin callers over the published
 package, and this repository takes `@twin-digital/planning-lib` as a dependency
-[[d:repo-tools-become-thin-callers]]. The checker becomes a reporter: load the tree, print a line per
-category in the exported table's order with its subjects sorted, print the run and design summary
-lines, exit non-zero on `hasErrors`. `bin/foundations.mjs` becomes a renderer over
+[[d:repo-tools-become-thin-callers]]. The checker becomes a reporter: load, print the unreadable
+files and exit 1 where `ok` is false, and otherwise print a line per category in the exported
+table's order with its subjects sorted, print the run and design summary lines, and exit non-zero on
+`hasErrors`. Both tools are TypeScript for that reason — the discrimination the result shape
+demands is a compile-time guarantee only where something compiles them
+[[d:repo-tools-are-typescript]]. `bin/foundations.mjs` becomes a renderer over
 `design.commitments` and the tree's facts. Nothing in `bin/lib/` survives as a second reading of the
 format.
 
@@ -599,11 +575,11 @@ the release it migrates onto exists.
 **Parity, and how it is proven.** The rebuilt checker must report exactly what today's checker
 reports for every design in the tree, with one stated exception: a tree holding a file that does not
 parse. Today's checker records a `yaml parse` finding, carries on, prints a full report and exits 1;
-the rebuilt one catches the throw, prints the files it could not read, and exits 1 with no report
-behind it, because the library aborts [[d:read-and-parse-failures-throw]]. That is the decision's cost falling due, and it is worth
-paying — a report assembled from a tree the reader could only half-read is a report whose green lines
-mean nothing — but it is a difference the corpus will find, so it is named here rather than left for
-the runner to trip over. Parity over the current tree alone cannot prove it, because
+the rebuilt one gets a result whose `ok` is false, prints the files it could not read, and exits 1
+with no report behind it [[d:load-returns-a-discriminated-result]]. That is the decision's cost
+falling due, and it is worth paying — a report assembled from a tree the reader could only half-read
+is a report whose green lines mean nothing — but it is a difference the corpus will find, so it is
+named here rather than left for the runner to trip over. Parity over the current tree alone cannot prove it, because
 the tree is clean: a checker that silently lost a whole category produces identical output on it. So
 the proof is a negative corpus — one minimal malformed tree per diagnostic category, each asserted
 to draw that category, at that severity, from both readings
@@ -635,7 +611,7 @@ components:
     excludes: reading files from disk and deciding whether an entry is valid
 
   - id: tree-loader
-    responsibility: walk a repository root, read every artifact file, parse it, build the entry index and the per-design file set, and throw one aggregate TreeReadError naming every file it could not read or parse
+    responsibility: walk a repository root, read every artifact file, parse it, build the entry index and the per-design file set, and return the failure arm naming every file it could not read or parse
     excludes: enforcing any format invariant, and assembling the public Design and PlanningTree objects
     after: [entry-schemas, spec-parser]
 
