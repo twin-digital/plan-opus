@@ -2142,3 +2142,47 @@
         [2026-07-28 04:32:38.236] [mctest] member-visibility :: [invalidated-subject] typeof entity.teleport=ok typeof=string value=string:"function" typeof entity.notAMember=ok typeof=string value=string:"undefined" typeof entity=ok typeof=string value=string:"object"
         [2026-07-28 04:32:38.236] [mctest] member-visibility :: [invalidated-subject] instanceof Entity=ok typeof=boolean value=boolean:true Player=ok typeof=boolean value=boolean:false Object=ok typeof=boolean value=boolean:true Entity.prototype.isPrototypeOf=ok typeof=boolean value=boolean:true constructor?.name=ok typeof=string value=string:"Entity" prototype-chain=["Entity","Object"]
         [2026-07-28 04:32:38.236] [mctest] member-visibility :: [invalidated-subject] JSON.stringify=ok typeof=string value=string:"{"typeId":"minecraft:sheep","id":"-120259084210"}" String()=ok typeof=string value=string:"[object Object]" spread-own-keys=["typeId","id"] Entity.prototype descriptor for 'nameTag'={"enumerable":true,"configurable":true}
+
+- id: server-import-fails-without-an-alias
+  claim: |
+    `@minecraft/server` 2.8.0 declares no `main`, `module`, `types`, `typings` or `exports` key, so
+    an import of it fails at module resolution — before any of the importing module's code runs.
+    Node throws `ERR_MODULE_NOT_FOUND`; vitest 4.1.10, with the package installed, fails the whole
+    suite with `Failed to resolve entry for package "@minecraft/server"`. A pack module that
+    imports a *value* — an enum member, or a class for an `instanceof` — is therefore unloadable
+    under a test runner unless the specifier is redirected to some other module. TypeScript is
+    unaffected: it finds `index.d.ts` by convention, so the failure appears only at run time.
+  backing: tested
+  sources:
+    - run: package-contents-probe
+      where: the package.json entry points
+      quote: |
+        main: undefined
+        module: undefined
+        types: undefined
+        typings: undefined
+        exports: undefined
+    - run: package-contents-probe
+      where: the runtime import attempt from a plain node process
+      quote: |
+        threw Error code=ERR_MODULE_NOT_FOUND
+    - run: alias-shim-control-run
+      where: the failed suite, with @minecraft/server 2.8.0 installed and no alias configured
+      quote: |
+        Error: Failed to resolve entry for package "@minecraft/server". The package may have incorrect main/module/exports specified in its package.json.
+
+- id: vanilla-data-ships-no-api-enums
+  claim: |
+    `@minecraft/vanilla-data` 1.26.33 — the package in the `@minecraft` family that does ship
+    runtime JavaScript — exports exactly 12 names, every one a namespace of id constants
+    (`MinecraftBlockTypes`, `MinecraftEffectTypes`, and so on). No `@minecraft/server` API enum
+    appears among them: there is no `EntityDamageCause`, `GameMode` or `EquipmentSlot`. So a pack
+    that imports an API enum value cannot get it from `@minecraft/vanilla-data`, and the enum
+    values have to come from somewhere else.
+  backing: tested
+  sources:
+    - run: vanilla-data-probe
+      where: the complete runtime export list
+      quote: |
+        ## Runtime exports (12)
+        MinecraftBiomeTypes, MinecraftBlockTypes, MinecraftCameraPresetsTypes, MinecraftCooldownCategoryTypes, MinecraftDimensionTypes, MinecraftEffectTypes, MinecraftEnchantmentTypes, MinecraftEntityTypes, MinecraftFeatureTypes, MinecraftItemTypes, MinecraftPotionDeliveryTypes, MinecraftPotionEffectTypes

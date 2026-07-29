@@ -1,0 +1,35 @@
+
+ RUN  v4.1.10 <harness>
+
+ ✓ combat-handler.test.ts > marron-town-mod CombatHandler, against the fakes > poisons the victim on every tenth landed hit, and not before 4ms
+ ✓ combat-handler.test.ts > marron-town-mod CombatHandler, against the fakes > tallies hits per attacker, so two attackers do not pool their way to a poison 1ms
+ ✓ combat-handler.test.ts > marron-town-mod CombatHandler, against the fakes > ignores the damage it deals itself, so the crit branch cannot recurse 0ms
+ ✓ combat-handler.test.ts > marron-town-mod CombatHandler, against the fakes > ignores a mob attacker, because the rule is written for players 0ms
+ ✓ combat-handler.test.ts > marron-town-mod CombatHandler, against the fakes > takes the crit surplus off the victim s health when the draw lands 1ms
+ ✓ combat-handler.test.ts > marron-town-mod CombatHandler, against the fakes > leaves the victim alone when the crit draw misses 0ms
+ ✓ gunfight.test.ts > dynamic properties on an entity > seeds itself on first construction, because an unset property reads undefined 4ms
+ ✓ gunfight.test.ts > dynamic properties on an entity > does not overwrite a value already stored 1ms
+ ✓ gunfight.test.ts > dynamic properties on an entity > writes through to the entity the test holds 1ms
+ ✓ gunfight.test.ts > dynamic properties on an entity > keeps two players properties apart 1ms
+ ✓ gunfight.test.ts > dynamic properties on the world > round-trips the team score through a JSON world property 1ms
+ ✓ gunfight.test.ts > dynamic properties on the world > reads back what a second handle wrote, since the world is the storage 0ms
+ ✓ gunfight.test.ts > dynamic properties on the world > holds nothing on a fresh bundle 1ms
+ ✓ gunfight.test.ts > scheduling through Task > runs its job every interval ticks once the test advances them 1ms
+ ✓ gunfight.test.ts > scheduling through Task > stops when killed, and not before 1ms
+ ✓ gunfight.test.ts > scheduling through Task > drives a real job: the saturation task the pack runs every second 1ms
+ ✓ gunfight.test.ts > entity queries > filters on the two fields the pack s spawn handler queries with 1ms
+ ✓ gunfight.test.ts > entity queries > kills exactly the entities the type filter selected 0ms
+ ✓ adapters.test.ts > the event bus, end to end > carries applyDamage through entityHurt into the pack s handler 7ms
+ ✓ adapters.test.ts > scoreboard persistence > round-trips a skill state through world.scoreboard 1ms
+ ✓ adapters.test.ts > scoreboard persistence > reads an unknown player as the empty state rather than throwing 1ms
+ ✓ adapters.test.ts > scoreboard persistence > keeps two players scores apart 1ms
+ ✓ adapters.test.ts > captured output > records what the messenger would have sent, per target 1ms
+ ✓ adapters.test.ts > the passive loop > applies a passive effect to every player the world holds 1ms
+ ✓ adapters.test.ts > the passive loop > does nothing before its suppression tick 1ms
+ ✓ adapters.test.ts > the passive loop > refuses to invent a location the test never gave the player 1ms
+
+ Test Files  3 passed (3)
+      Tests  26 passed (26)
+   Start at  01:52:16
+   Duration  769ms (transform 1.50s, setup 0ms, import 1.92s, tests 37ms, environment 0ms)
+

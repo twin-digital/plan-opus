@@ -1,0 +1,44 @@
+# Facts about testing Bedrock behavior packs: the tooling a pack author stands the engine up with,
+# and the commitments the test library makes to them.
+
+- id: alias-shim-runs-unmodified-pack-code
+  claim: |
+    A module aliased over `@minecraft/server` in a runner's resolver is enough to make unmodified
+    public pack code testable against `@twin-digital/minecraft-test-lib`'s fakes. A 26-line shim —
+    re-exporting enum values generated from the pinned 2.8.0 declarations, exposing `Player` and
+    `Entity` as `Symbol.hasInstance` brands over a member check, and holding `world` and `system`
+    as reassignable module-scope bindings a setter points at a fake server — carried 26 tests
+    across three suites over two third-party packs (`bencrob/marron-town-mod` at `2c025b4` and
+    `xigma0512/GunFight-Arena` at `0f16e88`), driving their combat handler, scoreboard and
+    messenger adapters, dynamic properties on the world and on an entity, `system` scheduling and
+    entity queries. Neither pack was edited. Removing the alias, with `@minecraft/server` 2.8.0
+    still installed, puts the same suite back to a resolution failure
+    [[f:server-import-fails-without-an-alias]].
+  backing: tested
+  caveat: |
+    This establishes that the shape works, not that it is the right one. The brands guess a
+    distinguishing member (`'onScreenDisplay' in value`) rather than asking the library; the
+    module-scope bindings are reset by an explicit setter call in each suite's `beforeEach`; and
+    the runner is vitest and ESM only — no jest, bun or CJS consumer was exercised. GunFight-Arena
+    declares `@minecraft/server` `^1.17.0` against the shim's 2.8.0 values.
+  sources:
+    - run: alias-shim-harness-run
+      where: the suite totals
+      quote: |
+         Test Files  3 passed (3)
+              Tests  26 passed (26)
+
+- id: test-lib-does-not-intercept-the-module-import
+  claim: |
+    `@twin-digital/minecraft-test-lib` commits, as owner fiat, to substituting fake objects passed
+    into code under test and to not replacing or intercepting the `@minecraft/server` module
+    import — code reachable only through a direct module import is outside its reach. Anything
+    that makes that import resolve is therefore something other than the library.
+  backing: documented
+  sources:
+    - url: design/minecraft/test-lib/requirements.yaml
+      where: r:object-substitution-not-module-mocking
+      quote: |
+        the library substitutes fake objects passed into code under test; it does not replace or
+        intercept the `@minecraft/server` module import. Code that can only reach the engine
+        through a direct module import is outside its reach.
