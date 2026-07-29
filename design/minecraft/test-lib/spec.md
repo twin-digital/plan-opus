@@ -516,22 +516,57 @@ error's shape, and is listed below as diverging there.
 Re-adding an effect already present replaces it when the new amplifier is higher, or when the
 amplifier is equal and the new duration is longer or equal; a lower amplifier never replaces
 whatever the duration, and an equal amplifier with a shorter duration does not
-[[f:effect-replacement-rule-observed]]. The engine compares against the duration *remaining*, which
-decays one per tick [[f:effect-replacement-compares-remaining-duration]]. The fake compares against
-the duration the effect carries, and that duration never decays
-[[d:effect-durations-do-not-decay]], so the comparison is written against the stored duration with
-nothing to subtract. The two bases agree on the tick an effect was applied and part company after
-that: against an effect applied with duration 400 and 150 ticks old, a re-add at the same amplifier
-carrying 320 replaces in the engine, where 320 exceeds the 250 remaining, and is refused by the
-fake, where 320 falls short of the 400 stored. That is a second consequence of not decaying, and it
-is recorded as its own divergence below rather than folded into the decay row: a test whose
-re-add straddles an advance is where it bites.
-
-A fake effect's duration is the number applied and stays that number until the effect is removed:
-advancing ticks does not decay it and never expires an effect
-[[d:effect-durations-do-not-decay]]. `getEffect(typeId)` returns the effect or `undefined`;
+[[f:effect-replacement-rule-observed]]. The duration half of that comparison is against the duration
+*remaining*, not the duration originally applied: over a base of amplifier 1 and duration 400 aged
+150 ticks, a re-add carrying 320 — longer than the 250 remaining, shorter than the 400 applied —
+replaces and reads back 320, at equal and at higher amplifier, in three runs of three
+[[f:effect-replacement-compares-remaining-duration]]. The fake compares the same way, because the
+duration it stores *is* the remaining one. `getEffect(typeId)` returns the effect or `undefined`;
 `getEffects()` returns those present; `removeEffect(typeId)` removes one and returns whether it was
 there.
+
+**A duration decays on the advance clock.** An effect's duration is the number applied and
+decreases by one for every tick the test advances, the rate the engine was measured at —
+`decayPerTick=1` in all eleven cases of all three runs
+[[f:effect-replacement-compares-remaining-duration]] [[d:effect-durations-decay-on-the-advance-clock]].
+Nothing decays on its own: the library starts no timer, so an effect on a bundle the test never
+advances reads back the applied number indefinitely [[r:scheduling-is-test-advanced]].
+
+Where the decay lands within an advance is fixed. `advanceTicks` steps one tick at a time,
+incrementing `currentTick` and then running that tick's due callbacks
+[[d:tick-advance-semantics]]; decay goes between those two steps, so each tick the advance takes,
+every live effect loses one and *then* that tick's callbacks run. Two things follow, and both are
+the point of fixing the order: a callback reading `duration` reads the value for the tick it is
+running on rather than the previous tick's, and an effect whose duration runs out partway through a
+multi-tick advance is already gone for the remaining ticks' callbacks rather than lingering to the
+end of the advance [[d:effect-durations-decay-on-the-advance-clock]].
+
+That number is read four ways and no more. `Effect.duration` is the only instance member exposing a
+duration, and it is reached as the `Effect` `addEffect` returns, through `getEffect(type)`, and
+through `getEffects()`, plus the replacement comparison `addEffect` makes internally — all four
+reading the same decaying value. `EffectAddBeforeEvent.duration` is not one of them: it is the
+*requested* duration of a pending add, writable by a handler
+[[f:before-event-field-writes-take-effect]], and decay never touches it. The pinned TSDoc calls
+`Effect.duration` "the entire specified duration, in ticks, of this effect", which the observation
+contradicts — a base applied at 400 reads 250 once 150 ticks have passed. The observation governs
+and the disagreement is recorded here [[r:engine-claims-are-sourced]].
+
+**Expiry is the library's own rule, not the engine's.** Nothing observed says what the engine does
+when a duration reaches zero — whether the effect is removed, whether it stays readable on the tick
+it hits zero, or whether the boundary sits at 0 or below. So the library takes the cheap answer and
+marks it as its own rather than presenting it as the engine's [[r:engine-claims-are-sourced]]
+[[d:effect-expiry-is-the-librarys-own]]: an effect is removed on the tick its duration reaches 0,
+making the last tick it is readable on the one where it reads 1, and it is never readable at 0.
+`getEffect(typeId)` then returns `undefined` and `getEffects()` omits it — the absence the engine
+can exhibit, read back as one [[d:absence-reads-as-undefined]]. An `Effect` handle a test still
+holds is left in the state `removeEffect` leaves one: `isValid` false, and its other members
+throwing the plain `Error` shape the guard table below gives
+[[f:effect-members-throw-plain-error]].
+
+Expiry dispatches nothing, because there is nothing to dispatch. 2.8.0 declares `effectAdd` on
+`world.afterEvents` and on `world.beforeEvents` and no effect-remove or effect-expire signal on
+either, so no handler can subscribe to an expiry in the engine and the fake raises none
+[[d:every-signal-exists-few-are-raised]].
 
 `Effect.displayName` is a populated human-readable string in the engine — `"Speed II"` for speed at
 amplifier 1 — and nothing pins it at build time: `@minecraft/vanilla-data` ships ids and no names,
@@ -662,6 +697,11 @@ runs every intervening tick's callbacks, not only those due on the tick it lands
 during the advance rather than at its end [[d:tick-advance-semantics]]. `runJob`/`clearJob` are
 declared and throw `NotImplementedError`.
 
+Two modelled behaviours ride this clock besides the scheduled callbacks, and both move only when the
+test advances: a killed mob's corpse turns invalid 21 ticks after `kill()`, and every live effect's
+duration loses one per tick, applied ahead of that tick's callbacks
+[[d:effect-durations-decay-on-the-advance-clock]].
+
 ## Persisted state and captured output
 
 Dynamic properties are real storage on the world and on every entity: `setDynamicProperty`,
@@ -778,85 +818,106 @@ so this table is the one place a reader learns where a passing test would not ha
 the engine. The table states what the design ruled on and nothing more: a behaviour outside it has
 not been considered, which is not the same as a promise about it.
 
-| engine behaviour | coverage | what the library does |
-|---|---|---|
-| dimension registration and `world.getDimension` resolution | modelled | via `withVanillaDimensions`; ids, aliases, height ranges and localization keys as observed |
-| `getDimension` with an unknown id | modelled | plain `Error`, the message quoted above |
-| the world's resting state — empty collections, no players, no objectives | modelled | |
-| a freshly constructed entity's components | divergence | construction populates nothing; in the engine a fresh entity always arrives carrying at least one component |
-| the spawn frame of `minecraft:xp_orb` | divergence | `asSpawnedEntity` applies zero rotation and velocity to every type; the engine spawns an `xp_orb` with a randomized rotation and a nonzero randomized velocity, drawn afresh per spawn |
-| per-type vanilla data — a sheep's fourteen components, its 8/8/0/8 health | not modelled | no preset supplies it; a package built on this one may |
-| entity id assignment | divergence | ids are decimal strings issued from `1` per bundle; the engine's are negative integers. `Entity.id` is documented opaque, so nothing may read the spelling either way |
-| `world.getEntity`, `getAllPlayers`, `getPlayers`, `dimension.getEntities`, `dimension.getPlayers` | modelled | unfiltered, in creation order |
-| `EntityQueryOptions` filtering, on the lookups and on `entity.matches` | divergence | six of the twenty-four fields filter — `type`, `tags`, `name` and their `exclude` counterparts; each of the other eighteen throws `NotImplementedError` naming itself, where the engine honours them all |
-| entity tags — `addTag`, `removeTag`, `hasTag`, `getTags` | modelled | a per-entity set, which the `tags` and `excludeTags` filters read |
-| the other entity lookups — `getEntitiesAtBlockLocation`, `getEntitiesFromRay`, `getEntitiesFromViewDirection` and the rest | not modelled | |
-| `dimension.spawnEntity` placement | divergence | the entity lands exactly where asked; the engine adjusts some placements — a boat by 0.2 on x and z |
-| post-spawn motion | divergence | an entity never moves on its own; AI-driven mobs drift within a couple of dozen ticks |
-| `entity.remove()` | modelled | raises the `entityRemove` before-event, then detaches from the registry and invalidates the reference as one act, then raises the after-event — the engine's own cascade, which raises no death event either |
-| `entity.triggerEvent` | divergence | validates the prefixed id and records the call, changing no state; in the engine the event reshapes the entity |
-| `entity.kill()` | modelled | the full cascade, on an entity with and without a health component |
-| invalidation of a mob's corpse after `kill()` | modelled | the corpse stays valid — inside the `entityDie` handler and after it — and turns invalid 21 ticks later, the constant the engine was measured at, so it goes stale when the test advances that far. Distinct from `remove()`, which invalidates at once |
-| invalidation after `kill()` on an entity with no health component | modelled | the reference goes invalid before `entityDie` is raised, as the engine's does within the call |
-| the seven attribute-shaped components | modelled | all four values, the bounds check, and the health-write cascade |
-| the other 61 entity components | not modelled | attachable, carrying `typeId`, `isValid` and `entity`; every other member throws |
-| runtime component attachment and detachment | not modelled | the engine reaches it through data-driven paths; a test uses the `addComponent` / `removeComponent` free functions |
-| bare and prefixed id tolerance | modelled | per-surface, as observed — `triggerEvent` rejects the bare form and the others accept it |
-| `setCurrentValue` bounds check | modelled | including the message and both inclusive bounds |
-| `applyDamage` cascade, order and payloads | modelled | including the unclamped negative health an overkill leaves, and unrounded fractional amounts |
-| `applyDamage`'s boolean | modelled | reports admission — damageable entity, positive amount — not whether damage landed, as observed |
-| `applyDamage` cause defaults and the `damagingEntity` carry-through | modelled | |
-| the killing-hit boundary | modelled | reaching `effectiveMin` exactly is fatal on both the damage and the component-write path |
-| `applyDamage` on an entity with no health component | modelled | returns `false`, fires nothing, leaves the entity valid |
-| the damage-invulnerability window | divergence | the fake has no i-frames, so consecutive `applyDamage` calls each take their full amount where the engine absorbs the second — a test driving repeated damage sees more health lost against the fake than the engine would take |
-| the engine's velocity-dependent projectile damage adjustment | divergence | the projectile options form applies the amount requested |
-| `addEffect` / `getEffect` / `getEffects` / `removeEffect` and the amplifier-first replacement rule | modelled | |
-| `addEffect`'s argument bounds | modelled | amplifier `0…255`, duration `1…20000000`, `ArgumentOutOfBoundsError` outside either, nothing clamped, both message shapes reproduced |
-| `addEffect`'s non-integer arguments | modelled | truncated toward zero, then bounds-checked — so duration `0.5` is refused |
-| `addEffect` on `NaN` or `Infinity` | divergence | the engine refuses these with a `TypeError` ahead of the bounds check; the fake does not reproduce that error's shape |
-| the display name's amplifier mapping | modelled | bare base at amplifier 0, base plus the Roman numeral of amplifier + 1 at 1–5, bare base again from 6 to 255 — reproduced for all 37 vanilla types across the whole accepted amplifier range |
-| effect duration decay and expiry | divergence | a duration reads back the value applied and never decays; the engine decays it one per tick and expires the effect |
-| the duration the replacement rule compares against | divergence | the rule reads the duration the effect carries, the engine the duration remaining; the two agree on the tick an effect was applied and part company after it, so a re-add straddling an advance can be refused where the engine would have replaced |
-| `Effect.displayName` for the 37 vanilla types | modelled | resolves with no test setup, from verbatim shipped base names and the computed numeral |
-| `Effect.displayName` in a locale other than the observed one | divergence | the shipped bases are the strings one server returned, and the API documents only a "player-friendly name" with no locale contract; until a second locale is observed the table is that locale's, and a test needing another registers its own bases |
-| `Effect.displayName` for a custom effect type | divergence | no base is shipped, so an unregistered custom type throws `UnsetValueError` where the engine would answer with whatever its own data holds |
-| signal existence, `subscribe` / `unsubscribe`, reference dedupe and subscription order | modelled | |
-| after-event dispatch timing | divergence | synchronous, inside the causing call; the engine defers past that call's return to later in the same tick |
-| engine-raised signals outside the five after-events and three before-events the fakes raise | not modelled | no fake behaviour raises them; a test drives one with `emit` |
-| before-event cancellation | modelled | on the two signals whose payload declares `cancel` |
-| what a cancelled call returns | modelled | `addEffect` `undefined`, `applyDamage` `true` — the engine's own per-surface values, quirk included |
-| before-event mutable payload fields | divergence | writes to `entityHurt.damage` and `effectAdd.duration` are honoured; the other four declared mutable fields are writable but unread, since the fake raises no action that consumes them |
-| a subscriber that throws | divergence | isolated as the engine isolates it, but the absorbed error is recorded for `getHandlerErrors` where the engine discards it |
-| the tick loop | divergence | nothing runs on its own; `currentTick` starts at 0 and moves only under `advanceTicks` |
-| `run` / `runTimeout` / `runInterval` / `clearRun` scheduling | modelled | every intervening tick's callbacks run during an advance |
-| `runJob` / `clearJob` | not modelled | |
-| dynamic properties on the world and on entities | modelled | real storage over the declared value types |
-| `getDynamicPropertyTotalByteCount` | not modelled | no source pins the engine's accounting |
-| the scoreboard — objectives, scores, participants, display slots | modelled | |
-| `sendMessage` and `onScreenDisplay` output | modelled | captured to a per-target log rather than displayed, and read back with `getOutput` |
-| the invalidation guard on entities, attribute components and effects | modelled | the observed guard data, error class by error class, compiled into each member's prologue ahead of its body |
-| reading — not calling — a guarded method on an invalidated reference | modelled | the read returns a function and the throw lands on the call, and a reference captured while valid still throws when it runs, as observed |
-| too few arguments checked ahead of the validity guard | modelled | each member's arity check runs before its guard prologue, so a call with too few arguments on an invalidated entity reports `TypeError` rather than `InvalidEntityError`, as the engine does |
-| extra arguments to a member | modelled | *with a caveat.* The fake ignores them. The engine has never been observed receiving too many — every arity observation is of too few — so no difference is claimed; if the engine rejects them, the fake is the more permissive of the two |
-| `in` on a declared but unmodelled member | modelled | the member is really on the prototype, so `'teleport' in entity` is `true` and an unknown name `false`, as the engine answers, valid or invalidated alike |
-| `Object.keys`, spread and `JSON.stringify` over an entity | modelled | `typeId` and `id` are own data properties and every other member sits on the prototype, so all three read the engine's two own enumerable properties |
-| `for-in` over an entity | modelled | the generator defines the prototype members `enumerable: true`, so `for-in` walks the engine's 62 while `Object.keys` still reads 2 |
-| items, blocks, containers, the player client surface, custom commands, the startup registries, and the eight registry classes | not modelled | declared in full and throwing |
+Every row carries an id, and **the id is the row's identity while its two description columns are
+not**: a consumer pins the id, and the behaviour and library columns may be reworded freely without
+that counting as a change to anything downstream [[d:coverage-rows-carry-stable-ids]]. An id names
+its row's *subject* rather than its verdict, so a row keeps its id when its coverage changes — a
+divergence that becomes modelled is precisely the case where a consumer needs to see one subject
+whose verdict moved rather than a disappearance and an arrival.
+
+| id | engine behaviour | coverage | what the library does |
+|---|---|---|---|
+| `dimension-registration-and-resolution` | dimension registration and `world.getDimension` resolution | modelled | via `withVanillaDimensions`; ids, aliases, height ranges and localization keys as observed |
+| `get-dimension-unknown-id` | `getDimension` with an unknown id | modelled | plain `Error`, the message quoted above |
+| `world-resting-state` | the world's resting state — empty collections, no players, no objectives | modelled | |
+| `fresh-entity-components` | a freshly constructed entity's components | divergence | construction populates nothing; in the engine a fresh entity always arrives carrying at least one component |
+| `xp-orb-spawn-frame` | the spawn frame of `minecraft:xp_orb` | divergence | `asSpawnedEntity` applies zero rotation and velocity to every type; the engine spawns an `xp_orb` with a randomized rotation and a nonzero randomized velocity, drawn afresh per spawn |
+| `per-type-vanilla-data` | per-type vanilla data — a sheep's fourteen components, its 8/8/0/8 health | not modelled | no preset supplies it; a package built on this one may |
+| `entity-id-assignment` | entity id assignment | divergence | ids are decimal strings issued from `1` per bundle; the engine's are negative integers. `Entity.id` is documented opaque, so nothing may read the spelling either way |
+| `entity-lookups` | `world.getEntity`, `getAllPlayers`, `getPlayers`, `dimension.getEntities`, `dimension.getPlayers` | modelled | unfiltered, in creation order |
+| `entity-query-options-filtering` | `EntityQueryOptions` filtering, on the lookups and on `entity.matches` | divergence | six of the twenty-four fields filter — `type`, `tags`, `name` and their `exclude` counterparts; each of the other eighteen throws `NotImplementedError` naming itself, where the engine honours them all |
+| `entity-tags` | entity tags — `addTag`, `removeTag`, `hasTag`, `getTags` | modelled | a per-entity set, which the `tags` and `excludeTags` filters read |
+| `positional-entity-lookups` | the other entity lookups — `getEntitiesAtBlockLocation`, `getEntitiesFromRay`, `getEntitiesFromViewDirection` and the rest | not modelled | |
+| `spawn-entity-placement` | `dimension.spawnEntity` placement | divergence | the entity lands exactly where asked; the engine adjusts some placements — a boat by 0.2 on x and z |
+| `post-spawn-motion` | post-spawn motion | divergence | an entity never moves on its own; AI-driven mobs drift within a couple of dozen ticks |
+| `entity-remove-cascade` | `entity.remove()` | modelled | raises the `entityRemove` before-event, then detaches from the registry and invalidates the reference as one act, then raises the after-event — the engine's own cascade, which raises no death event either |
+| `trigger-event` | `entity.triggerEvent` | divergence | validates the prefixed id and records the call, changing no state; in the engine the event reshapes the entity |
+| `entity-kill-cascade` | `entity.kill()` | modelled | the full cascade, on an entity with and without a health component |
+| `corpse-invalidation-after-kill` | invalidation of a mob's corpse after `kill()` | modelled | the corpse stays valid — inside the `entityDie` handler and after it — and turns invalid 21 ticks later, the constant the engine was measured at, so it goes stale when the test advances that far. Distinct from `remove()`, which invalidates at once |
+| `kill-invalidation-without-health` | invalidation after `kill()` on an entity with no health component | modelled | the reference goes invalid before `entityDie` is raised, as the engine's does within the call |
+| `attribute-shaped-components` | the seven attribute-shaped components | modelled | all four values, the bounds check, and the health-write cascade |
+| `non-attribute-components` | the other 61 entity components | not modelled | attachable, carrying `typeId`, `isValid` and `entity`; every other member throws |
+| `runtime-component-mutation` | runtime component attachment and detachment | not modelled | the engine reaches it through data-driven paths; a test uses the `addComponent` / `removeComponent` free functions |
+| `namespace-prefix-tolerance` | bare and prefixed id tolerance | modelled | per-surface, as observed — `triggerEvent` rejects the bare form and the others accept it |
+| `set-current-value-bounds` | `setCurrentValue` bounds check | modelled | including the message and both inclusive bounds |
+| `apply-damage-cascade` | `applyDamage` cascade, order and payloads | modelled | including the unclamped negative health an overkill leaves, and unrounded fractional amounts |
+| `apply-damage-boolean` | `applyDamage`'s boolean | modelled | reports admission — damageable entity, positive amount — not whether damage landed, as observed |
+| `apply-damage-cause-and-source` | `applyDamage` cause defaults and the `damagingEntity` carry-through | modelled | |
+| `killing-hit-boundary` | the killing-hit boundary | modelled | reaching `effectiveMin` exactly is fatal on both the damage and the component-write path |
+| `apply-damage-without-health` | `applyDamage` on an entity with no health component | modelled | returns `false`, fires nothing, leaves the entity valid |
+| `damage-invulnerability-window` | the damage-invulnerability window | divergence | the fake has no i-frames, so consecutive `applyDamage` calls each take their full amount where the engine absorbs the second — a test driving repeated damage sees more health lost against the fake than the engine would take |
+| `projectile-damage-adjustment` | the engine's velocity-dependent projectile damage adjustment | divergence | the projectile options form applies the amount requested |
+| `effect-add-and-replacement-rule` | `addEffect` / `getEffect` / `getEffects` / `removeEffect` and the amplifier-first replacement rule | modelled | including the duration half of the rule, compared against the duration remaining as observed |
+| `add-effect-argument-bounds` | `addEffect`'s argument bounds | modelled | amplifier `0…255`, duration `1…20000000`, `ArgumentOutOfBoundsError` outside either, nothing clamped, both message shapes reproduced |
+| `add-effect-non-integer-arguments` | `addEffect`'s non-integer arguments | modelled | truncated toward zero, then bounds-checked — so duration `0.5` is refused |
+| `add-effect-nan-and-infinity` | `addEffect` on `NaN` or `Infinity` | divergence | the engine refuses these with a `TypeError` ahead of the bounds check; the fake does not reproduce that error's shape |
+| `display-name-amplifier-mapping` | the display name's amplifier mapping | modelled | bare base at amplifier 0, base plus the Roman numeral of amplifier + 1 at 1–5, bare base again from 6 to 255 — reproduced for all 37 vanilla types across the whole accepted amplifier range |
+| `effect-duration-decay` | effect duration decay | modelled | one per tick the test advances, the observed rate, applied ahead of that tick's callbacks; nothing decays unless the test advances |
+| `effect-duration-expiry-boundary` | what the engine does when a duration reaches zero | not modelled | unobserved, so there is nothing to reproduce: the library removes the effect on the tick it reaches 0 — never readable at 0, `getEffect` `undefined`, absent from `getEffects()` — and dispatches nothing, 2.8.0 declaring no effect-remove or effect-expire signal. That rule is the library's own, and no difference from the engine is claimed here because none has been measured |
+| `vanilla-effect-display-names` | `Effect.displayName` for the 37 vanilla types | modelled | resolves with no test setup, from verbatim shipped base names and the computed numeral |
+| `effect-display-name-locale` | `Effect.displayName` in a locale other than the observed one | divergence | the shipped bases are the strings one server returned, and the API documents only a "player-friendly name" with no locale contract; until a second locale is observed the table is that locale's, and a test needing another registers its own bases |
+| `custom-effect-display-name` | `Effect.displayName` for a custom effect type | divergence | no base is shipped, so an unregistered custom type throws `UnsetValueError` where the engine would answer with whatever its own data holds |
+| `signal-subscription` | signal existence, `subscribe` / `unsubscribe`, reference dedupe and subscription order | modelled | |
+| `after-event-dispatch-timing` | after-event dispatch timing | divergence | synchronous, inside the causing call; the engine defers past that call's return to later in the same tick |
+| `unraised-engine-signals` | engine-raised signals outside the five after-events and three before-events the fakes raise | not modelled | no fake behaviour raises them; a test drives one with `emit` |
+| `before-event-cancellation` | before-event cancellation | modelled | on the two signals whose payload declares `cancel` |
+| `cancelled-call-return-value` | what a cancelled call returns | modelled | `addEffect` `undefined`, `applyDamage` `true` — the engine's own per-surface values, quirk included |
+| `before-event-payload-writes` | before-event mutable payload fields | divergence | writes to `entityHurt.damage` and `effectAdd.duration` are honoured; the other four declared mutable fields are writable but unread, since the fake raises no action that consumes them |
+| `throwing-subscriber` | a subscriber that throws | divergence | isolated as the engine isolates it, but the absorbed error is recorded for `getHandlerErrors` where the engine discards it |
+| `tick-loop` | the tick loop | divergence | nothing runs on its own; `currentTick` starts at 0 and moves only under `advanceTicks` |
+| `system-scheduling` | `run` / `runTimeout` / `runInterval` / `clearRun` scheduling | modelled | every intervening tick's callbacks run during an advance |
+| `run-job` | `runJob` / `clearJob` | not modelled | |
+| `dynamic-properties` | dynamic properties on the world and on entities | modelled | real storage over the declared value types |
+| `dynamic-property-byte-count` | `getDynamicPropertyTotalByteCount` | not modelled | no source pins the engine's accounting |
+| `scoreboard` | the scoreboard — objectives, scores, participants, display slots | modelled | |
+| `message-and-title-output` | `sendMessage` and `onScreenDisplay` output | modelled | captured to a per-target log rather than displayed, and read back with `getOutput` |
+| `invalidation-guard` | the invalidation guard on entities, attribute components and effects | modelled | the observed guard data, error class by error class, compiled into each member's prologue ahead of its body |
+| `guard-fires-at-call` | reading — not calling — a guarded method on an invalidated reference | modelled | the read returns a function and the throw lands on the call, and a reference captured while valid still throws when it runs, as observed |
+| `arity-before-guard` | too few arguments checked ahead of the validity guard | modelled | each member's arity check runs before its guard prologue, so a call with too few arguments on an invalidated entity reports `TypeError` rather than `InvalidEntityError`, as the engine does |
+| `extra-arguments` | extra arguments to a member | modelled | *with a caveat.* The fake ignores them. The engine has never been observed receiving too many — every arity observation is of too few — so no difference is claimed; if the engine rejects them, the fake is the more permissive of the two |
+| `in-operator-on-members` | `in` on a declared but unmodelled member | modelled | the member is really on the prototype, so `'teleport' in entity` is `true` and an unknown name `false`, as the engine answers, valid or invalidated alike |
+| `own-enumerable-properties` | `Object.keys`, spread and `JSON.stringify` over an entity | modelled | `typeId` and `id` are own data properties and every other member sits on the prototype, so all three read the engine's two own enumerable properties |
+| `for-in-enumeration` | `for-in` over an entity | modelled | the generator defines the prototype members `enumerable: true`, so `for-in` walks the engine's 62 while `Object.keys` still reads 2 |
+| `out-of-scope-surfaces` | items, blocks, containers, the player client surface, custom commands, the startup registries, and the eight registry classes | not modelled | declared in full and throwing |
 
 The divergence rows are not spec-only. Each one describes a way a test can pass against the fake and
 fail against the engine, so this table and its descriptions carry through into the package's own
 user-facing documentation, where someone reading it has the library in hand and the spec nowhere
 near [[r:coverage-is-enumerated]]. Keeping the two in step is `package-and-exports`'s to hold,
-alongside the entry point it already owns.
+alongside the entry point it already owns, and the ids are what lets it: the package pins them, so
+a row it must carry can be reworded here without a downstream build reading the rewording as a
+missing row. Generating that section from this table would need one build reaching across two
+repositories, and giving coverage a validated entry kind of its own would reopen `doc-structure`,
+which is settled, to serve a single consumer — so the identity is a convention both sides keep
+rather than a mechanism either enforces [[d:coverage-rows-carry-stable-ids]].
 
 This table is the part of the document most likely to rot, because nothing mechanical ties a row to
 the prose it summarises: a behaviour can be respecified above and leave a stale row here, and the
-row is what ships to users. Two rules keep it honest, and they are the builder's to follow rather
-than the checker's to enforce. A change to any modelled behaviour is not complete until its row
-says the same thing as the prose — the row is part of the change, not a follow-up. And every row
-carrying `divergence` names the evidence for the difference, so a row that no longer has any is a
-row to delete rather than to reword: that is how the `remove()` and guard-at-access rows were caught
-once the probes closed them.
+row is what ships to users. Three rules keep it honest, and all three are the author's to follow
+rather than the checker's to enforce — the checker has no coverage entry kind, so nothing validates
+a row's id for uniqueness, for stability, or for still describing its subject.
+
+A change to any modelled behaviour is not complete until its row says the same thing as the prose —
+the row is part of the change, not a follow-up. Every row carrying `divergence` names the evidence
+for the difference, so a row that no longer has any is a row to delete rather than to reword: that
+is how the `remove()` and guard-at-access rows were caught once the probes closed them.
+
+And an id is issued once. A row whose subject splits retires its id and both halves take new ones,
+because neither half is what the old id named — `effect-duration-decay` and
+`effect-duration-expiry-boundary` are two subjects where a single decay-and-expiry row once stood,
+and neither inherits it. A removed subject's id is retired with it and never reissued to a different
+subject. Both of those break a consumer pinning the id, and both should: a split and a removal are
+changes it has to react to, where a rewording is not.
 
 ## Components
 
@@ -967,7 +1028,8 @@ components:
     responsibility: >-
       the package.json with its peer dependency and ESM-only build, the TypeScript build and
       declaration emit, the single public entry point re-exporting every fake type and every free
-      function, and the user-facing documentation carrying the coverage table and a description of
+      function, and the user-facing documentation carrying the coverage table — each row under the
+      id the spec gives it — and a description of
       every divergence in it, kept in step with the spec's own table as a condition of any
       behaviour change rather than as a later sweep
     excludes: the behaviour behind anything it re-exports, and which coverage a behaviour has
