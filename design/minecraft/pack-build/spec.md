@@ -18,26 +18,17 @@ configuration — as values a fragment sets, and as a plugin the bundler runs.
 
 ```yaml
 questions:
-  - id: archive-interface-wording
+  - id: the-kit-should-report-a-packs-script-output-path
     question: |
-      the archive half is specified here as a `mc-pack-archive` command the package's release hook
-      runs, while `r:a-released-pack-is-an-archive-of-its-output-tree` says the archive is
-      "exported for the package's release hook to call". Should that requirement's wording admit a
-      command line, as `r:build-is-an-exported-bundler-config` now does, or does the owner want the
-      archive exported as a function a hook script imports instead?
-    closes: requirement
-    gates: [the-archive-ships-as-a-bin-command, the-archive-command-takes-no-arguments]
-  - id: manifest-only-rebuild-skips-bundling
-    question: |
-      `r:rebuild-triggers-are-declared-not-inferred` says a change to a manifest input alone brings
-      the output's manifests up to date "without rebundling". This design has one path: any declared
-      change re-runs the whole build, and the two paths differ only at write time, where the
-      bundle's bytes are unchanged and so are not written. Read as a statement about what the build
-      does, the requirement asks for a manifest-only path that skips the bundler and this design
-      does not meet it; read as a statement about what the output shows, it is met. Which reading
-      does the owner intend?
-    closes: requirement
-    gates: [output-files-are-written-only-when-their-bytes-change, the-export-is-a-fragment-carrying-a-rolldown-plugin]
+      a pack's built script belongs at the path its manifest's script module declares in `entry`,
+      but the kit's pack entry reports only the pack's output directory, and `ManifestModule`
+      declares `type`, `uuid` and `version` and not `entry` — so the path is reachable today only
+      as an unmodelled key the kit form-checks nothing about, which is manifest handling this
+      design should not be doing. Until the kit reports a pack's script output path beside its
+      source and output directories, this design fixes the path itself and nothing checks that a
+      pack's manifest agrees with it. Should minecraft/dev-kit be amended to carry it?
+    closes: decision
+    gates: [the-bundle-lands-at-a-path-this-design-fixes]
 ```
 
 ## What a pack package takes up
@@ -56,17 +47,26 @@ partial config, applied in filename order and shallow-merged over the base
 [[f:opus-bundler-config-merges-partial-fragments]] — so the export is what a fragment returns:
 
 ```ts
+import path from 'node:path'
 import { packBuild } from '@twin-digital/mc-dev-kit/pack-build'
 
-export default packBuild({ packageUrl: import.meta.url })
+export default packBuild({ packageDir: path.join(import.meta.dirname, '..') })
 ```
 
-`packBuild` takes one required option, `packageUrl`, the `import.meta.url` of the fragment calling
-it. A fragment sits in `<package>/tsdown.config.d/`, beside the package's `tsdown.config.ts`
-[[f:opus-bundler-config-merges-partial-fragments]], so the package directory is the *parent* of that
-url's directory — the directory holding the `package.json` every path below is resolved against
-[[d:the-consumer-hands-over-its-config-file-url]]. It returns a partial tsdown config setting
-exactly these keys:
+`packBuild` takes one required option, `packageDir`: the filesystem path of the package directory
+the build is for — the directory holding that package's `package.json`, which every `<package>/…`
+path below is resolved against. A relative path resolves against the process's working directory,
+so a caller that cannot be sure of that passes an absolute one
+[[d:the-consumer-hands-over-its-package-directory]].
+
+The fragment above is a module, so it names its own directory with `import.meta.dirname`, a plain
+path string every active Node LTS carries [[f:import-meta-dirname-gives-a-module-its-directory-as-a-path]],
+and joins the `..` itself: a fragment sits one level down, in `<package>/tsdown.config.d/`
+[[f:opus-bundler-config-merges-partial-fragments]]. The export takes the package directory rather
+than deriving it from where the caller sits, so the fragment convention — which this design does not
+own and cannot see move — stays out of its interface.
+
+`packBuild` returns a partial tsdown config setting exactly these keys:
 
 - `entry` — `<package>/behavior_pack/scripts/main.ts` when that file exists, and otherwise the
   virtual module id `\0mc-pack-build:empty`, which the plugin resolves and loads as an empty module
@@ -110,9 +110,13 @@ symbol to hang TSDoc on, so the README section is the whole of its documentation
 ## What the build works from
 
 At `buildStart` the plugin reads `<package>/package.json` for the package's name, walks up from the
-package directory to the nearest ancestor holding a `pnpm-workspace.yaml`, or a `package.json` with
-a `workspaces` field, and calls the kit's `discoverPacks({ workspace: <that ancestor> })`
-[[d:the-workspace-root-is-found-by-walking-up]]. The call passes no filter, so what comes back is
+package directory to the nearest ancestor holding a `pnpm-workspace.yaml`, and calls the kit's
+`discoverPacks({ workspace: <that ancestor> })`. That one file is the whole test: it is what defines
+a pnpm workspace's root [[f:pnpm-workspace-packages-is-an-include-exclude-glob-list]], and a package
+directory with no such ancestor fails the build naming the directory the walk started from. A
+`workspaces` field in a `package.json` is not looked for — it marks an npm or yarn workspace, which
+is not the shape this ships into, and a second marker with no case behind it is a second thing to be
+wrong [[d:the-workspace-root-is-the-nearest-pnpm-workspace-file]]. The call passes no filter, so what comes back is
 every pack in the workspace [[f:dev-kit-discovery-returns-the-whole-workspace-set-unfiltered]]; the
 plugin selects this package's packs from it in memory, by the owning package name each entry
 carries. One unfiltered call rather than a filtered one because the build needs the rest of the set
@@ -160,23 +164,49 @@ entry, serialised as JSON with two-space indentation and a trailing newline. The
 produces a new version of the pack and nothing here writes a version of its own
 [[r:the-package-version-is-the-pack-version]] [[f:opus-package-versions-are-written-by-changesets]].
 
-**The script bundle.** A manifest module of type `script` names its entry-point file in an `entry`
-string [[f:a-script-module-names-its-entry-point-path]], so the bundle is written to
-`<package>/dist/behavior_pack/<that entry>` — `scripts/main.js` in the ordinary case
-[[d:the-bundle-lands-at-the-manifest-declared-entry]]. It is ESM, unminified, with no `.d.ts` and no
+**The script bundle.** The bundle is written to `<package>/dist/behavior_pack/scripts/main.js`, a
+path this design fixes [[d:the-bundle-lands-at-a-path-this-design-fixes]]. A behavior pack's script
+sources sit at `behavior_pack/scripts/main.ts` [[d:script-sources-live-in-the-packs-scripts-directory]],
+and the output path mirrors that rather than being read from the manifest — a pack's manifest module
+of type `script` does name its entry-point file in an `entry` string
+[[f:a-script-module-names-its-entry-point-path]], but the kit models no such field and reports no
+script location [[f:dev-kit-pack-entries-report-no-script-output-path]], so following it would mean
+this design doing manifest handling of its own. A pack
+taking up this export therefore declares `scripts/main.js` as its script module's `entry`, and
+nothing today checks that it did (above).
+
+It is ESM, unminified, with no `.d.ts` and no
 sourcemap; any further chunk the bundler produces is written beside it in the same directory
 [[d:the-bundle-is-one-unminified-esm-chunk]]. The plugin deletes every chunk from the bundle object
 in `generateBundle` and writes the code out itself, so the bundler's own emit never lands in the
-output tree and one writer owns every file there [[d:the-plugin-places-every-output-file-itself]].
-A build where `behavior_pack/scripts/main.ts` exists but the pack's manifest declares no script
-module, or a script module with no `entry`, fails naming both.
+output tree [[d:the-plugin-places-every-output-file-itself]]. That is what puts the bundle under the
+same two rules as every other file: a write is skipped when the bytes already match
+[[d:output-files-are-written-only-when-their-bytes-change]], and a path the build did not write is
+pruned [[d:stale-output-is-pruned-not-wiped]]. A bundler writing its own chunk writes unconditionally
+and into a tree it does not know the prune's rules for, which is a second writer in the one place
+this design is required to keep authoritative [[r:assembly-is-authoritative-over-the-output-tree]].
 
 The modules the game provides at runtime stay external
 [[r:script-module-is-bundled-with-game-modules-external]]. The set is read from the pack's completed
 manifest: every `dependencies` entry carrying a `module_name` — `@minecraft/server`,
 `@minecraft/server-ui`, and any other built-in the pack declares — since that is what a manifest
 dependency on a built-in scripting module looks like
-[[f:pack-dependency-entries-name-a-uuid-or-a-module-name-plus-a-version]]. The plugin's `resolveId`
+[[f:pack-dependency-entries-name-a-uuid-or-a-module-name-plus-a-version]]. The kit's entry types
+carry it, so the whole of obtaining that set is:
+
+```ts
+// entry: a ValidPackEntry from discoverPacks; manifest is the completed PackManifest
+const gameModules = (entry.manifest.dependencies ?? []).flatMap((d) =>
+  'module_name' in d ? [d.module_name] : [],
+)
+```
+
+`PackManifest.dependencies` is an optional array whose every element carries exactly one of `uuid`
+or `module_name`, both typed and form-checked before an entry is called valid, and the kit exports
+those types alongside `discoverPacks` [[f:dev-kit-types-the-completed-manifests-dependency-entries]].
+No new kit field is needed for the external set.
+
+The plugin's `resolveId`
 marks exactly those specifiers, and subpath imports of them, external. Everything else is bundled,
 the `@minecraft/` scope included: `@minecraft/vanilla-data` ships runtime JavaScript and is bundled
 like any other dependency, and no manifest dependency entry could name it
@@ -215,7 +245,15 @@ consumer watching the tree mid-build sees only what actually changed
 [[d:output-files-are-written-only-when-their-bytes-change]].
 
 Nothing else is produced. A build writes no record of which packs it changed; a consumer that needs
-to know reads the output tree it is already watching [[d:a-rebuild-emits-no-report]].
+to know reads the output tree it is already watching [[d:a-rebuild-emits-no-report]]. What makes
+that enough is the compared write: a build touches exactly the files whose bytes changed, so the
+tree's own modification times already say which packs a rebuild altered, and at a finer grain than a
+report — a watcher learns whether a manifest or a bundle moved, not merely that the pack did. What
+makes a report worse than redundant is where it would have to live. Inside `<package>/dist/` it is a
+file the current source does not declare, which the requirement holding that tree authoritative
+rules out and the prune would delete [[r:assembly-is-authoritative-over-the-output-tree]]; outside
+it, it is a second artifact in a second location that a consumer must be told about, kept in step
+with the tree, and cleaned up — where the tree is already the interface both sides agree on.
 
 ## Rebuilds
 
@@ -237,19 +275,20 @@ on each of [[r:rebuild-triggers-are-declared-not-inferred]]:
   triggers. The workspace set already read at `buildStart` is what maps each dependency uuid to the
   package directory that owns it
 
-A change to any of them triggers the rebuild, which re-reads the pack set and re-runs everything
-above.
-
-That gives the two rebuild paths their observable difference without a second code path. A source
-change rebundles and the bundle is rewritten. A change to a manifest input alone — a manifest edit,
-a version bump in this package or in a sibling it depends on — re-completes the manifests and
-rewrites them, while the bundle's bytes are unchanged and so are not written at all
-[[d:output-files-are-written-only-when-their-bytes-change]].
+A change to any of them triggers a rebuild, and a rebuild is the whole build: the pack set is read
+again, the module graph is bundled again, and every file is written again through the compare. There
+is no second, shorter path for a change that touches only a manifest input — what a rebuild has to
+bring up to date is the output, and skipping work it does not need is this design's to choose rather
+than something demanded of it [[r:rebuild-triggers-are-declared-not-inferred]]. What the two kinds
+of change do differ in is what lands: a source change rewrites the bundle, while a manifest edit or
+a version bump rewrites the manifests and leaves the bundle's bytes identical, so it is not written
+at all [[d:output-files-are-written-only-when-their-bytes-change]]. A path that skipped the bundler
+would be an optimisation, and it can be added later behind this same observable behaviour.
 
 ## The release archive
 
-A package is released as one archive of its whole output tree, and the packs inside it are not
-separately releasable [[r:a-released-pack-is-an-archive-of-its-output-tree]]. An artifact reaches a
+A package releases as a single archive, cut from its built output tree and nothing else, with no
+pack inside it released on its own [[r:a-released-pack-is-an-archive-of-its-output-tree]]. An artifact reaches a
 GitHub release only through a `release-assets` script the package declares, which takes no arguments
 and writes flat files into a `.release-assets/` directory in the package
 [[f:opus-release-assets-come-from-a-per-package-script]], so the archive half is a command that
@@ -277,8 +316,8 @@ holds no kind-named directory, fails with that path named
 components:
   - id: pack-set-access
     responsibility: |
-      resolve the package directory from `packageUrl`, find the workspace root, call the kit, and
-      hand back this package's valid pack entries or fail with their problems
+      walk up from `packageDir` to the workspace root, call the kit, select this package's packs
+      from the set, and hand them back valid or fail with their problems
     excludes: discovering, validating, or completing anything itself
   - id: config-fragment
     responsibility: |
@@ -288,9 +327,9 @@ components:
   - id: build-plugin
     responsibility: |
       the `mc-pack-build` Rolldown plugin — its hooks, the virtual entry module, the external
-      resolution, the order the writers run in, and the script bundle itself: resolving the entry
-      path the manifest declares, emptying the bundle object in `generateBundle`, and handing the
-      entry chunk and its siblings to the writer at their output paths
+      resolution, the order the writers run in, and the script bundle itself: emptying the bundle
+      object in `generateBundle` and handing the entry chunk and its siblings to the writer at
+      their output paths
     after: [pack-set-access]
   - id: output-writer
     responsibility: |

@@ -1,6 +1,4 @@
 # Decisions scoped to the minecraft/pack-build design.
-# `accepted` entries are the owner's ruling on the defaults gate; everything else is `proposed` and
-# awaits review.
 
 # The shape of the export
 
@@ -8,7 +6,7 @@
   statement: |
     the build half exports one function returning a tsdown config fragment whose `plugins` array
     holds a single Rolldown plugin that performs the whole build
-  status: proposed
+  status: accepted
   falsifiers:
     - a second fragment in a pack package needs to own `plugins`, so the shallow merge drops one of the two
     - the behaviour the plugin performs is found to need a hook Rolldown does not expose to a plugin
@@ -17,34 +15,40 @@
   statement: |
     the exported function takes one required option, `packageUrl`, the `import.meta.url` of the
     fragment that calls it, and derives the package directory from it
+  status: rejected
+
+- id: the-consumer-hands-over-its-package-directory
+  statement: |
+    the exported function takes one required option, `packageDir`, the filesystem path of the
+    package directory the build is for
   status: proposed
   falsifiers:
-    - the monorepo's generated fragment cannot pass `import.meta.url`, or is emitted somewhere other than the package directory
-    - a consumer needs to build a package other than the one its config file sits in
+    - a consumer cannot name its package directory as a path at the point it calls the export
+    - the build needs a second location the package directory does not reach
 
 - id: the-build-reads-the-kit-pack-set
   statement: |
     the build calls the dev kit at build time and takes the packs of its own package from the pack
     set, rather than reading the package's source manifests itself
-  status: proposed
+  status: accepted
   falsifiers:
     - a workspace-wide discovery call costs enough per rebuild to be felt in a watch loop
     - the kit's discovery needs an install or a network the build cannot assume
 
-- id: the-workspace-root-is-found-by-walking-up
+- id: the-workspace-root-is-the-nearest-pnpm-workspace-file
   statement: |
     the workspace root handed to the kit is the nearest ancestor of the package directory holding a
-    `pnpm-workspace.yaml` or a `package.json` with a `workspaces` field
+    `pnpm-workspace.yaml`, and a package directory with no such ancestor fails the build
   status: proposed
   falsifiers:
-    - a workspace defines its members somewhere neither marker names
-    - a nested workspace makes the nearest such ancestor the wrong root
+    - a pack package ships in a workspace managed by npm or yarn, where no `pnpm-workspace.yaml` exists
+    - a nested `pnpm-workspace.yaml` makes the nearest such ancestor the wrong root
 
 - id: script-sources-live-in-the-packs-scripts-directory
   statement: |
     a behavior pack's script sources sit under `behavior_pack/scripts/`, with `main.ts` the bundle
     entry, and nothing under that directory is copied into the output tree
-  status: proposed
+  status: accepted
   falsifiers:
     - a pack needs script sources shared between its own two packs, or held outside the pack directory
     - the monorepo's generated TypeScript configuration compiles only a package's `src/`, leaving pack scripts untyped
@@ -53,10 +57,16 @@
   statement: |
     the bundle is written to the path the behavior pack's script module declares in its manifest
     `entry`, resolved within that pack's output directory
+  status: rejected
+
+- id: the-bundle-lands-at-a-path-this-design-fixes
+  statement: |
+    the bundle is written to `scripts/main.js` within the behavior pack's output directory, a path
+    this design fixes rather than reading from the pack's manifest
   status: proposed
   falsifiers:
-    - a pack needs a built bundle at a path its manifest does not name
-    - the completed manifest reaching the build carries no script module for a pack that has script sources
+    - a pack needs its built script at a path this convention does not name
+    - the kit starts reporting a pack's script output location, so the entry can be followed rather than assumed
 
 - id: externals-come-from-the-manifests-module-dependencies
   statement: |
@@ -83,7 +93,7 @@
   statement: |
     a package whose behavior pack has no script sources builds with a virtual entry module the
     plugin resolves and loads, rather than with an empty entry list or a stub file on disk
-  status: proposed
+  status: accepted
   falsifiers:
     - tsdown rejects a configuration whose only entry is a plugin-resolved virtual module
     - a real package with no script module never builds through this export at all
@@ -100,7 +110,7 @@
   statement: |
     a package is cut into one `.mcaddon` holding one `.mcpack` per pack in its output tree, whatever
     the number of packs
-  status: proposed
+  status: accepted
   falsifiers:
     - a client refuses, or mishandles, an `.mcaddon` holding a single pack
     - a consumer needs the packs of one package installable separately
@@ -108,7 +118,7 @@
 - id: the-archive-ships-as-a-bin-command
   statement: |
     the archive half is a command, `mc-pack-archive`, that the kit package declares in its `bin`
-  status: proposed
+  status: tolerated
   falsifiers:
     - a release hook needs to build the archive in-process, or to name a path the command does not accept
     - the kit package cannot declare a `bin` without changing how it is consumed elsewhere

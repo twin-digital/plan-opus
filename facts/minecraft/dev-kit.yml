@@ -41,6 +41,77 @@
       quote: |
         a call passing no `filter` returns the whole of it.
 
+- id: dev-kit-types-the-completed-manifests-dependency-entries
+  claim: |
+    A valid pack entry's completed manifest is typed, and its `dependencies` is an optional array
+    of entries each carrying exactly one of `uuid` or `module_name` alongside a `version`. The kit
+    exports those types with the discovery function, and form-checks every field it declares before
+    calling an entry valid, so a consumer reads a pack's built-in module dependencies off the entry
+    it already holds — no separate manifest read, and no unmodelled key.
+  backing: documented
+  sources:
+    - url: design/minecraft/dev-kit/spec.md
+      where: PackManifest — the completed manifest a valid entry carries
+      quote: |
+        interface PackManifest {
+          format_version?: number | string
+          header: ManifestHeader
+          modules: [ManifestModule, ...ManifestModule[]]
+          dependencies?: ManifestDependency[]
+          [key: string]: unknown
+        }
+    - url: design/minecraft/dev-kit/spec.md
+      where: the dependency union — a pack dependency and a module dependency
+      quote: |
+        type ManifestDependency = ManifestPackDependency | ManifestModuleDependency
+
+        interface ManifestPackDependency {
+          uuid: string
+          version: ManifestVersion
+          [key: string]: unknown
+        }
+
+        interface ManifestModuleDependency {
+          module_name: string
+          version: ManifestVersion
+          [key: string]: unknown
+        }
+    - url: design/minecraft/dev-kit/spec.md
+      where: which of the two a dependency entry carries, and what makes the typing sound
+      quote: |
+        A dependency entry carries exactly one of `uuid` or `module_name`, since one carrying both or
+        neither is `dependency-entry-malformed`
+    - url: design/minecraft/dev-kit/spec.md
+      where: the discovery call — what the kit exports beside the function
+      quote: |
+        `PackManifest` with the header, module, and dependency shapes it uses are declared below and
+        exported alongside the options type and the function.
+
+- id: dev-kit-pack-entries-report-no-script-output-path
+  claim: |
+    The kit reports a pack's output location as one directory for the whole pack, and nothing
+    narrower: no field names where that pack's built script belongs. Its manifest module type
+    declares `type`, `uuid` and `version` and not the script module's `entry`, so a consumer
+    wanting the declared script path reads it through the index signature as an unmodelled key the
+    kit form-checks nothing about.
+  backing: documented
+  sources:
+    - url: design/minecraft/dev-kit/spec.md
+      where: the shared pack-entry fields — one output directory per pack, and no script path
+      quote: |
+        packageDir: string      // workspace-relative, e.g. 'packages/mc-pack-1'
+        sourceDir: string       // workspace-relative, e.g. 'packages/mc-pack-1/behavior_pack'
+        outputDir: string       // workspace-relative, e.g. 'packages/mc-pack-1/dist/behavior_pack'
+    - url: design/minecraft/dev-kit/spec.md
+      where: ManifestModule — the fields the kit declares on a manifest module
+      quote: |
+        interface ManifestModule {
+          type: string
+          uuid?: string
+          version?: ManifestVersion
+          [key: string]: unknown
+        }
+
 - id: dev-kit-completes-a-workspace-dependency-version-from-the-owning-package
   claim: |
     A source manifest leaves the version off a `dependencies` entry naming a pack in the same
