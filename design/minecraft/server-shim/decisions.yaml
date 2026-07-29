@@ -273,14 +273,7 @@
     per-test isolation is out of this cycle and the shim adds no mechanism for it; the route is a
     reset the fakes expose, which they do not today, and the shape gated on that reset is a per-test
     hook the ./vitest setup module registers
-  status: proposed
-  falsifiers:
-    - the leakage a file-scoped server carries changes a consumer's assertion rather than merely
-      accumulating, often enough that suites are unwritable without a reset
-    - a per-test mechanism turns out to be available from the shim's side alone, without a server
-      being cleared in place
-    - a hook the setup module registers cannot run late enough to catch a test file that adds setup
-      of its own, so the reset needs a shape the setup module cannot provide
+  status: rejected
 
 - id: the-plugin-is-the-install-shape
   statement: |
@@ -365,3 +358,59 @@
       uniform emission cannot cover the surface
     - the emitted file is large enough that a consumer's bundler or type checker pays a measurable
       cost for classes their pack never imports
+
+- id: per-test-isolation-is-re-evaluation
+  statement: |
+    per-test isolation is delivered by evaluating the pack module again in a new module registry
+    against a new server, not by clearing a server in place, and the package ships it
+  status: proposed
+  falsifiers:
+    - re-evaluating a real pack per test is slow enough, or its module-scope work expensive enough,
+      that suites stop using it and go back to one server per file
+    - a pack's evaluation turns out not to be repeatable in one process — a module-scope side effect
+      that fails or double-registers on a second evaluation — so the route does not generalise
+
+- id: load-pack-owns-the-ordering-and-returns-the-server
+  statement: |
+    loadPack(importer, options?) resets the registry, re-imports the control surface, installs a new
+    server and calls the one importer, in that order, and returns the installed server rather than
+    the pack's namespace; it is exported from ./vitest, the only entry that may reach vi
+  status: proposed
+  falsifiers:
+    - tests routinely need the pack's own exports as well as the server, so the second import the
+      return shape forces on them is boilerplate the helper was adopted to remove
+    - a pack's entry modules have to be imported in an order the single-importer closure cannot
+      express, or one of them has to be imported before the install
+
+- id: replacing-a-live-server-throws
+  statement: |
+    __useServer throws ShimServerInUseError when the server being replaced already carries
+    subscribers or scheduled runs, with the counts and the loadPack fix in the message; an explicit
+    __useServer() unset never throws, and a server the package did not build is not inspected
+  status: proposed
+  falsifiers:
+    - a legitimate shape installs over a live server — a test deliberately re-pointing the bindings
+      mid-test — so the throw refuses something consumers need and needs an escape
+    - a pack registers nothing at module scope in enough real suites that the check never fires and
+      the surface it costs buys nothing
+
+- id: a-generation-counter-catches-a-stale-control-surface
+  statement: |
+    each evaluation of the state module increments a counter in a globalThis registry and keeps its
+    own value, and a control export whose value is behind the current one throws
+    ShimStaleRegistryError; the registry holds only that counter and no binding
+  status: proposed
+  falsifiers:
+    - a runner evaluates the state module more than once per registry for reasons unrelated to a
+      reset, so the counter reports staleness that is not there
+    - the globalThis registry is not shared across the module instances that need to compare — a
+      worker or realm boundary — so the counter cannot see the generation it is comparing against
+
+- id: one-scenario-per-file-leads
+  statement: |
+    the README documents one scenario per file as the pattern and loadPack as the escape hatch
+    beneath it, rather than presenting the two as equal choices
+  status: proposed
+  falsifiers:
+    - consumers' real suites are mostly multi-scenario files, so the leading pattern is the one
+      fewer of them use and the escape hatch is the ordinary case

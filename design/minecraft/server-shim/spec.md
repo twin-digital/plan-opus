@@ -119,26 +119,60 @@ and a clock at 80, with the first test's player still in the dimension and still
 pack's module-scope loops [[f:one-server-per-file-carries-state-into-the-next-test]]. Nothing resets
 between tests because nothing can: the state belongs to the one server the file installed.
 
-The shape that works is **one scenario per file**. A consumer who wants a clean world writes another
-test file; a suite that puts three unrelated scenarios in one file will read another test's entities
-and another test's tick clock. The README says this in those words, beside the plugin snippet, because a
-consumer discovering it from a failing assertion is discovering it the expensive way.
+**One scenario per file is the documented pattern**, and the README leads with it rather than
+presenting it beside the alternative below as an equal choice [[d:one-scenario-per-file-leads]]. It
+needs no helper, no hook and no boilerplate: the plugin installs the server, the test file is static
+imports, and a consumer who wants a clean world writes another test file. The numbers above are what
+the README states alongside it, so the reader chooses knowing what a second scenario in the same file
+would inherit rather than meeting it as a failing assertion later.
 
-There is no supported path to per-test isolation in this cycle. The route to one is not a shim change:
-a fake server's state can be cleared in place with the world identity and all five of a pack's
-module-scope subscribers intact, but the fakes expose no reset and their design has decided against
-one, so the capability has to come from there — the same package now, but not this design's surface [[f:a-fake-server-can-be-cleared-in-place-with-its-subscriptions-intact]]
-[[f:test-lib-ships-no-reset-hook]]. That ask is open, not settled, and nothing here is built against it
-[[d:per-test-isolation-waits-on-a-library-reset]].
+### The escape hatch: re-evaluating the pack
 
-When the reset lands the consumer's config does not change: the plugin registers the per-test reset
-hook in the setup module it already contributes, the way `msw`'s `setupServer` and
-`@testing-library/jest-dom` register theirs. Two things about it are unsettled and stay that way
-until the capability exists. **Whether the reset runs in `beforeEach` or `afterEach` is unmeasured** —
-the install has to sit at the setup module's module scope so a pack's module-scope subscriptions land
-on the right server, while a `beforeEach` reset is the more robust of the two against a test file that
-adds setup of its own. And **what a reset must preserve** is the fakes' design to fix, not this one's.
-Nothing here is built against either [[d:per-test-isolation-waits-on-a-library-reset]].
+Where a file genuinely needs a fresh world per test, the supported path is to evaluate the pack module
+again, against a new server, in a new module registry — `vi.resetModules()`, a fresh install, a fresh
+import, in that order [[d:per-test-isolation-is-re-evaluation]]. That ordering is exactly what a
+consumer gets wrong, and each way of getting it wrong is silent, so the package ships the helper that
+owns it rather than a recipe to copy:
+
+```ts
+import { loadPack } from '@twin-digital/minecraft-test-lib/vitest'
+
+let world, system
+beforeEach(async () => {
+  ({ world, system } = await loadPack(() => import('../src/main.js')))
+})
+```
+
+`loadPack(importer, options?)` takes one importer — a closure returning a dynamic `import` — and
+returns the **server** it installed, the same `{ world, system }` bundle `createServer()` returns
+[[d:load-pack-owns-the-ordering-and-returns-the-server]]. It resets the module registry, imports the
+control surface fresh, installs a new server, then calls the importer, and every one of those steps is
+in it rather than in the consumer's file. It returns the server because after a registry reset the
+test file's own static `import { world }` is bound to the dead state module and reads a world nothing
+drives [[f:a-globalthis-store-survives-a-module-registry-reset]] — a test using the helper takes its
+`world` from the return value, always, and the README shows no other shape. The pack's namespace is
+not returned: a test that needs the pack's own exports imports it again itself, which inside the same
+registry is the module already evaluated rather than a second evaluation. One importer, not several:
+a pack with several entry modules awaits them in order inside the one closure, where the order is
+visible.
+
+`options` takes the same `world` presets the plugin option names, defaulting to whatever the plugin
+was configured with, so a per-file default carries into the per-test installs without being restated.
+
+Re-evaluation is what makes this work where clearing a server in place would not. The pack module's
+own module-scope state — a counter it keeps, a `world.getDimension('overworld')` it captured at
+evaluation — is not reachable from the server at all: swapping what the bindings point at leaves the
+captured dimension pointing at the old world and the counters climbing across tests
+[[f:a-target-swap-cannot-restore-module-scope-state]]. A fresh evaluation resets all of it, because
+there is a new module. What it costs is the evaluation itself, once per test, and a test file that
+cannot use a static import for `world`.
+
+Clearing a server in place is a different mechanism, and the fakes expose no reset
+[[f:test-lib-ships-no-reset-hook]] — that it is possible with a pack's subscribers intact is measured
+[[f:a-fake-server-can-be-cleared-in-place-with-its-subscriptions-intact]], and whether the fakes
+should offer one is their design's question, open and not this one's. Nothing here waits on it: the
+helper is the supported path whatever that question settles, and it reaches the pack's own state,
+which a reset beneath the fakes does not.
 
 Without the plugin the suite does not fail a test, it fails to start: `@minecraft/server` 2.8.0
 publishes no `main`, `module`, `types` or `exports` key, so node reports `ERR_MODULE_NOT_FOUND` and
@@ -321,6 +355,54 @@ wholesale, so a test that installs a fresh server starts from what it installed;
 no argument returns them to the unset state. Together these are what make a test see its own world and
 carry nothing over from the previous one [[r:module-singletons-are-test-controlled]].
 
+### Two misuses the surface refuses
+
+Both of these produce a passing test that exercised nothing, which is the failure mode this whole
+design exists to prevent, and both are detectable from inside the package.
+
+**Installing over a server that is already driving a pack.** A pack registers its handlers while its
+module evaluates — five `subscribe` calls and two `system.runInterval` loops for the validation pack
+[[f:a-setup-file-server-makes-a-pack-test-file-boilerplate-free]]. Those registrations belong to
+server A. `__useServer(B)` moves the bindings but not the registrations, so B receives nothing, the
+pack's handlers never run, and the assertions pass against a world nothing drove. So `__useServer`
+asks the outgoing server what is registered on it, and throws `ShimServerInUseError` when anything
+is — subscribers or scheduled runs, since a pack registers both in the one evaluation and either
+alone leaves half the pack dead [[d:replacing-a-live-server-throws]]. The message names the counts and
+the fix:
+
+```
+cannot install over a server that 5 handlers and 2 scheduled runs are registered on — they stay
+on the old server and the new one will receive nothing. Re-evaluate the pack module instead:
+await loadPack(() => import('./src/main.js')). See <README>#per-test-isolation.
+```
+
+The question is asked through an internal member the package's own servers carry, keyed by a symbol
+in `src/internal/`, so nothing about it appears on the fakes' public surface and no import cycle is
+needed — the fakes import the generated classes, and this member is read, not imported, by
+`src/state.ts`. A server object this package did not build does not carry it, and the check does not
+fire; a consumer installing their own object literal is trusted. `__useServer()` with no argument is
+an explicit unset and never throws.
+
+**Calling a control surface from a superseded module registry.** After `vi.resetModules()`, a
+statically imported `__useServer` still writes the state module it was bound to, while the pack — freshly
+imported — reads a new one; the write lands nowhere the pack can see, silently
+[[f:a-globalthis-store-survives-a-module-registry-reset]]. Each evaluation of `src/state.ts`
+increments a counter held at `globalThis[Symbol.for('@twin-digital/minecraft-test-lib.generation')]`
+and keeps its own value; every control export compares the two and throws `ShimStaleRegistryError`
+when its own is behind [[d:a-generation-counter-catches-a-stale-control-surface]]:
+
+```
+this control surface was imported before vi.resetModules() and writes a module registry the code
+under test no longer reads. Re-import it after the reset, or use loadPack, which does.
+```
+
+The `globalThis` registry holds that counter and nothing else. It is a diagnostic, not a binding
+mechanism: `world` and `system` stay `export let` on the state module, and no shim value is resolved
+through the global registry [[d:unset-bindings-hold-a-throwing-proxy]]. Where the reset happens and
+the fresh state module has not evaluated yet, the generation still matches and this error does not
+fire — the pack's own module-scope read then meets the unset sentinel and `ShimNotInstalledError`
+instead [[d:unset-singletons-throw]]. Between them every ordering fails loudly.
+
 ### How the unset state throws
 
 An unset binding must fail loudly rather than read `undefined` and surface later as a property access
@@ -359,8 +441,8 @@ package, which is exactly why the runtime import fails and the type check does n
 The half that does is the test file, which imports a control surface `@minecraft/server`'s
 declarations do not declare. The shim answers it by putting that surface on a specifier that really
 exists and is not the aliased one: the package root, `@twin-digital/minecraft-test-lib`, which
-exports `__useServer`, `ShimNotInstalledError`, `ShimUnsupportedError` and `__serverVersion` beside
-the fakes' own exports, with declarations of its own [[d:control-surface-joins-the-package-root]].
+exports `__useServer`, `__serverVersion` and the four shim errors beside the fakes' own exports, with
+declarations of its own [[d:control-surface-joins-the-package-root]].
 Because a test imports the control surface by that name rather than from the aliased specifier, `tsc`
 resolves it by ordinary node resolution and the consumer adds no `paths` entry to any `tsconfig`; and
 because the root is where a test already imports `createServer` from, the arrange half of a test file
@@ -435,8 +517,9 @@ the answer comes from the prototype chain and nothing calls an `isPlayer` or an 
 [[d:fakes-are-instances-of-the-shims-classes]].
 
 The install documentation is the package's README, which is also the fakes' README — the plugin entry
-and its options, the `./vitest` fallback and the setup-file ordering, the one-scenario-per-file cost,
-the `2.8.0` version statement, the uncovered `@minecraft/*` modules, and the non-vitest recipes
+and its options, the `./vitest` fallback and the setup-file ordering, the one-scenario-per-file
+pattern it leads with and `loadPack` as the escape hatch beside it, the `2.8.0` version statement,
+the uncovered `@minecraft/*` modules, and the non-vitest recipes
 [[d:install-documentation-lives-with-the-shim]]. The consumer who arrives wanting the fakes and
 reaches for the module import is reading the install story on the page they are already on, rather
 than meeting the unresolved import first [[f:server-import-fails-without-an-alias]].
@@ -466,9 +549,12 @@ design contributes three entry points to it and one addition to its root
 - `./server` — the module the alias points at, carrying only names `@minecraft/server`'s declarations
   declare: the generated values, the generated classes, and `world` and `system`.
 - `./vite` — the plugin.
-- `./vitest` — the setup module the plugin names.
-- and, on the package root `.`, the control surface: `__useServer`, `ShimNotInstalledError`,
-  `ShimUnsupportedError` and `__serverVersion`, exported beside the fakes' own exports
+- `./vitest` — the setup module the plugin names, which also exports `loadPack`; it is the one entry
+  that may reach `vi`, which the root and `./server` must not
+  [[d:load-pack-owns-the-ordering-and-returns-the-server]].
+- and, on the package root `.`, the control surface: `__useServer`, `__serverVersion`, and the four
+  errors — `ShimNotInstalledError`, `ShimUnsupportedError`, `ShimServerInUseError` and
+  `ShimStaleRegistryError` — exported beside the fakes' own exports
   [[d:control-surface-joins-the-package-root]].
 
 A runner integration is a subpath of this package, never a package of its own — a `./jest` or `./bun`
@@ -496,10 +582,12 @@ Every subpath the plugin names has to be declared there: a `setupFiles` entry na
 subpath fails to resolve [[f:setup-files-resolve-as-modules-from-the-project-root]], and so does the
 alias target.
 
-Seven source files sit behind that — four hand-written, three generated. Hand-written: `src/server.ts`,
+Eight source files sit behind that — five hand-written, three generated. Hand-written: `src/server.ts`,
 the aliased entry, re-exporting the generated values, the class exports, and `world`/`system`;
-`src/state.ts`, the internal module `src/server.ts` and the package root both re-export from;
-`src/vite.ts`, the plugin and its option type; and `src/vitest.ts`, the setup module. Generated:
+`src/state.ts`, the internal module `src/server.ts` and the package root both re-export from, holding
+the bindings, the generation counter and the four errors; `src/internal/registrations.ts`, the symbol
+`__useServer` reads a server's registration counts through; `src/vite.ts`, the plugin and its option
+type; and `src/vitest.ts`, the setup module and `loadPack`. Generated:
 `src/generated/values.ts`, `src/generated/classes.ts`, and `src/generated/class-exports.ts`, which
 nothing outside the package imports directly. The package's own `src/index.ts` — the root, the fakes'
 entry — re-exports the control surface from `src/state.ts`; that one line is the whole of what this
@@ -547,7 +635,13 @@ cover, at minimum:
   `ShimUnsupportedError`, and `new ItemStack('minecraft:stone', 1)` throwing it too;
 - a count of the classes `src/generated/class-exports.ts` declares against the declarations' own, so
   a class the generator stopped emitting fails a test rather than a consumer's import;
-- a property access on `world` before install throwing `ShimNotInstalledError`;
+- a property access on `world` before install throwing `ShimNotInstalledError`; installing over a
+  server a fixture pack has subscribed on throwing `ShimServerInUseError` with the counts in its
+  message; and a `__useServer` captured before a `vi.resetModules()` throwing `ShimStaleRegistryError`;
+- `loadPack` driving the module-scope-subscriber fixture twice in one file, each test asserting an
+  empty world and a tick clock at zero, and the pack's own module-scope counters reading the same in
+  both — the case a server-level reset could not deliver
+  [[f:a-target-swap-cannot-restore-module-scope-state]];
 - the peer range refusing an install against a 1.x consumer under npm, exercised through a packed
   tarball rather than a `file:` spec, which npm does not enforce the range on
   [[f:an-unsatisfiable-peer-range-fails-npm-and-warns-pnpm-and-yarn]];
@@ -572,9 +666,10 @@ components:
     after: [shim-state]
   - id: shim-state
     responsibility: >-
-      src/state.ts — the live world and system bindings, the throwing sentinel Proxy they hold while
-      unset, __useServer as install and reset, ShimNotInstalledError and ShimUnsupportedError
-    excludes: any state beyond the two bindings
+      src/state.ts and src/internal/registrations.ts — the live world and system bindings, the
+      throwing sentinel Proxy they hold while unset, __useServer as install and reset, the
+      registration check and the generation counter it refuses on, and the four shim errors
+    excludes: any state beyond the two bindings and the generation counter
   - id: aliased-entry
     responsibility: >-
       src/server.ts and the ./server export key — the module the alias points at, re-exporting the
@@ -583,16 +678,16 @@ components:
     after: [values-generator, shim-state]
   - id: control-exports
     responsibility: >-
-      the control surface on the package root — __useServer, ShimNotInstalledError,
-      ShimUnsupportedError and __serverVersion re-exported from src/state.ts by src/index.ts, with
-      its declarations
+      the control surface on the package root — __useServer, __serverVersion and the four shim
+      errors re-exported from src/state.ts by src/index.ts, with its declarations
     excludes: everything else the root exports, which the fakes' own design owns
     after: [shim-state]
   - id: setup-module
     responsibility: >-
       src/vitest.ts — read the options off process.env, call createServer, apply the world presets,
-      and install the server at module scope
-    excludes: registering any per-test hook, which waits on a reset the fakes do not expose
+      install the server at module scope, and export loadPack, which owns the reset, re-import,
+      install and pack-import ordering
+    excludes: everything the root and ./server export, which must not reach vi
     after: [control-exports]
   - id: vite-plugin
     responsibility: >-
@@ -607,14 +702,15 @@ components:
       @minecraft/server peer and dev dependency, the vite peer, the generate script and the
       clean-tree check — the tsc build of these files, and the install half of the README: the
       plugin entry and its options, the ./vitest fallback and the setup-file ordering, the
-      one-scenario-per-file cost, and the bun and jest-ESM recipes
+      one-scenario-per-file pattern it leads with, loadPack as the escape hatch beside it, and the
+      bun and jest-ESM recipes
     excludes: the package's name, engines and version, which are the package's to set
     after: [aliased-entry, control-exports, vite-plugin]
   - id: conformance-suite
     responsibility: >-
       the two fixture packs installed by the plugin alone, the plugin-removed control, the options
       and setup-ordering cases, the single-instance case across the root and ./server, the
-      instanceof, statics and unset-access cases, the packed-tarball peer check, and the typecheck
-      of a consumer-shaped test file
+      instanceof, statics, unset-access and refused-misuse cases, the loadPack isolation case, the
+      packed-tarball peer check, and the typecheck of a consumer-shaped test file
     after: [manifest-and-recipes]
 ```
