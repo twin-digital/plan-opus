@@ -173,3 +173,19 @@
     area. Each set ran three times, with no PROBE CRASHED lines and every complete line present,
     so a reading that holds across all three is reproducible within the session. Every observation
     is that engine build's behaviour and would differ against another.
+
+- id: death-invalidation-probe-run
+  command: execute as <armor stand> run scriptevent mctest7:<set>
+  output: design/minecraft/test-lib/artifacts/mctest-death-invalidation-probe-results.md
+  ran_at: 2026-07-28
+  environment: |
+    itzg/minecraft-bedrock-server, Bedrock dedicated 1.26.31.1, @minecraft/server 2.8.0 as a pack
+    manifest dependency with no experiments enabled. death-invalidation-probe-pack, uuid
+    b5c058e6-a95f-438f-a921-30dbdcb1e1af, triggered from the server console against a stationary
+    armor stand at (38.5, 81, 22.5) on a 17x17 stone platform inside the mctest ticking area. The
+    corpse set ran three times at pack 0.1.0; the healthless set ran three times at 0.1.0 and three
+    more at 0.2.0, which spawns its projectile subjects 25 blocks clear of the source and excludes
+    a subject that died before its kill instead of counting it. Only the 0.2.0 healthless runs carry
+    evidence; the 0.1.0 ones are kept because the excluded cases are what the fix is evidence for.
+    No PROBE CRASHED lines and every complete line present. Every observation is that engine
+    build's behaviour and would differ against another.

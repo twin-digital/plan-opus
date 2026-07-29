@@ -348,10 +348,20 @@ already holds, on an entity that is still in the world [[r:invalidation-is-model
 distinct acts — `remove()` invalidates as a consequence of removing, `invalidate()` invalidates on
 demand without removing.
 
-`kill()` is the other case and behaves differently on purpose: it never invalidates, because in the
-engine a corpse stays valid for several ticks and when it turns invalid varies by entity type, so a
-test that wants a dead reference invalid says so with `invalidate()`
-[[f:kill-no-health-behaviour]] [[f:death-invalidation-window]].
+`kill()` is the other case, and it splits, because the engine does. On an entity carrying **no
+health component** the reference goes invalid at once: an arrow reads `isValid` false in the same
+statement sequence as the call and stays false through at least tick+5, so the fake invalidates it
+before raising `entityDie` — the handler meets the same dead reference an engine handler would,
+since the engine's own delivery comes after the call returned [[f:kill-no-health-behaviour]]. On an
+entity **with** one the reference stays valid and then goes stale on a fixed tick, which is equally
+the engine's: inside the `entityDie` handler a killed mob's reference is still valid and its guarded
+members answer, and it turns invalid exactly **21 ticks** after the call — a constant across all 72
+observations, every mob type and every repeat [[f:corpse-invalidation-is-twenty-one-ticks]]. The
+fake reproduces both halves: `kill()` schedules the invalidation, and the corpse goes stale when the
+test advances to that tick, so `advanceTicks(server, 21)` after a `kill()` leaves the reference
+invalid and anything short of it leaves it working. Invalidating on the call instead would be the
+one wrong answer available: it would hand every death handler an already-dead reference where the
+engine hands it a working one.
 
 `entity.triggerEvent(eventName)` requires the `minecraft:`-prefixed form and throws
 `InvalidArgumentError` with the message ``Invalid value passed to argument [0]. The event <name>
@@ -461,9 +471,10 @@ the `entityDie` payload when the hit kills.
 damage equal to current health and cause `selfDestruct`, sets health to exactly `effectiveMin`,
 fires `entityHealthChanged`, then fires `entityDie` with cause `selfDestruct`. A second `kill()`
 returns true and fires nothing [[f:kill-and-remove-cascades]]. On an entity with no health
-component it returns true and fires only `entityDie` with cause `selfDestruct`
-[[f:kill-no-health-behaviour]]. It leaves the reference valid, unlike `remove()`, for the reason
-given under *Entities*.
+component it returns true, invalidates the reference, and fires only `entityDie` with cause
+`selfDestruct` — the handler therefore reads an invalid entity, as it would in the engine
+[[f:kill-no-health-behaviour]]. On an entity with one it leaves the reference valid, unlike
+`remove()`, for the reason given under *Entities*.
 
 ## Effects
 
@@ -508,8 +519,13 @@ whatever the duration, and an equal amplifier with a shorter duration does not
 [[f:effect-replacement-rule-observed]]. The engine compares against the duration *remaining*, which
 decays one per tick [[f:effect-replacement-compares-remaining-duration]]. The fake compares against
 the duration the effect carries, and that duration never decays
-[[d:effect-durations-do-not-decay]] — so the two bases coincide here, and the comparison is written
-against the stored duration with nothing to subtract.
+[[d:effect-durations-do-not-decay]], so the comparison is written against the stored duration with
+nothing to subtract. The two bases agree on the tick an effect was applied and part company after
+that: against an effect applied with duration 400 and 150 ticks old, a re-add at the same amplifier
+carrying 320 replaces in the engine, where 320 exceeds the 250 remaining, and is refused by the
+fake, where 320 falls short of the 400 stored. That is a second consequence of not decaying, and it
+is recorded as its own divergence below rather than folded into the decay row: a test whose
+re-add straddles an advance is where it bites.
 
 A fake effect's duration is the number applied and stays that number until the effect is removed:
 advancing ticks does not decay it and never expires an effect
@@ -673,8 +689,9 @@ passed, and `options` is whatever the member carried [[d:output-log-record-shape
 may be called at any point in a test — including on a reference a handler is holding mid-event
 [[r:invalidation-is-modeled]]. It is not the only route to that state: `remove()` invalidates too,
 as part of removing. What `invalidate()` reaches that `remove()` cannot is the entity that goes
-stale *without* leaving the world — the mid-test unload, and the corpse a `kill()` left valid — which
-is the transition a test otherwise has no way to produce.
+stale *without* leaving the world — the mid-test unload — which is the transition a test otherwise
+has no way to produce. A killed mob's corpse reaches it on its own once the test advances 21 ticks,
+so `invalidate()` is the shortcut there rather than the only route.
 
 The guard list is a per-member table taken from the reflective sweep of the engine's own `Entity`
 prototype, not from the declarations' `@throws` annotations, which under-report it: `nameTag` and
@@ -779,7 +796,8 @@ not been considered, which is not the same as a promise about it.
 | `entity.remove()` | modelled | raises the `entityRemove` before-event, then detaches from the registry and invalidates the reference as one act, then raises the after-event — the engine's own cascade, which raises no death event either |
 | `entity.triggerEvent` | divergence | validates the prefixed id and records the call, changing no state; in the engine the event reshapes the entity |
 | `entity.kill()` | modelled | the full cascade, on an entity with and without a health component |
-| invalidation of a corpse after `kill()` | not modelled | `kill()` leaves the reference valid; in the engine a corpse stays valid for several ticks and when it turns invalid varies by type, so a test says so with `invalidate()`. Distinct from `remove()`, which invalidates at once |
+| invalidation of a mob's corpse after `kill()` | modelled | the corpse stays valid — inside the `entityDie` handler and after it — and turns invalid 21 ticks later, the constant the engine was measured at, so it goes stale when the test advances that far. Distinct from `remove()`, which invalidates at once |
+| invalidation after `kill()` on an entity with no health component | modelled | the reference goes invalid before `entityDie` is raised, as the engine's does within the call |
 | the seven attribute-shaped components | modelled | all four values, the bounds check, and the health-write cascade |
 | the other 61 entity components | not modelled | attachable, carrying `typeId`, `isValid` and `entity`; every other member throws |
 | runtime component attachment and detachment | not modelled | the engine reaches it through data-driven paths; a test uses the `addComponent` / `removeComponent` free functions |
@@ -798,6 +816,7 @@ not been considered, which is not the same as a promise about it.
 | `addEffect` on `NaN` or `Infinity` | divergence | the engine refuses these with a `TypeError` ahead of the bounds check; the fake does not reproduce that error's shape |
 | the display name's amplifier mapping | modelled | bare base at amplifier 0, base plus the Roman numeral of amplifier + 1 at 1–5, bare base again from 6 to 255 — reproduced for all 37 vanilla types across the whole accepted amplifier range |
 | effect duration decay and expiry | divergence | a duration reads back the value applied and never decays; the engine decays it one per tick and expires the effect |
+| the duration the replacement rule compares against | divergence | the rule reads the duration the effect carries, the engine the duration remaining; the two agree on the tick an effect was applied and part company after it, so a re-add straddling an advance can be refused where the engine would have replaced |
 | `Effect.displayName` for the 37 vanilla types | modelled | resolves with no test setup, from verbatim shipped base names and the computed numeral |
 | `Effect.displayName` in a locale other than the observed one | divergence | the shipped bases are the strings one server returned, and the API documents only a "player-friendly name" with no locale contract; until a second locale is observed the table is that locale's, and a test needing another registers its own bases |
 | `Effect.displayName` for a custom effect type | divergence | no base is shipped, so an unregistered custom type throws `UnsetValueError` where the engine would answer with whatever its own data holds |
