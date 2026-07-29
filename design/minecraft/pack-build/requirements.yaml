@@ -18,9 +18,9 @@
 
 - id: a-released-pack-is-an-archive-of-its-output-tree
   statement: |
-    an npm package is an addon pack, and its whole output tree is released together as one archive,
-    produced by this design from that built output tree and exported for the package's release hook
-    to call. The packs a package contains are not separately releasable.
+    an npm package is an addon pack: it releases as a single archive, cut from its built output tree
+    and from nothing else — no separate staging source, and no pack inside it released on its own.
+    This design produces that archive, and the package's release hook is what reaches it.
 
 - id: the-exported-config-is-documented
   statement: |
@@ -58,9 +58,9 @@
 - id: rebuild-triggers-are-declared-not-inferred
   statement: |
     a rebuild is triggered by a change to any input a build reads, the pack files and
-    `package.json` included — nothing imports those, so a module graph cannot find them. A source
-    change rebundles; a change to a manifest input alone brings the output's manifests up to date
-    without rebundling.
+    `package.json` included — nothing imports those, so a module graph cannot find them. What a
+    rebuild must bring up to date is the output; whether it gets there by skipping work it does not
+    need is the design's to choose.
 
 - id: the-package-version-is-the-pack-version
   statement: |
