@@ -69,10 +69,17 @@
   statement: |
     the bundle is written to the script output location the pack set entry reports, and a pack whose
     entry reports none has no bundle written
+  status: rejected
+
+- id: the-script-output-path-is-set-in-config-and-checked-against-the-kit
+  statement: |
+    the configuration points the bundler's `outDir` and entry filename at
+    `<package>/dist/behavior_pack/scripts/main.js`, and the plugin fails the build when the script
+    location the pack set reports for that pack is not that path
   status: proposed
   falsifiers:
-    - a pack needs its built script somewhere the kit's reported location does not name
-    - the kit's reported location and the pack's own manifest `entry` disagree in practice, so following the kit ships a broken pack
+    - a pack's built script location becomes something a package configures, so no path known at config time names it
+    - the check fires on a pack that builds correctly anyway, because the kit reports a location a build is not meant to write
 
 - id: externals-come-from-the-manifests-module-dependencies
   statement: |
@@ -90,10 +97,26 @@
     the plugin removes every chunk from the bundle in `generateBundle` and writes the bundle,
     the assets and the manifests itself, so nothing reaches the output tree by the bundler's own
     emit
+  status: rejected
+
+- id: the-bundler-writes-its-chunks-and-the-plugin-writes-the-rest
+  statement: |
+    the bundler writes the entry chunk and any chunk split out of it, and the plugin writes only
+    the completed manifests and the copied assets
   status: proposed
   falsifiers:
-    - Rolldown writes chunks a plugin deleted from the bundle object, so the bundler's emit lands in the output tree anyway
-    - a consumer needs a bundler feature that only works through the bundler's own write path
+    - the bundler's write has to be conditional on the bytes changing, so the plugin has to place the chunk to compare it
+    - a pack needs its chunks laid out in a way the bundler's naming and directory options cannot express
+
+- id: a-chunk-no-pack-claims-is-pruned-like-any-other-stale-output
+  statement: |
+    a chunk the bundler writes for a package whose behavior pack declares no script module, or
+    which holds no behavior pack at all, is removed by the end-of-build prune rather than prevented
+    from being written
+  status: proposed
+  falsifiers:
+    - a consumer watching the output tree acts on the chunk in the window between the bundler's write and the prune
+    - the empty `behavior_pack/scripts/` the bundler creates outlives the build, so a resource-pack-only package ships a directory for a pack it does not hold
 
 - id: a-script-less-package-builds-through-a-virtual-entry
   statement: |
@@ -156,12 +179,12 @@
 
 - id: output-files-are-written-only-when-their-bytes-change
   statement: |
-    the build compares each output file with what already sits at that path and writes only on a
-    difference
+    every file this design writes — the completed manifests and the copied assets — is compared
+    with what already sits at that path and written only on a difference
   status: accepted
   falsifiers:
     - the read-back cost is felt on a pack large enough to matter
-    - a consumer keys on modification time rather than content and stops seeing rebuilds
+    - a consumer keys on the built script's modification time and cannot tell a rebuild that changed it from one that did not, so the compare has to cover the chunk too
 
 - id: stale-output-is-pruned-not-wiped
   statement: |

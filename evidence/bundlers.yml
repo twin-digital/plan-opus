@@ -28,6 +28,45 @@
     was seeded into `outDir` beforehand. The reading turns on `clean: false`, which is what leaves
     an existing `outDir` alone.
 
+- id: tsdown-entry-name-probe
+  command: NO_COLOR=1 node design/minecraft/pack-build/artifacts/tsdown-entry-name-probe/probe.mjs
+  output: design/minecraft/pack-build/artifacts/tsdown-entry-name-probe/OUTPUT.txt
+  ran_at: 2026-07-29
+  environment: |
+    tsdown 0.22.14 on node v24.16.0, with tsdown resolvable from the working directory
+    (`npm i -D tsdown@0.22.14`). The probe synthesises its fixture in a temp directory: a
+    `src/main.ts` importing a `src/helper.ts`, and a `src/split.ts` dynamically importing a
+    `src/lazy.ts` so one case has a chunk the bundler split out. Every case builds with
+    `format: ['esm']`, `dts: false` and `clean: false`; they differ only in the entry, in whether
+    the config sets `outputOptions.entryFileNames`, in `sourcemap`, and in whether an observer
+    plugin deletes the files the bundler wrote from `writeBundle`. The fixture's `package.json`
+    declares `type: module`, which is the state the default entry name is read against.
+
+- id: tsdown-output-naming-probe
+  command: NO_COLOR=1 node design/minecraft/pack-build/artifacts/tsdown-output-naming-probe/probe.mjs
+  output: design/minecraft/pack-build/artifacts/tsdown-output-naming-probe/OUTPUT.txt
+  ran_at: 2026-07-29
+  environment: |
+    tsdown 0.22.14 on node v24.16.0, with tsdown resolvable from the working directory
+    (`npm i -D tsdown@0.22.14`). The probe synthesises its fixture in a temp directory: a
+    `src/main.ts` dynamically importing a `src/lazy.ts`, built with `format: ['esm']`,
+    `dts: false` and `clean: false`, and with no `outputOptions` in the configuration — the hook
+    is the only thing setting output names in either case. The first case's plugin reads, from its
+    `outputOptions` hook, a value its own `buildStart` sets, and the build throws where that value
+    is still null; the reading turns on the order the two hooks reported, not on the throw.
+
+- id: tsdown-rewrite-probe
+  command: NO_COLOR=1 node design/minecraft/pack-build/artifacts/tsdown-rewrite-probe/probe.mjs
+  output: design/minecraft/pack-build/artifacts/tsdown-rewrite-probe/OUTPUT.txt
+  ran_at: 2026-07-29
+  environment: |
+    tsdown 0.22.14 on node v24.16.0, with tsdown resolvable from the working directory
+    (`npm i -D tsdown@0.22.14`). The probe synthesises its fixture in a temp directory and builds
+    it twice into one output directory with `clean: false`, touching no source file between the
+    two builds and pausing 50ms so the second write lands at a distinguishable modification time.
+    The reading turns on the two builds being identical in input and on the filesystem recording
+    modification times finely enough to separate them.
+
 - id: tsdown-externals-probe
   command: NO_COLOR=1 node design/minecraft/pack-build/artifacts/tsdown-externals-probe/probe.mjs
   output: design/minecraft/pack-build/artifacts/tsdown-externals-probe/OUTPUT.txt

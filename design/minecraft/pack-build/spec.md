@@ -54,13 +54,15 @@ own and cannot see move — stays out of its interface.
 - `entry` — `<package>/behavior_pack/scripts/main.ts` when that file exists, and otherwise the
   virtual module id `\0mc-pack-build:empty`, which the plugin resolves and loads as an empty module
   so a package with no script sources still has an input [[d:a-script-less-package-builds-through-a-virtual-entry]]
-- `outDir` — `<package>/dist`
+- `outDir` — `<package>/dist/behavior_pack/scripts`, the directory the pack's built script sits in
+- `outputOptions` — `{ entryFileNames: 'main.js' }`
 - `clean` — `false`
 - `dts` — `false`
 - `sourcemap` — `false`
 - `minify` — `false`
 - `format` — `['esm']`
-- `plugins` — a single Rolldown plugin named `mc-pack-build`, which performs everything below
+- `plugins` — a single Rolldown plugin named `mc-pack-build`, which performs everything below the
+  bundler does not do itself
 
 `noExternal` is deliberately absent from that list, so the fragment inherits the shared base's
 `noExternal: () => true` [[f:opus-bundler-base-forces-every-import-bundled]]. That is what makes
@@ -147,55 +149,68 @@ entry, serialised as JSON with two-space indentation and a trailing newline. The
 produces a new version of the pack and nothing here writes a version of its own
 [[r:the-package-version-is-the-pack-version]] [[f:opus-package-versions-are-written-by-changesets]].
 
-**The script bundle.** The bundle goes where the pack set entry says: the entry's script output
-location, `<package>/dist/behavior_pack/scripts/main.js`, which the kit computes from the pack's kind
-and reports beside the pack's source and output directories
-[[f:dev-kit-reports-a-packs-script-output-location]] [[d:the-bundle-lands-where-the-pack-entry-says]].
-This design reads that path rather than fixing one of its own or taking it from the manifest — a
-manifest module of type `script` does name its entry-point file in an `entry` string
-[[f:a-script-module-names-its-entry-point-path]], and reading it here would be manifest handling that
+**The script bundle.** The pack's built script is `<package>/dist/behavior_pack/scripts/main.js` —
+the script output location the kit computes from the pack's kind and reports beside the pack's
+source and output directories [[f:dev-kit-reports-a-packs-script-output-location]]. The bundler
+writes it, and the two config keys above are what put it there: `outDir` names that file's
+directory, and `entryFileNames` names the file, since tsdown otherwise writes its ESM entry chunk as
+`main.mjs` and a manifest naming `scripts/main.js` would load nothing
+[[f:tsdown-entry-chunk-name-comes-from-entryfilenames]]
+[[d:the-bundler-writes-its-chunks-and-the-plugin-writes-the-rest]]. The path is not taken from the
+manifest, though a module of type `script` does name its entry-point file in an `entry` string
+[[f:a-script-module-names-its-entry-point-path]]: reading it here would be manifest handling that
 belongs to whoever completes manifests.
 
-A resource pack's entry reports no script location, so nothing is bundled into it. A behavior pack
-whose manifest declares no module of type `script` gets no bundle written either, and one whose
+The configuration fixes that path rather than the plugin reading it from the pack set, because there
+is no later moment to read it in. The one hook that can still change where output goes,
+`outputOptions`, runs before `buildStart`, so nothing the plugin learns from the workspace can reach
+it [[f:the-outputoptions-hook-runs-before-buildstart]]. The plugin closes the gap from the other
+side: at `buildStart` it compares the script output location the pack set reports for this package's
+behavior pack against `<package>/dist/behavior_pack/scripts/main.js`, and fails the build printing
+both when they differ, because a script written where the kit does not say is a script nothing
+deploying the pack will look for
+[[d:the-script-output-path-is-set-in-config-and-checked-against-the-kit]].
+
+A resource pack's entry reports no script location, so nothing belongs in one. A behavior pack whose
+manifest declares no module of type `script` gets no script in its output either, and one whose
 manifest declares no script module while `behavior_pack/scripts/main.ts` exists fails the build
 naming both — a pack with script sources nothing loads is a mistake worth reporting, and
 `modules[].type` is a field the kit declares and checks. A behavior pack with a script module and no
-sources still builds and still writes: its bundle is the empty module the virtual entry loads
+sources still builds and still writes: its script is the empty module the virtual entry loads
 [[d:a-script-less-package-builds-through-a-virtual-entry]].
 
-The bundle is ESM, unminified, with no `.d.ts` and no
-sourcemap; any further chunk the bundler produces is written beside it in the same directory
-[[d:the-bundle-is-one-unminified-esm-chunk]]. The plugin deletes every chunk from the bundle object
-in `generateBundle` and writes the code out itself, so the bundler's own emit never lands in the
-output tree [[d:the-plugin-places-every-output-file-itself]]. Three things make that safe to do and
-worth doing.
+The bundler has one entry and writes it whatever the packs turn out to say, so those cases — and a
+package holding only a resource pack — get `main.js` written into
+`<package>/dist/behavior_pack/scripts/` anyway. The plugin does not record it among the files the
+build placed, so the prune deletes it at the end of the build and takes the directories it emptied
+with it [[d:a-chunk-no-pack-claims-is-pruned-like-any-other-stale-output]]. That works because the
+bundler's files are already on disk when `writeBundle` runs and nothing rewrites one deleted there
+[[f:a-file-the-bundler-wrote-can-be-deleted-from-writebundle]].
 
-It puts the bundle under the same two rules as every other file in the tree: a write is skipped when
-the bytes already match [[d:output-files-are-written-only-when-their-bytes-change]], and a path the
-build did not write is pruned [[d:stale-output-is-pruned-not-wiped]]. A bundler writing its own chunk
-writes unconditionally and into a tree it does not know the prune's rules for, which is a second
-writer in the one place this design is required to keep authoritative
-[[r:assembly-is-authoritative-over-the-output-tree]].
+The script is ESM, unminified, with no `.d.ts` and no sourcemap; a chunk the bundler splits out is
+written beside the entry in the same directory, under the bundler's own hashed name and its `.mjs`
+extension, which nothing here renames because no manifest names it
+[[d:the-bundle-is-one-unminified-esm-chunk]] [[f:tsdown-entry-chunk-name-comes-from-entryfilenames]].
+Sourcemaps and declarations are the bundler's own emit again now that the bundler does the writing,
+so turning sourcemaps on is the `sourcemap` key and nothing else: the map arrives as its own entry in
+the bundle object beside its chunk, so the plugin learns its name with the rest and the prune keeps
+it [[f:the-bundle-object-names-every-file-the-bundler-writes]]. Both stay off — nothing that loads a
+pack reads either.
 
-The two writers cannot race or clobber each other, because after the plugin empties the bundle there
-is only one. Emptying it in `generateBundle` leaves the bundler nothing to write: `writeBundle`
-receives an empty bundle, no chunk file appears, and the output directory holds only what the plugin
-wrote. The hooks are ordered, not concurrent — `generateBundle` runs to completion before any file is
-written — so the plugin's write and the bundler's never overlap in time even before the bundle is
-emptied. And with `clean` set to `false` the bundler creates and removes nothing else: a file already
-in the output directory is there, unchanged, after the build, so the prune is the only thing deleting
-from that tree [[f:emptying-the-bundle-in-generatebundle-leaves-the-bundler-nothing-to-write]].
-
-What is given up is narrower than it looks. Nothing about *bundling* is reimplemented: resolution,
-transformation, tree-shaking, chunking and code generation all stay the bundler's, and what the
-plugin takes over is the last step, writing a chunk's finished code to a path. What that step carries
-with it is the bundler's own output conventions — its file naming, its directory layout, its
-sourcemap and declaration emit — and those this design has already set aside: no `.d.ts`, no
-sourcemap, one unminified ESM chunk at a path the pack's manifest names rather than one the bundler
-chose [[d:the-bundle-is-one-unminified-esm-chunk]]. A bundler feature that only works through its own
-write path is the falsifier on this decision rather than a limit designed around; a sourcemap, the
-likeliest one, would be a second file written from the same hook off the same chunk.
+So the division is: the bundler resolves, transforms, tree-shakes, chunks, names and writes the
+script, while the plugin decides what is external, supplies the virtual entry, writes the manifests
+and the assets, and stays authoritative over the tree the bundler wrote into
+[[r:assembly-is-authoritative-over-the-output-tree]]
+[[d:the-bundler-writes-its-chunks-and-the-plugin-writes-the-rest]]. What makes that authority hold
+across two writers is that the bundle object names every file the bundler wrote, entry chunk, split
+chunk and sourcemap alike, and the plugin reads that list in `writeBundle` before it prunes
+[[f:the-bundle-object-names-every-file-the-bundler-writes]]. `clean` stays `false` for the same
+reason the prune exists: `clean` empties the whole output directory before the first plugin hook
+runs [[f:tsdown-clean-empties-the-whole-output-directory-before-buildstart]], which on this `outDir`
+would delete the built script at the start of every rebuild to write it back at the end, and the
+prune already removes a chunk the current build did not write. Left at `false` the bundler creates
+and removes nothing but its own output, so the prune is the only thing deleting from the tree
+[[f:emptying-the-bundle-in-generatebundle-leaves-the-bundler-nothing-to-write]].
 
 The modules the game provides at runtime stay external
 [[r:script-module-is-bundled-with-game-modules-external]]. The set is read from the pack's completed
@@ -243,23 +258,28 @@ dotfiles and unrecognised extensions included, with no transformation
 creates no directory in the output [[d:empty-source-directories-produce-no-output-directory]].
 
 The output tree holds what the current source declares and nothing else, with no clean step first
-[[r:assembly-is-authoritative-over-the-output-tree]]. The build records every path it wrote —
-manifest, bundle, copied files — and at the end walks `<package>/dist/`, the whole of it, deleting
+[[r:assembly-is-authoritative-over-the-output-tree]]. The build records every path this build put in
+the tree — the manifests and copied files the plugin wrote, and the files the bundler wrote, whose
+names it takes from the bundle object [[f:the-bundle-object-names-every-file-the-bundler-writes]] —
+and at the end walks `<package>/dist/`, the whole of it, deleting
 anything absent from that set, then removes the directories left empty. The scope is the package's
 `dist/` and not one pack's directory within it, because a pack deleted from source is a pack the
 current set does not name: `dist/resource_pack/` left standing after `resource_pack/` is removed
 from source would still be zipped into the released archive. A kind-named directory the pack set
 does not name goes whole. The build never clears the tree before building
-[[d:stale-output-is-pruned-not-wiped]]. Every write is compared against what already sits
-at the path and skipped when the bytes match, so an unchanged file keeps its modification time and a
-consumer watching the tree mid-build sees only what actually changed
-[[d:output-files-are-written-only-when-their-bytes-change]].
+[[d:stale-output-is-pruned-not-wiped]]. Each file the plugin writes is compared against what already
+sits at the path and skipped when the bytes match, so an unchanged manifest or asset keeps its
+modification time [[d:output-files-are-written-only-when-their-bytes-change]]. The built script is
+the exception, and the one file in the tree this design does not write: the bundler rewrites it on
+every build, byte-identical or not [[f:tsdown-rewrites-an-output-file-whose-bytes-did-not-change]].
 
 Nothing else is produced. A build writes no record of which packs it changed; a consumer that needs
 to know reads the output tree it is already watching [[d:a-rebuild-emits-no-report]]. What makes
-that enough is the compared write: a build touches exactly the files whose bytes changed, so the
-tree's own modification times already say which packs a rebuild altered, and at a finer grain than a
-report — a watcher learns whether a manifest or a bundle moved, not merely that the pack did. What
+that enough is the compared write over what the plugin places: the manifests and assets a rebuild
+did not change keep their modification times, so the tree itself says which packs a rebuild altered.
+The built script says less — its timestamp moves on every build, so a consumer reading timestamps
+alone learns that a build ran rather than that the script changed, and one that needs the difference
+compares the bytes it already holds. What
 makes a report worse than redundant is where it would have to live. Inside `<package>/dist/` it is a
 file the current source does not declare, which the requirement holding that tree authoritative
 rules out and the prune would delete [[r:assembly-is-authoritative-over-the-output-tree]]; outside
@@ -287,14 +307,19 @@ on each of [[r:rebuild-triggers-are-declared-not-inferred]]:
   package directory that owns it
 
 A change to any of them triggers a rebuild, and a rebuild is the whole build: the pack set is read
-again, the module graph is bundled again, and every file is written again through the compare. There
-is no second, shorter path for a change that touches only a manifest input — what a rebuild has to
-bring up to date is the output, and skipping work it does not need is this design's to choose rather
-than something demanded of it [[r:rebuild-triggers-are-declared-not-inferred]]. What the two kinds
-of change do differ in is what lands: a source change rewrites the bundle, while a manifest edit or
-a version bump rewrites the manifests and leaves the bundle's bytes identical, so it is not written
-at all [[d:output-files-are-written-only-when-their-bytes-change]]. A path that skipped the bundler
-would be an optimisation, and it can be added later behind this same observable behaviour.
+again, the module graph is bundled again, and every file the plugin places is written again through
+the compare. There is no second, shorter path for a change that touches only a manifest input — what
+a rebuild has to bring up to date is the output, and skipping work it does not need is this design's
+to choose rather than something demanded of it [[r:rebuild-triggers-are-declared-not-inferred]].
+
+What a watching consumer sees is therefore the same on every rebuild as far as the script goes: a
+version bump or a manifest edit rewrites `scripts/main.js` with identical bytes, because the bundler
+runs and the bundler writes unconditionally [[f:tsdown-rewrites-an-output-file-whose-bytes-did-not-change]].
+The manifests and the assets still move only when their content does
+[[d:output-files-are-written-only-when-their-bytes-change]], so what a rebuild costs a consumer is a
+script it may redeploy for nothing, not a pack-wide false alarm. A path that skipped the bundler for
+a change no source file was part of would be an optimisation, and it can be added later behind this
+same observable behaviour.
 
 ## The release archive
 
@@ -332,15 +357,16 @@ components:
     excludes: discovering, validating, or completing anything itself
   - id: config-fragment
     responsibility: |
-      the exported `packBuild` function — the tsdown keys it sets, the entry it chooses, and the
-      TSDoc that documents it
+      the exported `packBuild` function — the tsdown keys it sets, including the output directory
+      and entry filename that place the built script, the entry it chooses, and the TSDoc that
+      documents it
     excludes: doing any of the build's work
   - id: build-plugin
     responsibility: |
       the `mc-pack-build` Rolldown plugin — its hooks, the virtual entry module, the external
-      resolution, the order the writers run in, and the script bundle itself: emptying the bundle
-      object in `generateBundle` and handing the entry chunk and its siblings to the writer at
-      their output paths
+      resolution, the check of the configured script path against the one the pack set reports,
+      and the list of bundler-written files it reads off the bundle object for the prune
+    excludes: writing the script itself, which the bundler does
     after: [pack-set-access]
   - id: output-writer
     responsibility: |
