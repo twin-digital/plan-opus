@@ -86,14 +86,15 @@
 
 - id: install-is-a-documented-snippet
   statement: |
-    installing the shim is a documented one-line alias entry the consumer copies, not a helper the
-    package exports that returns runner config
+    installing the shim is documented snippets the consumer copies — the two runner-config entries
+    and the setup file — not a helper the package exports that returns runner config or registers
+    itself
   status: proposed
   falsifiers:
-    - a consumer maintains the alias in several config files at once — a workspace with a config
-      per project — so a helper returning the entry is less work than repeating the snippet
-    - the alias entry stops being sufficient on its own, needing a setup file or a resolver plugin
-      beside it, so what the README calls the whole install no longer is
+    - a consumer maintains the entries in several config files at once — a workspace with a config
+      per project — so a helper returning them is less work than repeating the snippets
+    - the copied setup file has to differ per consumer beyond the library they construct a server
+      with, so what the README ships as one snippet is not one snippet
 
 - id: values-are-generated-and-committed
   statement: |
@@ -218,12 +219,7 @@
   statement: |
     the pack module under test is reached by a dynamic import the test performs after __useServer,
     not by a static import at the top of the test file
-  status: proposed
-  falsifiers:
-    - a consumer's pack is reachable only through a statically imported barrel or a runner transform
-      that hoists the import, so the documented ordering cannot be followed
-    - the per-test resetModules-and-reimport shape costs enough boilerplate across a real suite that
-      a setup file the shim ships would have been less work
+  status: rejected
 
 - id: brandas-unions-and-rejects-unknown-classes
   statement: |
@@ -271,3 +267,26 @@
       been the cheaper answer
     - a test needs to distinguish an unconstructible class from a constructible one by the failure
       it raises, and the two failure shapes are now indistinguishable
+
+- id: the-setup-file-is-the-install-shape
+  statement: |
+    a setup file registered with the runner installs one server per test file at module scope, and
+    it is the only install shape the shim documents — no dynamic-import recipe and no per-test
+    install hook
+  status: proposed
+  falsifiers:
+    - a runner the shim documents evaluates its setup files after the test file's own module
+      evaluation, so a statically imported pack reaches the singletons before the install
+    - consumers routinely need two servers in one file — a scenario the file-scoped install cannot
+      express — so the single documented shape does not cover ordinary use
+
+- id: per-test-isolation-waits-on-a-library-reset
+  statement: |
+    per-test isolation is out of this cycle and the shim adds no mechanism for it; the route is a
+    reset the fake library exposes, which it does not today
+  status: proposed
+  falsifiers:
+    - the leakage a file-scoped server carries changes a consumer's assertion rather than merely
+      accumulating, often enough that suites are unwritable without a reset
+    - a per-test mechanism turns out to be available from the shim's side alone, without the library
+      clearing a server in place

@@ -15,51 +15,64 @@ the type checker's view all have to arrive at the same module.
 
 ## What a consumer installs
 
-The consumer adds `@twin-digital/minecraft-server-shim` as a dev dependency and one alias entry to
-their runner config, mapping the specifier `@minecraft/server` to the bare specifier
-`@twin-digital/minecraft-server-shim`. Under vitest that entry is `resolve.alias`. Nothing else
-changes: no pack source is edited, no setup file is registered, and no `tsconfig` entry is added
-[[r:unmodified-pack-code-loads-under-test]].
+The consumer adds `@twin-digital/minecraft-server-shim` as a dev dependency and three things: two
+entries in their runner config and a setup file. No pack source is edited and no `tsconfig` entry is
+added [[r:unmodified-pack-code-loads-under-test]]. The config entries are the alias, mapping the
+specifier `@minecraft/server` to the bare specifier `@twin-digital/minecraft-server-shim`, and a
+`setupFiles` entry naming the setup file. Under vitest those are `resolve.alias` and
+`test.setupFiles`.
 
-That single entry is the whole of the *runner configuration*, and it ships as a documented snippet in
-the package README rather than as a helper the shim exports [[d:install-is-a-documented-snippet]]. The
-test file, though, is not free-form, because the shim carries an ordering contract (below). A test
-does two things in `beforeEach` — construct a server with whatever library it is using, hand it to the
-shim — and reaches the pack module only afterwards:
+The setup file is three lines and names nothing about the consumer's pack:
 
 ```ts
 import { __useServer } from '@twin-digital/minecraft-server-shim/control'
 import { createServer } from '@twin-digital/minecraft-test-lib'
 
-beforeEach(() => { __useServer(createServer()) })
+__useServer(createServer())
+```
 
-it('reacts to a hit', async () => {
-  const { onHit } = await import('../src/combat-handler.js')
+Both entries and the setup file ship as documented snippets in the package README rather than as a
+helper the shim exports [[d:install-is-a-documented-snippet]]. This is the one install shape the shim
+documents; there is no second recipe [[d:the-setup-file-is-the-install-shape]].
+
+What that buys is a test file with no install code in it at all. Vitest evaluates `setupFiles` before
+the test file's own module evaluation, so a pack's module-scope `subscribe` and `runInterval` calls
+land on the installed server even though the pack is imported statically at the top of the test — the
+ordering the shim needs is the runner's, not the consumer's to arrange
+[[f:a-setup-file-server-makes-a-pack-test-file-boilerplate-free]]. A consumer's test file is static
+imports and assertions:
+
+```ts
+import '../src/main.js'                                    // the pack, for its side effects
+import { world, system } from '@minecraft/server'          // to arrange and assert
+
+it('reacts to a hit', () => {
+  const player = world.getDimension('overworld').spawnEntity(/* … */)
   // …
 })
 ```
 
-### The pack module may not be imported before the install
+### One server per file, and what it carries
 
-A behavior pack's entry module does its work at module scope: `world.afterEvents.entityHurt.subscribe(…)`
-and `system.runInterval(…)` run while the module is evaluating, not when a function is called. A
-static `import` of that module at the top of a test file is evaluated before any `beforeEach` runs, so
-it would touch the singletons before a server was installed and take the whole file down at collection
-rather than failing one test [[d:unset-singletons-throw]].
+The isolation unit is the **file**, not the test. One server is installed per file, so everything a
+test leaves behind is there for the tests after it, and the amount is not marginal. Against
+`bencrob/marron-town-mod`, a first test that spawns one player and advances 40 ticks hands the second
+test 1 entity, a tick clock at 40, and 11 scoreboard objectives; the second hands the third 2 entities
+and a clock at 80, with the first test's player still in the dimension and still being iterated by the
+pack's module-scope loops [[f:one-server-per-file-carries-state-into-the-next-test]]. Nothing resets
+between tests because nothing can: the state belongs to the one server the file installed.
 
-The contract is therefore: **a server is installed before the pack module evaluates.** The shipped
-shape is a dynamic `await import(…)` of the pack module inside the test, after `__useServer`
-[[d:pack-module-loads-after-install]]. A module is evaluated once per registry, so a pack that
-subscribes at module scope registers its handlers against whichever server was installed at that first
-evaluation. A test that needs a fresh subscription per test calls `vi.resetModules()` first and then
-re-imports **both** entries dynamically, control before pack — a reset registry yields a fresh internal
-state module, and the `__useServer` a static import bound at the top of the file writes to the old one.
+The shape that works is **one scenario per file**. A consumer who wants a clean world writes another
+test file; a suite that puts three unrelated scenarios in one file will read another test's entities
+and another test's tick clock. The README says this in those words, beside the setup snippet, because a
+consumer discovering it from a failing assertion is discovering it the expensive way.
 
-The brief's "one entry to their runner config" holds for the resolution half and does not hold for the
-test file: the archetypal pack, which subscribes at module scope, costs the consumer a dynamic import
-and, where per-test isolation is wanted, a `resetModules` prelude. A setup file that installed a
-default server would move that cost into configuration, but it would install a server no test chose,
-which is the state `__useServer` exists to keep out of a test.
+There is no supported path to per-test isolation in this cycle. The route to one is not a shim change:
+a fake server's state can be cleared in place with the world identity and all five of a pack's
+module-scope subscribers intact, but the test library exposes no reset and has decided against one, so
+the capability has to come from there [[f:a-fake-server-can-be-cleared-in-place-with-its-subscriptions-intact]]
+[[f:test-lib-ships-no-reset-hook]]. That ask is open, not settled, and nothing here is built against it
+[[d:per-test-isolation-waits-on-a-library-reset]].
 
 The alias is what makes the pack's own `import { world, EntityDamageCause } from '@minecraft/server'`
 resolve. Without it the suite does not fail a test, it fails to start: `@minecraft/server` 2.8.0
@@ -256,19 +269,21 @@ on nothing [[d:unset-singletons-throw]]. A live ESM binding has no read hook —
 cannot be an accessor — so the throw cannot fire on the read itself. What the unset state holds instead
 is a sentinel `Proxy`, every trap of which — `get`, `set`, `has`, `deleteProperty`, `ownKeys`,
 `getOwnPropertyDescriptor`, `apply`, `construct` — throws `ShimNotInstalledError` with the
-message `no server installed — call __useServer(server) before the code under test runs`
+message `no server installed — a setup file must call __useServer(server); see the shim's README`
 [[d:unset-bindings-hold-a-throwing-proxy]]. The proxy target is a function, not an empty object,
 because `apply` and `construct` never fire on a non-callable target and `system(…)`-shaped misuse
 should read as the shim's error rather than a generic one. `__useServer(server)` overwrites both
 bindings with `server.world` and `server.system`; `__useServer()` puts the two sentinels back.
 
-What that is observably, and what a builder must not promise instead: `world` is **not** `undefined`,
-`typeof world` is `'object'`, `world == null` is false, and a truthiness guard on it passes. The throw
-fires on the first property touch — `world.getDimension('overworld')`, `system.runInterval(fn, 1)`,
-`'afterEvents' in world` — which is where pack code touches it, and at module scope that is during
-import, which is what the load-order contract above exists to keep behind the install. Destructuring
-`const { getDimension } = world` is a property read and throws; binding `const w = world` alone does
-not.
+What that is observably, and what a builder must not promise instead: while unset, `world` is **not**
+`undefined`, `world == null` is false, a truthiness guard on it passes, and `typeof world` reads
+`'function'` — the function target decides that, since `typeof` consults no trap — becoming `'object'`
+once a plain server object is installed over it
+[[f:a-proxy-over-a-function-target-is-typeof-function]]. The throw fires on every access shape
+measured: a property read, a method call, a call of the binding itself, a `new`, an `in`, and a spread
+[[f:a-proxy-over-a-function-target-is-typeof-function]]. Destructuring `const { getDimension } = world`
+is a property read and throws; binding `const w = world` alone does not. A consumer who reaches the
+unset state has skipped the `setupFiles` entry, which is what the error message names.
 
 That is the whole of what the shim does at run time. It holds two bindings, a brand table, and a set
 of generated constants; it models no engine behaviour, dispatches no event, and stores no state of
@@ -340,7 +355,8 @@ protocol and `brandAs` is the fallback for an unbranded fake
 `isEntity` and must not be built against one.
 
 The install documentation lives here. The shim's README is the sole normative install document — the
-alias entry, the load-order contract, the `2.8.0` version statement, and the runner recipes — and the
+two config entries, the setup file, the one-scenario-per-file cost, the `2.8.0` version statement, the
+uncovered `@minecraft/*` modules, and the runner recipes — and the
 shim asks nothing of any fake library's documentation and does not depend on one mentioning it
 [[d:install-documentation-lives-with-the-shim]]. What that leaves open is a consumer who arrives at
 the library first: the failure they meet is the unresolved import, before any shim code exists to
@@ -405,9 +421,15 @@ invokes.
 A consumer who wants nothing but the enum values takes the same package and imports them; there is no separate values-only package,
 because the runtime cost of the rest is a brand table and two bindings.
 
-A second `@minecraft/*` module — `server-ui`, `server-net` — is out of this cycle. When one is
-wanted, it is a second generated module and a second alias entry under the same package, built by the
-same generator against the same pinned family.
+A second `@minecraft/*` module — `server-ui`, `server-net` — is out of this cycle, and a consumer
+meets that on day one rather than eventually: the validation pack imports `@minecraft/server-ui`, and
+loading it needed a second alias to a stub of the consumer's own
+[[f:a-setup-file-server-makes-a-pack-test-file-boilerplate-free]]. The shim covers `@minecraft/server`
+and nothing else, so a pack importing a value from another `@minecraft/*` module aliases that one
+itself; the README says so rather than leaving the second `ERR_MODULE_NOT_FOUND` to explain it. When a
+second module is wanted here, it is a second generated module and a second alias entry under the same
+package, built by the same generator against the same pinned family
+[[d:one-package-one-aliasable-module]].
 
 ## The shim's own suite
 
@@ -417,9 +439,9 @@ cover, at minimum:
 - a fixture pack module importing an enum member and a class, loaded through the alias unmodified and
   driven through the singletons;
 - a second fixture pack whose entry module subscribes at module scope — `world.afterEvents…subscribe`
-  and `system.runInterval` at import time — reached by a dynamic import after `__useServer`, plus the
-  `vi.resetModules()` case that re-imports control and pack in that order and asserts the second test
-  sees its own server;
+  and `system.runInterval` at import time — driven from a test file that carries no install code, only
+  a static import of the pack and of `world`/`system`, with the server installed by the suite's own
+  setup file;
 - the control run with the alias removed, asserting the resolution failure returns;
 - `instanceof` answering true for a branded fake, true for a branded subclass against its declared
   ancestor, and false for a fake branded as a different class; `brandAs` unioning across two calls, and
@@ -473,7 +495,8 @@ components:
   - id: package-and-recipes
     responsibility: >-
       the manifest — name, type module, exports map, peer range, engines, scripts — the tsc build,
-      and the README install recipes and load-order contract for vitest, bun and jest-ESM
+      and the README — the two config entries, the setup file, the one-scenario-per-file cost, and the
+      bun and jest-ESM recipes
     after: [root-entry, control-entry]
   - id: conformance-suite
     responsibility: >-
