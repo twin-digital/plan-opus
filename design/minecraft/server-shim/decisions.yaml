@@ -1,0 +1,170 @@
+# Decisions for @twin-digital/minecraft-server-shim.
+# The accepted entries are the owner's ruling at the defaults gate; the proposed ones are the spec
+# author's, still open.
+
+- id: generated-values-cover-declared-constants
+  statement: |
+    the shim exports the declarations' 64 enums as frozen objects and their five module-level
+    numeric constants, generated together from the same pass
+  status: accepted
+  falsifiers:
+    - a pack imports a module-level value the declarations carry that is neither an enum nor one of
+      the five constants, so the generated surface is short of what a value import needs
+
+- id: every-declared-class-is-exported
+  statement: |
+    every class the pinned declarations export is exported by the shim, whether or not any fake is
+    ever branded as it
+  status: accepted
+  falsifiers:
+    - the generated class surface costs enough at import time to show up in a consumer's suite
+      startup against a curated list of the classes packs actually import
+
+- id: declared-error-classes-are-real-classes
+  statement: |
+    a declared class whose ancestry reaches Error is emitted as a real Error subclass setting its
+    own name, with its declared readonly members left to whoever throws it
+  status: accepted
+  falsifiers:
+    - code under test reads a declared member off a caught shim error and gets undefined often
+      enough that the shim populating it would have been the cheaper answer
+
+- id: unset-singletons-throw
+  statement: |
+    reading world or system before a server is installed throws ShimNotInstalledError rather than
+    reading undefined
+  status: accepted
+  falsifiers:
+    - a pack reads the singletons at module scope during import, so the throw fires before any test
+      could have installed a server and the shim becomes unusable for that pack
+
+- id: install-call-is-the-reset
+  statement: |
+    __useServer replaces both bindings wholesale and __useServer() with no argument returns them to
+    the unset state; there is no separate reset entry point
+  status: accepted
+  falsifiers:
+    - a consumer needs to replace one binding without disturbing the other, so the wholesale
+      replacement forces them to reconstruct state they wanted kept
+
+- id: version-statement-is-inert
+  statement: |
+    the derived @minecraft/server version is stated as an exported string and in the README, and the
+    shim performs no runtime comparison and emits no warning
+  status: accepted
+  falsifiers:
+    - consumers on a mismatched server version report failures whose cause is stale enum values,
+      diagnosed only after the fact, often enough that a runtime check would have caught them first
+
+- id: package-identity-and-runtime-target
+  statement: |
+    the shim publishes as @twin-digital/minecraft-server-shim, written in TypeScript, shipping its
+    own declarations, with engines.node >=22
+  status: accepted
+  falsifiers:
+    - a consumer the shim is meant to serve runs a Node version below the active LTS floor
+
+- id: undeclared-exports-stay-absent
+  statement: |
+    a name the pinned declarations do not declare is not exported — no Proxy, no auto-vivified stub,
+    no fallback value
+  status: accepted
+  falsifiers:
+    - a pack imports a value the declarations do not carry — an undeclared or newer name — and the
+      resulting resolution failure is routine enough that a permissive fallback would be cheaper
+
+- id: one-package-one-aliasable-module
+  statement: |
+    the shim ships as one package with exactly two entry points — the aliasable module and ./control
+    — with no separate values-only package and no runtime dependency on a fake library
+  status: proposed
+  falsifiers:
+    - a consumer wants the enum values in production pack code, where taking the brand table and the
+      mutable singleton bindings along is not acceptable
+    - a second @minecraft/* module's shim needs a build or peer range this package cannot carry
+      alongside the first
+
+- id: install-is-a-documented-snippet
+  statement: |
+    installing the shim is a documented one-line alias entry the consumer copies, not a helper the
+    package exports that returns runner config
+  status: proposed
+  falsifiers:
+    - consumers' alias entries diverge in shape across runners or versions enough that the
+      documented snippet is wrong for most of them
+    - a runner changes its config schema in a way that silently makes an existing copied snippet a
+      no-op rather than an error
+
+- id: values-are-generated-and-committed
+  statement: |
+    the generated value and class modules are produced at author time from the pinned declarations
+    and committed, with a regenerate-and-diff step in CI, rather than generated in a consumer's
+    postinstall
+  status: proposed
+  falsifiers:
+    - consumers routinely need values for a server version other than the pinned one, so generating
+      against the consumer's own installed declarations is what they actually need
+    - the generated files are large enough to make review of an unrelated change in the package
+      impractical
+
+- id: pinned-version-is-declared-as-a-peer-range
+  statement: |
+    @minecraft/server is declared as a peer dependency at ^2.8.0, so a consumer outside that range
+    is told by their package manager at install time
+  status: proposed
+  falsifiers:
+    - a 2.x release within the range changes an enum member's value, so the range admits a consumer
+      the generated values are wrong for
+    - consumers' package managers are configured to install peers silently, so the warning never
+      reaches anyone
+
+- id: shim-cooperates-through-a-registered-brand-symbol
+  statement: |
+    the shim depends on no fake library; anything that fakes the engine cooperates by setting a
+    property keyed with Symbol.for('@twin-digital/minecraft-server-shim.classes')
+  status: proposed
+  falsifiers:
+    - the test library declines to carry the brand, so every consumer using it has to brand each
+      fake by hand often enough that a direct dependency on the library's own predicates would have
+      been less work
+    - a second faking library adopts a conflicting brand convention, so the shim answers instanceof
+      for one and not the other
+
+- id: instanceof-answers-only-to-the-brand
+  statement: |
+    instanceof answers true only for a value branded with the class or with a declared descendant of
+    it, and false for everything else, a real engine object included
+  status: proposed
+  falsifiers:
+    - a real engine object reaches code loaded through the shim — a mixed process nobody expected —
+      and the false answer sends a pack down its no-op path
+    - the declared extends chain in index.d.ts turns out not to match the engine's real hierarchy for
+      a class packs test against
+
+- id: control-surface-is-a-real-subpath
+  statement: |
+    the control surface ships on the package's own ./control subpath rather than as extra exports of
+    the aliased @minecraft/server specifier, so a TypeScript consumer adds no tsconfig paths entry
+  status: proposed
+  falsifiers:
+    - a runner resolves the alias and the control subpath to two module instances, so a test's
+      __useServer writes bindings the pack under test never reads
+
+- id: esm-only-single-format
+  statement: |
+    the shim publishes ESM only; no CJS build is produced
+  status: proposed
+  falsifiers:
+    - a consumer the shim is meant to serve is on a runner that cannot load ESM at all, so the
+      single format excludes them outright
+
+- id: vitest-is-the-covered-runner
+  statement: |
+    vitest is the runner the shim's own suite covers; bun and jest-in-ESM-mode recipes ship in the
+    README marked untested and are not in the test matrix
+  status: proposed
+  falsifiers:
+    - a documented but untested recipe turns out not to work, so the README shipped an install path
+      that never functioned
+    - enough consumers arrive on one of the untested runners that its breakage is reported before
+      vitest's
