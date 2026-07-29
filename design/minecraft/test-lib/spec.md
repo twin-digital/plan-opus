@@ -568,17 +568,6 @@ Expiry dispatches nothing, because there is nothing to dispatch. 2.8.0 declares 
 either, so no handler can subscribe to an expiry in the engine and the fake raises none
 [[d:every-signal-exists-few-are-raised]].
 
-Decay puts back a hazard a non-decaying fake did not have: a test that advances ticks for some
-unrelated scheduling reason ages the effects it set up, and can advance past them. What makes that
-liveable is that expiry is loud. An expired effect is absent rather than stale, so an assertion on
-its duration, amplifier or display name meets an `undefined` and fails, and the test that advanced
-too far learns it did. The case that stays quiet is a test asserting an effect is *gone* and getting
-that for free from expiry rather than from the code under test — and the remedy there is the
-engine's own, which is to give a set-up effect a duration that outlasts the advance. A duration that
-did not decay would be quiet in the worse direction: it reads back a number the engine never
-reports, so the test asserting on it passes while asserting something false
-[[r:modelled-behaviour-is-the-engines]].
-
 `Effect.displayName` is a populated human-readable string in the engine — `"Speed II"` for speed at
 amplifier 1 — and nothing pins it at build time: `@minecraft/vanilla-data` ships ids and no names,
 and every one of the 38 types `EffectTypes.getAll()` returns answers `getName()` with its own

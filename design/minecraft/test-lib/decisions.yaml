@@ -83,7 +83,7 @@
     of an advance the decay applies before that tick's scheduled callbacks run, so a callback reads
     the duration for the tick it is running on and an effect that runs out partway through a
     multi-tick advance is gone for the remaining ticks' callbacks
-  status: proposed
+  status: accepted
   falsifiers:
     - the engine is observed applying its own effect tick after a tick's scheduled callbacks rather
       than before them, so every callback in the fake reads one less than an engine handler would on
@@ -101,7 +101,7 @@
     dispatches nothing, 2.8.0 declaring no effect-remove or effect-expire signal. The engine's own
     boundary is unobserved, so this is stated as the library's rule and no divergence from the
     engine is claimed
-  status: proposed
+  status: tolerated
   falsifiers:
     - a probe fixes the engine's boundary and it is not this one — an effect readable at 0, or gone
       a tick earlier — so every test asserting on an effect's last tick reads the wrong side of it,
@@ -117,7 +117,7 @@
     id — not the row's prose — is what a consumer pins; a row keeps its id when its coverage
     changes, a split or a removal retires the id rather than passing it to a successor, and nothing
     mechanical enforces any of this, the checker having no coverage entry kind
-  status: proposed
+  status: tolerated
   falsifiers:
     - a second design needs a coverage table of its own, at which point promoting coverage to a
       validated entry kind the checker enforces is the right answer and per-design id discipline
