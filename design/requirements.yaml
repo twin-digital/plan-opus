@@ -1,1 +1,8 @@
-[]
+# Requirements at global scope. One with no `applies_to` binds every design in the repository, so
+# narrow it to the designs it was written for unless it really binds them all.
+
+- id: node-libraries-are-esm-typescript
+  statement: |
+    a Node.js library this repository designs ships as ESM only, written in TypeScript and
+    shipping its own type declarations, targeting active Node LTS
+  applies_to: [set:nodejs:libraries]

@@ -19,8 +19,8 @@ directory that is no workspace package is never handed to the kit at all.
 ## What the consumer gets
 
 The kit ships as a TypeScript library named `@twin-digital/mc-dev-kit` [[r:dev-kit-library-name]],
-exporting one async entry point; its module format follows the conventions of the monorepo the
-build occurs in. A consumer imports it and receives the pack set as data; nothing is returned as
+exporting one async entry point. It publishes ESM only and ships its own type declarations,
+targeting active Node LTS [[r:node-libraries-are-esm-typescript]]. A consumer imports it and receives the pack set as data; nothing is returned as
 text to parse [[r:dev-kit-provides-a-library]].
 
 ```ts

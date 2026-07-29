@@ -22,9 +22,10 @@ exports and how far it can reach are bounded by what a pack is willing to be han
 ## The package and how a test reaches a fake
 
 The package is `@twin-digital/minecraft-test-lib`: TypeScript sources published as an ESM-only
-build with type declarations, no runtime dependencies, and a single peer dependency on
-`@minecraft/server` at `2.8.0` — the pinned version every behaviour below is read from
-[[r:target-server-version]] [[d:esm-only-typescript-package]]. It depends on no test framework, and
+build with type declarations, targeting active Node LTS
+[[r:node-libraries-are-esm-typescript]] — with no runtime dependencies, and a single peer dependency on
+`@minecraft/server` at `2.8.0`, the pinned version every behaviour below is read from
+[[r:target-server-version]] [[d:test-lib-has-one-peer-dependency]]. It depends on no test framework, and
 nothing in a fake knows which runner is driving it; a caller who wants call recording wraps a fake
 with their own spy library, which works because the fakes are plain objects with nothing intercepting
 them [[r:no-test-framework-dependency]]. Everything it exports — every fake
