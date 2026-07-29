@@ -15,9 +15,13 @@ conditions that break real packs — a component that is absent, a reference tha
 middle of the event that fired — and a double that returns a plausible-looking payload lets a
 handler take the wrong branch while the test still passes.
 
-One constraint shapes everything below: the library never replaces or intercepts the module import.
-A fake reaches the code under test only as an object the test passes in, so both what the package
-exports and how far it can reach are bounded by what a pack is willing to be handed.
+A fake reaches the code under test two ways, and the package supplies both: as an object a test
+hands to the pack, and through the `@minecraft/server` module surface a consumer aliases, which the
+package publishes along with the runner tooling that configures the alias. A suite written against
+injection stays supported and nothing the package ships breaks one
+[[r:injection-suites-stay-supported]] [[f:test-lib-supplies-the-module-surface-and-the-runner-tooling]].
+Everything below specifies the fakes themselves, which are the same objects on either route; the
+module surface's own shape is the `minecraft/server-shim` design's.
 
 ## The package and how a test reaches a fake
 
@@ -28,9 +32,12 @@ build with type declarations, targeting active Node LTS
 [[r:target-server-version]] [[d:test-lib-has-one-peer-dependency]]. It depends on no test framework, and
 nothing in a fake knows which runner is driving it; a caller who wants call recording wraps a fake
 with their own spy library, which works because the fakes are plain objects with nothing intercepting
-them [[r:no-test-framework-dependency]]. Everything it exports — every fake
-type and every free function — is reachable from one entry point, `@twin-digital/minecraft-test-lib`
-itself, with no subpath exports [[d:one-public-entry-point]].
+them [[r:no-test-framework-dependency]]. Every fake type and every free function is reachable from
+the root entry point, `@twin-digital/minecraft-test-lib` itself. The package additionally publishes
+the aliased `@minecraft/server` module surface and the runner tooling that configures the alias
+[[r:injection-suites-stay-supported]]; what those are called and how they are laid out is the
+`minecraft/server-shim` design's to settle, and this document does not fix an entry-point inventory
+ahead of it [[d:one-public-entry-point]].
 
 The library imports only *types* from `@minecraft/server`. That package ships `index.d.ts`,
 `package.json`, and a README and no JavaScript at all, so an enum member such as
@@ -50,10 +57,11 @@ const server = createServer()
 installMyPack(server)                            // the pack takes { world, system, … }
 ```
 
-The second line is the *pack's* own entry point, whatever it is called; this library exports nothing
-that installs anything. Handing the bundle to a function the pack already exposes is the whole
-integration, and it is the only one available, since the library never touches the module graph
-[[r:object-substitution-not-module-mocking]].
+The second line is the *pack's* own entry point, whatever it is called. Handing the bundle to a
+function the pack already exposes is the whole integration for a pack written to receive its engine
+handles, and a suite built that way keeps working whatever else the package ships
+[[r:injection-suites-stay-supported]]. A pack that takes no such parameter is reached the other way,
+through the aliased module surface.
 
 `createServer()` returns a `FakeServer` whose properties are named exactly as `@minecraft/server`
 exports them — `world`, `system`, and the eight registry classes `BiomeTypes`, `BlockStates`,
@@ -68,17 +76,21 @@ every member on them throws `NotImplementedError`; no behaviour in this cycle re
 `withVanillaDimensions` registers dimensions on the world without touching `DimensionTypes`
 [[d:registries-are-declared-and-throw]].
 
-The bundle is the only route to `system` and the registries,
-because the library substitutes objects and does not touch the module graph: a pack that reaches
-the engine solely through a direct `import { world } from '@minecraft/server'` is outside its reach
-[[r:object-substitution-not-module-mocking]]. That reach matters — 84% of surveyed public packs use
-`system` scheduling and 41% touch the static registries, and `world` and `system` are module-level
-singletons rather than anything an instance hands out
-[[f:public-packs-reach-past-entities-and-events]] [[f:engine-surface-outside-instances]].
+For an injected pack the bundle is the route to `system` and the registries. A pack that reaches the
+engine solely through a direct `import { world } from '@minecraft/server'` is served by the aliased
+module surface, which the package supplies for exactly that case
+[[f:test-lib-supplies-the-module-surface-and-the-runner-tooling]]. Both routes carry weight — 84% of
+surveyed public packs use `system` scheduling and 41% touch the static registries, and `world` and
+`system` are module-level singletons rather than anything an instance hands out
+[[f:public-packs-reach-past-entities-and-events]] [[f:engine-surface-outside-instances]], so the
+direct import is the common shape rather than an edge case.
 
-All state a bundle holds belongs to that bundle. The library keeps no module-level mutable state,
-so two `createServer()` calls in one process share nothing and tests need no reset hook
-[[r:instance-scoped-world]].
+All state a bundle holds belongs to that bundle, and no fake's state lives at module scope, so two
+`createServer()` calls in one process share nothing [[r:fake-state-is-instance-scoped]]. The library
+ships no reset of a server's state, so a test wanting a clean world makes another server. What does
+live at module scope is the `world`/`system` bindings the aliased surface reads, which a test
+installs and controls; what a suite does with those between tests belongs to the
+`minecraft/server-shim` design, not here.
 
 Every fake carries the full public shape of the type it stands in for and is assignable where the
 real declared type is expected, with no cast. That shape is not hand-written and not asserted — it
@@ -966,11 +978,13 @@ components:
   - id: package-and-exports
     responsibility: >-
       the package.json with its peer dependency and ESM-only build, the TypeScript build and
-      declaration emit, the single public entry point re-exporting every fake type and every free
+      declaration emit, the root entry point re-exporting every fake type and every free
       function, and the user-facing documentation carrying the coverage table and a description of
       every divergence in it, kept in step with the spec's own table as a condition of any
       behaviour change rather than as a later sweep
-    excludes: the behaviour behind anything it re-exports, and which coverage a behaviour has
+    excludes: >-
+      the behaviour behind anything it re-exports, which coverage a behaviour has, and the shape of
+      the aliased module surface and its runner tooling, which the server-shim design lays out
     after:
       [
         event-bus,
