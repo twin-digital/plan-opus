@@ -71,6 +71,7 @@
 # Substitution, typing, and surface
 
 - id: object-substitution-not-module-mocking
+  status: retired
   statement: |
     the library substitutes fake objects passed into code under test; it does not replace or
     intercept the `@minecraft/server` module import. Code that can only reach the engine
@@ -78,6 +79,15 @@
   rationale: |
     A later module-shim story would invalidate whole suites written against object
     substitution, so this is fiat, not open to reargument.
+
+- id: injection-suites-stay-supported
+  statement: |
+    a suite that injects fake objects into code under test stays supported, and nothing the
+    library ships breaks one. The library additionally supplies the `@minecraft/server` module
+    surface a consumer aliases, and the runner tooling that configures that alias.
+  rationale: |
+    The retired fiat barred a module-shim story to protect suites written against object
+    substitution. The protection is that guarantee, not the absence of the shim.
 
 - id: fakes-are-structurally-assignable
   statement: |
@@ -107,9 +117,16 @@
 # Construction, ids, and the control plane
 
 - id: instance-scoped-world
+  status: retired
   statement: |
     all fake state belongs to a world instance a test creates; the library holds no
     module-level mutable state.
+
+- id: fake-state-is-instance-scoped
+  statement: |
+    all fake state belongs to a world instance a test creates. The only module-level mutable
+    state is the `world`/`system` bindings a test installs and controls; no fake's state lives
+    there.
 
 - id: no-implicit-defaults
   statement: |
