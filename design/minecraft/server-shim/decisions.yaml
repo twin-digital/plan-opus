@@ -172,7 +172,7 @@
 - id: both-entries-re-export-one-internal-module
   statement: |
     the root entry and ./control each re-export from one internal module holding the mutable state
-    and the brand table; neither entry re-exports from the other
+    and the shim's error classes; neither entry re-exports from the other
   status: proposed
   falsifiers:
     - a bundler or runner splits the internal module across the two entry points into two instances,
@@ -207,8 +207,8 @@
 
 - id: unset-bindings-hold-a-throwing-proxy
   statement: |
-    while no server is installed, world and system hold a Proxy whose every trap throws
-    ShimNotInstalledError, rather than undefined or an accessor export
+    while no server is installed, world and system hold a Proxy over a function target whose every
+    trap throws ShimNotInstalledError, rather than undefined or an accessor export
   status: proposed
   falsifiers:
     - a pack passes world or system somewhere that inspects it without touching a property — a
@@ -246,3 +246,28 @@
       after the failure they needed it to prevent
     - a fake library documents an install recipe for the shim of its own and the two drift, so a
       consumer copies an entry wrong for the version they have
+
+- id: class-exports-are-generated-lines-over-a-hand-written-factory
+  statement: |
+    the generator emits src/generated/class-exports.ts, one literal export line per declared class
+    calling a makeClass factory the hand-written brands module supplies, rather than the export list
+    being hand-maintained
+  status: proposed
+  falsifiers:
+    - a declared class needs an export shape makeClass cannot produce from the generated records, so
+      the uniform one-line-per-class emission cannot cover the surface
+    - the emitted file is large enough that a consumer's bundler or type checker pays a measurable
+      cost for classes their pack never imports
+
+- id: constructible-classes-throw-unsupported
+  statement: |
+    the 14 declared classes the declarations leave constructible are emitted as callables throwing
+    ShimUnsupportedError named for the class, while the 425 declaring a private constructor stay
+    non-callable
+  status: proposed
+  falsifiers:
+    - packs construct one of the 14 — ItemStack most likely — often enough that the throw is the
+      routine outcome of a test run, so a constructor producing a branded plain value would have
+      been the cheaper answer
+    - a test needs to distinguish an unconstructible class from a constructible one by the failure
+      it raises, and the two failure shapes are now indistinguishable

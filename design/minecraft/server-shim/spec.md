@@ -127,16 +127,26 @@ export normally fails [[d:undeclared-exports-stay-absent]].
 
 ## Classes and `instanceof`
 
-Every class the pinned declarations export is exported by the shim — all of them, generated from the
-same pass over `index.d.ts`, so any class a pack imports resolves [[d:every-declared-class-is-exported]].
+Every class the pinned declarations export is exported by the shim — all 439 of them, so any class a
+pack imports resolves [[d:every-declared-class-is-exported]] [[f:engine-surface-outside-instances]].
+
+An ESM named export must be written out statically, so a record of class names cannot become 439
+exports at run time. The generator therefore emits the export list itself, as a third generated file,
+`src/generated/class-exports.ts`: one literal `export const <Name> = makeClass('<Name>')` line per
+declared class, calling a factory the hand-written brands module supplies. Every class name a bump
+adds or removes moves that file, so the `generate`-then-clean-tree check covers the export surface the
+same way it covers the values [[d:class-exports-are-generated-lines-over-a-hand-written-factory]].
+`makeClass` reads the generated records to build one export: its `Symbol.hasInstance`, its constant
+statics, its throwing lookup statics, and — for the error classes — a real constructor.
+
 What each export *is* depends on whether it is an error type. A declared class whose ancestry reaches
 `Error` — `InvalidEntityError` and its siblings — is emitted as a real class extending `Error` whose
 constructor takes the ordinary `(message?: string)` and sets `name` to its own class name, so a test
 can construct and throw one. Its declared readonly members are left unset; a thrower who wants one
 populated assigns it on the instance after construction
-[[d:declared-error-classes-are-real-classes]] [[f:invalid-entity-error-shape]]. Every other class is a
-plain object carrying a `Symbol.hasInstance` implementation and its constant statics; it is not
-callable, so `new Player()` is a `TypeError`.
+[[d:declared-error-classes-are-real-classes]] [[f:invalid-entity-error-shape]]. Every other class is an
+object carrying a `Symbol.hasInstance` implementation and its statics, callable only where the
+declarations leave it constructible (below).
 
 ### The statics a class carries
 
@@ -162,6 +172,22 @@ function that throws `ShimUnsupportedError`, whose message names the member and 
 supplies no registry and the test's own server must stand in for it
 [[d:behavioural-statics-throw-unsupported]]. `ShimUnsupportedError` is exported from the control
 subpath beside `ShimNotInstalledError`.
+
+### The classes a pack constructs
+
+`new ItemStack('minecraft:stone', 1)` is ordinary pack code, and the same reasoning applies to it:
+against a plain object it is `ItemStack is not a constructor`, which names nothing a reader can act
+on. Of the 439 declared classes, 425 declare `private constructor()` and are unconstructible in the
+engine too, so leaving those non-callable is the engine's own behaviour. The other 14 are not: 11
+declare a public constructor — `AimAssistCategorySettings`, `AimAssistPresetSettings`, `BlockVolume`,
+`EnchantmentType`, `EntityWaypoint`, `ItemStack`, `ListBlockVolume`, `LocationWaypoint`,
+`PlayerWaypoint`, `TextPrimitive`, `Trigger` — and three declare no constructor at all and so carry a
+default one: `CatmullRomSpline`, `LinearSpline`, `MolangVariableMap`. The generator marks those 14 in
+`classes.ts` and the factory emits each as a callable that throws `ShimUnsupportedError` naming the
+class, since constructing a working `ItemStack` would be modelling engine behaviour the shim does not
+model [[r:shim-supplies-values-not-behaviour]] [[d:constructible-classes-throw-unsupported]]. The
+constructible set is read out of the declarations, not listed by hand, so a bump that makes a class
+constructible carries it along.
 
 `instanceof` answers from a nominal brand and from nothing else. The shim reads the well-known
 symbol `Symbol.for('@twin-digital/minecraft-server-shim.classes')` off the value; the property holds
@@ -228,11 +254,13 @@ carry nothing over from the previous one [[r:module-singletons-are-test-controll
 An unset binding must fail loudly rather than read `undefined` and surface later as a property access
 on nothing [[d:unset-singletons-throw]]. A live ESM binding has no read hook — a namespace property
 cannot be an accessor — so the throw cannot fire on the read itself. What the unset state holds instead
-is a sentinel `Proxy` over an empty object, every trap of which — `get`, `set`, `has`, `deleteProperty`,
-`ownKeys`, `getOwnPropertyDescriptor`, `apply`, `construct` — throws `ShimNotInstalledError` with the
+is a sentinel `Proxy`, every trap of which — `get`, `set`, `has`, `deleteProperty`, `ownKeys`,
+`getOwnPropertyDescriptor`, `apply`, `construct` — throws `ShimNotInstalledError` with the
 message `no server installed — call __useServer(server) before the code under test runs`
-[[d:unset-bindings-hold-a-throwing-proxy]]. `__useServer(server)` overwrites both bindings with
-`server.world` and `server.system`; `__useServer()` puts the two sentinels back.
+[[d:unset-bindings-hold-a-throwing-proxy]]. The proxy target is a function, not an empty object,
+because `apply` and `construct` never fire on a non-callable target and `system(…)`-shaped misuse
+should read as the shim's error rather than a generic one. `__useServer(server)` overwrites both
+bindings with `server.world` and `server.system`; `__useServer()` puts the two sentinels back.
 
 What that is observably, and what a builder must not promise instead: `world` is **not** `undefined`,
 `typeof world` is `'object'`, `world == null` is false, and a truthiness guard on it passes. The throw
@@ -285,9 +313,16 @@ the runner choice below already commits to.
 
 The second alias shape is therefore a documented option rather than a repair: a consumer who prefers to
 alias `@minecraft/server` to the shim's resolved entry *file* — the shape one surveyed pack already
-uses — pairs it with a `paths` entry in a `tsconfig.test.json` pointing `@minecraft/server` at that
-file's declarations, and gets the same single instance. The README leads with the bare-specifier recipe
-and documents the file-plus-`paths` shape beside it.
+uses — gets the same single instance, measured alongside the first. The README leads with the
+bare-specifier recipe and documents the file shape beside it.
+
+Neither recipe carries a `tsconfig` `paths` entry, and the README says so rather than leaving it to
+inference [[d:control-surface-is-a-real-subpath]]. A `paths` entry pointing `@minecraft/server` at the
+shim's declarations would break the half that already works: pack code uses these names in type
+position — `(p: Player)`, `cause: EntityDamageCause` — and in the shim's declarations `Player` is a
+`const` with no type of that name and `GameMode` is a frozen object rather than an `enum`, so pack code
+stops compiling. `tsc` resolving `@minecraft/server` to the real `index.d.ts` is the design, not an
+accident to paper over.
 
 ## The boundary with the test library
 
@@ -356,10 +391,12 @@ The manifest sets `"type": "module"` and an `exports` map with exactly those two
 }
 ```
 
-Four source files sit behind that: `src/index.ts`, the aliased root entry, re-exporting the generated
-values, the class objects, and `world`/`system`; `src/control.ts`, the control entry; `src/state.ts`,
-the internal module both entries re-export from; and `src/generated/values.ts` and
-`src/generated/classes.ts`, which nothing outside the package imports directly. `tsc` compiles `src/`
+Seven source files sit behind that — four hand-written, three generated. Hand-written:
+`src/index.ts`, the aliased root entry, re-exporting the generated values, the class exports, and
+`world`/`system`; `src/control.ts`, the control entry; `src/state.ts`, the internal module both entries
+re-export from; and `src/brands.ts`, holding the brand symbol, `brandAs`, and the `makeClass` factory.
+Generated: `src/generated/values.ts`, `src/generated/classes.ts`, and
+`src/generated/class-exports.ts`, which nothing outside the package imports directly. `tsc` compiles `src/`
 to `dist/` with declarations emitted; `dist/` is published and not committed. The package scripts are
 `generate` (run the generator over the pinned declarations), `build` (`tsc`), `test` (`vitest run`),
 and `check`, which runs `generate`, fails on a dirty tree, then `build` and `test` — the one command CI
@@ -387,14 +424,17 @@ cover, at minimum:
 - `instanceof` answering true for a branded fake, true for a branded subclass against its declared
   ancestor, and false for a fake branded as a different class; `brandAs` unioning across two calls, and
   throwing on an undeclared class name;
-- `EntityHealthComponent.componentId` reading the declared id string, and a registry static throwing
-  `ShimUnsupportedError`;
+- `EntityHealthComponent.componentId` reading the declared id string, a registry static throwing
+  `ShimUnsupportedError`, and `new ItemStack('minecraft:stone', 1)` throwing it too;
+- a count of the export lines in `src/generated/class-exports.ts` against the classes `classAncestry`
+  holds, so a class the generator stopped emitting fails a test rather than a consumer's import;
 - a property access on `world` before install throwing `ShimNotInstalledError`;
 - the peer range refusing an install against a 1.x consumer under npm, exercised through a packed
   tarball rather than a `file:` spec, which npm does not enforce the range on
   [[f:an-unsatisfiable-peer-range-fails-npm-and-warns-pnpm-and-yarn]];
-- and a typecheck of a TypeScript test file that imports the control surface, run by the `build`
-  script.
+- and a typecheck, run by the `build` script, of a consumer-shaped TypeScript pair: a test file
+  importing the control surface, and a pack module using `Player` and `EntityDamageCause` in type
+  position, checked under both alias recipes and with no `paths` entry.
 
 ## Components
 
@@ -402,18 +442,20 @@ cover, at minimum:
 components:
   - id: values-generator
     responsibility: >-
-      emit src/generated/values.ts (one named export per enum and module constant) and
-      src/generated/classes.ts (the classAncestry and constant-statics records) from the pinned
-      @minecraft/server index.d.ts
+      emit all three generated files from the pinned @minecraft/server index.d.ts —
+      src/generated/values.ts (one named export per enum and module constant),
+      src/generated/classes.ts (the classAncestry, constant-statics, lookup-statics and
+      constructible-class records), and src/generated/class-exports.ts (one export line per declared
+      class, calling makeClass)
     excludes: >-
-      emitting the class objects and Error subclasses themselves, which class-brands builds from
-      these records
+      the makeClass factory and the brand implementation those export lines call, which class-brands
+      supplies
   - id: class-brands
     responsibility: >-
-      the registered brand symbol, brandAs, the Symbol.hasInstance implementation answering
-      instanceof over classAncestry, the emitted class objects with their constant statics and
-      throwing lookup statics, and the real Error subclasses
-    excludes: deciding what a fake's shape is
+      src/brands.ts — the registered brand symbol, brandAs, the makeClass factory, the
+      Symbol.hasInstance implementation answering instanceof over classAncestry, the constant and
+      throwing statics it hangs on each class, and the real Error subclasses
+    excludes: emitting the export lines themselves, which values-generator writes
     after: [values-generator, shim-state]
   - id: shim-state
     responsibility: >-
