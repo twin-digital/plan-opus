@@ -329,8 +329,9 @@ which is exactly why the manifest has to agree before the pack is called valid.
 [[r:built-output-defaults-to-dist]] and the output root mirrors the source layout with one
 kind-named subdirectory per pack, a single-pack package included
 [[r:built-output-mirrors-the-source-layout]]. Both are computed from the package directory and the
-kind: `outputDir` is reported whether or not it exists, and the kit never reads the output tree
-[[d:output-locations-are-computed-not-probed]].
+kind: `outputDir` is reported whether or not it exists, and the kit neither reads nor writes the
+output tree, producing none of the output it names
+[[d:output-locations-are-computed-not-probed]] [[r:kit-produces-no-built-output]].
 
 Each located `manifest.json` is read and parsed as JSON. Any failure to open, read, or parse it is
 the one problem `manifest-unreadable`, carrying the underlying error message
