@@ -9,9 +9,9 @@ own build wiring, so the output layout and the completion rules are copied into 
 wants a loadable pack, and a package that copies them slightly wrong ships output that fails at the
 server with nothing reporting why.
 
-What this design produces is a tsdown configuration fragment a pack package merges into its own
-config, plus documentation of what merging it produces, plus the archive a released pack is cut
-into. No command line, no bundler embedded here, and nothing for a pack to implement.
+What this design produces is exported for a pack package's bundler configuration to use, plus
+documentation of how to use it, plus the archive a released pack is cut into. No command line, no
+bundler embedded here, and nothing for a pack to implement.
 
 The form follows the monorepo it ships into rather than a choice made here: shared build behaviour
 reaches a package there as a value its config merges, never as a command the package runs
@@ -30,7 +30,8 @@ details `f:dev-kit-pack-set-entry-names-package-kind-source-and-identity` alread
 
 ## In scope
 
-- **The exported fragment** — what it configures, and what a consumer has to hand it.
+- **What gets exported, and in what form** — what it configures or does, and what a consumer has to
+  hand it.
 - **Bundling** — the script module to where the pack's output tree expects it, with the modules the
   game provides at runtime left external.
 - **Assembly** — a pack is mostly not TypeScript. Functions, entity and item definitions, textures,
@@ -46,11 +47,11 @@ details `f:dev-kit-pack-set-entry-names-package-kind-source-and-identity` alread
 - **The release archive** — what a pack is cut into for distribution, produced from the output tree
   this design already owns. A `.mcpack` is one zipped pack and an `.mcaddon` a zip of those
   (`f:release-archives-follow-pack-content`); which one a pack ships is the design's to choose.
-- **The documentation of the export** — what a consumer merges, and what merging it produces.
+- **The documentation of the export** — how a consumer uses it, and what using it produces.
 
 ## Out of scope
 
-- **How a monorepo wires the fragment and the archive into its packages.** A package's config is
+- **How a monorepo wires the export and the archive into its packages.** A package's config is
   generated from the monorepo's own declarative configuration
   (`f:opus-package-config-is-generated-from-one-root-file`), and which rule generates it, when it
   fires, and what the generated snippet looks like are that config manager's. This design produces
@@ -67,16 +68,24 @@ details `f:dev-kit-pack-set-entry-names-package-kind-source-and-identity` alread
 
 ## Done looks like
 
-A pack package merges the exported fragment into its tsdown config, runs the repository's ordinary
-build, and its output tree holds a complete loadable pack — script bundled, every asset in place,
-manifests complete — with a file deleted in source gone from the output on the next build. A second
+A pack package takes up the export in its tsdown config, runs the repository's ordinary build, and
+its output tree holds a complete loadable pack — script bundled, every asset in place, manifests
+complete — with a file deleted in source gone from the output on the next build. A second
 pack package does the same, with no build rule copied between the two.
 
 ## What the design must still decide
 
-- **What the exported fragment needs from its consumer.** The prototype's took `import.meta.url` to
-  locate the package directory; whether that is the right interface, and what else it has to be
-  told, is open. The archive export faces the same question separately.
+- **What form the export takes — a config fragment, a rolldown plugin, or a fragment carrying one.**
+  The prototype used a fragment with tsdown's `onSuccess`; a plugin is the more standard shape for
+  the behavioural half, and it is the only one of the two that can declare extra watch inputs, since
+  a plugin gets `this.addWatchFile()` and a fragment gets nothing equivalent. Against it, a plugin
+  cannot set `entry` or `dts`, so a fragment of some size survives either way. tsdown accepts
+  rolldown plugins directly, and rolldown carries the Rollup hook set — `resolveId`, `writeBundle`,
+  `closeBundle`, `watchChange` — so both are open. `unplugin` is the third option and looks like a
+  poor fit: it buys portability across bundlers this design does not target.
+- **What the export needs from its consumer.** The prototype's took `import.meta.url` to locate the
+  package directory; whether that is the right interface, and what else it has to be told, is open.
+  The archive export faces the same question separately.
 - **What the archive holds and what format it takes** — one pack or a package's packs together, and
   whether anything beside the output tree goes in.
 - **A package holding two packs.** The kit fixes the shape: a package structurally holds at most one
@@ -85,10 +94,11 @@ pack package does the same, with no build rule copied between the two.
   the behavior pack has a script module at all.
 - **Where manifest completion runs** — as a hook in the bundler's own lifecycle, or as a step beside
   it. The manifest-only rebuild path hangs on the same answer.
-- **How the extra watch inputs are declared.** The option is to be confirmed against the installed
-  bundler rather than guessed at here.
+- **How the extra watch inputs are declared.** This is the same question as the form of the export,
+  from the other end: `addWatchFile` is a plugin's to call, so the answer here constrains the answer
+  there.
 - **Whether this side reads the pack set at build time at all**, or works from the package it is
-  merged into and leaves the set to the consumers downstream. The kit calls no build and never
+  used by and leaves the set to the consumers downstream. The kit calls no build and never
   reads the output tree, so the seam is one-way; which way this side crosses it is open.
 - **What a rebuild reports.** A watching consumer needs to know which packs a rebuild changed before
   it can redeploy them; nothing here fixes how it learns that.
@@ -102,9 +112,11 @@ pack package does the same, with no build rule copied between the two.
 - **One package, two designs.** A discovery library a consumer imports to read a workspace begins
   carrying a bundler configuration it never calls. That is the price of the single distributable,
   and it surfaces in a dependency list rather than anywhere a reader of either design would look.
-- **The export has to fit a merge convention this design does not own.** A shallow-merged partial
-  config is the shape the fragment is built for, and the mechanism producing it sits outside this
-  spec. If that convention moves, the fragment's interface follows something it cannot see.
+- **The export has to fit a merge convention this design does not own.** Fragments are
+  shallow-merged, so a top-level key one sets replaces the base's wholesale — which means only one
+  fragment in a package can own `plugins` before they start clobbering each other. The mechanism
+  producing those files sits outside this spec, so if the convention moves, the export's interface
+  follows something it cannot see.
 - **Manifest completion is the kit's, but completed manifests land in this side's output tree.** The
   two halves of one package have to meet somewhere, and every option costs something — a build that
   calls the kit couples them, and one that does not duplicates completion.

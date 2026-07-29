@@ -12,8 +12,8 @@
 
 - id: build-is-an-exported-bundler-config
   statement: |
-    what this design produces is a tsdown configuration fragment, exported for a consuming package
-    to merge into its own config. It embeds no bundler and ships no command line of its own.
+    what this design produces is exported for a consuming package's bundler configuration to use —
+    not a command the package runs. It embeds no bundler and ships no command line of its own.
 
 - id: a-released-pack-is-an-archive-of-its-output-tree
   statement: |
@@ -22,8 +22,8 @@
 
 - id: the-exported-config-is-documented
   statement: |
-    the exported fragment carries documentation of what a consumer merges and what merging it
-    produces.
+    what this design exports carries documentation of how a consuming package uses it and what
+    using it produces.
 
 # What a build produces
 
