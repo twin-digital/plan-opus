@@ -42,8 +42,9 @@ becomes an upstream edge. This design specifies the library, not the rules.
 ## Done looks like
 
 This repository's checker, rebuilt on the library, reports exactly what it reports today for every
-design in the tree — the same passes and the same failures on the same fixtures. Nothing was
-silently dropped in the move.
+design in the tree. Because the tree is clean, parity on it alone cannot detect a dropped check, so
+the design also builds a negative corpus — one deliberately malformed input per check category —
+and both checkers must report the same failure on each. Nothing was silently dropped in the move.
 
 ## What the design must still decide
 

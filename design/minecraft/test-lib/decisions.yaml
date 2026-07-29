@@ -171,13 +171,14 @@
   falsifiers:
     - the engine is observed to throw on one of these reads, making undefined a fabricated answer
 
-- id: esm-only-typescript-package
+- id: test-lib-has-one-peer-dependency
   statement: |
-    the package publishes an ESM-only TypeScript build with no runtime dependencies and
-    `@minecraft/server` 2.8.0 as its single peer dependency
+    the package carries no runtime dependencies and `@minecraft/server` 2.8.0 as its single peer
+    dependency
   status: accepted
   falsifiers:
-    - a common pack toolchain cannot consume ESM-only, so consumers cannot install the library at all
+    - a fake's behaviour cannot be reproduced without pulling in a runtime dependency
+    - a consumer's toolchain resolves the peer to a version the fakes were not read from
 
 - id: registries-are-declared-and-throw
   statement: |

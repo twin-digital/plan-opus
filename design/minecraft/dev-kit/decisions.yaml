@@ -132,13 +132,6 @@
   falsifiers:
     - a consumer's watch loop calls `discoverPacks` often enough that repeated whole-workspace reads dominate its cost
 
-- id: the-library-is-esm-only
-  statement: |
-    the package ships ESM only, exporting one async entry point, `discoverPacks`
-  status: rejected
-  falsifiers:
-    - a consumer that can only `require()` its dependencies — a CommonJS tool or build step — has to read the pack set
-
 - id: the-workspace-option-is-required
   statement: |
     `DiscoverOptions.workspace` is required and has no default, so a consumer wanting the current
