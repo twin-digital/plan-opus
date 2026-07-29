@@ -111,6 +111,23 @@
     - the engine raises something on expiry that a later version's declarations expose, so silent
       removal misses an event a handler depends on
 
+- id: coverage-rows-carry-stable-ids
+  statement: |
+    every coverage row carries a kebab-case id naming its subject rather than its verdict, and that
+    id — not the row's prose — is what a consumer pins; a row keeps its id when its coverage
+    changes, a split or a removal retires the id rather than passing it to a successor, and nothing
+    mechanical enforces any of this, the checker having no coverage entry kind
+  status: proposed
+  falsifiers:
+    - a second design needs a coverage table of its own, at which point promoting coverage to a
+      validated entry kind the checker enforces is the right answer and per-design id discipline
+      was a stopgap
+    - ids drift from the subjects they name as rows are reworded, since nothing checks that a row
+      still describes what its id says, so a consumer pins a stable string to a moving subject —
+      the failure mode this shape trades for the reworded-prose one it fixes
+    - the package comes to be generated from the spec table, one repository to the other, making
+      the identity contract internal to a build step rather than something either side maintains
+
 - id: custom-effect-display-name-is-supplied
   statement: |
     a custom effect type's displayName reads back from the base name the test registered, and
