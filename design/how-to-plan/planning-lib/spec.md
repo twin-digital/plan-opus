@@ -446,7 +446,8 @@ the library could not read stops it [[d:read-and-parse-failures-throw]].
 The citation checks are where the format's intent rule becomes mechanical: a claim points at the
 foundation it rests on [[r:explicit-intent]], so every token must resolve to exactly one live entry
 of the named kind, a fact from anywhere, a requirement only within the citing design's three tiers,
-and a decision only within the design that made it [[f:citation-resolves-to-one-live-entry-within-its-fence]].
+and a decision only within the design that made it [[f:citation-resolves-to-one-entry-within-its-fence]]
+[[f:live-entry-excludes-retired-and-rejected]].
 What the library cannot check is whether a cited requirement is genuinely honoured, and it does not
 pretend to.
 
