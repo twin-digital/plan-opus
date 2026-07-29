@@ -328,3 +328,193 @@ of any surface they can strike — the fix that worked for the isolated no-healt
 [2026-07-29 00:06:05.479] [mctest] healthless complete — copy every [mctest] line into the design as the answer record
 ```
 
+
+---
+
+# `healthless` re-run (pack 0.2.0)
+
+The first run measured only two of its six types. Three were projectiles spawned at the source, which
+struck it or the ground within a tick and were already invalid before the kill; one was never
+summonable. Pack 0.2.0 fixes the probe and the set was re-run three times.
+
+## What changed in the probe
+
+| Change | Why |
+|---|---|
+| Subjects spawn `HEALTHLESS_SPAWN_HEIGHT` = 25 blocks above the source | These are projectiles. At the source they strike it or the ground within a tick, and a subject already gone cannot say whether `kill()` invalidates synchronously — its `isValid=false` reads as agreement while measuring nothing |
+| Settle shortened from 2 ticks to 1, then `isValid` re-checked before the kill | A subject that still dies in the gap is reported `SUBJECT-ALREADY-INVALID` and excluded rather than counted |
+| `getComponent('minecraft:health')` returning a component is now `HAS-HEALTH-COMPONENT` | A type with health is not a member of the set and should not be scored against the rule |
+| Unspawnable types report `NOT-SUMMONABLE` | `minecraft:ender_pearl` sets `is_summonable` false and never spawned; the first run's headline counted its empty result as a disagreement |
+| `SUMMARY HEADLINE` reports `observed=` and a separate `SUMMARY excluded=` line | The fact widens to observed types only; an unobserved type is not evidence either way |
+| `minecraft:ender_pearl` replaced with `small_fireball`, `llama_spit`, `shulker_bullet` | An attempt to widen coverage. **All three are also `NOT-SUMMONABLE`**, so they add nothing — they are reported and excluded rather than removed, since "this type cannot be spawned" is itself worth recording |
+
+## Result — the fact widens from one type to five
+
+Identical in 3/3 runs, and byte-identical once timestamps and entity ids are normalised:
+
+```
+SUMMARY HEADLINE candidates=8 observed=5
+  types=[minecraft:arrow, minecraft:snowball, minecraft:egg, minecraft:xp_orb, minecraft:xp_bottle]
+  disagreeing-with-arrow=0 cases=[]
+SUMMARY excluded=3 reasons={"minecraft:small_fireball":"NOT-SUMMONABLE",
+  "minecraft:llama_spit":"NOT-SUMMONABLE","minecraft:shulker_bullet":"NOT-SUMMONABLE"}
+```
+
+Every observed type reads `synchronous-isValid=[false,false,false]`, `observations=3`,
+`matches-arrow=true` — **45 observations across the three runs, no disagreement.** The three types
+the first run lost (`snowball`, `egg`, `xp_bottle`) now survive to their kill and behave exactly as
+the arrow does.
+
+`f:kill-no-health-behaviour` therefore widens **from one type to five**: `arrow`, `snowball`, `egg`,
+`xp_orb`, `xp_bottle`. The shipped rule stands for every type that could be observed.
+
+## What remains unobserved
+
+Four candidate types cannot be spawned via `dimension.spawnEntity` and so cannot be measured by this
+probe at all: `minecraft:ender_pearl`, `minecraft:small_fireball`, `minecraft:llama_spit`,
+`minecraft:shulker_bullet`. Each sets `is_summonable` false in its entity definition. Reaching them
+needs a different mechanism — firing a real projectile and capturing the resulting entity — not a
+larger candidate list, and the second attempt at widening by list is the evidence for that.
+
+The rule is therefore observed across five types and **assumed** for the health-less types that
+cannot be summoned. That is a narrower claim than "every health-less type", and the gap is a
+spawnability limit rather than a behavioural unknown.
+
+## Run-validity notes
+
+- **`n = 3` externally, 3 internal repeats per type**, so 9 observations per observed type and 45 in
+  total. All agree.
+- **No `SUBJECT-ALREADY-INVALID` or `HAS-HEALTH-COMPONENT` verdict appears in any run**, so the
+  spawn-height fix fully resolved the pre-invalidation that cost the first run three types.
+- Pack version bumped to 0.2.0 and mirrored in `world_behavior_packs.json` before the restart; the
+  boot stack confirms `version: 0.2.0`.
+- The `corpse` set is unchanged and was not re-run; its 72-observation result at pack 0.1.0 stands.
+
+## Raw logs — `mctest7:healthless` (pack 0.2.0)
+
+### healthless 0.2.0 run 1
+
+```
+[2026-07-29 00:16:58.506] [mctest] healthless start — 1 probe(s), @minecraft/server 2.8.0 expected
+[2026-07-29 00:16:58.506] [mctest] healthless-kill-invalidation :: 8 expected-health-less types × 3 repeats. health-component=undefined confirms the type belongs to the set; synchronous-isValid=false is the arrow behaviour the design generalized from
+[2026-07-29 00:16:58.809] [mctest] healthless-kill-invalidation :: [repeat=1] type=minecraft:arrow id=-133143986174 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:16:59.209] [mctest] healthless-kill-invalidation :: [repeat=1] type=minecraft:snowball id=-133143986173 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:16:59.609] [mctest] healthless-kill-invalidation :: [repeat=1] type=minecraft:egg id=-133143986172 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:17:00.004] [mctest] healthless-kill-invalidation :: [repeat=1] type=minecraft:xp_orb id=-133143986171 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:17:00.409] [mctest] healthless-kill-invalidation :: [repeat=1] type=minecraft:xp_bottle id=-133143986170 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:17:00.505] [mctest] healthless-kill-invalidation :: [repeat=1] type=minecraft:small_fireball SPAWN FAILED threw name=InvalidArgumentError ctor=InvalidArgumentError instanceofInvalidEntityError=false message="Invalid value passed to argument [0]. 'minecraft:small_fireball' is not summonable (is_summonable is set to false in the entity definition file)." verdict=NOT-SUMMONABLE — contributes no observation and is not a disagreement
+[2026-07-29 00:17:00.505] [mctest] healthless-kill-invalidation :: [repeat=1] type=minecraft:llama_spit SPAWN FAILED threw name=InvalidArgumentError ctor=InvalidArgumentError instanceofInvalidEntityError=false message="Invalid value passed to argument [0]. 'minecraft:llama_spit' is not summonable (is_summonable is set to false in the entity definition file)." verdict=NOT-SUMMONABLE — contributes no observation and is not a disagreement
+[2026-07-29 00:17:00.505] [mctest] healthless-kill-invalidation :: [repeat=1] type=minecraft:shulker_bullet SPAWN FAILED threw name=InvalidArgumentError ctor=InvalidArgumentError instanceofInvalidEntityError=false message="Invalid value passed to argument [0]. 'minecraft:shulker_bullet' is not summonable (is_summonable is set to false in the entity definition file)." verdict=NOT-SUMMONABLE — contributes no observation and is not a disagreement
+[2026-07-29 00:17:00.809] [mctest] healthless-kill-invalidation :: [repeat=2] type=minecraft:arrow id=-133143986169 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:17:01.205] [mctest] healthless-kill-invalidation :: [repeat=2] type=minecraft:snowball id=-133143986168 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:17:01.610] [mctest] healthless-kill-invalidation :: [repeat=2] type=minecraft:egg id=-133143986167 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:17:02.004] [mctest] healthless-kill-invalidation :: [repeat=2] type=minecraft:xp_orb id=-133143986166 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:17:02.410] [mctest] healthless-kill-invalidation :: [repeat=2] type=minecraft:xp_bottle id=-133143986165 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:17:02.505] [mctest] healthless-kill-invalidation :: [repeat=2] type=minecraft:small_fireball SPAWN FAILED threw name=InvalidArgumentError ctor=InvalidArgumentError instanceofInvalidEntityError=false message="Invalid value passed to argument [0]. 'minecraft:small_fireball' is not summonable (is_summonable is set to false in the entity definition file)." verdict=NOT-SUMMONABLE — contributes no observation and is not a disagreement
+[2026-07-29 00:17:02.505] [mctest] healthless-kill-invalidation :: [repeat=2] type=minecraft:llama_spit SPAWN FAILED threw name=InvalidArgumentError ctor=InvalidArgumentError instanceofInvalidEntityError=false message="Invalid value passed to argument [0]. 'minecraft:llama_spit' is not summonable (is_summonable is set to false in the entity definition file)." verdict=NOT-SUMMONABLE — contributes no observation and is not a disagreement
+[2026-07-29 00:17:02.505] [mctest] healthless-kill-invalidation :: [repeat=2] type=minecraft:shulker_bullet SPAWN FAILED threw name=InvalidArgumentError ctor=InvalidArgumentError instanceofInvalidEntityError=false message="Invalid value passed to argument [0]. 'minecraft:shulker_bullet' is not summonable (is_summonable is set to false in the entity definition file)." verdict=NOT-SUMMONABLE — contributes no observation and is not a disagreement
+[2026-07-29 00:17:02.810] [mctest] healthless-kill-invalidation :: [repeat=3] type=minecraft:arrow id=-133143986164 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:17:03.204] [mctest] healthless-kill-invalidation :: [repeat=3] type=minecraft:snowball id=-133143986163 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:17:03.609] [mctest] healthless-kill-invalidation :: [repeat=3] type=minecraft:egg id=-133143986162 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:17:04.005] [mctest] healthless-kill-invalidation :: [repeat=3] type=minecraft:xp_orb id=-133143986161 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:17:04.409] [mctest] healthless-kill-invalidation :: [repeat=3] type=minecraft:xp_bottle id=-133143986160 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:17:04.505] [mctest] healthless-kill-invalidation :: [repeat=3] type=minecraft:small_fireball SPAWN FAILED threw name=InvalidArgumentError ctor=InvalidArgumentError instanceofInvalidEntityError=false message="Invalid value passed to argument [0]. 'minecraft:small_fireball' is not summonable (is_summonable is set to false in the entity definition file)." verdict=NOT-SUMMONABLE — contributes no observation and is not a disagreement
+[2026-07-29 00:17:04.505] [mctest] healthless-kill-invalidation :: [repeat=3] type=minecraft:llama_spit SPAWN FAILED threw name=InvalidArgumentError ctor=InvalidArgumentError instanceofInvalidEntityError=false message="Invalid value passed to argument [0]. 'minecraft:llama_spit' is not summonable (is_summonable is set to false in the entity definition file)." verdict=NOT-SUMMONABLE — contributes no observation and is not a disagreement
+[2026-07-29 00:17:04.505] [mctest] healthless-kill-invalidation :: [repeat=3] type=minecraft:shulker_bullet SPAWN FAILED threw name=InvalidArgumentError ctor=InvalidArgumentError instanceofInvalidEntityError=false message="Invalid value passed to argument [0]. 'minecraft:shulker_bullet' is not summonable (is_summonable is set to false in the entity definition file)." verdict=NOT-SUMMONABLE — contributes no observation and is not a disagreement
+[2026-07-29 00:17:04.505] [mctest] healthless-kill-invalidation :: SUMMARY type=minecraft:arrow synchronous-isValid=[false,false,false] observations=3 matches-arrow=true
+[2026-07-29 00:17:04.505] [mctest] healthless-kill-invalidation :: SUMMARY type=minecraft:snowball synchronous-isValid=[false,false,false] observations=3 matches-arrow=true
+[2026-07-29 00:17:04.505] [mctest] healthless-kill-invalidation :: SUMMARY type=minecraft:egg synchronous-isValid=[false,false,false] observations=3 matches-arrow=true
+[2026-07-29 00:17:04.505] [mctest] healthless-kill-invalidation :: SUMMARY type=minecraft:xp_orb synchronous-isValid=[false,false,false] observations=3 matches-arrow=true
+[2026-07-29 00:17:04.505] [mctest] healthless-kill-invalidation :: SUMMARY type=minecraft:xp_bottle synchronous-isValid=[false,false,false] observations=3 matches-arrow=true
+[2026-07-29 00:17:04.505] [mctest] healthless-kill-invalidation :: SUMMARY type=minecraft:small_fireball synchronous-isValid=[] observations=0 verdict=NOT-SUMMONABLE — excluded from the headline, neither agreeing nor disagreeing
+[2026-07-29 00:17:04.505] [mctest] healthless-kill-invalidation :: SUMMARY type=minecraft:llama_spit synchronous-isValid=[] observations=0 verdict=NOT-SUMMONABLE — excluded from the headline, neither agreeing nor disagreeing
+[2026-07-29 00:17:04.505] [mctest] healthless-kill-invalidation :: SUMMARY type=minecraft:shulker_bullet synchronous-isValid=[] observations=0 verdict=NOT-SUMMONABLE — excluded from the headline, neither agreeing nor disagreeing
+[2026-07-29 00:17:04.505] [mctest] healthless-kill-invalidation :: SUMMARY HEADLINE candidates=8 observed=5 types=[minecraft:arrow, minecraft:snowball, minecraft:egg, minecraft:xp_orb, minecraft:xp_bottle] disagreeing-with-arrow=0 cases=[] — the fact widens to the observed types only; an unobserved type is not evidence either way
+[2026-07-29 00:17:04.505] [mctest] healthless-kill-invalidation :: SUMMARY excluded=3 reasons={"minecraft:small_fireball":"NOT-SUMMONABLE","minecraft:llama_spit":"NOT-SUMMONABLE","minecraft:shulker_bullet":"NOT-SUMMONABLE"} — these produced no usable case and are not counted as disagreements
+[2026-07-29 00:17:04.610] [mctest] healthless complete — copy every [mctest] line into the design as the answer record
+```
+
+### healthless 0.2.0 run 2
+
+```
+[2026-07-29 00:18:29.010] [mctest] healthless start — 1 probe(s), @minecraft/server 2.8.0 expected
+[2026-07-29 00:18:29.010] [mctest] healthless-kill-invalidation :: 8 expected-health-less types × 3 repeats. health-component=undefined confirms the type belongs to the set; synchronous-isValid=false is the arrow behaviour the design generalized from
+[2026-07-29 00:18:29.309] [mctest] healthless-kill-invalidation :: [repeat=1] type=minecraft:arrow id=-133143986158 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:18:29.705] [mctest] healthless-kill-invalidation :: [repeat=1] type=minecraft:snowball id=-133143986157 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:18:30.104] [mctest] healthless-kill-invalidation :: [repeat=1] type=minecraft:egg id=-133143986156 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:18:30.510] [mctest] healthless-kill-invalidation :: [repeat=1] type=minecraft:xp_orb id=-133143986155 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:18:30.910] [mctest] healthless-kill-invalidation :: [repeat=1] type=minecraft:xp_bottle id=-133143986154 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:18:31.010] [mctest] healthless-kill-invalidation :: [repeat=1] type=minecraft:small_fireball SPAWN FAILED threw name=InvalidArgumentError ctor=InvalidArgumentError instanceofInvalidEntityError=false message="Invalid value passed to argument [0]. 'minecraft:small_fireball' is not summonable (is_summonable is set to false in the entity definition file)." verdict=NOT-SUMMONABLE — contributes no observation and is not a disagreement
+[2026-07-29 00:18:31.010] [mctest] healthless-kill-invalidation :: [repeat=1] type=minecraft:llama_spit SPAWN FAILED threw name=InvalidArgumentError ctor=InvalidArgumentError instanceofInvalidEntityError=false message="Invalid value passed to argument [0]. 'minecraft:llama_spit' is not summonable (is_summonable is set to false in the entity definition file)." verdict=NOT-SUMMONABLE — contributes no observation and is not a disagreement
+[2026-07-29 00:18:31.010] [mctest] healthless-kill-invalidation :: [repeat=1] type=minecraft:shulker_bullet SPAWN FAILED threw name=InvalidArgumentError ctor=InvalidArgumentError instanceofInvalidEntityError=false message="Invalid value passed to argument [0]. 'minecraft:shulker_bullet' is not summonable (is_summonable is set to false in the entity definition file)." verdict=NOT-SUMMONABLE — contributes no observation and is not a disagreement
+[2026-07-29 00:18:31.310] [mctest] healthless-kill-invalidation :: [repeat=2] type=minecraft:arrow id=-133143986153 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:18:31.705] [mctest] healthless-kill-invalidation :: [repeat=2] type=minecraft:snowball id=-133143986152 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:18:32.104] [mctest] healthless-kill-invalidation :: [repeat=2] type=minecraft:egg id=-133143986151 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:18:32.510] [mctest] healthless-kill-invalidation :: [repeat=2] type=minecraft:xp_orb id=-133143986150 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:18:32.910] [mctest] healthless-kill-invalidation :: [repeat=2] type=minecraft:xp_bottle id=-133143986149 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:18:33.010] [mctest] healthless-kill-invalidation :: [repeat=2] type=minecraft:small_fireball SPAWN FAILED threw name=InvalidArgumentError ctor=InvalidArgumentError instanceofInvalidEntityError=false message="Invalid value passed to argument [0]. 'minecraft:small_fireball' is not summonable (is_summonable is set to false in the entity definition file)." verdict=NOT-SUMMONABLE — contributes no observation and is not a disagreement
+[2026-07-29 00:18:33.010] [mctest] healthless-kill-invalidation :: [repeat=2] type=minecraft:llama_spit SPAWN FAILED threw name=InvalidArgumentError ctor=InvalidArgumentError instanceofInvalidEntityError=false message="Invalid value passed to argument [0]. 'minecraft:llama_spit' is not summonable (is_summonable is set to false in the entity definition file)." verdict=NOT-SUMMONABLE — contributes no observation and is not a disagreement
+[2026-07-29 00:18:33.010] [mctest] healthless-kill-invalidation :: [repeat=2] type=minecraft:shulker_bullet SPAWN FAILED threw name=InvalidArgumentError ctor=InvalidArgumentError instanceofInvalidEntityError=false message="Invalid value passed to argument [0]. 'minecraft:shulker_bullet' is not summonable (is_summonable is set to false in the entity definition file)." verdict=NOT-SUMMONABLE — contributes no observation and is not a disagreement
+[2026-07-29 00:18:33.309] [mctest] healthless-kill-invalidation :: [repeat=3] type=minecraft:arrow id=-133143986148 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:18:33.705] [mctest] healthless-kill-invalidation :: [repeat=3] type=minecraft:snowball id=-133143986147 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:18:34.105] [mctest] healthless-kill-invalidation :: [repeat=3] type=minecraft:egg id=-133143986146 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:18:34.510] [mctest] healthless-kill-invalidation :: [repeat=3] type=minecraft:xp_orb id=-133143986145 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:18:34.910] [mctest] healthless-kill-invalidation :: [repeat=3] type=minecraft:xp_bottle id=-133143986144 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:18:35.010] [mctest] healthless-kill-invalidation :: [repeat=3] type=minecraft:small_fireball SPAWN FAILED threw name=InvalidArgumentError ctor=InvalidArgumentError instanceofInvalidEntityError=false message="Invalid value passed to argument [0]. 'minecraft:small_fireball' is not summonable (is_summonable is set to false in the entity definition file)." verdict=NOT-SUMMONABLE — contributes no observation and is not a disagreement
+[2026-07-29 00:18:35.010] [mctest] healthless-kill-invalidation :: [repeat=3] type=minecraft:llama_spit SPAWN FAILED threw name=InvalidArgumentError ctor=InvalidArgumentError instanceofInvalidEntityError=false message="Invalid value passed to argument [0]. 'minecraft:llama_spit' is not summonable (is_summonable is set to false in the entity definition file)." verdict=NOT-SUMMONABLE — contributes no observation and is not a disagreement
+[2026-07-29 00:18:35.010] [mctest] healthless-kill-invalidation :: [repeat=3] type=minecraft:shulker_bullet SPAWN FAILED threw name=InvalidArgumentError ctor=InvalidArgumentError instanceofInvalidEntityError=false message="Invalid value passed to argument [0]. 'minecraft:shulker_bullet' is not summonable (is_summonable is set to false in the entity definition file)." verdict=NOT-SUMMONABLE — contributes no observation and is not a disagreement
+[2026-07-29 00:18:35.010] [mctest] healthless-kill-invalidation :: SUMMARY type=minecraft:arrow synchronous-isValid=[false,false,false] observations=3 matches-arrow=true
+[2026-07-29 00:18:35.010] [mctest] healthless-kill-invalidation :: SUMMARY type=minecraft:snowball synchronous-isValid=[false,false,false] observations=3 matches-arrow=true
+[2026-07-29 00:18:35.010] [mctest] healthless-kill-invalidation :: SUMMARY type=minecraft:egg synchronous-isValid=[false,false,false] observations=3 matches-arrow=true
+[2026-07-29 00:18:35.010] [mctest] healthless-kill-invalidation :: SUMMARY type=minecraft:xp_orb synchronous-isValid=[false,false,false] observations=3 matches-arrow=true
+[2026-07-29 00:18:35.010] [mctest] healthless-kill-invalidation :: SUMMARY type=minecraft:xp_bottle synchronous-isValid=[false,false,false] observations=3 matches-arrow=true
+[2026-07-29 00:18:35.010] [mctest] healthless-kill-invalidation :: SUMMARY type=minecraft:small_fireball synchronous-isValid=[] observations=0 verdict=NOT-SUMMONABLE — excluded from the headline, neither agreeing nor disagreeing
+[2026-07-29 00:18:35.010] [mctest] healthless-kill-invalidation :: SUMMARY type=minecraft:llama_spit synchronous-isValid=[] observations=0 verdict=NOT-SUMMONABLE — excluded from the headline, neither agreeing nor disagreeing
+[2026-07-29 00:18:35.010] [mctest] healthless-kill-invalidation :: SUMMARY type=minecraft:shulker_bullet synchronous-isValid=[] observations=0 verdict=NOT-SUMMONABLE — excluded from the headline, neither agreeing nor disagreeing
+[2026-07-29 00:18:35.010] [mctest] healthless-kill-invalidation :: SUMMARY HEADLINE candidates=8 observed=5 types=[minecraft:arrow, minecraft:snowball, minecraft:egg, minecraft:xp_orb, minecraft:xp_bottle] disagreeing-with-arrow=0 cases=[] — the fact widens to the observed types only; an unobserved type is not evidence either way
+[2026-07-29 00:18:35.010] [mctest] healthless-kill-invalidation :: SUMMARY excluded=3 reasons={"minecraft:small_fireball":"NOT-SUMMONABLE","minecraft:llama_spit":"NOT-SUMMONABLE","minecraft:shulker_bullet":"NOT-SUMMONABLE"} — these produced no usable case and are not counted as disagreements
+[2026-07-29 00:18:35.105] [mctest] healthless complete — copy every [mctest] line into the design as the answer record
+```
+
+### healthless 0.2.0 run 3
+
+```
+[2026-07-29 00:19:59.406] [mctest] healthless start — 1 probe(s), @minecraft/server 2.8.0 expected
+[2026-07-29 00:19:59.406] [mctest] healthless-kill-invalidation :: 8 expected-health-less types × 3 repeats. health-component=undefined confirms the type belongs to the set; synchronous-isValid=false is the arrow behaviour the design generalized from
+[2026-07-29 00:19:59.710] [mctest] healthless-kill-invalidation :: [repeat=1] type=minecraft:arrow id=-133143986142 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:20:00.105] [mctest] healthless-kill-invalidation :: [repeat=1] type=minecraft:snowball id=-133143986141 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:20:00.510] [mctest] healthless-kill-invalidation :: [repeat=1] type=minecraft:egg id=-133143986140 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:20:00.905] [mctest] healthless-kill-invalidation :: [repeat=1] type=minecraft:xp_orb id=-133143986139 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:20:01.309] [mctest] healthless-kill-invalidation :: [repeat=1] type=minecraft:xp_bottle id=-133143986138 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:20:01.405] [mctest] healthless-kill-invalidation :: [repeat=1] type=minecraft:small_fireball SPAWN FAILED threw name=InvalidArgumentError ctor=InvalidArgumentError instanceofInvalidEntityError=false message="Invalid value passed to argument [0]. 'minecraft:small_fireball' is not summonable (is_summonable is set to false in the entity definition file)." verdict=NOT-SUMMONABLE — contributes no observation and is not a disagreement
+[2026-07-29 00:20:01.405] [mctest] healthless-kill-invalidation :: [repeat=1] type=minecraft:llama_spit SPAWN FAILED threw name=InvalidArgumentError ctor=InvalidArgumentError instanceofInvalidEntityError=false message="Invalid value passed to argument [0]. 'minecraft:llama_spit' is not summonable (is_summonable is set to false in the entity definition file)." verdict=NOT-SUMMONABLE — contributes no observation and is not a disagreement
+[2026-07-29 00:20:01.405] [mctest] healthless-kill-invalidation :: [repeat=1] type=minecraft:shulker_bullet SPAWN FAILED threw name=InvalidArgumentError ctor=InvalidArgumentError instanceofInvalidEntityError=false message="Invalid value passed to argument [0]. 'minecraft:shulker_bullet' is not summonable (is_summonable is set to false in the entity definition file)." verdict=NOT-SUMMONABLE — contributes no observation and is not a disagreement
+[2026-07-29 00:20:01.710] [mctest] healthless-kill-invalidation :: [repeat=2] type=minecraft:arrow id=-133143986137 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:20:02.105] [mctest] healthless-kill-invalidation :: [repeat=2] type=minecraft:snowball id=-133143986136 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:20:02.510] [mctest] healthless-kill-invalidation :: [repeat=2] type=minecraft:egg id=-133143986135 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:20:02.905] [mctest] healthless-kill-invalidation :: [repeat=2] type=minecraft:xp_orb id=-133143986134 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:20:03.309] [mctest] healthless-kill-invalidation :: [repeat=2] type=minecraft:xp_bottle id=-133143986133 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:20:03.405] [mctest] healthless-kill-invalidation :: [repeat=2] type=minecraft:small_fireball SPAWN FAILED threw name=InvalidArgumentError ctor=InvalidArgumentError instanceofInvalidEntityError=false message="Invalid value passed to argument [0]. 'minecraft:small_fireball' is not summonable (is_summonable is set to false in the entity definition file)." verdict=NOT-SUMMONABLE — contributes no observation and is not a disagreement
+[2026-07-29 00:20:03.405] [mctest] healthless-kill-invalidation :: [repeat=2] type=minecraft:llama_spit SPAWN FAILED threw name=InvalidArgumentError ctor=InvalidArgumentError instanceofInvalidEntityError=false message="Invalid value passed to argument [0]. 'minecraft:llama_spit' is not summonable (is_summonable is set to false in the entity definition file)." verdict=NOT-SUMMONABLE — contributes no observation and is not a disagreement
+[2026-07-29 00:20:03.405] [mctest] healthless-kill-invalidation :: [repeat=2] type=minecraft:shulker_bullet SPAWN FAILED threw name=InvalidArgumentError ctor=InvalidArgumentError instanceofInvalidEntityError=false message="Invalid value passed to argument [0]. 'minecraft:shulker_bullet' is not summonable (is_summonable is set to false in the entity definition file)." verdict=NOT-SUMMONABLE — contributes no observation and is not a disagreement
+[2026-07-29 00:20:03.710] [mctest] healthless-kill-invalidation :: [repeat=3] type=minecraft:arrow id=-133143986132 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:20:04.105] [mctest] healthless-kill-invalidation :: [repeat=3] type=minecraft:snowball id=-133143986131 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:20:04.510] [mctest] healthless-kill-invalidation :: [repeat=3] type=minecraft:egg id=-133143986130 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:20:04.905] [mctest] healthless-kill-invalidation :: [repeat=3] type=minecraft:xp_orb id=-133143986129 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:20:05.310] [mctest] healthless-kill-invalidation :: [repeat=3] type=minecraft:xp_bottle id=-133143986128 health-component=ok value=undefined kill ok value=boolean:true synchronous-isValid=false tick+1..5=[false,false,false,false,false]
+[2026-07-29 00:20:05.405] [mctest] healthless-kill-invalidation :: [repeat=3] type=minecraft:small_fireball SPAWN FAILED threw name=InvalidArgumentError ctor=InvalidArgumentError instanceofInvalidEntityError=false message="Invalid value passed to argument [0]. 'minecraft:small_fireball' is not summonable (is_summonable is set to false in the entity definition file)." verdict=NOT-SUMMONABLE — contributes no observation and is not a disagreement
+[2026-07-29 00:20:05.405] [mctest] healthless-kill-invalidation :: [repeat=3] type=minecraft:llama_spit SPAWN FAILED threw name=InvalidArgumentError ctor=InvalidArgumentError instanceofInvalidEntityError=false message="Invalid value passed to argument [0]. 'minecraft:llama_spit' is not summonable (is_summonable is set to false in the entity definition file)." verdict=NOT-SUMMONABLE — contributes no observation and is not a disagreement
+[2026-07-29 00:20:05.405] [mctest] healthless-kill-invalidation :: [repeat=3] type=minecraft:shulker_bullet SPAWN FAILED threw name=InvalidArgumentError ctor=InvalidArgumentError instanceofInvalidEntityError=false message="Invalid value passed to argument [0]. 'minecraft:shulker_bullet' is not summonable (is_summonable is set to false in the entity definition file)." verdict=NOT-SUMMONABLE — contributes no observation and is not a disagreement
+[2026-07-29 00:20:05.405] [mctest] healthless-kill-invalidation :: SUMMARY type=minecraft:arrow synchronous-isValid=[false,false,false] observations=3 matches-arrow=true
+[2026-07-29 00:20:05.405] [mctest] healthless-kill-invalidation :: SUMMARY type=minecraft:snowball synchronous-isValid=[false,false,false] observations=3 matches-arrow=true
+[2026-07-29 00:20:05.405] [mctest] healthless-kill-invalidation :: SUMMARY type=minecraft:egg synchronous-isValid=[false,false,false] observations=3 matches-arrow=true
+[2026-07-29 00:20:05.405] [mctest] healthless-kill-invalidation :: SUMMARY type=minecraft:xp_orb synchronous-isValid=[false,false,false] observations=3 matches-arrow=true
+[2026-07-29 00:20:05.405] [mctest] healthless-kill-invalidation :: SUMMARY type=minecraft:xp_bottle synchronous-isValid=[false,false,false] observations=3 matches-arrow=true
+[2026-07-29 00:20:05.405] [mctest] healthless-kill-invalidation :: SUMMARY type=minecraft:small_fireball synchronous-isValid=[] observations=0 verdict=NOT-SUMMONABLE — excluded from the headline, neither agreeing nor disagreeing
+[2026-07-29 00:20:05.405] [mctest] healthless-kill-invalidation :: SUMMARY type=minecraft:llama_spit synchronous-isValid=[] observations=0 verdict=NOT-SUMMONABLE — excluded from the headline, neither agreeing nor disagreeing
+[2026-07-29 00:20:05.405] [mctest] healthless-kill-invalidation :: SUMMARY type=minecraft:shulker_bullet synchronous-isValid=[] observations=0 verdict=NOT-SUMMONABLE — excluded from the headline, neither agreeing nor disagreeing
+[2026-07-29 00:20:05.405] [mctest] healthless-kill-invalidation :: SUMMARY HEADLINE candidates=8 observed=5 types=[minecraft:arrow, minecraft:snowball, minecraft:egg, minecraft:xp_orb, minecraft:xp_bottle] disagreeing-with-arrow=0 cases=[] — the fact widens to the observed types only; an unobserved type is not evidence either way
+[2026-07-29 00:20:05.405] [mctest] healthless-kill-invalidation :: SUMMARY excluded=3 reasons={"minecraft:small_fireball":"NOT-SUMMONABLE","minecraft:llama_spit":"NOT-SUMMONABLE","minecraft:shulker_bullet":"NOT-SUMMONABLE"} — these produced no usable case and are not counted as disagreements
+[2026-07-29 00:20:05.510] [mctest] healthless complete — copy every [mctest] line into the design as the answer record
+```
+

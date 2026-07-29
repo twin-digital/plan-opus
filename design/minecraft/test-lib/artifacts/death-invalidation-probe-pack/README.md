@@ -79,14 +79,29 @@ Read the `SUMMARY HEADLINE` line:
 
 ### `healthless` — `healthless-kill-invalidation`
 
-For each of six expected-health-less types: confirms `getComponent('minecraft:health')` is
-`undefined` (so the type really belongs to the set), calls `kill()`, reads `isValid` in the same
-statement sequence, and then samples five more ticks to catch a late flip.
+For each candidate health-less type: spawns it **well clear of any surface**, re-checks `isValid`,
+confirms `getComponent('minecraft:health')` is `undefined` (so the type really belongs to the set),
+calls `kill()`, reads `isValid` in the same statement sequence, and then samples five more ticks to
+catch a late flip.
 
-`SUMMARY HEADLINE` reports the types that disagreed with the arrow. An empty list widens
-`f:kill-no-health-behaviour` from one type to six and leaves the shipped rule standing. A non-empty
-one means the library is wrong for those types, and the rule needs splitting further or narrowing to
-what was actually observed.
+Subjects spawn `HEALTHLESS_SPAWN_HEIGHT` blocks above the source because these are projectiles.
+Spawned at the source they strike it or the ground within a tick, and a subject that is already gone
+cannot say whether `kill()` invalidates synchronously — its `isValid=false` would read as agreement
+with the arrow while measuring nothing. The first run of this pack lost three of six types that way.
+
+Three outcomes carry no evidence and are excluded from the headline rather than counted:
+
+| Verdict | Meaning |
+|---|---|
+| `NOT-SUMMONABLE` | the type will not spawn at all — `minecraft:ender_pearl` sets `is_summonable` false |
+| `SUBJECT-ALREADY-INVALID` | removed between spawn and kill, so the kill measures nothing |
+| `HAS-HEALTH-COMPONENT` | the type has health and is not a member of the set |
+
+`SUMMARY HEADLINE` reports `observed=` (the types that produced a usable case) alongside
+`disagreeing-with-arrow=`. **The fact widens to the observed types only** — an unobserved type is not
+evidence either way, and a `SUMMARY excluded=` line names each one and why. A non-empty disagreement
+list means the library is wrong for those types, and the rule needs splitting further or narrowing
+to what was actually observed.
 
 ## After running
 

@@ -29,14 +29,29 @@ const MOBS = [
 ]
 
 /** Types expected to carry no health component — the set the arrow observation is generalized to. */
+// Candidates, not a settled set: a type that will not summon is reported and excluded rather than
+// counted. `minecraft:ender_pearl` was in this list and never spawned — its entity definition sets
+// is_summonable false — so it is replaced by types that do summon.
 const HEALTHLESS = [
   'minecraft:arrow',
   'minecraft:snowball',
   'minecraft:egg',
-  'minecraft:ender_pearl',
   'minecraft:xp_orb',
   'minecraft:xp_bottle',
+  'minecraft:small_fireball',
+  'minecraft:llama_spit',
+  'minecraft:shulker_bullet',
 ]
+
+/**
+ * Height above the source to spawn a health-less subject.
+ *
+ * These are projectiles. Spawned at the source they strike the source entity or the ground within a
+ * tick, so the pre-check finds them already invalid and the kill measures nothing — three of the six
+ * types read that way on the first run. Well clear of any surface they stay alive long enough to be
+ * killed deliberately.
+ */
+const HEALTHLESS_SPAWN_HEIGHT = 25
 
 /** How many ticks past the kill to sample, and how many times to repeat the whole sweep. */
 const SAMPLE_TICKS = 60
@@ -215,19 +230,53 @@ const healthlessProbes = {
     )
 
     const byType = new Map(HEALTHLESS.map((typeId) => [typeId, []]))
+    // Why a type produced no observation, so the headline can tell "unobservable" from "disagrees".
+    const unusable = new Map()
+    const noteUnusable = (typeId, reason) => {
+      if (!unusable.has(typeId)) unusable.set(typeId, reason)
+    }
 
     for (let repeat = 1; repeat <= REPEATS; repeat += 1) {
       for (const [index, typeId] of HEALTHLESS.entries()) {
-        const spawn = attempt(() => ctx.spawn(typeId, offsetFor(index)))
+        const offset = { ...offsetFor(index), y: HEALTHLESS_SPAWN_HEIGHT }
+        const spawn = attempt(() => ctx.spawn(typeId, offset))
         if (!spawn.ok) {
-          emit(`healthless-kill-invalidation :: [repeat=${repeat}] type=${typeId} SPAWN FAILED ${show(spawn)}`)
+          noteUnusable(typeId, 'NOT-SUMMONABLE')
+          emit(
+            `healthless-kill-invalidation :: [repeat=${repeat}] type=${typeId} SPAWN FAILED ${show(spawn)} ` +
+              'verdict=NOT-SUMMONABLE — contributes no observation and is not a disagreement',
+          )
           continue
         }
         const entity = spawn.value
         const id = entity.id
-        await tick(2)
+        await tick(1)
+
+        // Re-checked before the kill: a subject already gone cannot say whether kill() invalidates
+        // synchronously, and its isValid=false would otherwise read as agreement with the arrow.
+        if (readsValid(entity) !== true) {
+          noteUnusable(typeId, 'SUBJECT-ALREADY-INVALID')
+          emit(
+            `healthless-kill-invalidation :: [repeat=${repeat}] type=${typeId} id=${id} ` +
+              'verdict=SUBJECT-ALREADY-INVALID — removed before the kill, so this case measures nothing',
+          )
+          ctx.dispose()
+          await tick(2)
+          continue
+        }
 
         const health = attempt(() => entity.getComponent('minecraft:health'))
+        // The set is "types with no health component"; one that has it does not belong here.
+        if (health.ok && health.value !== undefined) {
+          noteUnusable(typeId, 'HAS-HEALTH-COMPONENT')
+          emit(
+            `healthless-kill-invalidation :: [repeat=${repeat}] type=${typeId} id=${id} ` +
+              `health-component=${show(health)} verdict=HAS-HEALTH-COMPONENT — not a member of the set`,
+          )
+          ctx.dispose()
+          await tick(2)
+          continue
+        }
         const killReturn = attempt(() => entity.kill())
         const synchronous = readsValid(entity)
 
@@ -250,19 +299,37 @@ const healthlessProbes = {
     }
 
     const disagreeing = []
+    const observed = []
     for (const [typeId, results] of byType) {
-      const allFalse = results.length > 0 && results.every((value) => value === false)
+      if (results.length === 0) {
+        emit(
+          `healthless-kill-invalidation :: SUMMARY type=${typeId} synchronous-isValid=[] observations=0 ` +
+            `verdict=${unusable.get(typeId) ?? 'NO-OBSERVATION'} — excluded from the headline, neither ` +
+            'agreeing nor disagreeing',
+        )
+        continue
+      }
+      const allFalse = results.every((value) => value === false)
+      observed.push(typeId)
       if (!allFalse) disagreeing.push(`${typeId}=${json(results)}`)
       emit(
         `healthless-kill-invalidation :: SUMMARY type=${typeId} synchronous-isValid=${json(results)} ` +
-          `matches-arrow=${allFalse}`,
+          `observations=${results.length} matches-arrow=${allFalse}`,
       )
     }
     emit(
-      `healthless-kill-invalidation :: SUMMARY HEADLINE types=${byType.size} ` +
-        `disagreeing-with-arrow=${disagreeing.length} cases=${json(disagreeing)} — an empty list means the ` +
-        'synchronous invalidation generalizes and the design may keep one rule for every health-less type',
+      `healthless-kill-invalidation :: SUMMARY HEADLINE candidates=${byType.size} ` +
+        `observed=${observed.length} types=[${observed.join(', ')}] ` +
+        `disagreeing-with-arrow=${disagreeing.length} cases=${json(disagreeing)} — the fact widens to the ` +
+        'observed types only; an unobserved type is not evidence either way',
     )
+    if (unusable.size > 0) {
+      emit(
+        `healthless-kill-invalidation :: SUMMARY excluded=${unusable.size} reasons=${json(
+          Object.fromEntries(unusable),
+        )} — these produced no usable case and are not counted as disagreements`,
+      )
+    }
   },
 }
 
