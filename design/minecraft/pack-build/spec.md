@@ -77,12 +77,19 @@ exactly these keys:
 - `sourcemap` — `false`
 - `minify` — `false`
 - `format` — `['esm']`
-- `noExternal` — `() => false`, so no import is forced into the bundle and the plugin's
-  `resolveId` decides what stays external. The shared base sets `noExternal: () => true`, which
-  forces every import bundled and which a fragment that stays silent inherits, so the key is set
-  here even though its value is the inert one [[f:opus-bundler-base-forces-every-import-bundled]]
-  [[r:script-module-is-bundled-with-game-modules-external]]
 - `plugins` — a single Rolldown plugin named `mc-pack-build`, which performs everything below
+
+`noExternal` is deliberately absent from that list, so the fragment inherits the shared base's
+`noExternal: () => true` [[f:opus-bundler-base-forces-every-import-bundled]]. That is what makes
+the external set this design's own rather than an upstream default's: tsdown otherwise leaves an
+import of a package in the building package's `dependencies` external, and a `noExternal` matching
+nothing restores that default rather than switching externalisation off
+[[f:tsdown-externalises-a-packages-declared-dependencies-by-default]]. Under `() => true` every
+import is forced into the bundle except the ones the plugin's `resolveId` returns as external,
+which stay external [[f:a-plugin-resolveid-external-return-wins-over-noexternal]]. The external set
+is then exactly what that hook returns, and a pack package listing `@minecraft/vanilla-data` in its
+`dependencies` gets it bundled rather than left as a bare import a server cannot resolve
+[[r:script-module-is-bundled-with-game-modules-external]].
 
 The behaviour lives in that plugin because tsdown is built on Rolldown and takes Rolldown plugins
 through the `plugins` array of the configuration, never from a command line
@@ -104,13 +111,15 @@ symbol to hang TSDoc on, so the README section is the whole of its documentation
 
 At `buildStart` the plugin reads `<package>/package.json` for the package's name, walks up from the
 package directory to the nearest ancestor holding a `pnpm-workspace.yaml`, or a `package.json` with
-a `workspaces` field, and calls the kit's `discoverPacks({ workspace: <that ancestor>, filter: {
-package: <the package's name> } })` [[d:the-workspace-root-is-found-by-walking-up]]. The criterion
-key is `package` and its value is the npm package name; a filter naming a key the kit does not
-recognise is no filter at all, and the call comes back with every pack in the workspace
-[[f:dev-kit-pack-search-narrows-by-the-owning-package-name]]. What comes back is the pack set: one
-entry per pack of this package, each carrying the pack's kind, its source location, its build output
-location, and the full content of its manifest with the fields completion populates
+a `workspaces` field, and calls the kit's `discoverPacks({ workspace: <that ancestor> })`
+[[d:the-workspace-root-is-found-by-walking-up]]. The call passes no filter, so what comes back is
+every pack in the workspace [[f:dev-kit-discovery-returns-the-whole-workspace-set-unfiltered]]; the
+plugin selects this package's packs from it in memory, by the owning package name each entry
+carries. One unfiltered call rather than a filtered one because the build needs the rest of the set
+too — it is what maps a manifest's dependency uuids to the packages whose versions complete them
+(below), and reading the workspace twice per rebuild is a cost felt in a watch loop
+[[d:the-build-reads-the-kit-pack-set]]. Each entry carries the pack's kind, its source location, its
+build output location, and the full content of its manifest with the fields completion populates
 [[f:dev-kit-pack-set-entry-names-package-kind-source-and-identity]]. The build reads its packs from
 there rather than from the source manifests at `behavior_pack/manifest.json` and
 `resource_pack/manifest.json` itself [[f:pack-sources-sit-at-fixed-kind-named-directories]]
@@ -129,12 +138,13 @@ output location is `<package>/dist/<kind>/`, where `<kind>` is `behavior_pack` o
 the kit computes that location and writes nothing there, so this design is the only writer of the
 output tree [[f:dev-kit-reports-a-fixed-kind-named-output-location-and-writes-none]].
 
-A pack the kit marks invalid fails the build: the plugin throws, printing that pack's source
+A pack *of this package* the kit marks invalid fails the build — an invalid pack elsewhere in the
+workspace is none of this build's business: the plugin throws, printing that pack's source
 directory and kind and its structured problems, and builds neither that pack nor its sibling
 [[d:an-invalid-pack-fails-the-build]]. The pack is named by its source directory and kind rather
 than by its manifest name, because a pack whose manifest could not be read has no name to print and
 those two are on every entry the kit returns, valid or not
-[[f:dev-kit-pack-entry-paths-are-workspace-relative]]. A package for which the set is empty fails
+[[f:dev-kit-pack-entry-paths-are-workspace-relative]]. A package whose selection is empty fails
 the same way, naming the package directory that was searched
 [[d:a-package-with-no-pack-fails-the-build]].
 
@@ -224,8 +234,8 @@ on each of [[r:rebuild-triggers-are-declared-not-inferred]]:
   depend on. A dependency entry's version is completed from that package's own `package.json`
   [[f:dev-kit-completes-a-workspace-dependency-version-from-the-owning-package]], so the completed
   manifest this build writes changes when that file does, and a build that reads it is a build it
-  triggers. The plugin finds those packages with a second, unfiltered `discoverPacks` call, whose
-  entries map each dependency uuid to the package directory that owns it
+  triggers. The workspace set already read at `buildStart` is what maps each dependency uuid to the
+  package directory that owns it
 
 A change to any of them triggers the rebuild, which re-reads the pack set and re-runs everything
 above.

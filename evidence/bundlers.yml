@@ -1,0 +1,19 @@
+# Runs backing facts about the bundler toolchain — tsdown and the Rolldown plugin API beneath it.
+#
+# A run records one execution and the output it captured. It makes no claim: the output says what
+# happened, the fact that cites it says what that means.
+
+- id: tsdown-externals-probe
+  command: NO_COLOR=1 node design/minecraft/pack-build/artifacts/tsdown-externals-probe/probe.mjs
+  output: design/minecraft/pack-build/artifacts/tsdown-externals-probe/OUTPUT.txt
+  ran_at: 2026-07-29
+  environment: |
+    tsdown 0.22.14 on node v24.16.0, with tsdown resolvable from the working directory
+    (`npm i -D tsdown@0.22.14`). The probe synthesises its own fixture in a temp directory: a
+    package declaring `dep-a` and `dep-b` as runtime `dependencies`, a `node_modules` holding both
+    as ESM packages, and a `src/main.ts` importing each. Every case builds that one entry with
+    `format: ['esm']`; they differ only in the `noExternal` value and whether a plugin whose
+    `resolveId` returns `{ id, external: true }` for `dep-a` is present. What tsdown externalises
+    by default depends on the package's declared dependencies, so the fixture's `dependencies`
+    field is the state the reading turns on. tsdown warns that `noExternal` is deprecated in favour
+    of `deps.alwaysBundle` at this version; the key still takes effect.

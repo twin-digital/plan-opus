@@ -23,6 +23,37 @@
         To use plugins in `tsdown`, you need to add them to the `plugins` array in your configuration
         file. Plugins **cannot** be added via the CLI.
 
+- id: tsdown-externalises-a-packages-declared-dependencies-by-default
+  claim: |
+    tsdown leaves an import of a package listed in the building package's `dependencies` external
+    by default: the output carries the bare specifier rather than the package's code. Setting
+    `noExternal` to a predicate that matches nothing does not switch externalisation off — it drops
+    the override and restores that default, so the import stays external. Only a `noExternal` that
+    matches forces such an import into the bundle.
+  backing: tested
+  sources:
+    - run: tsdown-externals-probe
+      where: the results — the same fixture built with no `noExternal` and with one matching nothing
+      quote: |
+        noExternal unset, no plugin: dep-a=EXTERNAL dep-b=EXTERNAL
+        noExternal () => true, no plugin: dep-a=BUNDLED dep-b=BUNDLED
+        noExternal () => false, no plugin: dep-a=EXTERNAL dep-b=EXTERNAL
+
+- id: a-plugin-resolveid-external-return-wins-over-noexternal
+  claim: |
+    A specifier a plugin's `resolveId` returns as `{ external: true }` is left external even under
+    `noExternal: () => true`, which would otherwise force every import into the bundle. Imports the
+    plugin does not claim still follow the `noExternal` setting. A plugin can therefore own the
+    external set outright: with `noExternal` forcing everything else bundled, exactly what the
+    plugin returns as external stays external, and no upstream default is consulted.
+  backing: tested
+  sources:
+    - run: tsdown-externals-probe
+      where: the results — the plugin case under each `noExternal` setting
+      quote: |
+        noExternal () => true, plugin externalises dep-a: dep-a=EXTERNAL dep-b=BUNDLED
+        noExternal () => false, plugin externalises dep-a: dep-a=EXTERNAL dep-b=EXTERNAL
+
 - id: a-rolldown-plugin-can-declare-extra-watch-inputs
   claim: |
     A Rolldown plugin's context carries `addWatchFile(id)`, which registers a path the bundler

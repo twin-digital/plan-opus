@@ -67,6 +67,7 @@
   falsifiers:
     - the game provides a module at runtime that a manifest dependency entry cannot name
     - a module the game provides starts shipping importable JavaScript, so resolution stops separating it from a bundlable package
+    - the shared base stops forcing every import into the bundle, so a package's declared dependencies are externalised by default again and the plugin no longer owns the whole external set
 
 - id: the-plugin-places-every-output-file-itself
   statement: |

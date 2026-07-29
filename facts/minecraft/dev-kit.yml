@@ -13,14 +13,13 @@
       quote: |
         the name of the npm package containing the dev-kit library is `@twin-digital/mc-dev-kit`
 
-- id: dev-kit-pack-search-narrows-by-the-owning-package-name
+- id: dev-kit-discovery-returns-the-whole-workspace-set-unfiltered
   claim: |
-    A discovery call narrows its result with a `filter` taking four criteria — the owning npm
-    package name, the pack name, the pack uuid, and the entry status — each matched exactly and all
-    of them conjunctively, and an unconstrained criterion narrows nothing. The criterion naming the
-    owning package is the key `package`, whose value is that package's name; a call meaning to
-    select one package's packs passes `{ package: <name> }`, and a filter naming no criterion the
-    kit recognises returns every pack in the workspace.
+    A discovery call passing no filter returns every pack in the workspace, as one flat list. A
+    filter narrows that list by the owning npm package name, the pack name, the pack uuid, or the
+    entry status, matched exactly and conjunctively. So a consumer needing both its own package's
+    packs and the workspace's other packs reads the set once unfiltered and selects within it,
+    rather than calling twice.
   backing: documented
   sources:
     - url: design/minecraft/dev-kit/requirements.yaml
@@ -38,10 +37,9 @@
         satisfies all of them. No filter is applied by default: a search that does not constrain status
         returns every pack regardless of status.
     - url: design/minecraft/dev-kit/spec.md
-      where: Filtering — the `PackCriteria` interface, whose package criterion is `package`
+      where: the returned array — what a call passing no filter yields
       quote: |
-        interface PackCriteria {
-          package?: string          // the owning package's name, e.g. '@scope/mc-pack-1'
+        a call passing no `filter` returns the whole of it.
 
 - id: dev-kit-completes-a-workspace-dependency-version-from-the-owning-package
   claim: |
