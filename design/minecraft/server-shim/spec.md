@@ -181,10 +181,8 @@ constructed. A value branded with a different class name answers false, which is
 The brand is a protocol, not a dependency. `Symbol.for` reads from the global registry, so anything
 that fakes the engine — `@twin-digital/minecraft-test-lib` or a consumer's own double — can satisfy
 the shim's `instanceof` by setting that property, with no import of the shim and no import of the
-library by the shim [[d:shim-cooperates-through-a-registered-brand-symbol]]. The library commits, as
-its own fiat, to not intercepting the module import, so it is not the thing that makes this work
-[[f:test-lib-does-not-intercept-the-module-import]]; the shim's job is to be usable by it without
-being tied to it. For a fake that carries no brand at all, the shim's control entry exports
+library by the shim [[d:shim-cooperates-through-a-registered-brand-symbol]]. For a fake that carries
+no brand at all, the shim's control entry exports
 `brandAs(value, ...classNames)`, which returns the value, so a test can brand its own doubles in one
 call and satisfy the requirement without any change to the library.
 
@@ -290,6 +288,35 @@ alias `@minecraft/server` to the shim's resolved entry *file* — the shape one 
 uses — pairs it with a `paths` entry in a `tsconfig.test.json` pointing `@minecraft/server` at that
 file's declarations, and gets the same single instance. The README leads with the bare-specifier recipe
 and documents the file-plus-`paths` shape beside it.
+
+## The boundary with the test library
+
+The shim needs no change to `@twin-digital/minecraft-test-lib` and imports nothing from it, so no part
+of the build waits on the library. Three consequences a builder acts on.
+
+The enum values are the shim's to generate and it does not ask the library for them
+[[d:values-are-generated-and-committed]]. If the library later ships enums of its own, nothing
+collides: both derive from the same pinned 2.8.0 declarations, so a test importing `GameMode` from the
+library and a pack importing it from the aliased module hold the same literal strings.
+
+`instanceof` needs no predicate export from the library. The registered brand symbol is the whole
+protocol and `brandAs` is the fallback for an unbranded fake
+[[d:shim-cooperates-through-a-registered-brand-symbol]], so the shim never calls an `isPlayer` or
+`isEntity` and must not be built against one.
+
+The install documentation lives here. The shim's README is the sole normative install document — the
+alias entry, the load-order contract, the `2.8.0` version statement, and the runner recipes — and the
+shim asks nothing of any fake library's documentation and does not depend on one mentioning it
+[[d:install-documentation-lives-with-the-shim]]. What that leaves open is a consumer who arrives at
+the library first: the failure they meet is the unresolved import, before any shim code exists to
+improve the message [[f:server-import-fails-without-an-alias]], and nothing this design ships puts a
+pointer in their path.
+
+None of this reaches the library's own fiat that it substitutes objects and does not intercept the
+module import [[f:test-lib-does-not-intercept-the-module-import]]. The interception is the consumer's
+runner configuration and the shim is the material they configure it with: the shim registers no setup
+file with the library, the library holds no code path into the shim, and the two packages can be built
+and released without either knowing the other exists.
 
 ## Module format and reach
 

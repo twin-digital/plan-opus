@@ -233,3 +233,16 @@
   falsifiers:
     - a consumer needs to re-brand a pooled fake as a different class between tests, so the union
       leaves it answering instanceof for a class it is no longer standing in for
+
+- id: install-documentation-lives-with-the-shim
+  statement: |
+    the shim's own README is the sole normative install document — alias entry, load-order contract,
+    version statement and runner recipes — and the shim asks nothing of any fake library's
+    documentation
+  status: proposed
+  falsifiers:
+    - consumers routinely arrive through the test library, hit the unresolved-import failure, and
+      report it against the library, so the shim's README is documentation nobody reaches until
+      after the failure they needed it to prevent
+    - a fake library documents an install recipe for the shim of its own and the two drift, so a
+      consumer copies an entry wrong for the version they have
