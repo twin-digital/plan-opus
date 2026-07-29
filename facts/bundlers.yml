@@ -1,0 +1,34 @@
+# The bundler toolchain itself — tsdown and the Rolldown plugin API beneath it. Reality any design
+# that ships bundler configuration has to fit.
+
+- id: tsdown-takes-rolldown-plugins-through-its-config
+  claim: |
+    tsdown is built on Rolldown and accepts every Rolldown plugin, as well as most Rollup and
+    Unplugin plugins. A plugin is supplied through the `plugins` array of the configuration file and
+    cannot be supplied on the command line, so behaviour a design wants a tsdown build to perform
+    travels as a plugin inside the configuration rather than as an invocation.
+  backing: documented
+  sources:
+    - url: https://tsdown.dev/advanced/plugins
+      where: Rolldown Plugins — what tsdown accepts
+      quote: |
+        Since `tsdown` is built on Rolldown, it supports all Rolldown plugins.
+    - url: https://tsdown.dev/advanced/plugins
+      where: Using Plugins — where a plugin is declared
+      quote: |
+        To use plugins in `tsdown`, you need to add them to the `plugins` array in your configuration
+        file. Plugins **cannot** be added via the CLI.
+
+- id: a-rolldown-plugin-can-declare-extra-watch-inputs
+  claim: |
+    A Rolldown plugin's context carries `addWatchFile(id)`, which registers a file or directory the
+    bundler watches so a change to it triggers a rebuild. A file no module graph reaches — an asset,
+    a manifest, a `package.json` — can therefore be made a rebuild trigger by the plugin that reads
+    it, which nothing outside a plugin can do.
+  backing: documented
+  sources:
+    - url: https://rolldown.rs/reference/Interface.PluginContext
+      where: addWatchFile — the method's description
+      quote: |
+        Adds additional files to be monitored in watch mode so that changes to these files will
+        trigger rebuilds.

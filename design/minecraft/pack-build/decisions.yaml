@@ -1,0 +1,215 @@
+# Decisions scoped to the minecraft/pack-build design.
+# `accepted` entries are the owner's ruling on the defaults gate; everything else is `proposed` and
+# awaits review.
+
+# The shape of the export
+
+- id: the-export-is-a-fragment-carrying-a-rolldown-plugin
+  statement: |
+    the build half exports one function returning a tsdown config fragment whose `plugins` array
+    holds a single Rolldown plugin that performs the whole build
+  status: proposed
+  falsifiers:
+    - a second fragment in a pack package needs to own `plugins`, so the shallow merge drops one of the two
+    - the behaviour the plugin performs is found to need a hook Rolldown does not expose to a plugin
+
+- id: the-consumer-hands-over-its-config-file-url
+  statement: |
+    the exported function takes one required option, `packageUrl`, the `import.meta.url` of the
+    fragment that calls it, and derives the package directory from it
+  status: proposed
+  falsifiers:
+    - the monorepo's generated fragment cannot pass `import.meta.url`, or is emitted somewhere other than the package directory
+    - a consumer needs to build a package other than the one its config file sits in
+
+- id: the-build-reads-the-kit-pack-set
+  statement: |
+    the build calls the dev kit at build time and takes the packs of its own package from the pack
+    set, rather than reading the package's source manifests itself
+  status: proposed
+  falsifiers:
+    - a workspace-wide discovery call costs enough per rebuild to be felt in a watch loop
+    - the kit's discovery needs an install or a network the build cannot assume
+
+- id: the-workspace-root-is-found-by-walking-up
+  statement: |
+    the workspace root handed to the kit is the nearest ancestor of the package directory holding a
+    `pnpm-workspace.yaml` or a `package.json` with a `workspaces` field
+  status: proposed
+  falsifiers:
+    - a workspace defines its members somewhere neither marker names
+    - a nested workspace makes the nearest such ancestor the wrong root
+
+- id: script-sources-live-in-the-packs-scripts-directory
+  statement: |
+    a behavior pack's script sources sit under `behavior_pack/scripts/`, with `main.ts` the bundle
+    entry, and nothing under that directory is copied into the output tree
+  status: proposed
+  falsifiers:
+    - a pack needs script sources shared between its own two packs, or held outside the pack directory
+    - the monorepo's generated TypeScript configuration compiles only a package's `src/`, leaving pack scripts untyped
+
+- id: the-bundle-lands-at-the-manifest-declared-entry
+  statement: |
+    the bundle is written to the path the behavior pack's script module declares in its manifest
+    `entry`, resolved within that pack's output directory
+  status: proposed
+  falsifiers:
+    - a pack needs a built bundle at a path its manifest does not name
+    - the completed manifest reaching the build carries no script module for a pack that has script sources
+
+- id: externals-come-from-the-manifests-module-dependencies
+  statement: |
+    the external set is exactly the `module_name` dependencies the pack's completed manifest
+    declares, and an import resolving to an undeclared `@minecraft/`-scoped package fails the build
+  status: proposed
+  falsifiers:
+    - the game provides a module at runtime that a manifest dependency entry cannot name
+    - a pack legitimately bundles a package under the `@minecraft/` scope
+
+- id: the-plugin-places-every-output-file-itself
+  statement: |
+    the plugin removes every chunk from the bundle in `generateBundle` and writes the bundle,
+    the assets and the manifests itself, so nothing reaches the output tree by the bundler's own
+    emit
+  status: proposed
+  falsifiers:
+    - Rolldown writes chunks a plugin deleted from the bundle object, so the bundler's emit lands in the output tree anyway
+    - a consumer needs a bundler feature that only works through the bundler's own write path
+
+- id: a-script-less-package-builds-through-a-virtual-entry
+  statement: |
+    a package whose behavior pack has no script sources builds with a virtual entry module the
+    plugin resolves and loads, rather than with an empty entry list or a stub file on disk
+  status: proposed
+  falsifiers:
+    - tsdown rejects a configuration whose only entry is a plugin-resolved virtual module
+    - a real package with no script module never builds through this export at all
+
+- id: a-rebuild-emits-no-report
+  statement: |
+    a build writes no record of which packs it changed; a watching consumer reads the output tree
+  status: proposed
+  falsifiers:
+    - a consumer cannot tell from the output tree which packs a rebuild touched, and redeploys everything as a result
+    - the dev server needs to distinguish a manifest change from a script change to choose between a reload and a restart
+
+- id: the-archive-is-a-single-mcaddon-per-package
+  statement: |
+    a package is cut into one `.mcaddon` holding one `.mcpack` per pack in its output tree, whatever
+    the number of packs
+  status: proposed
+  falsifiers:
+    - a client refuses, or mishandles, an `.mcaddon` holding a single pack
+    - a consumer needs the packs of one package installable separately
+
+- id: the-archive-ships-as-a-bin-command
+  statement: |
+    the archive half is a command, `mc-pack-archive`, that the kit package declares in its `bin`
+  status: proposed
+  falsifiers:
+    - a release hook needs to build the archive in-process, or to name a path the command does not accept
+    - the kit package cannot declare a `bin` without changing how it is consumed elsewhere
+
+# The defaults gate — ruled on by the owner
+
+- id: assets-copy-verbatim-except-the-manifest-and-scripts
+  statement: |
+    every file under a pack's source directory reaches the output unchanged except its
+    `manifest.json` and everything under `scripts/`; dotfiles and unknown extensions copy like the
+    rest
+  status: accepted
+  falsifiers:
+    - a pack file needs transforming on its way into the output tree
+    - a source file under the pack directory must not ship, so an exclusion list becomes necessary
+
+- id: empty-source-directories-produce-no-output-directory
+  statement: a source directory holding no files creates no directory in the output tree
+  status: accepted
+  falsifiers:
+    - a pack needs an empty directory present in the output for the game to load it
+
+- id: the-completed-manifest-is-two-space-json
+  statement: |
+    a completed `manifest.json` is written as JSON with two-space indentation and a trailing newline
+  status: accepted
+  falsifiers:
+    - a downstream consumer diffs manifests against a differently formatted original
+
+- id: output-files-are-written-only-when-their-bytes-change
+  statement: |
+    the build compares each output file with what already sits at that path and writes only on a
+    difference
+  status: accepted
+  falsifiers:
+    - the read-back cost is felt on a pack large enough to matter
+    - a consumer keys on modification time rather than content and stops seeing rebuilds
+
+- id: stale-output-is-pruned-not-wiped
+  statement: |
+    output the current build did not write is deleted at the end of the build, rather than the
+    output tree being cleared before it
+  status: accepted
+  falsifiers:
+    - a partial or crashed build leaves output that no later build prunes
+    - the prune scan costs more than clearing and rewriting the tree
+
+- id: the-bundle-is-one-unminified-esm-chunk
+  statement: |
+    the bundle is ESM, unminified, with no type declarations and no sourcemap; any further chunk the
+    bundler produces is written beside the entry file
+  status: accepted
+  falsifiers:
+    - the script runtime rejects a chunk the bundler split out, or the module format it emits
+    - debugging a pack in the game turns out to need a sourcemap
+
+- id: an-invalid-pack-fails-the-build
+  statement: |
+    a pack the kit reports invalid fails the build with the kit's problems printed, and no sibling
+    pack in the package is built
+  status: accepted
+  falsifiers:
+    - a package routinely holds one broken pack alongside one a developer needs built
+
+- id: a-package-with-no-pack-fails-the-build
+  statement: |
+    a package for which the kit reports no pack fails the build, naming the package directory that
+    was searched
+  status: accepted
+  falsifiers:
+    - a package legitimately takes up the export before its pack sources exist
+
+- id: the-archive-command-takes-no-arguments
+  statement: |
+    the archive command takes no arguments, works on the package directory it is run in, and writes
+    into `.release-assets/`, creating that directory
+  status: accepted
+  falsifiers:
+    - the monorepo's release convention moves the asset directory or starts passing arguments
+    - an archive is wanted somewhere other than a release, at a path of the caller's choosing
+
+- id: archive-names-come-from-the-package-name-and-version
+  statement: |
+    the archive is named `<package name with its npm scope stripped>-<version>.mcaddon` and its
+    members `behavior_pack.mcpack` and `resource_pack.mcpack`
+  status: accepted
+  falsifiers:
+    - two packages in the workspace strip to the same name, so their release assets collide
+    - a published archive name has to carry the pack's own name rather than the package's
+
+- id: a-missing-output-tree-fails-the-archive
+  statement: |
+    the archive command fails naming the missing directory when a package's output tree is absent,
+    and never runs a build itself
+  status: accepted
+  falsifiers:
+    - the release hook runs before any build, so failing there blocks a release that would otherwise work
+
+- id: documentation-ships-as-tsdoc-and-a-readme-section
+  statement: |
+    the export's documentation is TSDoc on the exported function and its options plus a usage
+    section in the kit package's README, not a separate document
+  status: accepted
+  falsifiers:
+    - the usage instructions outgrow a README section
+    - the monorepo generates package READMEs, so a hand-written section there does not survive

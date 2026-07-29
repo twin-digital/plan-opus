@@ -1,0 +1,34 @@
+# What minecraft/dev-kit commits to, as its requirements state it — the interface a design that
+# builds on the kit leans on. Each is sourced by repo-relative url and verbatim quote to the kit's
+# requirements, its pinned artifact.
+
+- id: dev-kit-library-is-published-as-mc-dev-kit
+  claim: |
+    The npm package holding the dev-kit library is named `@twin-digital/mc-dev-kit`, so anything
+    shipping in that same distributable is imported from that package name.
+  backing: documented
+  sources:
+    - url: design/minecraft/dev-kit/requirements.yaml
+      where: dev-kit-library-name
+      quote: |
+        the name of the npm package containing the dev-kit library is `@twin-digital/mc-dev-kit`
+
+- id: pack-sources-sit-at-fixed-kind-named-directories
+  claim: |
+    A workspace package holds its packs at fixed paths: `behavior_pack/manifest.json` and
+    `resource_pack/manifest.json` within the package. The presence of those source manifests is the
+    whole membership test, so a package structurally holds at most one behavior pack and at most one
+    resource pack, and a package holding two of a kind is out of scope. A tool working from a package
+    directory can therefore find that package's pack sources without a marker field, a central list,
+    or a directory walk.
+  backing: documented
+  sources:
+    - url: design/minecraft/dev-kit/requirements.yaml
+      where: membership-from-source-manifest-presence
+      quote: |
+        a workspace package is a pack-bearing package when its source holds `behavior_pack/manifest.json`
+        or `resource_pack/manifest.json`; presence of those source manifests is the whole membership
+        test. Both kinds are discovered. No marker field, keyword, or central list is required, and
+        adding, removing, or renaming a pack needs no edit anywhere but the package itself. Note that
+        this makes it structurally impossible for a workspace package to hold more than one behavior pack
+        or more than one resource pack. A package holding two packs of the same kind is out of scope.
