@@ -334,6 +334,13 @@
   statement: a citation is `[[<k>:<id>]]` with a single-letter kind — `f` fact, `r`
     requirement, `d` decision
 
+- id: citations-in-code-are-not-citations
+  statement: a citation token inside a fenced block or an inline-code span is text, not a
+    citation, so it resolves to nothing and satisfies no obligation
+  rationale: |
+    A spec showing the format has to be able to write a token as an example without minting a
+    reference, and every reader of the format applies this rule whether or not it is written down.
+
 - id: fixed-outer-sections
   statement: a spec.md opens with Summary then the specification; an Open questions section
     (just after Summary) and a Components section (at the end) appear only when the design has

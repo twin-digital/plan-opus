@@ -20,6 +20,34 @@
     Reversing this changes the build input under every consumer that pinned a version, without
     their pin moving.
 
+- id: product-manifest-declares-bundle-identity
+  statement: |
+    a design's bundle name comes from the product manifest, the file `products.yaml` at the
+    repository root, which maps each product to one design scope or to a mapping of feature names
+    to design scopes; a design the manifest does not name has no bundle name
+  rationale: |
+    The mapping is not derivable from the design tree, and a second design now resolves names
+    through it, so where identity is declared is fixed rather than left to this design.
+
+- id: bundle-name-is-the-td-spec-scope
+  statement: |
+    a bundle publishes as `@td-spec/<product>`, or as `@td-spec/<product>.<feature>` where the
+    product subdivides
+  rationale: |
+    A second design now emits this name, so the scope and the separator are fixed rather than left
+    to this design to rework.
+
+- id: bundle-dependencies-come-from-cited-fact-sources
+  statement: |
+    a bundle depends on the bundles of the designs whose `requirements.yaml` or `spec.md` its
+    spec's cited facts source, and on nothing else
+
+- id: token-strip-leaves-the-line-as-written
+  statement: |
+    a spec's prose with its citation tokens stripped differs from the source nowhere but where a
+    token stood: the spacing a removal doubles collapses to one, and a token that ended a line
+    takes the space before it
+
 - id: a-bundle-is-self-contained
   statement: |
     a bundle carries its own design in full — the spec, and any other content it incorporates by
