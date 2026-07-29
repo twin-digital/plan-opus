@@ -1,0 +1,167 @@
+# Facts about ESM module bindings, module-registry resets, and async context under a test runner —
+# the mechanics any module-level shim rests on, whatever it is a shim for.
+
+- id: a-globalthis-store-survives-a-module-registry-reset
+  claim: |
+    A test file's *static* `import { world }` from a shim is stranded by `vi.resetModules()` when
+    the shim holds `world` as an `export let` reassigned by a setter, and is not stranded when
+    `world` is a fixed-identity `Proxy` resolving a store held at
+    `globalThis[Symbol.for(…)]`. Measured on vitest 4.1.10 / node 24.16.0 with one suite run against
+    both shims: after `vi.resetModules()`, a freshly imported control module — a different function
+    object, so genuinely a new registry entry — installs server `B`, and the statically imported
+    binding reads `B` under the Proxy shim and the stale `A` under the `export let` shim. The live
+    ESM binding is not the thing that breaks: it still tracks its own module's reassignments. What
+    breaks is that the reset gives the control surface a second state module, and the static import
+    is bound to the first one. A store outside the module registry is read by both.
+  backing: tested
+  caveat: |
+    vitest 4.1.10 on node 24.16.0, ESM, one process. The shims are two probe packages of a few
+    dozen lines each, not a published build, and jest, bun and CJS were not exercised.
+  sources:
+    - run: stable-binding-shim-probe-run
+      where: the Proxy run — what the static import read after the reset
+      quote: |
+        [proxy] control-module-is-fresh=true
+        [proxy] after-reset static-world.tag=B (installed B through the fresh control module)
+    - run: stable-binding-shim-probe-run
+      where: the `export let` run — the same two lines from the same suite
+      quote: |
+        [let] control-module-is-fresh=true
+        [let] after-reset static-world.tag=A (installed B through the fresh control module)
+
+- id: a-proxy-over-a-function-target-is-typeof-function
+  claim: |
+    `typeof` a `Proxy` whose target is a function is `'function'`, not `'object'` — the trap set
+    does not enter into it, since `typeof` consults no trap. Both shims measured hold their unset
+    binding as a `Proxy` over a function target so that `apply` and `construct` traps can fire, and
+    both report `typeof` `'function'` while unset. The `export let` shim reads `'object'` once a
+    plain object is installed over the sentinel; a shim whose binding is *permanently* a
+    function-target Proxy reads `'function'` at all times. The rest of the unset contract is
+    unaffected: the value is not nullish, it is truthy, and every access shape — a property read, a
+    method call, a call of the binding itself, a `new`, an `in`, a spread — throws.
+  backing: tested
+  sources:
+    - run: stable-binding-shim-probe-run
+      where: the unset sentinel, in the run where the bindings stay Proxies
+      quote: |
+        [proxy] unset typeof=function nullish=false truthy=true
+    - run: stable-binding-shim-probe-run
+      where: the unset sentinel in the `export let` run, and what the same binding reads once a plain object is installed
+      quote: |
+        [let] unset typeof=function nullish=false truthy=true
+    - run: stable-binding-shim-probe-run
+      where: the two runs' reading of typeof once a server is installed
+      quote: |
+        [let] installed typeof-world=object
+    - run: stable-binding-shim-probe-run
+      where: every access shape on the unset binding, Proxy run
+      quote: |
+        [proxy] unset property-read=ShimNotInstalledError
+        [proxy] unset method-call=ShimNotInstalledError
+        [proxy] unset call-shaped=ShimNotInstalledError
+        [proxy] unset construct-shaped=ShimNotInstalledError
+        [proxy] unset in-operator=ShimNotInstalledError
+        [proxy] unset spread=ShimNotInstalledError
+
+- id: a-stable-proxy-binding-costs-identity-and-json-not-member-access
+  claim: |
+    Making a module binding a fixed-identity `Proxy` over the current object changes three things a
+    consumer can observe, and nothing else measured. `server.world === world` answers **false**,
+    where the `export let` shim answers true. `JSON.stringify(world)` is `undefined`, because
+    `JSON.stringify` of a callable is, and the target is a function. And `typeof` reads `'function'`
+    [[f:a-proxy-over-a-function-target-is-typeof-function]]. Member access is unaffected:
+    `Object.keys`, `in`, and a method call through the binding all forward to the current object and
+    read what the `export let` shim reads.
+  backing: tested
+  caveat: |
+    The forwarding was also exercised against `@twin-digital/minecraft-test-lib`, whose fakes keep
+    their state under a module-private symbol and reach it as `this` from a method the binding
+    handed out — that path works through the Proxy
+    [[f:a-setup-file-server-makes-a-pack-test-file-boilerplate-free]]. What was not measured is a
+    consumer asserting on identity: `expect(world).toBe(server.world)` fails under this shape, and
+    no surveyed pack was checked for such a comparison.
+  sources:
+    - run: stable-binding-shim-probe-run
+      where: identity and shape once a server is installed, Proxy run
+      quote: |
+        [proxy] server.world===world -> false
+        [proxy] server.system===system -> false
+        [proxy] installed typeof-world=function
+        [proxy] installed Object.keys(world)=["tag","getDimension"]
+        [proxy] installed JSON.stringify(world)=undefined
+        [proxy] installed world.getDimension('overworld')=C:overworld
+        [proxy] installed 'getDimension' in world -> true
+    - run: stable-binding-shim-probe-run
+      where: the same seven readings from the `export let` run
+      quote: |
+        [let] server.world===world -> true
+        [let] server.system===system -> true
+        [let] installed typeof-world=object
+        [let] installed Object.keys(world)=["tag","getDimension"]
+        [let] installed JSON.stringify(world)={"tag":"C"}
+        [let] installed world.getDimension('overworld')=C:overworld
+        [let] installed 'getDimension' in world -> true
+
+- id: an-als-context-must-be-established-inside-the-test-callback
+  claim: |
+    An `AsyncLocalStorage` store entered with `enterWith` in a vitest `beforeEach` does not reach
+    the test body: the test resolves no store at all, before or after an `await`. Wrapping the test
+    body itself in `storage.run(…)` does work, and works under `describe.concurrent` — three
+    concurrent tests with staggered awaits each resolved their own store and none saw another's. So
+    an ALS-backed shim cannot be installed from a hook; a consumer's test callback has to be inside
+    the `run`, which is the boilerplate an ALS store would have been adopted to remove.
+  backing: tested
+  caveat: |
+    vitest 4.1.10 on node 24.16.0. `enterWith` from a hook was the shape measured; a runner-level
+    wrapper that starts the context around each test — vitest exposes none today — was not.
+  sources:
+    - run: als-store-probe-run
+      where: what the test body resolved after a beforeEach called enterWith
+      quote: |
+        [hook] resolved-in-test-body=none
+    - run: als-store-probe-run
+      where: the same, after an await inside the test
+      quote: |
+        [hook] resolved-after-await=none
+    - run: als-store-probe-run
+      where: the concurrent cases, each wrapped in storage.run — case A
+      quote: |
+        [concurrent] expected=A resolved=A
+    - run: als-store-probe-run
+      where: the concurrent cases — case B
+      quote: |
+        [concurrent] expected=B resolved=B
+    - run: als-store-probe-run
+      where: the concurrent cases — case C
+      quote: |
+        [concurrent] expected=C resolved=C
+
+- id: an-als-store-resolves-a-deferred-callback-under-the-calling-context
+  claim: |
+    A callback registered under one `AsyncLocalStorage` context and invoked later by a fake's own
+    scheduler resolves the store of whatever context is running at *invocation* time, not the one it
+    was registered under, and does so silently. Measured with two real
+    `@twin-digital/minecraft-test-lib` bundles: a `system.runInterval` callback registered under the
+    `owner` context read `owner`'s world when `owner`'s scheduler ran it, and read `other`'s world —
+    at `other`'s tick 0, while the server it was actually driving stood at tick 2 — when the same
+    scheduler was advanced from inside the `other` context. Nothing threw. An ALS-backed module
+    binding therefore hands a deferred pack callback a world belonging to a different test, with no
+    error to read.
+  backing: tested
+  caveat: |
+    The cross-context advance was arranged deliberately, not observed arising on its own. What it
+    establishes is that the resolution follows the caller; how often a suite arranges that depends
+    on how the deferred callbacks are driven.
+  sources:
+    - run: als-store-probe-run
+      where: the callback run by its own server's scheduler, under the context it was registered in
+      quote: |
+        [deferred] same-context run: world-resolved-as=owner tick=1 (registered under 'owner')
+    - run: als-store-probe-run
+      where: the same callback, its own scheduler advanced from inside another context
+      quote: |
+        [deferred] cross-context run: world-resolved-as=other tick=0 (owner's scheduler, advanced under 'other')
+    - run: als-store-probe-run
+      where: both observations the callback recorded
+      quote: |
+        [deferred] observations=["world-resolved-as=owner tick=1","world-resolved-as=other tick=0"]

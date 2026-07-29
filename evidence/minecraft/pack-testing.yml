@@ -45,3 +45,31 @@
     entry file) crossed with the two install shapes (`npm i file:./shim`, which symlinks the source
     into node_modules, and an unpacked `npm pack` tarball, a real directory) — and captures each
     run's exit code and output. Absolute paths in the captured output are rewritten to <probe>.
+
+- id: file-scoped-server-probe-run
+  command: MC_TEST_LIB=<opus>/nodejs/minecraft/test-lib/src/index.ts node run.mjs file-scoped
+  output: design/minecraft/server-shim/artifacts/clean-test-file-probes/file-scoped.out.txt
+  ran_at: 2026-07-29
+  environment: |
+    Run in design/minecraft/server-shim/artifacts/clean-test-file-probes after `npm install` and
+    `node fetch-packs.mjs`. vitest 4.1.10 on node 24.16.0, @twin-digital/minecraft-test-lib at opus
+    `4ea1287` (unpublished, aliased from source via MC_TEST_LIB). The subject is
+    bencrob/marron-town-mod at 2c025b4, unmodified, whose src/main.ts subscribes to five world
+    events and registers two `system.runInterval` loops at module scope; its
+    `@minecraft/server-ui` import is aliased to a form stub that nothing drives. A setup file
+    installs one `createServer()` at module scope and the test file holds static imports only. The
+    same suite runs twice, against the stable-Proxy shim and against the `export let` shim.
+    Absolute paths in the captured output are rewritten to <probe>.
+
+- id: in-place-reset-probe-run
+  command: MC_TEST_LIB=<opus>/nodejs/minecraft/test-lib/src/index.ts node run.mjs reset
+  output: design/minecraft/server-shim/artifacts/clean-test-file-probes/reset.out.txt
+  ran_at: 2026-07-29
+  environment: |
+    The same probe directory, subject, versions and setup-file shape as file-scoped-server-probe-run,
+    with a reset in the setup file's `beforeEach`. The library exposes no reset, so the probe's
+    `reset-in-place.ts` writes the library's private `ServerState` directly, reaching
+    `src/runtime/state.ts` and `src/runtime/member.ts` through aliases: it clears entities,
+    scoreboard, dynamic properties, output and the tick clock, and leaves the signal objects — and
+    so the pack's subscribers — alone. The suite runs twice, once keeping the scheduled runs and
+    once clearing them; the second invocation exits 1, which is the measurement.

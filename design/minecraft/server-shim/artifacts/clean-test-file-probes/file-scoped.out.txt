@@ -1,0 +1,76 @@
+=== file-scoped: one server per file, stable Proxy shim (file-scoped.config.ts) ===
+exit code: 0
+
+
+ RUN  v4.1.10 <probe>
+
+stdout | file-scoped.test.ts
+[setup] installed one server at module scope (shim=proxy)
+
+stdout | file-scoped.test.ts > test 1 — the pack is already subscribed, with nothing in the test file to do it
+[carried into test 1] entities=0 currentTick=0 objectives=0 world-output=0 handler-errors=0
+[end of test 1] entities=1 currentTick=40 objectives=11 world-output=1 handler-errors=0 alice-total-points=no score
+
+stdout | file-scoped.test.ts > test 2 — a new test, on the previous test’s world
+[carried into test 2] entities=1 currentTick=40 objectives=11 world-output=1 handler-errors=0
+[end of test 2] entities=2 currentTick=80 objectives=11 world-output=1 handler-errors=0 alice-still-present=true
+
+stdout | file-scoped.test.ts > test 3 — the tick count keeps climbing
+[carried into test 3] entities=2 currentTick=80 objectives=11 world-output=1 handler-errors=0
+
+ ✓ file-scoped.test.ts > test 1 — the pack is already subscribed, with nothing in the test file to do it 4ms
+ ✓ file-scoped.test.ts > test 2 — a new test, on the previous test’s world 2ms
+ ✓ file-scoped.test.ts > test 3 — the tick count keeps climbing 0ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  03:50:41
+   Duration  667ms (transform 446ms, setup 451ms, import 110ms, tests 7ms, environment 0ms)
+
+stderr | file-scoped.test.ts > test 1 — the pack is already subscribed, with nothing in the test file to do it
+[MarronTown] init-player: Player.level is declared by @minecraft/server but is not modelled by this library.
+[MarronTown] award-points: Player.level is declared by @minecraft/server but is not modelled by this library.
+
+stderr | file-scoped.test.ts > test 2 — a new test, on the previous test’s world
+[MarronTown] init-player: Player.level is declared by @minecraft/server but is not modelled by this library.
+[MarronTown] award-points: Player.level is declared by @minecraft/server but is not modelled by this library.
+
+
+=== file-scoped: one server per file, `export let` shim (file-scoped-let.config.ts) ===
+exit code: 0
+
+
+ RUN  v4.1.10 <probe>
+
+stdout | file-scoped.test.ts
+[setup] installed one server at module scope (shim=let)
+
+stdout | file-scoped.test.ts > test 1 — the pack is already subscribed, with nothing in the test file to do it
+[carried into test 1] entities=0 currentTick=0 objectives=0 world-output=0 handler-errors=0
+[end of test 1] entities=1 currentTick=40 objectives=11 world-output=1 handler-errors=0 alice-total-points=no score
+
+stdout | file-scoped.test.ts > test 2 — a new test, on the previous test’s world
+[carried into test 2] entities=1 currentTick=40 objectives=11 world-output=1 handler-errors=0
+[end of test 2] entities=2 currentTick=80 objectives=11 world-output=1 handler-errors=0 alice-still-present=true
+
+stdout | file-scoped.test.ts > test 3 — the tick count keeps climbing
+[carried into test 3] entities=2 currentTick=80 objectives=11 world-output=1 handler-errors=0
+
+ ✓ file-scoped.test.ts > test 1 — the pack is already subscribed, with nothing in the test file to do it 4ms
+ ✓ file-scoped.test.ts > test 2 — a new test, on the previous test’s world 2ms
+ ✓ file-scoped.test.ts > test 3 — the tick count keeps climbing 0ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  03:50:42
+   Duration  666ms (transform 442ms, setup 449ms, import 108ms, tests 7ms, environment 0ms)
+
+stderr | file-scoped.test.ts > test 1 — the pack is already subscribed, with nothing in the test file to do it
+[MarronTown] init-player: Player.level is declared by @minecraft/server but is not modelled by this library.
+[MarronTown] award-points: Player.level is declared by @minecraft/server but is not modelled by this library.
+
+stderr | file-scoped.test.ts > test 2 — a new test, on the previous test’s world
+[MarronTown] init-player: Player.level is declared by @minecraft/server but is not modelled by this library.
+[MarronTown] award-points: Player.level is declared by @minecraft/server but is not modelled by this library.
+
+

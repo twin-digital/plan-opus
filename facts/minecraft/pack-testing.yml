@@ -88,3 +88,124 @@
       quote: |
          Test Files  1 passed (1)
               Tests  2 passed (2)
+
+- id: a-setup-file-server-makes-a-pack-test-file-boilerplate-free
+  claim: |
+    A setup file that installs one server at module scope — a bare `__useServer(createServer())`,
+    with no `beforeEach` and no naming of the pack's own modules — leaves a consumer's test file
+    holding static imports and nothing else: the pack imported for its side effects, and `world` and
+    `system` imported to arrange and assert. Vitest evaluates `setupFiles` before the test file's
+    own module evaluation, so the pack's module-scope `subscribe` and `runInterval` calls land on
+    the installed server, and no dynamic `await import` and no `vi.resetModules()` prelude appear
+    anywhere. Measured with bencrob/marron-town-mod at 2c025b4, unmodified, whose `src/main.ts`
+    subscribes to five world events and registers two `system.runInterval` loops while it evaluates,
+    against `@twin-digital/minecraft-test-lib`'s real fakes — and against both shim shapes, the
+    `export let` bindings the spec ships and fixed-identity Proxy bindings, with identical results.
+  backing: tested
+  caveat: |
+    The cost this shape does not remove is state: one server per file carries every test's leavings
+    into the next [[f:one-server-per-file-carries-state-into-the-next-test]]. The pack's
+    `@minecraft/server-ui` import needed a second alias to a stub, which is a second module the shim
+    does not cover rather than anything about the setup file. vitest 4.1.10 on node 24.16.0 only.
+  sources:
+    - run: file-scoped-server-probe-run
+      where: the setup file's line, printed before any test in the file ran, Proxy shim
+      quote: |
+        [setup] installed one server at module scope (shim=proxy)
+    - run: file-scoped-server-probe-run
+      where: the same run's suite totals — the pack reacted, from a test file with no install code in it
+      quote: |
+         Test Files  1 passed (1)
+              Tests  3 passed (3)
+    - run: file-scoped-server-probe-run
+      where: the `export let` shim invocation of the same suite
+      quote: |
+        [setup] installed one server at module scope (shim=let)
+
+- id: one-server-per-file-carries-state-into-the-next-test
+  claim: |
+    A file-scoped server carries everything a test did into the tests after it, and the amount is
+    not marginal. Against bencrob/marron-town-mod at 2c025b4 driven through
+    `@twin-digital/minecraft-test-lib`: a first test that spawns one player and advances 40 ticks
+    hands the second test 1 entity, a tick clock at 40, and 11 scoreboard objectives its own code
+    never created; the second hands the third 2 entities and a clock at 80, with the first test's
+    player still in the dimension and still being iterated by the pack's module-scope loops. Nothing
+    resets between tests because nothing can: the state belongs to the one server the file
+    installed.
+  backing: tested
+  caveat: |
+    Three tests of one pack. The counters grow linearly here because each test does the same work;
+    a suite whose tests differ would leak differently, and how much of that leakage changes an
+    assertion rather than merely accumulating was not measured.
+  sources:
+    - run: file-scoped-server-probe-run
+      where: what each test found already in the world when it started, Proxy shim
+      quote: |
+        [carried into test 1] entities=0 currentTick=0 objectives=0 world-output=0 handler-errors=0
+    - run: file-scoped-server-probe-run
+      where: the same reading at the start of the second and third tests
+      quote: |
+        [carried into test 2] entities=1 currentTick=40 objectives=11 world-output=1 handler-errors=0
+    - run: file-scoped-server-probe-run
+      where: the third test's starting state, and the second test finding the first test's player still present
+      quote: |
+        [carried into test 3] entities=2 currentTick=80 objectives=11 world-output=1 handler-errors=0
+
+- id: a-fake-server-can-be-cleared-in-place-with-its-subscriptions-intact
+  claim: |
+    A fake server's state can be cleared while the object identity a pack's module-scope
+    subscriptions are bound to is preserved, and the handlers still fire afterwards. Reaching
+    `@twin-digital/minecraft-test-lib`'s private `ServerState` directly — it exposes no reset — and
+    clearing the entities, the scoreboard, the dynamic properties, the output log and the tick clock
+    while leaving the signal objects alone, all 5 of bencrob/marron-town-mod's module-scope
+    subscribers survived every reset, `world` was the same object it was at install, and three
+    successive tests each started from `entities=0 currentTick=0 objectives=0` and each drove the
+    pack to the identical end state. The scheduled runs are the boundary case, not an afterthought:
+    a pack registers `system.runInterval` in the same evaluation as its subscriptions, so a reset
+    that clears the run queue unregisters half of what the pack set up. Clearing it left the same 5
+    subscribers in place and took the pack's two loops away, and the objectives those loops create
+    stopped appearing — 11 became 0 — with nothing raised anywhere; the suite's failing assertion is
+    the only thing that noticed.
+  backing: tested
+  caveat: |
+    The reset is the probe's own function writing the library's private record, not an API: it
+    reaches `src/runtime/state.ts` and `src/runtime/member.ts` through aliases, so this measures the
+    capability and its cost, not something a consumer can call
+    [[f:test-lib-ships-no-reset-hook]]. What a supported hook would have to preserve is what this one
+    preserved: the `world` and `system` fakes, the signal objects with their subscriber sets, the
+    registered dimensions, and the scheduled runs, with each surviving run re-based onto the reset
+    tick clock. Entities the cleared tests created were marked invalid rather than left readable,
+    which was a choice of the probe's and is not measured against the engine.
+  sources:
+    - run: in-place-reset-probe-run
+      where: what survived each reset, keeping the scheduled runs
+      quote: |
+        [reset] world-identity-preserved=true surviving-subscribers=5 surviving-scheduled-runs=2
+    - run: in-place-reset-probe-run
+      where: the second and third tests each starting from a cleared world and reaching the same end state
+      quote: |
+        [test 2 start] entities=0 currentTick=0 objectives=0
+        [test 2 end] entities=1 currentTick=40 objectives=11
+    - run: in-place-reset-probe-run
+      where: the same suite with the scheduled runs cleared — subscribers survive, the pack's loops do not
+      quote: |
+        [reset] world-identity-preserved=true surviving-subscribers=5 surviving-scheduled-runs=0
+    - run: in-place-reset-probe-run
+      where: what the cleared run queue costs — the same test, with the loops' objectives gone
+      quote: |
+        [test 2 start] entities=0 currentTick=0 objectives=0
+        [test 2 end] entities=1 currentTick=40 objectives=0
+
+- id: test-lib-ships-no-reset-hook
+  claim: |
+    `@twin-digital/minecraft-test-lib` exposes no reset of any kind, by design: its specification
+    holds that a bundle's state belongs to that bundle and that two `createServer()` calls share
+    nothing, so a test wanting a clean world makes another server. A shim shape that needs one
+    server's state cleared in place is asking the library for a capability it has decided against.
+  backing: documented
+  sources:
+    - url: design/minecraft/test-lib/spec.md
+      where: "The package and how a test reaches a fake — what a bundle's state belongs to"
+      quote: |
+        All state a bundle holds belongs to that bundle. The library keeps no module-level mutable state,
+        so two `createServer()` calls in one process share nothing and tests need no reset hook
