@@ -1,7 +1,14 @@
 # Incremental development — a proposal
 
 Status: **proposal**. Nothing here is settled. Written 2026-07-29 from a working session on
-`minecraft/server-shim`, with `docs/experiments/spec-value/` as its evidence base.
+`minecraft/server-shim`; revised 2026-07-30 to add conformance. Evidence base:
+`docs/experiments/spec-value/` and `docs/research/conformance/`.
+
+**The setting.** ~34 packages in one pnpm/turbo monorepo, growing 3–5 per month, most of them 1,000–5,000
+lines, one maintainer, code largely written by agents. Recurring project kinds: libraries, CLI tools, web
+apps and HTTP APIs, Minecraft behaviour-pack addons, CI/CD processes, devcontainer tooling, bots. Bounded
+manual work is acceptable where it uses the owner's time efficiently. That scale matters — several
+recommendations below would be different for a handful of projects or for hundreds.
 
 ---
 
@@ -53,7 +60,8 @@ they must be *rich enough to comprehend a product from*. What must shrink is chu
 | decisions | every choice a consumer, builder, or sibling could tell apart, with falsifiers |
 | facts | evidence about the world, with artifacts and re-runnable runs |
 | interfaces | the shapes something outside the build compiles against |
-| conformance enumeration | what must be true, as a checkable list |
+| conformance manifest and its cases | what must be true, as an executable list |
+| metamorphic invariants | relations that hold whatever the implementation |
 
 **Transient artifacts** — generated, used, discarded:
 
@@ -61,11 +69,22 @@ they must be *rich enough to comprehend a product from*. What must shrink is chu
 |---|---|
 | spec | 85%+ restatement and argument; its value is the decisions it forces out |
 | test plan | same |
-| test code | generated from the conformance enumeration |
-| implementation | regenerable from foundations + interfaces + conformance |
+| implementation | regenerable from foundations, interfaces and the conformance manifest |
 
 The asymmetry is deliberate. The durable set is what the owner reviews and what tooling can diff. The
 transient set is where work happens.
+
+**Invariants are durable in a way enumerated cases are not.** A case pins a point and its failure needs
+adjudicating — was that change intended? A metamorphic relation (idempotence, round-trip,
+order-invariance, "removing the plugin puts the suite back to a resolution failure") holds whatever the
+implementation, needs no expected value to maintain, and **fails unambiguously.** The enumeration alone
+is not the durable set; enumeration plus invariants is.
+
+**The previous build is available by construction.** A released version is a git tag, and a rebuild does
+not delete the repository — `git worktree add .worktrees/ref v1.4.2` and build it there. So nothing in
+this process needs to require keeping a reference. What it does need is the *adjudication step* (step 6),
+and the knowledge that the old build is there to consult when a case fails or when something the corpus
+never pinned looks lost.
 
 **The unit of change is an increment**, scoped to a **product** rather than a design. An increment
 owns its agenda, the foundation changes it makes, the decisions it produces, and the transition a
@@ -75,6 +94,17 @@ shipped increment N.
 ---
 
 ## The steps
+
+**0. Eligibility.** One intake question, asked once per product: **does it have a data-shaped I/O
+boundary** — a function over serialisable data? Where it does, the conformance cases are durable and the
+code around them genuinely is disposable. Where it does not — a stateful library needing operation
+sequences, a service whose semantics live behind its wire contract, a plugin whose behaviour is a
+conversation with its host — "disposable" costs a model rewrite every cycle and the economics stop
+working. That is not a reason to skip the process; it is a reason to know which projects get cheap
+rebuilds and which do not.
+
+Deliberately *not* an intake question: "will this be rebuilt?" Whether a rebuild happens depends on a
+future requirement delta nobody can predict, so assume it will.
 
 **1. Agenda.** An increment opens with the top of the deferred queue plus whatever new requirements the
 owner has. Both are ranked. Nothing else is in scope.
@@ -105,13 +135,19 @@ with cause — a compile error, a measurement, a contradiction — but not from 
 The existing `prompts/build/build-from-spec.md` already orders its waves by reversal cost, and that
 ordering is what makes the durable artifacts fall out in the right sequence:
 
-- **Wave 1 — interface and conformance enumeration.** The public surface, its doc comments, and every
-  planned test case, written before any implementation. **Both durable artifacts are produced here**,
+- **Wave 1 — interface and conformance cases.** The public surface, its doc comments, and every
+  conformance case, written before any implementation. **Both durable artifacts are produced here**,
   and so is the work breakdown the components block used to carry — the builder derives it, which is
   where the context for it actually is.
-- **Wave 2 — tests.** Against the stubbed interface. Internal; its gate asks whether the tests encode
-  the contract.
+- **Wave 2 — cases run red.** Against the stubbed interface. Internal; its gate asks whether the cases
+  encode the contract.
 - **Wave 3 — implementation.** Internal; its gate is an adversarial correctness pass.
+
+**Cases are authored in wave 1, before the implementation exists, and this is a rule rather than a
+sequencing detail.** A case written from the requirements and then verified is a *specification*; the same
+bytes captured from a passing run are a *characterization test*. Where the agent writing the code also
+writes the expectations, a captured expectation proves only self-consistency. Expected *values* may be
+filled in mechanically afterwards (see the conformance section); the commands and the assertions may not.
 
 **5. The interface gate.** At the end of wave 1, the interface's costly-to-reverse decisions go to the
 owner. This is the one place the build pauses for a human, and it is placed where reversal cost spikes
@@ -126,18 +162,29 @@ decision statement.
 Waves 2 and 3 surface nothing to the owner directly. Their decisions are cheap to reverse by
 construction and reach the owner once, in the build report.
 
-**6. Build report.** Filtered the same way decisions are: report what a consumer, a sibling, or the
+**6. Adjudication.** Run the conformance corpus. Every failure is either **intended** — record a decision
+and update the case — or **unintended**, which is a bug in the rebuild. Nothing automates that judgement;
+no tool in the surveyed literature classifies a diff as intentional or accidental, and per-rebuild review
+cost does not amortise. What tooling can do is *reduce the number of diffs a human reads*, which is what
+the normaliser and the noise probe (below) are for.
+
+Every intended divergence is really **two** entries: the behavioural decision, and the specification gap
+that let the rebuild diverge there at all. Independent implementations of one specification fail together
+precisely where the specification is ambiguous — measured at 3.7× the independence prediction with coding
+agents — so a divergence is evidence about the requirements, not only about the code.
+
+**7. Build report.** Filtered the same way decisions are: report what a consumer, a sibling, or the
 owner could tell apart. Plus, mandatorily, **every decision overturned and why** — that list is where
 the designer and the builder disagreed, and it is the part that earns attention.
 
-**7. Publish gate.** Nothing merges or publishes while a `proposed` decision is outstanding — the same
+**8. Publish gate.** Nothing merges or publishes while a `proposed` decision is outstanding — the same
 mechanic the repository already uses for the settle gate, pointed at a new target.
 
 That makes **two** gates in an increment, not one: the interface gate at the end of wave 1, and this.
 Both sit later than today's gate, which precedes the build entirely, and both sit where reversal is
 expensive — at the surface others compile against, and at publication.
 
-**8. Harvest.** At the increment boundary:
+**9. Harvest.** At the increment boundary:
 
 - decisions accepted because *"this is a pseudo-requirement I hadn't articulated"* are **promoted to
   requirements** — read once, binding thereafter, and no longer re-proposed by the next increment
@@ -195,9 +242,101 @@ experiment found to be one of only two things genuinely inexpressible as foundat
 
 That resolves the experiment's loose end. Of the two inexpressible artifacts:
 
-- the **coverage table is durable** — it is the check specification, and test code is generated from it
+- the **coverage table is durable** — it is the check specification, and the cases derive from it
 - the **components block is transient** — it describes how to build, not what is true, and dies with
   the spec
+
+### The conformance manifest
+
+**Every conformance item is a command that must exit zero.** That is the Kubernetes conformance model —
+the artifact of a claim is a reproduction recipe plus machine-readable output — and it is what makes one
+runner serve every project kind. But exit-zero *alone* costs the properties that motivated all of this:
+cases stop being data, the promise ledger becomes unreadable because intent moves into scripts nobody
+reads, and control flow returns along with the defect class declarative cases eliminate.
+
+So: **the manifest is data even when the check is a command.**
+
+```yaml
+- requirement: unmodified-pack-code-loads-under-test
+  kind: declarative/testscript
+  check: testdata/loads-unmodified.txtar
+
+- requirement: api-rejects-malformed-payload
+  kind: declarative/hurl
+  check: acceptance/reject-malformed.hurl
+
+- requirement: bundle-stays-under-budget
+  kind: opaque
+  check: node tooling/check-bundle-size.mjs
+  decision: bundle-budget-is-checked-opaquely
+
+- requirement: install-is-one-config-entry
+  kind: manual
+  steps: docs/acceptance/install.md
+```
+
+Four rules make it hold:
+
+**`kind` names the tool, and the runner dispatches on it.** Adding a tool means adding a `kind` — a
+visible change to shared tooling — rather than someone quietly introducing a script. This is the JSON-LD
+manifest pattern, which dispatches on a case's declared type.
+
+**`declarative/*` is the default. `opaque` and `manual` are proposed decisions.** A `why` field alone
+constrains nothing: an agent asked to justify an opaque check writes a plausible justification. But the
+owner reads every proposed decision in full, so an opaque entry that *is* a decision gets real scrutiny
+at no extra review cost, and rejecting it means "find a declarative form." No new mechanism, and the count
+of opaque decisions is visible where the owner already looks.
+
+**`kind: manual` is legitimate.** A requirement verified by the owner following steps is honestly
+recorded, tied to a requirement, and visibly not-recently-run — which is strictly better than pretending
+it is covered by automation nobody wrote. The owner is already the manual tester for most of this.
+
+**Commands should emit machine-readable results where they can.** Kubernetes requires both a log and
+`junit_01.xml` because exit-zero gives no per-case granularity — you cannot say "39 passed, one declared
+skip." A command emitting TAP or JUnit gets per-case reporting; one that does not still works.
+
+### The conformance tooling
+
+Verified against cloned source rather than recalled; see `docs/research/conformance/`.
+
+**Runner: `cmd/testscript` v1.15.0.** A standalone CLI, so there is no Go in the repository — one binary
+invoked from a turbo task, with cases as plain txtar files that were designed to "be trivial enough to
+create and edit by hand" and to "diff nicely in git history and code reviews." `exec` resolves off `PATH`
+with no language-specific machinery, so the thing under test can be a Node CLI. Cost: `go install` only
+(zero release assets), so a Go toolchain in CI and devcontainers.
+
+**The normaliser is ours.** Path, timestamp, version, temp-dir and hostname scrubbing plus key-order
+stabilisation, as a standalone Node CLI reading stdin and writing stdout. This is the one component that
+must be owned: testscript ships no normalisation at all, and its `cmpenv` — the path-substituting
+comparison — is **excluded from update mode**, so normalisation and expectation-regeneration cannot be
+combined. The composition that routes around it:
+
+```
+exec my-cli build --out dist
+exec normalise stdout
+cmp stdout want-stdout.txt
+```
+
+Because `normalise` sets the stdout buffer, `cmp stdout <in-archive section>` compares normalised text, so
+`-u` regenerates the *normalised* form. Only `cmp` triggers regeneration, only for sections inside the
+same file, and the commands round-trip untouched — which is exactly the hand-authored-intent /
+derived-expectation split the rule in step 4 requires.
+
+**Ordering, and it is a one-line decision with a rewrite behind it:** normalise the actual output →
+compare against stored → write the *normalised* form on update. Backwards, and every regenerated
+expectation contains the temp path being scrubbed. rustc's compiletest is the correct model.
+
+**Some determinism belongs in the program under test.** rustc runs its UI tests with `-Z ui-testing` to
+anonymise line numbers. A shared `--deterministic-output` convention across projects removes more variance
+than any harness regex, and all of these projects are ours.
+
+**HTTP: `hurl`, standalone.** The best assertion vocabulary available — queries, 24 predicates, 30
+filters. It has **no update mode**, so those assertions are hand-written. A real cost against the
+authoring rule, and the right trade for what it buys.
+
+**Libraries need a driver.** A binary reading a call spec on stdin and writing a serialised result on
+stdout, per toml-test's contract. The thinnest real one measured is **43 lines**. Drivers are per project
+*type*, not per project — five or six of them against every project we will ever write.
 
 ### Collation replaces the spec's assembly job
 
@@ -279,9 +418,9 @@ bumps from structured data and never reads the narrative.
 9. **Interfaces as a first-class artifact** — extracted, pinned, diffable. Produced by build wave 1,
    which already writes the public surface and its doc comments; what is missing is that it lands
    somewhere durable rather than only in the code.
-10. **Conformance enumeration as a first-class artifact** — the coverage table, promoted out of the
-    spec. Also produced by build wave 1, which already documents every planned test case before any
-    implementation exists.
+10. **Conformance manifest as a first-class artifact** — `requirement`, `kind`, `check`, plus `decision`
+    for opaque and `steps` for manual. Produced by build wave 1, which already documents every planned
+    case before any implementation exists.
 11. **Requirement lifecycle fields** — `introduced_in`, `retired_in`, naming increments. This also
     fixes a real defect: `doc-structure` cannot represent a retired `documented` fact whose in-repo
     source text has since changed, because the checker verifies quotes on retired facts and the span is
@@ -290,17 +429,36 @@ bumps from structured data and never reads the narrative.
 
 **Tooling**
 
-12. **Decision collation** — the owner's readable view of a product.
-13. **Publish gate** — no `proposed` decision outstanding.
-14. **Deferred-tension queue** — ranked, visible, closable.
-15. **Build report format** — the standard filter, plus a mandatory list of overturned decisions.
+12. **The normaliser** — a Node CLI, stdin to stdout, named redactions, key-order stabilisation. **Build
+    this first.** It is the component nothing off the shelf gets right, the one the authoring rule
+    depends on, and it is useful under every other option. Estimated 400–700 lines.
+13. **The conformance runner** — dispatch on `kind`, invoke the check, consume TAP/JUnit where present,
+    aggregate. Thin, because the tools do the work.
+14. **`testscript` in the toolchain** — a devcontainer feature and a CI step, pinned to v1.15.0.
+15. **Driver binaries per project type** — toml-test's contract, ~43–80 lines each.
+16. **Decision collation** — the owner's readable view of a product.
+17. **Publish gate** — no `proposed` decision outstanding.
+18. **Deferred-tension queue** — ranked, visible, closable.
+19. **Build report format** — the standard filter, plus a mandatory list of overturned decisions.
 
 **Process**
 
-16. **Harvest step at the increment boundary** — promote pseudo-requirements to requirements.
-17. **Record build-forward as a decision** with its falsifier.
-18. **Instruct the tiers asymmetrically** — smallest decisions at the bottom, no detail-settling at the
+20. **Harvest step at the increment boundary** — promote pseudo-requirements to requirements.
+21. **Record build-forward as a decision** with its falsifier.
+22. **Instruct the tiers asymmetrically** — smallest decisions at the bottom, no detail-settling at the
     top, escalation only with evidence.
+23. **Where the owner's time goes.** Bounded manual work is acceptable where it is time-efficient, and
+    the evidence says exactly where to spend it. Of 30 interviewed practitioners, **16 said writing the
+    specifications slowed their progress**, and the named failure mode was *"not knowing what properties
+    to test"* — not tooling. So the owner's authoring effort goes into **deciding what to assert**, which
+    is the one part no tool reduces and precisely what the promise ledger asks for.
+
+**Deliberately not needed**
+
+Cross-repository propagation — reusable workflows, template drift checking, bulk mutation, organisation
+rulesets — exists to approximate what a monorepo gives for free. These projects are one pnpm/turbo
+workspace, so a harness change is one commit. The convention that replaces all of it: **every project
+exposes a `verify` task**, and the shared workflow needs no per-project knowledge.
 
 ---
 
@@ -318,20 +476,55 @@ bumps from structured data and never reads the narrative.
 | a decision the owner dislikes is rejected, and the work is redone | it is tolerated, and a requirement is filed for the next increment |
 | facts are reachable only through spec prose | decisions carry their evidence directly |
 | interfaces and the conformance table live inside a skimmed document | both are first-class, diffable, and mechanically reviewed |
-| tests and code are the durable output | the conformance enumeration is durable; tests and code are regenerable |
+| tests and code are the durable output | the conformance manifest and its cases are durable, plus metamorphic invariants; the implementation is regenerable |
+| conformance is TypeScript test code, pinned to code-level APIs | conformance is declarative cases against the black-box boundary, in a format that survives the runner |
+| a test asserting the wrong thing is a defect you own | declarative cases have no control flow to get wrong; commands do, so an opaque check is a proposed decision |
 
 **What does not change:** the owner reads every requirement and every decision, in full. That is the
 comprehension channel and the proposal is built to feed it, not to trim it.
 
 ---
 
+## On adequacy — what this proposal deliberately does not claim
+
+**No metric licenses a rebuild.** Mutation score's fault domain is the operator set: a perfect score means
+"no single-token perturbation of *this* source survives." A rebuild is an arbitrary program from the same
+behavioural neighbourhood, so it is not in the domain the score quantifies over, and the mismatch is
+categorical rather than a matter of degree. Google's own scope sentence is that mutation testing assesses
+"whether an **algorithm is correctly implemented** but not whether the **correct algorithm is
+implemented**." And no published work gates a rebuild, a regeneration, or a rewrite on any adequacy metric.
+
+So the gate is the conformance manifest passing, and the supporting signals are binary rather than scores:
+
+- zero uncovered public-API surface
+- zero untriaged surviving mutants — each killed, or annotated unproductive with a written reason
+- mutation testing as a **pre-rebuild finder, never a release gate** (StrykerJS ships its build-failing
+  threshold as `null`; leave it there). The deliverable is the survivor list, not the percentage.
+
+The only adequacy measure with real evidential force is a **rebuild retrospective**: after each rebuild,
+log every infidelity the corpus missed and why — no case, covered but unasserted, no invariant, or
+genuinely unforeseeable. That measures against actual rebuilds rather than synthetic faults, and it is our
+own instrumentation rather than an adopted metric.
+
 ## Open
 
+- **Whether the boundary gate holds across real projects.** Cheap test: try to state the data-shaped
+  boundary for three of the existing packages. If it comes easily, the gate is real; if it turns into
+  motivation, it is not.
 - **Whether the interface gate is enough for a data format.** The wave structure answers where a format
-  gets pinned — at the end of wave 1, during the build rather than before it — which is later than
-  "before anything compiles against it" would suggest and earlier than the build's own churn. Whether
-  that is late enough to have learned something and early enough to protect consumers is untested.
+  gets pinned — at the end of wave 1, during the build rather than before it. Whether that is late enough
+  to have learned something and early enough to protect consumers is untested.
 - **Whether the clearinghouse's document is worth keeping at all**, or whether a collated decision view
   serves every reader it would have.
+- **Adopt versus build for the runner.** `testscript` is adopted with three revisit triggers: the Go
+  toolchain becoming a recurring tax, file-tree assertions producing defects often enough that
+  hand-written `cmp` lines hurt, or `testscript/plugin` shipping and its boundary proving too thin. A
+  TypeScript equivalent is 1,500–2,300 lines, anchored on three measured implementations.
+- **Whether a mature TypeScript equivalent already exists.** The tooling survey ran without web search,
+  so its discovery was limited to names it could construct. "Nothing mature exists" is *not* established.
 - **Concurrency.** Increments are linear per product; two open increments colliding on a foundation is
   an owner call, and no mechanism is proposed for it.
+- **The requirement pyramid, tabled.** An apex requirement with more specific ones beneath it, where the
+  apex is a universal claim the children instantiate. Deferred because no concrete example emerged beyond
+  one brief's "Done looks like". The manifest gives it a free home if it returns — an apex is just an
+  entry whose `requirement` is the apex — so nothing here forecloses it.
