@@ -11,11 +11,7 @@ That scale matters — several recommendations below would be different for a ha
 hundreds.
 
 Evidence base: `docs/experiments/spec-value/`, four controlled comparisons of what a spec contributes
-over its foundations.
-
-**Conformance is deliberately out of scope here** — how a product's behaviour is pinned so an
-implementation can be rebuilt against it is a large enough subject to warrant its own increment and its
-own review. Its research is already collected in `docs/research/conformance/`.
+over its foundations, included in this change.
 
 ---
 
@@ -45,17 +41,20 @@ has parts.
 
 - The owner skims it. It is not a document anyone reads to understand what was built.
 - It does not change the built product much beyond what the foundations already state. Four designs were
-  tested by having an independent agent write a build plan from foundations alone, then read the spec and
-  record what changed: **55–60% restated the foundations**, **25–40% was argument that changes nothing a
-  builder does**, and only **3–6 items per design** would have made a builder ship something wrong. Those
-  items relocate into roughly five foundation entries apiece.
+  tested by having an independent agent write a build plan from the foundations alone, then read the spec
+  and record what changed. In each case the agent found only **a handful of items** that would have been
+  built differently without the spec; most of the document restated foundations or argued for them.
+
+The goal that follows is to capture those missing classes of information **as foundations** rather than
+as prose in a spec — which is a smaller job than it sounds, because there are few of them and they
+repeat.
 
 Against those, one countervailing force that shapes everything below:
 
 **Decisions are the only window the owner actually uses.** The others exist — the spec, the test plan,
-the code — and go unread. Remove the spec and the decision set becomes the sole description of what was
-built. So decisions must not be minimised; they must be rich enough to comprehend a product from. What
-must shrink is churn, not signal.
+the code — and go unread. Remove the spec and the decision set becomes the sole artifact used by the
+owner to understand what was built. So decisions must not be minimised; they must be rich enough to
+comprehend a product from.
 
 ---
 
@@ -66,7 +65,7 @@ must shrink is churn, not signal.
 | artifact | what it holds |
 |---|---|
 | requirements | owner fiat: what the product must do to be accepted |
-| decisions | the path taken to meet them — each choice whose outcome someone downstream would notice, with what would reverse it |
+| decisions | the path taken to meet them — each choice whose outcome someone downstream would notice, recorded with the conditions that would call for it to be revisited |
 | facts | what has been observed about the world, with the runs and artifacts that establish it |
 | interfaces | the shapes something outside the build compiles against |
 | released versions | tags and published artifacts — permanent once out, whatever happens to the source |
@@ -92,7 +91,7 @@ attaches to the increment, so drafting increment N+1 never unsettles the shipped
 
 ```
 Plan:
-  Ask → Clarify → Ratify        (loops until the owner declares it settled)
+  Ask → Clarify → Ratify        (loops until the owner declares it settled enough to transition to building)
 
 Build:
   Define    → [Escalate → Ratify → resume or rework]
@@ -103,7 +102,7 @@ Build:
 
 ### Ask
 
-The owner picks a set of requirements to build as a new increment. Nothing else is in scope.
+The owner picks a set of requirements to build as a new increment.
 
 ### Clarify
 
@@ -129,8 +128,10 @@ Each proposed decision is read in full and becomes:
 - **tolerated** — reserved acceptance, or a deliberate punt
 - **rejected** — reserved for *impossible, non-viable, or incorrect*
 
-Distaste is not rejection. A decision the owner dislikes but can live with is **tolerated, plus a
-requirement filed for the next increment's ask.** See *Build forward*.
+Distaste is not rejection. A decision the owner dislikes but can live with is **tolerated**, and may
+stand indefinitely — nothing obliges a later increment to revisit it. If the owner does want it changed,
+that becomes a requirement in some future ask, but as a deliberate choice rather than an automatic
+consequence. See *Build forward*.
 
 ### The build waves
 
@@ -173,7 +174,6 @@ already uses for the settle gate, pointed at a new target.
 
 At the increment boundary:
 
-- deferred tensions become the next increment's **ask**, ranked
 - superseded requirements are retired against replacements
 - a decision is **promoted to a requirement** only when it has become so visible or impactful that
   consumers can reasonably be expected to rely on it, and preserving its effect is a matter of
@@ -321,11 +321,23 @@ structured data and never reads the narrative.
 9. **Interfaces as a first-class artifact** — extracted, pinned, diffable. Produced by the Stub wave,
    which already writes the public surface and its doc comments; what is missing is that it lands
    somewhere durable rather than only in the code.
-10. **Requirement lifecycle fields** — `introduced_in`, `retired_in`, naming increments. This also fixes a
-    real defect: `doc-structure` cannot represent a retired `documented` fact whose in-repo source text has
-    since changed, because the checker verifies quotes on retired facts and the span is gone by definition.
-    If quotes resolve against the increment where the text lived, that is structurally solved rather than
-    worked around.
+10. **A published increment is immutable**, and lifecycle is expressed by pointing *forward*. Nothing in
+    a shipped increment is edited afterwards, so a requirement cannot carry a range like
+    `active_from: [start, end]` — that would mean editing an old artifact to close it. Instead a new entry
+    names what it supersedes: `amends:` or `retires:`, referencing the earlier id.
+
+    Two things to work out. **Retirement needs a concise form** — an entry whose only content is "this
+    retires `baz`" is noise, since the statement restates the id. What the statement should carry beyond
+    the retired id, and what a bare removal with no replacement looks like, both need settling.
+
+    And **requirements and decisions are scoped to a product**, across all of its increments, so finding
+    what supersedes a given entry never means searching the whole repository. That is what keeps
+    retirement tractable at all.
+
+    This also fixes a real defect: `doc-structure` cannot represent a retired `documented` fact whose
+    in-repo source text has since changed, because the checker verifies quotes on retired facts and the
+    span is gone by definition. If quotes resolve against the increment where the text lived, that is
+    structurally solved rather than worked around.
 
 **Tooling**
 
@@ -388,5 +400,13 @@ comprehension channel, and this is built to feed it rather than to trim it.
 - **The requirement pyramid, tabled.** An apex requirement with more specific ones beneath it, where the
   apex is a universal claim the children instantiate. Deferred because no concrete example emerged.
 - **Conformance**, deferred to its own increment: how behaviour is pinned so a rebuilt implementation can
-  be verified against it, where those cases are authored, and who ratifies them. Research is collected in
-  `docs/research/conformance/`.
+  be verified against it, where those cases are authored, and who ratifies them.
+- **Where the durable interfaces live, and what shape they take.** Distinct from the internal API stubs
+  the Stub wave produces — see the open thread on that row.
+- **Reconciling product-scoped foundations with `area` and `global` requirements**, and with `applies_to`.
+  Scoping requirements to a product is what makes retirement tractable; wider-scope requirements binding
+  many products cut against it. The two need to be squared.
+- **The term "falsifier"** reads as though the decision were false, which it is not — a decision was made,
+  and what may later prove false is the assumption behind it. Nor does one firing mean the decision is
+  reversed; it means the decision is no longer justified by what justified it, and should be revisited.
+  The term is defined outside this document, so renaming it is a future scope item.
