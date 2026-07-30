@@ -188,6 +188,58 @@ load-carrying for anyone downstream.
 
 ## Mechanisms it relies on
 
+### Requirement presets, and the end of wider scopes
+
+There is a flaw in how requirement scopes work today, and it is not a gap in the rules — it is
+immutability being violated from outside. **A published increment's compliance can change without the
+increment changing.** Add a global requirement this morning and a design that was complete last night is
+incomplete, having done nothing. The same holds for an `applies_to` that reaches a design after the fact.
+No amount of care inside an increment defends against it.
+
+The fix is to **invert the binding**. Global and area requirement tiers go away, along with `applies_to`
+and `sets.yaml`. In their place:
+
+**A requirement preset is a product that defines requirements and builds nothing.** `nodejs-library`,
+`minecraft-addon`, `published-to-npm`. It has increments like any other product, but its increments are
+**Plan-only** — Ask → Clarify → Ratify, with no Build, because it produces requirements rather than
+software.
+
+**A product adopts a preset at a pinned increment.**
+
+```yaml
+adopts:
+  - nodejs-library@3
+  - published-to-npm@1
+```
+
+Publishing `nodejs-library@4` changes nothing for anyone until a product deliberately adopts it. Upgrading
+is an ordinary increment: supersede the old adoption with one naming the newer preset increment.
+
+This is the same move that makes conformance claims sayable elsewhere. "Conforms to test262" is not a
+sayable sentence, because the suite is living and a claim against it decays silently; CommonMark and the
+JSON Schema suite version cleanly because an implementation pins a frozen revision. **A durable claim can
+only be made against something that cannot move underneath it.**
+
+Four rules:
+
+- **No exceptions.** A preset is adopted whole. This is the constraint that shapes how presets are
+  written: factor them small and compose several, rather than writing one large preset with carve-outs.
+  Allowing exceptions would make every adoption a bespoke negotiation and reinvent `applies_to`.
+- **Presets do not adopt presets.** Flat, so there are no diamonds to resolve. Purely additive to allow
+  later if it turns out to be wanted.
+- **A conflict between an adopted requirement and a product-local one is an error**, handled exactly like
+  any two conflicting product requirements: an agent raises it as an open question, and the increment
+  cannot settle until it is addressed.
+- **A preset increment is immutable once published.** This carries the entire mechanism — pinning buys
+  nothing if the pinned thing can move.
+
+**Set membership becomes a property of the member.** Today `sets.yaml` declares centrally which designs
+belong to a group; under this a product declares what it adopts, so adding a product to a group is a
+change to that product rather than to a shared file.
+
+**Drift is expected and not forced.** Products may sit on old preset increments indefinitely. A report of
+how far behind each adoption sits is useful; nothing obliges an upgrade.
+
 ### Two axes on a decision
 
 The current `accepted` / `tolerated` split records **attachment** — how much the owner cares. That is the
@@ -308,6 +360,10 @@ structured data and never reads the narrative.
 1. **Fence requirements to the product, not the design.** The highest-value single change; it removes the
    cross-design ask ceremony for same-product work. Keep the existing fact-sourced-to-upstream-requirement
    mechanism for genuinely cross-*product* dependencies.
+1a. **Requirement presets**, with `adopts` on a product and the wider scopes removed. The checker enforces
+   that each adopted preset and increment exists, that the increment is published rather than draft, and
+   that no two adopted presets declare conflicting requirement ids — and reports, without failing, how
+   many increments behind each adoption sits. `applies_to` and `sets.yaml` are retired with the scopes.
 2. **Increment as an artifact** — ask, foundation delta, decisions, transition.
 3. **Move status from the design to the increment.**
 4. **Stop generating `spec.md`.** Keep the Clarify phase; discard its document.
@@ -375,6 +431,7 @@ exposes a `verify` task**, and the shared workflow needs no per-project knowledg
 |---|---|
 | a spec is written, reviewed and maintained per design | no spec; Clarify produces decisions, facts and questions, and its document is discarded |
 | requirements fence to a design, so two workstreams on one product file issues at each other | requirements fence to the product; same-product work shares foundations |
+| a new global or `applies_to` requirement can make a settled design incomplete retroactively | products adopt requirement presets at a pinned increment; nothing binds a product until it says so |
 | a design is settled or draft | an increment is; shipped increments stay shipped |
 | changing a shipped product means rewriting its spec or inventing another slice | an increment carries the delta |
 | decisions are the design phase's output, reviewed before building | decisions arrive from every wave and accumulate through the build |
@@ -403,9 +460,11 @@ comprehension channel, and this is built to feed it rather than to trim it.
   be verified against it, where those cases are authored, and who ratifies them.
 - **Where the durable interfaces live, and what shape they take.** Distinct from the internal API stubs
   the Stub wave produces — see the open thread on that row.
-- **Reconciling product-scoped foundations with `area` and `global` requirements**, and with `applies_to`.
-  Scoping requirements to a product is what makes retirement tractable; wider-scope requirements binding
-  many products cut against it. The two need to be squared.
+- **How a product proves it meets a requirement.** The old checker enforced that every requirement binding
+  a design was cited in its spec. That was the only mechanical evidence of compliance, and removing the
+  spec removes it — so nothing currently fails when a product adopts a preset increment whose requirements
+  it does not yet satisfy. This is a consequence of the presets change and the largest hole in the
+  proposal.
 - **The term "falsifier"** reads as though the decision were false, which it is not — a decision was made,
   and what may later prove false is the assumption behind it. Nor does one firing mean the decision is
   reversed; it means the decision is no longer justified by what justified it, and should be revisited.
