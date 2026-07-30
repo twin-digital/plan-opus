@@ -56,6 +56,21 @@ The owner can only decide what is theirs to decide. "Runs a million users on one
 requirement, it is a guess about reality wearing one — a bet on what is possible, and so an open
 question until something checks it. Requirements rule the design, not the world.
 
+## A decision's status is not a cost
+
+While a design is being worked, an `accepted` decision is reversible. The status records that the
+owner ruled on the choice once, not that the choice has since become expensive to revisit. The
+artifact is disposable by design and acceptance does not make part of it permanent.
+
+So the only entries in a comparison between two designs are actual impacts on the product: what a
+user, a consumer, or a sibling design would experience differently. Decisions to re-open, spec
+churn, and review rounds spent are not costs and do not go in the ledger. An agent arguing for what
+the spec already says because changing it would reverse an accepted decision has charged the owner
+for its own rework.
+
+Name the accepted decisions an alternative would reverse — the owner wants to see them, and
+re-ruling is theirs — but name them as consequences, not as reasons against.
+
 ## Facts are repo-wide; requirements are not
 
 Any design may cite any fact, whichever scope files it. Before recording one, search
