@@ -338,6 +338,46 @@ authoring rule, and the right trade for what it buys.
 stdout, per toml-test's contract. The thinnest real one measured is **43 lines**. Drivers are per project
 *type*, not per project — five or six of them against every project we will ever write.
 
+### Minimise the public contract
+
+**Every export is a constraint on the rebuild.** The public surface is precisely the set of things a
+regenerated implementation must preserve, so its size is the inverse of the freedom that makes disposable
+source affordable. It is also, simultaneously, the size of the conformance corpus, the number of
+costly-to-reverse decisions the owner must rule on, and the Hyrum surface — the observable behaviour
+someone can come to depend on whatever the contract says.
+
+So minimising it is not tidiness. It is the lever that makes everything else cheaper, and it should be
+mechanically checkable wherever it can be.
+
+**Rules that a checker can enforce:**
+
+- **One entry point by default.** A second is a decision, not a default. Checkable: count the keys in the
+  package's `exports` map. `minecraft/test-lib` already has this as `d:one-public-entry-point`.
+- **No subpath wildcards.** A `"./*"` pattern in `exports` surrenders the boundary — consumers reach
+  internals and every internal path becomes a promise. Checkable: assert no `*` in export keys.
+- **No `export *` from an entry point.** It is the most common way a surface grows without anyone
+  deciding: adding a symbol to an internal module silently publishes it. Named re-exports only.
+  Checkable by lint.
+- **`internal/` is unreachable from outside.** A directory the exports map never names, with cross-package
+  imports into it forbidden. `dependency-cruiser` enforces this well and is already in the toolchain's
+  vocabulary.
+- **Every exported symbol has at least one conformance case.** This is the strongest of the set, because
+  it makes the promise ledger *mechanical* rather than aspirational. Cross-reference the committed API
+  report against the conformance manifest: an export with no case is either an untested promise or a
+  symbol that should not be exported, and both are findings worth surfacing.
+- **The API report is committed, and growth is stated.** An `.api.md`-style report in version control, so
+  a surface change appears as a reviewable diff — and engineered, per API Extractor's own design note, so
+  "a diff only occurs when a significant contractual change has occurred." An increment that grows the
+  export count says why.
+
+**Type-only exports are cheaper than value exports** and worth counting separately: they constrain what a
+consumer compiles against but carry no runtime behaviour to preserve, so they cost the rebuild less.
+
+**Scope note.** This section is about the *product's* boundary, which is durable. Minimising the surface
+of internal modules is a different concern with a different justification — it makes a build coherent, not
+a rebuild cheaper, because internal structure is transient and a rebuild is free to reorganise it
+entirely. That belongs in the builder's instructions, not here.
+
 ### Collation replaces the spec's assembly job
 
 If decisions are the owner's window, they have to read *as a set*. Thirty entries in file order do not
@@ -436,18 +476,22 @@ bumps from structured data and never reads the narrative.
     aggregate. Thin, because the tools do the work.
 14. **`testscript` in the toolchain** — a devcontainer feature and a CI step, pinned to v1.15.0.
 15. **Driver binaries per project type** — toml-test's contract, ~43–80 lines each.
-16. **Decision collation** — the owner's readable view of a product.
-17. **Publish gate** — no `proposed` decision outstanding.
-18. **Deferred-tension queue** — ranked, visible, closable.
-19. **Build report format** — the standard filter, plus a mandatory list of overturned decisions.
+16. **Public-surface checks** — entry-point count, no export wildcards, no `export *` from an entry, the
+    `internal/` boundary, and the cross-reference of the API report against the conformance manifest. All
+    mechanical; the last one is what makes the promise ledger enforceable rather than aspirational.
+17. **Committed API report** per package, so a surface change is a reviewable diff.
+18. **Decision collation** — the owner's readable view of a product.
+19. **Publish gate** — no `proposed` decision outstanding.
+20. **Deferred-tension queue** — ranked, visible, closable.
+21. **Build report format** — the standard filter, plus a mandatory list of overturned decisions.
 
 **Process**
 
-20. **Harvest step at the increment boundary** — promote pseudo-requirements to requirements.
-21. **Record build-forward as a decision** with its falsifier.
-22. **Instruct the tiers asymmetrically** — smallest decisions at the bottom, no detail-settling at the
+22. **Harvest step at the increment boundary** — promote pseudo-requirements to requirements.
+23. **Record build-forward as a decision** with its falsifier.
+24. **Instruct the tiers asymmetrically** — smallest decisions at the bottom, no detail-settling at the
     top, escalation only with evidence.
-23. **Where the owner's time goes.** Bounded manual work is acceptable where it is time-efficient, and
+25. **Where the owner's time goes.** Bounded manual work is acceptable where it is time-efficient, and
     the evidence says exactly where to spend it. Of 30 interviewed practitioners, **16 said writing the
     specifications slowed their progress**, and the named failure mode was *"not knowing what properties
     to test"* — not tooling. So the owner's authoring effort goes into **deciding what to assert**, which
