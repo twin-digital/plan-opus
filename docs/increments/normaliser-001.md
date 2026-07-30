@@ -65,10 +65,12 @@ not exist yet.
 > Stored expectations are already normalised, and actual output is normalised before comparison.
 > Nothing is ever un-normalised.
 
-*Rationale:* this is the ordering rule, and it is the requirement that removes an otherwise nasty
-problem. Redaction is lossy and has no inverse — once a path becomes `[TMPDIR]` you cannot recover it.
-But if both sides are normalised, no inverse is ever needed. Store raw and normalise at comparison time
-instead, and every regenerated expectation silently captures the temp path it was meant to scrub.
+*Rationale:* **only the normalised form is authorable in advance.** Nobody can write
+`/tmp/xyz-1234/out.txt` before running anything — they do not know which temp directory they will get. So
+storing raw would force every case with variable output to be captured after the fact, which is exactly
+the difference between a specification and a characterization test. `[TMPDIR]/out.txt` is a claim about
+what must be true; `/tmp/xyz-1234/out.txt` is an accident that happened to hold once on one machine, and
+it also misleads whoever reads the file next.
 
 ### `r:normalisation-is-deterministic-and-idempotent`
 
@@ -115,6 +117,42 @@ Not answers — the tensions this increment has to resolve into decisions, or me
   proof because it exercises replacement rather than simple substitution.
 - **What "already normalised" means for idempotence** when a replacement token could itself match a
   detect-pattern.
+- **What happens when an existing rule changes.** Adding a rule is cheap — you only add one because some
+  case has noise it cannot handle, so the cases affected were failing already. *Changing* one — renaming
+  a token, broadening a pattern — reaches cases that were passing, and forces them to be regenerated. A
+  bulk regeneration is where behavioural drift hides, because a hundred re-blessed expectations look the
+  same whether or not one of them quietly accepted a regression. Whether a rule-change regeneration must
+  be a separate, separately-reviewed act is this increment's to settle.
+
+## Settled before the clearinghouse
+
+Carried forward so it is recorded as a decision rather than rediscovered and re-argued.
+
+### Storing raw and normalising both sides at comparison time — considered, not taken
+
+The alternative to `r:normalised-is-what-is-stored`: keep expectations exactly as the program emitted
+them, and run *both* the stored text and the fresh output through the current rules at comparison time.
+
+**What it would have bought, and it is not nothing:** rule iteration becomes free. No stored artifact
+moves when a rule changes, so the bulk-regeneration hazard above disappears entirely — which matters
+precisely because this increment plans to discover rules just-in-time.
+
+**Why it lost:**
+
+- **Raw expectations cannot be authored in advance**, only captured, which breaks the
+  author-before-implementation rule for every case with variable output.
+- **It does not compose with stock `testscript`.** `cmp` is byte-exact, so normalising the actual output
+  means the stored section must be normalised too. Normalising *both* sides needs a comparison verb that
+  does the normalising — which testscript does not have, and which would require the unreleased plugin
+  protocol or Go. That also weakens the case for adopting a runner rather than building one, since
+  needing a custom verb is most of the reason to own it.
+- Every tool surveyed lands the same way — testscript's `cmpenv` expands placeholders in the stored text,
+  trycmd redacts the actual and compares against a placeholder file. Weak evidence, but four independent
+  implementations chose it.
+
+**Falsifier:** changing existing rules turns out frequent enough that re-bless diffs are routinely large,
+or a rule-change regeneration is found to have hidden a behavioural regression. Either would mean the
+free-iteration property was worth more than authorability, and this should be reopened.
 
 ## Cheap things worth measuring rather than arguing
 
