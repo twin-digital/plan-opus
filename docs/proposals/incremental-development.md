@@ -98,21 +98,44 @@ process — it happened because the owner kept asking. It should be a named outp
 Distaste is not rejection. A decision the owner dislikes but can live with is **tolerated, plus a
 requirement filed for the next increment's agenda.** See *Build forward*.
 
-**4. Interfaces pinned.** Anything something outside the build compiles against — published shapes,
-error codes, data formats — is marked costly-to-reverse before anything is written against it.
+**4. Build, in waves.** The builder consumes foundations and makes build-time decisions, instructed to
+make the *smallest* decisions that complete the work. It may depart from a cheap-to-reverse decision
+with cause — a compile error, a measurement, a contradiction — but not from a costly-to-reverse one.
 
-**5. Build.** The builder consumes foundations, interfaces, and the conformance enumeration. It makes
-build-time decisions, and it is instructed to make the *smallest* decisions that complete the work.
-It may depart from a cheap-to-reverse decision with cause — a compile error, a measurement, a
-contradiction — but not from a costly-to-reverse one.
+The existing `prompts/build/build-from-spec.md` already orders its waves by reversal cost, and that
+ordering is what makes the durable artifacts fall out in the right sequence:
+
+- **Wave 1 — interface and conformance enumeration.** The public surface, its doc comments, and every
+  planned test case, written before any implementation. **Both durable artifacts are produced here**,
+  and so is the work breakdown the components block used to carry — the builder derives it, which is
+  where the context for it actually is.
+- **Wave 2 — tests.** Against the stubbed interface. Internal; its gate asks whether the tests encode
+  the contract.
+- **Wave 3 — implementation.** Internal; its gate is an adversarial correctness pass.
+
+**5. The interface gate.** At the end of wave 1, the interface's costly-to-reverse decisions go to the
+owner. This is the one place the build pauses for a human, and it is placed where reversal cost spikes
+rather than before any work has started — you cannot pin a surface before it exists.
+
+The interface does not arrive for direct review; it arrives **as decisions that reference it.** A
+decision reads "the problem code union is pinned as of this interface — 18 codes, five renamed since
+the last increment," and points at the artifact. The owner reads the decision; the table lives where
+tooling can diff it. This is what keeps a table-shaped interface from having to masquerade as a
+decision statement.
+
+Waves 2 and 3 surface nothing to the owner directly. Their decisions are cheap to reverse by
+construction and reach the owner once, in the build report.
 
 **6. Build report.** Filtered the same way decisions are: report what a consumer, a sibling, or the
 owner could tell apart. Plus, mandatorily, **every decision overturned and why** — that list is where
 the designer and the builder disagreed, and it is the part that earns attention.
 
-**7. Publish gate.** Nothing merges or publishes while a `proposed` decision is outstanding. This is
-the only gate, and it is the same mechanic the repository already uses for the settle gate, pointed at
-a new target.
+**7. Publish gate.** Nothing merges or publishes while a `proposed` decision is outstanding — the same
+mechanic the repository already uses for the settle gate, pointed at a new target.
+
+That makes **two** gates in an increment, not one: the interface gate at the end of wave 1, and this.
+Both sit later than today's gate, which precedes the build entirely, and both sit where reversal is
+expensive — at the surface others compile against, and at publication.
 
 **8. Harvest.** At the increment boundary:
 
@@ -126,6 +149,10 @@ a new target.
 ## Mechanisms it relies on
 
 ### Two axes on a decision
+
+The reversal-cost axis is not new to this repository — `prompts/build/build-from-spec.md` already
+orders its waves by it: "the interface is the expensive thing to get wrong, the implementation the cheap
+thing to redo." What follows applies the same axis to decisions, where nothing records it yet.
 
 The current `accepted` / `tolerated` split records **attachment** — how much the owner cares. That is
 the right thing for it to record, and it is assigned after reading everything, not before.
@@ -249,9 +276,12 @@ bumps from structured data and never reads the narrative.
 6. **`because:` on decisions** — the facts that drove them.
 7. **`informed_by:` on requirements** — for collision detection, not justification.
 8. **Phase tag on decisions.**
-9. **Interfaces as a first-class artifact** — extracted, pinned, diffable.
+9. **Interfaces as a first-class artifact** — extracted, pinned, diffable. Produced by build wave 1,
+   which already writes the public surface and its doc comments; what is missing is that it lands
+   somewhere durable rather than only in the code.
 10. **Conformance enumeration as a first-class artifact** — the coverage table, promoted out of the
-    spec.
+    spec. Also produced by build wave 1, which already documents every planned test case before any
+    implementation exists.
 11. **Requirement lifecycle fields** — `introduced_in`, `retired_in`, naming increments. This also
     fixes a real defect: `doc-structure` cannot represent a retired `documented` fact whose in-repo
     source text has since changed, because the checker verifies quotes on retired facts and the span is
@@ -283,7 +313,8 @@ bumps from structured data and never reads the narrative.
 | a design is settled or draft | an increment is; shipped increments stay shipped |
 | changing a shipped product means rewriting its spec or inventing a new design | an increment carries the delta |
 | decisions are the design phase's output, reviewed before building | decisions arrive from every tier and accumulate through the build |
-| the review gate sits before the build — the cheap, reversible step | the gate sits before publish — the expensive, irreversible one |
+| one review gate, before the build — the cheap, reversible step | two gates, both later: the interface at the end of wave 1, and publish |
+| interfaces are written mid-build and reviewed by nobody outside it | the interface gate is where the build pauses for the owner, reached through decisions rather than by reading the surface |
 | a decision the owner dislikes is rejected, and the work is redone | it is tolerated, and a requirement is filed for the next increment |
 | facts are reachable only through spec prose | decisions carry their evidence directly |
 | interfaces and the conformance table live inside a skimmed document | both are first-class, diffable, and mechanically reviewed |
@@ -296,8 +327,10 @@ comprehension channel and the proposal is built to feed it, not to trim it.
 
 ## Open
 
-- **Where a data format falls.** It is an interface, so it wants pinning before anything compiles
-  against it — but the session's format questions were the ones the build most often overturned.
+- **Whether the interface gate is enough for a data format.** The wave structure answers where a format
+  gets pinned — at the end of wave 1, during the build rather than before it — which is later than
+  "before anything compiles against it" would suggest and earlier than the build's own churn. Whether
+  that is late enough to have learned something and early enough to protect consumers is untested.
 - **Whether the clearinghouse's document is worth keeping at all**, or whether a collated decision view
   serves every reader it would have.
 - **Concurrency.** Increments are linear per product; two open increments colliding on a foundation is
