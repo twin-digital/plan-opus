@@ -240,6 +240,93 @@ change to that product rather than to a shared file.
 **Drift is expected and not forced.** Products may sit on old preset increments indefinitely. A report of
 how far behind each adoption sits is useful; nothing obliges an upgrade.
 
+### Proving a claim is met
+
+The old checker enforced one thing: that every requirement binding a design was cited in its spec. That
+was the only mechanical evidence of compliance, and it was theatre — a citation proves a document
+*mentions* something. Removing the spec removes it, and requirement presets make its absence urgent:
+adopting `nodejs-library@4` ought to be able to fail, and today nothing would.
+
+**Every claim carries its evidence.** A claim is a **requirement** or a **decision**. Requirements say
+what the product must do; decisions say what path was taken. Both are assertions about the product, and
+an assertion nothing checks can quietly become false. For decisions that is the more dangerous case:
+they are the owner's window into the product, and a window that silently misreports is worse than none.
+
+#### Requirements state how they would be known to be met
+
+```yaml
+- id: consumer-suite-typechecks
+  statement: |
+    a TypeScript consumer's test suite typechecks with the package installed.
+  satisfied_when: |
+    a consumer suite containing both pack imports and control-surface imports compiles with no
+    error and no cast at the seam.
+```
+
+Required, with an honest escape — where a requirement genuinely cannot be checked mechanically, the field
+says so and why. Two things earn it the schema cost. It describes an **observable condition rather than a
+mechanism**, so it does not pre-decide the build. And a requirement whose author cannot write this
+sentence is usually a badly stated requirement, which is better discovered while writing it than a year
+later.
+
+It is also what a conformance case would later be written *from*, so nothing is re-derived as coverage
+strengthens.
+
+#### The coverage manifest maps claims to evidence
+
+```yaml
+- claim: r:consumer-suite-typechecks
+  covered_by:
+    - kind: code-test
+      ref: test/typecheck.spec.ts
+    - kind: conformance-case
+      ref: conformance/typecheck.txtar
+
+- claim: d:control-surface-is-a-real-subpath
+  covered_by:
+    - kind: attestation
+      note: the exports map declares ./control, and the build fails without it
+```
+
+`kind` + `ref` + an optional `note`, uniform across kinds. New kinds land without a schema change, and the
+checker validates `ref` shape per kind from a lookup table rather than the schema knowing about each one.
+
+| kind | what it is | survives a rebuild |
+|---|---|---|
+| `attestation` | an agent asserts it; no artifact | no |
+| `code-test` | a test in the project's own suite | no — rebuilt with the implementation |
+| `manual-check` | a human followed recorded steps | the steps do; the run does not |
+| `conformance-case` | a durable case | yes |
+
+There is deliberately **no kind for "a decision addresses this requirement."** Traceability is not
+coverage — it is the spec-citation mechanism under a new filename, proving only that something mentions
+something.
+
+#### The ladder
+
+| rung | means |
+|---|---|
+| `any` | at least one entry — somebody thought about it |
+| `checked` | something other than an attestation exists |
+| `automated` | it runs without a human |
+| `durable` | a conformance case — it survives a rebuild |
+
+Increment 1 sets the bar at `any` and reports the distribution. Later increments raise a rung or turn a
+warning into an error. **The number worth watching is how many claims sit at `attestation`** — that is
+the honest measure of how much of the product rests on an agent's word.
+
+#### This is what makes a preset bump fail
+
+Adopted requirements need coverage like any other. Adopt `nodejs-library@4` and its new requirements
+arrive with no coverage entries, so the `any` rung reports them immediately. The hole that requirement
+presets opened closes here, and it is why the two belong in the same increment.
+
+#### Who writes what
+
+**Clarify writes `satisfied_when`**, because turning a requirement into something checkable is design
+work. **The build waves write coverage**, because that is when the evidence exists. A published
+increment's manifest is frozen with it; the next increment produces a new one.
+
 ### Two axes on a decision
 
 The current `accepted` / `tolerated` split records **attachment** — how much the owner cares. That is the
@@ -360,6 +447,9 @@ structured data and never reads the narrative.
 1. **Fence requirements to the product, not the design.** The highest-value single change; it removes the
    cross-design ask ceremony for same-product work. Keep the existing fact-sourced-to-upstream-requirement
    mechanism for genuinely cross-*product* dependencies.
+1b. **The coverage manifest** — claim to evidence, with `satisfied_when` on requirements. The checker
+   enforces the configured rung, reports the distribution across rungs, and validates each `ref` against
+   its kind. Set at `any` for the first increment and ratcheted deliberately.
 1a. **Requirement presets**, with `adopts` on a product and the wider scopes removed. The checker enforces
    that each adopted preset and increment exists, that the increment is published rather than draft, and
    that no two adopted presets declare conflicting requirement ids — and reports, without failing, how
@@ -432,6 +522,7 @@ exposes a `verify` task**, and the shared workflow needs no per-project knowledg
 | a spec is written, reviewed and maintained per design | no spec; Clarify produces decisions, facts and questions, and its document is discarded |
 | requirements fence to a design, so two workstreams on one product file issues at each other | requirements fence to the product; same-product work shares foundations |
 | a new global or `applies_to` requirement can make a settled design incomplete retroactively | products adopt requirement presets at a pinned increment; nothing binds a product until it says so |
+| compliance means the spec cites the requirement | every requirement and decision carries coverage, graded by whether anything actually checks it |
 | a design is settled or draft | an increment is; shipped increments stay shipped |
 | changing a shipped product means rewriting its spec or inventing another slice | an increment carries the delta |
 | decisions are the design phase's output, reviewed before building | decisions arrive from every wave and accumulate through the build |
@@ -460,11 +551,11 @@ comprehension channel, and this is built to feed it rather than to trim it.
   be verified against it, where those cases are authored, and who ratifies them.
 - **Where the durable interfaces live, and what shape they take.** Distinct from the internal API stubs
   the Stub wave produces — see the open thread on that row.
-- **How a product proves it meets a requirement.** The old checker enforced that every requirement binding
-  a design was cited in its spec. That was the only mechanical evidence of compliance, and removing the
-  spec removes it — so nothing currently fails when a product adopts a preset increment whose requirements
-  it does not yet satisfy. This is a consequence of the presets change and the largest hole in the
-  proposal.
+- **Whether decisions need `satisfied_when` too**, or whether a falsifier plus coverage is enough. They are
+  not the same event: a falsifier fires when the world changes, coverage fails when the code drifts.
+- **What happens to coverage when a claim is retired.** Under immutability the retired claim stays in its
+  own increment; whether its coverage entries are carried, dropped, or simply absent from the next
+  manifest is unsettled.
 - **The term "falsifier"** reads as though the decision were false, which it is not — a decision was made,
   and what may later prove false is the assumption behind it. Nor does one firing mean the decision is
   reversed; it means the decision is no longer justified by what justified it, and should be revisited.
