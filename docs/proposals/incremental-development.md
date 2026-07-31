@@ -320,6 +320,14 @@ publish. Immutability attaches to an increment's foundations, never to the deliv
 for code, where publishing an increment does not freeze the source files. A shipped state worth
 keeping is a released version, and what a later rewrite must preserve is what pinned decisions say.
 
+The difference a document does have is how it is consumed. Code is consumed through released
+versions, so work-in-progress on the default branch touches no consumer; a document at a permanent
+path is read straight from the tree, so merge is what makes it live. The guard is the one the
+process already has: the document's edits belong to an increment, merging them is publishing it, and
+the publish gate refuses that as long as the increment is not done — however long its branch lives,
+minutes for an unattended build or days for hand crafting. A document too hot for tree consumption
+— one outside readers pin against — releases versions like any other package.
+
 ### Facets
 
 A product with several kinds of deliverable needs a way to find, filter, and track claims without
