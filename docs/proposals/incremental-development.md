@@ -13,6 +13,9 @@ hundreds.
 Evidence base: `docs/experiments/spec-value/`, four controlled comparisons of what a spec contributes
 over its foundations, included in this change.
 
+What this process retires, and why, is in `process-migration.md`. This document states only how the
+process is meant to work.
+
 ---
 
 ## Why
@@ -153,13 +156,12 @@ An escalation path is open at **every** wave. It is meant to be a rare escape ha
 door, and agents are given explicit instruction about what qualifies. It fires when a wave needs to:
 
 - propose a change to a **requirement**
-- propose a change to an **accepted** decision
-- propose a change to a **tolerated** decision that was flagged costly to reverse
-- propose a **new** decision that is costly to reverse
+- propose a change to a **pinned** decision
+- propose a **new** decision that would be pinned
 
 Otherwise the build proceeds. Agents have wide latitude to decide and implement — including overturning
-tolerated, cheap-to-reverse decisions and introducing new cheap-to-reverse ones — provided nothing
-contradicts a ratified decision or requirement.
+unpinned decisions and introducing new unpinned ones — provided nothing contradicts a ratified decision or
+requirement.
 
 The asymmetry between Plan and Build is deliberate. **Plan exists to surface and ratify the big rocks**,
 so by definition everything raised there reaches the owner, who may simply tolerate what is easy to
@@ -188,64 +190,53 @@ load-carrying for anyone downstream.
 
 ## Mechanisms it relies on
 
-### Requirement presets, and the end of wider scopes
+### Requirement presets
 
-There is a flaw in how requirement scopes work today, and it is not a gap in the rules — it is
-immutability being violated from outside. **A published increment's compliance can change without the
-increment changing.** Add a global requirement this morning and a design that was complete last night is
-incomplete, having done nothing. The same holds for an `applies_to` that reaches a design after the fact.
-No amount of care inside an increment defends against it.
+A **requirement preset** is a product that defines requirements and builds nothing — `nodejs-library`,
+`minecraft-addon`, `published-to-npm`. It has increments like any other product, and its increments are
+**Plan-only**: Ask → Clarify → Ratify, with no Build.
 
-The fix is to **invert the binding**. Global and area requirement tiers go away, along with `applies_to`
-and `sets.yaml`. In their place:
-
-**A requirement preset is a product that defines requirements and builds nothing.** `nodejs-library`,
-`minecraft-addon`, `published-to-npm`. It has increments like any other product, but its increments are
-**Plan-only** — Ask → Clarify → Ratify, with no Build, because it produces requirements rather than
-software.
-
-**A product adopts a preset at a pinned increment.**
+**A product adopts presets at pinned increments.** An increment declares what changed, not the whole
+state; the effective set is the fold across the product's increments.
 
 ```yaml
+# increment 1 — first adoptions
 adopts:
   - nodejs-library@3
   - published-to-npm@1
 ```
 
-Publishing `nodejs-library@4` changes nothing for anyone until a product deliberately adopts it. Upgrading
-is an ordinary increment: supersede the old adoption with one naming the newer preset increment.
+```yaml
+# increment 4 — a version change and a removal
+adopts:
+  - nodejs-library@4
+drops:
+  - minecraft-addon
+```
 
-This is the same move that makes conformance claims sayable elsewhere. "Conforms to test262" is not a
-sayable sentence, because the suite is living and a claim against it decays silently; CommonMark and the
-JSON Schema suite version cleanly because an implementation pins a frozen revision. **A durable claim can
-only be made against something that cannot move underneath it.**
+- A preset is adopted **at most once at a time**, so the preset name is the identity. `adopts` on an
+  already-adopted preset replaces the earlier version; no `supersedes` is needed.
+- `drops` removes an adoption and takes no version.
+- Adopting and dropping the same preset in one increment is an error.
 
-Four rules:
+Rules:
 
-- **No exceptions.** A preset is adopted whole. This is the constraint that shapes how presets are
-  written: factor them small and compose several, rather than writing one large preset with carve-outs.
-  Allowing exceptions would make every adoption a bespoke negotiation and reinvent `applies_to`.
-- **Presets do not adopt presets.** Flat, so there are no diamonds to resolve. Purely additive to allow
-  later if it turns out to be wanted.
-- **A conflict between an adopted requirement and a product-local one is an error**, handled exactly like
-  any two conflicting product requirements: an agent raises it as an open question, and the increment
-  cannot settle until it is addressed.
-- **A preset increment is immutable once published.** This carries the entire mechanism — pinning buys
-  nothing if the pinned thing can move.
+- A preset is adopted whole. There are no exceptions or partial adoptions.
+- A preset does not adopt another preset.
+- A conflict between an adopted requirement and a product-local one is an error. An agent raises it as an
+  open question, and the increment cannot settle until it is addressed.
+- A preset increment is immutable once published.
+- Adopted requirements need coverage exactly as product-local ones do.
 
-**Set membership becomes a property of the member.** Today `sets.yaml` declares centrally which designs
-belong to a group; under this a product declares what it adopts, so adding a product to a group is a
-change to that product rather than to a shared file.
-
-**Drift is expected and not forced.** Products may sit on old preset increments indefinitely. A report of
-how far behind each adoption sits is useful; nothing obliges an upgrade.
+Drift is expected and not forced. Products may sit on old preset increments indefinitely; a report of how
+far behind each adoption sits is useful, but nothing obliges an upgrade.
 
 ### Proving a claim is met
 
-The old checker enforced one thing: that every requirement binding a design was cited in its spec. That
-was the only mechanical evidence of compliance, and it was theatre — a citation proves a document
-*mentions* something. Removing the spec removes it, and requirement presets make its absence urgent:
-adopting `nodejs-library@4` ought to be able to fail, and today nothing would.
+A product should be able to demonstrate, mechanically, that it meets what it claims. That is what makes
+adopting a newer preset increment able to *fail*, what stops a decision quietly describing a product that
+no longer exists, and what lets the owner ask how much of a product is actually checked rather than merely
+asserted.
 
 **Every claim carries its evidence.** A claim is a **requirement** or a **decision**. Requirements say
 what the product must do; decisions say what path was taken. Both are assertions about the product, and
@@ -298,28 +289,23 @@ checker validates `ref` shape per kind from a lookup table rather than the schem
 | `manual-check` | a human followed recorded steps | the steps do; the run does not |
 | `conformance-case` | a durable case | yes |
 
-There is deliberately **no kind for "a decision addresses this requirement."** Traceability is not
-coverage — it is the spec-citation mechanism under a new filename, proving only that something mentions
-something.
-
 #### The ladder
 
 | rung | means |
 |---|---|
-| `any` | at least one entry — somebody thought about it |
+| `attested` | at least an agent's claim that it is met |
 | `checked` | something other than an attestation exists |
 | `automated` | it runs without a human |
 | `durable` | a conformance case — it survives a rebuild |
 
-Increment 1 sets the bar at `any` and reports the distribution. Later increments raise a rung or turn a
+Increment 1 sets the bar at `attested` and reports the distribution. Later increments raise a rung or turn a
 warning into an error. **The number worth watching is how many claims sit at `attestation`** — that is
 the honest measure of how much of the product rests on an agent's word.
 
 #### This is what makes a preset bump fail
 
-Adopted requirements need coverage like any other. Adopt `nodejs-library@4` and its new requirements
-arrive with no coverage entries, so the `any` rung reports them immediately. The hole that requirement
-presets opened closes here, and it is why the two belong in the same increment.
+Adopt `nodejs-library@4` and its new requirements arrive with no coverage entries, so the `attested` rung
+reports them immediately.
 
 #### Who writes what
 
@@ -327,26 +313,31 @@ presets opened closes here, and it is why the two belong in the same increment.
 work. **The build waves write coverage**, because that is when the evidence exists. A published
 increment's manifest is frozen with it; the next increment produces a new one.
 
-### Two axes on a decision
+### Pinned decisions
 
-The current `accepted` / `tolerated` split records **attachment** — how much the owner cares. That is the
-right thing for it to record, and it is assigned after reading everything, not before.
+`accepted` and `tolerated` record the owner's **attachment** — how much they care — assigned after
+reading everything. A separate and independent question is whether a decision may be freely overturned.
 
-But `accepted` currently carries a second, independent fact: **reversal cost.** "Once we make this
-decision we can't change it easily" is not a statement about attachment, and the two vary independently:
+Two fields carry it:
 
-| | cheap to reverse | costly to reverse |
-|---|---|---|
-| owner attached | "how I'd do it" | public API the owner cares about |
-| owner indifferent | tolerated / punt | *no home today* |
+- **`pinned`** — a boolean. A pinned decision requires owner ratification to change. An unpinned one does
+  not, whatever its status.
+- **`pinnedReason`** — required when `pinned` is true, and not permitted when it is false. Free text
+  describing why.
 
-That empty cell is a live failure mode. A published error-code union the owner has no opinion about gets
-marked `tolerated` — honestly, as a punt — and a builder then treats `tolerated` as safe to override and
-changes a shape consumers compile against.
+Pin a decision when:
 
-The fix is **a field, not a status**: a designer-set reversal cost. Escalation reads off the field; owner
-attachment stays on the status. And the permission that makes this work has to be written down — nothing
-today tells a builder they may depart from a `tolerated` decision.
+- it fixes a **public API surface** something outside the build compiles against
+- it fixes a **data format** written to disk or sent over a wire
+- another **product depends on it**, so changing it reaches beyond this one
+- a **consumer would notice** the behaviour changing, whatever the contract says
+- it is expensive to reverse for some other reason worth writing down
+
+The reasons may become an enumeration once the set is understood, with a free-text detail field alongside
+— `pinnedReason: public-api` plus `pinnedDetail: exports the FooBar class, which consumers construct`.
+Free text until then, because closing the set early would hide the reasons that have not appeared yet.
+
+Pinning is what escalation reads. Nothing about `accepted` or `tolerated` obliges a builder to stop.
 
 ### Decisions cite what drove them
 
@@ -447,27 +438,28 @@ structured data and never reads the narrative.
 1. **Fence requirements to the product, not the design.** The highest-value single change; it removes the
    cross-design ask ceremony for same-product work. Keep the existing fact-sourced-to-upstream-requirement
    mechanism for genuinely cross-*product* dependencies.
-1b. **The coverage manifest** — claim to evidence, with `satisfied_when` on requirements. The checker
+2. **The coverage manifest** — claim to evidence, with `satisfied_when` on requirements. The checker
    enforces the configured rung, reports the distribution across rungs, and validates each `ref` against
    its kind. Set at `any` for the first increment and ratcheted deliberately.
-1a. **Requirement presets**, with `adopts` on a product and the wider scopes removed. The checker enforces
-   that each adopted preset and increment exists, that the increment is published rather than draft, and
-   that no two adopted presets declare conflicting requirement ids — and reports, without failing, how
-   many increments behind each adoption sits. `applies_to` and `sets.yaml` are retired with the scopes.
-2. **Increment as an artifact** — ask, foundation delta, decisions, transition.
-3. **Move status from the design to the increment.**
-4. **Stop generating `spec.md`.** Keep the Clarify phase; discard its document.
+3. **Requirement presets**, with `adopts` and `drops` on a product. The checker folds adoptions across a
+   product's increments to get the effective set, and enforces that each adopted preset and increment
+   exists, that the increment is published rather than draft, that a preset is not adopted and dropped in
+   one increment, and that no two adopted presets declare conflicting requirement ids — reporting, without
+   failing, how many increments behind each adoption sits.
+4. **Increment as an artifact** — ask, foundation delta, decisions, transition.
+5. **Move status from the design to the increment.**
+6. **Stop generating `spec.md`.** Keep the Clarify phase; discard its document.
 
 **Schema**
 
-5. **Reversal-cost field on decisions**, designer-set, governing what escalates.
-6. **`because:` on decisions** — the facts that drove them.
-7. **`informed_by:` on requirements** — for collision detection, not justification.
-8. **Wave tag on decisions.**
-9. **Interfaces as a first-class artifact** — extracted, pinned, diffable. Produced by the Stub wave,
+7. **`pinned` and `pinnedReason` on decisions**, governing what escalates.
+8. **`because:` on decisions** — the facts that drove them.
+9. **`informed_by:` on requirements** — for collision detection, not justification.
+10. **Wave tag on decisions.**
+11. **Interfaces as a first-class artifact** — extracted, pinned, diffable. Produced by the Stub wave,
    which already writes the public surface and its doc comments; what is missing is that it lands
    somewhere durable rather than only in the code.
-10. **A published increment is immutable**, and lifecycle is expressed by pointing *forward*. Nothing in
+12. **A published increment is immutable**, and lifecycle is expressed by pointing *forward*. Nothing in
     a shipped increment is edited afterwards, so a requirement cannot carry a range like
     `active_from: [start, end]` — that would mean editing an old artifact to close it. Instead a new entry
     names what it supersedes: `amends:` or `retires:`, referencing the earlier id.
