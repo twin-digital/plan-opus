@@ -105,7 +105,9 @@ Build:
 
 ### Ask
 
-The owner picks a set of requirements to build as a new increment.
+The owner picks a set of requirements to build as a new increment. Requirements authored in the
+increment are part of its ask by that fact; the increment's `ask:` field lists only pre-existing
+requirements carried forward into the build, and is absent otherwise.
 
 ### Clarify
 
@@ -238,9 +240,11 @@ far behind each adoption sits is useful, but nothing obliges an upgrade.
 A decision's **status** records the owner's ruling. Separately and independently, a decision may be
 **pinned** — meaning it cannot be freely overturned.
 
-- **`pinned`** — a boolean. A pinned decision requires owner ratification to change. An unpinned one does
-  not, whatever its status.
-- **`pinnedReason`** — free text, required when `pinned` is true and not permitted when it is false.
+- **`pinned`** — `false` (the default), or `{ reason, notes? }`. A pinned decision requires owner
+  ratification to change; an unpinned one does not, whatever its status.
+- **`reason`** is an enum — `data-format` and `public-api` today, joined by others as they earn a name —
+  with `other` as the escape. `notes` is optional alongside a named reason; alongside `other` it is
+  required, because there it is the reason.
 
 Pin a decision when it fixes a **public API surface**, fixes a **data format** written to disk or sent
 over a wire, is something **another product depends on**, or changes behaviour a **consumer would
@@ -254,14 +258,14 @@ Pinning is what escalation reads. No status on its own obliges a builder to stop
 ### A product maps to its packages
 
 A product spans one or more packages in the code monorepo — a library and its CLI, an addon and its
-companion tool. The planning repo points; the workspace describes. The mapping carries two fields per
-package:
+companion tool. A product exists exactly when `products/<id>/product.yaml` does: the file is the
+declaration, and the directory name is the product id, stated nowhere else. The planning repo points;
+the workspace describes. The mapping carries two fields per package:
 
 ```yaml
-# products.yaml
-- id: increment-process
-  kind: process
-  facets: [schema, checker, prompts, docs]
+# products/increment-process/product.yaml
+kind: process
+facets: [schema, checker, prompts, docs]
   packages:
     - path: nodejs/planning-lib
       kind: npm-library
@@ -295,8 +299,8 @@ Consequences:
 ### Facets
 
 A product with several kinds of deliverable needs a way to find, filter, and track claims without
-splitting the product. A **facet** is an optional label on a requirement or decision, drawn from the
-vocabulary the product declares in `products.yaml`:
+splitting the product. A **facet** is an optional label on a requirement or decision — one or a
+list — drawn from the vocabulary the product declares in its `product.yaml`:
 
 ```yaml
 - id: retirement-form-single-id
@@ -538,7 +542,8 @@ structured data and never reads the narrative.
 
 **Schema**
 
-7. **`pinned` and `pinnedReason` on decisions**, governing what escalates.
+7. **Typed `pinned` on decisions** — `false`, or a named reason with optional notes — governing what
+   escalates.
 8. **`satisfied_when` on requirements**, required.
 9. **`because:` on decisions** and **`informed_by:` on requirements**.
 10. **Interfaces as a first-class artifact** — produced by the Stub wave, landing somewhere durable rather
@@ -609,13 +614,13 @@ artifact has to carry.
 
 ### An increment
 
+The path carries the product and the number; the file repeats neither.
+
 ```yaml
-id: 004
-product: minecraft-test-lib
+# products/minecraft-test-lib/increments/004/increment.yaml
 status: published            # draft | published
 ask:
-  - r:fakes-carry-their-declared-class-prototype
-  - r:consumer-suite-typechecks
+  - r:consumer-suite-typechecks   # carried forward — this increment's own requirements are implied
 ```
 
 ### A requirement
@@ -661,9 +666,8 @@ retires:
 A preset is a product that defines requirements and builds nothing:
 
 ```yaml
-# products.yaml
-- id: nodejs-library
-  kind: requirement-preset
+# products/nodejs-library/product.yaml
+kind: requirement-preset
 ```
 
 Its requirements file has the same shape as any product's. A product adopts it, declaring changes rather
@@ -691,9 +695,9 @@ drops:
   statement: |
     the control surface is exported from the package root rather than from a dedicated subpath.
   status: accepted           # accepted | tolerated | delegated | rejected
-  pinned: true
-  pinnedReason: |
-    public-api — consumers import __useServer from the root specifier
+  pinned:
+    reason: public-api
+    notes: consumers import __useServer from the root specifier
   because:
     - f:alias-and-control-subpath-are-one-module-instance
   falsifiers:
@@ -718,8 +722,9 @@ An unpinned decision the owner had no context to rule on:
   statement: |
     the control surface is exported from ./control rather than from the package root.
   status: accepted
-  pinned: true
-  pinnedReason: public-api — the aliased specifier must carry only declared names
+  pinned:
+    reason: public-api
+    notes: the aliased specifier must carry only declared names
   supersedes: control-surface-joins-the-package-root
 ```
 
