@@ -63,7 +63,7 @@ comprehend a product from.
 | artifact | what it holds |
 |---|---|
 | requirements | owner fiat: what the product must do to be accepted |
-| decisions | the path taken to meet them — each choice whose outcome someone downstream would notice, recorded with the conditions that would call for it to be revisited |
+| decisions | the path taken to meet them — each choice a consumer could observe or a rebuild must preserve, recorded with the conditions that would call for it to be revisited; choices below that bar live in the code, and a rebuild is free to re-make them |
 | facts | what has been observed about the world, with the runs and artifacts that establish it |
 | interfaces | the shapes something outside the build compiles against |
 | released versions | tags and published artifacts — permanent once out, whatever happens to the source |
@@ -104,6 +104,12 @@ The owner picks a set of requirements to build as a new increment. Requirements 
 increment are part of its ask by that fact; the increment's `ask:` field lists only pre-existing
 requirements carried forward into the build, and is absent otherwise.
 
+Ask begins from the collated view, and the view leads with the deferred: the tolerated decisions in
+force, the delegated count, the share of claims sitting at `attested`. No threshold fires anything —
+the reader of these numbers is the one deciding what to build next, so the response to a measure is
+its placement at that moment. Every ask re-offers what was deferred, which is what keeps *Build
+forward* a real deferral rather than a silent one.
+
 ### Clarify
 
 Find the places missing research and do the spikes. Identify the open questions and answer the ones that
@@ -133,6 +139,11 @@ Distaste is not rejection. A decision the owner dislikes but can live with is **
 stand indefinitely — nothing obliges a later increment to revisit it. If the owner does want it changed,
 that becomes a requirement in some future ask, but as a deliberate choice rather than an automatic
 consequence. See *Build forward*.
+
+A rejection carries the owner's reason on the entry — the one status whose reasoning is required,
+because it is the input to the rework. Whoever proposed the decision proposes a replacement that
+supersedes the rejected entry, and work resumes from whatever depended on it. A rejected entry, once
+ruled on, persists like any other; the replacement's `supersedes` is what closes it.
 
 **`tolerated` and `delegated` are opposite states, not degrees of the same one.** Tolerating is a
 judgement — the owner engaged, weighed it, and accepted a cost. Delegating is an abstention. Collapsing
@@ -493,10 +504,13 @@ behaves, what a runner does with a given config, what a measurement showed. Thos
 keeping past the increment that produced them, because the next increment would otherwise re-derive them,
 and because a decision built on a finding should be traceable to it.
 
-- **`because:` on a decision** — the facts that drove it, where facts drove it. Optional: a fact is
-  deliberately non-trivial to record — a citation of the upstream source for a documented one, captured
-  output and a re-runnable record for a self-tested one — and requiring one per decision would manufacture
-  facts rather than find them. Where no fact is cited, the decision's own statement carries the reasoning.
+- **`because:` on a decision** — what it rests on: the facts that drove it, and the decisions it builds
+  on. A decision citing another gives collation a dependency order instead of file order, and
+  superseding or retiring an entry surfaces, through these citations, what stood on it. Optional: a fact
+  is deliberately non-trivial to record — a citation of the upstream source for a documented one,
+  captured output and a re-runnable record for a self-tested one — and requiring a citation per decision
+  would manufacture them rather than find them. Where nothing is cited, the decision's own statement
+  carries the reasoning.
 - **`informed_by:` on a requirement** — a pointer, explicitly not justification, since requirements are
   fiat and need none. It exists so that a fact contradicting a requirement can be found rather than
   noticed.
@@ -510,7 +524,8 @@ That job does not disappear when the spec does; it moves to tooling. A collated 
 for one product at one increment:
 
 - the effective requirement set, product-local and adopted, with each adoption's preset and version
-- the effective decision set, with status and pinning
+- the effective decision set, with status and pinning, ordered by `because:` topology where cited
+  rather than by file order
 - for each claim, its coverage rung and what provides it
 - open questions blocking the increment from settling
 - what this increment changed against the last — added, retired, superseded
@@ -519,6 +534,22 @@ for one product at one increment:
 
 None of that is authored. All of it is a fold over artifacts that already exist, which is why it can be
 correct by construction where a spec could only be correct by diligence.
+
+### A change that spans products
+
+The routine case is consumer-driven: a product needs a change in a library it uses. The fence holds — a
+wave that needs the change files an **ask against the library** rather than reaching across, and that
+ask becomes an increment there, planned and ratified as the library's own. The consumer's increment
+declares the dependency:
+
+```yaml
+after:
+  - mc-test-lib/007          # publishes only after these are published
+```
+
+The publish gate holds an increment until everything its `after:` names is published. One field and one
+gate rule carry the ordering; the ask, escalation, and ratification stay product-local on each side, so
+the coordination is visible without a cross-product ceremony around it.
 
 ### Build forward
 
@@ -565,7 +596,8 @@ structured data and never reads the narrative.
 7. **Typed `pinned` on decisions** — `false`, or a named reason with optional notes — governing what
    escalates.
 8. **`satisfied_when` on requirements**, required.
-9. **`because:` on decisions** and **`informed_by:` on requirements**.
+9. **`because:` on decisions** — citing facts and decisions alike — and **`informed_by:` on
+   requirements**.
 10. **Interfaces as a first-class artifact** — produced by the Stub wave, landing somewhere durable rather
     than only in the code.
 11. **A published increment is immutable**, and lifecycle points *forward* — a new entry names what it
@@ -576,19 +608,21 @@ structured data and never reads the narrative.
     the vocabulary on the product, the labels on claims.
 13. **Opaque ids** — `{prefix}-{8 base36 characters}`, `title` as the label, the generator a CLI
     command, format and uniqueness checked.
+14. **`after:` on increments** — cross-product ordering, read by the publish gate.
 
 **Tooling**
 
-14. **Collation** — the folded, computed view of a product, filterable by facet.
-15. **Publish gate** — no `proposed` decision outstanding.
-16. **Escalation format** — what a wave sends up, and what comes back.
+15. **Collation** — the folded, computed view of a product, filterable by facet and ordered by
+    citation topology.
+16. **Publish gate** — no `proposed` decision outstanding, and everything `after:` names published.
+17. **Escalation format** — what a wave sends up, and what comes back.
 
 **Process**
 
-17. **Promotion of a decision to a requirement**, when it has become something consumers can reasonably be
+18. **Promotion of a decision to a requirement**, when it has become something consumers can reasonably be
     expected to rely on and preserving its effect is a matter of compatibility. Not every accepted
     decision — requirements say what the product must do to be accepted; decisions describe the path taken.
-18. **The retirement form** — top-level `retires:` blocks in each increment's sources, one id and a
+19. **The retirement form** — top-level `retires:` blocks in each increment's sources, one id and a
     one-line reason per entry, no statement.
 
 **Deliberately not needed**
@@ -643,6 +677,8 @@ The path carries the product and the number; the file repeats neither.
 status: published            # draft | published
 ask:
   - r-h97o555y   # carried forward — this increment's own requirements are implied
+after:
+  - mc-dev-kit/012           # publishes only after these are published
 ```
 
 ### A requirement
