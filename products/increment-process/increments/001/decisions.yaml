@@ -14,10 +14,10 @@
 - id: d-kn05wb30
   title: increment sources live under products/
   statement: |
-    increment artifacts live at products/<product>/increments/<NNN>/ — increment.yaml,
-    requirements.yaml, decisions.yaml, and coverage.yaml once Define produces it — with the
-    product declared by the presence of products/<product>/product.yaml, whose directory name
-    is the product id.
+    increment artifacts live at products/<product>/increments/<NNN>/ — requirements.yaml,
+    decisions.yaml, coverage.yaml once Define produces it, and increment.yaml only when it has
+    something to declare — with the product declared by the presence of
+    products/<product>/product.yaml, whose directory name is the product id.
   status: proposed
   pinned:
     reason: data-format
@@ -146,6 +146,20 @@
   facets:
     - schema
     - collation
+
+- id: d-j4scg1vy
+  title: publish is the merge
+  statement: |
+    an increment is draft while off main and published by merging; the gate runs at merge, main
+    holds only published increments, dense and immutable, and draft-versus-published is location,
+    not a stored field.
+  status: proposed
+  pinned:
+    reason: data-format
+    notes: the fold and the checker read main as settled history
+  facets:
+    - schema
+    - checker
 
 - id: d-rx3s2hqo
   title: decisions record the observable

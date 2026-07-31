@@ -18,12 +18,13 @@
   facets: collation
 
 - id: r-bs6wsobr
-  title: no spec document
+  title: no spec survives an increment
   statement: |
-    no per-product spec document is written or maintained; Clarify's outputs are requirements,
-    decisions, facts, and open questions, and the collated view is the only assembled picture.
+    no per-product spec document is maintained or merged; a synthesis draft is Clarify technique,
+    confined to the increment's branch, and discarded once nothing in it would be lost — every
+    claim extracted into a foundation or citing one.
   satisfied_when: |
-    product trees contain no spec artifact, and collation renders the assembled view.
+    main holds no spec artifact, and the merge gate fails an increment still carrying its draft.
   facets:
     - process-doc
     - collation
@@ -33,8 +34,7 @@
   statement: |
     no increment merges or publishes while one of its decisions is still proposed.
   satisfied_when: |
-    the checker fails any increment marked published that carries a decision whose status is
-    proposed.
+    the merge gate fails an increment carrying a decision whose status is proposed.
   facets: checker
 
 - id: r-tue7kfgt

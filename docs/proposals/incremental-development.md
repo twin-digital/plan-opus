@@ -72,7 +72,7 @@ comprehend a product from.
 
 | artifact | why it is transient |
 |---|---|
-| spec | restatement of and argument for the foundations |
+| synthesis draft | Clarify's instrument for finding gaps — discarded at zero remainder, when everything it says is in the fold |
 | test plan | an input to the build, not a description of the product |
 | implementation | regenerable from the durable set |
 
@@ -121,6 +121,13 @@ Outputs are the research and results collected, plus:
 1. a **ratified set of requirements**, with any owner-approved amendments
 2. **decisions reached from research**, also owner-approved
 3. **open questions** identified but not answerable at this level, left for Build to resolve
+
+The working method is a **synthesis draft** — connected prose, because writing an argument that must
+hold together is what exposes the decision not yet made and the question not yet asked. The draft is
+an instrument, not an artifact: it lives on the increment's branch, and it is discarded once
+discarding loses nothing — every claim in it either cites a foundation or has been extracted into a
+decision, a fact, or an open question. A claim citing nothing is a shadow decision, caught where it
+is cheapest to catch. The publish gate refuses an increment still carrying its draft.
 
 ### Ratify
 
@@ -188,10 +195,23 @@ only when an escalation fires — is orchestration configuration rather than pro
 guidance carries the flavours of orchestration instruction, and a product runs under the one that fits
 its risk.
 
-### Publish gate
+### Publish is the merge
 
-Nothing merges or publishes while a `proposed` decision is outstanding — the same mechanic the repository
-already uses for the settle gate, pointed at a new target.
+An increment is draft or published, and the boundary is main — draft is a location, not a field. A
+draft lives on its increment's branch, where the Plan loop, every build wave, and the deliverable
+edits all happen, freely editable the whole time: proposed decisions may be removed outright, the
+number is provisional, and nothing downstream builds on it. Merging to main is the publish act, and
+the gate runs there:
+
+- no decision still `proposed`
+- everything `after:` names is published
+- no synthesis draft present
+- the number is the next in the product's sequence — a concurrent increment's collision surfaces
+  here, and the loser renames and recomputes
+
+Main therefore holds only published increments, dense and immutable, and the checker refuses any edit
+to one. There is no draft-on-main state: the fold over main is always a fold over settled history,
+and what a tree-consumed deliverable shows on main is always what a published increment built.
 
 ---
 
@@ -609,8 +629,10 @@ structured data and never reads the narrative.
 2. **Requirement presets**, with `adopts` and `drops` on a product, and the wider scopes removed.
 3. **The coverage manifest** — claim to evidence.
 4. **Increment as an artifact** — ask, foundation delta, decisions.
-5. **Move status from the design to the increment.**
-6. **Stop generating `spec.md`.** Keep the Clarify phase; discard its document.
+5. **Move status from the design to the increment**, computed from location: draft is off main,
+   published is merged.
+6. **Stop maintaining `spec.md`.** Clarify works through a synthesis draft, discarded at zero
+   remainder before publish.
 
 **Schema**
 
@@ -635,7 +657,8 @@ structured data and never reads the narrative.
 
 15. **Collation** — the folded, computed view of a product, filterable by facet and ordered by
     citation topology.
-16. **Publish gate** — no `proposed` decision outstanding, and everything `after:` names published.
+16. **The merge gate** — publish is the merge: no `proposed` decision outstanding, everything
+    `after:` names published, no synthesis draft present, the number next in sequence.
 17. **Escalation format** — what a wave sends up, and what comes back.
 
 **Process**
@@ -691,11 +714,12 @@ artifact has to carry.
 
 ### An increment
 
-The path carries the product and the number; the file repeats neither.
+The path carries the product and the number, and draft-versus-published is location — off main or
+on it — so the file states neither. It exists only when it has something to declare: an `ask`, an
+`after`, an adoption.
 
 ```yaml
 # products/minecraft-test-lib/increments/004/increment.yaml
-status: published            # draft | published
 ask:
   - r-h97o555y   # carried forward — this increment's own requirements are implied
 after:
