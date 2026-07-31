@@ -260,7 +260,8 @@ Pinning is what escalation reads. No status on its own obliges a builder to stop
 A product spans one or more packages in the code monorepo — a library and its CLI, an addon and its
 companion tool. A product exists exactly when `products/<id>/product.yaml` does: the file is the
 declaration, and the directory name is the product id, stated nowhere else. The planning repo points;
-the workspace describes. The mapping carries two fields per package:
+the workspace describes. The mapping carries `path` and `kind` per package, plus an optional `repo` —
+GitHub `owner/repo` form, `twin-digital/opus` when unstated:
 
 ```yaml
 # products/increment-process/product.yaml
@@ -290,8 +291,8 @@ Consequences:
 - **Released versions are per-package.** A product with three packages has three release histories; the
   durable artifact is plural.
 - **Coverage refs resolve through the mapping.** Foundations live in this repository and artifacts in
-  the workspace, so a `ref` is workspace-relative — the package path prefixes it — and the mapping is
-  what anchors it to a repository.
+  the workspace, so a `ref` is workspace-relative — the package path prefixes it — and the package's
+  `repo` anchors it to a repository.
 - **A preset may read against one package of several.** `published-to-npm` on a product whose CLI is
   the published piece: adoption stays product-level, and the coverage manifest shows which package
   carries each adopted claim.
@@ -303,7 +304,7 @@ splitting the product. A **facet** is an optional label on a requirement or deci
 list — drawn from the vocabulary the product declares in its `product.yaml`:
 
 ```yaml
-- id: retirement-form-single-id
+- id: d-9g62l9m0
   facets: [schema, checker]
 ```
 
@@ -322,6 +323,25 @@ surface, shared types live in the library — is decision content, pinned when a
 A builder coheres across facets because the build is product-scoped: an increment is built against the
 whole foundation set, and the Stub wave's shared stubs are where packages converge on the types they
 share. A facet helps find those decisions; it does not replace them.
+
+### Identifiers
+
+Requirements and decisions carry opaque ids — `{prefix}-{8 lowercase base36 characters}`, the prefix
+`r-` or `d-`, the rest random: `r-caao9k3z`, `d-9dx9ryhk`. The id is the citation form; no separate
+token grammar exists.
+
+Random rather than meaningful, deliberately. A slug bakes a summary into the identity, which drifts as
+the statement iterates and breaks citations exactly when an entry churns most. A timestamp component
+makes batch-created ids near-identical — and batch-created entries are the ones that cite and supersede
+each other, so a one-character misread lands on a valid, plausible sibling. Nothing reads structure out
+of an id; creation time lives in increments and git history.
+
+The human handle is **`title`** — a short label, free to churn without breaking anything, and what
+collation displays. The generator is a CLI command used by humans and agents alike; the checker
+enforces format and uniqueness, so a collision is a regenerate at creation rather than a latent bug.
+
+Increments stay plain numbers — readable, and the merge collision on the number is the concurrency
+detection. Products and presets are named by their directory, and adoption uses that name.
 
 ### Lifecycle — declare changes, fold for state
 
@@ -370,7 +390,8 @@ assertion nothing checks can quietly become false.
 #### Requirements state how they would be known to be met
 
 ```yaml
-- id: consumer-suite-typechecks
+- id: r-h97o555y
+  title: consumer suite typechecks
   statement: |
     a TypeScript consumer's test suite typechecks with the package installed.
   satisfied_when: |
@@ -392,12 +413,12 @@ with tautologies.
 #### The coverage manifest maps claims to evidence
 
 ```yaml
-- claim: r:consumer-suite-typechecks
+- claim: r-h97o555y      # consumer suite typechecks
   covered_by:
     - kind: conformance-case
       ref: conformance/typecheck.txtar
 
-- claim: d:control-surface-is-a-real-subpath
+- claim: d-qaq43q3x      # control surface is a real subpath
   covered_by:
     - kind: code-test
       ref: test/exports.spec.ts
@@ -552,21 +573,23 @@ structured data and never reads the narrative.
     supersedes or retires, rather than an old entry being edited to close it. Requirements and decisions
     are scoped to a product across all its increments, so finding what supersedes an entry never means
     searching the repository.
-12. **The package mapping on a product** — path and kind per package — and **facets**: the vocabulary on
-    the product, the labels on claims.
+12. **The package mapping on a product** — path, kind, and optional repo per package — and **facets**:
+    the vocabulary on the product, the labels on claims.
+13. **Opaque ids** — `{prefix}-{8 base36 characters}`, `title` as the label, the generator a CLI
+    command, format and uniqueness checked.
 
 **Tooling**
 
-13. **Collation** — the folded, computed view of a product, filterable by facet.
-14. **Publish gate** — no `proposed` decision outstanding.
-15. **Escalation format** — what a wave sends up, and what comes back.
+14. **Collation** — the folded, computed view of a product, filterable by facet.
+15. **Publish gate** — no `proposed` decision outstanding.
+16. **Escalation format** — what a wave sends up, and what comes back.
 
 **Process**
 
-16. **Promotion of a decision to a requirement**, when it has become something consumers can reasonably be
+17. **Promotion of a decision to a requirement**, when it has become something consumers can reasonably be
     expected to rely on and preserving its effect is a matter of compatibility. Not every accepted
     decision — requirements say what the product must do to be accepted; decisions describe the path taken.
-17. **The retirement form** — top-level `retires:` blocks in each increment's sources, one id and a
+18. **The retirement form** — top-level `retires:` blocks in each increment's sources, one id and a
     one-line reason per entry, no statement.
 
 **Deliberately not needed**
@@ -620,13 +643,14 @@ The path carries the product and the number; the file repeats neither.
 # products/minecraft-test-lib/increments/004/increment.yaml
 status: published            # draft | published
 ask:
-  - r:consumer-suite-typechecks   # carried forward — this increment's own requirements are implied
+  - r-h97o555y   # carried forward — this increment's own requirements are implied
 ```
 
 ### A requirement
 
 ```yaml
-- id: consumer-suite-typechecks
+- id: r-h97o555y
+  title: consumer suite typechecks
   statement: |
     a TypeScript consumer's test suite typechecks with the package installed.
   satisfied_when: |
@@ -645,19 +669,20 @@ Where a requirement genuinely cannot be checked mechanically, `satisfied_when` s
 ### A requirement that supersedes an earlier one
 
 ```yaml
-- id: consumer-suite-typechecks-and-builds
+- id: r-thwmqr8s
+  title: consumer suite typechecks and builds
   statement: |
     a TypeScript consumer's test suite typechecks and builds with the package installed.
   satisfied_when: |
     ...
-  amends: consumer-suite-typechecks
+  amends: r-h97o555y
 ```
 
 ### A retirement with no replacement
 
 ```yaml
 retires:
-  - id: consumer-suite-typechecks
+  - id: r-h97o555y
     reason: the package no longer ships type declarations
 ```
 
@@ -691,7 +716,8 @@ drops:
 ### A decision
 
 ```yaml
-- id: control-surface-joins-the-package-root
+- id: d-cge7c929
+  title: control surface joins the package root
   statement: |
     the control surface is exported from the package root rather than from a dedicated subpath.
   status: accepted           # accepted | tolerated | delegated | rejected
@@ -707,7 +733,8 @@ drops:
 An unpinned decision the owner had no context to rule on:
 
 ```yaml
-- id: values-are-generated-and-committed
+- id: d-pyywsujm
+  title: values are generated and committed
   statement: |
     generated values are produced at author time and committed, with a regenerate-and-clean-tree
     check, rather than generated during a consumer's install.
@@ -718,21 +745,22 @@ An unpinned decision the owner had no context to rule on:
 ### A decision that supersedes another
 
 ```yaml
-- id: control-surface-is-a-real-subpath
+- id: d-qaq43q3x
+  title: control surface is a real subpath
   statement: |
     the control surface is exported from ./control rather than from the package root.
   status: accepted
   pinned:
     reason: public-api
     notes: the aliased specifier must carry only declared names
-  supersedes: control-surface-joins-the-package-root
+  supersedes: d-cge7c929
 ```
 
 ### A decision retired with no successor
 
 ```yaml
 retires:
-  - id: brandas-unions-and-rejects-unknown-classes
+  - id: d-huepnzof
     reason: brandAs no longer exists; instanceof answers from the prototype chain
 ```
 
@@ -742,12 +770,12 @@ Claims are requirements and decisions alike, and every entry must name a claim i
 increment. `ref` is one path or a list:
 
 ```yaml
-- claim: r:consumer-suite-typechecks
+- claim: r-h97o555y      # consumer suite typechecks
   covered_by:
     - kind: conformance-case
       ref: conformance/typecheck.txtar
 
-- claim: d:control-surface-is-a-real-subpath
+- claim: d-qaq43q3x      # control surface is a real subpath
   covered_by:
     - kind: code-test
       ref:
