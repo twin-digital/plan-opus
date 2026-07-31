@@ -1,0 +1,69 @@
+- id: r-caao9k3z
+  title: shipped increments stay shipped
+  statement: |
+    a published increment is never unsettled by later work: drafting increment N+1 changes
+    nothing about increment N.
+  satisfied_when: |
+    the checker rejects any edit to a file of a published increment, and later changes appear
+    in the fold as new entries superseding or retiring earlier ones.
+  facets: checker
+
+- id: r-ei82daip
+  title: decisions are comprehensible as a set
+  statement: |
+    the owner can comprehend what was built from the decision set alone, read in full.
+  satisfied_when: |
+    not mechanically checkable — whether the collated view reads as a picture of the product
+    is a judgement, verified by the owner reading it each increment.
+  facets: collation
+
+- id: r-bs6wsobr
+  title: no spec document
+  statement: |
+    no per-product spec document is written or maintained; Clarify's outputs are requirements,
+    decisions, facts, and open questions, and the collated view is the only assembled picture.
+  satisfied_when: |
+    product trees contain no spec artifact, and collation renders the assembled view.
+  facets:
+    - process-doc
+    - collation
+
+- id: r-0axqvtcc
+  title: nothing publishes over a proposed decision
+  statement: |
+    no increment merges or publishes while one of its decisions is still proposed.
+  satisfied_when: |
+    the checker fails any increment marked published that carries a decision whose status is
+    proposed.
+  facets: checker
+
+- id: r-tue7kfgt
+  title: every claim carries graded evidence
+  statement: |
+    every requirement and decision in force carries coverage, and how much of the product rests
+    on an agent's word alone is visible without reading the code.
+  satisfied_when: |
+    collation shows a rung for every claim in force at the increment, and the count of claims
+    sitting at attested.
+  facets: collation
+
+- id: r-gc7a3m56
+  title: ruled-on is distinguishable from passed-over
+  statement: |
+    what the owner engaged and judged is distinguishable, product-wide, from what they abstained
+    on.
+  satisfied_when: |
+    tolerated and delegated are distinct statuses, and collation reports the delegated count.
+  facets:
+    - schema
+    - collation
+
+- id: r-bwtud1e5
+  title: nothing binds a product until it says so
+  statement: |
+    no requirement outside a product's own increments binds it; adoption at a pinned increment
+    is the only way an external requirement takes force.
+  satisfied_when: |
+    the checker resolves a product's obligations only from its own increments' entries and
+    adoptions, and no global or area scope exists to bind implicitly.
+  facets: checker

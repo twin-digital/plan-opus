@@ -1,0 +1,211 @@
+- id: d-9dx9ryhk
+  title: effective state is a fold
+  statement: |
+    an increment declares what changed; the effective requirement and decision sets are computed
+    by folding across the product's increments, and the computed view is what the owner reads.
+  status: proposed
+  pinned:
+    reason: data-format
+    notes: every product's foundations are written and read through the fold
+  facets:
+    - schema
+    - collation
+
+- id: d-kn05wb30
+  title: increment sources live under products/
+  statement: |
+    increment artifacts live at products/<product>/increments/<NNN>/ — increment.yaml,
+    requirements.yaml, decisions.yaml, and coverage.yaml once Define produces it — with the
+    product declared by the presence of products/<product>/product.yaml, whose directory name
+    is the product id.
+  status: proposed
+  pinned:
+    reason: data-format
+    notes: tooling resolves ids against these paths, and every product writes to them
+  facets: schema
+
+- id: d-qb67fb8s
+  title: build runs in four waves
+  statement: |
+    Build is Define, Stub, Implement, Document — each wave producing one artifact validated
+    against what came before it; documentation is a wave because it is a deliverable of the
+    product.
+  status: proposed
+  pinned: false
+  facets:
+    - process-doc
+    - prompts
+
+- id: d-dteorq7q
+  title: escalation fires only on requirements and pins
+  statement: |
+    a build wave escalates only to change a requirement, change a pinned decision, or propose a
+    decision that would be pinned; otherwise agents decide and record, including overturning
+    unpinned decisions.
+  status: proposed
+  pinned: false
+  facets: prompts
+
+- id: d-9s4d3ww2
+  title: rulings are accepted, tolerated, delegated, or rejected
+  statement: |
+    the owner's ruling on a decision is accepted, tolerated, delegated, or rejected; tolerated
+    is a judgement and delegated an abstention, kept distinct; rejection is reserved for the
+    impossible, non-viable, or incorrect, carries the owner's reason on the entry, and is closed
+    by a replacement proposed by whoever proposed the rejected one.
+  status: proposed
+  pinned:
+    reason: data-format
+    notes: the status enum every decision entry carries
+  facets: schema
+
+- id: d-wrjhfbei
+  title: pinned is false or a named reason
+  statement: |
+    pinned is false or { reason, notes? }; reason is an enum — data-format, public-api, other —
+    with notes required for other; pinning, not status, is what escalation reads.
+  status: proposed
+  pinned:
+    reason: data-format
+    notes: part of the decision shape every product writes
+  facets: schema
+
+- id: d-e5ted839
+  title: ids are opaque and random
+  statement: |
+    requirement and decision ids are {prefix}-{8 lowercase base36 characters}, random, produced
+    by a CLI generator; title carries the human label and may churn freely; the id is the
+    citation form.
+  status: proposed
+  pinned:
+    reason: data-format
+    notes: every citation in every product resolves against this format
+  facets:
+    - schema
+    - checker
+
+- id: d-0g9l44e4
+  title: evidence is graded by provenance and coupling
+  statement: |
+    coverage kinds are attestation, code-test, manual-check, and conformance-case; a claim's
+    rung is attested, checked, or conformance, and what raises a rung is who vetted the check
+    and its tie to the claim, not automation.
+  status: proposed
+  pinned:
+    reason: data-format
+    notes: the kind and rung enums in every coverage manifest
+  facets: schema
+
+- id: d-4s0zoh1v
+  title: implement always attests
+  statement: |
+    the implementing agent records an attestation for every claim it built against, alongside
+    whatever better evidence exists.
+  status: proposed
+  pinned: false
+  facets: prompts
+
+- id: d-1sj9kxtj
+  title: requirement presets are plan-only products
+  statement: |
+    shared requirements live in presets — products that build nothing — adopted whole at pinned
+    increments via adopts and drops; adopting and dropping are owner fiat, and the wider
+    requirement scopes are retired.
+  status: proposed
+  pinned:
+    reason: data-format
+    notes: adopts and drops are part of every increment's shape
+  facets:
+    - schema
+    - process-doc
+
+- id: d-jy7x42nx
+  title: retirement is an id and a reason
+  statement: |
+    a claim with no successor is retired by a retires: entry — one id, one one-line reason — in
+    the increment source whose file scopes its kind; supersession is carried by the successor's
+    supersedes or amends and needs no entry.
+  status: proposed
+  pinned:
+    reason: data-format
+    notes: part of the increment source shape every product writes
+  facets: schema
+
+- id: d-i8rwe1sv
+  title: facets are labels no rule reads
+  statement: |
+    a claim may carry facets from the product's declared vocabulary; collation filters and
+    groups by them, and no rule fences, escalates, or gates on them; wanting such a rule is the
+    signal the facet has become a product.
+  status: proposed
+  pinned:
+    reason: other
+    notes: |
+      the filter-only line is what keeps facets cheap to assign; a rule reading them would
+      change their meaning repo-wide
+  facets:
+    - schema
+    - collation
+
+- id: d-rx3s2hqo
+  title: decisions record the observable
+  statement: |
+    a decision is recorded when a consumer could observe its outcome or a rebuild must preserve
+    it; choices below that bar live in the code, and a rebuild is free to re-make them.
+  status: proposed
+  pinned: false
+  facets:
+    - prompts
+    - process-doc
+
+- id: d-eaw3u72o
+  title: because cites facts and decisions
+  statement: |
+    because: on a decision cites the facts and decisions it rests on; collation orders the
+    decision set by that topology, and superseding or retiring an entry surfaces its dependents.
+  status: proposed
+  pinned:
+    reason: data-format
+    notes: the citation field every product's decisions carry
+  facets:
+    - schema
+    - collation
+
+- id: d-keftop3f
+  title: cross-product work orders by after
+  statement: |
+    a wave needing a change in another product files an ask there rather than reaching across;
+    the consuming increment names the resulting increment in after:, and the publish gate holds
+    it until everything named is published.
+  status: proposed
+  pinned:
+    reason: data-format
+    notes: part of the increment shape, and a rule the publish gate reads
+  facets:
+    - schema
+    - checker
+
+- id: d-pm0a8api
+  title: ask re-offers the deferred
+  statement: |
+    the collated view at ask leads with the tolerated decisions in force, the delegated count,
+    and the attested share; no threshold fires — the numbers meet the owner at the moment of
+    choosing what to build next.
+  status: proposed
+  pinned: false
+  facets:
+    - collation
+    - prompts
+
+- id: d-8itv1czm
+  title: products map to packages by path and kind
+  statement: |
+    product.yaml lists packages as path and kind, with an optional repo in owner/repo form
+    defaulting to twin-digital/opus; anything else a kind needs is read from the package at
+    that path rather than duplicated. the mapping describes what exists — a package enters it
+    when the build that creates it does, and intent to ship one is a requirement or an ask.
+  status: proposed
+  pinned:
+    reason: data-format
+    notes: coverage refs and release tracking resolve through this mapping
+  facets: schema
