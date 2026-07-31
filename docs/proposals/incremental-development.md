@@ -128,13 +128,21 @@ enough to build, and whatever remains open goes to Build.
 Each proposed decision is read in full and becomes:
 
 - **accepted** — "this matters to me," or "I'd have done it this way"
-- **tolerated** — reserved acceptance, or a deliberate punt
+- **tolerated** — "I don't love it, but you had good reason and I would not reject it"
+- **delegated** — "I do not have the context to rule on this; the judgement stays with whoever made it"
 - **rejected** — reserved for *impossible, non-viable, or incorrect*
 
 Distaste is not rejection. A decision the owner dislikes but can live with is **tolerated**, and may
 stand indefinitely — nothing obliges a later increment to revisit it. If the owner does want it changed,
 that becomes a requirement in some future ask, but as a deliberate choice rather than an automatic
 consequence. See *Build forward*.
+
+**`tolerated` and `delegated` are opposite states, not degrees of the same one.** Tolerating is a
+judgement — the owner engaged, weighed it, and accepted a cost. Delegating is an abstention. Collapsing
+them would make it impossible to ask afterwards how much of a product the owner actually ruled on, which
+matters because the decision set is the only window they use. **The count of delegated decisions is the
+honest measure of how much of a product was reviewed rather than passed over** — the same kind of ledger
+that `attestation` provides for coverage, on the other axis.
 
 ### The build waves
 
@@ -339,6 +347,35 @@ Free text until then, because closing the set early would hide the reasons that 
 
 Pinning is what escalation reads. Nothing about `accepted` or `tolerated` obliges a builder to stop.
 
+### Lifecycle — declare changes, fold for state
+
+Requirements, decisions and preset adoptions all work the same way: **an increment declares what changed,
+and the effective state is the fold across the product's increments.** Three separate mechanisms would be
+three things to learn and a fourth waiting to be invented.
+
+The owner reads the effective set, computed. The history is preserved and is not what anyone reads.
+
+**A decision ends in one of two ways.**
+
+- **Superseded** — a later increment makes a different choice on the same subject. The successor carries
+  the reason, so nothing extra needs stating.
+- **Obsoleted** — the thing it described no longer exists, and nothing supersedes it. This one needs a
+  reason, because the reason is the only thing distinguishing a retirement from an oversight.
+
+A fired falsifier is not a third way. It means the decision is no longer justified by what justified it,
+so it opens a question; a retirement, if there is one, comes out of the revisit.
+
+**Recording is required; asking is not.** Pinning governs permission — an unpinned decision may be
+overturned by a build wave without escalating. It must still be recorded, because a decision silently out
+of force makes the record lie, and the record is what the owner reads. The build report already requires
+every overturned decision and why; **that list is where superseding entries come from**, rather than
+ending as prose in a report.
+
+**The coverage manifest names only active claims.** An increment's manifest must not reference a claim
+that is not in force at that increment — retire a requirement and it leaves the manifest in the same
+increment that retires it. That is what makes the manifest checkable rather than aspirational: every
+entry points at something live, and coverage cannot linger for a claim nobody is making.
+
 ### Decisions cite what drove them
 
 Facts are currently reachable only through spec prose. Delete the spec and they orphan, and worse, the
@@ -522,6 +559,7 @@ exposes a `verify` task**, and the shared workflow needs no per-project knowledg
 | a decision the owner dislikes is rejected, and the work is redone | it is tolerated, and a requirement is filed for the next increment |
 | facts are reachable only through spec prose | decisions cite what drove them directly |
 | documentation happens if there is time | Document is a wave, validated against the implementation |
+| a punt and a reservation are the same status | `delegated` and `tolerated` are separate, so what the owner ruled on can be told from what they passed over |
 
 **What does not change:** the owner reads every requirement and every decision, in full. That is the
 comprehension channel, and this is built to feed it rather than to trim it.
@@ -545,10 +583,166 @@ comprehension channel, and this is built to feed it rather than to trim it.
   the Stub wave produces — see the open thread on that row.
 - **Whether decisions need `satisfied_when` too**, or whether a falsifier plus coverage is enough. They are
   not the same event: a falsifier fires when the world changes, coverage fails when the code drifts.
-- **What happens to coverage when a claim is retired.** Under immutability the retired claim stays in its
-  own increment; whether its coverage entries are carried, dropped, or simply absent from the next
-  manifest is unsettled.
+- **A concise form for retirement.** An entry whose statement restates the id it retires is noise. This is
+  one problem, not two — requirements and decisions both need it, and obsoletion needs a reason where
+  supersession does not.
+- **Whether "revisited and left standing" needs recording.** If a falsifier fires, a question opens, and
+  the decision survives, nothing marks that it was examined — so the same falsifier re-fires and is
+  re-litigated each increment. Recording it adds ceremony to a non-event; not recording it repeats work.
 - **The term "falsifier"** reads as though the decision were false, which it is not — a decision was made,
   and what may later prove false is the assumption behind it. Nor does one firing mean the decision is
   reversed; it means the decision is no longer justified by what justified it, and should be revisited.
   The term is defined outside this document, so renaming it is a future scope item.
+
+---
+
+## Appendix — shapes
+
+Illustrative fragments rather than a schema. Field names are provisional; what matters here is what each
+artifact has to carry.
+
+### An increment
+
+```yaml
+id: 004
+product: minecraft-test-lib
+status: published            # draft | published
+ask:
+  - r:fakes-carry-their-declared-class-prototype
+  - r:consumer-suite-typechecks
+```
+
+### A requirement
+
+```yaml
+- id: consumer-suite-typechecks
+  statement: |
+    a TypeScript consumer's test suite typechecks with the package installed.
+  satisfied_when: |
+    a consumer suite containing both pack imports and control-surface imports compiles with no
+    error and no cast at the seam.
+```
+
+Where a requirement genuinely cannot be checked mechanically, `satisfied_when` says so and why:
+
+```yaml
+  satisfied_when: |
+    not mechanically checkable — whether the coverage table reads clearly to a pack author is a
+    judgement, and is verified by reading it.
+```
+
+### A requirement that supersedes an earlier one
+
+```yaml
+- id: consumer-suite-typechecks-and-builds
+  statement: |
+    a TypeScript consumer's test suite typechecks and builds with the package installed.
+  satisfied_when: |
+    ...
+  amends: consumer-suite-typechecks
+```
+
+### A retirement with no replacement
+
+```yaml
+retires:
+  - id: consumer-suite-typechecks
+    reason: the package no longer ships type declarations
+```
+
+> Shape unsettled — a concise form for retirement is an open item. What is shown here restates the id in
+> prose, which is the noise the open item is about.
+
+### A requirement preset, and adopting it
+
+A preset is a product that defines requirements and builds nothing:
+
+```yaml
+# products.yaml
+- id: nodejs-library
+  kind: requirement-preset
+```
+
+Its requirements file has the same shape as any product's. A product adopts it, declaring changes rather
+than state:
+
+```yaml
+# increment 1 — first adoptions
+adopts:
+  - nodejs-library@3
+  - published-to-npm@1
+```
+
+```yaml
+# increment 4 — a version change and a removal
+adopts:
+  - nodejs-library@4
+drops:
+  - minecraft-addon
+```
+
+### A decision
+
+```yaml
+- id: control-surface-joins-the-package-root
+  statement: |
+    the control surface is exported from the package root rather than from a dedicated subpath.
+  status: accepted           # accepted | tolerated | delegated | rejected
+  pinned: true
+  pinnedReason: |
+    public-api — consumers import __useServer from the root specifier
+  because:
+    - f:alias-and-control-subpath-are-one-module-instance
+  falsifiers:
+    - a consumer needs the root specifier to carry only names the engine's declarations declare
+```
+
+An unpinned decision the owner had no context to rule on:
+
+```yaml
+- id: values-are-generated-and-committed
+  statement: |
+    generated values are produced at author time and committed, with a regenerate-and-clean-tree
+    check, rather than generated during a consumer's install.
+  status: delegated
+  pinned: false
+```
+
+### A decision that supersedes another
+
+```yaml
+- id: control-surface-is-a-real-subpath
+  statement: |
+    the control surface is exported from ./control rather than from the package root.
+  status: accepted
+  pinned: true
+  pinnedReason: public-api — the aliased specifier must carry only declared names
+  supersedes: control-surface-joins-the-package-root
+```
+
+### A decision that is obsoleted
+
+```yaml
+obsoletes:
+  - id: brandas-unions-and-rejects-unknown-classes
+    reason: brandAs no longer exists; instanceof answers from the prototype chain
+```
+
+### The coverage manifest
+
+Claims are requirements and decisions alike, and every entry must name a claim in force at this
+increment:
+
+```yaml
+- claim: r:consumer-suite-typechecks
+  covered_by:
+    - kind: conformance-case
+      ref: conformance/typecheck.txtar
+
+- claim: d:control-surface-is-a-real-subpath
+  covered_by:
+    - kind: code-test
+      ref: test/exports.spec.ts
+    - kind: attestation
+      note: the exports map declares ./control, and the build fails without it
+```
