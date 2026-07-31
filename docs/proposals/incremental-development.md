@@ -314,6 +314,12 @@ this repository rather than the workspace. This does not bend the no-spec rule: 
 discards is the design-phase document that *describes* a product; a document a product *ships* is
 implementation, produced and revised by build waves like any other deliverable.
 
+Being authored does not move it — code is authored too. The document lives at its path from the
+start and builds edit it there in place; no copy sits in an increment, and nothing is copied at
+publish. Immutability attaches to an increment's foundations, never to the deliverable — the same as
+for code, where publishing an increment does not freeze the source files. A shipped state worth
+keeping is a released version, and what a later rewrite must preserve is what pinned decisions say.
+
 ### Facets
 
 A product with several kinds of deliverable needs a way to find, filter, and track claims without
