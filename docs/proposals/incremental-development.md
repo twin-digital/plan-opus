@@ -13,8 +13,8 @@ hundreds.
 Evidence base: `docs/experiments/spec-value/`, four controlled comparisons of what a spec contributes
 over its foundations, included in this change.
 
-What this process retires, and why, is in `process-migration.md`. This document states only how the
-process is meant to work.
+What this process retires, and why, is in `process-migration.md`. Instruction to agents working inside
+it is in `agent-guidance.md`. This document states only how the process is meant to work.
 
 ---
 
@@ -180,20 +180,6 @@ reverse. **Build exists to make progress**, so only what is hard to reverse inte
 Nothing merges or publishes while a `proposed` decision is outstanding — the same mechanic the repository
 already uses for the settle gate, pointed at a new target.
 
-### Harvest
-
-At the increment boundary:
-
-- superseded requirements are retired against replacements
-- a decision is **promoted to a requirement** only when it has become so visible or impactful that
-  consumers can reasonably be expected to rely on it, and preserving its effect is a matter of
-  compatibility
-
-That last one is narrower than "promote what the owner cares about." Requirements say what the product
-must do to be accepted; decisions describe the path taken to meet them. Most accepted decisions stay
-decisions, because acceptance records that the owner ruled on a choice, not that the choice has become
-load-carrying for anyone downstream.
-
 ---
 
 ## Mechanisms it relies on
@@ -204,11 +190,16 @@ A **requirement preset** is a product that defines requirements and builds nothi
 `minecraft-addon`, `published-to-npm`. It has increments like any other product, and its increments are
 **Plan-only**: Ask → Clarify → Ratify, with no Build.
 
-**A product adopts presets at pinned increments.** An increment declares what changed, not the whole
-state; the effective set is the fold across the product's increments.
+A product adopts presets at pinned increments, declaring what changed rather than the whole state:
+
+| operation | how |
+|---|---|
+| **add** | `adopts` a preset not currently adopted |
+| **change version** | `adopts` a preset already adopted — it replaces the earlier version, since a preset is adopted at most once at a time and the preset name is the identity |
+| **remove** | `drops` the preset, which takes no version for the same reason |
 
 ```yaml
-# increment 1 — first adoptions
+# increment 1
 adopts:
   - nodejs-library@3
   - published-to-npm@1
@@ -222,11 +213,6 @@ drops:
   - minecraft-addon
 ```
 
-- A preset is adopted **at most once at a time**, so the preset name is the identity. `adopts` on an
-  already-adopted preset replaces the earlier version; no `supersedes` is needed.
-- `drops` removes an adoption and takes no version.
-- Adopting and dropping the same preset in one increment is an error.
-
 Rules:
 
 - A preset is adopted whole. There are no exceptions or partial adoptions.
@@ -234,22 +220,60 @@ Rules:
 - A conflict between an adopted requirement and a product-local one is an error. An agent raises it as an
   open question, and the increment cannot settle until it is addressed.
 - A preset increment is immutable once published.
-- Adopted requirements need coverage exactly as product-local ones do.
+- Adopting and dropping the same preset in one increment is an error.
 
 Drift is expected and not forced. Products may sit on old preset increments indefinitely; a report of how
 far behind each adoption sits is useful, but nothing obliges an upgrade.
 
+### Pinned decisions
+
+A decision's **status** records the owner's ruling. Separately and independently, a decision may be
+**pinned** — meaning it cannot be freely overturned.
+
+- **`pinned`** — a boolean. A pinned decision requires owner ratification to change. An unpinned one does
+  not, whatever its status.
+- **`pinnedReason`** — free text, required when `pinned` is true and not permitted when it is false.
+
+Pin a decision when it fixes a **public API surface**, fixes a **data format** written to disk or sent
+over a wire, is something **another product depends on**, or changes behaviour a **consumer would
+notice**.
+
+The agent proposing a decision proposes whether it is pinned; the owner rules on that along with the rest
+of it.
+
+Pinning is what escalation reads. No status on its own obliges a builder to stop.
+
+### Lifecycle — declare changes, fold for state
+
+Requirements, decisions and preset adoptions all work the same way: **an increment declares what changed,
+and the effective state is the fold across the product's increments.**
+
+The owner reads the effective set, computed. The history is preserved and is not what anyone reads.
+
+**A claim is retired either by supersession or on its own.** A superseding entry names what it replaces
+and carries the reason in its own content, so nothing extra needs stating. A retirement with no successor
+needs a reason, because that reason is the only thing distinguishing it from an oversight — the thing it
+described no longer exists, the constraint stopped applying, the product moved out from under it.
+
+**Within the increment that created it**, a decision still `proposed` may be removed outright with no
+record. Once the owner has ruled on it, it cannot be deleted — it is retired through the same mechanism a
+later increment would use, so the owner can follow what became of something they accepted.
+
+**Recording is required; asking is not.** Pinning governs permission — an unpinned decision may be
+overturned by a build wave without escalating. It must still be recorded, because a decision silently out
+of force makes the record lie, and the record is what the owner reads. The build report already requires
+every overturned decision and why; **that list is where superseding entries come from**, rather than
+ending as prose in a report.
+
 ### Proving a claim is met
 
-A product should be able to demonstrate, mechanically, that it meets what it claims. That is what makes
-adopting a newer preset increment able to *fail*, what stops a decision quietly describing a product that
-no longer exists, and what lets the owner ask how much of a product is actually checked rather than merely
-asserted.
+A product should be able to demonstrate, mechanically, that it meets what it claims — so that a decision
+cannot quietly describe a product that no longer exists, and so the owner can ask how much of a product is
+actually checked rather than merely asserted.
 
 **Every claim carries its evidence.** A claim is a **requirement** or a **decision**. Requirements say
-what the product must do; decisions say what path was taken. Both are assertions about the product, and
-an assertion nothing checks can quietly become false. For decisions that is the more dangerous case:
-they are the owner's window into the product, and a window that silently misreports is worse than none.
+what the product must do; decisions say what path was taken. Both are assertions about the product, and an
+assertion nothing checks can quietly become false.
 
 #### Requirements state how they would be known to be met
 
@@ -263,39 +287,44 @@ they are the owner's window into the product, and a window that silently misrepo
 ```
 
 Required, with an honest escape — where a requirement genuinely cannot be checked mechanically, the field
-says so and why. Two things earn it the schema cost. It describes an **observable condition rather than a
-mechanism**, so it does not pre-decide the build. And a requirement whose author cannot write this
-sentence is usually a badly stated requirement, which is better discovered while writing it than a year
-later.
+says so and why. It describes an **observable condition rather than a mechanism**, so it does not
+pre-decide the build; and a requirement whose author cannot write this sentence is usually a badly stated
+requirement, which is better discovered while writing it than a year later.
 
-It is also what a conformance case would later be written *from*, so nothing is re-derived as coverage
-strengthens.
+**Decisions do not carry `satisfied_when`, and the asymmetry is principled.** A requirement states an
+*end* — what must be true — so how you would know is a genuinely separate question. A decision states a
+*means* — what was done — and its `satisfied_when` would be a restatement: *we chose X*, known to be met
+when *X is what is there*. The coverage entry already answers it. Requiring the field would populate it
+with tautologies.
 
 #### The coverage manifest maps claims to evidence
 
 ```yaml
 - claim: r:consumer-suite-typechecks
   covered_by:
-    - kind: code-test
-      ref: test/typecheck.spec.ts
     - kind: conformance-case
       ref: conformance/typecheck.txtar
 
 - claim: d:control-surface-is-a-real-subpath
   covered_by:
+    - kind: code-test
+      ref: test/exports.spec.ts
     - kind: attestation
       note: the exports map declares ./control, and the build fails without it
 ```
 
-`kind` + `ref` + an optional `note`, uniform across kinds. New kinds land without a schema change, and the
-checker validates `ref` shape per kind from a lookup table rather than the schema knowing about each one.
+`kind` + `ref` + an optional `note`, uniform across kinds, so new kinds land without a schema change.
 
-| kind | what it is | survives a rebuild |
+| kind | what it is | what survives a rebuild |
 |---|---|---|
-| `attestation` | an agent asserts it; no artifact | no |
-| `code-test` | a test in the project's own suite | no — rebuilt with the implementation |
-| `manual-check` | a human followed recorded steps | the steps do; the run does not |
-| `conformance-case` | a durable case | yes |
+| `attestation` | an agent asserts it; no artifact | nothing |
+| `code-test` | a test in the project's own suite | nothing — the test is rebuilt with the implementation |
+| `manual-check` | a human followed recorded steps | the steps, which a human must run again |
+| `conformance-case` | a durable case | the case, and it runs again on its own |
+
+**A manifest names only claims in force at that increment.** Retire a requirement and it is simply omitted
+from that increment's manifest. It is also an error to name a claim that is still `proposed` — coverage is
+evidence about something the owner has ruled on, not about a suggestion.
 
 #### The ladder
 
@@ -306,147 +335,65 @@ checker validates `ref` shape per kind from a lookup table rather than the schem
 | `automated` | it runs without a human |
 | `durable` | a conformance case — it survives a rebuild |
 
-Increment 1 sets the bar at `attested` and reports the distribution. Later increments raise a rung or turn a
-warning into an error. **The number worth watching is how many claims sit at `attestation`** — that is
-the honest measure of how much of the product rests on an agent's word.
+The first increment sets the bar at `attested` and reports the distribution. Later increments raise a rung
+or turn a warning into an error. **The number worth watching is how many claims sit at `attestation`** —
+that is the honest measure of how much of the product rests on an agent's word.
 
-#### This is what makes a preset bump fail
+Requirements adopted from a preset are coverage-tracked exactly like product-local ones. Nothing about
+their origin changes what has to be shown.
 
-Adopt `nodejs-library@4` and its new requirements arrive with no coverage entries, so the `attested` rung
-reports them immediately.
+#### Who writes coverage, and when
 
-#### Who writes what
+| point | contributes |
+|---|---|
+| a requirement is authored — by the owner or an agent, in any phase | `satisfied_when`, which is not a coverage entry but the condition one will later demonstrate |
+| **Define** | the claim list, and which kind of evidence each claim is expected to get |
+| **Stub** | `code-test` and `conformance-case` entries, as those artifacts come into existence |
+| **Implement** | nothing new — the entries written earlier now pass |
+| **Document** | `manual-check` entries, where a claim is verified by following documented steps |
+| any wave | `attestation`, where nothing better exists |
 
-**Clarify writes `satisfied_when`**, because turning a requirement into something checkable is design
-work. **The build waves write coverage**, because that is when the evidence exists. A published
-increment's manifest is frozen with it; the next increment produces a new one.
+### Facts record what research found
 
-### Pinned decisions
+Spikes, probes, experiments and measurements produce findings about the world — how a dependency actually
+behaves, what a runner does with a given config, what a measurement showed. Those findings are worth
+keeping past the increment that produced them, because the next increment would otherwise re-derive them,
+and because a decision built on a finding should be traceable to it.
 
-`accepted` and `tolerated` record the owner's **attachment** — how much they care — assigned after
-reading everything. A separate and independent question is whether a decision may be freely overturned.
+- **`because:` on a decision** — the facts that drove it, where facts drove it. Optional: recording a fact
+  is deliberately heavyweight, requiring captured output and a re-runnable record, and requiring one per
+  decision would manufacture facts rather than find them. Where no fact is cited, the decision's own
+  statement carries the reasoning.
+- **Falsifiers are fact-shaped.** "This is no longer justified if a CJS-only consumer appears" is a claim
+  someone could measure. A decision's falsifiers are *pending* facts and its `because` is *settled* ones.
+- **`informed_by:` on a requirement** — a pointer, explicitly not justification, since requirements are
+  fiat and need none. It exists so that a fact contradicting a requirement can be found rather than
+  noticed.
 
-Two fields carry it:
-
-- **`pinned`** — a boolean. A pinned decision requires owner ratification to change. An unpinned one does
-  not, whatever its status.
-- **`pinnedReason`** — required when `pinned` is true, and not permitted when it is false. Free text
-  describing why.
-
-Pin a decision when:
-
-- it fixes a **public API surface** something outside the build compiles against
-- it fixes a **data format** written to disk or sent over a wire
-- another **product depends on it**, so changing it reaches beyond this one
-- a **consumer would notice** the behaviour changing, whatever the contract says
-- it is expensive to reverse for some other reason worth writing down
-
-The reasons may become an enumeration once the set is understood, with a free-text detail field alongside
-— `pinnedReason: public-api` plus `pinnedDetail: exports the FooBar class, which consumers construct`.
-Free text until then, because closing the set early would hide the reasons that have not appeared yet.
-
-Pinning is what escalation reads. Nothing about `accepted` or `tolerated` obliges a builder to stop.
-
-### Lifecycle — declare changes, fold for state
-
-Requirements, decisions and preset adoptions all work the same way: **an increment declares what changed,
-and the effective state is the fold across the product's increments.** Three separate mechanisms would be
-three things to learn and a fourth waiting to be invented.
-
-The owner reads the effective set, computed. The history is preserved and is not what anyone reads.
-
-**A decision ends in one of two ways.**
-
-- **Superseded** — a later increment makes a different choice on the same subject. The successor carries
-  the reason, so nothing extra needs stating.
-- **Obsoleted** — the thing it described no longer exists, and nothing supersedes it. This one needs a
-  reason, because the reason is the only thing distinguishing a retirement from an oversight.
-
-A fired falsifier is not a third way. It means the decision is no longer justified by what justified it,
-so it opens a question; a retirement, if there is one, comes out of the revisit.
-
-**Recording is required; asking is not.** Pinning governs permission — an unpinned decision may be
-overturned by a build wave without escalating. It must still be recorded, because a decision silently out
-of force makes the record lie, and the record is what the owner reads. The build report already requires
-every overturned decision and why; **that list is where superseding entries come from**, rather than
-ending as prose in a report.
-
-**The coverage manifest names only active claims.** An increment's manifest must not reference a claim
-that is not in force at that increment — retire a requirement and it leaves the manifest in the same
-increment that retires it. That is what makes the manifest checkable rather than aspirational: every
-entry points at something live, and coverage cannot linger for a claim nobody is making.
-
-### Decisions cite what drove them
-
-Facts are currently reachable only through spec prose. Delete the spec and they orphan, and worse, the
-chain is lost — *this fact is why that decision*. Today both merely appear in the same paragraph.
-
-- **`because:` on a decision** — the facts that drove it.
-- **Falsifiers are already fact-shaped.** "This reverses if a CJS-only consumer appears" is a claim
-  someone could measure. So a decision's falsifiers are *pending facts* and its `because` is *settled
-  ones*, and the decision layer becomes the join in both directions.
-- **`informed_by:` on a requirement** — explicitly not justification, since requirements are fiat and need
-  none. A pointer so the checker can detect the fact-versus-requirement collision the repository already
-  calls a stop-and-ask, and which nothing mechanically finds today.
-
-### Minimise the public contract
-
-**Every export is a constraint on the rebuild.** The public surface is precisely the set of things a
-regenerated implementation must preserve, so its size is the inverse of the freedom that makes a rebuild
-cheap. It is also the size of the surface a consumer can come to depend on whatever the contract says.
-
-Rules a checker can enforce:
-
-- **One entry point by default.** A second is a decision, not a default. Checkable: count the keys in the
-  package's `exports` map.
-- **No subpath wildcards.** A `"./*"` pattern surrenders the boundary — every internal path becomes a
-  promise.
-- **No `export *` from an entry point.** It is the most common way a surface grows without anyone
-  deciding: adding a symbol to an internal module silently publishes it. Named re-exports only.
-- **`internal/` is unreachable from outside**, enforced by `dependency-cruiser`.
-- **The API report is committed**, so a surface change appears as a reviewable diff, and an increment
-  that grows the export count says why.
-
-**Type-only exports are cheaper** than value exports and worth counting separately: they constrain what a
-consumer compiles against but carry no runtime behaviour for a rebuild to preserve.
-
-This is about the *product's* boundary. Minimising the surface of internal modules is a different concern
-with a different justification — it makes a build coherent, not a rebuild cheaper, because internal
-structure is transient and a rebuild may reorganise it entirely. That belongs in the builder's
-instructions.
-
-### Collation replaces the spec's assembly job
+### Collation replaces a written spec document
 
 If decisions are the owner's window, they have to read *as a set*. Thirty entries in file order do not add
-up to a picture the way prose does — and assembling foundations into an ordered narrative is exactly what
-the experiment measured as 55–60% of every spec. That job does not disappear when the spec does; it moves
-to tooling. `bin/foundations.mjs` already collates requirements.
+up to a picture the way prose does, and that assembly is most of what a spec was doing.
+
+That job does not disappear when the spec does; it moves to tooling. A collated view of a product shows,
+for one product at one increment:
+
+- the effective requirement set, product-local and adopted, with each adoption's preset and version
+- the effective decision set, with status and pinning
+- for each claim, its coverage rung and what provides it
+- open questions blocking the increment from settling
+- what this increment changed against the last — added, retired, superseded
+
+None of that is authored. All of it is a fold over artifacts that already exist, which is why it can be
+correct by construction where a spec could only be correct by diligence.
 
 ### Build forward
 
-Tensions that are merely unwelcome become **requirement #1 for the next increment**, not a relitigation of
+Tensions that are merely unwelcome become **requirements for future increments**, not a relitigation of
 the current one. Amend in place only when something is **impossible, non-viable, or incorrect**.
 
 "Incorrect" earns its place in that list. A guard that silently answers false, so a handler returns early
 and its test passes green, breaks nothing visibly — and is the product not working. That cannot wait.
-
-**Build forward is itself a decision, and its falsifier is "a consumer outside our control appears."** Its
-enabling condition is that the owner controls every consumer, so breaking change is cheap. That will stop
-being true, and the principle should expire visibly rather than becoming quietly wrong.
-
-### Escalation carries evidence
-
-A build-tier agent may escalate against a higher-tier decision when it has a **fact** that contradicts it,
-not a preference. This is the repository's existing dispute rule applied vertically.
-
-The symmetric instruction upward matters as much: a plan-tier agent **may not settle a detail a builder
-will meet with better information.** That is what stops the plan tier from pre-deciding the arbitrary
-names and shapes that generate churn.
-
-### Phase tags, without a gate
-
-A decision records which wave proposed it. Useful for comprehension, since it tells the owner how much
-context the proposer had. It gates nothing.
 
 ---
 
@@ -473,74 +420,44 @@ structured data and never reads the narrative.
 **Structural**
 
 1. **Fence requirements to the product, not the design.** The highest-value single change; it removes the
-   cross-design ask ceremony for same-product work. Keep the existing fact-sourced-to-upstream-requirement
-   mechanism for genuinely cross-*product* dependencies.
-2. **The coverage manifest** — claim to evidence, with `satisfied_when` on requirements. The checker
-   enforces the configured rung, reports the distribution across rungs, and validates each `ref` against
-   its kind. Set at `any` for the first increment and ratcheted deliberately.
-3. **Requirement presets**, with `adopts` and `drops` on a product. The checker folds adoptions across a
-   product's increments to get the effective set, and enforces that each adopted preset and increment
-   exists, that the increment is published rather than draft, that a preset is not adopted and dropped in
-   one increment, and that no two adopted presets declare conflicting requirement ids — reporting, without
-   failing, how many increments behind each adoption sits.
-4. **Increment as an artifact** — ask, foundation delta, decisions, transition.
+   cross-design ask ceremony for same-product work.
+2. **Requirement presets**, with `adopts` and `drops` on a product, and the wider scopes removed.
+3. **The coverage manifest** — claim to evidence.
+4. **Increment as an artifact** — ask, foundation delta, decisions.
 5. **Move status from the design to the increment.**
 6. **Stop generating `spec.md`.** Keep the Clarify phase; discard its document.
 
 **Schema**
 
 7. **`pinned` and `pinnedReason` on decisions**, governing what escalates.
-8. **`because:` on decisions** — the facts that drove them.
-9. **`informed_by:` on requirements** — for collision detection, not justification.
-10. **Wave tag on decisions.**
-11. **Interfaces as a first-class artifact** — extracted, pinned, diffable. Produced by the Stub wave,
-   which already writes the public surface and its doc comments; what is missing is that it lands
-   somewhere durable rather than only in the code.
-12. **A published increment is immutable**, and lifecycle is expressed by pointing *forward*. Nothing in
-    a shipped increment is edited afterwards, so a requirement cannot carry a range like
-    `active_from: [start, end]` — that would mean editing an old artifact to close it. Instead a new entry
-    names what it supersedes: `amends:` or `retires:`, referencing the earlier id.
-
-    Two things to work out. **Retirement needs a concise form** — an entry whose only content is "this
-    retires `baz`" is noise, since the statement restates the id. What the statement should carry beyond
-    the retired id, and what a bare removal with no replacement looks like, both need settling.
-
-    And **requirements and decisions are scoped to a product**, across all of its increments, so finding
-    what supersedes a given entry never means searching the whole repository. That is what keeps
-    retirement tractable at all.
-
-    This also fixes a real defect: `doc-structure` cannot represent a retired `documented` fact whose
-    in-repo source text has since changed, because the checker verifies quotes on retired facts and the
-    span is gone by definition. If quotes resolve against the increment where the text lived, that is
-    structurally solved rather than worked around.
+8. **`satisfied_when` on requirements**, required.
+9. **`because:` on decisions** and **`informed_by:` on requirements**.
+10. **Interfaces as a first-class artifact** — produced by the Stub wave, landing somewhere durable rather
+    than only in the code.
+11. **A published increment is immutable**, and lifecycle points *forward* — a new entry names what it
+    supersedes or retires, rather than an old entry being edited to close it. Requirements and decisions
+    are scoped to a product across all its increments, so finding what supersedes an entry never means
+    searching the repository.
 
 **Tooling**
 
-11. **Public-surface checks** — entry-point count, no export wildcards, no `export *` from an entry, the
-    `internal/` boundary.
-12. **Committed API report** per package, so a surface change is a reviewable diff.
-13. **Decision collation** — the owner's readable view of a product.
-14. **Publish gate** — no `proposed` decision outstanding.
-15. **Escalation format** — what a wave sends up, and what comes back.
+12. **Collation** — the folded, computed view of a product.
+13. **Publish gate** — no `proposed` decision outstanding.
+14. **Escalation format** — what a wave sends up, and what comes back.
 
 **Process**
 
-16. **Harvest step at the increment boundary**, with the narrow promotion rule.
-17. **Record build-forward as a decision** with its falsifier.
-18. **Instruct the tiers asymmetrically** — smallest decisions at the bottom, no detail-settling at the
-    top, escalation only with a fact.
-19. **Where the owner's time goes.** Bounded manual work is acceptable where it is time-efficient, and the
-    evidence says where to spend it. Of 30 interviewed practitioners, **16 said writing the specifications
-    slowed their progress**, and the named failure mode was *"not knowing what properties to test"* — not
-    tooling. So the owner's authoring effort goes into **deciding what must be true**, which is the one
-    part no tool reduces.
+15. **Promotion of a decision to a requirement**, when it has become something consumers can reasonably be
+    expected to rely on and preserving its effect is a matter of compatibility. Not every accepted
+    decision — requirements say what the product must do to be accepted; decisions describe the path taken.
+16. **A concise retirement form**, since an entry whose statement restates the id it retires is noise.
 
 **Deliberately not needed**
 
 Cross-repository propagation — reusable workflows, template drift checking, bulk mutation, organisation
 rulesets — exists to approximate what a monorepo gives for free. These projects are one pnpm/turbo
 workspace, so a harness change is one commit. The convention that replaces all of it: **every project
-exposes a `verify` task**, and the shared workflow needs no per-project knowledge.
+exposes a `verify` task**.
 
 ---
 
@@ -551,15 +468,13 @@ exposes a `verify` task**, and the shared workflow needs no per-project knowledg
 | a spec is written, reviewed and maintained per design | no spec; Clarify produces decisions, facts and questions, and its document is discarded |
 | requirements fence to a design, so two workstreams on one product file issues at each other | requirements fence to the product; same-product work shares foundations |
 | a new global or `applies_to` requirement can make a settled design incomplete retroactively | products adopt requirement presets at a pinned increment; nothing binds a product until it says so |
-| compliance means the spec cites the requirement | every requirement and decision carries coverage, graded by whether anything actually checks it |
 | a design is settled or draft | an increment is; shipped increments stay shipped |
 | changing a shipped product means rewriting its spec or inventing another slice | an increment carries the delta |
 | decisions are the design phase's output, reviewed before building | decisions arrive from every wave and accumulate through the build |
-| one review gate before the build | Plan is an iterative loop; Build escalates only what is hard to reverse |
-| a decision the owner dislikes is rejected, and the work is redone | it is tolerated, and a requirement is filed for the next increment |
-| facts are reachable only through spec prose | decisions cite what drove them directly |
-| documentation happens if there is time | Document is a wave, validated against the implementation |
+| compliance means the spec cites the requirement | every requirement and decision carries coverage, graded by whether anything actually checks it |
 | a punt and a reservation are the same status | `delegated` and `tolerated` are separate, so what the owner ruled on can be told from what they passed over |
+| a decision the owner dislikes is rejected, and the work is redone | it is tolerated, and a requirement is filed for a future increment |
+| documentation happens if there is time | Document is a wave, validated against the implementation |
 
 **What does not change:** the owner reads every requirement and every decision, in full. That is the
 comprehension channel, and this is built to feed it rather than to trim it.
@@ -568,31 +483,23 @@ comprehension channel, and this is built to feed it rather than to trim it.
 
 ## Open
 
-- **The gate positioning is not fully settled.** The Plan loop and the per-wave escalation are the current
-  shape, but where a costly-to-reverse decision must stop the build, and how rare escalation actually
-  turns out to be, are untested.
-- **Whether Clarify's document is worth keeping at all**, or whether a collated decision view serves every
-  reader it would have.
-- **Concurrency.** Increments are linear per product; two open increments colliding on a foundation is an
-  owner call, and no mechanism is proposed for it.
-- **The requirement pyramid, tabled.** An apex requirement with more specific ones beneath it, where the
-  apex is a universal claim the children instantiate. Deferred because no concrete example emerged.
-- **Conformance**, deferred to its own increment: how behaviour is pinned so a rebuilt implementation can
-  be verified against it, where those cases are authored, and who ratifies them.
-- **Where the durable interfaces live, and what shape they take.** Distinct from the internal API stubs
-  the Stub wave produces — see the open thread on that row.
-- **Whether decisions need `satisfied_when` too**, or whether a falsifier plus coverage is enough. They are
-  not the same event: a falsifier fires when the world changes, coverage fails when the code drifts.
-- **A concise form for retirement.** An entry whose statement restates the id it retires is noise. This is
-  one problem, not two — requirements and decisions both need it, and obsoletion needs a reason where
-  supersession does not.
-- **Whether "revisited and left standing" needs recording.** If a falsifier fires, a question opens, and
-  the decision survives, nothing marks that it was examined — so the same falsifier re-fires and is
-  re-litigated each increment. Recording it adds ceremony to a non-event; not recording it repeats work.
-- **The term "falsifier"** reads as though the decision were false, which it is not — a decision was made,
-  and what may later prove false is the assumption behind it. Nor does one firing mean the decision is
-  reversed; it means the decision is no longer justified by what justified it, and should be revisited.
-  The term is defined outside this document, so renaming it is a future scope item.
+- **Where the durable interfaces live, and what shape they take.** Distinct from the internal API stubs the
+  Stub wave produces. Whether the durable one is *extracted* from the code or *authored* against it decides
+  where it lives and when it is created — an extracted report cannot be wrong because it is a projection;
+  an authored declaration can be, which is what would make it useful.
+- **Dropping an adoption removes requirements silently.** Their coverage entries leave the manifest with no
+  signal, which is the mirror of the problem presets were introduced to fix. Whether a drop needs a reason,
+  or ratification, or nothing beyond the change in claim count, is unsettled.
+- **How stopping points are chosen.** Escalation says *what* must reach the owner; it does not say whether
+  a build pauses after each wave, runs to completion and reviews once, or stops only for pinned decisions.
+  That looks like orchestration configuration rather than process definition — plausibly a mode chosen per
+  product, according to its risk.
+- **Concurrency.** Increments are numbered files, so two in flight both claiming `003` collide on merge and
+  the loser renames. That detects the collision cheaply and does not resolve it: the second increment was
+  planned against a base that has since moved, so renaming is necessary and not sufficient — the fold must
+  be recomputed and whatever it reports fixed.
+- **A concise retirement form.** An entry whose statement restates the id it retires is noise. One problem,
+  not two: requirements and decisions both need it.
 
 ---
 
@@ -720,10 +627,10 @@ An unpinned decision the owner had no context to rule on:
   supersedes: control-surface-joins-the-package-root
 ```
 
-### A decision that is obsoleted
+### A decision retired with no successor
 
 ```yaml
-obsoletes:
+retires:
   - id: brandas-unions-and-rejects-unknown-classes
     reason: brandAs no longer exists; instanceof answers from the prototype chain
 ```

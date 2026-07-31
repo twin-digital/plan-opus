@@ -72,3 +72,12 @@ off whether a change was cheap or costly.
 and building the vocabulary around it made that one reason look like the whole category. Pinning names the
 consequence directly — this cannot be freely overturned — and leaves the reasons open to grow as they are
 understood.
+
+---
+
+## Wave tags on decisions
+
+**Retired:** recording which wave proposed a decision.
+
+**Why:** it was justified as telling the owner how much context the proposer had. With `pinned` governing
+authority and coverage governing evidence, the tag routed nothing and answered nothing anyone was asking.
