@@ -251,6 +251,74 @@ of it.
 
 Pinning is what escalation reads. No status on its own obliges a builder to stop.
 
+### A product maps to its packages
+
+A product spans one or more packages in the code monorepo — a library and its CLI, an addon and its
+companion tool. The planning repo points; the workspace describes. The mapping carries two fields per
+package:
+
+```yaml
+# products.yaml
+- id: increment-process
+  kind: process
+  facets: [schema, checker, prompts, docs]
+  packages:
+    - path: nodejs/planning-lib
+      kind: npm-library
+    - path: nodejs/planning-cli
+      kind: npm-cli
+    - path: .claude/skills/plan
+      kind: agent-skill
+```
+
+The `path` is the workspace-relative directory, and it is also where a builder works — the pointer
+needs no other field because the workspace already names packages by location. Anything else a kind
+might call for — the npm name, an addon's manifest identity — is read from the package at that path
+rather than duplicated here, so the mapping cannot drift from what it maps. A per-kind field is added
+only when a consumer for it exists and the package cannot answer it.
+
+Creating, splitting, or moving a package is a decision like any other — recorded, ruled on, and pinned
+once something outside the product depends on the boundary. The mapping reflects the state those
+decisions produced.
+
+Consequences:
+
+- **Released versions are per-package.** A product with three packages has three release histories; the
+  durable artifact is plural.
+- **Coverage refs resolve through the mapping.** Foundations live in this repository and artifacts in
+  the workspace, so a `ref` is workspace-relative — the package path prefixes it — and the mapping is
+  what anchors it to a repository.
+- **A preset may read against one package of several.** `published-to-npm` on a product whose CLI is
+  the published piece: adoption stays product-level, and the coverage manifest shows which package
+  carries each adopted claim.
+
+### Facets
+
+A product with several kinds of deliverable needs a way to find, filter, and track claims without
+splitting the product. A **facet** is an optional label on a requirement or decision, drawn from the
+vocabulary the product declares in `products.yaml`:
+
+```yaml
+- id: retirement-form-single-id
+  facets: [schema, checker]
+```
+
+A facet is a reading aid: collation groups and filters by it, and no rule reads it. Nothing fences by
+facet, nothing escalates by facet, coverage and pinning ignore it — which is what keeps it cheap to
+assign and cheap to be wrong about.
+
+The line is bright deliberately. Wanting a rule that mentions a facet — "requirements of the CLI
+must…" — is the signal the facet has become a product, and the split happens then, on evidence of
+independent life: its own release cadence, another product depending on it specifically, increments
+that stop co-changing with the rest. The machinery for the split already exists — retire the claims in
+the parent, re-add them in the new product.
+
+Facets do not draw component boundaries. Where packages meet — the CLI consumes the library's public
+surface, shared types live in the library — is decision content, pinned when a consumer could notice.
+A builder coheres across facets because the build is product-scoped: an increment is built against the
+whole foundation set, and the Stub wave's shared stubs are where packages converge on the types they
+share. A facet helps find those decisions; it does not replace them.
+
 ### Lifecycle — declare changes, fold for state
 
 Requirements, decisions and preset adoptions all work the same way: **an increment declares what changed,
@@ -423,6 +491,8 @@ for one product at one increment:
 - open questions blocking the increment from settling
 - what this increment changed against the last — added, retired, superseded
 
+— the whole of it filterable and groupable by facet, where the product declares them.
+
 None of that is authored. All of it is a fold over artifacts that already exist, which is why it can be
 correct by construction where a spec could only be correct by diligence.
 
@@ -477,19 +547,21 @@ structured data and never reads the narrative.
     supersedes or retires, rather than an old entry being edited to close it. Requirements and decisions
     are scoped to a product across all its increments, so finding what supersedes an entry never means
     searching the repository.
+12. **The package mapping on a product** — path and kind per package — and **facets**: the vocabulary on
+    the product, the labels on claims.
 
 **Tooling**
 
-12. **Collation** — the folded, computed view of a product.
-13. **Publish gate** — no `proposed` decision outstanding.
-14. **Escalation format** — what a wave sends up, and what comes back.
+13. **Collation** — the folded, computed view of a product, filterable by facet.
+14. **Publish gate** — no `proposed` decision outstanding.
+15. **Escalation format** — what a wave sends up, and what comes back.
 
 **Process**
 
-15. **Promotion of a decision to a requirement**, when it has become something consumers can reasonably be
+16. **Promotion of a decision to a requirement**, when it has become something consumers can reasonably be
     expected to rely on and preserving its effect is a matter of compatibility. Not every accepted
     decision — requirements say what the product must do to be accepted; decisions describe the path taken.
-16. **The retirement form** — top-level `retires:` blocks in each increment's sources, one id and a
+17. **The retirement form** — top-level `retires:` blocks in each increment's sources, one id and a
     one-line reason per entry, no statement.
 
 **Deliberately not needed**
