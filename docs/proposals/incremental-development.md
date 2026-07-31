@@ -307,6 +307,13 @@ Consequences:
   the published piece: adoption stays product-level, and the coverage manifest shows which package
   carries each adopted claim.
 
+A package need not be code. For some products the deliverable *is* a document — a format's normative
+reference, a process description. Such a package takes `kind: document`, a `path` that is the
+document's permanent home, and often a non-default `repo`, since normative planning documents live in
+this repository rather than the workspace. This does not bend the no-spec rule: what the process
+discards is the design-phase document that *describes* a product; a document a product *ships* is
+implementation, produced and revised by build waves like any other deliverable.
+
 ### Facets
 
 A product with several kinds of deliverable needs a way to find, filter, and track claims without
