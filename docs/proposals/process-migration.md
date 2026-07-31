@@ -45,8 +45,8 @@ that something checks it.
 
 The rule was the only mechanical evidence of compliance the process had, and it was theatre: a citation
 proves a document *mentions* a requirement, nothing more. An agent could satisfy it by writing the
-requirement's name into a paragraph. The spec-value comparisons found that most of a spec restated its
-foundations, which means citations were largely decoration.
+requirement's name into a paragraph. With most of a spec restating its foundations, citations were
+largely decoration.
 
 It also could not survive the spec's removal, and requirement presets made its absence urgent — adopting
 a newer preset increment ought to be able to fail, and with nothing checking compliance, nothing would.

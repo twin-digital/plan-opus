@@ -10,9 +10,6 @@ manual work is acceptable where it uses the owner's time efficiently.
 That scale matters — several recommendations below would be different for a handful of projects or for
 hundreds.
 
-Evidence base: the spec-value experiment (#129), four controlled comparisons of what a spec contributes
-over its foundations.
-
 What this process retires, and why, is in `process-migration.md`. Instruction to agents working inside
 it is in `agent-guidance.md`. This document states only how the process is meant to work.
 
@@ -40,17 +37,15 @@ is unsettled" from "the next change to it is unsettled."
 rewriting its spec or inventing another slice — which is how a product ends up with more slices than it
 has parts.
 
-**The spec is not needed.** Two observations, and the first is the plainer one:
+**The spec is not needed.** Dropping it is owner fiat, lightly informed by observation rather than
+resting on it:
 
 - The owner skims it. It is not a document anyone reads to understand what was built.
-- It does not change the built product much beyond what the foundations already state. Four designs were
-  tested by having an independent agent write a build plan from the foundations alone, then read the spec
-  and record what changed. In each case the agent found only **a handful of items** that would have been
-  built differently without the spec; most of the document restated foundations or argued for them.
+- Most of it restates foundations or argues for them, and the classes of information it genuinely adds
+  are few and repeat.
 
 The goal that follows is to capture those missing classes of information **as foundations** rather than
-as prose in a spec — which is a smaller job than it sounds, because there are few of them and they
-repeat.
+as prose in a spec.
 
 Against those, one countervailing force that shapes everything below:
 
@@ -77,7 +72,7 @@ comprehend a product from.
 
 | artifact | why it is transient |
 |---|---|
-| spec | 85%+ restatement and argument |
+| spec | restatement of and argument for the foundations |
 | test plan | an input to the build, not a description of the product |
 | implementation | regenerable from the durable set |
 
