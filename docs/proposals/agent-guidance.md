@@ -42,6 +42,23 @@ manufactured — the builder discovers the constraint, contradicts the guess, an
 a preference. A measurement, a compile error, a captured output. An opinion about a better framing is not
 grounds.
 
+## Name what carries the claim
+
+A coverage entry's `ref` names the artifacts that carry the claim — the test whose failure would mean the
+claim is false, the files whose content is what the claim asserts. One path or several, but chosen by
+that test, not by reachability: the generic error type, the logging library, and everything else a code
+path touches are reachable from almost any claim and evidence for none. If removing the file would not
+touch whether the claim holds, it does not belong in the `ref`.
+
+## Orchestration flavours
+
+The process fixes what must escalate; when a build stops is chosen per product, by risk, as an
+orchestration instruction rather than a process rule. The flavours:
+
+- **wave-by-wave** — pause after each wave for owner review before the next begins
+- **run-to-completion** — build every wave, review once at the end
+- **escalation-only** — stop only when an escalation fires
+
 ## Proposing a decision as pinned
 
 The agent proposing a decision proposes whether it is pinned, and the owner rules on that with the rest of

@@ -175,6 +175,11 @@ The asymmetry between Plan and Build is deliberate. **Plan exists to surface and
 so by definition everything raised there reaches the owner, who may simply tolerate what is easy to
 reverse. **Build exists to make progress**, so only what is hard to reverse interrupts it.
 
+Escalation says *what* must reach the owner; where a build pauses — after every wave, at completion, or
+only when an escalation fires — is orchestration configuration rather than process definition. Agent
+guidance carries the flavours of orchestration instruction, and a product runs under the one that fits
+its risk.
+
 ### Publish gate
 
 Nothing merges or publishes while a `proposed` decision is outstanding — the same mechanic the repository
@@ -215,6 +220,9 @@ drops:
 
 Rules:
 
+- Adopting and dropping are direct owner action — fiat, the same as adding or removing any other
+  requirement. No reason, ratification, or review attaches; the increment that declares the change is the
+  record, and the fold shows what it did to the effective set.
 - A preset is adopted whole. There are no exceptions or partial adoptions.
 - A preset does not adopt another preset.
 - A conflict between an adopted requirement and a product-local one is an error. An agent raises it as an
@@ -255,6 +263,13 @@ and carries the reason in its own content, so nothing extra needs stating. A ret
 needs a reason, because that reason is the only thing distinguishing it from an oversight — the thing it
 described no longer exists, the constraint stopped applying, the product moved out from under it.
 
+The retirement form is a top-level `retires:` block in the same per-increment source that adds entries,
+so the file scopes what kind of claim each id names and no type discriminator is needed. One id per
+entry, each with its own one-line `reason` and no statement — when one event retires several claims, the
+reason repeats, which keeps every retirement independently greppable and independently judgeable. The
+block covers only retirement without a successor; a superseding entry's `supersedes` or `amends` retires
+its target on its own.
+
 **Within the increment that created it**, a decision still `proposed` may be removed outright with no
 record. Once the owner has ruled on it, it cannot be deleted — it is retired through the same mechanism a
 later increment would use, so the owner can follow what became of something they accepted.
@@ -264,6 +279,11 @@ overturned by a build wave without escalating. It must still be recorded, becaus
 of force makes the record lie, and the record is what the owner reads. The build report already requires
 every overturned decision and why; **that list is where superseding entries come from**, rather than
 ending as prose in a report.
+
+**Concurrent increments collide on the number, and that is the whole provision.** Two in flight both
+claiming `003` conflict on merge; the loser renames and recomputes the fold against the base that moved,
+and the collation and validation tooling reports whatever the recomputed fold breaks. The process adds
+nothing further for this case.
 
 ### Proving a claim is met
 
@@ -314,13 +334,22 @@ with tautologies.
 ```
 
 `kind` + `ref` + an optional `note`, uniform across kinds, so new kinds land without a schema change.
+`ref` is one path or a list — an implementation that spans files names them all. It names what carries
+the claim, not everything the code path touches: the generic error type and the logging library are
+reachable from almost every claim and evidence for none. Picking that set is agent-guidance material.
 
-| kind | what it is | what survives a rebuild |
+| kind | what it is | what still rests on the builder's word |
 |---|---|---|
-| `attestation` | an agent asserts it; no artifact | nothing |
-| `code-test` | a test in the project's own suite | nothing — the test is rebuilt with the implementation |
-| `manual-check` | a human followed recorded steps | the steps, which a human must run again |
-| `conformance-case` | a durable case | the case, and it runs again on its own |
+| `attestation` | an agent asserts it; no artifact | everything |
+| `code-test` | a test in the project's own suite, written by the builder | that the test measures the claim |
+| `manual-check` | recorded steps a human follows and re-runs | that the steps measure the claim |
+| `conformance-case` | a case the owner wrote or vetted, tied to the claim it checks — automated or manual | nothing |
+
+What makes a conformance case conformance is its **provenance and its coupling**: the owner authored or
+carefully reviewed the check, and it is tied to the requirement it demonstrates rather than to a decision
+an agent made downstream. Automation is not the distinction — the planned tooling carries manual cases as
+one supported kind of conformance case. A check with no recorded steps is not a `manual-check` and does
+not enter the manifest at all; an unrepeatable check is an attestation with extra effort.
 
 **A manifest names only claims in force at that increment.** Retire a requirement and it is simply omitted
 from that increment's manifest. It is also an error to name a claim that is still `proposed` — coverage is
@@ -328,15 +357,28 @@ evidence about something the owner has ruled on, not about a suggestion.
 
 #### The ladder
 
+Each rung is stronger evidence than the one below it, and a claim sits at the highest rung anything in
+its `covered_by` provides:
+
 | rung | means |
 |---|---|
-| `attested` | at least an agent's claim that it is met |
-| `checked` | something other than an attestation exists |
-| `automated` | it runs without a human |
-| `durable` | a conformance case — it survives a rebuild |
+| `attested` | only an agent's word that it is met |
+| `checked` | a recorded check exists — a builder's test, or steps a human re-runs |
+| `conformance` | the check is owner-vetted and tied to the claim |
+
+Why a builder's test outranks the same builder's word, when one agent wrote both: an attestation is
+believed whole — the agent observed, concluded, and reported, and none of that can be re-examined. A test
+moves the verdict into the product: it executes and can fail, now and on every later run. What still
+rests on the builder is only that the test measures the claim — a smaller thing to trust, and an
+auditable one, since a reviewer can read a test where there is nothing to read behind an attestation.
+`conformance` retires that residue too, by moving authorship or vetting of the check to the owner.
+
+Automation is a property of a check, not a rung. A manual conformance case outranks an automated builder
+test, because strength comes from provenance and coupling; whether a check runs without a human prices
+re-running it, and is worth reporting on that ground alone.
 
 The first increment sets the bar at `attested` and reports the distribution. Later increments raise a rung
-or turn a warning into an error. **The number worth watching is how many claims sit at `attestation`** —
+or turn a warning into an error. **The number worth watching is how many claims sit at `attested`** —
 that is the honest measure of how much of the product rests on an agent's word.
 
 Requirements adopted from a preset are coverage-tracked exactly like product-local ones. Nothing about
@@ -349,9 +391,8 @@ their origin changes what has to be shown.
 | a requirement is authored — by the owner or an agent, in any phase | `satisfied_when`, which is not a coverage entry but the condition one will later demonstrate |
 | **Define** | the claim list, and which kind of evidence each claim is expected to get |
 | **Stub** | `code-test` and `conformance-case` entries, as those artifacts come into existence |
-| **Implement** | nothing new — the entries written earlier now pass |
+| **Implement** | an `attestation` for every claim it built against — always, from the implementing agent, alongside whatever better evidence exists — and the entries written earlier now pass |
 | **Document** | `manual-check` entries, where a claim is verified by following documented steps |
-| any wave | `attestation`, where nothing better exists |
 
 ### Facts record what research found
 
@@ -360,12 +401,10 @@ behaves, what a runner does with a given config, what a measurement showed. Thos
 keeping past the increment that produced them, because the next increment would otherwise re-derive them,
 and because a decision built on a finding should be traceable to it.
 
-- **`because:` on a decision** — the facts that drove it, where facts drove it. Optional: recording a fact
-  is deliberately heavyweight, requiring captured output and a re-runnable record, and requiring one per
-  decision would manufacture facts rather than find them. Where no fact is cited, the decision's own
-  statement carries the reasoning.
-- **Falsifiers are fact-shaped.** "This is no longer justified if a CJS-only consumer appears" is a claim
-  someone could measure. A decision's falsifiers are *pending* facts and its `because` is *settled* ones.
+- **`because:` on a decision** — the facts that drove it, where facts drove it. Optional: a fact is
+  deliberately non-trivial to record — a citation of the upstream source for a documented one, captured
+  output and a re-runnable record for a self-tested one — and requiring one per decision would manufacture
+  facts rather than find them. Where no fact is cited, the decision's own statement carries the reasoning.
 - **`informed_by:` on a requirement** — a pointer, explicitly not justification, since requirements are
   fiat and need none. It exists so that a fact contradicting a requirement can be found rather than
   noticed.
@@ -450,7 +489,8 @@ structured data and never reads the narrative.
 15. **Promotion of a decision to a requirement**, when it has become something consumers can reasonably be
     expected to rely on and preserving its effect is a matter of compatibility. Not every accepted
     decision — requirements say what the product must do to be accepted; decisions describe the path taken.
-16. **A concise retirement form**, since an entry whose statement restates the id it retires is noise.
+16. **The retirement form** — top-level `retires:` blocks in each increment's sources, one id and a
+    one-line reason per entry, no statement.
 
 **Deliberately not needed**
 
@@ -487,19 +527,6 @@ comprehension channel, and this is built to feed it rather than to trim it.
   Stub wave produces. Whether the durable one is *extracted* from the code or *authored* against it decides
   where it lives and when it is created — an extracted report cannot be wrong because it is a projection;
   an authored declaration can be, which is what would make it useful.
-- **Dropping an adoption removes requirements silently.** Their coverage entries leave the manifest with no
-  signal, which is the mirror of the problem presets were introduced to fix. Whether a drop needs a reason,
-  or ratification, or nothing beyond the change in claim count, is unsettled.
-- **How stopping points are chosen.** Escalation says *what* must reach the owner; it does not say whether
-  a build pauses after each wave, runs to completion and reviews once, or stops only for pinned decisions.
-  That looks like orchestration configuration rather than process definition — plausibly a mode chosen per
-  product, according to its risk.
-- **Concurrency.** Increments are numbered files, so two in flight both claiming `003` collide on merge and
-  the loser renames. That detects the collision cheaply and does not resolve it: the second increment was
-  planned against a base that has since moved, so renaming is necessary and not sufficient — the fold must
-  be recomputed and whatever it reports fixed.
-- **A concise retirement form.** An entry whose statement restates the id it retires is noise. One problem,
-  not two: requirements and decisions both need it.
 
 ---
 
@@ -556,9 +583,6 @@ retires:
   - id: consumer-suite-typechecks
     reason: the package no longer ships type declarations
 ```
-
-> Shape unsettled — a concise form for retirement is an open item. What is shown here restates the id in
-> prose, which is the noise the open item is about.
 
 ### A requirement preset, and adopting it
 
@@ -638,7 +662,7 @@ retires:
 ### The coverage manifest
 
 Claims are requirements and decisions alike, and every entry must name a claim in force at this
-increment:
+increment. `ref` is one path or a list:
 
 ```yaml
 - claim: r:consumer-suite-typechecks
@@ -649,7 +673,9 @@ increment:
 - claim: d:control-surface-is-a-real-subpath
   covered_by:
     - kind: code-test
-      ref: test/exports.spec.ts
+      ref:
+        - test/exports.spec.ts
+        - test/control.spec.ts
     - kind: attestation
       note: the exports map declares ./control, and the build fails without it
 ```
