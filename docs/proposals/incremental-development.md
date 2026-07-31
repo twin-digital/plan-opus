@@ -10,8 +10,8 @@ manual work is acceptable where it uses the owner's time efficiently.
 That scale matters — several recommendations below would be different for a handful of projects or for
 hundreds.
 
-Evidence base: `docs/experiments/spec-value/`, four controlled comparisons of what a spec contributes
-over its foundations, included in this change.
+Evidence base: the spec-value experiment (#129), four controlled comparisons of what a spec contributes
+over its foundations.
 
 What this process retires, and why, is in `process-migration.md`. Instruction to agents working inside
 it is in `agent-guidance.md`. This document states only how the process is meant to work.
