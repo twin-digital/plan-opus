@@ -84,6 +84,26 @@ authority and coverage governing evidence, the tag routed nothing and answered n
 
 ---
 
+## Drafts on main
+
+**Retired:** the unsettled-and-merged combination. Design state was always derived — exploring,
+draft, settled, computed from tree content, with published a separate settled-and-merged axis — and a
+draft could legally sit on main during design work.
+
+**Replaced by:** merge as the publish act. State stays derived; the combination is what goes.
+
+### Why
+
+Under numbered increments the combination stops being harmless. Main's increment sequence is what
+`after:` references and the concurrency lock resolve against, so a draft on main would put a mutable,
+renameable claim inside the shared ordering. The fold over main would mix settled history with
+unsettled entries, obliging every consumer to filter. A tree-consumed deliverable — a document
+package — would go live mid-draft. And immutability enforcement would be conditional ("refuse edits
+unless draft") instead of absolute ("refuse edits to anything on main"). Removing the combination
+buys all four, and costs only what a branch already provides.
+
+---
+
 ## Converting what exists
 
 The old tree converts product by product, each conversion its own reviewed change, and the two trees

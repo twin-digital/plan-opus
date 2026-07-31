@@ -629,8 +629,8 @@ structured data and never reads the narrative.
 2. **Requirement presets**, with `adopts` and `drops` on a product, and the wider scopes removed.
 3. **The coverage manifest** — claim to evidence.
 4. **Increment as an artifact** — ask, foundation delta, decisions.
-5. **Move status from the design to the increment**, computed from location: draft is off main,
-   published is merged.
+5. **Move status from the design to the increment.** It stays derived, now from location: draft is
+   off main, published is merged, and the old unsettled-and-merged combination is gone.
 6. **Stop maintaining `spec.md`.** Clarify works through a synthesis draft, discarded at zero
    remainder before publish.
 
