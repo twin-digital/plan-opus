@@ -146,7 +146,7 @@ deliverable.
 ### Sweeps
 
 - **Fact sources**: in-repo `url` sources anchored to `design/…` paths re-point to the new homes, their
-  quotes re-verified against the moved text. Confirm the checker validates url existence before
+  quotes re-verified against the moved text. Confirm the design validator checks url existence before
   trusting it to catch stragglers.
 - **Coverage**: absent at conversion. The first post-conversion increment sets the bar at `attested`.
 - **Briefs**: not migrated; history keeps them.
@@ -158,5 +158,5 @@ deliverable.
    that the status re-ruling is an hour.
 3. Remaining products, each its own change.
 4. The document-deliverable products, once their permanent home is decided.
-5. The old-tree checker rules retire with the last design out; until then the checker accepts both
+5. The old-tree validation rules retire with the last design out; until then the design validator accepts both
    trees.

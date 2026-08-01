@@ -6,9 +6,9 @@ requirements:
       a published increment is never unsettled by later work: drafting increment N+1 changes
       nothing about increment N.
     satisfied_when: |
-      the checker rejects any edit to a file of a published increment, and later changes appear
+      the design validator rejects any edit to a file of a published increment, and later changes appear
       in the fold as new entries superseding or retiring earlier ones.
-    facets: validation
+    facets: design-validator
 
   - id: r-ei82daip
     title: decisions are comprehensible as a set
@@ -31,7 +31,7 @@ requirements:
       ordinary document is review's to catch, not the gate's.
     facets:
       - process-doc
-      - validation
+      - design-validator
 
   - id: r-yzkxa2hj
     title: the process ships its reference
@@ -49,7 +49,7 @@ requirements:
       no increment merges or publishes while one of its decisions is still proposed.
     satisfied_when: |
       the merge gate fails an increment carrying a decision whose status is proposed.
-    facets: validation
+    facets: design-validator
 
   - id: r-gc7a3m56
     title: ruled-on is distinguishable from passed-over
@@ -73,7 +73,7 @@ requirements:
       ratified requirements as its scope and build them.
     facets:
       - process-doc
-      - validation
+      - design-validator
 
   - id: r-bwtud1e5
     title: products declare their own requirements
@@ -81,6 +81,6 @@ requirements:
       no requirement outside a product's own increments binds it; adoption at a pinned
       increment is the only way an external requirement takes force.
     satisfied_when: |
-      the checker resolves a product's obligations only from its own increments' entries and
+      the design validator resolves a product's obligations only from its own increments' entries and
       adoptions, and no global or area scope exists to bind implicitly.
-    facets: validation
+    facets: design-validator

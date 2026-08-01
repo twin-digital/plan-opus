@@ -171,7 +171,7 @@ the gate runs there:
 - the number is the next in the product's sequence — a concurrent increment's collision surfaces
   here, and the loser renames and recomputes
 
-Main therefore holds only published increments, dense and immutable, and the checker refuses any edit
+Main therefore holds only published increments, dense and immutable, and the design validator refuses any edit
 to one. There is no draft-on-main state: the fold over main is always a fold over settled history,
 and what a tree-consumed deliverable shows on main is always what a published increment built.
 
@@ -268,7 +268,7 @@ kind: process
 facets:
   - id: schema
     description: the shapes of the structured files products write
-  - id: validation
+  - id: design-validator
     description: the rules that check artifacts and gate merges
 packages:
   - path: nodejs/planning-lib
@@ -334,7 +334,7 @@ description, so the name does not have to carry the meaning alone:
 
 ```yaml
 - id: d-9g62l9m0
-  facets: [schema, validation]
+  facets: [schema, design-validator]
 ```
 
 A facet is a reading aid: collation groups and filters by it, and no rule reads it. Nothing fences by
@@ -366,7 +366,7 @@ each other, so a one-character misread lands on a valid, plausible sibling. Noth
 of an id; creation time lives in increments and git history.
 
 The human handle is **`title`** — a short label, free to churn without breaking anything, and what
-collation displays. The generator is a CLI command used by humans and agents alike; the checker
+collation displays. The generator is a CLI command used by humans and agents alike; the design validator
 enforces format and uniqueness, so a collision is a regenerate at creation rather than a latent bug.
 
 Increments stay plain numbers — readable, and the merge collision on the number is the concurrency
@@ -422,7 +422,7 @@ ending as prose in a report.
 
 **Concurrent increments collide on the number, and that is the whole provision.** Two in flight both
 claiming `003` conflict on merge; the loser renames and recomputes the fold against the base that moved,
-and the collation and validation tooling reports whatever the recomputed fold breaks. The process adds
+and the collation tooling and design validator report whatever the recomputed fold breaks. The process adds
 nothing further for this case.
 
 ### Requirements state how they would be known to be met
