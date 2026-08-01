@@ -327,6 +327,14 @@ the publish gate refuses that as long as the increment is not done — however l
 minutes for an unattended implementation or days for hand crafting. A document too hot for tree consumption
 — one outside readers pin against — releases versions like any other package.
 
+Document homes follow one convention: shipped document packages live under `docs/<domain>/`, and
+`docs/proposals/` is the conventional home of synthesis drafts — confined to increment branches,
+with the merge gate rejecting anything under it. A hand-authored document — the owner and agents
+writing during the increment's PR — and an autonomously written one are the same mechanism on
+different schedules: the single-increment shape edits the document at its permanent home on the
+increment's own branch, the split shape leaves it to a later implementation, and either way the
+implementation record is what says who shipped it, against which fold, and when.
+
 ### Facets
 
 A product with several kinds of deliverable needs a way to find, filter, and track claims without
