@@ -1,0 +1,10 @@
+version: 1
+requirements:
+  - id: r-ds3q3en9
+    title: node libraries are ESM TypeScript
+    statement: |
+      a Node.js library ships as ESM only, written in TypeScript and shipping its own type
+      declarations, targeting active Node LTS.
+    satisfied_when:
+      - the published package declares "type" as "module" and ships no CommonJS entry
+      - type declarations ship with the package, and the build targets active Node LTS
