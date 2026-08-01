@@ -18,6 +18,17 @@ requirements:
       - schema
       - design-validator
 
+  - id: r-zcvxh2ty
+    title: the design validator gates merges
+    statement: |
+      the design validator runs as a required check on every pull request, applying every rule
+      in force at that point; any failure blocks the merge. the merge gate is not advisory —
+      nothing publishes over a failing check.
+    satisfied_when:
+      - the repository requires the design validator check to pass before any pull request merges
+      - the check applies every validator rule in force, and a single failure fails the check
+    facets: design-validator
+
   - id: r-ei82daip
     title: decisions are comprehensible as a set
     statement: |

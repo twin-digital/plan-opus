@@ -167,6 +167,9 @@ the gate runs there:
 - the number is the next in the product's sequence — a concurrent increment's collision surfaces
   here, and the loser renames and recomputes
 
+The gate is a required pull-request check: the design validator runs on every PR, applies every
+rule in force, and a single failure blocks the merge — nothing publishes over a red check.
+
 Main therefore holds only published increments, dense and immutable, and the design validator refuses any edit
 to one. There is no draft-on-main state: the fold over main is always a fold over settled history,
 and what a tree-consumed deliverable shows on main is always what a published increment built.
