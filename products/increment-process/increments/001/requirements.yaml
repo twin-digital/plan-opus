@@ -67,6 +67,18 @@
     product.yaml lists document packages whose paths exist and hold the current reference.
   facets: process-doc
 
+- id: r-sk47gw08
+  title: design and build keep their own schedules
+  statement: |
+    finishing a plan and building it are separately schedulable: a ratified plan publishes
+    without a build, and a build may come later — or never.
+  satisfied_when: |
+    a plan-only increment passes the merge gate, and a later increment's ask carries its
+    requirements into a build.
+  facets:
+    - process-doc
+    - checker
+
 - id: r-bwtud1e5
   title: nothing binds a product until it says so
   statement: |

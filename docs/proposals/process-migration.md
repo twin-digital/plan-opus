@@ -84,6 +84,24 @@ authority and coverage governing evidence, the tag routed nothing and answered n
 
 ---
 
+## Spec bundles
+
+**Retired:** the planned publication of versioned design bundles — the full spec at a computed
+version, for builders to build against later. Planned, never implemented.
+
+**Replaced by:** the fold at a published increment. `<product>@N` is derivable on demand and
+identical forever, so the bundle needs no publishing; the increment number is the version, and the
+declared delta is the changelog.
+
+### Why
+
+The bundle existed to give builders a frozen, versioned design state on a schedule decoupled from
+building. Both properties now come free: a Plan-only increment publishes without a build, and a
+published increment cannot change. What survives of the design is its core move — the version
+computed from structured data, never from prose — which the increment sequence carries natively.
+
+---
+
 ## Drafts on main
 
 **Retired:** the unsettled-and-merged combination. Design state was always derived — exploring,

@@ -213,6 +213,16 @@ Main therefore holds only published increments, dense and immutable, and the che
 to one. There is no draft-on-main state: the fold over main is always a fold over settled history,
 and what a tree-consumed deliverable shows on main is always what a published increment built.
 
+### Design and build keep their own schedules
+
+An increment need not run Build. Ask → Clarify → Ratify → publish is a complete increment — a
+preset's only shape, and any product's option. Its ratified requirements sit in the fold as claims
+with no coverage, which the collated view shows for what they are: ratified and unbuilt. A later
+increment builds them, its `ask:` carrying them forward and its waves producing the build decisions
+and coverage, on whatever schedule building deserves — or never. Whether one increment carries both
+phases or two increments split them is scheduling, chosen per ask; nothing in the artifacts differs
+except which increment the build entries land in.
+
 ---
 
 ## Mechanisms it relies on
@@ -572,6 +582,16 @@ for one product at one increment:
 - what this increment changed against the last — added, retired, superseded
 
 — the whole of it filterable and groupable by facet, where the product declares them.
+
+### The fold at an increment is the bundle
+
+What a builder builds against is the fold at a published increment — the effective requirements,
+decisions, and coverage expectations of `<product>@N`. Publication made every input immutable, so the
+view is derivable on demand and identical forever: nothing is archived, nothing is published, and the
+increment number is the version, with the declared delta as its changelog. A cross-product build pins
+what it consumed with `after:`; a same-product build, by its position in the sequence. Where an
+external consumer needs a frozen file, collation output releases like any package; the default is
+computed, not published.
 
 None of that is authored. All of it is a fold over artifacts that already exist, which is why it can be
 correct by construction where a spec could only be correct by diligence.
