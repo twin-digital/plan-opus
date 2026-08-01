@@ -85,7 +85,7 @@ requirements:
     statement: |
       an increment binds schemas through its model — entity name, schema reference, and a
       description anchoring what the entity is in the design. model entries are part of the
-      increment's requirements: ratified with it, binding on builders, folded by entity name;
+      increment's requirements: ratified with it, binding on implementers, folded by entity name;
       where prose references an entity, its bound schema is the authoritative shape.
     satisfied_when: |
       the design validator fails an increment whose model reference — or whose source file's
@@ -96,25 +96,25 @@ requirements:
       - design-validator
 
   - id: r-sk47gw08
-    title: design and build keep their own schedules
+    title: design and implementation keep their own schedules
     statement: |
-      finishing a plan and building it are separately schedulable: a ratified plan publishes
-      without a build, and a build may come later — or never.
+      finishing a plan and implementing it are separately schedulable: a ratified plan publishes
+      without an implementation, and one may come later — or never.
     satisfied_when: |
       a plan-only increment passes the merge gate, and a later increment may take previously
-      ratified requirements as its scope and build them.
+      ratified requirements as its scope and implement them.
     facets:
       - process-doc
       - design-validator
 
   - id: r-tpcrux8s
-    title: designs queue, builds consolidate
+    title: designs queue, implementations consolidate
     statement: |
       design increments publish on their own cadence, and several may accumulate before any
-      build; one build may target the consolidated fold, and nothing obliges a build per
+      implementation; one implementation may target the consolidated fold, and nothing obliges one per
       increment.
     satisfied_when: |
-      a build targets the fold at a chosen increment and durably records that target, while
+      an implementation targets the fold at a chosen increment and durably records that target, while
       increments published since remain visible as ratified and unbuilt.
     facets: process-doc
 

@@ -63,9 +63,9 @@ comprehend a product from.
 | artifact | what it holds |
 |---|---|
 | requirements | owner fiat: what the product must do to be accepted |
-| decisions | the path taken to meet them — each choice a consumer could observe or a rebuild must preserve, recorded with the conditions that would call for it to be revisited; choices below that bar live in the code, and a rebuild is free to re-make them |
+| decisions | the path taken to meet them — each choice a consumer could observe or a reimplementation must preserve, recorded with the conditions that would call for it to be revisited; choices below that bar live in the code, and a reimplementation is free to re-make them |
 | facts | what has been observed about the world, with the runs and artifacts that establish it |
-| interfaces | the shapes something outside the build compiles against |
+| interfaces | the shapes something outside the implementation compiles against |
 | released versions | tags and published artifacts — permanent once out, whatever happens to the source |
 
 **Transient** — generated, used, discarded:
@@ -73,14 +73,14 @@ comprehend a product from.
 | artifact | why it is transient |
 |---|---|
 | synthesis draft | Clarify's instrument for finding gaps — discarded at zero remainder, when everything it says is in the fold |
-| test plan | an input to the build, not a description of the product |
+| test plan | an input to the implementation, not a description of the product |
 | implementation | regenerable from the durable set |
 
 The asymmetry is deliberate. The durable set is what the owner reviews and what tooling can diff. The
 transient set is where work happens.
 
 **The unit of change is an increment**, scoped to a **product**. An increment owns its ask, the
-foundation changes it makes, the decisions it produces, and the transition a builder follows. Status
+foundation changes it makes, the decisions it produces, and the transition an implementer follows. Status
 attaches to the increment, so drafting increment N+1 never unsettles the shipped increment N.
 
 ---
@@ -89,10 +89,10 @@ attaches to the increment, so drafting increment N+1 never unsettles the shipped
 
 ```
 Plan:
-  Ask → Clarify → Ratify        (loops until the owner declares it settled enough to transition to building)
+  Ask → Clarify → Ratify        (loops until the owner declares it settled enough to transition to implementing)
 
-Build:
-  defined by the build-process increment — waves, escalation, evidence; Plan hands it the ratified fold
+Implement:
+  defined by the implementation-process increment — waves, escalation, evidence; Plan hands it the ratified fold
 ```
 
 ### Ask
@@ -104,8 +104,8 @@ existing, so the field is absent otherwise.
 
 Ask begins from the collated view, and the view leads with the deferred: the tolerated decisions in
 force, the delegated count, the share of claims sitting at `attested`. No threshold fires anything —
-the reader of these numbers is the one deciding what to build next, so the response to a measure is
-its placement at that moment. Every ask re-offers what was deferred, which is what keeps *Build
+the reader of these numbers is the one deciding what to implement next, so the response to a measure is
+its placement at that moment. Every ask re-offers what was deferred, which is what keeps *Implement
 forward* a real deferral rather than a silent one.
 
 ### Clarify
@@ -118,7 +118,7 @@ Outputs are the research and results collected, plus:
 
 1. a **ratified set of requirements**, with any owner-approved amendments
 2. **decisions reached from research**, also owner-approved
-3. **open questions** identified but not answerable at this level, left for Build to resolve
+3. **open questions** identified but not answerable at this level, left for Implement to resolve
 
 The working method is a **synthesis draft** — connected prose, because writing an argument that must
 hold together is what exposes the decision not yet made and the question not yet asked. The draft is
@@ -131,7 +131,7 @@ is cheapest to catch. The publish gate refuses an increment still carrying its d
 
 **Not a one-way handoff.** Clarify and Ratify iterate — agents raise questions and decisions, the owner
 responds, agents consume that feedback and raise more. The loop runs until the owner declares it settled
-enough to build, and whatever remains open goes to Build.
+enough to implement, and whatever remains open goes to Implement.
 
 Each proposed decision is read in full and becomes:
 
@@ -143,7 +143,7 @@ Each proposed decision is read in full and becomes:
 Distaste is not rejection. A decision the owner dislikes but can live with is **tolerated**, and may
 stand indefinitely — nothing obliges a later increment to revisit it. If the owner does want it changed,
 that becomes a requirement in some future ask, but as a deliberate choice rather than an automatic
-consequence. See *Build forward*.
+consequence. See *Implement forward*.
 
 A rejection carries the owner's reason on the entry — the one status whose reasoning is required,
 because it is the input to the rework. Whoever proposed the decision proposes a replacement that
@@ -160,7 +160,7 @@ that `attestation` provides for coverage, on the other axis.
 ### Publish is the merge
 
 An increment is draft or published, and the boundary is main — draft is a location, not a field. A
-draft lives on its increment's branch, where the Plan loop, every build wave, and the deliverable
+draft lives on its increment's branch, where the Plan loop, every implementation wave, and the deliverable
 edits all happen, freely editable the whole time: proposed decisions may be removed outright, the
 number is provisional, and nothing downstream builds on it. Merging to main is the publish act, and
 the gate runs there:
@@ -175,16 +175,16 @@ Main therefore holds only published increments, dense and immutable, and the des
 to one. There is no draft-on-main state: the fold over main is always a fold over settled history,
 and what a tree-consumed deliverable shows on main is always what a published increment built.
 
-### Design and build keep their own schedules
+### Design and implementation keep their own schedules
 
-An increment need not run Build. Ask → Clarify → Ratify → publish is a complete increment — a
+An increment need not run Implement. Ask → Clarify → Ratify → publish is a complete increment — a
 preset's only shape, and any product's option. Its ratified requirements sit in the fold as claims
 with no coverage, which the collated view shows for what they are: ratified and unbuilt. Several
-design increments may queue before any build: a build targets the fold at a chosen increment —
+design increments may queue before any implementation: an implementation targets the fold at a chosen increment —
 ordinarily the newest published — durably records that target, and covers the claims it set out to
 cover, while claims from intervening increments simply remain ratified and unbuilt. Nothing obliges
-a build per increment, and a build never amends the design it targets: an escalated change lands as
-an ordinary design increment, ratified as any is, and the build retargets the fold that contains
+an implementation per increment, and an implementation never amends the design it targets: an escalated change lands as
+an ordinary design increment, ratified as any is, and the implementation retargets the fold that contains
 it.
 
 ---
@@ -195,7 +195,7 @@ it.
 
 A **requirement preset** is a product that defines requirements and builds nothing — `nodejs-library`,
 `minecraft-addon`, `published-to-npm`. It has increments like any other product, and its increments are
-**Plan-only**: Ask → Clarify → Ratify, with no Build.
+**Plan-only**: Ask → Clarify → Ratify, with no Implement.
 
 A product adopts presets at pinned increments, declaring what changed rather than the whole state:
 
@@ -253,7 +253,7 @@ notice**.
 The agent proposing a decision proposes whether it is pinned; the owner rules on that along with the rest
 of it.
 
-Pinning is what escalation reads. No status on its own obliges a builder to stop.
+Pinning is what escalation reads. No status on its own obliges an implementer to stop.
 
 ### A product maps to its packages
 
@@ -281,7 +281,7 @@ packages:
     kind: agent-skill
 ```
 
-The `path` is the workspace-relative directory, and it is also where a builder works — the pointer
+The `path` is the workspace-relative directory, and it is also where an implementer works — the pointer
 needs no other field because the workspace already names packages by location. Anything else a kind
 might call for — the npm name, an addon's manifest identity — is read from the package at that path
 rather than duplicated here, so the mapping cannot drift from what it maps. A per-kind field is added
@@ -291,8 +291,8 @@ Creating, splitting, or moving a package is a decision like any other — record
 once something outside the product depends on the boundary. The mapping reflects the state those
 decisions produced, and it is descriptive, never aspirational: `product.yaml` is current state, freely
 edited rather than increment-locked, because the record of a package change is the decision that made
-it. A package enters the mapping when the build that creates it does, as part of that build's output —
-so a builder never meets a declared package nothing asks for. Intent to ship one is a requirement or a
+it. A package enters the mapping when the implementation that creates it does, as part of its output —
+so an implementer never meets a declared package nothing asks for. Intent to ship one is a requirement or a
 future increment's ask, not a mapping entry.
 
 Consequences:
@@ -311,10 +311,10 @@ reference, a process description. Such a package takes `kind: document`, a `path
 document's permanent home, and often a non-default `repo`, since normative planning documents live in
 this repository rather than the workspace. This does not bend the no-spec rule: what the process
 discards is the design-phase document that *describes* a product; a document a product *ships* is
-implementation, produced and revised by build waves like any other deliverable.
+implementation, produced and revised by implementation waves like any other deliverable.
 
 Being authored does not move it — code is authored too. The document lives at its path from the
-start and builds edit it there in place; no copy sits in an increment, and nothing is copied at
+start and implementations edit it there in place; no copy sits in an increment, and nothing is copied at
 publish. Immutability attaches to an increment's foundations, never to the deliverable — the same as
 for code, where publishing an increment does not freeze the source files. A shipped state worth
 keeping is a released version, and what a later rewrite must preserve is what pinned decisions say.
@@ -324,7 +324,7 @@ versions, so work-in-progress on the default branch touches no consumer; a docum
 path is read straight from the tree, so merge is what makes it live. The guard is the one the
 process already has: the document's edits belong to an increment, merging them is publishing it, and
 the publish gate refuses that as long as the increment is not done — however long its branch lives,
-minutes for an unattended build or days for hand crafting. A document too hot for tree consumption
+minutes for an unattended implementation or days for hand crafting. A document too hot for tree consumption
 — one outside readers pin against — releases versions like any other package.
 
 ### Facets
@@ -351,7 +351,7 @@ the parent, re-add them in the new product.
 
 Facets do not draw component boundaries. Where packages meet — the CLI consumes the library's public
 surface, shared types live in the library — is decision content, pinned when a consumer could notice.
-A builder coheres across facets because the build is product-scoped: an increment is built against the
+An implementer coheres across facets because implementation is product-scoped: an increment is implemented against the
 whole foundation set, and the Stub wave's shared stubs are where packages converge on the types they
 share. A facet helps find those decisions; it does not replace them.
 
@@ -422,7 +422,7 @@ model:
 
 The entity name is the design's word for the thing, free to differ from the pool schema's name, and
 the description anchors what the entity does in the design. Model entries are part of the
-increment's requirements — ratified with it, binding on builders — and wherever prose references an
+increment's requirements — ratified with it, binding on implementers — and wherever prose references an
 entity, its bound schema is the authoritative shape.
 
 Foundation files need no model entry to be interpretable: each names its own schema's pool version
@@ -435,7 +435,7 @@ expressive can displace it where it meets the foreseeable needs. The pool's firs
 process's own sources — `requirements`, `decisions`, `product`, `increment`, `model` — and the
 design validator checks every structured file against the schema its `version` names.
 
-This settles the durable-interfaces question at the data layer: a shape something outside the build
+This settles the durable-interfaces question at the data layer: a shape something outside the implementation
 depends on is a named, versioned schema, bound through a ratified model. What remains open is the
 API layer only — functions and modules, not data.
 
@@ -463,8 +463,8 @@ record. Once the owner has ruled on it, it cannot be deleted — it is retired t
 later increment would use, so the owner can follow what became of something they accepted.
 
 **Recording is required; asking is not.** Pinning governs permission — an unpinned decision may be
-overturned by a build wave without escalating. It must still be recorded, because a decision silently out
-of force makes the record lie, and the record is what the owner reads. The build report already requires
+overturned by an implementation wave without escalating. It must still be recorded, because a decision silently out
+of force makes the record lie, and the record is what the owner reads. The implementation report already requires
 every overturned decision and why; **that list is where superseding entries come from**, rather than
 ending as prose in a report.
 
@@ -487,7 +487,7 @@ nothing further for this case.
 
 Required, with an honest escape — where a requirement genuinely cannot be checked mechanically, the field
 says so and why. It describes an **observable condition rather than a mechanism**, so it does not
-pre-decide the build; and a requirement whose author cannot write this sentence is usually a badly stated
+pre-decide the implementation; and a requirement whose author cannot write this sentence is usually a badly stated
 requirement, which is better discovered while writing it than a year later.
 
 **Decisions do not carry `satisfied_when`, and the asymmetry is principled.** A requirement states an
@@ -532,11 +532,11 @@ for one product at one increment:
 
 ### The fold at an increment is the bundle
 
-What a builder builds against is the fold at a published increment — the effective requirements,
+What an implementer implements against is the fold at a published increment — the effective requirements,
 decisions, and coverage expectations of `<product>@N`. Publication made every input immutable, so the
 view is derivable on demand and identical forever: nothing is archived, nothing is published, and the
-increment number is the version, with the declared delta as its changelog. A cross-product build pins
-what it consumed with `after:`; a same-product build, by its position in the sequence. Where an
+increment number is the version, with the declared delta as its changelog. A cross-product implementation pins
+what it consumed with `after:`; a same-product implementation, by its position in the sequence. Where an
 external consumer needs a frozen file, collation output releases like any package; the default is
 computed, not published.
 
@@ -559,7 +559,7 @@ The publish gate holds an increment until everything its `after:` names is publi
 gate rule carry the ordering; the ask, escalation, and ratification stay product-local on each side, so
 the coordination is visible without a cross-product ceremony around it.
 
-### Build forward
+### Implement forward
 
 Tensions that are merely unwelcome become **requirements for future increments**, not a relitigation of
 the current one. Amend in place only when something is **impossible, non-viable, or incorrect**.

@@ -8,12 +8,12 @@ what the artifacts are. Content here is destined for prompts rather than for a s
 
 ## Decide at the tier that has the information
 
-**Downward:** make the smallest decisions that complete the work. A build wave that settles a question the
+**Downward:** make the smallest decisions that complete the work. An implementation wave that settles a question the
 requirements left open should settle it narrowly and record it, not generalise from it.
 
-**Upward:** a plan-tier agent may not settle a detail a builder will meet with better information.
+**Upward:** a plan-tier agent may not settle a detail an implementer will meet with better information.
 Pre-deciding arbitrary names, shapes, and internal boundaries from the plan tier is how churn is
-manufactured — the builder discovers the constraint, contradicts the guess, and the decision is re-made.
+manufactured — the implementer discovers the constraint, contradicts the guess, and the decision is re-made.
 
 **Escalating:** escalate against a higher-tier decision when you have a **fact** that contradicts it, not
 a preference. A measurement, a compile error, a captured output. An opinion about a better framing is not
@@ -21,7 +21,7 @@ grounds.
 
 ## The synthesis draft
 
-Clarify's instrument is a written synthesis: connected prose arguing the increment from ask to build,
+Clarify's instrument is a written synthesis: connected prose arguing the increment from ask to implementation,
 drafted to be discarded. Write it to find what is missing — the paragraph that does not follow is the
 decision not yet made. Before discard, run the remainder check: every claim in the draft either cites
 a foundation or is extracted into a decision, a fact, or an open question. Discard is allowed only at

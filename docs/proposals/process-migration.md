@@ -52,7 +52,7 @@ understood.
 ## Spec bundles
 
 **Retired:** the planned publication of versioned design bundles — the full spec at a computed
-version, for builders to build against later. Planned, never implemented.
+version, for implementers to work from later. Planned, never implemented.
 
 **Replaced by:** the fold at a published increment. `<product>@N` is derivable on demand and
 identical forever, so the bundle needs no publishing; the increment number is the version, and the
@@ -60,8 +60,8 @@ declared delta is the changelog.
 
 ### Why
 
-The bundle existed to give builders a frozen, versioned design state on a schedule decoupled from
-building. Both properties now come free: a Plan-only increment publishes without a build, and a
+The bundle existed to give implementers a frozen, versioned design state on a schedule decoupled from
+implementing. Both properties now come free: a Plan-only increment publishes without an implementation, and a
 published increment cannot change. What survives of the design is its core move — the version
 computed from structured data, never from prose — which the increment sequence carries natively.
 
@@ -132,7 +132,7 @@ any product converts — and each converted product `adopts` them at its first i
 ### The spec, two cases
 
 **Where the spec described the product** — most designs — it is discarded, after an optional harvest
-pass: constraints meeting the recording bar (a consumer could observe it, or a rebuild must preserve
+pass: constraints meeting the recording bar (a consumer could observe it, or a reimplementation must preserve
 it) that exist only in spec prose become decisions of the converted increment. How deep to harvest is
 chosen per product; for designs already built, the spec's build-guiding job is done and the cheap
 default is a shallow pass.
@@ -140,7 +140,7 @@ default is a shallow pass.
 **Where the spec is the product** — `doc-structure`, `authoring` — the document is the deliverable,
 not a description of one. The product records a `document`-kind package whose `path` is the document's
 permanent home — in this repository, so `repo` departs from its default — and the file moves there as
-built output. Nothing is discarded; later increments revise it through build waves like any other
+built output. Nothing is discarded; later increments revise it through implementation waves like any other
 deliverable.
 
 ### Sweeps

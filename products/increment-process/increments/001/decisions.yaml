@@ -51,7 +51,7 @@ decisions:
   - id: d-9v6m2n7r
     title: the fold at an increment is the bundle
     statement: |
-      builders build against the fold at a published increment — product@N — derivable on
+      implementers implement against the fold at a published increment — product@N — derivable on
       demand and identical forever since every input is immutable; the increment number is the
       version, the declared delta the changelog, and no bundle artifact is published unless an
       external consumer needs a frozen file, in which case collation output releases like any
@@ -63,7 +63,7 @@ decisions:
     pinned:
       reason: data-format
       notes: |
-        product@N is the reference builds and after: resolve against
+        product@N is the reference implementations and after: resolve against
     facets:
       - schema
       - tooling
@@ -221,9 +221,9 @@ decisions:
     statement: |
       product.yaml lists packages as path and kind, with an optional repo in owner/repo form
       defaulting to twin-digital/opus. the mapping describes what exists — a package enters it
-      when the build that creates it does, and intent to ship one is a requirement or an ask —
+      when the implementation that creates it does, and intent to ship one is a requirement or an ask —
       so anything else a kind needs is read from the package at that path rather than
-      duplicated, a read that cannot dangle because every listed package has been built.
+      duplicated, a read that cannot dangle because every listed package has been implemented.
     status: proposed
     pinned:
       reason: data-format
@@ -265,7 +265,7 @@ decisions:
     statement: |
       the collated view at ask leads with the tolerated decisions in force, the delegated
       count, and the attested share; no threshold fires — the numbers meet the owner at the
-      moment of choosing what to build next.
+      moment of choosing what to implement next.
     status: proposed
     pinned: false
     facets:
@@ -275,8 +275,8 @@ decisions:
   - id: d-rx3s2hqo
     title: decisions record the observable
     statement: |
-      a decision is recorded when a consumer could observe its outcome or a rebuild must
-      preserve it; choices below that bar live in the code, and a rebuild is free to re-make
+      a decision is recorded when a consumer could observe its outcome or a reimplementation must
+      preserve it; choices below that bar live in the code, and a reimplementation is free to re-make
       them.
     status: proposed
     because:
