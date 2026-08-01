@@ -328,7 +328,10 @@ minutes for an unattended implementation or days for hand crafting. A document t
 — one outside readers pin against — releases versions like any other package.
 
 Document homes follow one convention: shipped document packages live under `docs/<domain>/`, and
-synthesis drafts live in their increment's `drafts/` folder, publishing with it. The path from one
+synthesis drafts live in their increment's `drafts/` folder, publishing with it. For document
+deliverables, the design phase may draft content that drives the implementation — anywhere from
+nothing at all to a mostly complete document; how far to go is per-product judgement, deliberately
+undefined here. The path from one
 to the other is an implementation: a new PR that creates or revises the document at its permanent
 home, drawing on the frozen drafts, checking their claims against the fold, proposing revisions as
 new design increments where the fold itself must move, and writing its implementations record —
@@ -410,8 +413,8 @@ declares `$id: /<namespace>/<entity>@<version>` beside `$schema` — `/design-pr
 names unique across the repository, versions dense integers per entity, the leading slash mandatory:
 root-relative identities resolve to themselves regardless of base, which is what lets a schema depend
 on schemas — a `$ref` is an identity, resolved from the pool as the registry. References resolve by
-identity and never by path, so the tree may be nested and reorganised freely; the filing convention —
-`schemas/<namespace>/<entity>.<version>.yaml` — aids navigation and means nothing to resolution. A version is immutable once an
+identity and never by path, so the tree may be nested and reorganised freely; any organisational or
+naming convention within a pool is an aid to navigation — non-normative and unenforced. A version is immutable once an
 increment binding it publishes, and the design validator refuses to edit or remove one that any
 published increment binds; it also fails when two pool files claim one identity, and fails an
 increment whose schema reference — a model binding or a source file's `version` field — resolves to

@@ -64,10 +64,14 @@ requirements:
   - id: r-bs6wsobr
     title: no maintained spec exists
     statement: |
-      no per-product spec document is maintained as a living artifact; a synthesis draft lives
-      in its increment's drafts/ folder, merges with the increment, and freezes at publish —
-      raw material for implementation, never normative. the fold is what binds; the shipped
-      reference is implementation at its permanent home.
+      the design phase produces no prose specification for an implementer to follow:
+      implementation works strictly from the fold — requirements, decisions, and bound
+      contracts. a synthesis draft lives in its increment's drafts/ folder, merges with the
+      increment, and freezes at publish — raw material, never normative. separately, for
+      package types whose deliverable is itself a document, the design phase may draft content
+      that drives the implementation — anywhere from nothing at all to a mostly complete
+      document, as this product's own increments do; the full range of such content is
+      deliberately not defined in this increment.
     satisfied_when:
       - increment directories admit only the defined source files plus a drafts/ folder, whose contents freeze at publish like every increment file
       - a spec maintained anywhere else is review's to catch, not the gate's
