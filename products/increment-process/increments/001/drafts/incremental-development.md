@@ -177,7 +177,7 @@ and what a tree-consumed deliverable shows on main is always what a published in
 
 An increment need not run Implement. Capture → Clarify → Ratify → publish is a complete increment — a
 preset's only shape, and any product's option. Its ratified requirements sit in the fold as claims
-with no coverage, which the collated view shows for what they are: ratified and unbuilt. Several
+with no coverage, which the projected view shows for what they are: ratified and unbuilt. Several
 design increments may queue before any implementation: an implementation targets the fold at a chosen increment —
 ordinarily the newest published — durably records that target, and covers the claims it set out to
 cover, while claims from intervening increments simply remain ratified and unbuilt. Nothing obliges
@@ -351,7 +351,7 @@ description, so the name does not have to carry the meaning alone:
   facets: [schema, design-validator]
 ```
 
-A facet is a reading aid: collation groups and filters by it, and no rule reads it. Nothing fences by
+A facet is a reading aid: the projection groups and filters by it, and no rule reads it. Nothing fences by
 facet, nothing escalates by facet, coverage and pinning ignore it — which is what keeps it cheap to
 assign and cheap to be wrong about.
 
@@ -380,7 +380,7 @@ each other, so a one-character misread lands on a valid, plausible sibling. Noth
 of an id; creation time lives in increments and git history.
 
 The human handle is **`title`** — a short label, free to churn without breaking anything, and what
-collation displays. The generator is a CLI command used by humans and agents alike; the design validator
+the projection displays. The generator is a CLI command used by humans and agents alike; the design validator
 enforces format and uniqueness, so a collision is a regenerate at creation rather than a latent bug.
 
 Increments stay plain numbers — readable, and the merge collision on the number is the concurrency
@@ -485,7 +485,7 @@ ending as prose in a report.
 
 **Concurrent increments collide on the number, and that is the whole provision.** Two in flight both
 claiming `003` conflict on merge; the loser renames and recomputes the fold against the base that moved,
-and the collation tooling and design validator report whatever the recomputed fold breaks. The process adds
+and the projection tooling and design validator report whatever the recomputed fold breaks. The process adds
 nothing further for this case.
 
 ### Requirements state how they would be known to be met
@@ -518,7 +518,7 @@ keeping past the increment that produced them, because the next increment would 
 and because a decision built on a finding should be traceable to it.
 
 - **`because:` on a decision** — what it rests on: the requirements it follows from, the facts that
-  drove it, and the decisions it builds on. A citation gives collation a dependency order instead of file order, and
+  drove it, and the decisions it builds on. A citation gives the projection a dependency order instead of file order, and
   superseding or retiring an entry surfaces, through these citations, what stood on it. Optional: a fact
   is deliberately non-trivial to record — a citation of the upstream source for a documented one,
   captured output and a re-runnable record for a self-tested one — and requiring a citation per decision
@@ -528,12 +528,12 @@ and because a decision built on a finding should be traceable to it.
   fiat and need none. It exists so that a fact contradicting a requirement can be found rather than
   noticed.
 
-### Collation replaces a written spec document
+### Projection replaces a written spec document
 
 If decisions are the owner's window, they have to read *as a set*. Thirty entries in file order do not add
 up to a picture the way prose does, and that assembly is most of what a spec was doing.
 
-That job does not disappear when the spec does; it moves to tooling. A collated view of a product shows,
+That job does not disappear when the spec does; it moves to tooling. A projected view of a product shows,
 for one product at one increment:
 
 - the effective requirement set, product-local and adopted, with each adoption's preset and version
@@ -621,7 +621,7 @@ structured data and never reads the narrative.
 
 **Tooling**
 
-14. **Collation** — the folded, computed view of a product, filterable by facet and ordered by
+14. **The projection** — the folded, computed view of a product, filterable by facet and ordered by
     citation topology.
 15. **The merge gate** — publish is the merge: no `proposed` decision outstanding, the number next
     in sequence.

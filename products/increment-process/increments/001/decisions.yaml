@@ -1,4 +1,4 @@
-version: 1
+version: "1"
 decisions:
   - id: d-g5cs9o4i
     title: effective state is a fold
@@ -31,7 +31,7 @@ decisions:
       reason: data-format
       notes: the fold and the design validator read main as settled history
     facets:
-      - schema
+      - process-doc
       - design-validator
 
   - id: d-3wjypyx6
@@ -70,7 +70,9 @@ decisions:
     pinned:
       reason: data-format
       notes: the first field every reader consults
-    facets: schema
+    facets:
+      - schema
+      - design-validator
 
   - id: d-j50yturh
     title: the fold at an increment is the bundle
@@ -85,7 +87,7 @@ decisions:
     pinned:
       reason: data-format
     facets:
-      - schema
+      - process-doc
       - tooling
 
   - id: d-k48jh86c
@@ -120,7 +122,9 @@ decisions:
     pinned:
       reason: data-format
       notes: tooling resolves ids against these paths, and every product writes to them
-    facets: schema
+    facets:
+      - schema
+      - design-validator
 
   - id: d-ke7709uf
     title: the model is a per-increment source
@@ -286,7 +290,6 @@ decisions:
     status: proposed
     because:
       - r-caao9k3z
-    pinned: false
     facets:
       - process-doc
       - prompts
@@ -300,7 +303,6 @@ decisions:
     status: accepted
     because:
       - r-ei82daip
-    pinned: false
     facets:
       - prompts
       - process-doc

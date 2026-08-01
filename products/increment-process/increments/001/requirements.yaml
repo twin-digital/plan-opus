@@ -1,4 +1,4 @@
-version: 1
+version: "1"
 requirements:
   - id: r-gq90gngs
     title: foundations have defined shapes and meanings
@@ -28,7 +28,7 @@ requirements:
       tooling computes the effective state of a product at any increment by folding its
       declarations, and the computed view is what the owner reads.
     satisfied_when:
-      - collation renders the effective requirement, decision, and model sets of product@N on demand
+      - the projection of product@N — its effective requirement, decision, and model sets — renders on demand
     facets: tooling
 
   - id: r-zcvxh2ty
@@ -57,7 +57,7 @@ requirements:
     statement: |
       the owner can comprehend what is to be built from the decision set alone, read in full.
     satisfied_when: |
-      not mechanically checkable — whether the collated view reads as a picture of the product
+      not mechanically checkable — whether the projected view reads as a picture of the product
       is a judgement, verified by the owner reading it each increment.
     facets: tooling
 
@@ -156,6 +156,7 @@ requirements:
     facets:
       - process-doc
       - design-validator
+      - tooling
 
   - id: r-bwtud1e5
     title: products declare their own requirements
