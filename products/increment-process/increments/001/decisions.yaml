@@ -215,9 +215,10 @@
   title: products map to packages by path and kind
   statement: |
     product.yaml lists packages as path and kind, with an optional repo in owner/repo form
-    defaulting to twin-digital/opus; anything else a kind needs is read from the package at
-    that path rather than duplicated. the mapping describes what exists — a package enters it
-    when the build that creates it does, and intent to ship one is a requirement or an ask.
+    defaulting to twin-digital/opus. the mapping describes what exists — a package enters it
+    when the build that creates it does, and intent to ship one is a requirement or an ask —
+    so anything else a kind needs is read from the package at that path rather than
+    duplicated, a read that cannot dangle because every listed package has been built.
   status: proposed
   pinned:
     reason: data-format
