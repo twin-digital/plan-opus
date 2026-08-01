@@ -20,7 +20,7 @@ decisions:
     title: increment sources live under products/
     statement: |
       increment artifacts live at products/<product>/increments/<NNN>/ — requirements.yaml,
-      decisions.yaml, schemas/, the sources later process increments define, and
+      decisions.yaml, model.yaml, the sources later process increments define, and
       increment.yaml only when it has something to declare — with the product declared by the
       presence of products/<product>/product.yaml, whose directory name is the product id.
     status: proposed
@@ -69,25 +69,56 @@ decisions:
       - tooling
 
   - id: d-2knvbahc
-    title: files name their governing version
+    title: files name their own schema version
     statement: |
-      every structured file this process defines carries version — the increment-process
-      increment whose definitions govern its interpretation — so a published file stays
-      readable forever in the dialect it was written in; foundation files are keyed mappings,
-      the version beside a key naming the entry kind.
+      every structured file this process defines carries version — the pool version of the
+      file's own schema, so a requirements source with version 2 is interpreted by
+      schemas/requirements/2.yaml. interpretation is one lookup, no fold, and a published file
+      stays readable forever in the dialect it was written in; foundation files are keyed
+      mappings, the version beside a key naming the entry kind.
     status: proposed
     because:
       - r-caao9k3z
+      - r-2fytqadu
     pinned:
       reason: data-format
       notes: the first field every reader consults
+    facets: schema
+
+  - id: d-gkr3l8tx
+    title: the pool is a name and a version
+    statement: |
+      pool schemas live at schemas/<name>/<version>.yaml — the name unique across the
+      repository, versions dense integers, the filename carrying the version so the file
+      itself holds no version key; $schema names the dialect.
+    status: proposed
+    because:
+      - r-2fytqadu
+    pinned:
+      reason: data-format
+      notes: every schema reference in every product resolves against this layout
+    facets: schema
+
+  - id: d-ke7709uf
+    title: the model is a per-increment source
+    statement: |
+      model.yaml lists entities — name, schema as <pool-name>@<version>, an optional
+      description — and folds by name like the other sources, retiring an entity with a name
+      and a reason; an entity's name is the design's word for it, free to differ from the pool
+      schema's.
+    status: proposed
+    because:
+      - r-bua9wl1s
+    pinned:
+      reason: data-format
+      notes: part of the increment source shape every product writes
     facets: schema
 
   - id: d-y0vuo11f
     title: schemas are JSON Schema in YAML
     statement: |
       schemas are JSON Schema, draft 2020-12, authored as YAML; each file carries $schema for
-      its dialect and version like every structured file. a more concise or expressive
+      its dialect, and its version is its filename in the pool. a more concise or expressive
       formalism meeting the foreseeable needs may displace it.
     status: proposed
     because:

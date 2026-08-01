@@ -372,11 +372,12 @@ enforces format and uniqueness, so a collision is a regenerate at creation rathe
 Increments stay plain numbers — readable, and the merge collision on the number is the concurrency
 detection. Products and presets are named by their directory, and adoption uses that name.
 
-### Every structured file names its governing version
+### Every structured file names its own schema version
 
 Every structured artifact this process defines — `product.yaml`, `increment.yaml`, the increment
-sources, and any source a later process increment adds — carries a `version`: the `increment-process`
-increment whose definitions govern how the file is interpreted.
+sources, and any source a later process increment adds — carries a `version`: the pool version of
+the file's own schema. A requirements source with `version: 2` is interpreted by
+`schemas/requirements/2.yaml` — one lookup, no fold.
 
 ```yaml
 version: 1
@@ -386,31 +387,47 @@ requirements:
 ```
 
 The field is what makes schema evolution compatible with immutability. A published increment's files
-are never rewritten, so they stay forever in the dialect they were written in; the version is what
-lets tooling read history without guessing, and what makes a format change an ordinary process
-increment rather than a repository-wide migration. Carrying it means the foundation files are keyed
-mappings — the version beside a key naming the entry kind — rather than bare sequences.
+are never rewritten, so they stay forever in the dialect they were written in; the version names
+that dialect directly, and a format change is an ordinary new pool version that later files opt
+into rather than a repository-wide migration. Carrying the field means the foundation files are
+keyed mappings — the version beside a key naming the entry kind — rather than bare sequences.
 
-### Schemas name the shapes
+### Schemas pool by version, and the model binds them
 
-A recurring need is to fix a data shape formally. An increment defines schemas as files under
-`schemas/` in its own directory: the filename, minus extension, is the schema's name, and wherever
-prose — a requirement, a decision, a shipped document — references that name, the schema is the
-authoritative definition of the shape. No binding entry exists; the filename is the binding.
+A recurring need is to fix a data shape formally. Schemas live in one repo-wide pool —
+`schemas/<name>/<version>.yaml`, the name unique across the repository, versions dense integers,
+the filename carrying the version. A version file is immutable once an increment binding it
+publishes; a new version is a new file, proposed by the increment that introduces it and ratified
+with it. The pool follows the facts precedent for where shared artifacts live, and binding follows
+the preset precedent for how they take force: any product binds any schema at a pinned version, and
+drift is legal — no product is rebound by a new version appearing.
 
-Schemas are part of the increment's requirements: ratified with them, binding on builders, and
-changed the way requirements change — a later increment supersedes a schema by defining the same
-name, and the fold resolves each name to the newest definition in force at an increment.
+An increment binds schemas through its **model**, a per-increment source folding by entity name:
 
-The formalism is JSON Schema, draft 2020-12, authored as YAML, carrying `$schema` for its dialect
-and `version` like every structured file. It is the default for being widely known and mechanically
-checkable; something more concise or expressive can displace it where it meets the foreseeable
-needs. The process's own sources are the first instances: increment 001's `schemas/` directory
-defines `requirements`, `decisions`, `product`, and `increment`, and the design validator checks
-every structured file against the schema of its name in force.
+```yaml
+version: 1
+model:
+  - name: pack-manifest
+    schema: mc-pack-manifest@2
+    description: the manifest a behaviour pack ships, as the build writes it
+```
+
+The entity name is the design's word for the thing, free to differ from the pool schema's name, and
+the description anchors what the entity does in the design. Model entries are part of the
+increment's requirements — ratified with it, binding on builders — and wherever prose references an
+entity, its bound schema is the authoritative shape.
+
+Foundation files need no model entry to be interpretable: each names its own schema's pool version
+in its `version` field (above). The model is for the shapes a design defines and speaks about.
+
+The formalism is JSON Schema, draft 2020-12, authored as YAML, carrying `$schema` for its dialect.
+It is the default for being widely known and mechanically checkable; something more concise or
+expressive can displace it where it meets the foreseeable needs. The pool's first entries are the
+process's own sources — `requirements`, `decisions`, `product`, `increment`, `model` — and the
+design validator checks every structured file against the schema its `version` names.
 
 This settles the durable-interfaces question at the data layer: a shape something outside the build
-depends on is a named schema, reviewed and folded like any requirement. What remains open is the
+depends on is a named, versioned schema, bound through a ratified model. What remains open is the
 API layer only — functions and modules, not data.
 
 ### Lifecycle — declare changes, fold for state
@@ -576,8 +593,8 @@ structured data and never reads the narrative.
 
 **Schema**
 
-6. **`version` on every structured file** — the `increment-process` increment governing its
-   interpretation; foundation files become keyed mappings to carry it.
+6. **`version` on every structured file** — the pool version of the file's own schema; foundation
+   files become keyed mappings to carry it.
 7. **Typed `pinned` on decisions** — `false`, or a named reason with optional notes — governing what
    escalates.
 8. **`satisfied_when` on requirements**, required.
@@ -592,8 +609,9 @@ structured data and never reads the narrative.
 12. **Opaque ids** — `{prefix}-{8 base36 characters}`, `title` as the label, the generator a CLI
     command, format and uniqueness checked.
 13. **`after:` on increments** — cross-product ordering, read by the publish gate.
-14. **Named schemas** — `schemas/` in the increment, filename as the name, folded by name, every
-    structured file validated against the schema of its name in force.
+14. **The schema pool and the model** — `schemas/<name>/<version>.yaml`, model entries binding an
+    entity to a schema version, every structured file validated against the schema its `version`
+    names.
 
 **Tooling**
 

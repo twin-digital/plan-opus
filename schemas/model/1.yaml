@@ -1,0 +1,43 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+title: model
+description: a per-increment model source, binding entity names to pool schemas
+type: object
+additionalProperties: false
+required: [version]
+anyOf:
+  - required: [model]
+  - required: [retires]
+properties:
+  version:
+    type: integer
+    minimum: 1
+  model:
+    type: array
+    minItems: 1
+    items:
+      type: object
+      additionalProperties: false
+      required: [name, schema]
+      properties:
+        name:
+          type: string
+          pattern: "^[a-z0-9][a-z0-9-]*$"
+        schema:
+          type: string
+          pattern: "^[a-z0-9][a-z0-9-]*@[0-9]+$"
+          description: a pool reference, schemas/<name>/<version>.yaml
+        description:
+          type: string
+  retires:
+    type: array
+    minItems: 1
+    items:
+      type: object
+      additionalProperties: false
+      required: [name, reason]
+      properties:
+        name:
+          type: string
+          pattern: "^[a-z0-9][a-z0-9-]*$"
+        reason:
+          type: string

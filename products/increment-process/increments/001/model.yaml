@@ -1,0 +1,17 @@
+version: 1
+model:
+  - name: requirements-source
+    schema: requirements@1
+    description: the per-increment requirements file
+  - name: decisions-source
+    schema: decisions@1
+    description: the per-increment decisions file
+  - name: product-declaration
+    schema: product@1
+    description: products/<id>/product.yaml, whose presence declares the product
+  - name: increment-declaration
+    schema: increment@1
+    description: increment.yaml, present only when the increment declares scope or ordering
+  - name: model-source
+    schema: model@1
+    description: the per-increment model file, binding entity names to pool schemas

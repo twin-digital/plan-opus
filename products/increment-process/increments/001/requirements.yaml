@@ -64,27 +64,28 @@ requirements:
       - tooling
 
   - id: r-2fytqadu
-    title: schemas are named by their files
+    title: schemas are shared and versioned
     statement: |
-      an increment defines schemas as files under schemas/ in its directory; the filename minus
-      extension is the schema's name, and where prose references that name, the schema is the
-      authoritative definition of the shape. no binding entry exists — the filename is the
-      binding.
+      schemas live in one repo-wide pool, versioned; a version is immutable once an increment
+      binding it publishes; any product may bind any schema at a pinned version, and drift is
+      legal — no product is rebound by a new version appearing.
     satisfied_when: |
-      every schemas/ file parses in the declared formalism, and its name is unique among the
-      schemas in force at the increment.
+      every pool schema parses in the declared formalism, names and versions are unique, and
+      the design validator rejects any edit to a version an increment on main binds.
     facets:
       - schema
       - design-validator
 
   - id: r-bua9wl1s
-    title: schemas bind as requirements
+    title: the model binds schemas as requirements
     statement: |
-      schemas are part of the increment's requirements: ratified with them, binding on
-      builders, and superseded by a later increment defining the same name.
+      an increment binds schemas through its model — entity name, schema reference, and a
+      description anchoring what the entity is in the design. model entries are part of the
+      increment's requirements: ratified with it, binding on builders, folded by entity name;
+      where prose references an entity, its bound schema is the authoritative shape.
     satisfied_when: |
-      structured artifacts validate against the schema of their name in force at their
-      increment, and the fold resolves each schema name to its newest definition.
+      the design validator resolves every model reference to a pool version, and entity names
+      are unique in the model in force at the increment.
     facets:
       - schema
       - design-validator
