@@ -97,9 +97,10 @@ Build:
 
 ### Ask
 
-The owner picks a set of requirements to build as a new increment. Requirements authored in the
-increment are part of its ask by that fact; the increment's `ask:` field lists only pre-existing
-requirements carried forward into the build, and is absent otherwise.
+Ask is the step where the owner and their agents create the increment and populate its initial
+requirements — authored new, or drawn from requirements already ratified. The increment's `ask:`
+field lists only the pre-existing ones; requirements authored in the increment are in its scope by
+existing, so the field is absent otherwise.
 
 Ask begins from the collated view, and the view leads with the deferred: the tolerated decisions in
 force, the delegated count, the share of claims sitting at `attested`. No threshold fires anything —
@@ -179,8 +180,8 @@ and what a tree-consumed deliverable shows on main is always what a published in
 An increment need not run Build. Ask → Clarify → Ratify → publish is a complete increment — a
 preset's only shape, and any product's option. Its ratified requirements sit in the fold as claims
 with no coverage, which the collated view shows for what they are: ratified and unbuilt. A later
-increment builds them, its `ask:` carrying them forward and its waves producing the build decisions
-and coverage, on whatever schedule building deserves — or never. Whether one increment carries both
+increment takes them as its scope — its `ask:` names them — and its build produces the build
+decisions and evidence, on whatever schedule building deserves — or never. Whether one increment carries both
 phases or two increments split them is scheduling, chosen per ask; nothing in the artifacts differs
 except which increment the build entries land in.
 
@@ -264,14 +265,18 @@ GitHub `owner/repo` form, `twin-digital/opus` when unstated:
 # products/increment-process/product.yaml
 version: 1
 kind: process
-facets: [schema, checker, prompts, docs]
-  packages:
-    - path: nodejs/planning-lib
-      kind: npm-library
-    - path: nodejs/planning-cli
-      kind: npm-cli
-    - path: .claude/skills/plan
-      kind: agent-skill
+facets:
+  - id: schema
+    description: the shapes of the structured files products write
+  - id: validation
+    description: the rules that check artifacts and gate merges
+packages:
+  - path: nodejs/planning-lib
+    kind: npm-library
+  - path: nodejs/planning-cli
+    kind: npm-cli
+  - path: .claude/skills/plan
+    kind: agent-skill
 ```
 
 The `path` is the workspace-relative directory, and it is also where a builder works — the pointer
@@ -324,11 +329,12 @@ minutes for an unattended build or days for hand crafting. A document too hot fo
 
 A product with several kinds of deliverable needs a way to find, filter, and track claims without
 splitting the product. A **facet** is an optional label on a requirement or decision — one or a
-list — drawn from the vocabulary the product declares in its `product.yaml`:
+list — drawn from the vocabulary the product declares in its `product.yaml`, each an id with a
+description, so the name does not have to carry the meaning alone:
 
 ```yaml
 - id: d-9g62l9m0
-  facets: [schema, checker]
+  facets: [schema, validation]
 ```
 
 A facet is a reading aid: collation groups and filters by it, and no rule reads it. Nothing fences by
@@ -448,8 +454,8 @@ behaves, what a runner does with a given config, what a measurement showed. Thos
 keeping past the increment that produced them, because the next increment would otherwise re-derive them,
 and because a decision built on a finding should be traceable to it.
 
-- **`because:` on a decision** — what it rests on: the facts that drove it, and the decisions it builds
-  on. A decision citing another gives collation a dependency order instead of file order, and
+- **`because:` on a decision** — what it rests on: the requirements it follows from, the facts that
+  drove it, and the decisions it builds on. A citation gives collation a dependency order instead of file order, and
   superseding or retiring an entry surfaces, through these citations, what stood on it. Optional: a fact
   is deliberately non-trivial to record — a citation of the upstream source for a documented one,
   captured output and a re-runnable record for a self-tested one — and requiring a citation per decision
@@ -553,8 +559,8 @@ structured data and never reads the narrative.
 7. **Typed `pinned` on decisions** — `false`, or a named reason with optional notes — governing what
    escalates.
 8. **`satisfied_when` on requirements**, required.
-9. **`because:` on decisions** — citing facts and decisions alike — and **`informed_by:` on
-   requirements**.
+9. **`because:` on decisions** — citing requirements, facts, and decisions alike — and
+   **`informed_by:` on requirements**.
 10. **A published increment is immutable**, and lifecycle points *forward* — a new entry names what it
     supersedes or retires, rather than an old entry being edited to close it. Requirements and decisions
     are scoped to a product across all its increments, so finding what supersedes an entry never means
@@ -620,7 +626,7 @@ on it — so the file states neither. It exists only when it has something to de
 ```yaml
 # products/minecraft-test-lib/increments/004/increment.yaml
 ask:
-  - r-h97o555y   # carried forward — this increment's own requirements are implied
+  - r-h97o555y   # pre-existing; requirements authored in this increment are in scope by existing
 after:
   - mc-dev-kit/012           # publishes only after these are published
 ```

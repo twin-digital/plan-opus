@@ -8,29 +8,30 @@ requirements:
     satisfied_when: |
       the checker rejects any edit to a file of a published increment, and later changes appear
       in the fold as new entries superseding or retiring earlier ones.
-    facets: checker
+    facets: validation
 
   - id: r-ei82daip
     title: decisions are comprehensible as a set
     statement: |
-      the owner can comprehend what was built from the decision set alone, read in full.
+      the owner can comprehend what is to be built from the decision set alone, read in full.
     satisfied_when: |
       not mechanically checkable — whether the collated view reads as a picture of the product
       is a judgement, verified by the owner reading it each increment.
-    facets: collation
+    facets: tooling
 
   - id: r-bs6wsobr
     title: no spec survives an increment
     statement: |
-      no per-product spec document is maintained or merged; a synthesis draft is Clarify
-      technique, confined to the increment's branch, and discarded once nothing in it would be
-      lost — every claim extracted into a foundation or citing one.
+      no unstructured per-product spec document is maintained or merged; a synthesis draft may
+      be created as a technique during planning, but any such document is confined to the
+      increment's branch, and discarded before a design increment is merged
     satisfied_when: |
-      main holds no spec artifact, and the merge gate fails an increment still carrying its
-      draft.
+      increment directories admit only the defined source files, and a synthesis draft carries
+      a conventional name the merge gate rejects wherever it appears; a spec disguised as an
+      ordinary document is review's to catch, not the gate's.
     facets:
       - process-doc
-      - collation
+      - validation
 
   - id: r-yzkxa2hj
     title: the process ships its reference
@@ -38,16 +39,17 @@ requirements:
       the process's normative reference — what agents and the owner read to run it — is a
       shipped deliverable: document-kind packages at permanent homes in this repository.
     satisfied_when: |
-      product.yaml lists document packages whose paths exist and hold the current reference.
+      once the reference is built, product.yaml lists document packages whose paths hold its
+      current text; until then the requirement is visibly unbuilt — in force, with no coverage.
     facets: process-doc
 
   - id: r-0axqvtcc
-    title: nothing publishes over a proposed decision
+    title: pending decisions may not be published
     statement: |
       no increment merges or publishes while one of its decisions is still proposed.
     satisfied_when: |
       the merge gate fails an increment carrying a decision whose status is proposed.
-    facets: checker
+    facets: validation
 
   - id: r-gc7a3m56
     title: ruled-on is distinguishable from passed-over
@@ -55,10 +57,11 @@ requirements:
       what the owner engaged and judged is distinguishable, product-wide, from what they
       abstained on.
     satisfied_when: |
-      tolerated and delegated are distinct statuses, and collation reports the delegated count.
+      collation output provides a documented mechanism for telling whether a decision was
+      reviewed or the owner abstained, and reports the abstention count.
     facets:
       - schema
-      - collation
+      - tooling
 
   - id: r-sk47gw08
     title: design and build keep their own schedules
@@ -66,18 +69,18 @@ requirements:
       finishing a plan and building it are separately schedulable: a ratified plan publishes
       without a build, and a build may come later — or never.
     satisfied_when: |
-      a plan-only increment passes the merge gate, and a later increment's ask carries its
-      requirements into a build.
+      a plan-only increment passes the merge gate, and a later increment may take previously
+      ratified requirements as its scope and build them.
     facets:
       - process-doc
-      - checker
+      - validation
 
   - id: r-bwtud1e5
-    title: nothing binds a product until it says so
+    title: products declare their own requirements
     statement: |
       no requirement outside a product's own increments binds it; adoption at a pinned
       increment is the only way an external requirement takes force.
     satisfied_when: |
       the checker resolves a product's obligations only from its own increments' entries and
       adoptions, and no global or area scope exists to bind implicitly.
-    facets: checker
+    facets: validation

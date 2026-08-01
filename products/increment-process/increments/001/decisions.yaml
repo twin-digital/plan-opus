@@ -7,12 +7,14 @@ decisions:
       computed by folding across the product's increments, and the computed view is what the
       owner reads.
     status: proposed
+    because:
+      - r-caao9k3z
     pinned:
       reason: data-format
       notes: every product's foundations are written and read through the fold
     facets:
       - schema
-      - collation
+      - tooling
 
   - id: d-kn05wb30
     title: increment sources live under products/
@@ -22,6 +24,8 @@ decisions:
       when it has something to declare — with the product declared by the presence of
       products/<product>/product.yaml, whose directory name is the product id.
     status: proposed
+    because:
+      - d-9dx9ryhk
     pinned:
       reason: data-format
       notes: tooling resolves ids against these paths, and every product writes to them
@@ -34,12 +38,15 @@ decisions:
       main holds only published increments, dense and immutable, and draft-versus-published is
       location, not a stored field.
     status: proposed
+    because:
+      - r-caao9k3z
+      - r-0axqvtcc
     pinned:
       reason: data-format
       notes: the fold and the checker read main as settled history
     facets:
       - schema
-      - checker
+      - validation
 
   - id: d-9v6m2n7r
     title: the fold at an increment is the bundle
@@ -50,12 +57,15 @@ decisions:
       external consumer needs a frozen file, in which case collation output releases like any
       package.
     status: proposed
+    because:
+      - r-sk47gw08
+      - d-j4scg1vy
     pinned:
       reason: data-format
       notes: product@N is the reference builds and after: resolve against
     facets:
       - schema
-      - collation
+      - tooling
 
   - id: d-2knvbahc
     title: files name their governing version
@@ -65,6 +75,8 @@ decisions:
       readable forever in the dialect it was written in; foundation files are keyed mappings,
       the version beside a key naming the entry kind.
     status: proposed
+    because:
+      - r-caao9k3z
     pinned:
       reason: data-format
       notes: the first field every reader consults
@@ -78,6 +90,8 @@ decisions:
       reserved for the impossible, non-viable, or incorrect, carries the owner's reason on the
       entry, and is closed by a replacement proposed by whoever proposed the rejected one.
     status: proposed
+    because:
+      - r-gc7a3m56
     pinned:
       reason: data-format
       notes: the status enum every decision entry carries
@@ -106,7 +120,7 @@ decisions:
       notes: every citation in every product resolves against this format
     facets:
       - schema
-      - checker
+      - validation
 
   - id: d-1sj9kxtj
     title: requirement presets are plan-only products
@@ -115,6 +129,8 @@ decisions:
       pinned increments via adopts and drops; adopting and dropping are owner fiat, and the
       wider requirement scopes are retired.
     status: proposed
+    because:
+      - r-bwtud1e5
     pinned:
       reason: data-format
       notes: adopts and drops are part of every increment's shape
@@ -129,6 +145,8 @@ decisions:
       in the increment source whose file scopes its kind; supersession is carried by the
       successor's supersedes or amends and needs no entry.
     status: proposed
+    because:
+      - d-9dx9ryhk
     pinned:
       reason: data-format
       notes: part of the increment source shape every product writes
@@ -148,7 +166,7 @@ decisions:
         change their meaning repo-wide
     facets:
       - schema
-      - collation
+      - tooling
 
   - id: d-8itv1czm
     title: products map to packages by path and kind
@@ -165,18 +183,20 @@ decisions:
     facets: schema
 
   - id: d-eaw3u72o
-    title: because cites facts and decisions
+    title: because cites requirements, facts, and decisions
     statement: |
-      because: on a decision cites the facts and decisions it rests on; collation orders the
-      decision set by that topology, and superseding or retiring an entry surfaces its
-      dependents.
+      because: on a decision cites the requirements it follows from, the facts that drove it,
+      and the decisions it builds on; collation orders the decision set by that topology, and
+      superseding or retiring an entry surfaces its dependents.
     status: proposed
+    because:
+      - r-ei82daip
     pinned:
       reason: data-format
       notes: the citation field every product's decisions carry
     facets:
       - schema
-      - collation
+      - tooling
 
   - id: d-keftop3f
     title: cross-product work orders by after
@@ -190,7 +210,7 @@ decisions:
       notes: part of the increment shape, and a rule the publish gate reads
     facets:
       - schema
-      - checker
+      - validation
 
   - id: d-pm0a8api
     title: ask re-offers the deferred
@@ -201,7 +221,7 @@ decisions:
     status: proposed
     pinned: false
     facets:
-      - collation
+      - tooling
       - prompts
 
   - id: d-rx3s2hqo
@@ -211,6 +231,8 @@ decisions:
       preserve it; choices below that bar live in the code, and a rebuild is free to re-make
       them.
     status: proposed
+    because:
+      - r-ei82daip
     pinned: false
     facets:
       - prompts
