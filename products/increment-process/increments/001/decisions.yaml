@@ -1,21 +1,5 @@
 version: 1
 decisions:
-  - id: d-9dx9ryhk
-    title: effective state is a fold
-    statement: |
-      an increment declares what changed; the effective requirement and decision sets are
-      computed by folding across the product's increments, and the computed view is what the
-      owner reads.
-    status: accepted
-    because:
-      - r-caao9k3z
-    pinned:
-      reason: data-format
-      notes: every product's foundations are written and read through the fold
-    facets:
-      - schema
-      - tooling
-
   - id: d-kn05wb30
     title: increment sources live under products/
     statement: |
@@ -26,61 +10,23 @@ decisions:
       product id.
     status: accepted
     because:
-      - d-9dx9ryhk
+      - r-caao9k3z
     pinned:
       reason: data-format
       notes: tooling resolves ids against these paths, and every product writes to them
     facets: schema
 
-  - id: d-j4scg1vy
-    title: publish is the merge
+  - id: d-9jgivg2n
+    title: ask names carried-forward scope
     statement: |
-      an increment is draft while off main and published by merging; the gate runs at merge,
-      main holds only published increments, dense and immutable, and draft-versus-published is
-      location, not a stored field.
-    status: accepted
-    because:
-      - r-caao9k3z
-      - r-0axqvtcc
-    pinned:
-      reason: data-format
-      notes: the fold and the design validator read main as settled history
-    facets:
-      - schema
-      - design-validator
-
-  - id: d-9v6m2n7r
-    title: the fold at an increment is the bundle
-    statement: |
-      implementers implement against the fold at a published increment — product@N — derivable
-      on demand and identical forever since every input is immutable; the increment number is
-      the version, and the declared delta the changelog.
-    status: accepted
+      an increment's ask lists pre-existing requirements taken as its scope; requirements
+      authored in the increment are in scope by existing, so the field is absent otherwise.
+    status: proposed
     because:
       - r-sk47gw08
-      - d-j4scg1vy
     pinned:
       reason: data-format
-    facets:
-      - schema
-      - tooling
-
-  - id: d-2knvbahc
-    title: files name their own schema version
-    statement: |
-      every structured file this process defines carries version — the pool version of the
-      file's own schema, so a requirements source with version 2 is interpreted by the pool
-      schema design-process/requirements@2. interpretation is one lookup, no fold, and a
-      published file stays readable forever in the dialect it was written in. a foundation
-      file is a mapping, not a bare list of entries: version sits beside one top-level key —
-      requirements:, decisions:, model: — that names what the file holds.
-    status: accepted
-    because:
-      - r-caao9k3z
-      - r-2fytqadu
-    pinned:
-      reason: data-format
-      notes: the first field every reader consults
+      notes: part of the increment shape every product writes
     facets: schema
 
   - id: d-ke7709uf
@@ -110,6 +56,10 @@ decisions:
       - rejected: owner has determined the decision non-viable; carries the owner's reason on
         the entry, and is closed by a replacement proposed by whoever proposed the rejected
         one
+
+      within the increment that created it, a decision still proposed may be removed outright
+      with no record; once ruled on, an entry persists, and is closed only by supersession or
+      retirement.
     status: proposed
     because:
       - r-gc7a3m56
@@ -162,21 +112,21 @@ decisions:
       - schema
       - process-doc
 
-  - id: d-1sj9kxtj
-    title: requirement presets are plan-only products
+  - id: d-xqqwnl78
+    title: a document is implemented in place
     statement: |
-      shared requirements live in presets — products that implement nothing — adopted whole at
-      pinned increments via adopts and drops; adopting and dropping are owner fiat, and the
-      wider requirement scopes are retired.
-    status: accepted
+      a document package is edited in place at its permanent path — no copy sits in an
+      increment, and nothing is copied at publish. it is consumed from the tree, so merge is
+      what makes it live; a document outside readers pin against releases versions like any
+      package.
+    status: proposed
     because:
-      - r-bwtud1e5
+      - r-yzkxa2hj
+      - d-nzba0wqu
     pinned:
-      reason: data-format
-      notes: adopts and drops are part of every increment's shape
-    facets:
-      - schema
-      - process-doc
+      reason: other
+      notes: merge-visibility is what consumers of a tree-read document rely on
+    facets: process-doc
 
   - id: d-jy7x42nx
     title: retirement is an id and a reason
@@ -186,7 +136,7 @@ decisions:
       successor's supersedes or amends and needs no entry.
     status: accepted
     because:
-      - d-9dx9ryhk
+      - r-caao9k3z
     pinned:
       reason: data-format
       notes: part of the increment source shape every product writes
@@ -233,6 +183,20 @@ decisions:
     facets:
       - schema
       - tooling
+
+  - id: d-i1reuf3u
+    title: implement forward
+    statement: |
+      a tension that is merely unwelcome becomes a requirement for a future increment, not a
+      relitigation of the current one; amending in place is reserved for the impossible,
+      non-viable, or incorrect.
+    status: proposed
+    because:
+      - r-caao9k3z
+    pinned: false
+    facets:
+      - process-doc
+      - prompts
 
   - id: d-rx3s2hqo
     title: decisions record the observable

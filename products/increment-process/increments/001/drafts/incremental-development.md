@@ -287,8 +287,9 @@ Creating, splitting, or moving a package is a decision like any other — record
 once something outside the product depends on the boundary. The mapping reflects the state those
 decisions produced, and it is descriptive, never aspirational: `product.yaml` is current state, freely
 edited rather than increment-locked, because the record of a package change is the decision that made
-it. A package enters the mapping when the implementation that creates it does, as part of its output —
-so an implementer never meets a declared package nothing asks for. Intent to ship one is a requirement or a
+it. An implementer adds, removes, or updates package entries at the same time it changes the
+implementation files they reference — so an implementer never meets a declared package nothing asks
+for. Intent to ship one is a requirement or a
 future increment's ask, not a mapping entry.
 
 Consequences:

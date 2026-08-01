@@ -3,12 +3,20 @@ requirements:
   - id: r-caao9k3z
     title: shipped increments stay shipped
     statement: |
-      a published increment is never unsettled by later work: drafting increment N+1 changes
-      nothing about increment N.
+      a published increment is never unsettled by later work: an increment declares what
+      changed, and the effective requirement and decision sets are computed by folding across
+      the product's increments — the computed view is what the owner reads, and later changes
+      appear only as new entries superseding or retiring earlier ones. an increment is draft
+      while off main and published by merging: the gate runs at merge, main holds only
+      published increments, dense and immutable, and draft-versus-published is location, not a
+      stored field.
     satisfied_when:
       - the design validator rejects any edit to a file of a published increment
+      - the merge gate runs at merge, and main holds only published increments, dense in sequence
       - later changes appear in the fold as new entries superseding or retiring earlier ones
-    facets: design-validator
+    facets:
+      - schema
+      - design-validator
 
   - id: r-ei82daip
     title: decisions are comprehensible as a set
@@ -75,10 +83,17 @@ requirements:
       index, if scale ever wants one, is generated on demand and never committed. a version is
       immutable once an increment binding it publishes, and stays present as long as anything
       published binds it; drift is legal — no product is rebound by a new version appearing.
+      every structured file this process defines carries version — the pool version of the
+      file's own schema, so a requirements source with version 2 is interpreted by
+      design-process/requirements@2: one lookup, no fold, and a published file stays readable
+      forever in the dialect it was written in. a foundation file is a mapping, not a bare
+      list of entries: version sits beside one top-level key — requirements:, decisions:,
+      model: — that names what the file holds.
     satisfied_when:
       - every pool schema parses as JSON Schema and declares its $id identity
       - the design validator fails when two pool files claim one identity
       - the design validator resolves references by identity, and rejects an edit to, or removal of, a version some published increment binds
+      - every structured file names its schema version in version, and validates against the schema that version names
     facets:
       - schema
       - design-validator
@@ -101,32 +116,36 @@ requirements:
   - id: r-sk47gw08
     title: design and implementation keep their own schedules
     statement: |
-      finishing a plan and implementing it are separately schedulable: a ratified plan publishes
-      without an implementation, and one may come later — or never.
+      finishing a plan and implementing it are separately schedulable: a ratified plan
+      publishes without an implementation, and one may come later — or never. design
+      increments publish on their own cadence, and several may accumulate before any
+      implementation; one implementation may target the consolidated fold, and nothing obliges
+      one per increment. implementers implement against the fold at a published increment —
+      product@N — derivable on demand and identical forever since every input is immutable;
+      the increment number is the version, and the declared delta the changelog.
     satisfied_when:
       - a plan-only increment passes the merge gate
       - an implementer may take previously ratified requirements as an implementation's scope and implement them
+      - an implementation targets the fold at a chosen increment and durably records that target
+      - increments published since remain visible as ratified and unimplemented
     facets:
       - process-doc
       - design-validator
-
-  - id: r-tpcrux8s
-    title: designs queue, implementations consolidate
-    statement: |
-      design increments publish on their own cadence, and several may accumulate before any
-      implementation; one implementation may target the consolidated fold, and nothing obliges
-      one per increment.
-    satisfied_when:
-      - an implementation targets the fold at a chosen increment and durably records that target
-      - increments published since remain visible as ratified and unimplemented
-    facets: process-doc
 
   - id: r-bwtud1e5
     title: products declare their own requirements
     statement: |
       no requirement outside a product's own increments binds it; adoption at a pinned
-      increment is the only way an external requirement takes force.
+      increment is the only way an external requirement takes force. shared requirements live
+      in presets — products that implement nothing — adopted whole at pinned increments via
+      adopts and drops; adopting and dropping are owner fiat, and the wider requirement scopes
+      are retired.
     satisfied_when:
       - the design validator resolves a product's obligations only from its own increments' entries and adoptions
       - no global or area scope exists to bind implicitly
-    facets: design-validator
+      - a preset is adopted whole and adopts no other preset
+      - a conflict between an adopted requirement and a product-local one is an error the increment cannot publish over
+    facets:
+      - schema
+      - design-validator
+      - process-doc
