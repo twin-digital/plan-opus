@@ -98,3 +98,10 @@ nobody else's. An agent quietly resolving that collision is the failure this rul
 
 This only works if it can be applied unprompted. Needing it restated each session means it has
 failed, whatever any document says.
+
+## Answering review feedback
+
+After addressing the owner's review comments, reply to each thread with a link to the commit that
+addressed it and resolve the thread — without being asked. A thread that is a question, an
+information request, or anything needing more discussion stays open for the owner's next pass:
+resolving it would hide a conversation the owner wanted.
