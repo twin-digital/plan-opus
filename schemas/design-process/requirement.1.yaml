@@ -1,0 +1,33 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: /design-process/requirement@1
+title: requirement
+description: one requirement entry, wherever a requirements source carries it
+type: object
+additionalProperties: false
+required: [id, statement, satisfied_when]
+properties:
+  id:
+    type: string
+    pattern: "^r-[0-9a-z]{8}$"
+  title:
+    type: string
+  statement:
+    type: string
+  satisfied_when:
+    oneOf:
+      - type: string
+      - type: array
+        minItems: 1
+        description: conditions combined with logical AND — all must be met
+        items:
+          type: string
+  facets:
+    $ref: "/design-process/common@1#/$defs/facets"
+  informed_by:
+    type: array
+    minItems: 1
+    items:
+      type: string
+  amends:
+    type: string
+    pattern: "^r-[0-9a-z]{8}$"

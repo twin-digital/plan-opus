@@ -1,5 +1,110 @@
 version: 1
 decisions:
+  - id: d-g5cs9o4i
+    title: effective state is a fold
+    statement: |
+      an increment declares what changed; the effective requirement and decision sets are
+      computed by folding across the product's increments, and the computed view is what the
+      owner reads.
+    status: accepted
+    because:
+      - r-caao9k3z
+      - r-2gcehlp8
+    pinned:
+      reason: data-format
+      notes: every product's foundations are written and read through the fold
+    facets:
+      - schema
+      - tooling
+
+  - id: d-6x6l6ws7
+    title: publish is the merge
+    statement: |
+      an increment is draft while off main and published by merging; the gate runs at merge,
+      main holds only published increments, dense and immutable, and draft-versus-published is
+      location, not a stored field.
+    status: accepted
+    because:
+      - r-caao9k3z
+      - r-0axqvtcc
+    pinned:
+      reason: data-format
+      notes: the fold and the design validator read main as settled history
+    facets:
+      - schema
+      - design-validator
+
+  - id: d-3wjypyx6
+    title: the contract pools
+    statement: |
+      schemas live under schemas/ and public API surfaces under apis/, identity declared
+      in-file: schemas as JSON Schema — draft 2020-12, authored as YAML — with $id
+      root-relative, /<namespace>/<entity>@<version>, the leading slash mandatory and its
+      omission a validator failure. a $ref is such an identity, resolved from the pool as the
+      registry, and binds transitively. the filing convention,
+      <pool>/<namespace>/<entity>.<version>.yaml, aids navigation only; an id-to-file index,
+      if scale ever wants one, is generated on demand and never committed.
+    status: accepted
+    because:
+      - r-gq90gngs
+      - r-2fytqadu
+    pinned:
+      reason: data-format
+      notes: every contract reference in every product resolves against this identity form
+    facets:
+      - schema
+      - design-validator
+
+  - id: d-i47qv6oa
+    title: files name their own schema version
+    statement: |
+      every structured file this process defines carries version — the pool version of the
+      file's own schema, so a requirements source with version 2 is interpreted by the pool
+      schema /design-process/requirements@2. interpretation is one lookup, no fold, and a
+      published file stays readable forever in the dialect it was written in. a foundation
+      file is a mapping, not a bare list of entries: version sits beside one top-level key —
+      requirements:, decisions:, model: — that names what the file holds.
+    status: accepted
+    because:
+      - r-2fytqadu
+      - d-3wjypyx6
+    pinned:
+      reason: data-format
+      notes: the first field every reader consults
+    facets: schema
+
+  - id: d-j50yturh
+    title: the fold at an increment is the bundle
+    statement: |
+      implementers implement against the fold at a published increment — product@N — derivable
+      on demand and identical forever since every input is immutable; the increment number is
+      the version, and the declared delta the changelog.
+    status: accepted
+    because:
+      - r-sk47gw08
+      - d-6x6l6ws7
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - tooling
+
+  - id: d-k48jh86c
+    title: requirement presets are plan-only products
+    statement: |
+      shared requirements live in presets — products that implement nothing — adopted whole at
+      pinned increments via adopts and drops; adopting and dropping are owner fiat, and the
+      wider requirement scopes are retired.
+    status: accepted
+    because:
+      - r-bwtud1e5
+    pinned:
+      reason: data-format
+      notes: adopts and drops are part of every increment's shape
+    facets:
+      - schema
+      - process-doc
+
   - id: d-kn05wb30
     title: increment sources live under products/
     statement: |
@@ -10,7 +115,7 @@ decisions:
       product id.
     status: accepted
     because:
-      - r-caao9k3z
+      - d-g5cs9o4i
     pinned:
       reason: data-format
       notes: tooling resolves ids against these paths, and every product writes to them
@@ -136,7 +241,7 @@ decisions:
       successor's supersedes or amends and needs no entry.
     status: accepted
     because:
-      - r-caao9k3z
+      - d-g5cs9o4i
     pinned:
       reason: data-format
       notes: part of the increment source shape every product writes

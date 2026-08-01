@@ -1,22 +1,35 @@
 version: 1
 requirements:
-  - id: r-caao9k3z
-    title: shipped increments stay shipped
+  - id: r-gq90gngs
+    title: foundations have defined shapes and meanings
     statement: |
-      a published increment is never unsettled by later work: an increment declares what
-      changed, and the effective requirement and decision sets are computed by folding across
-      the product's increments — the computed view is what the owner reads, and later changes
-      appear only as new entries superseding or retiring earlier ones. an increment is draft
-      while off main and published by merging: the gate runs at merge, main holds only
-      published increments, dense and immutable, and draft-versus-published is location, not a
-      stored field.
+      every foundation artifact — requirement, decision, model binding, product and increment
+      declaration — has a formally defined shape and a stated meaning: its form checkable by
+      machine, its intent readable by a person.
     satisfied_when:
-      - the design validator rejects any edit to a file of a published increment
-      - the merge gate runs at merge, and main holds only published increments, dense in sequence
-      - later changes appear in the fold as new entries superseding or retiring earlier ones
+      - every foundation file validates against a pool schema in force
+      - the shipped process reference states each foundation's meaning
     facets:
       - schema
-      - design-validator
+      - process-doc
+
+  - id: r-6n45h5eb
+    title: foundations are expressed and reviewed directly
+    statement: |
+      the owner and agents author foundations directly, as plain files; review is an ordinary
+      pull-request diff, and the owner can read every claim in full.
+    satisfied_when:
+      - foundations are plain-text files, authored by hand or by agent, reviewed as ordinary diffs
+    facets: process-doc
+
+  - id: r-2gcehlp8
+    title: tooling folds foundations
+    statement: |
+      tooling computes the effective state of a product at any increment by folding its
+      declarations, and the computed view is what the owner reads.
+    satisfied_when:
+      - collation renders the effective requirement, decision, and model sets of product@N on demand
+    facets: tooling
 
   - id: r-zcvxh2ty
     title: the design validator gates merges
@@ -27,6 +40,16 @@ requirements:
     satisfied_when:
       - the repository requires the design validator check to pass before any pull request merges
       - the check applies every validator rule in force, and a single failure fails the check
+    facets: design-validator
+
+  - id: r-caao9k3z
+    title: shipped increments stay shipped
+    statement: |
+      a published increment is never unsettled by later work: drafting increment N+1 changes
+      nothing about increment N.
+    satisfied_when:
+      - the design validator rejects any edit to a file of a published increment
+      - later changes appear in the fold as new entries superseding or retiring earlier ones
     facets: design-validator
 
   - id: r-ei82daip
@@ -83,26 +106,12 @@ requirements:
       - tooling
 
   - id: r-2fytqadu
-    title: schemas are shared and versioned
+    title: contracts are shared and versioned
     statement: |
-      schemas live in one repo-wide pool, formalized as JSON Schema — draft 2020-12, authored
-      as YAML. each schema file declares its identity in $id, encoded root-relative as
-      /<namespace>/<entity>@<version> (/design-process/requirements@1): names unique across
-      the repository, versions dense integers per entity, and the leading slash mandatory —
-      it is what makes every reference resolve to itself regardless of base. references are by
-      that identity, never by path, so the pool tree may be nested and reorganized freely —
-      the filing convention, schemas/<namespace>/<entity>.<version>.yaml, aids navigation
-      only, and an id-to-file index, if scale ever wants one, is generated on demand and never
-      committed. a schema may depend on schemas: a $ref is a root-relative identity, resolved
-      from the pool as the registry. a version is immutable once an increment binding it
-      publishes, and stays present as long as anything published binds it — directly, or
-      transitively through a bound schema's $ref; drift is legal — no product is rebound by a
-      new version appearing. every structured file this process defines carries version — the
-      pool version of the file's own schema, so a requirements source with version 2 is
-      interpreted by /design-process/requirements@2: one lookup, no fold, and a published file
-      stays readable forever in the dialect it was written in. a foundation file is a mapping,
-      not a bare list of entries: version sits beside one top-level key — requirements:,
-      decisions:, model: — that names what the file holds.
+      contracts — the schemas and public API surfaces products bind — live in shared,
+      repo-wide pools, versioned. a version is immutable once an increment binding it
+      publishes, directly or transitively, and stays present as long as anything published
+      relies on it; drift is legal — no product is rebound by a new version appearing.
     satisfied_when:
       - every pool schema parses as JSON Schema and declares its $id identity root-relative; the design validator fails one that omits the leading slash, in an $id or a $ref
       - the design validator fails when two pool files claim one identity
@@ -134,9 +143,7 @@ requirements:
       publishes without an implementation, and one may come later — or never. design
       increments publish on their own cadence, and several may accumulate before any
       implementation; one implementation may target the consolidated fold, and nothing obliges
-      one per increment. implementers implement against the fold at a published increment —
-      product@N — derivable on demand and identical forever since every input is immutable;
-      the increment number is the version, and the declared delta the changelog.
+      one per increment.
     satisfied_when:
       - a plan-only increment passes the merge gate
       - an implementer may take previously ratified requirements as an implementation's scope and implement them
@@ -150,10 +157,7 @@ requirements:
     title: products declare their own requirements
     statement: |
       no requirement outside a product's own increments binds it; adoption at a pinned
-      increment is the only way an external requirement takes force. shared requirements live
-      in presets — products that implement nothing — adopted whole at pinned increments via
-      adopts and drops; adopting and dropping are owner fiat, and the wider requirement scopes
-      are retired.
+      increment is the only way an external requirement takes force.
     satisfied_when:
       - the design validator resolves a product's obligations only from its own increments' entries and adoptions
       - no global or area scope exists to bind implicitly
