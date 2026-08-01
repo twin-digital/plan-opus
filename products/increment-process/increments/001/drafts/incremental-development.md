@@ -79,8 +79,8 @@ comprehend a product from.
 The asymmetry is deliberate. The durable set is what the owner reviews and what tooling can diff. The
 transient set is where work happens.
 
-**The unit of change is an increment**, scoped to a **product**. An increment owns its ask, the
-foundation changes it makes, the decisions it produces, and the transition an implementer follows. Status
+**The unit of change is an increment**, scoped to a **product**. An increment owns the foundation
+changes it makes, the decisions it produces, and the transition an implementer follows. Status
 attaches to the increment, so drafting increment N+1 never unsettles the shipped increment N.
 
 ---
@@ -89,18 +89,17 @@ attaches to the increment, so drafting increment N+1 never unsettles the shipped
 
 ```
 Plan:
-  Ask → Clarify → Ratify        (loops until the owner declares it settled enough to transition to implementing)
+  Capture → Clarify → Ratify    (loops until the owner declares it settled enough to transition to implementing)
 
 Implement:
   defined by the implementation-process increment — waves, escalation, evidence; Plan hands it the ratified fold
 ```
 
-### Ask
+### Capture
 
-Ask is the step where the owner and their agents create the increment and populate its initial
-requirements — authored new, or drawn from requirements already ratified. The increment's `ask:`
-field lists only the pre-existing ones; requirements authored in the increment are in its scope by
-existing, so the field is absent otherwise.
+Capture is the step where the owner and their agents create the increment and populate its initial
+requirements, directly into its requirements source. An increment's scope is nothing more than the
+changes its sources declare.
 
 
 ### Clarify
@@ -140,7 +139,7 @@ Each proposed decision is read in full and becomes:
 
 Distaste is not rejection. A decision the owner dislikes but can live with is **tolerated**, and may
 stand indefinitely — nothing obliges a later increment to revisit it. If the owner does want it changed,
-that becomes a requirement in some future ask, but as a deliberate choice rather than an automatic
+that becomes a requirement in some future increment, but as a deliberate choice rather than an automatic
 consequence. See *Implement forward*.
 
 A rejection carries the owner's reason on the entry — the one status whose reasoning is required,
@@ -176,7 +175,7 @@ and what a tree-consumed deliverable shows on main is always what a published in
 
 ### Design and implementation keep their own schedules
 
-An increment need not run Implement. Ask → Clarify → Ratify → publish is a complete increment — a
+An increment need not run Implement. Capture → Clarify → Ratify → publish is a complete increment — a
 preset's only shape, and any product's option. Its ratified requirements sit in the fold as claims
 with no coverage, which the collated view shows for what they are: ratified and unbuilt. Several
 design increments may queue before any implementation: an implementation targets the fold at a chosen increment —
@@ -194,7 +193,7 @@ it.
 
 A **requirement preset** is a product that defines requirements and builds nothing — `nodejs-library`,
 `minecraft-addon`, `published-to-npm`. It has increments like any other product, and its increments are
-**Plan-only**: Ask → Clarify → Ratify, with no Implement.
+**Plan-only**: Capture → Clarify → Ratify, with no Implement.
 
 A product adopts presets at pinned increments, declaring what changed rather than the whole state:
 
@@ -292,8 +291,8 @@ decisions produced, and it is descriptive, never aspirational: `product.yaml` is
 edited rather than increment-locked, because the record of a package change is the decision that made
 it. An implementer adds, removes, or updates package entries at the same time it changes the
 implementation files they reference — so an implementer never meets a declared package nothing asks
-for. Intent to ship one is a requirement or a
-future increment's ask, not a mapping entry.
+for. Intent to ship one is a requirement in some
+increment, not a mapping entry.
 
 Consequences:
 
@@ -590,7 +589,7 @@ structured data and never reads the narrative.
 1. **Fence requirements to the product, not the design.** The highest-value single change; it removes the
    cross-design ask ceremony for same-product work.
 2. **Requirement presets**, with `adopts` and `drops` on a product, and the wider scopes removed.
-3. **Increment as an artifact** — ask, foundation delta, decisions.
+3. **Increment as an artifact** — foundation delta, decisions, adoptions.
 4. **Move status from the design to the increment.** It stays derived, now from location: draft is
    off main, published is merged, and the old unsettled-and-merged combination is gone.
 5. **Stop maintaining `spec.md`.** Clarify works through a synthesis draft, discarded at zero
@@ -666,12 +665,12 @@ artifact has to carry.
 ### An increment
 
 The path carries the product and the number, and draft-versus-published is location — off main or
-on it — so the file states neither. It exists only when it has something to declare: an `ask`, an adoption.
+on it — so the file states neither. It exists only when it has something to declare: an adoption or a drop.
 
 ```yaml
 # products/minecraft-test-lib/increments/004/increment.yaml
-ask:
-  - r-h97o555y   # pre-existing; requirements authored in this increment are in scope by existing
+adopts:
+  - nodejs-library@4
 ```
 
 ### A requirement

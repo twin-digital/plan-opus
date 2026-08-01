@@ -21,7 +21,7 @@ grounds.
 
 ## The synthesis draft
 
-Clarify's instrument is a written synthesis: connected prose arguing the increment from ask to implementation,
+Clarify's instrument is a written synthesis: connected prose arguing the increment from capture to implementation,
 drafted to be discarded. Write it to find what is missing — the paragraph that does not follow is the
 decision not yet made. Before discard, run the remainder check: every claim in the draft either cites
 a foundation or is extracted into a decision, a fact, or an open question. Discard is allowed only at
