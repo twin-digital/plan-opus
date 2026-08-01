@@ -92,10 +92,7 @@ Plan:
   Ask → Clarify → Ratify        (loops until the owner declares it settled enough to transition to building)
 
 Build:
-  Define    → [Escalate → Ratify → resume or rework]
-  Stub      → [Escalate → Ratify → resume or rework]
-  Implement → [Escalate → Ratify → resume or rework]
-  Document  → [Escalate → Ratify → resume or rework]
+  defined by the build-process increment — waves, escalation, evidence; Plan hands it the ratified fold
 ```
 
 ### Ask
@@ -158,42 +155,6 @@ them would make it impossible to ask afterwards how much of a product the owner 
 matters because the decision set is the only window they use. **The count of delegated decisions is the
 honest measure of how much of a product was reviewed rather than passed over** — the same kind of ledger
 that `attestation` provides for coverage, on the other axis.
-
-### The build waves
-
-Each wave produces one artifact and is validated against what came before it:
-
-| wave | produces | validated against |
-|---|---|---|
-| **Define** | the test plan | the requirements and decisions |
-| **Stub** | tests and API stubs | the test plan |
-| **Implement** | the implementation | the stubs, by compiling; the tests, by passing |
-| **Document** | READMEs and user-facing documentation | the implementation |
-
-Documentation is a wave rather than an afterthought because it is a deliverable of the product, not a
-by-product of building it.
-
-### Escalate
-
-An escalation path is open at **every** wave. It is meant to be a rare escape hatch rather than a closed
-door, and agents are given explicit instruction about what qualifies. It fires when a wave needs to:
-
-- propose a change to a **requirement**
-- propose a change to a **pinned** decision
-- propose a **new** decision that would be pinned
-
-Otherwise the build proceeds. Agents have wide latitude to decide and implement — including overturning
-unpinned decisions and introducing new unpinned ones — provided nothing contradicts a ratified decision or
-requirement.
-
-The asymmetry between Plan and Build is deliberate. **Plan exists to surface and ratify the big rocks**,
-so by definition everything raised there reaches the owner, who may simply tolerate what is easy to
-reverse. **Build exists to make progress**, so only what is hard to reverse interrupts it.
-
-Escalation says *what* must reach the owner; where a build pauses — after every wave, at completion, or
-only when an escalation fires — is orchestration configuration rather than process definition. Agent
-guidance carries the flavours of orchestration instruction, and a product runs under the one that fits
-its risk.
 
 ### Publish is the merge
 
@@ -301,6 +262,7 @@ GitHub `owner/repo` form, `twin-digital/opus` when unstated:
 
 ```yaml
 # products/increment-process/product.yaml
+version: 1
 kind: process
 facets: [schema, checker, prompts, docs]
   packages:
@@ -404,6 +366,25 @@ enforces format and uniqueness, so a collision is a regenerate at creation rathe
 Increments stay plain numbers — readable, and the merge collision on the number is the concurrency
 detection. Products and presets are named by their directory, and adoption uses that name.
 
+### Every structured file names its governing version
+
+Every structured artifact this process defines — `product.yaml`, `increment.yaml`, the increment
+sources, and any source a later process increment adds — carries a `version`: the `increment-process`
+increment whose definitions govern how the file is interpreted.
+
+```yaml
+version: 1
+requirements:
+  - id: r-h97o555y
+    ...
+```
+
+The field is what makes schema evolution compatible with immutability. A published increment's files
+are never rewritten, so they stay forever in the dialect they were written in; the version is what
+lets tooling read history without guessing, and what makes a format change an ordinary process
+increment rather than a repository-wide migration. Carrying it means the foundation files are keyed
+mappings — the version beside a key naming the entry kind — rather than bare sequences.
+
 ### Lifecycle — declare changes, fold for state
 
 Requirements, decisions and preset adoptions all work the same way: **an increment declares what changed,
@@ -438,17 +419,7 @@ claiming `003` conflict on merge; the loser renames and recomputes the fold agai
 and the collation and validation tooling reports whatever the recomputed fold breaks. The process adds
 nothing further for this case.
 
-### Proving a claim is met
-
-A product should be able to demonstrate, mechanically, that it meets what it claims — so that a decision
-cannot quietly describe a product that no longer exists, and so the owner can ask how much of a product is
-actually checked rather than merely asserted.
-
-**Every claim carries its evidence.** A claim is a **requirement** or a **decision**. Requirements say
-what the product must do; decisions say what path was taken. Both are assertions about the product, and an
-assertion nothing checks can quietly become false.
-
-#### Requirements state how they would be known to be met
+### Requirements state how they would be known to be met
 
 ```yaml
 - id: r-h97o555y
@@ -468,85 +439,7 @@ requirement, which is better discovered while writing it than a year later.
 **Decisions do not carry `satisfied_when`, and the asymmetry is principled.** A requirement states an
 *end* — what must be true — so how you would know is a genuinely separate question. A decision states a
 *means* — what was done — and its `satisfied_when` would be a restatement: *we chose X*, known to be met
-when *X is what is there*. The coverage entry already answers it. Requiring the field would populate it
-with tautologies.
-
-#### The coverage manifest maps claims to evidence
-
-```yaml
-- claim: r-h97o555y      # consumer suite typechecks
-  covered_by:
-    - kind: conformance-case
-      ref: conformance/typecheck.txtar
-
-- claim: d-qaq43q3x      # control surface is a real subpath
-  covered_by:
-    - kind: code-test
-      ref: test/exports.spec.ts
-    - kind: attestation
-      note: the exports map declares ./control, and the build fails without it
-```
-
-`kind` + `ref` + an optional `note`, uniform across kinds, so new kinds land without a schema change.
-`ref` is one path or a list — an implementation that spans files names them all. It names what carries
-the claim, not everything the code path touches: the generic error type and the logging library are
-reachable from almost every claim and evidence for none. Picking that set is agent-guidance material.
-
-| kind | what it is | what still rests on the builder's word |
-|---|---|---|
-| `attestation` | an agent asserts it; no artifact | everything |
-| `code-test` | a test in the project's own suite, written by the builder | that the test measures the claim |
-| `manual-check` | recorded steps a human follows and re-runs | that the steps measure the claim |
-| `conformance-case` | a case the owner wrote or vetted, tied to the claim it checks — automated or manual | nothing |
-
-What makes a conformance case conformance is its **provenance and its coupling**: the owner authored or
-carefully reviewed the check, and it is tied to the requirement it demonstrates rather than to a decision
-an agent made downstream. Automation is not the distinction — the planned tooling carries manual cases as
-one supported kind of conformance case. A check with no recorded steps is not a `manual-check` and does
-not enter the manifest at all; an unrepeatable check is an attestation with extra effort.
-
-**A manifest names only claims in force at that increment.** Retire a requirement and it is simply omitted
-from that increment's manifest. It is also an error to name a claim that is still `proposed` — coverage is
-evidence about something the owner has ruled on, not about a suggestion.
-
-#### The ladder
-
-Each rung is stronger evidence than the one below it, and a claim sits at the highest rung anything in
-its `covered_by` provides:
-
-| rung | means |
-|---|---|
-| `attested` | only an agent's word that it is met |
-| `checked` | a recorded check exists — a builder's test, or steps a human re-runs |
-| `conformance` | the check is owner-vetted and tied to the claim |
-
-Why a builder's test outranks the same builder's word, when one agent wrote both: an attestation is
-believed whole — the agent observed, concluded, and reported, and none of that can be re-examined. A test
-moves the verdict into the product: it executes and can fail, now and on every later run. What still
-rests on the builder is only that the test measures the claim — a smaller thing to trust, and an
-auditable one, since a reviewer can read a test where there is nothing to read behind an attestation.
-`conformance` retires that residue too, by moving authorship or vetting of the check to the owner.
-
-Automation is a property of a check, not a rung. A manual conformance case outranks an automated builder
-test, because strength comes from provenance and coupling; whether a check runs without a human prices
-re-running it, and is worth reporting on that ground alone.
-
-The first increment sets the bar at `attested` and reports the distribution. Later increments raise a rung
-or turn a warning into an error. **The number worth watching is how many claims sit at `attested`** —
-that is the honest measure of how much of the product rests on an agent's word.
-
-Requirements adopted from a preset are coverage-tracked exactly like product-local ones. Nothing about
-their origin changes what has to be shown.
-
-#### Who writes coverage, and when
-
-| point | contributes |
-|---|---|
-| a requirement is authored — by the owner or an agent, in any phase | `satisfied_when`, which is not a coverage entry but the condition one will later demonstrate |
-| **Define** | the claim list, and which kind of evidence each claim is expected to get |
-| **Stub** | `code-test` and `conformance-case` entries, as those artifacts come into existence |
-| **Implement** | an `attestation` for every claim it built against — always, from the implementing agent, alongside whatever better evidence exists — and the entries written earlier now pass |
-| **Document** | `manual-check` entries, where a claim is verified by following documented steps |
+when *X is what is there*. Requiring the field would populate it with tautologies.
 
 ### Facts record what research found
 
@@ -647,46 +540,44 @@ structured data and never reads the narrative.
 1. **Fence requirements to the product, not the design.** The highest-value single change; it removes the
    cross-design ask ceremony for same-product work.
 2. **Requirement presets**, with `adopts` and `drops` on a product, and the wider scopes removed.
-3. **The coverage manifest** — claim to evidence.
-4. **Increment as an artifact** — ask, foundation delta, decisions.
-5. **Move status from the design to the increment.** It stays derived, now from location: draft is
+3. **Increment as an artifact** — ask, foundation delta, decisions.
+4. **Move status from the design to the increment.** It stays derived, now from location: draft is
    off main, published is merged, and the old unsettled-and-merged combination is gone.
-6. **Stop maintaining `spec.md`.** Clarify works through a synthesis draft, discarded at zero
+5. **Stop maintaining `spec.md`.** Clarify works through a synthesis draft, discarded at zero
    remainder before publish.
 
 **Schema**
 
+6. **`version` on every structured file** — the `increment-process` increment governing its
+   interpretation; foundation files become keyed mappings to carry it.
 7. **Typed `pinned` on decisions** — `false`, or a named reason with optional notes — governing what
    escalates.
 8. **`satisfied_when` on requirements**, required.
 9. **`because:` on decisions** — citing facts and decisions alike — and **`informed_by:` on
    requirements**.
-10. **Interfaces as a first-class artifact** — produced by the Stub wave, landing somewhere durable rather
-    than only in the code.
-11. **A published increment is immutable**, and lifecycle points *forward* — a new entry names what it
+10. **A published increment is immutable**, and lifecycle points *forward* — a new entry names what it
     supersedes or retires, rather than an old entry being edited to close it. Requirements and decisions
     are scoped to a product across all its increments, so finding what supersedes an entry never means
     searching the repository.
-12. **The package mapping on a product** — path, kind, and optional repo per package — and **facets**:
+11. **The package mapping on a product** — path, kind, and optional repo per package — and **facets**:
     the vocabulary on the product, the labels on claims.
-13. **Opaque ids** — `{prefix}-{8 base36 characters}`, `title` as the label, the generator a CLI
+12. **Opaque ids** — `{prefix}-{8 base36 characters}`, `title` as the label, the generator a CLI
     command, format and uniqueness checked.
-14. **`after:` on increments** — cross-product ordering, read by the publish gate.
+13. **`after:` on increments** — cross-product ordering, read by the publish gate.
 
 **Tooling**
 
-15. **Collation** — the folded, computed view of a product, filterable by facet and ordered by
+14. **Collation** — the folded, computed view of a product, filterable by facet and ordered by
     citation topology.
-16. **The merge gate** — publish is the merge: no `proposed` decision outstanding, everything
+15. **The merge gate** — publish is the merge: no `proposed` decision outstanding, everything
     `after:` names published, no synthesis draft present, the number next in sequence.
-17. **Escalation format** — what a wave sends up, and what comes back.
 
 **Process**
 
-18. **Promotion of a decision to a requirement**, when it has become something consumers can reasonably be
+16. **Promotion of a decision to a requirement**, when it has become something consumers can reasonably be
     expected to rely on and preserving its effect is a matter of compatibility. Not every accepted
     decision — requirements say what the product must do to be accepted; decisions describe the path taken.
-19. **The retirement form** — top-level `retires:` blocks in each increment's sources, one id and a
+17. **The retirement form** — top-level `retires:` blocks in each increment's sources, one id and a
     one-line reason per entry, no statement.
 
 **Deliberately not needed**
@@ -707,23 +598,11 @@ exposes a `verify` task**.
 | a new global or `applies_to` requirement can make a settled design incomplete retroactively | products adopt requirement presets at a pinned increment; nothing binds a product until it says so |
 | a design is settled or draft | an increment is; shipped increments stay shipped |
 | changing a shipped product means rewriting its spec or inventing another slice | an increment carries the delta |
-| decisions are the design phase's output, reviewed before building | decisions arrive from every wave and accumulate through the build |
-| compliance means the spec cites the requirement | every requirement and decision carries coverage, graded by whether anything actually checks it |
 | a punt and a reservation are the same status | `delegated` and `tolerated` are separate, so what the owner ruled on can be told from what they passed over |
 | a decision the owner dislikes is rejected, and the work is redone | it is tolerated, and a requirement is filed for a future increment |
-| documentation happens if there is time | Document is a wave, validated against the implementation |
 
 **What does not change:** the owner reads every requirement and every decision, in full. That is the
 comprehension channel, and this is built to feed it rather than to trim it.
-
----
-
-## Open
-
-- **Where the durable interfaces live, and what shape they take.** Distinct from the internal API stubs the
-  Stub wave produces. Whether the durable one is *extracted* from the code or *authored* against it decides
-  where it lives and when it is created — an extracted report cannot be wrong because it is a projection;
-  an authored declaration can be, which is what would make it useful.
 
 ---
 
@@ -792,6 +671,7 @@ A preset is a product that defines requirements and builds nothing:
 
 ```yaml
 # products/nodejs-library/product.yaml
+version: 1
 kind: requirement-preset
 ```
 
@@ -864,23 +744,3 @@ retires:
     reason: brandAs no longer exists; instanceof answers from the prototype chain
 ```
 
-### The coverage manifest
-
-Claims are requirements and decisions alike, and every entry must name a claim in force at this
-increment. `ref` is one path or a list:
-
-```yaml
-- claim: r-h97o555y      # consumer suite typechecks
-  covered_by:
-    - kind: conformance-case
-      ref: conformance/typecheck.txtar
-
-- claim: d-qaq43q3x      # control surface is a real subpath
-  covered_by:
-    - kind: code-test
-      ref:
-        - test/exports.spec.ts
-        - test/control.spec.ts
-    - kind: attestation
-      note: the exports map declares ./control, and the build fails without it
-```

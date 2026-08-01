@@ -33,32 +33,6 @@ that product rather than to a shared file.
 
 ---
 
-## Spec citation as evidence of compliance
-
-**Retired:** the checker rule that every requirement binding a design must be cited somewhere in its
-`spec.md`.
-
-**Replaced by:** the coverage manifest, which maps every claim — requirement or decision — to evidence
-that something checks it.
-
-### Why
-
-The rule was the only mechanical evidence of compliance the process had, and it was theatre: a citation
-proves a document *mentions* a requirement, nothing more. An agent could satisfy it by writing the
-requirement's name into a paragraph. With most of a spec restating its foundations, citations were
-largely decoration.
-
-It also could not survive the spec's removal, and requirement presets made its absence urgent — adopting
-a newer preset increment ought to be able to fail, and with nothing checking compliance, nothing would.
-
-### A rejected replacement
-
-"A decision addresses this requirement" was considered as a coverage kind and rejected. Traceability is
-not coverage — it is the same mechanism under a new filename, proving only that something mentions
-something. Coverage entries name evidence that something *checks* the claim.
-
----
-
 ## Reversal cost as a decision attribute
 
 **Retired:** the framing of decisions as carrying a designer-set "reversal cost", with escalation reading
@@ -72,15 +46,6 @@ off whether a change was cheap or costly.
 and building the vocabulary around it made that one reason look like the whole category. Pinning names the
 consequence directly — this cannot be freely overturned — and leaves the reasons open to grow as they are
 understood.
-
----
-
-## Wave tags on decisions
-
-**Retired:** recording which wave proposed a decision.
-
-**Why:** it was justified as telling the owner how much context the proposer had. With `pinned` governing
-authority and coverage governing evidence, the tag routed nothing and answered nothing anyone was asking.
 
 ---
 

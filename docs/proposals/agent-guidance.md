@@ -6,29 +6,6 @@ what the artifacts are. Content here is destined for prompts rather than for a s
 
 ---
 
-## Minimise the public contract
-
-**Every export is a constraint on the rebuild.** The public surface is precisely the set of things a
-regenerated implementation must preserve, so its size is the inverse of the freedom that makes a rebuild
-cheap. It is also the size of the surface a consumer can come to depend on whatever the contract says.
-
-Rules a checker can enforce:
-
-- **One entry point by default.** A second is a decision, not a default.
-- **No subpath wildcards.** A `"./*"` pattern surrenders the boundary — every internal path becomes a
-  promise.
-- **No `export *` from an entry point.** It is the most common way a surface grows without anyone
-  deciding: adding a symbol to an internal module silently publishes it. Named re-exports only.
-- **`internal/` is unreachable from outside.**
-- **The API report is committed**, so a surface change appears as a reviewable diff.
-
-**Type-only exports are cheaper** than value exports and worth counting separately: they constrain what a
-consumer compiles against but carry no runtime behaviour for a rebuild to preserve.
-
-This is about the *product's* boundary. Minimising the surface of internal modules is a different concern
-with a different justification — it makes a build coherent, not a rebuild cheaper, because internal
-structure is transient and a rebuild may reorganise it entirely.
-
 ## Decide at the tier that has the information
 
 **Downward:** make the smallest decisions that complete the work. A build wave that settles a question the
@@ -41,23 +18,6 @@ manufactured — the builder discovers the constraint, contradicts the guess, an
 **Escalating:** escalate against a higher-tier decision when you have a **fact** that contradicts it, not
 a preference. A measurement, a compile error, a captured output. An opinion about a better framing is not
 grounds.
-
-## Name what carries the claim
-
-A coverage entry's `ref` names the artifacts that carry the claim — the test whose failure would mean the
-claim is false, the files whose content is what the claim asserts. One path or several, but chosen by
-that test, not by reachability: the generic error type, the logging library, and everything else a code
-path touches are reachable from almost any claim and evidence for none. If removing the file would not
-touch whether the claim holds, it does not belong in the `ref`.
-
-## Orchestration flavours
-
-The process fixes what must escalate; when a build stops is chosen per product, by risk, as an
-orchestration instruction rather than a process rule. The flavours:
-
-- **wave-by-wave** — pause after each wave for owner review before the next begins
-- **run-to-completion** — build every wave, review once at the end
-- **escalation-only** — stop only when an escalation fires
 
 ## The synthesis draft
 
