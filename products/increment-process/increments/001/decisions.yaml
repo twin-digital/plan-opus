@@ -20,9 +20,10 @@ decisions:
     title: increment sources live under products/
     statement: |
       increment artifacts live at products/<product>/increments/<NNN>/ — requirements.yaml,
-      decisions.yaml, model.yaml, the sources later process increments define, and
-      increment.yaml only when it has something to declare — with the product declared by the
-      presence of products/<product>/product.yaml, whose directory name is the product id.
+      decisions.yaml, model.yaml, a drafts/ folder, the sources later process increments
+      define, and increment.yaml only when it has something to declare — with the product
+      declared by the presence of products/<product>/product.yaml, whose directory name is the
+      product id.
     status: proposed
     because:
       - d-9dx9ryhk
@@ -231,12 +232,12 @@ decisions:
     facets: schema
 
   - id: d-nzba0wqu
-    title: documents live under docs/, drafts under docs/proposals/
+    title: documents live under docs/, drafts under the increment
     statement: |
       shipped document packages live at permanent homes under docs/<domain>/, entering
-      product.yaml at the merge that ships them; docs/proposals/ is the conventional home of
-      synthesis drafts, confined to increment branches, and the merge gate rejects anything
-      under it.
+      product.yaml at the merge that ships them; synthesis drafts live at
+      products/<product>/increments/<NNN>/drafts/, merging with the increment that generated
+      them and freezing at its publish.
     status: proposed
     because:
       - r-yzkxa2hj

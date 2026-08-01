@@ -67,12 +67,12 @@ comprehend a product from.
 | facts | what has been observed about the world, with the runs and artifacts that establish it |
 | interfaces | the shapes something outside the implementation compiles against |
 | released versions | tags and published artifacts — permanent once out, whatever happens to the source |
+| drafts | each increment's frozen synthesis prose — raw material for the shipped documents, never normative |
 
 **Transient** — generated, used, discarded:
 
 | artifact | why it is transient |
 |---|---|
-| synthesis draft | Clarify's instrument for finding gaps — discarded at zero remainder, when everything it says is in the fold |
 | test plan | an input to the implementation, not a description of the product |
 | implementation | regenerable from the durable set |
 
@@ -121,11 +121,13 @@ Outputs are the research and results collected, plus:
 3. **open questions** identified but not answerable at this level, left for Implement to resolve
 
 The working method is a **synthesis draft** — connected prose, because writing an argument that must
-hold together is what exposes the decision not yet made and the question not yet asked. The draft is
-an instrument, not an artifact: it lives on the increment's branch, and it is discarded once
-discarding loses nothing — every claim in it either cites a foundation or has been extracted into a
-decision, a fact, or an open question. A claim citing nothing is a shadow decision, caught where it
-is cheapest to catch. The publish gate refuses an increment still carrying its draft.
+hold together is what exposes the decision not yet made and the question not yet asked. The draft
+lives in the increment's `drafts/` folder, merges with the increment, and freezes at publish like
+every other increment file. It is raw material, never normative: the fold is what binds, and a claim
+in the draft that cites no foundation is a shadow decision — extraction into decisions, facts, and
+open questions remains Clarify's discipline, with the frozen draft as the record of the argument
+rather than a second authority. Implementation later converts drafts into the shipped documents,
+checking the draft's claims against the fold as it goes.
 
 ### Ratify
 
@@ -167,7 +169,6 @@ the gate runs there:
 
 - no decision still `proposed`
 - everything `after:` names is published
-- no synthesis draft present
 - the number is the next in the product's sequence — a concurrent increment's collision surfaces
   here, and the loser renames and recomputes
 
@@ -328,12 +329,12 @@ minutes for an unattended implementation or days for hand crafting. A document t
 — one outside readers pin against — releases versions like any other package.
 
 Document homes follow one convention: shipped document packages live under `docs/<domain>/`, and
-`docs/proposals/` is the conventional home of synthesis drafts — confined to increment branches,
-with the merge gate rejecting anything under it. A hand-authored document — the owner and agents
-writing during the increment's PR — and an autonomously written one are the same mechanism on
-different schedules: the single-increment shape edits the document at its permanent home on the
-increment's own branch, the split shape leaves it to a later implementation, and either way the
-implementation record is what says who shipped it, against which fold, and when.
+synthesis drafts live in their increment's `drafts/` folder, publishing with it. The path from one
+to the other is an implementation: a new PR that creates or revises the document at its permanent
+home, drawing on the frozen drafts, checking their claims against the fold, proposing revisions as
+new design increments where the fold itself must move, and writing its implementations record —
+which is what says who shipped the document, against which fold, and when. Run by the owner and
+agents or autonomously, it is the same mechanism and the same record.
 
 ### Facets
 

@@ -20,15 +20,16 @@ requirements:
     facets: tooling
 
   - id: r-bs6wsobr
-    title: no spec survives an increment
+    title: no maintained spec exists
     statement: |
-      no unstructured per-product spec document is maintained or merged; a synthesis draft may
-      be created as a technique during planning, but any such document is confined to the
-      increment's branch, and discarded before a design increment is merged
+      no per-product spec document is maintained as a living artifact; a synthesis draft lives
+      in its increment's drafts/ folder, merges with the increment, and freezes at publish —
+      raw material for implementation, never normative. the fold is what binds; the shipped
+      reference is implementation at its permanent home.
     satisfied_when: |
-      increment directories admit only the defined source files, and the merge gate rejects
-      anything under docs/proposals/ — the synthesis drafts' conventional home; a spec
-      disguised as an ordinary document is review's to catch, not the gate's.
+      increment directories admit only the defined source files plus a drafts/ folder, whose
+      contents freeze at publish like every increment file; a spec maintained anywhere else is
+      review's to catch, not the gate's.
     facets:
       - process-doc
       - design-validator
