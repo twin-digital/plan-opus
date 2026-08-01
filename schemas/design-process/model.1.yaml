@@ -18,7 +18,10 @@ properties:
     items:
       type: object
       additionalProperties: false
-      required: [name, schema]
+      required: [name]
+      oneOf:
+        - required: [schema]
+        - required: [api]
       properties:
         name:
           type: string
@@ -26,7 +29,11 @@ properties:
         schema:
           type: string
           pattern: "^[a-z0-9][a-z0-9-]*(/[a-z0-9][a-z0-9-]*)*@[0-9]+$"
-          description: a pool reference by identity, <namespace>/<entity>@<version>
+          description: a schema-pool reference by identity, <namespace>/<entity>@<version>
+        api:
+          type: string
+          pattern: "^[a-z0-9][a-z0-9-]*(/[a-z0-9][a-z0-9-]*)*@[0-9]+$"
+          description: an api-pool reference by identity, <namespace>/<name>@<version>
         description:
           type: string
   retires:

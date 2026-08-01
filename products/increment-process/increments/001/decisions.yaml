@@ -32,10 +32,10 @@ decisions:
   - id: d-ke7709uf
     title: the model is a per-increment source
     statement: |
-      model.yaml lists entities — name, schema as <namespace>/<entity>@<version>, an optional
-      description — and folds by name like the other sources, retiring an entity with a name
-      and a reason; an entity's name is the design's word for it, free to differ from the pool
-      schema's.
+      model.yaml lists entities — name, one contract reference (schema: or api:, each as
+      <namespace>/<entity>@<version>), an optional description — and folds by name like the
+      other sources, retiring an entity with a name and a reason; an entity's name is the
+      design's word for it, free to differ from the pool entry's.
     status: proposed
     because:
       - r-bua9wl1s

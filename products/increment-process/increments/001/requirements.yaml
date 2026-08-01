@@ -101,13 +101,13 @@ requirements:
   - id: r-bua9wl1s
     title: the model binds schemas as requirements
     statement: |
-      an increment binds schemas through its model — entity name, schema reference, and an
-      optional description anchoring what the entity is in the design. model entries are part
-      of the increment's requirements: ratified with it, binding on implementers, folded by
-      entity name; where prose references an entity, its bound schema is the authoritative
-      shape.
+      an increment binds contracts through its model — entity name, a schema or public-api
+      reference, and an optional description anchoring what the entity is in the design. model
+      entries are part of the increment's requirements: ratified with it, binding on
+      implementers, folded by entity name; where prose references an entity, its bound
+      contract is the authoritative shape.
     satisfied_when:
-      - the design validator fails an increment whose model reference — or whose source file's version field — resolves to no pool schema
+      - the design validator fails an increment whose model reference — or whose source file's version field — resolves to no pool entry
       - the design validator fails an increment which has duplicated entity names in the model in force at the increment
     facets:
       - schema

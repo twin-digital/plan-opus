@@ -425,8 +425,9 @@ model:
     description: the manifest a behaviour pack ships, as the build writes it
 ```
 
-The entity name is the design's word for the thing, free to differ from the pool schema's name, and
-the description anchors what the entity does in the design. Model entries are part of the
+The entity name is the design's word for the thing, free to differ from the pool entry's name, and
+the description anchors what the entity does in the design. An entry carries one contract
+reference — `schema:`, or `api:` once the implement increment defines the API pool. Model entries are part of the
 increment's requirements — ratified with it, binding on implementers — and wherever prose references an
 entity, its bound schema is the authoritative shape.
 
