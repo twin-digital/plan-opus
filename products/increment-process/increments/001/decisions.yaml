@@ -20,9 +20,9 @@ decisions:
     title: increment sources live under products/
     statement: |
       increment artifacts live at products/<product>/increments/<NNN>/ — requirements.yaml,
-      decisions.yaml, the sources later process increments define, and increment.yaml only
-      when it has something to declare — with the product declared by the presence of
-      products/<product>/product.yaml, whose directory name is the product id.
+      decisions.yaml, schemas/, the sources later process increments define, and
+      increment.yaml only when it has something to declare — with the product declared by the
+      presence of products/<product>/product.yaml, whose directory name is the product id.
     status: proposed
     because:
       - d-9dx9ryhk
@@ -62,7 +62,8 @@ decisions:
       - d-j4scg1vy
     pinned:
       reason: data-format
-      notes: product@N is the reference builds and after: resolve against
+      notes: |
+        product@N is the reference builds and after: resolve against
     facets:
       - schema
       - tooling
@@ -80,6 +81,20 @@ decisions:
     pinned:
       reason: data-format
       notes: the first field every reader consults
+    facets: schema
+
+  - id: d-y0vuo11f
+    title: schemas are JSON Schema in YAML
+    statement: |
+      schemas are JSON Schema, draft 2020-12, authored as YAML; each file carries $schema for
+      its dialect and version like every structured file. a more concise or expressive
+      formalism meeting the foreseeable needs may displace it.
+    status: proposed
+    because:
+      - r-2fytqadu
+    pinned:
+      reason: data-format
+      notes: every schema file in every product is written in it
     facets: schema
 
   - id: d-9s4d3ww2

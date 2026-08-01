@@ -391,6 +391,28 @@ lets tooling read history without guessing, and what makes a format change an or
 increment rather than a repository-wide migration. Carrying it means the foundation files are keyed
 mappings — the version beside a key naming the entry kind — rather than bare sequences.
 
+### Schemas name the shapes
+
+A recurring need is to fix a data shape formally. An increment defines schemas as files under
+`schemas/` in its own directory: the filename, minus extension, is the schema's name, and wherever
+prose — a requirement, a decision, a shipped document — references that name, the schema is the
+authoritative definition of the shape. No binding entry exists; the filename is the binding.
+
+Schemas are part of the increment's requirements: ratified with them, binding on builders, and
+changed the way requirements change — a later increment supersedes a schema by defining the same
+name, and the fold resolves each name to the newest definition in force at an increment.
+
+The formalism is JSON Schema, draft 2020-12, authored as YAML, carrying `$schema` for its dialect
+and `version` like every structured file. It is the default for being widely known and mechanically
+checkable; something more concise or expressive can displace it where it meets the foreseeable
+needs. The process's own sources are the first instances: increment 001's `schemas/` directory
+defines `requirements`, `decisions`, `product`, and `increment`, and the design validator checks
+every structured file against the schema of its name in force.
+
+This settles the durable-interfaces question at the data layer: a shape something outside the build
+depends on is a named schema, reviewed and folded like any requirement. What remains open is the
+API layer only — functions and modules, not data.
+
 ### Lifecycle — declare changes, fold for state
 
 Requirements, decisions and preset adoptions all work the same way: **an increment declares what changed,
@@ -570,20 +592,22 @@ structured data and never reads the narrative.
 12. **Opaque ids** — `{prefix}-{8 base36 characters}`, `title` as the label, the generator a CLI
     command, format and uniqueness checked.
 13. **`after:` on increments** — cross-product ordering, read by the publish gate.
+14. **Named schemas** — `schemas/` in the increment, filename as the name, folded by name, every
+    structured file validated against the schema of its name in force.
 
 **Tooling**
 
-14. **Collation** — the folded, computed view of a product, filterable by facet and ordered by
+15. **Collation** — the folded, computed view of a product, filterable by facet and ordered by
     citation topology.
-15. **The merge gate** — publish is the merge: no `proposed` decision outstanding, everything
+16. **The merge gate** — publish is the merge: no `proposed` decision outstanding, everything
     `after:` names published, no synthesis draft present, the number next in sequence.
 
 **Process**
 
-16. **Promotion of a decision to a requirement**, when it has become something consumers can reasonably be
+17. **Promotion of a decision to a requirement**, when it has become something consumers can reasonably be
     expected to rely on and preserving its effect is a matter of compatibility. Not every accepted
     decision — requirements say what the product must do to be accepted; decisions describe the path taken.
-17. **The retirement form** — top-level `retires:` blocks in each increment's sources, one id and a
+18. **The retirement form** — top-level `retires:` blocks in each increment's sources, one id and a
     one-line reason per entry, no statement.
 
 **Deliberately not needed**

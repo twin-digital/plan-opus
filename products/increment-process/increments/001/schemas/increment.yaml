@@ -1,0 +1,42 @@
+version: 1
+$schema: https://json-schema.org/draft/2020-12/schema
+title: increment
+description: an increment's declarations; the file exists only when at least one is made
+type: object
+additionalProperties: false
+required: [version]
+anyOf:
+  - required: [ask]
+  - required: [after]
+  - required: [adopts]
+  - required: [drops]
+properties:
+  version:
+    type: integer
+    minimum: 1
+  ask:
+    type: array
+    minItems: 1
+    description: pre-existing requirements taken as scope; requirements authored in the increment are in scope by existing
+    items:
+      type: string
+      pattern: "^r-[0-9a-z]{8}$"
+  after:
+    type: array
+    minItems: 1
+    description: increments that must be published before this one publishes
+    items:
+      type: string
+      pattern: "^[a-z0-9][a-z0-9-]*/[0-9]{3}$"
+  adopts:
+    type: array
+    minItems: 1
+    items:
+      type: string
+      pattern: "^[a-z0-9][a-z0-9-]*@[0-9]+$"
+  drops:
+    type: array
+    minItems: 1
+    items:
+      type: string
+      pattern: "^[a-z0-9][a-z0-9-]*$"
