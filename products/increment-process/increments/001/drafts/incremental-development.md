@@ -195,28 +195,30 @@ A **requirement preset** is a product that defines requirements and builds nothi
 `minecraft-addon`, `published-to-npm`. It has increments like any other product, and its increments are
 **Plan-only**: Capture → Clarify → Ratify, with no Implement.
 
-A product adopts presets at pinned increments, declaring what changed rather than the whole state:
-
-| operation | how |
-|---|---|
-| **add** | `adopts` a preset not currently adopted |
-| **change version** | `adopts` a preset already adopted — it replaces the earlier version, since a preset is adopted at most once at a time and the preset name is the identity |
-| **remove** | `drops` the preset, which takes no version for the same reason |
+A product adopts presets at pinned versions, declared in the increment's requirements source —
+the place fiat lives — as a `presets:` block beside `requirements:`. Entries are state-shaped and
+fold by preset name: the newest declaration for a name is the standing.
 
 ```yaml
-# increment 1
-adopts:
-  - nodejs-library@3
-  - published-to-npm@1
+# increment 1 — first adoptions
+presets:
+  - name: nodejs-library
+    version: 3
+  - name: published-to-npm
+    version: 1
 ```
 
 ```yaml
 # increment 4 — a version change and a removal
-adopts:
-  - nodejs-library@4
-drops:
-  - minecraft-addon
+presets:
+  - name: nodejs-library
+    version: 4
+  - name: minecraft-addon
+    status: dropped
 ```
+
+`status` is `adopted` — the default, so it is normally omitted — or `dropped`; `version` is required
+when adopted and forbidden when dropped, since the name alone is the identity.
 
 Rules:
 
@@ -386,7 +388,7 @@ detection. Products and presets are named by their directory, and adoption uses 
 
 ### Every structured file names its own schema version
 
-Every structured artifact this process defines — `product.yaml`, `increment.yaml`, the increment
+Every structured artifact this process defines — `product.yaml` and the increment
 sources, and any source a later process increment adds — carries a `version`: the pool version of
 the file's own schema. A requirements source with `version: 2` is interpreted by the pool
 schema `/design-process/requirements@2` — one lookup, no fold.
@@ -588,7 +590,8 @@ structured data and never reads the narrative.
 
 1. **Fence requirements to the product, not the design.** The highest-value single change; it removes the
    cross-design ask ceremony for same-product work.
-2. **Requirement presets**, with `adopts` and `drops` on a product, and the wider scopes removed.
+2. **Requirement presets**, adopted through the `presets:` declaration in a requirements source,
+   and the wider scopes removed.
 3. **Increment as an artifact** — foundation delta, decisions, adoptions.
 4. **Move status from the design to the increment.** It stays derived, now from location: draft is
    off main, published is merged, and the old unsettled-and-merged combination is gone.
@@ -662,17 +665,6 @@ comprehension channel, and this is built to feed it rather than to trim it.
 Illustrative fragments rather than a schema. Field names are provisional; what matters here is what each
 artifact has to carry.
 
-### An increment
-
-The path carries the product and the number, and draft-versus-published is location — off main or
-on it — so the file states neither. It exists only when it has something to declare: an adoption or a drop.
-
-```yaml
-# products/minecraft-test-lib/increments/004/increment.yaml
-adopts:
-  - nodejs-library@4
-```
-
 ### A requirement
 
 ```yaml
@@ -723,22 +715,15 @@ version: 1
 kind: requirement-preset
 ```
 
-Its requirements file has the same shape as any product's. A product adopts it, declaring changes rather
-than state:
+Its requirements file has the same shape as any product's. A product adopts it in its own
+requirements source:
 
 ```yaml
-# increment 1 — first adoptions
-adopts:
-  - nodejs-library@3
-  - published-to-npm@1
-```
-
-```yaml
-# increment 4 — a version change and a removal
-adopts:
-  - nodejs-library@4
-drops:
-  - minecraft-addon
+# an adopting increment's requirements.yaml
+version: 1
+presets:
+  - name: nodejs-library
+    version: 3
 ```
 
 ### A decision

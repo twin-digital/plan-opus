@@ -91,15 +91,17 @@ decisions:
   - id: d-k48jh86c
     title: requirement presets are plan-only products
     statement: |
-      shared requirements live in presets — products that implement nothing — adopted whole at
-      pinned increments via adopts and drops; adopting and dropping are owner fiat, and the
-      wider requirement scopes are retired.
+      shared requirements live in presets — products that implement nothing — adopted whole,
+      at a pinned version, through the presets declaration in an increment's requirements
+      source: entries of name, version, and a status of adopted (the default) or dropped,
+      folding by name. adopting and dropping are owner fiat, and the wider requirement scopes
+      are retired.
     status: accepted
     because:
       - r-bwtud1e5
     pinned:
       reason: data-format
-      notes: adopts and drops are part of every increment's shape
+      notes: the presets declaration is part of every requirements source
     facets:
       - schema
       - process-doc
@@ -108,8 +110,8 @@ decisions:
     title: increment sources live under products/
     statement: |
       increment artifacts live at products/<product>/increments/<NNN>/ — requirements.yaml,
-      decisions.yaml, model.yaml, a drafts/ folder, the sources later process increments
-      define, and increment.yaml only when it has something to declare — with the product
+      decisions.yaml, model.yaml, a drafts/ folder, and the sources later process increments
+      define; the increment is its directory, with no manifest file of its own. the product is
       declared by the presence of products/<product>/product.yaml, whose directory name is the
       product id.
     status: accepted

@@ -7,6 +7,7 @@ additionalProperties: false
 required: [version]
 anyOf:
   - required: [requirements]
+  - required: [presets]
   - required: [retires]
 properties:
   version:
@@ -17,6 +18,33 @@ properties:
     minItems: 1
     items:
       $ref: "/design-process/requirement@1"
+  presets:
+    type: array
+    minItems: 1
+    items:
+      type: object
+      additionalProperties: false
+      required: [name]
+      properties:
+        name:
+          type: string
+          pattern: "^[a-z0-9][a-z0-9-]*$"
+        version:
+          type: integer
+          minimum: 1
+        status:
+          enum: [adopted, dropped]
+          description: adopted when absent
+      if:
+        properties:
+          status:
+            const: dropped
+        required: [status]
+      then:
+        not:
+          required: [version]
+      else:
+        required: [version]
   retires:
     type: array
     minItems: 1
