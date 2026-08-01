@@ -90,9 +90,9 @@ decisions:
     statement: |
       a pool schema carries its identity as $id — <name>@<version>, names unique across the
       repository, versions dense integers per name — beside $schema; resolution scans the pool
-      by identity, and the path carries no meaning to it. the default filing, a folder per
-      schema with a file per version, aids navigation only; an id-to-file index, if scale ever
-      wants one, is generated on demand and never committed.
+      by identity, and the path carries no meaning to it. the current filing groups schemas by
+      domain — schemas/design-process/<entity>.<version>.yaml — and aids navigation only; an
+      id-to-file index, if scale ever wants one, is generated on demand and never committed.
     status: proposed
     because:
       - r-2fytqadu

@@ -72,9 +72,10 @@ requirements:
       publishes, and stays present as long as anything published binds it; drift is legal —
       no product is rebound by a new version appearing.
     satisfied_when: |
-      every pool schema declares a unique name-and-version identity and parses in the declared
-      formalism, and the design validator resolves references by identity and rejects an edit
-      to, or removal of, a version some published increment binds.
+      every pool schema declares a name-and-version identity and parses in the declared
+      formalism; the design validator fails when two pool files claim one identity, resolves
+      references by identity, and rejects an edit to, or removal of, a version some published
+      increment binds.
     facets:
       - schema
       - design-validator
@@ -87,8 +88,9 @@ requirements:
       increment's requirements: ratified with it, binding on builders, folded by entity name;
       where prose references an entity, its bound schema is the authoritative shape.
     satisfied_when: |
-      the design validator resolves every model reference to a pool version, and entity names
-      are unique in the model in force at the increment.
+      the design validator fails an increment whose model reference — or whose source file's
+      version field — resolves to no pool schema, and entity names are unique in the model in
+      force at the increment.
     facets:
       - schema
       - design-validator

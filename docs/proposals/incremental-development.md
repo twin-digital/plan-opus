@@ -398,10 +398,13 @@ A recurring need is to fix a data shape formally. Schemas live in one repo-wide 
 `schemas/` — any file at any depth, like the facts pool. Identity lives in the file: each schema
 declares `$id: <name>@<version>` beside `$schema`, names unique across the repository, versions
 dense integers per name. References resolve by that identity and never by path, so the tree may be
-nested and reorganised freely; the default filing — a folder per schema, a file per version — aids
-navigation and means nothing to resolution. A version is immutable once an increment binding it
-publishes, and the design validator refuses to edit or remove one that any published increment
-binds; a new version is a new file, proposed by the increment introducing it and ratified with it.
+nested and reorganised freely; the current filing — `schemas/design-process/<entity>.<version>.yaml`,
+grouped by domain — aids navigation and means nothing to resolution. A version is immutable once an
+increment binding it publishes, and the design validator refuses to edit or remove one that any
+published increment binds; it also fails when two pool files claim one identity, and fails an
+increment whose schema reference — a model binding or a source file's `version` field — resolves to
+no pool schema. A new version is a new file, proposed by the increment introducing it and ratified
+with it.
 Binding follows the preset precedent: any product binds any schema at a pinned version, and drift
 is legal — no product is rebound by a new version appearing.
 
