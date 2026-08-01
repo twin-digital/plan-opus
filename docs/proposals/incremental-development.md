@@ -179,11 +179,13 @@ and what a tree-consumed deliverable shows on main is always what a published in
 
 An increment need not run Build. Ask → Clarify → Ratify → publish is a complete increment — a
 preset's only shape, and any product's option. Its ratified requirements sit in the fold as claims
-with no coverage, which the collated view shows for what they are: ratified and unbuilt. A later
-increment takes them as its scope — its `ask:` names them — and its build produces the build
-decisions and evidence, on whatever schedule building deserves — or never. Whether one increment carries both
-phases or two increments split them is scheduling, chosen per ask; nothing in the artifacts differs
-except which increment the build entries land in.
+with no coverage, which the collated view shows for what they are: ratified and unbuilt. Several
+design increments may queue before any build: a build targets the fold at a chosen increment —
+ordinarily the newest published — durably records that target, and covers the claims it set out to
+cover, while claims from intervening increments simply remain ratified and unbuilt. Nothing obliges
+a build per increment, and a build never amends the design it targets: an escalated change lands as
+an ordinary design increment, ratified as any is, and the build retargets the fold that contains
+it.
 
 ---
 

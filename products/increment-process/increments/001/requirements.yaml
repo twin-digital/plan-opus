@@ -107,6 +107,17 @@ requirements:
       - process-doc
       - design-validator
 
+  - id: r-tpcrux8s
+    title: designs queue, builds consolidate
+    statement: |
+      design increments publish on their own cadence, and several may accumulate before any
+      build; one build may target the consolidated fold, and nothing obliges a build per
+      increment.
+    satisfied_when: |
+      a build targets the fold at a chosen increment and durably records that target, while
+      increments published since remain visible as ratified and unbuilt.
+    facets: process-doc
+
   - id: r-bwtud1e5
     title: products declare their own requirements
     statement: |
