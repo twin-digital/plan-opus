@@ -533,7 +533,10 @@ and because a decision built on a finding should be traceable to it.
 If decisions are the owner's window, they have to read *as a set*. Thirty entries in file order do not add
 up to a picture the way prose does, and that assembly is most of what a spec was doing.
 
-That job does not disappear when the spec does; it moves to tooling. A projected view of a product shows,
+That job does not disappear when the spec does; it moves to tooling. The two words are deliberate:
+the **fold** is the state — declared deltas combined into the effective sets, authoritative wherever
+it is computed — and the **projection** is its rendering for a reader, joined, filtered, and
+ordered. A projected view of a product shows,
 for one product at one increment:
 
 - the effective requirement set, product-local and adopted, with each adoption's preset and version
