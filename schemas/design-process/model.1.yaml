@@ -1,5 +1,5 @@
 $schema: https://json-schema.org/draft/2020-12/schema
-$id: design-process/model@1
+$id: /design-process/model@1
 title: model
 description: a per-increment model source, binding entity names to pool schemas
 type: object
@@ -28,12 +28,12 @@ properties:
           pattern: "^[a-z0-9][a-z0-9-]*$"
         schema:
           type: string
-          pattern: "^[a-z0-9][a-z0-9-]*(/[a-z0-9][a-z0-9-]*)*@[0-9]+$"
-          description: a schema-pool reference by identity, <namespace>/<entity>@<version>
+          pattern: "^/[a-z0-9][a-z0-9-]*(/[a-z0-9][a-z0-9-]*)+@[0-9]+$"
+          description: a schema-pool reference by identity, /<namespace>/<entity>@<version>
         api:
           type: string
-          pattern: "^[a-z0-9][a-z0-9-]*(/[a-z0-9][a-z0-9-]*)*@[0-9]+$"
-          description: an api-pool reference by identity, <namespace>/<name>@<version>
+          pattern: "^/[a-z0-9][a-z0-9-]*(/[a-z0-9][a-z0-9-]*)+@[0-9]+$"
+          description: an api-pool reference by identity, /<namespace>/<name>@<version>
         description:
           type: string
   retires:

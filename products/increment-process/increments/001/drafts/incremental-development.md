@@ -387,7 +387,7 @@ detection. Products and presets are named by their directory, and adoption uses 
 Every structured artifact this process defines — `product.yaml`, `increment.yaml`, the increment
 sources, and any source a later process increment adds — carries a `version`: the pool version of
 the file's own schema. A requirements source with `version: 2` is interpreted by the pool
-schema `design-process/requirements@2` — one lookup, no fold.
+schema `/design-process/requirements@2` — one lookup, no fold.
 
 ```yaml
 version: 1
@@ -406,8 +406,10 @@ keyed mappings — the version beside a key naming the entry kind — rather tha
 
 A recurring need is to fix a data shape formally. Schemas live in one repo-wide pool under
 `schemas/` — any file at any depth, like the facts pool. Identity lives in the file: each schema
-declares `$id: <namespace>/<entity>@<version>` beside `$schema` — `design-process/requirements@1` —
-names unique across the repository, versions dense integers per entity. References resolve by that
+declares `$id: /<namespace>/<entity>@<version>` beside `$schema` — `/design-process/requirements@1` —
+names unique across the repository, versions dense integers per entity, the leading slash mandatory:
+root-relative identities resolve to themselves regardless of base, which is what lets a schema depend
+on schemas — a `$ref` is an identity, resolved from the pool as the registry. References resolve by
 identity and never by path, so the tree may be nested and reorganised freely; the filing convention —
 `schemas/<namespace>/<entity>.<version>.yaml` — aids navigation and means nothing to resolution. A version is immutable once an
 increment binding it publishes, and the design validator refuses to edit or remove one that any

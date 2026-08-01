@@ -86,24 +86,27 @@ requirements:
     title: schemas are shared and versioned
     statement: |
       schemas live in one repo-wide pool, formalized as JSON Schema — draft 2020-12, authored
-      as YAML. each schema file declares its identity in $id, encoded as
-      <namespace>/<entity>@<version> (design-process/requirements@1): names unique across the
-      repository, versions dense integers per entity. references are by that identity, never
-      by path, so the pool tree may be nested and reorganized freely — the filing convention,
-      schemas/<namespace>/<entity>.<version>.yaml, aids navigation only, and an id-to-file
-      index, if scale ever wants one, is generated on demand and never committed. a version is
-      immutable once an increment binding it publishes, and stays present as long as anything
-      published binds it; drift is legal — no product is rebound by a new version appearing.
-      every structured file this process defines carries version — the pool version of the
-      file's own schema, so a requirements source with version 2 is interpreted by
-      design-process/requirements@2: one lookup, no fold, and a published file stays readable
-      forever in the dialect it was written in. a foundation file is a mapping, not a bare
-      list of entries: version sits beside one top-level key — requirements:, decisions:,
-      model: — that names what the file holds.
+      as YAML. each schema file declares its identity in $id, encoded root-relative as
+      /<namespace>/<entity>@<version> (/design-process/requirements@1): names unique across
+      the repository, versions dense integers per entity, and the leading slash mandatory —
+      it is what makes every reference resolve to itself regardless of base. references are by
+      that identity, never by path, so the pool tree may be nested and reorganized freely —
+      the filing convention, schemas/<namespace>/<entity>.<version>.yaml, aids navigation
+      only, and an id-to-file index, if scale ever wants one, is generated on demand and never
+      committed. a schema may depend on schemas: a $ref is a root-relative identity, resolved
+      from the pool as the registry. a version is immutable once an increment binding it
+      publishes, and stays present as long as anything published binds it — directly, or
+      transitively through a bound schema's $ref; drift is legal — no product is rebound by a
+      new version appearing. every structured file this process defines carries version — the
+      pool version of the file's own schema, so a requirements source with version 2 is
+      interpreted by /design-process/requirements@2: one lookup, no fold, and a published file
+      stays readable forever in the dialect it was written in. a foundation file is a mapping,
+      not a bare list of entries: version sits beside one top-level key — requirements:,
+      decisions:, model: — that names what the file holds.
     satisfied_when:
-      - every pool schema parses as JSON Schema and declares its $id identity
+      - every pool schema parses as JSON Schema and declares its $id identity root-relative; the design validator fails one that omits the leading slash, in an $id or a $ref
       - the design validator fails when two pool files claim one identity
-      - the design validator resolves references by identity, and rejects an edit to, or removal of, a version some published increment binds
+      - the design validator resolves references by identity, and rejects an edit to, or removal of, a version some published increment binds — directly, or transitively through a bound schema's $ref
       - every structured file names its schema version in version, and validates against the schema that version names
     facets:
       - schema
