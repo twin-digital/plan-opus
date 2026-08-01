@@ -6,7 +6,7 @@ decisions:
       an increment declares what changed; the effective requirement and decision sets are
       computed by folding across the product's increments, and the computed view is what the
       owner reads.
-    status: proposed
+    status: accepted
     because:
       - r-caao9k3z
     pinned:
@@ -24,7 +24,7 @@ decisions:
       define, and increment.yaml only when it has something to declare — with the product
       declared by the presence of products/<product>/product.yaml, whose directory name is the
       product id.
-    status: proposed
+    status: accepted
     because:
       - d-9dx9ryhk
     pinned:
@@ -38,7 +38,7 @@ decisions:
       an increment is draft while off main and published by merging; the gate runs at merge,
       main holds only published increments, dense and immutable, and draft-versus-published is
       location, not a stored field.
-    status: proposed
+    status: accepted
     because:
       - r-caao9k3z
       - r-0axqvtcc
@@ -52,19 +52,15 @@ decisions:
   - id: d-9v6m2n7r
     title: the fold at an increment is the bundle
     statement: |
-      implementers implement against the fold at a published increment — product@N — derivable on
-      demand and identical forever since every input is immutable; the increment number is the
-      version, the declared delta the changelog, and no bundle artifact is published unless an
-      external consumer needs a frozen file, in which case collation output releases like any
-      package.
-    status: proposed
+      implementers implement against the fold at a published increment — product@N — derivable
+      on demand and identical forever since every input is immutable; the increment number is
+      the version, and the declared delta the changelog.
+    status: accepted
     because:
       - r-sk47gw08
       - d-j4scg1vy
     pinned:
       reason: data-format
-      notes: |
-        product@N is the reference implementations and after: resolve against
     facets:
       - schema
       - tooling
@@ -74,10 +70,11 @@ decisions:
     statement: |
       every structured file this process defines carries version — the pool version of the
       file's own schema, so a requirements source with version 2 is interpreted by the pool
-      schema requirements@2. interpretation is one lookup, no fold, and a published file
-      stays readable forever in the dialect it was written in; foundation files are keyed
-      mappings, the version beside a key naming the entry kind.
-    status: proposed
+      schema design-process/requirements@2. interpretation is one lookup, no fold, and a
+      published file stays readable forever in the dialect it was written in. a foundation
+      file is a mapping, not a bare list of entries: version sits beside one top-level key —
+      requirements:, decisions:, model: — that names what the file holds.
+    status: accepted
     because:
       - r-caao9k3z
       - r-2fytqadu
@@ -86,26 +83,10 @@ decisions:
       notes: the first field every reader consults
     facets: schema
 
-  - id: d-gkr3l8tx
-    title: schema identity is declared, the path is convention
-    statement: |
-      a pool schema carries its identity as $id — <name>@<version>, names unique across the
-      repository, versions dense integers per name — beside $schema; resolution scans the pool
-      by identity, and the path carries no meaning to it. the current filing groups schemas by
-      domain — schemas/design-process/<entity>.<version>.yaml — and aids navigation only; an
-      id-to-file index, if scale ever wants one, is generated on demand and never committed.
-    status: proposed
-    because:
-      - r-2fytqadu
-    pinned:
-      reason: data-format
-      notes: every schema reference in every product resolves against this identity form
-    facets: schema
-
   - id: d-ke7709uf
     title: the model is a per-increment source
     statement: |
-      model.yaml lists entities — name, schema as <pool-name>@<version>, an optional
+      model.yaml lists entities — name, schema as <namespace>/<entity>@<version>, an optional
       description — and folds by name like the other sources, retiring an entity with a name
       and a reason; an entity's name is the design's word for it, free to differ from the pool
       schema's.
@@ -117,27 +98,18 @@ decisions:
       notes: part of the increment source shape every product writes
     facets: schema
 
-  - id: d-y0vuo11f
-    title: schemas are JSON Schema in YAML
-    statement: |
-      schemas are JSON Schema, draft 2020-12, authored as YAML; each file carries $schema for
-      its dialect and $id for its identity. a more concise or expressive formalism meeting the
-      foreseeable needs may displace it.
-    status: proposed
-    because:
-      - r-2fytqadu
-    pinned:
-      reason: data-format
-      notes: every schema file in every product is written in it
-    facets: schema
-
   - id: d-9s4d3ww2
     title: rulings are accepted, tolerated, delegated, or rejected
     statement: |
-      the owner's ruling on a decision is accepted, tolerated, delegated, or rejected;
-      tolerated is a judgement and delegated an abstention, kept distinct; rejection is
-      reserved for the impossible, non-viable, or incorrect, carries the owner's reason on the
-      entry, and is closed by a replacement proposed by whoever proposed the rejected one.
+      the owner's ruling on a decision must be one of the following values:
+
+      - accepted: owner determined the decision is acceptable without caveats or reservation
+      - tolerated: owner judged the decision and left it standing, but found it sub-optimal
+        or undesirable in some way
+      - delegated: owner abstained from reviewing the decision, which is left standing as is
+      - rejected: owner has determined the decision non-viable; carries the owner's reason on
+        the entry, and is closed by a replacement proposed by whoever proposed the rejected
+        one
     status: proposed
     because:
       - r-gc7a3m56
@@ -149,9 +121,10 @@ decisions:
   - id: d-wrjhfbei
     title: pinned is false or a named reason
     statement: |
-      pinned is false or { reason, notes? }; reason is an enum — data-format, public-api,
-      other — with notes required for other; pinning, not status, is what escalation reads.
-    status: proposed
+      pinned is false or { reason, notes? }, and the default is false; reason is an enum —
+      data-format, public-api, other — with notes required for other; pinning, not status, is
+      what escalation reads.
+    status: tolerated
     pinned:
       reason: data-format
       notes: part of the decision shape every product writes
@@ -163,7 +136,7 @@ decisions:
       requirement and decision ids are {prefix}-{8 lowercase base36 characters}, random,
       produced by a CLI generator; title carries the human label and may churn freely; the id
       is the citation form.
-    status: proposed
+    status: accepted
     pinned:
       reason: data-format
       notes: every citation in every product resolves against this format
@@ -171,13 +144,31 @@ decisions:
       - schema
       - design-validator
 
+  - id: d-nzba0wqu
+    title: documents live under docs/, drafts under the increment
+    statement: |
+      shipped document packages live at permanent homes under docs/<domain>/, entering
+      product.yaml at the merge that ships them; synthesis drafts live at
+      products/<product>/increments/<NNN>/drafts/, merging with the increment that generated
+      them and freezing at its publish.
+    status: tolerated
+    because:
+      - r-yzkxa2hj
+      - r-bs6wsobr
+    pinned:
+      reason: data-format
+      notes: the paths every product's documents and drafts use
+    facets:
+      - schema
+      - process-doc
+
   - id: d-1sj9kxtj
     title: requirement presets are plan-only products
     statement: |
-      shared requirements live in presets — products that build nothing — adopted whole at
+      shared requirements live in presets — products that implement nothing — adopted whole at
       pinned increments via adopts and drops; adopting and dropping are owner fiat, and the
       wider requirement scopes are retired.
-    status: proposed
+    status: accepted
     because:
       - r-bwtud1e5
     pinned:
@@ -193,7 +184,7 @@ decisions:
       a claim with no successor is retired by a retires: entry — one id, one one-line reason —
       in the increment source whose file scopes its kind; supersession is carried by the
       successor's supersedes or amends and needs no entry.
-    status: proposed
+    status: accepted
     because:
       - d-9dx9ryhk
     pinned:
@@ -204,15 +195,12 @@ decisions:
   - id: d-i8rwe1sv
     title: facets are labels no rule reads
     statement: |
-      a claim may carry facets from the product's declared vocabulary; collation filters and
-      groups by them, and no rule fences, escalates, or gates on them; wanting such a rule is
-      the signal the facet has become a product.
-    status: proposed
+      a claim may carry facets from the product's declared vocabulary; the tooling filters and
+      groups by them, but no rule fences, escalates, or gates on them.
+    status: tolerated
     pinned:
       reason: other
-      notes: |
-        the filter-only line is what keeps facets cheap to assign; a rule reading them would
-        change their meaning repo-wide
+      notes: the filter-only line is what keeps facets cheap to assign
     facets:
       - schema
       - tooling
@@ -221,41 +209,22 @@ decisions:
     title: products map to packages by path and kind
     statement: |
       product.yaml lists packages as path and kind, with an optional repo in owner/repo form
-      defaulting to twin-digital/opus. the mapping describes what exists — a package enters it
-      when the implementation that creates it does, and intent to ship one is a requirement or an ask —
-      so anything else a kind needs is read from the package at that path rather than
-      duplicated, a read that cannot dangle because every listed package has been implemented.
-    status: proposed
+      defaulting to twin-digital/opus. the mapping describes what exists — an implementer
+      adds, removes, or updates package entries at the same time it adds, removes, or updates
+      the implementation files referenced by the package entry.
+    status: accepted
     pinned:
       reason: data-format
       notes: coverage refs and release tracking resolve through this mapping
     facets: schema
 
-  - id: d-nzba0wqu
-    title: documents live under docs/, drafts under the increment
-    statement: |
-      shipped document packages live at permanent homes under docs/<domain>/, entering
-      product.yaml at the merge that ships them; synthesis drafts live at
-      products/<product>/increments/<NNN>/drafts/, merging with the increment that generated
-      them and freezing at its publish.
-    status: proposed
-    because:
-      - r-yzkxa2hj
-      - r-bs6wsobr
-    pinned:
-      reason: data-format
-      notes: the paths every product's documents and drafts use
-    facets:
-      - schema
-      - process-doc
-
   - id: d-eaw3u72o
     title: because cites requirements, facts, and decisions
     statement: |
       because: on a decision cites the requirements it follows from, the facts that drove it,
-      and the decisions it builds on; collation orders the decision set by that topology, and
-      superseding or retiring an entry surfaces its dependents.
-    status: proposed
+      and the decisions it builds on; tooling is capable of ordering the decision set by that
+      topology, and superseding or retiring an entry surfaces its dependents.
+    status: accepted
     because:
       - r-ei82daip
     pinned:
@@ -265,39 +234,13 @@ decisions:
       - schema
       - tooling
 
-  - id: d-keftop3f
-    title: cross-product work orders by after
-    statement: |
-      a wave needing a change in another product files an ask there rather than reaching
-      across; the consuming increment names the resulting increment in after:, and the publish
-      gate holds it until everything named is published.
-    status: proposed
-    pinned:
-      reason: data-format
-      notes: part of the increment shape, and a rule the publish gate reads
-    facets:
-      - schema
-      - design-validator
-
-  - id: d-pm0a8api
-    title: ask re-offers the deferred
-    statement: |
-      the collated view at ask leads with the tolerated decisions in force, the delegated
-      count, and the attested share; no threshold fires — the numbers meet the owner at the
-      moment of choosing what to implement next.
-    status: proposed
-    pinned: false
-    facets:
-      - tooling
-      - prompts
-
   - id: d-rx3s2hqo
     title: decisions record the observable
     statement: |
-      a decision is recorded when a consumer could observe its outcome or a reimplementation must
-      preserve it; choices below that bar live in the code, and a reimplementation is free to re-make
-      them.
-    status: proposed
+      a decision is recorded when a consumer could observe its outcome or a reimplementation
+      must preserve it; choices below that bar live in the code, and a reimplementation is
+      free to re-make them.
+    status: accepted
     because:
       - r-ei82daip
     pinned: false

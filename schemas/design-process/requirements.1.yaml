@@ -1,5 +1,5 @@
 $schema: https://json-schema.org/draft/2020-12/schema
-$id: requirements@1
+$id: design-process/requirements@1
 title: requirements
 description: a per-increment requirements source
 type: object
@@ -28,7 +28,13 @@ properties:
         statement:
           type: string
         satisfied_when:
-          type: string
+          oneOf:
+            - type: string
+            - type: array
+              minItems: 1
+              description: conditions combined with logical AND — all must be met
+              items:
+                type: string
         facets:
           $ref: "#/$defs/facets"
         informed_by:

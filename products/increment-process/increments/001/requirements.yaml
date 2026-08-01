@@ -5,9 +5,9 @@ requirements:
     statement: |
       a published increment is never unsettled by later work: drafting increment N+1 changes
       nothing about increment N.
-    satisfied_when: |
-      the design validator rejects any edit to a file of a published increment, and later changes appear
-      in the fold as new entries superseding or retiring earlier ones.
+    satisfied_when:
+      - the design validator rejects any edit to a file of a published increment
+      - later changes appear in the fold as new entries superseding or retiring earlier ones
     facets: design-validator
 
   - id: r-ei82daip
@@ -26,10 +26,9 @@ requirements:
       in its increment's drafts/ folder, merges with the increment, and freezes at publish —
       raw material for implementation, never normative. the fold is what binds; the shipped
       reference is implementation at its permanent home.
-    satisfied_when: |
-      increment directories admit only the defined source files plus a drafts/ folder, whose
-      contents freeze at publish like every increment file; a spec maintained anywhere else is
-      review's to catch, not the gate's.
+    satisfied_when:
+      - increment directories admit only the defined source files plus a drafts/ folder, whose contents freeze at publish like every increment file
+      - a spec maintained anywhere else is review's to catch, not the gate's
     facets:
       - process-doc
       - design-validator
@@ -39,9 +38,9 @@ requirements:
     statement: |
       the process's normative reference — what agents and the owner read to run it — is a
       shipped deliverable: document-kind packages at permanent homes in this repository.
-    satisfied_when: |
-      once the reference is built, product.yaml lists document packages whose paths hold its
-      current text; until then the requirement is visibly unbuilt — in force, with no coverage.
+    satisfied_when:
+      - once the reference is implemented, product.yaml lists document packages whose paths hold its current text
+      - until then the requirement is visibly unimplemented — in force, with no coverage
     facets: process-doc
 
   - id: r-0axqvtcc
@@ -57,9 +56,9 @@ requirements:
     statement: |
       what the owner engaged and judged is distinguishable, product-wide, from what they
       abstained on.
-    satisfied_when: |
-      collation output provides a documented mechanism for telling whether a decision was
-      reviewed or the owner abstained, and reports the abstention count.
+    satisfied_when:
+      - tooling output provides a documented mechanism for telling whether a decision was reviewed or the owner abstained
+      - tooling output reports the abstention count
     facets:
       - schema
       - tooling
@@ -67,16 +66,19 @@ requirements:
   - id: r-2fytqadu
     title: schemas are shared and versioned
     statement: |
-      schemas live in one repo-wide pool, identified by a name and version declared in the
-      file and referenced only by that identity — never by path, so the pool tree may be
-      nested and reorganized freely; a version is immutable once an increment binding it
-      publishes, and stays present as long as anything published binds it; drift is legal —
-      no product is rebound by a new version appearing.
-    satisfied_when: |
-      every pool schema declares a name-and-version identity and parses in the declared
-      formalism; the design validator fails when two pool files claim one identity, resolves
-      references by identity, and rejects an edit to, or removal of, a version some published
-      increment binds.
+      schemas live in one repo-wide pool, formalized as JSON Schema — draft 2020-12, authored
+      as YAML. each schema file declares its identity in $id, encoded as
+      <namespace>/<entity>@<version> (design-process/requirements@1): names unique across the
+      repository, versions dense integers per entity. references are by that identity, never
+      by path, so the pool tree may be nested and reorganized freely — the filing convention,
+      schemas/<namespace>/<entity>.<version>.yaml, aids navigation only, and an id-to-file
+      index, if scale ever wants one, is generated on demand and never committed. a version is
+      immutable once an increment binding it publishes, and stays present as long as anything
+      published binds it; drift is legal — no product is rebound by a new version appearing.
+    satisfied_when:
+      - every pool schema parses as JSON Schema and declares its $id identity
+      - the design validator fails when two pool files claim one identity
+      - the design validator resolves references by identity, and rejects an edit to, or removal of, a version some published increment binds
     facets:
       - schema
       - design-validator
@@ -84,14 +86,14 @@ requirements:
   - id: r-bua9wl1s
     title: the model binds schemas as requirements
     statement: |
-      an increment binds schemas through its model — entity name, schema reference, and a
-      description anchoring what the entity is in the design. model entries are part of the
-      increment's requirements: ratified with it, binding on implementers, folded by entity name;
-      where prose references an entity, its bound schema is the authoritative shape.
-    satisfied_when: |
-      the design validator fails an increment whose model reference — or whose source file's
-      version field — resolves to no pool schema, and entity names are unique in the model in
-      force at the increment.
+      an increment binds schemas through its model — entity name, schema reference, and an
+      optional description anchoring what the entity is in the design. model entries are part
+      of the increment's requirements: ratified with it, binding on implementers, folded by
+      entity name; where prose references an entity, its bound schema is the authoritative
+      shape.
+    satisfied_when:
+      - the design validator fails an increment whose model reference — or whose source file's version field — resolves to no pool schema
+      - the design validator fails an increment which has duplicated entity names in the model in force at the increment
     facets:
       - schema
       - design-validator
@@ -101,9 +103,9 @@ requirements:
     statement: |
       finishing a plan and implementing it are separately schedulable: a ratified plan publishes
       without an implementation, and one may come later — or never.
-    satisfied_when: |
-      a plan-only increment passes the merge gate, and a later increment may take previously
-      ratified requirements as its scope and implement them.
+    satisfied_when:
+      - a plan-only increment passes the merge gate
+      - an implementer may take previously ratified requirements as an implementation's scope and implement them
     facets:
       - process-doc
       - design-validator
@@ -112,11 +114,11 @@ requirements:
     title: designs queue, implementations consolidate
     statement: |
       design increments publish on their own cadence, and several may accumulate before any
-      implementation; one implementation may target the consolidated fold, and nothing obliges one per
-      increment.
-    satisfied_when: |
-      an implementation targets the fold at a chosen increment and durably records that target, while
-      increments published since remain visible as ratified and unbuilt.
+      implementation; one implementation may target the consolidated fold, and nothing obliges
+      one per increment.
+    satisfied_when:
+      - an implementation targets the fold at a chosen increment and durably records that target
+      - increments published since remain visible as ratified and unimplemented
     facets: process-doc
 
   - id: r-bwtud1e5
@@ -124,7 +126,7 @@ requirements:
     statement: |
       no requirement outside a product's own increments binds it; adoption at a pinned
       increment is the only way an external requirement takes force.
-    satisfied_when: |
-      the design validator resolves a product's obligations only from its own increments' entries and
-      adoptions, and no global or area scope exists to bind implicitly.
+    satisfied_when:
+      - the design validator resolves a product's obligations only from its own increments' entries and adoptions
+      - no global or area scope exists to bind implicitly
     facets: design-validator

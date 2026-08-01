@@ -102,11 +102,6 @@ requirements — authored new, or drawn from requirements already ratified. The 
 field lists only the pre-existing ones; requirements authored in the increment are in its scope by
 existing, so the field is absent otherwise.
 
-Ask begins from the collated view, and the view leads with the deferred: the tolerated decisions in
-force, the delegated count, the share of claims sitting at `attested`. No threshold fires anything —
-the reader of these numbers is the one deciding what to implement next, so the response to a measure is
-its placement at that moment. Every ask re-offers what was deferred, which is what keeps *Implement
-forward* a real deferral rather than a silent one.
 
 ### Clarify
 
@@ -137,10 +132,11 @@ enough to implement, and whatever remains open goes to Implement.
 
 Each proposed decision is read in full and becomes:
 
-- **accepted** — "this matters to me," or "I'd have done it this way"
-- **tolerated** — "I don't love it, but you had good reason and I would not reject it"
-- **delegated** — "I do not have the context to rule on this; the judgement stays with whoever made it"
-- **rejected** — reserved for *impossible, non-viable, or incorrect*
+- **accepted** — the owner determined the decision is acceptable without caveats or reservation
+- **tolerated** — the owner judged the decision and left it standing, but found it sub-optimal or
+  undesirable in some way
+- **delegated** — the owner abstained from reviewing the decision, which is left standing as is
+- **rejected** — the owner determined the decision non-viable
 
 Distaste is not rejection. A decision the owner dislikes but can live with is **tolerated**, and may
 stand indefinitely — nothing obliges a later increment to revisit it. If the owner does want it changed,
@@ -168,7 +164,6 @@ number is provisional, and nothing downstream builds on it. Merging to main is t
 the gate runs there:
 
 - no decision still `proposed`
-- everything `after:` names is published
 - the number is the next in the product's sequence — a concurrent increment's collision surfaces
   here, and the loser renames and recomputes
 
@@ -388,7 +383,7 @@ detection. Products and presets are named by their directory, and adoption uses 
 Every structured artifact this process defines — `product.yaml`, `increment.yaml`, the increment
 sources, and any source a later process increment adds — carries a `version`: the pool version of
 the file's own schema. A requirements source with `version: 2` is interpreted by the pool
-schema `requirements@2` — one lookup, no fold.
+schema `design-process/requirements@2` — one lookup, no fold.
 
 ```yaml
 version: 1
@@ -407,10 +402,10 @@ keyed mappings — the version beside a key naming the entry kind — rather tha
 
 A recurring need is to fix a data shape formally. Schemas live in one repo-wide pool under
 `schemas/` — any file at any depth, like the facts pool. Identity lives in the file: each schema
-declares `$id: <name>@<version>` beside `$schema`, names unique across the repository, versions
-dense integers per name. References resolve by that identity and never by path, so the tree may be
-nested and reorganised freely; the current filing — `schemas/design-process/<entity>.<version>.yaml`,
-grouped by domain — aids navigation and means nothing to resolution. A version is immutable once an
+declares `$id: <namespace>/<entity>@<version>` beside `$schema` — `design-process/requirements@1` —
+names unique across the repository, versions dense integers per entity. References resolve by that
+identity and never by path, so the tree may be nested and reorganised freely; the filing convention —
+`schemas/<namespace>/<entity>.<version>.yaml` — aids navigation and means nothing to resolution. A version is immutable once an
 increment binding it publishes, and the design validator refuses to edit or remove one that any
 published increment binds; it also fails when two pool files claim one identity, and fails an
 increment whose schema reference — a model binding or a source file's `version` field — resolves to
@@ -544,29 +539,11 @@ for one product at one increment:
 What an implementer implements against is the fold at a published increment — the effective requirements,
 decisions, and coverage expectations of `<product>@N`. Publication made every input immutable, so the
 view is derivable on demand and identical forever: nothing is archived, nothing is published, and the
-increment number is the version, with the declared delta as its changelog. A cross-product implementation pins
-what it consumed with `after:`; a same-product implementation, by its position in the sequence. Where an
-external consumer needs a frozen file, collation output releases like any package; the default is
-computed, not published.
+increment number is the version, with the declared delta as its changelog. An implementation pins what it consumed by
+recording the increment it targeted.
 
 None of that is authored. All of it is a fold over artifacts that already exist, which is why it can be
 correct by construction where a spec could only be correct by diligence.
-
-### A change that spans products
-
-The routine case is consumer-driven: a product needs a change in a library it uses. The fence holds — a
-wave that needs the change files an **ask against the library** rather than reaching across, and that
-ask becomes an increment there, planned and ratified as the library's own. The consumer's increment
-declares the dependency:
-
-```yaml
-after:
-  - mc-test-lib/007          # publishes only after these are published
-```
-
-The publish gate holds an increment until everything its `after:` names is published. One field and one
-gate rule carry the ordering; the ask, escalation, and ratification stay product-local on each side, so
-the coordination is visible without a cross-product ceremony around it.
 
 ### Implement forward
 
@@ -626,24 +603,23 @@ structured data and never reads the narrative.
     the vocabulary on the product, the labels on claims.
 12. **Opaque ids** — `{prefix}-{8 base36 characters}`, `title` as the label, the generator a CLI
     command, format and uniqueness checked.
-13. **`after:` on increments** — cross-product ordering, read by the publish gate.
-14. **The schema pool and the model** — one reorganisable pool of `$id`-identified schemas, model
+13. **The schema pool and the model** — one reorganisable pool of `$id`-identified schemas, model
     entries binding an entity to a schema version, every structured file validated against the
     schema its `version` names.
 
 **Tooling**
 
-15. **Collation** — the folded, computed view of a product, filterable by facet and ordered by
+14. **Collation** — the folded, computed view of a product, filterable by facet and ordered by
     citation topology.
-16. **The merge gate** — publish is the merge: no `proposed` decision outstanding, everything
-    `after:` names published, no synthesis draft present, the number next in sequence.
+15. **The merge gate** — publish is the merge: no `proposed` decision outstanding, the number next
+    in sequence.
 
 **Process**
 
-17. **Promotion of a decision to a requirement**, when it has become something consumers can reasonably be
+16. **Promotion of a decision to a requirement**, when it has become something consumers can reasonably be
     expected to rely on and preserving its effect is a matter of compatibility. Not every accepted
     decision — requirements say what the product must do to be accepted; decisions describe the path taken.
-18. **The retirement form** — top-level `retires:` blocks in each increment's sources, one id and a
+17. **The retirement form** — top-level `retires:` blocks in each increment's sources, one id and a
     one-line reason per entry, no statement.
 
 **Deliberately not needed**
@@ -680,15 +656,12 @@ artifact has to carry.
 ### An increment
 
 The path carries the product and the number, and draft-versus-published is location — off main or
-on it — so the file states neither. It exists only when it has something to declare: an `ask`, an
-`after`, an adoption.
+on it — so the file states neither. It exists only when it has something to declare: an `ask`, an adoption.
 
 ```yaml
 # products/minecraft-test-lib/increments/004/increment.yaml
 ask:
   - r-h97o555y   # pre-existing; requirements authored in this increment are in scope by existing
-after:
-  - mc-dev-kit/012           # publishes only after these are published
 ```
 
 ### A requirement
