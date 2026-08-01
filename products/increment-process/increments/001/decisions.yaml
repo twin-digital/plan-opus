@@ -72,8 +72,8 @@ decisions:
     title: files name their own schema version
     statement: |
       every structured file this process defines carries version — the pool version of the
-      file's own schema, so a requirements source with version 2 is interpreted by
-      schemas/requirements/2.yaml. interpretation is one lookup, no fold, and a published file
+      file's own schema, so a requirements source with version 2 is interpreted by the pool
+      schema requirements@2. interpretation is one lookup, no fold, and a published file
       stays readable forever in the dialect it was written in; foundation files are keyed
       mappings, the version beside a key naming the entry kind.
     status: proposed
@@ -86,17 +86,19 @@ decisions:
     facets: schema
 
   - id: d-gkr3l8tx
-    title: the pool is a name and a version
+    title: schema identity is declared, the path is convention
     statement: |
-      pool schemas live at schemas/<name>/<version>.yaml — the name unique across the
-      repository, versions dense integers, the filename carrying the version so the file
-      itself holds no version key; $schema names the dialect.
+      a pool schema carries its identity as $id — <name>@<version>, names unique across the
+      repository, versions dense integers per name — beside $schema; resolution scans the pool
+      by identity, and the path carries no meaning to it. the default filing, a folder per
+      schema with a file per version, aids navigation only; an id-to-file index, if scale ever
+      wants one, is generated on demand and never committed.
     status: proposed
     because:
       - r-2fytqadu
     pinned:
       reason: data-format
-      notes: every schema reference in every product resolves against this layout
+      notes: every schema reference in every product resolves against this identity form
     facets: schema
 
   - id: d-ke7709uf
@@ -118,8 +120,8 @@ decisions:
     title: schemas are JSON Schema in YAML
     statement: |
       schemas are JSON Schema, draft 2020-12, authored as YAML; each file carries $schema for
-      its dialect, and its version is its filename in the pool. a more concise or expressive
-      formalism meeting the foreseeable needs may displace it.
+      its dialect and $id for its identity. a more concise or expressive formalism meeting the
+      foreseeable needs may displace it.
     status: proposed
     because:
       - r-2fytqadu

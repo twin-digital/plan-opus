@@ -376,8 +376,8 @@ detection. Products and presets are named by their directory, and adoption uses 
 
 Every structured artifact this process defines — `product.yaml`, `increment.yaml`, the increment
 sources, and any source a later process increment adds — carries a `version`: the pool version of
-the file's own schema. A requirements source with `version: 2` is interpreted by
-`schemas/requirements/2.yaml` — one lookup, no fold.
+the file's own schema. A requirements source with `version: 2` is interpreted by the pool
+schema `requirements@2` — one lookup, no fold.
 
 ```yaml
 version: 1
@@ -392,15 +392,18 @@ that dialect directly, and a format change is an ordinary new pool version that 
 into rather than a repository-wide migration. Carrying the field means the foundation files are
 keyed mappings — the version beside a key naming the entry kind — rather than bare sequences.
 
-### Schemas pool by version, and the model binds them
+### Schemas pool by identity, and the model binds them
 
-A recurring need is to fix a data shape formally. Schemas live in one repo-wide pool —
-`schemas/<name>/<version>.yaml`, the name unique across the repository, versions dense integers,
-the filename carrying the version. A version file is immutable once an increment binding it
-publishes; a new version is a new file, proposed by the increment that introduces it and ratified
-with it. The pool follows the facts precedent for where shared artifacts live, and binding follows
-the preset precedent for how they take force: any product binds any schema at a pinned version, and
-drift is legal — no product is rebound by a new version appearing.
+A recurring need is to fix a data shape formally. Schemas live in one repo-wide pool under
+`schemas/` — any file at any depth, like the facts pool. Identity lives in the file: each schema
+declares `$id: <name>@<version>` beside `$schema`, names unique across the repository, versions
+dense integers per name. References resolve by that identity and never by path, so the tree may be
+nested and reorganised freely; the default filing — a folder per schema, a file per version — aids
+navigation and means nothing to resolution. A version is immutable once an increment binding it
+publishes, and the design validator refuses to edit or remove one that any published increment
+binds; a new version is a new file, proposed by the increment introducing it and ratified with it.
+Binding follows the preset precedent: any product binds any schema at a pinned version, and drift
+is legal — no product is rebound by a new version appearing.
 
 An increment binds schemas through its **model**, a per-increment source folding by entity name:
 
@@ -420,7 +423,8 @@ entity, its bound schema is the authoritative shape.
 Foundation files need no model entry to be interpretable: each names its own schema's pool version
 in its `version` field (above). The model is for the shapes a design defines and speaks about.
 
-The formalism is JSON Schema, draft 2020-12, authored as YAML, carrying `$schema` for its dialect.
+The formalism is JSON Schema, draft 2020-12, authored as YAML, carrying `$schema` for its dialect
+and `$id` for its identity.
 It is the default for being widely known and mechanically checkable; something more concise or
 expressive can displace it where it meets the foreseeable needs. The pool's first entries are the
 process's own sources — `requirements`, `decisions`, `product`, `increment`, `model` — and the
@@ -609,9 +613,9 @@ structured data and never reads the narrative.
 12. **Opaque ids** — `{prefix}-{8 base36 characters}`, `title` as the label, the generator a CLI
     command, format and uniqueness checked.
 13. **`after:` on increments** — cross-product ordering, read by the publish gate.
-14. **The schema pool and the model** — `schemas/<name>/<version>.yaml`, model entries binding an
-    entity to a schema version, every structured file validated against the schema its `version`
-    names.
+14. **The schema pool and the model** — one reorganisable pool of `$id`-identified schemas, model
+    entries binding an entity to a schema version, every structured file validated against the
+    schema its `version` names.
 
 **Tooling**
 

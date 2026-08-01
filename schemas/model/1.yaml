@@ -1,4 +1,5 @@
 $schema: https://json-schema.org/draft/2020-12/schema
+$id: model@1
 title: model
 description: a per-increment model source, binding entity names to pool schemas
 type: object
@@ -25,7 +26,7 @@ properties:
         schema:
           type: string
           pattern: "^[a-z0-9][a-z0-9-]*@[0-9]+$"
-          description: a pool reference, schemas/<name>/<version>.yaml
+          description: a pool reference by identity, <name>@<version>
         description:
           type: string
   retires:

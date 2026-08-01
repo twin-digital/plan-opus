@@ -66,12 +66,15 @@ requirements:
   - id: r-2fytqadu
     title: schemas are shared and versioned
     statement: |
-      schemas live in one repo-wide pool, versioned; a version is immutable once an increment
-      binding it publishes; any product may bind any schema at a pinned version, and drift is
-      legal — no product is rebound by a new version appearing.
+      schemas live in one repo-wide pool, identified by a name and version declared in the
+      file and referenced only by that identity — never by path, so the pool tree may be
+      nested and reorganized freely; a version is immutable once an increment binding it
+      publishes, and stays present as long as anything published binds it; drift is legal —
+      no product is rebound by a new version appearing.
     satisfied_when: |
-      every pool schema parses in the declared formalism, names and versions are unique, and
-      the design validator rejects any edit to a version an increment on main binds.
+      every pool schema declares a unique name-and-version identity and parses in the declared
+      formalism, and the design validator resolves references by identity and rejects an edit
+      to, or removal of, a version some published increment binds.
     facets:
       - schema
       - design-validator
