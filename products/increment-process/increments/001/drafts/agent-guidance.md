@@ -19,6 +19,19 @@ manufactured — the implementer discovers the constraint, contradicts the guess
 a preference. A measurement, a compile error, a captured output. An opinion about a better framing is not
 grounds.
 
+## Writing verification
+
+A fiat requirement cannot rot — whatever its verification names, the owner now expects, and the
+naming makes it normative. That is the discipline, not a hazard: name a path, a flag, a file
+layout, and you have bound it as surely as the statement binds. So verification binds only what the
+requirement means to bind: interact with the product the way a consumer does — through its
+published packages and public surfaces — exercising the intent of the requirement rather than its
+form. A step that reaches past the surface into internals has done one of two things: found a
+missing piece of the fiat, which is then stated deliberately, or overbound an implementation
+detail, which is then rewritten against the surface. Where a product's own tooling does not exist
+yet, its contracted surfaces do — bound schemas, the repository, the gate — and verification is
+written against those.
+
 ## The synthesis draft
 
 Clarify's instrument is a written synthesis: connected prose arguing the increment from capture to implementation,
