@@ -12,7 +12,6 @@ decisions:
       - r-2gcehlp8
     pinned:
       reason: data-format
-      notes: every product's foundations are written and read through the fold
     facets:
       - schema
       - tooling
@@ -49,7 +48,6 @@ decisions:
       - r-2fytqadu
     pinned:
       reason: data-format
-      notes: every contract reference in every product resolves against this identity form
     facets:
       - schema
       - design-validator
@@ -69,7 +67,6 @@ decisions:
       - d-3wjypyx6
     pinned:
       reason: data-format
-      notes: the first field every reader consults
     facets:
       - schema
       - design-validator
@@ -103,7 +100,6 @@ decisions:
       - r-bwtud1e5
     pinned:
       reason: data-format
-      notes: the presets declaration is part of every requirements source
     facets:
       - schema
       - process-doc
@@ -121,7 +117,6 @@ decisions:
       - d-g5cs9o4i
     pinned:
       reason: data-format
-      notes: tooling resolves ids against these paths, and every product writes to them
     facets:
       - schema
       - design-validator
@@ -138,7 +133,6 @@ decisions:
       - r-bua9wl1s
     pinned:
       reason: data-format
-      notes: part of the increment source shape every product writes
     facets: schema
 
   - id: d-9s4d3ww2
@@ -162,19 +156,18 @@ decisions:
       - r-gc7a3m56
     pinned:
       reason: data-format
-      notes: the status enum every decision entry carries
     facets: schema
 
   - id: d-wrjhfbei
     title: pinned is false or a named reason
     statement: |
       pinned is false or { reason, notes? }, and the default is false; reason is an enum —
-      data-format, public-api, other — with notes required for other; pinning, not status, is
-      what escalation reads.
+      data-format, public-api, other — with notes required for other, and almost never
+      provided otherwise: only where why the named reason applies is unclear. pinning, not
+      status, is what escalation reads.
     status: tolerated
     pinned:
       reason: data-format
-      notes: part of the decision shape every product writes
     facets: schema
 
   - id: d-e5ted839
@@ -186,7 +179,6 @@ decisions:
     status: accepted
     pinned:
       reason: data-format
-      notes: every citation in every product resolves against this format
     facets:
       - schema
       - design-validator
@@ -204,7 +196,6 @@ decisions:
       - r-bs6wsobr
     pinned:
       reason: data-format
-      notes: the paths every product's documents and drafts use
     facets:
       - schema
       - process-doc
@@ -236,7 +227,6 @@ decisions:
       - d-g5cs9o4i
     pinned:
       reason: data-format
-      notes: part of the increment source shape every product writes
     facets: schema
 
   - id: d-i8rwe1sv
@@ -262,7 +252,6 @@ decisions:
     status: accepted
     pinned:
       reason: data-format
-      notes: coverage refs and release tracking resolve through this mapping
     facets: schema
 
   - id: d-eaw3u72o
@@ -276,7 +265,6 @@ decisions:
       - r-ei82daip
     pinned:
       reason: data-format
-      notes: the citation field every product's decisions carry
     facets:
       - schema
       - tooling

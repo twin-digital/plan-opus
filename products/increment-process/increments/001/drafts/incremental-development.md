@@ -744,9 +744,14 @@ presets:
     notes: consumers import __useServer from the root specifier
   because:
     - f:alias-and-control-subpath-are-one-module-instance
-  falsifiers:
+  revisit_when:
     - a consumer needs the root specifier to carry only names the engine's declarations declare
 ```
+
+`revisit_when` is a rare, deliberate revisit condition the owner sets — not a falsification regime;
+most decisions carry none. The reasoning behind a decision — alternatives weighed, conditions
+tested — discharges into facts cited in `because:` and into the frozen synthesis draft, not into
+stored conditions.
 
 An unpinned decision the owner had no context to rule on:
 
