@@ -1,0 +1,66 @@
+version: "1"
+requirements:
+  - id: r-kylqsn5a
+    title: unresolved uncertainty has a home
+    statement: |
+      an agent that meets a question it cannot answer raises it to the owner as a structured
+      open question rather than guessing an answer, leaving it in prose, or dropping it.
+    verification:
+      - do: read a draft increment's synthesis prose beside the questions its source carries
+      - verify: every unanswered question the prose raises appears there, with no guessed answer standing in for one
+    rationale: |
+      A plausible answer written ahead of its evidence is indistinguishable, later, from one that
+      was established — which is the failure this requirement exists to prevent.
+    facets:
+      - schema
+      - process-doc
+
+  - id: r-d181l3s2
+    title: a question routes to whoever can answer it
+    statement: |
+      an open question names which kind of foundation would answer it — a fact, a requirement,
+      or a decision — so that what only the owner can rule on is distinguishable from what an
+      agent can settle.
+    rationale: |
+      Without it, "someone will sort this out" silently covers questions that were always the
+      owner's.
+    facets:
+      - schema
+      - process-doc
+
+  - id: r-m36ie8ee
+    title: nothing rests on an open question
+    statement: |
+      an open question is not a foundation: no claim, decision, or requirement may cite one, and
+      no citation resolves to one.
+    verification:
+      - do: open a pull request whose because block names an open question
+      - verify: the merge is blocked
+    rationale: |
+      Citing an uncertainty would let an author acknowledge it and call the citing done.
+    facets:
+      - schema
+      - design-validator
+
+  - id: r-ygg7q7rh
+    title: questions close before an increment publishes
+    statement: |
+      the open question has a formally defined shape and a stated meaning in the shipped process
+      reference, and no increment publishes carrying one: every question an increment raised is
+      answered, or removed as no longer relevant, before the merge that publishes it.
+    verification:
+      - do: open a questions source beside the pool schema its version field names
+      - verify: the file conforms to the schema
+      - do: open a pull request merging an increment whose questions source still carries entries
+      - verify: the merge is blocked
+      - do: read the shipped process reference
+      - verify: it states what an open question is, and when one must be gone
+    facets:
+      - schema
+      - process-doc
+      - design-validator
+
+model:
+  - name: questions-source
+    schema: /design-process/questions@1
+    description: the per-increment questions file — the asks a draft increment carries, and never publishes

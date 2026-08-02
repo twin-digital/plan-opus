@@ -1,0 +1,70 @@
+version: "1"
+decisions:
+  - id: d-ew65xgtj
+    title: questions are a draft increment's own source
+    statement: |
+      open questions live in questions.yaml beside the increment's other sources, carrying one
+      questions: block, and the file lives only while the increment is a draft. there is no
+      retirement or supersession form for a question, because none ever publishes: a question is
+      working state with the same lifetime and the same freedom as a decision still proposed,
+      removable outright with no record.
+    status: proposed
+    because:
+      - r-ygg7q7rh
+      - r-m36ie8ee
+      - d-kn05wb30
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - design-validator
+
+  - id: d-a7wqgd87
+    title: a question is an id, the question, and the kind that answers it
+    statement: |
+      a question entry carries id, question — the text, one interrogative sentence — and answer:
+      the kind of foundation that would answer it, one of fact, requirement, or decision.
+      optionally it carries facets from the product's vocabulary. it carries no title: the
+      question text is its own label, and no gates: field, since naming the decisions a question
+      blocks would require writing those decisions ahead of the answer.
+    status: proposed
+    because:
+      - r-d181l3s2
+      - d-i8rwe1sv
+    pinned:
+      reason: data-format
+    facets: schema
+
+  - id: d-vx26i23m
+    title: question ids join the opaque id regime
+    statement: |
+      question ids are q- followed by 8 lowercase base36 characters, random, produced by the
+      same CLI generator as requirement and decision ids, and unique within the increment that
+      raised them — the only scope a question exists in.
+    status: proposed
+    because:
+      - d-e5ted839
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - design-validator
+
+  - id: d-uzygmhfc
+    title: an increment publishes with no open question
+    statement: |
+      the merge gate refuses an increment whose questions source still carries entries: on main
+      the file is absent, or holds no questions block. a question is answered by the fact,
+      requirement, or decision the increment ratifies, or deleted as no longer relevant, and
+      nothing carries one forward. a detail an implementer will meet with better information is
+      delegated by the design staying silent, which needs no record of its own.
+    status: proposed
+    because:
+      - r-ygg7q7rh
+      - r-0axqvtcc
+      - d-6x6l6ws7
+    pinned:
+      reason: data-format
+    facets:
+      - process-doc
+      - design-validator
