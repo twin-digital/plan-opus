@@ -1,0 +1,344 @@
+version: "1"
+decisions:
+  - id: d-auo2680a
+    title: plan is capture, clarify, ratify
+    statement: |
+      the plan phase is a loop of capture — the owner and agents create the increment and
+      populate its requirements source directly — then clarify, doing the research and
+      reasoning about alternatives that drive proposed decisions, then ratify, where the owner
+      rules; the loop repeats until the owner declares the increment settled enough, and its
+      outputs are the ratified requirements and decisions themselves.
+    status: proposed
+    because:
+      - r-6n45h5eb
+      - r-gc7a3m56
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-o99k4ld8
+    title: the facts pool carries forward
+    statement: |
+      facts and their evidence carry forward from prior practice unchanged: findings about the
+      world live in the repo-wide facts/ pool with the runs and artifacts that establish them
+      under evidence/, filed by subject, citable from any product, and governed by the
+      existing evidence rules.
+    status: proposed
+    because:
+      - r-gq90gngs
+    facets:
+      - schema
+      - process-doc
+
+  - id: d-d6hwdg9d
+    title: concurrent increments collide on the number
+    statement: |
+      increments are numbered directories, and two in flight claiming one number collide at
+      merge: the loser renames to the next slot and recomputes its content against the fold
+      that moved; the process provides nothing further for this case.
+    status: proposed
+    because:
+      - r-caao9k3z
+    facets:
+      - process-doc
+      - design-validator
+
+  - id: d-g5cs9o4i
+    title: effective state is a fold
+    statement: |
+      an increment declares what changed; the effective requirement and decision sets are
+      computed by folding across the product's increments, and the computed view is what the
+      owner reads.
+    status: accepted
+    because:
+      - r-caao9k3z
+      - r-2gcehlp8
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - tooling
+
+  - id: d-6x6l6ws7
+    title: publish is the merge
+    statement: |
+      an increment is draft while off main and published by merging; the gate runs at merge,
+      main holds only published increments, dense and immutable, and draft-versus-published is
+      location, not a stored field.
+    status: accepted
+    because:
+      - r-caao9k3z
+      - r-0axqvtcc
+    pinned:
+      reason: data-format
+      notes: the fold and the design validator read main as settled history
+    facets:
+      - process-doc
+      - design-validator
+
+  - id: d-3wjypyx6
+    title: the contract pools
+    statement: |
+      schemas live under schemas/ and public API surfaces under apis/, identity declared
+      in-file: schemas as JSON Schema — draft 2020-12, authored as YAML — with $id
+      root-relative, /<namespace>/<entity>@<version>, the leading slash mandatory and its
+      omission a validator failure. a $ref is such an identity, resolved from the pool as the
+      registry, and binds transitively. any organizational or naming convention within a pool
+      is an aid to navigation — non-normative and unenforced.
+    status: accepted
+    because:
+      - r-gq90gngs
+      - r-2fytqadu
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - design-validator
+
+  - id: d-i47qv6oa
+    title: files name their own schema version
+    statement: |
+      every structured file this process defines carries version — the pool version of the
+      file's own schema, so a requirements source with version 2 is interpreted by the pool
+      schema /design-process/requirements@2. interpretation is one lookup, no fold, and a
+      published file stays readable forever in the dialect it was written in. a foundation
+      file is a mapping, not a bare list of entries: version sits beside the top-level keys —
+      requirements:, decisions: — that name what the file holds.
+    status: accepted
+    because:
+      - r-2fytqadu
+      - d-3wjypyx6
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - design-validator
+
+  - id: d-j50yturh
+    title: the fold at an increment is the bundle
+    statement: |
+      implementers implement against the fold at a published increment — product@N — derivable
+      on demand and identical forever since every input is immutable; the increment number is
+      the version, and the declared delta the changelog.
+    status: accepted
+    because:
+      - r-sk47gw08
+      - d-6x6l6ws7
+    pinned:
+      reason: data-format
+    facets:
+      - process-doc
+      - tooling
+
+  - id: d-k48jh86c
+    title: requirement presets are plan-only products
+    statement: |
+      shared requirements live in presets — products that implement nothing — adopted whole,
+      at a pinned version, through the presets declaration in an increment's requirements
+      source: entries of name, version, and a status of adopted (the default) or dropped,
+      folding by name. a preset adopts no other preset. adopting and dropping are owner fiat,
+      and the wider requirement scopes are retired.
+    status: accepted
+    because:
+      - r-bwtud1e5
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - process-doc
+
+  - id: d-kn05wb30
+    title: increment sources live under products/
+    statement: |
+      increment artifacts live at products/<product>/increments/<NNN>/ — requirements.yaml,
+      decisions.yaml, a drafts/ folder, and the sources later process increments define, with
+      .yaml and .yml both accepted wherever a source is named; the increment is
+      its directory, with no manifest file of its own. the product is
+      declared by the presence of products/<product>/product.yaml, whose directory name is the
+      product id.
+    status: accepted
+    because:
+      - d-g5cs9o4i
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - design-validator
+
+  - id: d-ke7709uf
+    title: the model is a block of the requirements source
+    statement: |
+      the model is a top-level model: block in the requirements source — the place everything
+      the owner ratifies as binding lives. entries carry name, one contract reference (schema:
+      or api:, each as /<namespace>/<entity>@<version>), an optional description, and a status
+      of bound (the default) or unbound, folding by name like presets; an entity's name is the
+      design's word for it, free to differ from the pool entry's.
+    status: accepted
+    because:
+      - r-bua9wl1s
+    pinned:
+      reason: data-format
+    facets: schema
+
+  - id: d-9s4d3ww2
+    title: rulings are accepted, tolerated, delegated, or rejected
+    statement: |
+      the owner's ruling on a decision must be one of the following values:
+
+      - accepted: owner determined the decision is acceptable without caveats or reservation
+      - tolerated: owner judged the decision and left it standing, but found it sub-optimal
+        or undesirable in some way
+      - delegated: owner abstained from reviewing the decision, which is left standing as is
+      - rejected: owner has determined the decision non-viable; carries the owner's reason on
+        the entry, and is closed by a replacement proposed by whoever proposed the rejected
+        one
+
+      within the increment that created it, a decision still proposed may be removed outright
+      with no record; once ruled on, an entry persists, and is closed only by supersession or
+      retirement.
+    status: accepted
+    because:
+      - r-gc7a3m56
+    pinned:
+      reason: data-format
+    facets: schema
+
+  - id: d-wrjhfbei
+    title: pinned is false or a named reason
+    statement: |
+      pinned is false or { reason, notes? }, and the default is false; reason is an enum —
+      data-format, public-api, other — with notes required for other, and almost never
+      provided otherwise: only where why the named reason applies is unclear. pinning, not
+      status, is what escalation reads.
+    status: tolerated
+    pinned:
+      reason: data-format
+    facets: schema
+
+  - id: d-e5ted839
+    title: ids are opaque and random
+    statement: |
+      requirement and decision ids are {prefix}-{8 lowercase base36 characters}, random,
+      produced by a CLI generator; title carries the human label and may churn freely; the id
+      is the citation form.
+    status: accepted
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - design-validator
+
+  - id: d-nzba0wqu
+    title: documents live under docs/, drafts under the increment
+    statement: |
+      shipped document packages live at permanent homes under docs/<domain>/, entering
+      product.yaml at the merge that ships them; synthesis drafts live at
+      products/<product>/increments/<NNN>/drafts/, merging with the increment that generated
+      them and freezing at its publish.
+    status: tolerated
+    because:
+      - r-yzkxa2hj
+      - r-bs6wsobr
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - process-doc
+
+  - id: d-jy7x42nx
+    title: retirement is an id and a reason
+    statement: |
+      a claim with no successor is retired by a retires: entry — one id, one one-line reason —
+      in the increment source whose file scopes its kind; supersession is carried by the
+      successor's supersedes or amends and needs no entry.
+    status: accepted
+    because:
+      - d-g5cs9o4i
+    pinned:
+      reason: data-format
+    facets: schema
+
+  - id: d-i8rwe1sv
+    title: facets are labels no rule reads
+    statement: |
+      a claim may carry facets from the product's declared vocabulary; the tooling filters and
+      groups by them, but no rule fences, escalates, or gates on them.
+    status: tolerated
+    pinned:
+      reason: other
+      notes: the filter-only line is what keeps facets cheap to assign
+    facets:
+      - schema
+      - tooling
+
+  - id: d-8itv1czm
+    title: products map to packages by path and kind
+    statement: |
+      product.yaml lists packages as path and kind, with an optional repo in owner/repo form
+      defaulting to twin-digital/opus. the mapping describes what exists — an implementer
+      adds, removes, or updates package entries at the same time it adds, removes, or updates
+      the implementation files referenced by the package entry.
+    status: accepted
+    pinned:
+      reason: data-format
+    facets: schema
+
+  - id: d-eaw3u72o
+    title: because cites requirements, facts, and decisions
+    statement: |
+      because: on a decision cites the requirements it follows from, the facts that drove it,
+      and the decisions it builds on; tooling is capable of ordering the decision set by that
+      topology, and superseding or retiring an entry surfaces its dependents.
+    status: accepted
+    because:
+      - r-ei82daip
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - tooling
+
+  - id: d-y775xabw
+    title: authoring tests are their own document
+    statement: |
+      the content-quality tests for foundations — what makes a statement, a verification
+      procedure, a decision, or a model entry good — live in their own document package, the
+      successor of the old authoring design: one body of tests, each binding the writer of
+      what it governs, closing with the checklist that the post-Clarify review gate's agents
+      load as their rubric and authors self-check against. technique and orchestration stay in
+      agent guidance; the process reference stays one epistemic kind, validator-backed, while
+      this document is reviewer-applied and never a validator rule.
+    status: accepted
+    because:
+      - r-yzkxa2hj
+      - r-gq90gngs
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-i1reuf3u
+    title: implement forward
+    statement: |
+      resolving a tension that is merely unwelcome is not part of the current increment: the
+      owner may capture it as a requirement in some future increment — optionally, whenever
+      they choose, or never; nothing in the process does so automatically. amending in place
+      is reserved for the impossible, non-viable, or incorrect.
+    status: accepted
+    because:
+      - r-caao9k3z
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-rx3s2hqo
+    title: decisions record the observable
+    statement: |
+      a decision is recorded when a consumer could observe its outcome or a reimplementation
+      must preserve it; choices below that bar live in the code, and a reimplementation is
+      free to re-make them.
+    status: accepted
+    because:
+      - r-ei82daip
+    facets:
+      - prompts
+      - process-doc

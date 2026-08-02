@@ -1,0 +1,189 @@
+version: "1"
+requirements:
+  - id: r-gq90gngs
+    title: foundations have defined shapes and meanings
+    statement: |
+      every foundation artifact — requirement, decision, model binding, product and increment
+      declaration — has a formally defined shape and a stated meaning: its form checkable by
+      machine, its intent readable by a person.
+    verification:
+      - do: open a foundation file beside the pool schema its version field names
+      - verify: the file conforms to the schema
+      - do: read the shipped process reference
+      - verify: it states the meaning of each foundation kind
+    facets:
+      - schema
+      - process-doc
+
+  - id: r-6n45h5eb
+    title: foundations are expressed and reviewed directly
+    statement: |
+      the owner and agents author foundations directly, as plain files; review is an ordinary
+      pull-request diff, and the owner can read every claim in full.
+    facets: process-doc
+
+  - id: r-2gcehlp8
+    title: tooling folds foundations
+    statement: |
+      tooling computes the effective state of a product at any increment by folding its
+      declarations, and the computed view is what the owner reads.
+    verification:
+      - do: request the projection of any published product@N
+      - verify: the effective requirement, decision, and model sets render on demand
+    facets: tooling
+
+  - id: r-zcvxh2ty
+    title: the design validator gates merges
+    statement: |
+      the design validator runs as a required check on every pull request, applying every rule
+      in force at that point; any failure blocks the merge. the merge gate is not advisory —
+      nothing publishes over a failing check.
+    verification:
+      - do: open the repository branch protection
+      - verify: the design validator check is required
+      - do: open a pull request that fails any check
+      - verify: the merge is blocked
+    facets: design-validator
+
+  - id: r-caao9k3z
+    title: shipped increments stay shipped
+    statement: |
+      a published increment is never unsettled by later work: drafting increment N+1 changes
+      nothing about increment N.
+    verification:
+      - do: diff each published increment's directory against its publish commit
+      - verify: unchanged
+      - do: open a pull request editing a published increment's file
+      - verify: the required check blocks the merge
+    facets: design-validator
+
+  - id: r-ei82daip
+    title: decisions are comprehensible as a set
+    statement: |
+      the owner can comprehend what is to be built from the decision set alone, read in full.
+    verification:
+      - do: read the projected decision set at the current increment, in full
+      - verify: the owner can say what is to be built, consulting nothing else
+    facets: tooling
+
+  - id: r-bs6wsobr
+    title: no maintained spec exists
+    statement: |
+      the design phase produces no prose specification for an implementer to follow:
+      implementation works strictly from the fold — requirements, decisions, and bound
+      contracts.
+    verification:
+      - do: review each merged pull request's changes
+      - verify: no implementation specification is added anywhere
+    facets:
+      - process-doc
+      - design-validator
+
+  - id: r-yzkxa2hj
+    title: the process ships its reference
+    statement: |
+      the process's normative reference — what agents and the owner read to run it — is a
+      shipped deliverable: document-kind packages at permanent homes in this repository.
+    verification:
+      - do: open product.yaml, once the reference is implemented
+      - verify: document packages are listed, and their paths hold the current reference text
+    facets: process-doc
+
+  - id: r-0axqvtcc
+    title: pending decisions may not be published
+    statement: |
+      no increment merges or publishes while one of its decisions is still proposed.
+    facets: design-validator
+
+  - id: r-gc7a3m56
+    title: ruled-on is distinguishable from passed-over
+    statement: |
+      what the owner engaged and judged is distinguishable, product-wide, from what they
+      abstained on.
+    verification:
+      - do: open the projection
+      - verify: each decision is labelled reviewed or abstained, and the abstentions are counted
+    facets:
+      - schema
+      - tooling
+
+  - id: r-2fytqadu
+    title: contracts are shared and versioned
+    statement: |
+      contracts — the schemas and public API surfaces products bind — live in shared,
+      repo-wide pools, versioned. a version is immutable once an increment binding it
+      publishes, directly or transitively, and stays present as long as anything published
+      relies on it; drift is legal — no product is rebound by a new version appearing.
+    verification:
+      - do: open a pull request introducing two pool files that claim one identity
+      - verify: the merge is blocked
+      - do: open a pull request editing or removing a pool version some published increment binds, directly or through a bound schema's $ref
+      - verify: the merge is blocked
+      - do: open a structured file beside the pool schema its version field names
+      - verify: the file conforms
+    facets:
+      - schema
+      - design-validator
+
+  - id: r-bua9wl1s
+    title: the model binds schemas as requirements
+    statement: |
+      an increment binds contracts through its model — entity name, a schema or public-api
+      reference, and an optional description anchoring what the entity is in the design. model
+      entries are part of the increment's requirements: ratified with it, binding on
+      implementers, folded by entity name; where prose references an entity, its bound
+      contract is the authoritative shape.
+    verification:
+      - do: open a pull request whose model reference, or whose source file version field, resolves to no pool entry
+      - verify: the merge is blocked
+      - do: open a pull request leaving duplicate entity names in the model in force
+      - verify: the merge is blocked
+    facets:
+      - schema
+      - design-validator
+
+  - id: r-sk47gw08
+    title: design and implementation keep their own schedules
+    statement: |
+      finishing a plan and implementing it are separately schedulable: a ratified plan
+      publishes without an implementation, and one may come later — or never. design
+      increments publish on their own cadence, and several may accumulate before any
+      implementation; one implementation may target the consolidated fold, and nothing obliges
+      one per increment.
+    verification:
+      - do: merge a plan-only increment with every decision ruled
+      - verify: the gate passes it, no implementation present
+      - do: open an implementation record
+      - verify: it names the increment whose fold the implementation targeted
+      - do: open the projection after increments publish with no implementation
+      - verify: their claims show as ratified and unimplemented
+    facets:
+      - process-doc
+      - design-validator
+      - tooling
+
+  - id: r-bwtud1e5
+    title: products declare their own requirements
+    statement: |
+      no requirement outside a product's own increments binds it; adoption at a pinned
+      increment is the only way an external requirement takes force.
+    verification:
+      - do: trace each of a product's effective obligations
+      - verify: every one comes from its own increments' entries or presets declarations, and no global or area scope exists
+      - do: open a pull request adopting a preset that conflicts with a product-local requirement
+      - verify: the merge is blocked
+    facets:
+      - schema
+      - design-validator
+      - process-doc
+
+model:
+  - name: requirements-source
+    schema: /design-process/requirements@1
+    description: the per-increment requirements file — fiat, presets, and contract bindings
+  - name: decisions-source
+    schema: /design-process/decisions@1
+    description: the per-increment decisions file
+  - name: product-declaration
+    schema: /design-process/product@1
+    description: products/<id>/product.yaml, whose presence declares the product
