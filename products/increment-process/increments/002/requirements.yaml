@@ -3,8 +3,8 @@ requirements:
   - id: r-kylqsn5a
     title: unresolved uncertainty has a home
     statement: |
-      an agent that meets a question it cannot answer raises it to the owner as a structured
-      open question rather than guessing an answer or dropping it.
+      an agent that meets a question it cannot answer raises it to the owner as an open
+      question rather than guessing an answer or dropping it.
     verification:
       - do: read a draft increment's proposed decisions beside the questions its source carries
       - verify: no decision statement asserts something the increment has not established, and each such uncertainty stands as a question instead
@@ -16,8 +16,7 @@ requirements:
     title: a question routes to whoever can answer it
     statement: |
       an open question names which kind of foundation would answer it — a fact, a requirement,
-      or a decision — so that what only the owner can rule on is distinguishable from what an
-      agent can settle.
+      or a decision.
     facets:
       - schema
       - process-doc
@@ -34,21 +33,29 @@ requirements:
       - schema
       - design-validator
 
-  - id: r-ygg7q7rh
-    title: questions close before an increment publishes
+  - id: r-dbfxxr6g
+    title: the open question is defined like a foundation is
     statement: |
       the open question has a formally defined shape and a stated meaning in the shipped process
-      reference, and no increment publishes carrying one: every question an increment raised is
-      answered, or removed as no longer relevant, before the merge that publishes it.
+      reference, though it is not a foundation and never publishes.
     verification:
       - do: open a questions source beside the pool schema its version field names
       - verify: the file conforms to the schema
-      - do: open a pull request merging an increment whose questions source still carries entries
-      - verify: the merge is blocked
       - do: read the shipped process reference
-      - verify: it states what an open question is, and when one must be gone
+      - verify: it states what an open question is and how one is used
     facets:
       - schema
+      - process-doc
+
+  - id: r-ygg7q7rh
+    title: questions close before an increment publishes
+    statement: |
+      no increment publishes carrying an open question: every question an increment raised is
+      answered, or removed as no longer relevant, before the merge that publishes it.
+    verification:
+      - do: open a pull request merging an increment whose questions source still carries entries
+      - verify: the merge is blocked
+    facets:
       - process-doc
       - design-validator
 

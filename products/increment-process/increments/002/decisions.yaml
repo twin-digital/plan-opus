@@ -4,13 +4,12 @@ decisions:
     title: questions are a draft increment's own source
     statement: |
       open questions live in questions.yaml beside the increment's other sources, carrying one
-      questions: block, and the file lives only while the increment is a draft. a question is
-      working state with the same lifetime and the same freedom as a decision still proposed,
-      removable outright with no record.
+      questions: block; the file lives only while the increment is a draft, and a question may
+      be removed outright with no record.
     status: proposed
     because:
+      - r-dbfxxr6g
       - r-ygg7q7rh
-      - r-m36ie8ee
       - d-kn05wb30
     pinned:
       reason: data-format
@@ -23,7 +22,7 @@ decisions:
     statement: |
       question ids are q- followed by 8 lowercase base36 characters, random, produced by the
       same CLI generator as requirement and decision ids, and unique within the increment that
-      raised them — the only scope a question exists in.
+      raised them.
     status: accepted
     because:
       - d-e5ted839
@@ -39,12 +38,10 @@ decisions:
       the merge gate refuses an increment whose questions source still carries entries: on main
       the file is absent, or holds no questions block. a question is answered by the fact,
       requirement, or decision the increment ratifies, or deleted as no longer relevant, and
-      nothing carries one forward. a detail an implementer will meet with better information is
-      delegated by the design staying silent, which needs no record of its own.
+      nothing carries one forward.
     status: accepted
     because:
       - r-ygg7q7rh
-      - r-0axqvtcc
       - d-6x6l6ws7
     pinned:
       reason: data-format
