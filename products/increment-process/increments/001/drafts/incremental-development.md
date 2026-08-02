@@ -1,87 +1,50 @@
 # Incremental development
 
-## Context
+## Summary
 
-Roughly 34 packages in one pnpm/turbo monorepo, growing 3–5 per month, most of them 1,000–5,000 lines,
-one maintainer, code largely written by agents. Recurring project kinds: libraries, CLI tools, web apps
-and HTTP APIs, Minecraft behaviour-pack addons, CI/CD processes, devcontainer tooling, bots. Bounded
-manual work is acceptable where it uses the owner's time efficiently.
+The process is a loop: **capture** requirements; **research** and reason about alternatives to
+drive decisions; **review** — the owner ratifies or rejects; repeat. Everything drives toward one
+goal: structured decisions that are reviewable separately, viewable topologically, and
+comprehensive enough to drive implementation in a constrained and directed manner.
 
-That scale matters — several recommendations below would be different for a handful of projects or for
-hundreds.
-
-What this process retires, and why, is in `process-migration.md`. Instruction to agents working inside
-it is in `agent-guidance.md`. This document states only how the process is meant to work.
-
----
-
-## Why
-
-**Churn costs more than it produces.** A design is settled, built on, and then reversed, and the
-re-deciding consumes owner review while producing nothing that ships. That cost is unacceptable — this
-is the owner's product and the owner's judgement, which is justification enough.
-
-**The unit of design is wrong at either size.** Today the choice is between two shapes, and both are
-bad:
-
-- **Giant specs** that fix every aspect of design for every aspect of a product.
-- **Small slices** that enforce arbitrary ownership boundaries. This introduces friction whenever
-  feature B needs a change to feature A, and rigidity that keeps a product in feature-shaped silos when
-  its natural shape might have collapsed into something simpler.
-
-**Status attaches to the whole slice**, which is the same mis-sizing seen from another side. A shipped,
-working slice returns to draft because one decision inside it moved. Nothing distinguishes "this product
-is unsettled" from "the next change to it is unsettled."
-
-**There is no artifact for a change.** A spec describes a state, so changing a shipped product means
-rewriting its spec or inventing another slice — which is how a product ends up with more slices than it
-has parts.
-
-**The spec is not needed.** Dropping it is owner fiat, lightly informed by observation rather than
-resting on it:
-
-- The owner skims it. It is not a document anyone reads to understand what was built.
-- Most of it restates foundations or argues for them, and the classes of information it genuinely adds
-  are few and repeat.
-
-The goal that follows is to capture those missing classes of information **as foundations** rather than
-as prose in a spec.
-
-Against those, one countervailing force that shapes everything below:
-
-**Decisions are the only window the owner actually uses.** The others exist — the spec, the test plan,
-the code — and go unread. Remove the spec and the decision set becomes the sole artifact used by the
-owner to understand what was built. So decisions must not be minimised; they must be rich enough to
-comprehend a product from.
+The unit of change is an **increment**, scoped to a **product**: a declared delta of requirements,
+decisions, and contract bindings, drafted on a branch and published by merging — after which it is
+immutable, and the effective state of the product is the **fold** of its published increments.
+Implementation is separately scheduled work against the fold at a published increment, recorded
+where evidence lives rather than where design lives. What the process retires from earlier
+practice, and how existing designs convert, is in `process-migration.md`; the background is in
+`motivation.md`; instruction to agents is in `agent-guidance.md`.
 
 ---
 
-## The shape
+## The foundations
 
-**Durable** — these persist and accumulate:
+Everything the owner ratifies is a foundation entry in an increment's sources, and each kind has a
+job, an author, and a lifecycle:
 
-| artifact | what it holds |
-|---|---|
-| requirements | owner fiat: what the product must do to be accepted |
-| decisions | the path taken to meet them — each choice a consumer could observe or a reimplementation must preserve, recorded with the conditions that would call for it to be revisited; choices below that bar live in the code, and a reimplementation is free to re-make them |
-| facts | what has been observed about the world, with the runs and artifacts that establish it |
-| interfaces | the shapes something outside the implementation compiles against |
-| released versions | tags and published artifacts — permanent once out, whatever happens to the source |
-| drafts | each increment's frozen synthesis prose — raw material for the shipped documents, never normative |
+- **Requirements** are owner fiat: what the product must do to be accepted. Captured by the owner
+  and agents at the start of an increment, directly into its requirements source; amended by later
+  entries (`amends`), retired with a reason, adopted in bulk from presets. A requirement may carry
+  a `verification` procedure where its statement is not self-verifying, and `rationale` where a
+  casual reversal would be a mistake the statement does not warn of.
+- **Decisions** are the path taken to meet them — each choice a consumer could observe or a
+  reimplementation must preserve; choices below that bar live in the code. Proposed by whoever does
+  the design work, then ruled by the owner: accepted, tolerated, delegated, or rejected. While
+  still proposed and inside its own increment, a decision may be removed outright; once ruled, it
+  persists, closed only by a successor's `supersedes` or a retirement. `because:` records what a
+  decision rests on; `pinned` marks the ones that cannot be freely overturned; `revisit_when`
+  carries the rare, deliberate revisit condition.
+- **Model entries** bind the contracts the design speaks about — entity name to a pooled schema or
+  API surface at a pinned version. Written as the shapes settle, ratified with the increment's
+  requirements, folded by entity name.
+- **Facts** live in the repo-wide pool, unchanged from prior practice: findings about the world,
+  with the runs and artifacts that establish them, citable from anywhere.
+- **Drafts** are the increment's frozen working prose — the synthesis argument, and design-drafted
+  content for document deliverables — raw material for implementation, never normative.
 
-**Transient** — generated, used, discarded:
-
-| artifact | why it is transient |
-|---|---|
-| test plan | an input to the implementation, not a description of the product |
-| implementation | regenerable from the durable set |
-
-The asymmetry is deliberate. The durable set is what the owner reviews and what tooling can diff. The
-transient set is where work happens.
-
-**The unit of change is an increment**, scoped to a **product**. An increment owns the foundation
-changes it makes, the decisions it produces, and the transition an implementer follows. Status
-attaches to the increment, so drafting increment N+1 never unsettles the shipped increment N.
+Lifecycle is uniform: **an increment declares changes, and state is the fold.** New entries add;
+superseding entries replace, carrying their reason in their own content; retirements remove, with a
+reason; and nothing is ever edited once its increment publishes.
 
 ---
 
@@ -187,7 +150,211 @@ it.
 
 ---
 
-## Mechanisms it relies on
+## What endures, and what is disposable
+
+**Durable** — these persist and accumulate:
+
+| artifact | what it holds |
+|---|---|
+| requirements | owner fiat: what the product must do to be accepted |
+| decisions | the path taken to meet them — each choice a consumer could observe or a reimplementation must preserve, recorded with the conditions that would call for it to be revisited; choices below that bar live in the code, and a reimplementation is free to re-make them |
+| facts | what has been observed about the world, with the runs and artifacts that establish it |
+| interfaces | the shapes something outside the implementation compiles against |
+| released versions | tags and published artifacts — permanent once out, whatever happens to the source |
+| drafts | each increment's frozen synthesis prose — raw material for the shipped documents, never normative |
+
+**Transient** — generated, used, discarded:
+
+| artifact | why it is transient |
+|---|---|
+| test plan | an input to the implementation, not a description of the product |
+| implementation | regenerable from the durable set |
+
+The asymmetry is deliberate. The durable set is what the owner reviews and what tooling can diff. The
+transient set is where work happens.
+
+**The unit of change is an increment**, scoped to a **product**. An increment owns the foundation
+changes it makes, the decisions it produces, and the transition an implementer follows. Status
+attaches to the increment, so drafting increment N+1 never unsettles the shipped increment N.
+
+---
+
+## Mechanics
+
+### Pinned decisions
+
+A decision's **status** records the owner's ruling. Separately and independently, a decision may be
+**pinned** — meaning it cannot be freely overturned.
+
+- **`pinned`** — `false` (the default), or `{ reason, notes? }`. A pinned decision requires owner
+  ratification to change; an unpinned one does not, whatever its status.
+- **`reason`** is an enum — `data-format` and `public-api` today, joined by others as they earn a name —
+  with `other` as the escape. `notes` is optional alongside a named reason; alongside `other` it is
+  required, because there it is the reason.
+
+Pin a decision when it fixes a **public API surface**, fixes a **data format** written to disk or sent
+over a wire, is something **another product depends on**, or changes behaviour a **consumer would
+notice**.
+
+The agent proposing a decision proposes whether it is pinned; the owner rules on that along with the rest
+of it.
+
+Pinning is what escalation reads. No status on its own obliges an implementer to stop.
+
+### Lifecycle — declare changes, fold for state
+
+Requirements, decisions and preset adoptions all work the same way: **an increment declares what changed,
+and the effective state is the fold across the product's increments.**
+
+The owner reads the effective set, computed. The history is preserved and is not what anyone reads.
+
+**A claim is retired either by supersession or on its own.** A superseding entry names what it replaces
+and carries the reason in its own content, so nothing extra needs stating. A retirement with no successor
+needs a reason, because that reason is the only thing distinguishing it from an oversight — the thing it
+described no longer exists, the constraint stopped applying, the product moved out from under it.
+
+The retirement form is a top-level `retires:` block in the same per-increment source that adds entries,
+so the file scopes what kind of claim each id names and no type discriminator is needed. One id per
+entry, each with its own one-line `reason` and no statement — when one event retires several claims, the
+reason repeats, which keeps every retirement independently greppable and independently judgeable. The
+block covers only retirement without a successor; a superseding entry's `supersedes` or `amends` retires
+its target on its own.
+
+**Within the increment that created it**, a decision still `proposed` may be removed outright with no
+record. Once the owner has ruled on it, it cannot be deleted — it is retired through the same mechanism a
+later increment would use, so the owner can follow what became of something they accepted.
+
+**Recording is required; asking is not.** Pinning governs permission — an unpinned decision may be
+overturned by an implementation wave without escalating. It must still be recorded, because a decision silently out
+of force makes the record lie, and the record is what the owner reads. The implementation report already requires
+every overturned decision and why; **that list is where superseding entries come from**, rather than
+ending as prose in a report.
+
+**Concurrent increments collide on the number, and that is the whole provision.** Two in flight both
+claiming `003` conflict on merge; the loser renames and recomputes the fold against the base that moved,
+and the projection tooling and design validator report whatever the recomputed fold breaks. The process adds
+nothing further for this case.
+
+### Statements, and how they are verified
+
+A statement is one proposition of owner fiat, in product terms. It is **self-verifying** when its
+truth is decidable by direct inspection of what it names, with no interpretive choice — then
+`verification` is omitted, and coverage targets the statement read literally. Where the statement
+carries a term an observer cannot decide directly — an unbounded quantifier, a judgement word, an
+underspecified technical term — `verification` gives one ordered, performable procedure that binds
+the term to observations:
+
+```yaml
+- id: r-h97o555y
+  title: consumer suite typechecks
+  statement: |
+    a TypeScript consumer's test suite typechecks with the package installed.
+  verification:
+    - do: compile a consumer suite containing both pack imports and control-surface imports
+    - verify: no error, and no cast at the seam
+```
+
+`do` steps are performed; `verify` steps assert about what a preceding `do` surfaced, and all must
+hold. The first step is a `do`, and a `verify` with no grounding `do` is malformed — which is what
+keeps the procedure from drifting into a restatement of the statement. Judgement is a final pair
+naming the judge: `do: read the projected decision set, in full` / `verify: the owner can say what
+is to be built`. Steps exercise the requirement's **intent through the product's published
+surfaces** — and whatever a step names, the owner now expects: naming is binding, so internals are
+named only when binding them is the point. A requirement whose author can write no procedure is
+usually a badly stated requirement, better discovered while writing than a year later.
+
+**Decisions carry no verification, and the asymmetry is principled.** A requirement states an
+*end* — what must be true — so how you would know is a genuinely separate question. A decision states a
+*means* — what was done — and its verification would be a restatement: *we chose X*, known to be met
+when *X is what is there*. Requiring the field would populate it with tautologies.
+
+### Schemas pool by identity, and the model binds them
+
+A recurring need is to fix a data shape formally. Schemas live in one repo-wide pool under
+`schemas/` — any file at any depth, like the facts pool. Identity lives in the file: each schema
+declares `$id: /<namespace>/<entity>@<version>` beside `$schema` — `/design-process/requirements@1` —
+names unique across the repository, versions dense integers per entity, the leading slash mandatory:
+root-relative identities resolve to themselves regardless of base, which is what lets a schema depend
+on schemas — a `$ref` is an identity, resolved from the pool as the registry. References resolve by
+identity and never by path, so the tree may be nested and reorganised freely; any organisational or
+naming convention within a pool is an aid to navigation — non-normative and unenforced. A version is immutable once an
+increment binding it publishes, and the design validator refuses to edit or remove one that any
+published increment binds; it also fails when two pool files claim one identity, and fails an
+increment whose schema reference — a model binding or a source file's `version` field — resolves to
+no pool schema. A new version is a new file, proposed by the increment introducing it and ratified
+with it.
+Binding follows the preset precedent: any product binds any schema at a pinned version, and drift
+is legal — no product is rebound by a new version appearing.
+
+An increment binds schemas through its **model**, a per-increment source folding by entity name:
+
+```yaml
+version: 1
+model:
+  - name: pack-manifest
+    schema: mc-pack-manifest@2
+    description: the manifest a behaviour pack ships, as the build writes it
+```
+
+The entity name is the design's word for the thing, free to differ from the pool entry's name, and
+the description anchors what the entity does in the design. An entry carries one contract
+reference — `schema:`, or `api:` once the implement increment defines the API pool. Model entries are part of the
+increment's requirements — ratified with it, binding on implementers — and wherever prose references an
+entity, its bound schema is the authoritative shape.
+
+Foundation files need no model entry to be interpretable: each names its own schema's pool version
+in its `version` field (above). The model is for the shapes a design defines and speaks about.
+
+The formalism is JSON Schema, draft 2020-12, authored as YAML, carrying `$schema` for its dialect
+and `$id` for its identity.
+It is the default for being widely known and mechanically checkable; something more concise or
+expressive can displace it where it meets the foreseeable needs. The pool's first entries are the
+process's own sources — `requirements`, `decisions`, `product`, `increment`, `model` — and the
+design validator checks every structured file against the schema its `version` names.
+
+This settles the durable-interfaces question at the data layer: a shape something outside the implementation
+depends on is a named, versioned schema, bound through a ratified model. What remains open is the
+API layer only — functions and modules, not data.
+
+### Every structured file names its own schema version
+
+Every structured artifact this process defines — `product.yaml` and the increment
+sources, and any source a later process increment adds — carries a `version`: the pool version of
+the file's own schema. A requirements source with `version: 2` is interpreted by the pool
+schema `/design-process/requirements@2` — one lookup, no fold. The `.yaml` and `.yml` extensions are
+both accepted wherever a file is named.
+
+```yaml
+version: 1
+requirements:
+  - id: r-h97o555y
+    ...
+```
+
+The field is what makes schema evolution compatible with immutability. A published increment's files
+are never rewritten, so they stay forever in the dialect they were written in; the version names
+that dialect directly, and a format change is an ordinary new pool version that later files opt
+into rather than a repository-wide migration. Carrying the field means the foundation files are
+keyed mappings — the version beside a key naming the entry kind — rather than bare sequences.
+
+### Identifiers
+
+Requirements and decisions carry opaque ids — `{prefix}-{8 lowercase base36 characters}`, the prefix
+`r-` or `d-`, the rest random: `r-caao9k3z`, `d-9dx9ryhk`. The id is the citation form; no separate
+token grammar exists.
+
+Random rather than meaningful, deliberately. A slug bakes a summary into the identity, which drifts as
+the statement iterates and breaks citations exactly when an entry churns most. A timestamp component
+makes batch-created ids near-identical — and batch-created entries are the ones that cite and supersede
+each other, so a one-character misread lands on a valid, plausible sibling. Nothing reads structure out
+of an id; creation time lives in increments and git history.
+
+The human handle is **`title`** — a short label, free to churn without breaking anything, and what
+the projection displays. The generator is a CLI command used by humans and agents alike; the design validator
+enforces format and uniqueness, so a collision is a regenerate at creation rather than a latent bug.
+
+Increments stay plain numbers — readable, and the merge collision on the number is the concurrency
+detection. Products and presets are named by their directory, and adoption uses that name.
 
 ### Requirement presets
 
@@ -235,25 +402,82 @@ Rules:
 Drift is expected and not forced. Products may sit on old preset increments indefinitely; a report of how
 far behind each adoption sits is useful, but nothing obliges an upgrade.
 
-### Pinned decisions
+### Projection replaces a written spec document
 
-A decision's **status** records the owner's ruling. Separately and independently, a decision may be
-**pinned** — meaning it cannot be freely overturned.
+If decisions are the owner's window, they have to read *as a set*. Thirty entries in file order do not add
+up to a picture the way prose does, and that assembly is most of what a spec was doing.
 
-- **`pinned`** — `false` (the default), or `{ reason, notes? }`. A pinned decision requires owner
-  ratification to change; an unpinned one does not, whatever its status.
-- **`reason`** is an enum — `data-format` and `public-api` today, joined by others as they earn a name —
-  with `other` as the escape. `notes` is optional alongside a named reason; alongside `other` it is
-  required, because there it is the reason.
+That job does not disappear when the spec does; it moves to tooling. The two words are deliberate:
+the **fold** is the state — declared deltas combined into the effective sets, authoritative wherever
+it is computed — and the **projection** is its rendering for a reader, joined, filtered, and
+ordered. A projected view of a product shows,
+for one product at one increment:
 
-Pin a decision when it fixes a **public API surface**, fixes a **data format** written to disk or sent
-over a wire, is something **another product depends on**, or changes behaviour a **consumer would
-notice**.
+- the effective requirement set, product-local and adopted, with each adoption's preset and version
+- the effective decision set, with status and pinning, ordered by `because:` topology where cited
+  rather than by file order
+- for each claim, its coverage rung and what provides it
+- open questions blocking the increment from settling
+- what this increment changed against the last — added, retired, superseded
 
-The agent proposing a decision proposes whether it is pinned; the owner rules on that along with the rest
-of it.
+— the whole of it filterable and groupable by facet, where the product declares them.
 
-Pinning is what escalation reads. No status on its own obliges an implementer to stop.
+### The fold at an increment is the bundle
+
+What an implementer implements against is the fold at a published increment — the effective requirements,
+decisions, and coverage expectations of `<product>@N`. Publication made every input immutable, so the
+view is derivable on demand and identical forever: nothing is archived, nothing is published, and the
+increment number is the version, with the declared delta as its changelog. An implementation pins what it consumed by
+recording the increment it targeted.
+
+None of that is authored. All of it is a fold over artifacts that already exist, which is why it can be
+correct by construction where a spec could only be correct by diligence.
+
+### Facts record what research found
+
+Spikes, probes, experiments and measurements produce findings about the world — how a dependency actually
+behaves, what a runner does with a given config, what a measurement showed. Those findings are worth
+keeping past the increment that produced them, because the next increment would otherwise re-derive them,
+and because a decision built on a finding should be traceable to it.
+
+- **`because:` on a decision** — what it rests on: the requirements it follows from, the facts that
+  drove it, and the decisions it builds on. A citation gives the projection a dependency order instead of file order, and
+  superseding or retiring an entry surfaces, through these citations, what stood on it. Optional: a fact
+  is deliberately non-trivial to record — a citation of the upstream source for a documented one,
+  captured output and a re-runnable record for a self-tested one — and requiring a citation per decision
+  would manufacture them rather than find them. Where nothing is cited, the decision's own statement
+  carries the reasoning.
+- **`informed_by:` on a requirement** — a pointer, explicitly not justification, since requirements are
+  fiat and need none. It exists so that a fact contradicting a requirement can be found rather than
+  noticed.
+
+### Facets
+
+A product with several kinds of deliverable needs a way to find, filter, and track claims without
+splitting the product. A **facet** is an optional label on a requirement or decision — one or a
+list — drawn from the vocabulary the product declares in its `product.yaml`, each an id with a
+description, so the name does not have to carry the meaning alone:
+
+```yaml
+- id: d-9g62l9m0
+  facets: [schema, design-validator]
+```
+
+A facet is a reading aid: the projection groups and filters by it, and no rule reads it. Nothing fences by
+facet, nothing escalates by facet, coverage and pinning ignore it — which is what keeps it cheap to
+assign and cheap to be wrong about.
+
+The line is bright deliberately. Wanting a rule that mentions a facet — "requirements of the CLI
+must…" — is the signal the facet has become a product, and the split happens then, on evidence of
+independent life: its own release cadence, another product depending on it specifically, increments
+that stop co-changing with the rest. The machinery for the split already exists — retire the claims in
+the parent, re-add them in the new product.
+
+Facets do not draw component boundaries. Where packages meet — the CLI consumes the library's public
+surface, shared types live in the library — is decision content, pinned when a consumer could notice.
+An implementer coheres across facets because implementation is product-scoped: an increment is implemented against the
+whole foundation set, and the Stub wave's shared stubs are where packages converge on the types they
+share. A facet helps find those decisions; it does not replace them.
 
 ### A product maps to its packages
 
@@ -332,238 +556,6 @@ new design increments where the fold itself must move, and writing its implement
 which is what says who shipped the document, against which fold, and when. Run by the owner and
 agents or autonomously, it is the same mechanism and the same record.
 
-### Facets
-
-A product with several kinds of deliverable needs a way to find, filter, and track claims without
-splitting the product. A **facet** is an optional label on a requirement or decision — one or a
-list — drawn from the vocabulary the product declares in its `product.yaml`, each an id with a
-description, so the name does not have to carry the meaning alone:
-
-```yaml
-- id: d-9g62l9m0
-  facets: [schema, design-validator]
-```
-
-A facet is a reading aid: the projection groups and filters by it, and no rule reads it. Nothing fences by
-facet, nothing escalates by facet, coverage and pinning ignore it — which is what keeps it cheap to
-assign and cheap to be wrong about.
-
-The line is bright deliberately. Wanting a rule that mentions a facet — "requirements of the CLI
-must…" — is the signal the facet has become a product, and the split happens then, on evidence of
-independent life: its own release cadence, another product depending on it specifically, increments
-that stop co-changing with the rest. The machinery for the split already exists — retire the claims in
-the parent, re-add them in the new product.
-
-Facets do not draw component boundaries. Where packages meet — the CLI consumes the library's public
-surface, shared types live in the library — is decision content, pinned when a consumer could notice.
-An implementer coheres across facets because implementation is product-scoped: an increment is implemented against the
-whole foundation set, and the Stub wave's shared stubs are where packages converge on the types they
-share. A facet helps find those decisions; it does not replace them.
-
-### Identifiers
-
-Requirements and decisions carry opaque ids — `{prefix}-{8 lowercase base36 characters}`, the prefix
-`r-` or `d-`, the rest random: `r-caao9k3z`, `d-9dx9ryhk`. The id is the citation form; no separate
-token grammar exists.
-
-Random rather than meaningful, deliberately. A slug bakes a summary into the identity, which drifts as
-the statement iterates and breaks citations exactly when an entry churns most. A timestamp component
-makes batch-created ids near-identical — and batch-created entries are the ones that cite and supersede
-each other, so a one-character misread lands on a valid, plausible sibling. Nothing reads structure out
-of an id; creation time lives in increments and git history.
-
-The human handle is **`title`** — a short label, free to churn without breaking anything, and what
-the projection displays. The generator is a CLI command used by humans and agents alike; the design validator
-enforces format and uniqueness, so a collision is a regenerate at creation rather than a latent bug.
-
-Increments stay plain numbers — readable, and the merge collision on the number is the concurrency
-detection. Products and presets are named by their directory, and adoption uses that name.
-
-### Every structured file names its own schema version
-
-Every structured artifact this process defines — `product.yaml` and the increment
-sources, and any source a later process increment adds — carries a `version`: the pool version of
-the file's own schema. A requirements source with `version: 2` is interpreted by the pool
-schema `/design-process/requirements@2` — one lookup, no fold. The `.yaml` and `.yml` extensions are
-both accepted wherever a file is named.
-
-```yaml
-version: 1
-requirements:
-  - id: r-h97o555y
-    ...
-```
-
-The field is what makes schema evolution compatible with immutability. A published increment's files
-are never rewritten, so they stay forever in the dialect they were written in; the version names
-that dialect directly, and a format change is an ordinary new pool version that later files opt
-into rather than a repository-wide migration. Carrying the field means the foundation files are
-keyed mappings — the version beside a key naming the entry kind — rather than bare sequences.
-
-### Schemas pool by identity, and the model binds them
-
-A recurring need is to fix a data shape formally. Schemas live in one repo-wide pool under
-`schemas/` — any file at any depth, like the facts pool. Identity lives in the file: each schema
-declares `$id: /<namespace>/<entity>@<version>` beside `$schema` — `/design-process/requirements@1` —
-names unique across the repository, versions dense integers per entity, the leading slash mandatory:
-root-relative identities resolve to themselves regardless of base, which is what lets a schema depend
-on schemas — a `$ref` is an identity, resolved from the pool as the registry. References resolve by
-identity and never by path, so the tree may be nested and reorganised freely; any organisational or
-naming convention within a pool is an aid to navigation — non-normative and unenforced. A version is immutable once an
-increment binding it publishes, and the design validator refuses to edit or remove one that any
-published increment binds; it also fails when two pool files claim one identity, and fails an
-increment whose schema reference — a model binding or a source file's `version` field — resolves to
-no pool schema. A new version is a new file, proposed by the increment introducing it and ratified
-with it.
-Binding follows the preset precedent: any product binds any schema at a pinned version, and drift
-is legal — no product is rebound by a new version appearing.
-
-An increment binds schemas through its **model**, a per-increment source folding by entity name:
-
-```yaml
-version: 1
-model:
-  - name: pack-manifest
-    schema: mc-pack-manifest@2
-    description: the manifest a behaviour pack ships, as the build writes it
-```
-
-The entity name is the design's word for the thing, free to differ from the pool entry's name, and
-the description anchors what the entity does in the design. An entry carries one contract
-reference — `schema:`, or `api:` once the implement increment defines the API pool. Model entries are part of the
-increment's requirements — ratified with it, binding on implementers — and wherever prose references an
-entity, its bound schema is the authoritative shape.
-
-Foundation files need no model entry to be interpretable: each names its own schema's pool version
-in its `version` field (above). The model is for the shapes a design defines and speaks about.
-
-The formalism is JSON Schema, draft 2020-12, authored as YAML, carrying `$schema` for its dialect
-and `$id` for its identity.
-It is the default for being widely known and mechanically checkable; something more concise or
-expressive can displace it where it meets the foreseeable needs. The pool's first entries are the
-process's own sources — `requirements`, `decisions`, `product`, `increment`, `model` — and the
-design validator checks every structured file against the schema its `version` names.
-
-This settles the durable-interfaces question at the data layer: a shape something outside the implementation
-depends on is a named, versioned schema, bound through a ratified model. What remains open is the
-API layer only — functions and modules, not data.
-
-### Lifecycle — declare changes, fold for state
-
-Requirements, decisions and preset adoptions all work the same way: **an increment declares what changed,
-and the effective state is the fold across the product's increments.**
-
-The owner reads the effective set, computed. The history is preserved and is not what anyone reads.
-
-**A claim is retired either by supersession or on its own.** A superseding entry names what it replaces
-and carries the reason in its own content, so nothing extra needs stating. A retirement with no successor
-needs a reason, because that reason is the only thing distinguishing it from an oversight — the thing it
-described no longer exists, the constraint stopped applying, the product moved out from under it.
-
-The retirement form is a top-level `retires:` block in the same per-increment source that adds entries,
-so the file scopes what kind of claim each id names and no type discriminator is needed. One id per
-entry, each with its own one-line `reason` and no statement — when one event retires several claims, the
-reason repeats, which keeps every retirement independently greppable and independently judgeable. The
-block covers only retirement without a successor; a superseding entry's `supersedes` or `amends` retires
-its target on its own.
-
-**Within the increment that created it**, a decision still `proposed` may be removed outright with no
-record. Once the owner has ruled on it, it cannot be deleted — it is retired through the same mechanism a
-later increment would use, so the owner can follow what became of something they accepted.
-
-**Recording is required; asking is not.** Pinning governs permission — an unpinned decision may be
-overturned by an implementation wave without escalating. It must still be recorded, because a decision silently out
-of force makes the record lie, and the record is what the owner reads. The implementation report already requires
-every overturned decision and why; **that list is where superseding entries come from**, rather than
-ending as prose in a report.
-
-**Concurrent increments collide on the number, and that is the whole provision.** Two in flight both
-claiming `003` conflict on merge; the loser renames and recomputes the fold against the base that moved,
-and the projection tooling and design validator report whatever the recomputed fold breaks. The process adds
-nothing further for this case.
-
-### Statements, and how they are verified
-
-A statement is one proposition of owner fiat, in product terms. It is **self-verifying** when its
-truth is decidable by direct inspection of what it names, with no interpretive choice — then
-`verification` is omitted, and coverage targets the statement read literally. Where the statement
-carries a term an observer cannot decide directly — an unbounded quantifier, a judgement word, an
-underspecified technical term — `verification` gives one ordered, performable procedure that binds
-the term to observations:
-
-```yaml
-- id: r-h97o555y
-  title: consumer suite typechecks
-  statement: |
-    a TypeScript consumer's test suite typechecks with the package installed.
-  verification:
-    - do: compile a consumer suite containing both pack imports and control-surface imports
-    - verify: no error, and no cast at the seam
-```
-
-`do` steps are performed; `verify` steps assert about what a preceding `do` surfaced, and all must
-hold. The first step is a `do`, and a `verify` with no grounding `do` is malformed — which is what
-keeps the procedure from drifting into a restatement of the statement. Judgement is a final pair
-naming the judge: `do: read the projected decision set, in full` / `verify: the owner can say what
-is to be built`. Steps exercise the requirement's **intent through the product's published
-surfaces** — and whatever a step names, the owner now expects: naming is binding, so internals are
-named only when binding them is the point. A requirement whose author can write no procedure is
-usually a badly stated requirement, better discovered while writing than a year later.
-
-**Decisions carry no verification, and the asymmetry is principled.** A requirement states an
-*end* — what must be true — so how you would know is a genuinely separate question. A decision states a
-*means* — what was done — and its verification would be a restatement: *we chose X*, known to be met
-when *X is what is there*. Requiring the field would populate it with tautologies.
-
-### Facts record what research found
-
-Spikes, probes, experiments and measurements produce findings about the world — how a dependency actually
-behaves, what a runner does with a given config, what a measurement showed. Those findings are worth
-keeping past the increment that produced them, because the next increment would otherwise re-derive them,
-and because a decision built on a finding should be traceable to it.
-
-- **`because:` on a decision** — what it rests on: the requirements it follows from, the facts that
-  drove it, and the decisions it builds on. A citation gives the projection a dependency order instead of file order, and
-  superseding or retiring an entry surfaces, through these citations, what stood on it. Optional: a fact
-  is deliberately non-trivial to record — a citation of the upstream source for a documented one,
-  captured output and a re-runnable record for a self-tested one — and requiring a citation per decision
-  would manufacture them rather than find them. Where nothing is cited, the decision's own statement
-  carries the reasoning.
-- **`informed_by:` on a requirement** — a pointer, explicitly not justification, since requirements are
-  fiat and need none. It exists so that a fact contradicting a requirement can be found rather than
-  noticed.
-
-### Projection replaces a written spec document
-
-If decisions are the owner's window, they have to read *as a set*. Thirty entries in file order do not add
-up to a picture the way prose does, and that assembly is most of what a spec was doing.
-
-That job does not disappear when the spec does; it moves to tooling. The two words are deliberate:
-the **fold** is the state — declared deltas combined into the effective sets, authoritative wherever
-it is computed — and the **projection** is its rendering for a reader, joined, filtered, and
-ordered. A projected view of a product shows,
-for one product at one increment:
-
-- the effective requirement set, product-local and adopted, with each adoption's preset and version
-- the effective decision set, with status and pinning, ordered by `because:` topology where cited
-  rather than by file order
-- for each claim, its coverage rung and what provides it
-- open questions blocking the increment from settling
-- what this increment changed against the last — added, retired, superseded
-
-— the whole of it filterable and groupable by facet, where the product declares them.
-
-### The fold at an increment is the bundle
-
-What an implementer implements against is the fold at a published increment — the effective requirements,
-decisions, and coverage expectations of `<product>@N`. Publication made every input immutable, so the
-view is derivable on demand and identical forever: nothing is archived, nothing is published, and the
-increment number is the version, with the declared delta as its changelog. An implementation pins what it consumed by
-recording the increment it targeted.
-
-None of that is authored. All of it is a fold over artifacts that already exist, which is why it can be
-correct by construction where a spec could only be correct by diligence.
-
 ### Implement forward
 
 Resolving a tension that is merely unwelcome is not part of the current increment: the owner may
@@ -573,101 +565,6 @@ never; nothing in the process does so automatically. Amend in place only when so
 
 "Incorrect" earns its place in that list. A guard that silently answers false, so a handler returns early
 and its test passes green, breaks nothing visibly — and is the product not working. That cannot wait.
-
----
-
-## What exists today
-
-| mechanism | state |
-|---|---|
-| `requirements.yaml`, with `status: retired` | exists |
-| `decisions.yaml`, with statuses and falsifiers | exists |
-| facts pool, with `backing`, sources, runs, artifacts | exists |
-| citation tokens and resolution | exists |
-| `npm run check` — schema, citations, settle gate | exists |
-| `bin/foundations.mjs` — requirement collation per design | exists |
-| `products.yaml` | exists |
-| version bump computed from structured data, never from prose | exists (`how-to-plan/spec-bundles`) |
-| amend-versus-regenerate as distinct operations | exists |
-| adversarial review pipeline — panel, triage, capstone | exists |
-
-The repository already votes for the central claim here: its own versioning design computes bumps from
-structured data and never reads the narrative.
-
-## What needs building or changing
-
-**Structural**
-
-1. **Fence requirements to the product, not the design.** The highest-value single change; it removes the
-   cross-design ask ceremony for same-product work.
-2. **Requirement presets**, adopted through the `presets:` declaration in a requirements source,
-   and the wider scopes removed.
-3. **Increment as an artifact** — foundation delta, decisions, adoptions.
-4. **Move status from the design to the increment.** It stays derived, now from location: draft is
-   off main, published is merged, and the old unsettled-and-merged combination is gone.
-5. **Stop maintaining `spec.md`.** Clarify works through a synthesis draft, discarded at zero
-   remainder before publish.
-
-**Schema**
-
-6. **`version` on every structured file** — the pool version of the file's own schema; foundation
-   files become keyed mappings to carry it.
-7. **Typed `pinned` on decisions** — `false`, or a named reason with optional notes — governing what
-   escalates.
-8. **`verification` on requirements** — one do/verify procedure, present only where the statement
-   is not self-verifying.
-9. **`because:` on decisions** — citing requirements, facts, and decisions alike — and
-   **`informed_by:` on requirements**.
-10. **A published increment is immutable**, and lifecycle points *forward* — a new entry names what it
-    supersedes or retires, rather than an old entry being edited to close it. Requirements and decisions
-    are scoped to a product across all its increments, so finding what supersedes an entry never means
-    searching the repository.
-11. **The package mapping on a product** — path, kind, and optional repo per package — and **facets**:
-    the vocabulary on the product, the labels on claims.
-12. **Opaque ids** — `{prefix}-{8 base36 characters}`, `title` as the label, the generator a CLI
-    command, format and uniqueness checked.
-13. **The schema pool and the model** — one reorganisable pool of `$id`-identified schemas, model
-    entries binding an entity to a schema version, every structured file validated against the
-    schema its `version` names.
-
-**Tooling**
-
-14. **The projection** — the folded, computed view of a product, filterable by facet and ordered by
-    citation topology.
-15. **The merge gate** — publish is the merge: no `proposed` decision outstanding, the number next
-    in sequence.
-
-**Process**
-
-16. **Promotion of a decision to a requirement**, when it has become something consumers can reasonably be
-    expected to rely on and preserving its effect is a matter of compatibility. Not every accepted
-    decision — requirements say what the product must do to be accepted; decisions describe the path taken.
-17. **The retirement form** — top-level `retires:` blocks in each increment's sources, one id and a
-    one-line reason per entry, no statement.
-
-**Deliberately not needed**
-
-Cross-repository propagation — reusable workflows, template drift checking, bulk mutation, organisation
-rulesets — exists to approximate what a monorepo gives for free. These projects are one pnpm/turbo
-workspace, so a harness change is one commit. The convention that replaces all of it: **every project
-exposes a `verify` task**.
-
----
-
-## What will actually be different
-
-| today | proposed |
-|---|---|
-| a spec is written, reviewed and maintained per design | no spec; Clarify produces decisions, facts and questions, and its document is discarded |
-| requirements fence to a design, so two workstreams on one product file issues at each other | requirements fence to the product; same-product work shares foundations |
-| a new global or `applies_to` requirement can make a settled design incomplete retroactively | products adopt requirement presets at a pinned increment; nothing binds a product until it says so |
-| a design is settled or draft | an increment is; shipped increments stay shipped |
-| changing a shipped product means rewriting its spec or inventing another slice | an increment carries the delta |
-| a punt and a reservation are the same status | `delegated` and `tolerated` are separate, so what the owner ruled on can be told from what they passed over |
-| a decision the owner dislikes is rejected, and the work is redone | it is tolerated, and a requirement is filed for a future increment |
-
-**What does not change:** the owner reads every requirement and every decision, in full. That is the
-comprehension channel, and this is built to feed it rather than to trim it.
 
 ---
 
@@ -790,4 +687,3 @@ retires:
   - id: d-huepnzof
     reason: brandAs no longer exists; instanceof answers from the prototype chain
 ```
-

@@ -161,3 +161,98 @@ deliverable.
 4. The document-deliverable products, once their permanent home is decided.
 5. The old-tree validation rules retire with the last design out; until then the design validator accepts both
    trees.
+
+---
+
+## What exists today
+
+| mechanism | state |
+|---|---|
+| `requirements.yaml`, with `status: retired` | exists |
+| `decisions.yaml`, with statuses and falsifiers | exists |
+| facts pool, with `backing`, sources, runs, artifacts | exists |
+| citation tokens and resolution | exists |
+| `npm run check` — schema, citations, settle gate | exists |
+| `bin/foundations.mjs` — requirement collation per design | exists |
+| `products.yaml` | exists |
+| version bump computed from structured data, never from prose | exists (`how-to-plan/spec-bundles`) |
+| amend-versus-regenerate as distinct operations | exists |
+| adversarial review pipeline — panel, triage, capstone | exists |
+
+The repository already votes for the central claim here: its own versioning design computes bumps from
+structured data and never reads the narrative.
+
+## What needs building or changing
+
+**Structural**
+
+1. **Fence requirements to the product, not the design.** The highest-value single change; it removes the
+   cross-design ask ceremony for same-product work.
+2. **Requirement presets**, adopted through the `presets:` declaration in a requirements source,
+   and the wider scopes removed.
+3. **Increment as an artifact** — foundation delta, decisions, adoptions.
+4. **Move status from the design to the increment.** It stays derived, now from location: draft is
+   off main, published is merged, and the old unsettled-and-merged combination is gone.
+5. **Stop maintaining `spec.md`.** Clarify works through a synthesis draft, discarded at zero
+   remainder before publish.
+
+**Schema**
+
+6. **`version` on every structured file** — the pool version of the file's own schema; foundation
+   files become keyed mappings to carry it.
+7. **Typed `pinned` on decisions** — `false`, or a named reason with optional notes — governing what
+   escalates.
+8. **`verification` on requirements** — one do/verify procedure, present only where the statement
+   is not self-verifying.
+9. **`because:` on decisions** — citing requirements, facts, and decisions alike — and
+   **`informed_by:` on requirements**.
+10. **A published increment is immutable**, and lifecycle points *forward* — a new entry names what it
+    supersedes or retires, rather than an old entry being edited to close it. Requirements and decisions
+    are scoped to a product across all its increments, so finding what supersedes an entry never means
+    searching the repository.
+11. **The package mapping on a product** — path, kind, and optional repo per package — and **facets**:
+    the vocabulary on the product, the labels on claims.
+12. **Opaque ids** — `{prefix}-{8 base36 characters}`, `title` as the label, the generator a CLI
+    command, format and uniqueness checked.
+13. **The schema pool and the model** — one reorganisable pool of `$id`-identified schemas, model
+    entries binding an entity to a schema version, every structured file validated against the
+    schema its `version` names.
+
+**Tooling**
+
+14. **The projection** — the folded, computed view of a product, filterable by facet and ordered by
+    citation topology.
+15. **The merge gate** — publish is the merge: no `proposed` decision outstanding, the number next
+    in sequence.
+
+**Process**
+
+16. **Promotion of a decision to a requirement**, when it has become something consumers can reasonably be
+    expected to rely on and preserving its effect is a matter of compatibility. Not every accepted
+    decision — requirements say what the product must do to be accepted; decisions describe the path taken.
+17. **The retirement form** — top-level `retires:` blocks in each increment's sources, one id and a
+    one-line reason per entry, no statement.
+
+**Deliberately not needed**
+
+Cross-repository propagation — reusable workflows, template drift checking, bulk mutation, organisation
+rulesets — exists to approximate what a monorepo gives for free. These projects are one pnpm/turbo
+workspace, so a harness change is one commit. The convention that replaces all of it: **every project
+exposes a `verify` task**.
+
+---
+
+## What will actually be different
+
+| today | proposed |
+|---|---|
+| a spec is written, reviewed and maintained per design | no spec; Clarify produces decisions, facts and questions, and its document is discarded |
+| requirements fence to a design, so two workstreams on one product file issues at each other | requirements fence to the product; same-product work shares foundations |
+| a new global or `applies_to` requirement can make a settled design incomplete retroactively | products adopt requirement presets at a pinned increment; nothing binds a product until it says so |
+| a design is settled or draft | an increment is; shipped increments stay shipped |
+| changing a shipped product means rewriting its spec or inventing another slice | an increment carries the delta |
+| a punt and a reservation are the same status | `delegated` and `tolerated` are separate, so what the owner ruled on can be told from what they passed over |
+| a decision the owner dislikes is rejected, and the work is redone | it is tolerated, and a requirement is filed for a future increment |
+
+**What does not change:** the owner reads every requirement and every decision, in full. That is the
+comprehension channel, and this is built to feed it rather than to trim it.
