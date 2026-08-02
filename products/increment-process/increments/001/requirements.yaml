@@ -41,7 +41,7 @@ requirements:
     verification:
       - do: open the repository branch protection
       - verify: the design validator check is required
-      - do: open a pull request that fails the check
+      - do: open a pull request that fails any check
       - verify: the merge is blocked
     facets: design-validator
 
@@ -71,17 +71,10 @@ requirements:
     statement: |
       the design phase produces no prose specification for an implementer to follow:
       implementation works strictly from the fold — requirements, decisions, and bound
-      contracts. a synthesis draft lives in its increment's drafts/ folder, merges with the
-      increment, and freezes at publish — raw material, never normative. separately, for
-      package types whose deliverable is itself a document, the design phase may draft content
-      that drives the implementation — anywhere from nothing at all to a mostly complete
-      document, as this product's own increments do; the full range of such content is
-      deliberately not defined in this increment.
+      contracts.
     verification:
-      - do: list an increment directory
-      - verify: only the defined source files and drafts/ are present
-      - do: review each pull request
-      - verify: no spec is maintained anywhere else
+      - do: review each merged pull request's changes
+      - verify: no implementation specification is added anywhere
     facets:
       - process-doc
       - design-validator

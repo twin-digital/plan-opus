@@ -314,19 +314,12 @@ this repository rather than the workspace. This does not bend the no-spec rule: 
 discards is the design-phase document that *describes* a product; a document a product *ships* is
 implementation, produced and revised by implementation waves like any other deliverable.
 
-Being authored does not move it — code is authored too. The document lives at its path from the
-start and implementations edit it there in place; no copy sits in an increment, and nothing is copied at
-publish. Immutability attaches to an increment's foundations, never to the deliverable — the same as
-for code, where publishing an increment does not freeze the source files. A shipped state worth
-keeping is a released version, and what a later rewrite must preserve is what pinned decisions say.
-
 The difference a document does have is how it is consumed. Code is consumed through released
 versions, so work-in-progress on the default branch touches no consumer; a document at a permanent
-path is read straight from the tree, so merge is what makes it live. The guard is the one the
-process already has: the document's edits belong to an increment, merging them is publishing it, and
-the publish gate refuses that as long as the increment is not done — however long its branch lives,
-minutes for an unattended implementation or days for hand crafting. A document too hot for tree consumption
-— one outside readers pin against — releases versions like any other package.
+path is read straight from the tree, so merge is what makes it live. The guard is the merge
+itself: a document's changes ride an implementation's pull request, drawing on the increment's
+frozen drafts, and go live only when it lands. A document too hot for tree consumption — one outside
+readers pin against — releases versions like any other package.
 
 Document homes follow one convention: shipped document packages live under `docs/<domain>/`, and
 synthesis drafts live in their increment's `drafts/` folder, publishing with it. For document
@@ -391,7 +384,8 @@ detection. Products and presets are named by their directory, and adoption uses 
 Every structured artifact this process defines — `product.yaml` and the increment
 sources, and any source a later process increment adds — carries a `version`: the pool version of
 the file's own schema. A requirements source with `version: 2` is interpreted by the pool
-schema `/design-process/requirements@2` — one lookup, no fold.
+schema `/design-process/requirements@2` — one lookup, no fold. The `.yaml` and `.yml` extensions are
+both accepted wherever a file is named.
 
 ```yaml
 version: 1

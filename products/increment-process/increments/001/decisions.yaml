@@ -109,7 +109,8 @@ decisions:
     statement: |
       increment artifacts live at products/<product>/increments/<NNN>/ — requirements.yaml,
       decisions.yaml, model.yaml, a drafts/ folder, and the sources later process increments
-      define; the increment is its directory, with no manifest file of its own. the product is
+      define, with .yaml and .yml both accepted wherever a source is named; the increment is
+      its directory, with no manifest file of its own. the product is
       declared by the presence of products/<product>/product.yaml, whose directory name is the
       product id.
     status: accepted
@@ -151,7 +152,7 @@ decisions:
       within the increment that created it, a decision still proposed may be removed outright
       with no record; once ruled on, an entry persists, and is closed only by supersession or
       retirement.
-    status: proposed
+    status: accepted
     because:
       - r-gc7a3m56
     pinned:
@@ -199,22 +200,6 @@ decisions:
     facets:
       - schema
       - process-doc
-
-  - id: d-xqqwnl78
-    title: a document is implemented in place
-    statement: |
-      a document package is edited in place at its permanent path — no copy sits in an
-      increment, and nothing is copied at publish. it is consumed from the tree, so merge is
-      what makes it live; a document outside readers pin against releases versions like any
-      package.
-    status: proposed
-    because:
-      - r-yzkxa2hj
-      - d-nzba0wqu
-    pinned:
-      reason: other
-      notes: merge-visibility is what consumers of a tree-read document rely on
-    facets: process-doc
 
   - id: d-jy7x42nx
     title: retirement is an id and a reason
@@ -279,7 +264,7 @@ decisions:
       load as their rubric and authors self-check against. technique and orchestration stay in
       agent guidance; the process reference stays one epistemic kind, validator-backed, while
       this document is reviewer-applied and never a validator rule.
-    status: proposed
+    status: accepted
     because:
       - r-yzkxa2hj
       - r-gq90gngs
@@ -294,7 +279,7 @@ decisions:
       owner may capture it as a requirement in some future increment — optionally, whenever
       they choose, or never; nothing in the process does so automatically. amending in place
       is reserved for the impossible, non-viable, or incorrect.
-    status: proposed
+    status: accepted
     because:
       - r-caao9k3z
     facets:
