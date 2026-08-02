@@ -35,8 +35,8 @@ job, an author, and a lifecycle:
   decision rests on; `pinned` marks the ones that cannot be freely overturned; `revisit_when`
   carries the rare, deliberate revisit condition.
 - **Model entries** bind the contracts the design speaks about — entity name to a pooled schema or
-  API surface at a pinned version. Written as the shapes settle, ratified with the increment's
-  requirements, folded by entity name.
+  API surface at a pinned version, in the model: block of the requirements source. Written as the
+  shapes settle, ratified with the increment's requirements, folded by entity name.
 - **Facts** live in the repo-wide pool, unchanged from prior practice: findings about the world,
   with the runs and artifacts that establish them, citable from anywhere.
 - **Drafts** are the increment's frozen working prose — the synthesis argument, and design-drafted
@@ -286,13 +286,14 @@ with it.
 Binding follows the preset precedent: any product binds any schema at a pinned version, and drift
 is legal — no product is rebound by a new version appearing.
 
-An increment binds schemas through its **model**, a per-increment source folding by entity name:
+An increment binds schemas through its **model** — a top-level block of its requirements source,
+beside the requirements and preset declarations it ratifies with, folding by entity name:
 
 ```yaml
-version: 1
+# in the increment's requirements.yaml
 model:
   - name: pack-manifest
-    schema: mc-pack-manifest@2
+    schema: /minecraft/pack-manifest@2
     description: the manifest a behaviour pack ships, as the build writes it
 ```
 

@@ -59,8 +59,8 @@ decisions:
       file's own schema, so a requirements source with version 2 is interpreted by the pool
       schema /design-process/requirements@2. interpretation is one lookup, no fold, and a
       published file stays readable forever in the dialect it was written in. a foundation
-      file is a mapping, not a bare list of entries: version sits beside one top-level key —
-      requirements:, decisions:, model: — that names what the file holds.
+      file is a mapping, not a bare list of entries: version sits beside the top-level keys —
+      requirements:, decisions: — that name what the file holds.
     status: accepted
     because:
       - r-2fytqadu
@@ -108,8 +108,8 @@ decisions:
     title: increment sources live under products/
     statement: |
       increment artifacts live at products/<product>/increments/<NNN>/ — requirements.yaml,
-      decisions.yaml, model.yaml, a drafts/ folder, and the sources later process increments
-      define, with .yaml and .yml both accepted wherever a source is named; the increment is
+      decisions.yaml, a drafts/ folder, and the sources later process increments define, with
+      .yaml and .yml both accepted wherever a source is named; the increment is
       its directory, with no manifest file of its own. the product is
       declared by the presence of products/<product>/product.yaml, whose directory name is the
       product id.
@@ -123,13 +123,14 @@ decisions:
       - design-validator
 
   - id: d-ke7709uf
-    title: the model is a per-increment source
+    title: the model is a block of the requirements source
     statement: |
-      model.yaml lists entities — name, one contract reference (schema: or api:, each as
-      /<namespace>/<entity>@<version>), an optional description — and folds by name like the
-      other sources, retiring an entity with a name and a reason; an entity's name is the
+      the model is a top-level model: block in the requirements source — the place everything
+      the owner ratifies as binding lives. entries carry name, one contract reference (schema:
+      or api:, each as /<namespace>/<entity>@<version>), an optional description, and a status
+      of bound (the default) or unbound, folding by name like presets; an entity's name is the
       design's word for it, free to differ from the pool entry's.
-    status: proposed
+    status: accepted
     because:
       - r-bua9wl1s
     pinned:

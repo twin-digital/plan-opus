@@ -176,3 +176,14 @@ requirements:
       - schema
       - design-validator
       - process-doc
+
+model:
+  - name: requirements-source
+    schema: /design-process/requirements@1
+    description: the per-increment requirements file — fiat, presets, and contract bindings
+  - name: decisions-source
+    schema: /design-process/decisions@1
+    description: the per-increment decisions file
+  - name: product-declaration
+    schema: /design-process/product@1
+    description: products/<id>/product.yaml, whose presence declares the product
