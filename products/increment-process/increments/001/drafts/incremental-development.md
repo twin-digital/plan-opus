@@ -561,8 +561,10 @@ correct by construction where a spec could only be correct by diligence.
 
 ### Implement forward
 
-Tensions that are merely unwelcome become **requirements for future increments**, not a relitigation of
-the current one. Amend in place only when something is **impossible, non-viable, or incorrect**.
+Resolving a tension that is merely unwelcome is not part of the current increment: the owner may
+capture it as a **requirement in some future increment** — optionally, whenever they choose, or
+never; nothing in the process does so automatically. Amend in place only when something is
+**impossible, non-viable, or incorrect**.
 
 "Incorrect" earns its place in that list. A guard that silently answers false, so a handler returns early
 and its test passes green, breaks nothing visibly — and is the product not working. That cannot wait.
