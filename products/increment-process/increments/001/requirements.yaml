@@ -6,9 +6,11 @@ requirements:
       every foundation artifact — requirement, decision, model binding, product and increment
       declaration — has a formally defined shape and a stated meaning: its form checkable by
       machine, its intent readable by a person.
-    satisfied_when:
-      - every foundation file validates against a pool schema in force
-      - the shipped process reference states each foundation's meaning
+    verification:
+      - observe: a foundation file, beside the pool schema its version field names
+        expect: the file conforms to the schema
+      - observe: the shipped process reference
+        expect: it states each foundation's meaning
     facets:
       - schema
       - process-doc
@@ -18,8 +20,6 @@ requirements:
     statement: |
       the owner and agents author foundations directly, as plain files; review is an ordinary
       pull-request diff, and the owner can read every claim in full.
-    satisfied_when:
-      - foundations are plain-text files, authored by hand or by agent, reviewed as ordinary diffs
     facets: process-doc
 
   - id: r-2gcehlp8
@@ -27,8 +27,9 @@ requirements:
     statement: |
       tooling computes the effective state of a product at any increment by folding its
       declarations, and the computed view is what the owner reads.
-    satisfied_when:
-      - the projection of product@N — its effective requirement, decision, and model sets — renders on demand
+    verification:
+      - observe: any published product@N
+        expect: its projection renders on demand
     facets: tooling
 
   - id: r-zcvxh2ty
@@ -37,9 +38,9 @@ requirements:
       the design validator runs as a required check on every pull request, applying every rule
       in force at that point; any failure blocks the merge. the merge gate is not advisory —
       nothing publishes over a failing check.
-    satisfied_when:
-      - the repository requires the design validator check to pass before any pull request merges
-      - the check applies every validator rule in force, and a single failure fails the check
+    verification:
+      - observe: the repository branch protection
+        expect: the design validator check is required, and a failing run blocks the merge
     facets: design-validator
 
   - id: r-caao9k3z
@@ -47,18 +48,19 @@ requirements:
     statement: |
       a published increment is never unsettled by later work: drafting increment N+1 changes
       nothing about increment N.
-    satisfied_when:
-      - the design validator rejects any edit to a file of a published increment
-      - later changes appear in the fold as new entries superseding or retiring earlier ones
+    verification:
+      - observe: the files of a published increment, across all later commits
+        expect: byte-identical
+      - observe: a change to earlier-ratified content
+        expect: it appears as a new entry superseding or retiring the old, never as an edit
     facets: design-validator
 
   - id: r-ei82daip
     title: decisions are comprehensible as a set
     statement: |
       the owner can comprehend what is to be built from the decision set alone, read in full.
-    satisfied_when: |
-      not mechanically checkable — whether the projected view reads as a picture of the product
-      is a judgement, verified by the owner reading it each increment.
+    verification:
+      - judgement: the owner, reading the projected decision set at each increment, can say what is to be built
     facets: tooling
 
   - id: r-bs6wsobr
@@ -72,9 +74,10 @@ requirements:
       that drives the implementation — anywhere from nothing at all to a mostly complete
       document, as this product's own increments do; the full range of such content is
       deliberately not defined in this increment.
-    satisfied_when:
-      - increment directories admit only the defined source files plus a drafts/ folder, whose contents freeze at publish like every increment file
-      - a spec maintained anywhere else is review's to catch, not the gate's
+    verification:
+      - observe: an increment directory
+        expect: only the defined source files and drafts/ are present
+      - judgement: reviewers, on each pull request, catch a spec maintained anywhere else
     facets:
       - process-doc
       - design-validator
@@ -84,17 +87,15 @@ requirements:
     statement: |
       the process's normative reference — what agents and the owner read to run it — is a
       shipped deliverable: document-kind packages at permanent homes in this repository.
-    satisfied_when:
-      - once the reference is implemented, product.yaml lists document packages whose paths hold its current text
-      - until then the requirement is visibly unimplemented — in force, with no coverage
+    verification:
+      - observe: product.yaml, once the reference is implemented
+        expect: document packages listed, their paths holding the current reference text
     facets: process-doc
 
   - id: r-0axqvtcc
     title: pending decisions may not be published
     statement: |
       no increment merges or publishes while one of its decisions is still proposed.
-    satisfied_when: |
-      the merge gate fails an increment carrying a decision whose status is proposed.
     facets: design-validator
 
   - id: r-gc7a3m56
@@ -102,9 +103,9 @@ requirements:
     statement: |
       what the owner engaged and judged is distinguishable, product-wide, from what they
       abstained on.
-    satisfied_when:
-      - tooling output provides a documented mechanism for telling whether a decision was reviewed or the owner abstained
-      - tooling output reports the abstention count
+    verification:
+      - observe: the projection
+        expect: each decision labelled reviewed or abstained, with the abstentions counted
     facets:
       - schema
       - tooling
@@ -116,11 +117,13 @@ requirements:
       repo-wide pools, versioned. a version is immutable once an increment binding it
       publishes, directly or transitively, and stays present as long as anything published
       relies on it; drift is legal — no product is rebound by a new version appearing.
-    satisfied_when:
-      - every pool schema parses as JSON Schema and declares its $id identity root-relative; the design validator fails one that omits the leading slash, in an $id or a $ref
-      - the design validator fails when two pool files claim one identity
-      - the design validator resolves references by identity, and rejects an edit to, or removal of, a version some published increment binds — directly, or transitively through a bound schema's $ref
-      - every structured file names its schema version in version, and validates against the schema that version names
+    verification:
+      - observe: a change introducing two pool files with one identity
+        expect: it cannot merge
+      - observe: a change editing or removing a pool version some published increment binds, directly or through a bound schema's $ref
+        expect: it cannot merge
+      - observe: a structured file, beside the pool schema its version field names
+        expect: the file conforms
     facets:
       - schema
       - design-validator
@@ -133,9 +136,11 @@ requirements:
       entries are part of the increment's requirements: ratified with it, binding on
       implementers, folded by entity name; where prose references an entity, its bound
       contract is the authoritative shape.
-    satisfied_when:
-      - the design validator fails an increment whose model reference — or whose source file's version field — resolves to no pool entry
-      - the design validator fails an increment which has duplicated entity names in the model in force at the increment
+    verification:
+      - observe: an increment whose model reference, or whose source file version field, resolves to no pool entry
+        expect: it cannot merge
+      - observe: an increment with duplicate entity names in the model in force
+        expect: it cannot merge
     facets:
       - schema
       - design-validator
@@ -148,11 +153,11 @@ requirements:
       increments publish on their own cadence, and several may accumulate before any
       implementation; one implementation may target the consolidated fold, and nothing obliges
       one per increment.
-    satisfied_when:
-      - a plan-only increment passes the merge gate
-      - an implementer may take previously ratified requirements as an implementation's scope and implement them
-      - an implementation targets the fold at a chosen increment and durably records that target
-      - increments published since remain visible as ratified and unimplemented
+    verification:
+      - observe: an implementation record
+        expect: it names the increment whose fold the implementation targeted
+      - observe: the projection, after increments publish with no implementation
+        expect: their claims show as ratified and unimplemented
     facets:
       - process-doc
       - design-validator
@@ -163,11 +168,11 @@ requirements:
     statement: |
       no requirement outside a product's own increments binds it; adoption at a pinned
       increment is the only way an external requirement takes force.
-    satisfied_when:
-      - the design validator resolves a product's obligations only from its own increments' entries and adoptions
-      - no global or area scope exists to bind implicitly
-      - a preset is adopted whole and adopts no other preset
-      - a conflict between an adopted requirement and a product-local one is an error the increment cannot publish over
+    verification:
+      - observe: a product's effective obligations
+        expect: every one traces to its own increments' entries or presets declarations, and no global or area scope exists
+      - observe: an increment adopting a preset that conflicts with a product-local requirement
+        expect: it cannot merge
     facets:
       - schema
       - design-validator

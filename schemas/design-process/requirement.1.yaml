@@ -4,7 +4,7 @@ title: requirement
 description: one requirement entry, wherever a requirements source carries it
 type: object
 additionalProperties: false
-required: [id, statement, satisfied_when]
+required: [id, statement]
 properties:
   id:
     type: string
@@ -16,14 +16,32 @@ properties:
   rationale:
     type: string
     description: what a casual reversal would cost, where the statement alone does not warn of it
-  satisfied_when:
-    oneOf:
-      - type: string
-      - type: array
-        minItems: 1
-        description: conditions combined with logical AND — all must be met
-        items:
-          type: string
+  verification:
+    type: array
+    minItems: 1
+    description: |
+      present only where the statement carries a term an observer cannot decide directly; each
+      entry binds such a term to an observation, and must introduce an observable the statement
+      does not name. absent, the statement is self-verifying and coverage targets it literally.
+    items:
+      oneOf:
+        - type: object
+          additionalProperties: false
+          required: [observe, expect]
+          properties:
+            observe:
+              type: string
+              description: a concrete locus — a file, a command's output, repository configuration; never tool behaviour
+            expect:
+              type: string
+              description: a decidable condition on the observed locus
+        - type: object
+          additionalProperties: false
+          required: [judgement]
+          properties:
+            judgement:
+              type: string
+              description: the honest escape — names the judge and the moment
   facets:
     $ref: "/design-process/common@1#/$defs/facets"
   informed_by:

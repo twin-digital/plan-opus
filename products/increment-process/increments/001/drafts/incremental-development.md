@@ -488,26 +488,46 @@ claiming `003` conflict on merge; the loser renames and recomputes the fold agai
 and the projection tooling and design validator report whatever the recomputed fold breaks. The process adds
 nothing further for this case.
 
-### Requirements state how they would be known to be met
+### Statements, and when verification is added
+
+A statement is one proposition of owner fiat, in product terms: what must be true, naming no
+mechanism and no observation procedure. A statement is **self-verifying** when its truth is
+decidable by direct inspection of the artifacts it names, with no interpretive choice — then
+`verification` is omitted, and coverage targets the statement read literally.
+
+Verification is added **exactly when the statement carries a term an observer cannot decide
+directly** — an unbounded quantifier ("never", "stays"), a judgement word ("comprehensible"), an
+underspecified technical term ("ESM only") — and each entry's one job is to bind that term to an
+observation. The invariant that stops drift: **an entry must introduce an observable the statement
+does not name**; an entry whose every content word is the statement's is a restatement, and is
+omitted. Verification takes exactly two forms:
 
 ```yaml
 - id: r-h97o555y
   title: consumer suite typechecks
   statement: |
     a TypeScript consumer's test suite typechecks with the package installed.
-  satisfied_when: |
-    a consumer suite containing both pack imports and control-surface imports compiles with no
-    error and no cast at the seam.
+  verification:
+    - observe: a consumer suite containing both pack imports and control-surface imports
+      expect: compiles with no error and no cast at the seam
+    - judgement: a pack author, reading the coverage table, finds it clear
 ```
 
-Required, with an honest escape — where a requirement genuinely cannot be checked mechanically, the field
-says so and why. It describes an **observable condition rather than a mechanism**, so it does not
-pre-decide the implementation; and a requirement whose author cannot write this sentence is usually a badly stated
-requirement, which is better discovered while writing it than a year later.
+- **observation** — `observe` names a concrete locus: a file, a command's output, repository
+  configuration. Tool behaviour is not a locus — "the validator fails X" is a decision leaking in;
+  write the outcome instead: observe the violating change, expect it cannot merge. `expect` states
+  a decidable condition on the locus.
+- **judgement** — the honest escape, structured to name the judge and the moment, so "not
+  mechanically checkable" cannot hand-wave.
 
-**Decisions do not carry `satisfied_when`, and the asymmetry is principled.** A requirement states an
+Coverage consumes the form directly: observations are what conformance cases and tests implement —
+observe/expect is arrange/assert — and judgements become manual checks. A requirement whose author
+can write neither form is usually a badly stated requirement, better discovered while writing than a
+year later.
+
+**Decisions carry no verification, and the asymmetry is principled.** A requirement states an
 *end* — what must be true — so how you would know is a genuinely separate question. A decision states a
-*means* — what was done — and its `satisfied_when` would be a restatement: *we chose X*, known to be met
+*means* — what was done — and its verification would be a restatement: *we chose X*, known to be met
 when *X is what is there*. Requiring the field would populate it with tautologies.
 
 ### Facts record what research found
@@ -609,7 +629,8 @@ structured data and never reads the narrative.
    files become keyed mappings to carry it.
 7. **Typed `pinned` on decisions** — `false`, or a named reason with optional notes — governing what
    escalates.
-8. **`satisfied_when` on requirements**, required.
+8. **`verification` on requirements** — observe/expect or judgement entries, present only where
+   the statement alone is not decidable.
 9. **`because:` on decisions** — citing requirements, facts, and decisions alike — and
    **`informed_by:` on requirements**.
 10. **A published increment is immutable**, and lifecycle points *forward* — a new entry names what it
@@ -677,17 +698,16 @@ artifact has to carry.
   title: consumer suite typechecks
   statement: |
     a TypeScript consumer's test suite typechecks with the package installed.
-  satisfied_when: |
-    a consumer suite containing both pack imports and control-surface imports compiles with no
-    error and no cast at the seam.
+  verification:
+    - observe: a consumer suite containing both pack imports and control-surface imports
+      expect: compiles with no error and no cast at the seam
 ```
 
-Where a requirement genuinely cannot be checked mechanically, `satisfied_when` says so and why:
+Where only judgement can verify, the entry names the judge and the moment:
 
 ```yaml
-  satisfied_when: |
-    not mechanically checkable — whether the coverage table reads clearly to a pack author is a
-    judgement, and is verified by reading it.
+  verification:
+    - judgement: a pack author, reading the coverage table, finds it clear
 ```
 
 ### A requirement that supersedes an earlier one
@@ -697,8 +717,6 @@ Where a requirement genuinely cannot be checked mechanically, `satisfied_when` s
   title: consumer suite typechecks and builds
   statement: |
     a TypeScript consumer's test suite typechecks and builds with the package installed.
-  satisfied_when: |
-    ...
   amends: r-h97o555y
 ```
 
