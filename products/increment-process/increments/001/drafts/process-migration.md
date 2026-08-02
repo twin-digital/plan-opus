@@ -121,8 +121,7 @@ mid-Plan.
   `delegated`; the owner promotes individual entries to the new `tolerated` where they remember
   actually ruling. `proposed` stays proposed, and appears only in draft increments.
 - **Rejected decisions are not migrated.** They were never in force; git history keeps the record.
-- **Requirements gain `verification` at conversion, where their statements are not self-verifying** —
-  drafted by the converting agent, ratified in
+- **Requirements gain `satisfied_when` at conversion** — drafted by the converting agent, ratified in
   the conversion review. This is the migration's main authoring cost.
 
 ### Wider scopes convert first
