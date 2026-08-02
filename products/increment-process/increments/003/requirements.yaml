@@ -1,0 +1,39 @@
+version: "1"
+requirements:
+  - id: r-lll68661
+    title: public api surfaces are shared and versioned
+    statement: |
+      a product's public API surfaces are authored contracts in a repo-wide apis/ pool —
+      commitments the implementation must satisfy, never extracted projections, though the
+      design validator may extract from the code and diff against the authored surface. each
+      version declares its identity root-relative as /<namespace>/<name>@<version>; versions are dense
+      integers per name, immutable once an increment binding one publishes, and present as
+      long as anything published binds them; drift is legal — no product is rebound by a new
+      version appearing. only public surfaces enter the pool — internal stubs stay
+      implementation. any organizational or naming convention within the pool is an aid to
+      navigation — non-normative and unenforced.
+    verification:
+      - do: open a pull request introducing two api files that claim one identity
+      - verify: the merge is blocked
+      - do: open a pull request editing or removing an api version some published increment binds
+      - verify: the merge is blocked
+      - do: open a pull request whose model api reference resolves to no pool entry
+      - verify: the merge is blocked
+    facets:
+      - schema
+      - design-validator
+
+  - id: r-tue7kfgt
+    title: every claim carries graded evidence
+    statement: |
+      every requirement and decision in force carries coverage, and how much of the product
+      rests on an agent's word alone is visible without reading the code.
+    verification:
+      - do: open the projection, joined with the implementations pool
+      - verify: a rung for every claim in force, and the count of claims sitting at attested
+    facets: tooling
+
+model:
+  - name: implementation-record
+    schema: /design-process/implementation@1
+    description: one implementation — the fold it targeted, the package versions produced, its coverage

@@ -1,0 +1,128 @@
+version: "1"
+decisions:
+  - id: d-u3u3sbmb
+    title: api identity is a per-tech header
+    statement: |
+      an api pool file carries its identity in-file by a per-tech convention — "// api:
+      /<namespace>/<name>@<version>" in typescript, "# api: ..." in yaml formats, info.x-api-id
+      where openapi metadata fits — with the file's extension and content telling the design
+      validator which extractor reads it.
+    status: proposed
+    because:
+      - r-lll68661
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - design-validator
+
+  - id: d-qb67fb8s
+    title: implement runs in four waves
+    statement: |
+      Implement is Define, Stub, Code, Document — each wave producing one artifact validated
+      against what came before it; documentation is a wave because it is a deliverable of the
+      product. this is the code-focused shape of the phase; other product shapes may structure
+      Implement their own way, wave names included.
+    status: proposed
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-dteorq7q
+    title: escalation fires only on requirements and pins
+    statement: |
+      an implementation wave escalates only to change a requirement, change a pinned decision, or propose
+      a decision that would be pinned; otherwise agents decide and record, including overturning
+      unpinned decisions.
+    status: proposed
+    facets: prompts
+
+  - id: d-0nl6sd96
+    title: coverage is the implementation's artifact
+    statement: |
+      coverage manifests are produced by implementations, not checked into design increments; a
+      manifest names the fold its implementation targeted and only claims in force there, so
+      the design sequence stays pure plan lineage and an implementation's statement stays
+      exact whatever the head becomes.
+    status: proposed
+    because:
+      - r-tue7kfgt
+      - r-sk47gw08
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - tooling
+
+  - id: d-0hedq82d
+    title: implementations are recorded in a pool
+    statement: |
+      implementations/ is a repo pool like evidence/ — one record per implementation, linking
+      the package versions produced to the targeted increment and carrying the coverage
+      manifest; a record is immutable once its artifacts ship, and filing is convenience. a
+      release, once out, is permanent whatever happens to the source.
+    status: proposed
+    because:
+      - d-0nl6sd96
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - tooling
+
+  - id: d-w74sea6u
+    title: implementations run by hand or autonomously, one record
+    statement: |
+      an implementation may be run by hand — the owner and agents working the increment's own
+      branch, a document authored during its PR — or autonomously by an orchestrated Implement
+      phase; both are the same mechanism, target a fold, and write the same implementations/
+      record, which is what says who shipped a deliverable, against what, and when.
+    status: proposed
+    because:
+      - d-0hedq82d
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-7qh9hx2x
+    title: escalation aborts and retargets
+    statement: |
+      an implementation needing amendments after later design increments have landed does not
+      fork the design: its amendments land as a new increment at head, the implementation
+      retargets the fold
+      that contains them, and the loop repeats if further increments land first. the
+      alternative — implementer-amendment branches, hotfix increments forked from the target
+      that the implementation cites without waiting on head — is deliberately left behind: it
+      hides amendments from the main fold unless promoted, makes future implementations
+      re-solve the same
+      problems, and admits incompatible mid-stream states; it can layer onto this decision
+      without breaking it if ever justified.
+    status: proposed
+    because:
+      - r-sk47gw08
+      - d-0nl6sd96
+    revisit_when:
+      - agents autonomously manage increments at a pace where retargeting starves implementations,
+        and designs go unimplemented while the head advances
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-0g9l44e4
+    title: evidence is graded by provenance and coupling
+    statement: |
+      coverage kinds are attestation, code-test, manual-check, and conformance-case; a claim's
+      rung is attested, checked, or conformance, and what raises a rung is who vetted the check
+      and its tie to the claim, not automation.
+    status: proposed
+    pinned:
+      reason: data-format
+    facets: schema
+
+  - id: d-4s0zoh1v
+    title: code always attests
+    statement: |
+      the Code wave records an attestation for every claim it implemented, alongside whatever
+      better evidence exists.
+    status: proposed
+    facets: prompts
