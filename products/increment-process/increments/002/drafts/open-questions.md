@@ -51,7 +51,10 @@ questions:
     facets: [schema]
 ```
 
-Four fields, one block, nothing to fold.
+Four fields, one block, nothing to fold. The shape itself is the pool schema
+`/design-process/question@1`, bound by the model as the `open-question` entity the way
+`requirement@1` and `decision@1` define theirs — so the schema is the definition, and no decision
+restates its fields.
 
 `answer` is the field doing the most work, and its job is routing rather than classification. The
 three kinds reach different actors: a `fact` sends someone to measure, a `decision` needs a call
@@ -63,11 +66,6 @@ owner's.
 Naming the kind is also what keeps the entity from degenerating into a place to park unease. "Which
 kind of thing would end this?" is answerable even when the question is not, and a question whose
 author cannot name that kind is usually not a question yet.
-
-There is no field for the decisions a question blocks. Filling one would mean writing the decision
-that the unanswered question blocks — a decision composed ahead of its evidence, annotated to say
-we knew. That is the failure this entity exists to prevent, one level up. Where a question does
-block work, the question text says so in a clause, at no schema cost.
 
 ## Its own file, and only while the increment is a draft
 

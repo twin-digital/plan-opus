@@ -4,13 +4,10 @@ requirements:
     title: unresolved uncertainty has a home
     statement: |
       an agent that meets a question it cannot answer raises it to the owner as a structured
-      open question rather than guessing an answer, leaving it in prose, or dropping it.
+      open question rather than guessing an answer or dropping it.
     verification:
-      - do: read a draft increment's synthesis prose beside the questions its source carries
-      - verify: every unanswered question the prose raises appears there, with no guessed answer standing in for one
-    rationale: |
-      A plausible answer written ahead of its evidence is indistinguishable, later, from one that
-      was established — which is the failure this requirement exists to prevent.
+      - do: read a draft increment's proposed decisions beside the questions its source carries
+      - verify: no decision statement asserts something the increment has not established, and each such uncertainty stands as a question instead
     facets:
       - schema
       - process-doc
@@ -21,9 +18,6 @@ requirements:
       an open question names which kind of foundation would answer it — a fact, a requirement,
       or a decision — so that what only the owner can rule on is distinguishable from what an
       agent can settle.
-    rationale: |
-      Without it, "someone will sort this out" silently covers questions that were always the
-      owner's.
     facets:
       - schema
       - process-doc
@@ -36,8 +30,6 @@ requirements:
     verification:
       - do: open a pull request whose because block names an open question
       - verify: the merge is blocked
-    rationale: |
-      Citing an uncertainty would let an author acknowledge it and call the citing done.
     facets:
       - schema
       - design-validator
@@ -61,6 +53,9 @@ requirements:
       - design-validator
 
 model:
+  - name: open-question
+    schema: /design-process/question@1
+    description: one ask put to the owner during Clarify — the id, the question, and the kind of foundation that would answer it
   - name: questions-source
     schema: /design-process/questions@1
-    description: the per-increment questions file — the asks a draft increment carries, and never publishes
+    description: the per-increment file carrying a draft increment's open questions

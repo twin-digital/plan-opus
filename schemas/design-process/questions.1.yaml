@@ -12,17 +12,4 @@ properties:
     type: array
     minItems: 1
     items:
-      type: object
-      additionalProperties: false
-      required: [id, question, answer]
-      properties:
-        id:
-          type: string
-          pattern: "^q-[0-9a-z]{8}$"
-        question:
-          type: string
-        answer:
-          enum: [fact, requirement, decision]
-          description: the kind of foundation that would answer the question
-        facets:
-          $ref: "/design-process/common@1#/$defs/facets"
+      $ref: "/design-process/question@1"
