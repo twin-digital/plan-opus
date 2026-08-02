@@ -75,7 +75,9 @@ Outputs are the research and results collected, plus:
 
 1. a **ratified set of requirements**, with any owner-approved amendments
 2. **decisions reached from research**, also owner-approved
-3. **open questions** identified but not answerable at this level, left for Implement to resolve
+
+What cannot be answered at this level stays in the synthesis draft, and reaches the owner again
+through escalation if implementation runs into it.
 
 The working method is a **synthesis draft** — connected prose, because writing an argument that must
 hold together is what exposes the decision not yet made and the question not yet asked. The draft
@@ -160,7 +162,6 @@ it.
 | decisions | the path taken to meet them — each choice a consumer could observe or a reimplementation must preserve, recorded with the conditions that would call for it to be revisited; choices below that bar live in the code, and a reimplementation is free to re-make them |
 | facts | what has been observed about the world, with the runs and artifacts that establish it |
 | interfaces | the shapes something outside the implementation compiles against |
-| released versions | tags and published artifacts — permanent once out, whatever happens to the source |
 | drafts | each increment's frozen synthesis prose — raw material for the shipped documents, never normative |
 
 **Transient** — generated, used, discarded:

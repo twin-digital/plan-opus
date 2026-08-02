@@ -1,5 +1,48 @@
 version: "1"
 decisions:
+  - id: d-auo2680a
+    title: plan is capture, clarify, ratify
+    statement: |
+      the plan phase is a loop of capture — the owner and agents create the increment and
+      populate its requirements source directly — then clarify, doing the research and
+      reasoning about alternatives that drive proposed decisions, then ratify, where the owner
+      rules; the loop repeats until the owner declares the increment settled enough, and its
+      outputs are the ratified requirements and decisions themselves.
+    status: proposed
+    because:
+      - r-6n45h5eb
+      - r-gc7a3m56
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-o99k4ld8
+    title: the facts pool carries forward
+    statement: |
+      facts and their evidence carry forward from prior practice unchanged: findings about the
+      world live in the repo-wide facts/ pool with the runs and artifacts that establish them
+      under evidence/, filed by subject, citable from any product, and governed by the
+      existing evidence rules.
+    status: proposed
+    because:
+      - r-gq90gngs
+    facets:
+      - schema
+      - process-doc
+
+  - id: d-d6hwdg9d
+    title: concurrent increments collide on the number
+    statement: |
+      increments are numbered directories, and two in flight claiming one number collide at
+      merge: the loser renames to the next slot and recomputes its content against the fold
+      that moved; the process provides nothing further for this case.
+    status: proposed
+    because:
+      - r-caao9k3z
+    facets:
+      - process-doc
+      - design-validator
+
   - id: d-g5cs9o4i
     title: effective state is a fold
     statement: |
@@ -93,8 +136,8 @@ decisions:
       shared requirements live in presets — products that implement nothing — adopted whole,
       at a pinned version, through the presets declaration in an increment's requirements
       source: entries of name, version, and a status of adopted (the default) or dropped,
-      folding by name. adopting and dropping are owner fiat, and the wider requirement scopes
-      are retired.
+      folding by name. a preset adopts no other preset. adopting and dropping are owner fiat,
+      and the wider requirement scopes are retired.
     status: accepted
     because:
       - r-bwtud1e5
