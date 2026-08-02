@@ -20,9 +20,8 @@ decisions:
     title: implement runs in four waves
     statement: |
       Implement is Define, Stub, Code, Document — each wave producing one artifact validated
-      against what came before it; documentation is a wave because it is a deliverable of the
-      product. this is the code-focused shape of the phase; other product shapes may structure
-      Implement their own way, wave names included.
+      against what came before it, documentation included. this is the code-focused shape of the
+      phase; other product shapes may structure Implement their own way, wave names included.
     status: proposed
     facets:
       - process-doc
@@ -41,9 +40,7 @@ decisions:
     title: coverage is the implementation's artifact
     statement: |
       coverage manifests are produced by implementations, not checked into design increments; a
-      manifest names the fold its implementation targeted and only claims in force there, so
-      the design sequence stays pure plan lineage and an implementation's statement stays
-      exact whatever the head becomes.
+      manifest names the fold its implementation targeted, and only claims in force there.
     status: proposed
     because:
       - r-tue7kfgt
@@ -59,8 +56,7 @@ decisions:
     statement: |
       implementations/ is a repo pool like evidence/ — one record per implementation, linking
       the package versions produced to the targeted increment and carrying the coverage
-      manifest; a record is immutable once its artifacts ship, and filing is convenience. a
-      release, once out, is permanent whatever happens to the source.
+      manifest; a record is immutable once its artifacts ship, and filing is convenience.
     status: proposed
     because:
       - d-0nl6sd96
@@ -76,7 +72,7 @@ decisions:
       an implementation may be run by hand — the owner and agents working the increment's own
       branch, a document authored during its PR — or autonomously by an orchestrated Implement
       phase; both are the same mechanism, target a fold, and write the same implementations/
-      record, which is what says who shipped a deliverable, against what, and when.
+      record.
     status: proposed
     because:
       - d-0hedq82d
@@ -89,14 +85,8 @@ decisions:
     statement: |
       an implementation needing amendments after later design increments have landed does not
       fork the design: its amendments land as a new increment at head, the implementation
-      retargets the fold
-      that contains them, and the loop repeats if further increments land first. the
-      alternative — implementer-amendment branches, hotfix increments forked from the target
-      that the implementation cites without waiting on head — is deliberately left behind: it
-      hides amendments from the main fold unless promoted, makes future implementations
-      re-solve the same
-      problems, and admits incompatible mid-stream states; it can layer onto this decision
-      without breaking it if ever justified.
+      retargets the fold that contains them, and the loop repeats if further increments land
+      first.
     status: proposed
     because:
       - r-sk47gw08
