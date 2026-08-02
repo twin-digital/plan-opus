@@ -488,26 +488,37 @@ claiming `003` conflict on merge; the loser renames and recomputes the fold agai
 and the projection tooling and design validator report whatever the recomputed fold breaks. The process adds
 nothing further for this case.
 
-### Requirements state how they would be known to be met
+### Statements, and how they are verified
+
+A statement is one proposition of owner fiat, in product terms. It is **self-verifying** when its
+truth is decidable by direct inspection of what it names, with no interpretive choice — then
+`verification` is omitted, and coverage targets the statement read literally. Where the statement
+carries a term an observer cannot decide directly — an unbounded quantifier, a judgement word, an
+underspecified technical term — `verification` gives one ordered, performable procedure that binds
+the term to observations:
 
 ```yaml
 - id: r-h97o555y
   title: consumer suite typechecks
   statement: |
     a TypeScript consumer's test suite typechecks with the package installed.
-  satisfied_when: |
-    a consumer suite containing both pack imports and control-surface imports compiles with no
-    error and no cast at the seam.
+  verification:
+    - do: compile a consumer suite containing both pack imports and control-surface imports
+    - verify: no error, and no cast at the seam
 ```
 
-Required, with an honest escape — where a requirement genuinely cannot be checked mechanically, the field
-says so and why. It describes an **observable condition rather than a mechanism**, so it does not
-pre-decide the implementation; and a requirement whose author cannot write this sentence is usually a badly stated
-requirement, which is better discovered while writing it than a year later.
+`do` steps are performed; `verify` steps assert about what a preceding `do` surfaced, and all must
+hold. The first step is a `do`, and a `verify` with no grounding `do` is malformed — which is what
+keeps the procedure from drifting into a restatement of the statement. Judgement is a final pair
+naming the judge: `do: read the projected decision set, in full` / `verify: the owner can say what
+is to be built`. Steps exercise the requirement's **intent through the product's published
+surfaces** — and whatever a step names, the owner now expects: naming is binding, so internals are
+named only when binding them is the point. A requirement whose author can write no procedure is
+usually a badly stated requirement, better discovered while writing than a year later.
 
-**Decisions do not carry `satisfied_when`, and the asymmetry is principled.** A requirement states an
+**Decisions carry no verification, and the asymmetry is principled.** A requirement states an
 *end* — what must be true — so how you would know is a genuinely separate question. A decision states a
-*means* — what was done — and its `satisfied_when` would be a restatement: *we chose X*, known to be met
+*means* — what was done — and its verification would be a restatement: *we chose X*, known to be met
 when *X is what is there*. Requiring the field would populate it with tautologies.
 
 ### Facts record what research found
@@ -609,7 +620,8 @@ structured data and never reads the narrative.
    files become keyed mappings to carry it.
 7. **Typed `pinned` on decisions** — `false`, or a named reason with optional notes — governing what
    escalates.
-8. **`satisfied_when` on requirements**, required.
+8. **`verification` on requirements** — one do/verify procedure, present only where the statement
+   is not self-verifying.
 9. **`because:` on decisions** — citing requirements, facts, and decisions alike — and
    **`informed_by:` on requirements**.
 10. **A published increment is immutable**, and lifecycle points *forward* — a new entry names what it
@@ -677,17 +689,17 @@ artifact has to carry.
   title: consumer suite typechecks
   statement: |
     a TypeScript consumer's test suite typechecks with the package installed.
-  satisfied_when: |
-    a consumer suite containing both pack imports and control-surface imports compiles with no
-    error and no cast at the seam.
+  verification:
+    - do: compile a consumer suite containing both pack imports and control-surface imports
+    - verify: no error, and no cast at the seam
 ```
 
-Where a requirement genuinely cannot be checked mechanically, `satisfied_when` says so and why:
+Where only judgement can verify, the final pair names the judge:
 
 ```yaml
-  satisfied_when: |
-    not mechanically checkable — whether the coverage table reads clearly to a pack author is a
-    judgement, and is verified by reading it.
+  verification:
+    - do: read the coverage table as a pack author would
+    - verify: it reads clearly
 ```
 
 ### A requirement that supersedes an earlier one
@@ -697,8 +709,6 @@ Where a requirement genuinely cannot be checked mechanically, `satisfied_when` s
   title: consumer suite typechecks and builds
   statement: |
     a TypeScript consumer's test suite typechecks and builds with the package installed.
-  satisfied_when: |
-    ...
   amends: r-h97o555y
 ```
 
