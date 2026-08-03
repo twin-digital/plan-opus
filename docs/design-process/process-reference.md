@@ -41,8 +41,9 @@ has a job, an author, and a lifecycle:
 - **Model entries** bind the contracts the design speaks about — entity name to a pooled schema
   or API surface at a pinned version, in the `model:` block of the requirements source. Written
   as the shapes settle, ratified with the increment's requirements, folded by entity name.
-- **Facts** live in the repo-wide pool: findings about the world, with the runs and artifacts
-  that establish them, citable from anywhere and governed by the existing evidence rules.
+- **Facts** live in the repo-wide `facts/` pool, with the runs and artifacts that establish
+  them under `evidence/`: findings about the world, citable from anywhere and governed by the
+  existing evidence rules.
 - **Drafts** are the increment's frozen working prose — the synthesis argument, and
   design-drafted content for document deliverables — raw material for implementation, never
   normative.

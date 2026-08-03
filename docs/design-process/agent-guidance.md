@@ -16,9 +16,11 @@ information. Pre-deciding arbitrary names, shapes, and internal boundaries from 
 is how churn is manufactured — the implementer discovers the constraint, contradicts the guess,
 and the decision is re-made.
 
-**Escalating:** escalate against a higher-tier decision when you have a **fact** that
-contradicts it, not a preference. A measurement, a compile error, a captured output. An opinion
-about a better framing is not grounds.
+**Escalating:** escalation fires only to change a requirement, change a pinned decision, or
+propose a decision that would be pinned. A fact that contradicts an *unpinned* decision is not
+an escalation — overturn it and record the supersession in the companion increment. Where
+escalation does fire, bring a **fact**, not a preference: a measurement, a compile error, a
+captured output. An opinion about a better framing is never grounds against a ratified entry.
 
 ## Raise questions instead of guessing
 

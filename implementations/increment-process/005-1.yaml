@@ -1,0 +1,442 @@
+version: "1"
+product: increment-process
+target: 5
+built_at: 2026-08-03
+packages:
+  - path: nodejs/plan/design-process
+    version: 0.1.0
+  - path: docs/design-process/process-reference.md
+    version: 2026-08-03
+  - path: docs/design-process/agent-guidance.md
+    version: 2026-08-03
+  - path: docs/design-process/process-migration.md
+    version: 2026-08-03
+coverage:
+  # ---- requirements, increment 001 ----
+  - claim: r-gq90gngs # foundations have defined shapes and meanings
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+        note: every structured file validates against the pool schema its version names
+      - kind: attestation
+        ref:
+          - schemas/design-process
+          - docs/design-process/process-reference.md
+        note: the pool holds a schema per foundation kind; the reference states each kind's meaning
+  - claim: r-6n45h5eb # foundations are expressed and reviewed directly
+    covered_by:
+      - kind: attestation
+        ref: docs/design-process/process-reference.md
+        note: foundations are plain YAML sources authored directly and reviewed as PR diffs; the reference states the practice
+  - claim: r-2gcehlp8 # tooling folds foundations
+    covered_by:
+      - kind: code-test
+        ref:
+          - test/fold.test.ts
+          - test/project.test.ts
+  - claim: r-zcvxh2ty # the design validator gates merges
+    covered_by:
+      - kind: attestation
+        ref: .github/workflows/check-design.yml
+        note: the workflow runs npm run check on every pull request, no path filter
+      - kind: manual-check
+        ref: .github/workflows/check-design.yml
+        note: >
+          branch protection is set by hand: repository settings → branches → protection rule
+          for main → require status checks to pass → add the "check" job of check-design;
+          re-verify by opening any PR and confirming the check is listed as required
+  - claim: r-caao9k3z # shipped increments stay shipped
+    covered_by:
+      - kind: code-test
+        ref: test/changes.test.ts
+  - claim: r-ei82daip # decisions are comprehensible as a set
+    covered_by:
+      - kind: code-test
+        ref: test/project.test.ts
+        note: the projection renders the effective decision set, because-ordered
+      - kind: attestation
+        note: read the projection of increment-process at the target; the decision set states what is built
+  - claim: r-bs6wsobr # no maintained spec exists
+    covered_by:
+      - kind: attestation
+        ref: docs/design-process/process-reference.md
+        note: this implementation added no specification; the shipped documents are deliverables, and the reference states the rule
+  - claim: r-yzkxa2hj # the process ships its reference
+    covered_by:
+      - kind: attestation
+        ref:
+          - products/increment-process/product.yaml
+          - docs/design-process/process-reference.md
+          - docs/design-process/agent-guidance.md
+          - docs/design-process/process-migration.md
+        note: product.yaml lists the document packages and their paths hold the current reference text
+  - claim: r-0axqvtcc # pending decisions may not be published
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+  - claim: r-gc7a3m56 # ruled-on is distinguishable from passed-over
+    covered_by:
+      - kind: code-test
+        ref: test/project.test.ts
+        note: rulings are labelled per decision and abstentions counted
+  - claim: r-2fytqadu # contracts are shared and versioned
+    covered_by:
+      - kind: code-test
+        ref:
+          - test/pools.test.ts
+          - test/changes.test.ts
+          - test/validate.test.ts
+  - claim: r-bua9wl1s # the model binds schemas as requirements
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+        note: unresolved model references and duplicate entity names block
+  - claim: r-sk47gw08 # design and implementation keep their own schedules
+    covered_by:
+      - kind: attestation
+        ref:
+          - docs/design-process/process-reference.md
+          - implementations/increment-process/005-1.yaml
+        note: increments 001-003 published with no implementation; this record names the increment it targeted
+  - claim: r-bwtud1e5 # products declare their own requirements
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+        note: preset adoption rules and identity conflicts block; the schemas admit no wider scopes
+  # ---- requirements, increment 002 ----
+  - claim: r-kylqsn5a # unresolved uncertainty has a home
+    covered_by:
+      - kind: attestation
+        ref:
+          - docs/design-process/process-reference.md
+          - docs/design-process/agent-guidance.md
+        note: the reference defines the open question; the guidance binds agents to raise rather than guess
+  - claim: r-d181l3s2 # a question routes to whoever can answer it
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+        note: questions validate against question@1, whose answer field is required
+      - kind: attestation
+        ref: docs/design-process/process-reference.md
+  - claim: r-m36ie8ee # nothing rests on an open question
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+  - claim: r-dbfxxr6g # the open question is defined like a foundation is
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+      - kind: attestation
+        ref:
+          - schemas/design-process/question.1.yaml
+          - docs/design-process/process-reference.md
+  - claim: r-ygg7q7rh # questions close before an increment publishes
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+  # ---- requirements, increment 003 ----
+  - claim: r-lll68661 # public api surfaces are shared and versioned
+    covered_by:
+      - kind: code-test
+        ref:
+          - test/pools.test.ts
+          - test/changes.test.ts
+  - claim: r-tue7kfgt # every claim carries graded evidence
+    covered_by:
+      - kind: code-test
+        ref: test/project.test.ts
+        note: the projection joins the implementations pool and counts uncovered and attestation-only claims
+      - kind: attestation
+        ref: implementations/increment-process/005-1.yaml
+        note: this manifest carries an entry for every claim in force at the target
+  # ---- decisions, increment 001 ----
+  - claim: d-auo2680a # plan is capture, clarify, ratify
+    covered_by:
+      - kind: attestation
+        ref: docs/design-process/process-reference.md
+  - claim: d-o99k4ld8 # the facts pool carries forward
+    covered_by:
+      - kind: attestation
+        ref: docs/design-process/process-reference.md
+        note: "the validator resolves f: citations against the unchanged facts/ pool"
+  - claim: d-d6hwdg9d # concurrent increments collide on the number
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+        note: a gap in the increment sequence blocks, which is where the collision surfaces
+      - kind: attestation
+        ref: docs/design-process/process-reference.md
+  - claim: d-g5cs9o4i # effective state is a fold
+    covered_by:
+      - kind: code-test
+        ref: test/fold.test.ts
+  - claim: d-6x6l6ws7 # publish is the merge
+    covered_by:
+      - kind: code-test
+        ref:
+          - test/validate.test.ts
+          - test/changes.test.ts
+      - kind: attestation
+        ref: docs/design-process/process-reference.md
+  - claim: d-3wjypyx6 # the contract pools
+    covered_by:
+      - kind: code-test
+        ref: test/pools.test.ts
+  - claim: d-i47qv6oa # files name their own schema version
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+  - claim: d-j50yturh # the fold at an increment is the bundle
+    covered_by:
+      - kind: code-test
+        ref:
+          - test/fold.test.ts
+          - test/project.test.ts
+        note: the fold at any increment is computed on demand from immutable inputs
+      - kind: attestation
+        ref: docs/design-process/process-reference.md
+  - claim: d-k48jh86c # requirement presets are plan-only products
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+  - claim: d-kn05wb30 # increment sources live under products/
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+        note: the loader reads products/<id>/increments/<NNN>/ and both extensions
+  - claim: d-ke7709uf # the model is a block of the requirements source
+    covered_by:
+      - kind: code-test
+        ref:
+          - test/fold.test.ts
+          - test/validate.test.ts
+  - claim: d-9s4d3ww2 # rulings are accepted, tolerated, delegated, or rejected
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+        note: the decision schema admits exactly these statuses plus proposed, and rejected requires its reason
+      - kind: attestation
+        ref: docs/design-process/process-reference.md
+  - claim: d-wrjhfbei # pinned is false or a named reason
+    covered_by:
+      - kind: attestation
+        ref: schemas/design-process/decision.1.yaml
+        note: the schema encodes the pinned shape, and source validation enforces it
+  - claim: d-e5ted839 # ids are opaque and random
+    covered_by:
+      - kind: code-test
+        ref:
+          - test/ids.test.ts
+          - test/validate.test.ts
+  - claim: d-nzba0wqu # documents live under docs/, drafts under the increment
+    covered_by:
+      - kind: attestation
+        ref:
+          - docs/design-process/process-reference.md
+          - products/increment-process/product.yaml
+        note: the shipped documents live at docs/design-process/ and entered product.yaml at the merge that shipped them
+  - claim: d-jy7x42nx # retirement is an id and a reason
+    covered_by:
+      - kind: code-test
+        ref: test/fold.test.ts
+  - claim: d-i8rwe1sv # facets are labels no rule reads
+    covered_by:
+      - kind: code-test
+        ref: test/project.test.ts
+        note: the projection filters by facet; no validator rule reads one
+  - claim: d-8itv1czm # products map to packages by path and kind
+    covered_by:
+      - kind: attestation
+        ref: products/increment-process/product.yaml
+        note: each package entry was added in the change that created its files
+  - claim: d-eaw3u72o # because cites requirements, facts, and decisions
+    covered_by:
+      - kind: code-test
+        ref:
+          - test/validate.test.ts
+          - test/project.test.ts
+        note: citations resolve or block; the projection orders by the citation topology
+  - claim: d-y775xabw # authoring tests are their own document
+    covered_by:
+      - kind: attestation
+        ref: docs/design-process/process-reference.md
+        note: named as a separate package; its content is increment 004's and not part of this implementation
+  - claim: d-i1reuf3u # implement forward
+    covered_by:
+      - kind: attestation
+        ref: docs/design-process/process-reference.md
+  - claim: d-rx3s2hqo # decisions record the observable
+    covered_by:
+      - kind: attestation
+        ref:
+          - docs/design-process/process-reference.md
+          - docs/design-process/agent-guidance.md
+  # ---- decisions, increment 002 ----
+  - claim: d-ew65xgtj # questions are a draft increment's own source
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+  - claim: d-vx26i23m # question ids join the opaque id regime
+    covered_by:
+      - kind: code-test
+        ref:
+          - test/ids.test.ts
+          - test/validate.test.ts
+  - claim: d-uzygmhfc # an increment publishes with no open question
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+  # ---- decisions, increment 003 ----
+  - claim: d-u3u3sbmb # api identity is a per-tech header
+    covered_by:
+      - kind: code-test
+        ref: test/pools.test.ts
+  - claim: d-q8ur5u3f # decomposition is design work
+    covered_by:
+      - kind: attestation
+        ref: docs/design-process/process-reference.md
+        note: this implementation built to the ratified decomposition and recorded its own package choices as companion-increment decisions
+  - claim: d-qb67fb8s # kind selects the dispatch shape
+    covered_by:
+      - kind: attestation
+        ref: docs/design-process/process-reference.md
+  - claim: d-rvvijts2 # the code wave shape
+    covered_by:
+      - kind: attestation
+        ref: docs/design-process/process-reference.md
+        note: the tooling package ran Define, Stub, Code, Document; the reference states the shape
+  - claim: d-o81xclq7 # the document wave shape
+    covered_by:
+      - kind: attestation
+        ref: docs/design-process/process-reference.md
+        note: the documents ran Claims, Compose, Check; the reference states the shape
+  - claim: d-dteorq7q # escalation fires only on requirements and pins
+    covered_by:
+      - kind: attestation
+        ref:
+          - docs/design-process/process-reference.md
+          - docs/design-process/agent-guidance.md
+  - claim: d-n23bxend # implementation decisions open as delegated
+    covered_by:
+      - kind: attestation
+        ref:
+          - docs/design-process/process-reference.md
+          - products/increment-process/increments/005/decisions.yaml
+        note: every decision this implementation recorded entered as delegated
+  - claim: d-0nl6sd96 # coverage is the implementation's artifact
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+        note: coverage naming a claim not in force at the target blocks
+  - claim: d-0hedq82d # implementations are recorded in a pool
+    covered_by:
+      - kind: code-test
+        ref: test/changes.test.ts
+        note: a shipped record is immutable
+      - kind: attestation
+        ref: implementations/increment-process/005-1.yaml
+  - claim: d-w74sea6u # by hand or autonomously, one record
+    covered_by:
+      - kind: attestation
+        ref: docs/design-process/process-reference.md
+  - claim: d-7qh9hx2x # escalation aborts and retargets
+    covered_by:
+      - kind: attestation
+        ref: docs/design-process/process-reference.md
+  - claim: d-0g9l44e4 # evidence is graded by provenance and coupling
+    covered_by:
+      - kind: attestation
+        ref: docs/design-process/process-reference.md
+        note: the schema keeps kind open, and the reference states the grading
+  - claim: d-4s0zoh1v # the implementer always attests
+    covered_by:
+      - kind: attestation
+        ref: implementations/increment-process/005-1.yaml
+        note: every claim in this manifest carries at least an attestation from the implementer
+  - claim: d-lm8br2p2 # the process's documents live at docs/
+    covered_by:
+      - kind: attestation
+        ref: products/increment-process/product.yaml
+        note: the document packages carry repo twin-digital/plan-opus and docs/ paths
+  - claim: d-ig8vxolb # implementation design output lands as increments
+    covered_by:
+      - kind: attestation
+        ref: products/increment-process/increments/005/decisions.yaml
+        note: every design consequence of this implementation landed in the companion increment; this record carries none
+  - claim: d-ki941p9b # a record lands only at head
+    covered_by:
+      - kind: code-test
+        ref: test/changes.test.ts
+  - claim: d-rputf2bx # releases wait for their design
+    covered_by:
+      - kind: attestation
+        note: the tooling released and the documents went live only after the companion increment published
+  - claim: d-cfe28w5z # the tooling ships as opus workspace packages
+    covered_by:
+      - kind: attestation
+        ref:
+          - products/increment-process/product.yaml
+          - package.json
+        note: "@twin-digital/design-process at nodejs/plan/design-process in twin-digital/opus, pinned by this repository's package.json"
+  - claim: d-hdz4drvp # the reference ships as separate documents
+    covered_by:
+      - kind: attestation
+        ref:
+          - docs/design-process/process-reference.md
+          - docs/design-process/agent-guidance.md
+          - docs/design-process/process-migration.md
+  - claim: d-jenq1f31 # the merge gate wiring is thin repository configuration
+    covered_by:
+      - kind: attestation
+        ref: .github/workflows/check-design.yml
+        note: the workflow installs the pinned tooling and runs the check; the validator logic lives in the package
+      - kind: manual-check
+        ref: .github/workflows/check-design.yml
+        note: branch protection marking the check required is the by-hand step recorded under r-zcvxh2ty
+  - claim: d-vsrxwv8u # implementation records are named for their target
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+      - kind: attestation
+        ref: implementations/increment-process/005-1.yaml
+  # ---- decisions, increment 005 (the companion) ----
+  - claim: d-uwnjk7rn # the tooling is one package, one CLI
+    covered_by:
+      - kind: attestation
+        ref:
+          - nodejs/plan/design-process/package.json
+          - nodejs/plan/design-process/bin/design-process.js
+  - claim: d-r9o8qni5 # the documents live under docs/design-process/
+    covered_by:
+      - kind: attestation
+        ref:
+          - docs/design-process/process-reference.md
+          - docs/design-process/agent-guidance.md
+          - docs/design-process/process-migration.md
+  - claim: d-wb0qq8wv # the gate reads preset conflict as id collision
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+  - claim: d-is1lgu15 # schema pool versions are dense
+    covered_by:
+      - kind: code-test
+        ref: test/pools.test.ts
+  - claim: d-emngkw5c # pool immutability is content identity
+    covered_by:
+      - kind: code-test
+        ref: test/changes.test.ts
+        note: a bound schema may move with identical content; any content change blocks
+  - claim: d-t03xkfj7 # both trees are checked until the migration empties design/
+    covered_by:
+      - kind: attestation
+        ref: package.json
+        note: npm run check runs bin/check-design.mjs and design-process check in sequence
+  - claim: d-a8hiceqo # one increment may not both adopt and drop a preset
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+  - claim: d-sjxyurcz # an in-tree document's version is the record's built_at date
+    covered_by:
+      - kind: attestation
+        ref: implementations/increment-process/005-1.yaml
+        note: the document package versions above carry the built_at date
