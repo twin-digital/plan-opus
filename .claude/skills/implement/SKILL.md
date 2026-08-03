@@ -69,9 +69,9 @@ alone; see below.
   stubs and allocations. Then run implement phases in parallel, merging completions in
   workspace dependency order — a consumer's tests go green after its providers merge. Only
   completion is ordered, never the work.
-- **An implementer's diff stays inside its package directory.** Every shared file —
-  `product.yaml`, lockfiles, the record, the companion increment's sources — has you, the
-  orchestrator, as its only writer. Implementers report what they cannot edit: proposed
+- **An implementer's diff stays within its package's path** — the directory, or single file,
+  that `product.yaml` names. Every other shared file — `product.yaml`, lockfiles, the record,
+  the companion increment's sources — has you, the orchestrator, as its only writer. Implementers report what they cannot edit: proposed
   decisions, open questions, overturns, and needed shared-file changes arrive as structured
   findings, and you triage and record them in the companion increment.
 - **The findings loop.** Nothing pushes into a working implementer, so the loop is built on

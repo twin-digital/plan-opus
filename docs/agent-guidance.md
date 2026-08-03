@@ -128,9 +128,10 @@ The mechanics when implementers run concurrently:
 - the orchestrator merges finished phases to the integration branch in workspace dependency
   order: prepare outputs first, so dependents rebase onto real stubs; then implement outputs,
   so only completion is ordered, never the work
-- an implementer's diff stays inside its package directory; every shared file —
-  `product.yaml`, lockfiles, the record, the companion increment's sources — has the
-  orchestrator as its only writer, and implementers report findings rather than edit them in
+- an implementer's diff stays within its package's path — the directory, or single file, that
+  `product.yaml` names; every other shared file — `product.yaml`, lockfiles, the record, the
+  companion increment's sources — has the orchestrator as its only writer, and implementers
+  report findings rather than edit them in
 - the findings loop runs on phase boundaries: findings — proposed decisions, questions,
   overturns, coverage entries, shared-file requests — return with each phase's result;
   rulings and answers arrive with the next dispatch; a wholly blocked implementer ends its
