@@ -11,6 +11,12 @@ packages:
     version: 2026-08-03
   - path: docs/process-migration.md
     version: 2026-08-03
+  - path: .claude/skills/implement
+    version: 2026-08-03
+  - path: .claude/skills/implement-code
+    version: 2026-08-03
+  - path: .claude/skills/implement-document
+    version: 2026-08-03
 coverage:
   # ---- requirements, increment 001 ----
   - claim: r-gq90gngs # foundations have defined shapes and meanings
@@ -299,17 +305,23 @@ coverage:
   - claim: d-qb67fb8s # kind selects the dispatch shape
     covered_by:
       - kind: attestation
-        ref: docs/process-reference.md
+        ref:
+          - docs/process-reference.md
+          - .claude/skills/implement/SKILL.md
   - claim: d-rvvijts2 # the code wave shape
     covered_by:
       - kind: attestation
-        ref: docs/process-reference.md
-        note: the tooling package ran Define, Stub, Code, Document; the reference states the shape
+        ref:
+          - docs/process-reference.md
+          - .claude/skills/implement-code/SKILL.md
+        note: the tooling package ran Define, Stub, Code, Document; the reference states the shape and the skill operationalizes it
   - claim: d-o81xclq7 # the document wave shape
     covered_by:
       - kind: attestation
-        ref: docs/process-reference.md
-        note: the documents ran Claims, Compose, Check; the reference states the shape
+        ref:
+          - docs/process-reference.md
+          - .claude/skills/implement-document/SKILL.md
+        note: the documents ran Claims, Compose, Check; the reference states the shape and the skill operationalizes it
   - claim: d-dteorq7q # escalation fires only on requirements and pins
     covered_by:
       - kind: attestation
@@ -338,7 +350,9 @@ coverage:
   - claim: d-w74sea6u # by hand or autonomously, one record
     covered_by:
       - kind: attestation
-        ref: docs/process-reference.md
+        ref:
+          - docs/process-reference.md
+          - .claude/skills/implement/SKILL.md
   - claim: d-7qh9hx2x # escalation aborts and retargets
     covered_by:
       - kind: attestation
@@ -435,8 +449,21 @@ coverage:
     covered_by:
       - kind: code-test
         ref: test/validate.test.ts
-  - claim: d-sjxyurcz # an in-tree document's version is the record's built_at date
+  - claim: d-sjxyurcz # an in-tree package's version is the record's built_at date
     covered_by:
       - kind: attestation
         ref: implementations/increment-process/004-1.yaml
-        note: the document package versions above carry the built_at date
+        note: the document and agent-skill package versions above carry the built_at date
+  - claim: d-zj004h21 # agent-skill packages run the document wave shape
+    covered_by:
+      - kind: attestation
+        ref:
+          - .claude/skills/implement-document/SKILL.md
+        note: the three skills were themselves composed and checked through Claims, Compose, Check
+  - claim: d-m0on5vin # the implementer skills, and how they dispatch
+    covered_by:
+      - kind: attestation
+        ref:
+          - .claude/skills/implement/SKILL.md
+          - .claude/skills/implement-code/SKILL.md
+          - .claude/skills/implement-document/SKILL.md
