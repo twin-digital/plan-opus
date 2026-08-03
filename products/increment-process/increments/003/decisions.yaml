@@ -7,7 +7,7 @@ decisions:
       /<namespace>/<name>@<version>" in typescript, "# api: ..." in yaml formats, info.x-api-id
       where openapi metadata fits — with the file's extension and content telling the design
       validator which extractor reads it.
-    status: proposed
+    status: tolerated
     because:
       - r-lll68661
     pinned:
@@ -20,9 +20,8 @@ decisions:
     title: decomposition is design work
     statement: |
       the consumer-visible package set — each package's existence, kind, and home — is proposed
-      and ratified in Plan, as decisions of the increment that calls for it; structure below the
-      package surface is the implementer's. product.yaml reflects the packages an implementation
-      has realized.
+      and ratified in Plan, as decisions of the increment that calls for it; product.yaml
+      reflects the packages an implementation has realized.
     status: proposed
     because:
       - d-8itv1czm
@@ -34,13 +33,41 @@ decisions:
     title: kind selects the dispatch shape
     statement: |
       an implementation dispatches one implementer per package, and the package's kind selects
-      its wave shape — each wave producing one artifact validated against what came before it.
-      code kinds run Define, Stub, Code, Document; document kinds run Claims, Compose, Check;
-      further kinds name their shapes as they earn them.
+      its wave shape; the shape for a specific kind is defined as needed, each its own
+      decision.
     status: proposed
     because:
       - d-q8ur5u3f
       - d-8itv1czm
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-rvvijts2
+    title: the code wave shape
+    statement: |
+      code kinds — npm-library, npm-cli, minecraft-addon — run Define, Stub, Code, Document,
+      each wave producing one artifact validated against what came before it: the test plan
+      against the requirements and decisions, tests and API stubs against the test plan, the
+      implementation against the stubs by compiling and the tests by passing, and the
+      user-facing documentation against the implementation.
+    status: proposed
+    because:
+      - d-qb67fb8s
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-o81xclq7
+    title: the document wave shape
+    statement: |
+      document kinds run Claims, Compose, Check: the list of claims the document must state,
+      drawn from the effective design at the targeted increment; the document at its permanent
+      home, drawing on the increment's drafts and checked against the claim list; and coverage
+      entries per claim.
+    status: proposed
+    because:
+      - d-qb67fb8s
     facets:
       - process-doc
       - prompts
@@ -51,15 +78,31 @@ decisions:
       an implementation wave escalates only to change a requirement, change a pinned decision, or propose
       a decision that would be pinned; otherwise agents decide and record, including overturning
       unpinned decisions.
-    status: proposed
+    status: accepted
     facets: prompts
+
+  - id: d-n23bxend
+    title: implementation decisions open as delegated
+    statement: |
+      a decision an implementation adds at wrap-up enters its increment as delegated —
+      recorded, not ruled — unless escalation already ruled it; the merge gate reads only
+      proposed, so an implementation increment lands gated by pull-request review and the
+      validation checks rather than by per-entry rulings.
+    status: proposed
+    because:
+      - d-dteorq7q
+      - d-9s4d3ww2
+    facets:
+      - process-doc
+      - prompts
 
   - id: d-0nl6sd96
     title: coverage is the implementation's artifact
     statement: |
       coverage manifests are produced by implementations, not checked into design increments; a
-      manifest names the fold its implementation targeted, and only claims in force there.
-    status: proposed
+      manifest names the increment version its implementation targeted, and only claims in
+      force there.
+    status: accepted
     because:
       - r-tue7kfgt
       - r-sk47gw08
@@ -75,7 +118,7 @@ decisions:
       implementations/ is a repo pool like evidence/ — one record per implementation, linking
       the package versions produced to the targeted increment and carrying the coverage
       manifest; a record is immutable once its artifacts ship, and filing is convenience.
-    status: proposed
+    status: tolerated
     because:
       - d-0nl6sd96
     pinned:
@@ -89,9 +132,9 @@ decisions:
     statement: |
       an implementation may be run by hand — the owner and agents working the increment's own
       branch, a document authored during its PR — or autonomously by an orchestrated Implement
-      phase; both are the same mechanism, target a fold, and write the same implementations/
-      record.
-    status: proposed
+      phase; both are the same mechanism, target an increment, and write the same
+      implementations/ record.
+    status: tolerated
     because:
       - d-0hedq82d
     facets:
@@ -103,9 +146,9 @@ decisions:
     statement: |
       an implementation needing amendments after later design increments have landed does not
       fork the design: its amendments land as a new increment at head, the implementation
-      retargets the fold that contains them, and the loop repeats if further increments land
-      first.
-    status: proposed
+      retargets to the increment that contains them, and the loop repeats if further increments
+      land first.
+    status: accepted
     because:
       - r-sk47gw08
       - d-0nl6sd96
@@ -128,9 +171,9 @@ decisions:
     facets: schema
 
   - id: d-4s0zoh1v
-    title: code always attests
+    title: the implementer always attests
     statement: |
-      the Code wave records an attestation for every claim it implemented, alongside whatever
+      an implementer records an attestation for every claim it implemented, alongside whatever
       better evidence exists.
     status: proposed
     facets: prompts
@@ -155,11 +198,11 @@ decisions:
   - id: d-ig8vxolb
     title: implementation design output lands as increments
     statement: |
-      everything fold-relevant an implementation produces — escalations mid-flight, unpinned
-      overturns and proposed decisions at wrap-up — lands as ordinary design increments at
-      head, ruled at the gate like any other; the implementation record carries no fold
-      content, only the target, the packages produced, and the coverage manifest.
-    status: proposed
+      every design change an implementation produces — escalations mid-flight, overturns and
+      kept choices at wrap-up — lands as an ordinary design increment at head; the
+      implementation record carries no design content, only the target, the packages produced,
+      and the coverage manifest.
+    status: tolerated
     because:
       - d-dteorq7q
       - d-0hedq82d
@@ -174,7 +217,7 @@ decisions:
     statement: |
       a record's target is the product's newest published increment at the moment the record
       merges; a stale target is refused, and the implementation retargets before landing.
-    status: proposed
+    status: tolerated
     because:
       - d-j50yturh
       - d-7qh9hx2x
@@ -188,7 +231,46 @@ decisions:
       no package version releases and no document deliverable goes live before the design
       increment its implementation targets is published; the controls enforcing this ordering
       are deferred to a later increment.
-    status: proposed
+    status: accepted
     because:
       - d-6x6l6ws7
     facets: process-doc
+
+  - id: d-cfe28w5z
+    title: the tooling ships as opus workspace packages
+    statement: |
+      the process tooling — the validator, the projection, the id generator — ships as
+      packages in the opus workspace, and this repository installs them at pinned versions
+      through its top-level package.json.
+    status: accepted
+    pinned:
+      reason: public-api
+      notes: this repository wires its merge gate to these packages' commands
+    facets: tooling
+
+  - id: d-hdz4drvp
+    title: the reference ships as separate documents
+    statement: |
+      the process ships separate reference documents rather than one, each scoped so an agent
+      loads only the context its task needs; the initial set is the process reference, the
+      agent guidance, and the migration record.
+    status: accepted
+    because:
+      - r-yzkxa2hj
+      - d-lm8br2p2
+    pinned:
+      reason: public-api
+    facets: process-doc
+
+  - id: d-jenq1f31
+    title: the merge gate wiring is thin repository configuration
+    statement: |
+      the merge gate's wiring is repository configuration, not a package: this repository
+      commits a thin workflow that installs the tooling packages and runs the check, and
+      branch protection marking the check required is set by hand once, covered by a
+      manual-check entry; the validator logic lives entirely in the tooling packages.
+    status: proposed
+    because:
+      - r-zcvxh2ty
+      - d-cfe28w5z
+    facets: design-validator

@@ -1,7 +1,7 @@
 # The Implement phase
 
 Draft of increment 003, extending increment 001's draft of the planning process with the Implement
-phase: the waves, escalation, and evidence. Plan hands Implement the ratified fold.
+phase: the waves, escalation, and evidence. Plan hands Implement the ratified design.
 
 ## Decomposition is design work
 
@@ -43,7 +43,7 @@ The shape for `document` kinds:
 
 | wave | produces | validated against |
 |---|---|---|
-| **Claims** | the list of fold claims the document must state | the fold at the targeted increment |
+| **Claims** | the list of claims the document must state | the effective design at the targeted increment |
 | **Compose** | the document at its permanent home, drawing on the increment's frozen drafts | the claim list; every draft claim checked against the fold |
 | **Check** | coverage entries per claim | the document, read against each claim |
 
@@ -77,13 +77,13 @@ under the one that fits its risk.
 
 An implementation never amends the design tree it targets. An escalated change lands as an ordinary
 design increment — proposed from the implementation, ratified as any increment is — and the
-implementation retargets the fold that contains it. The implementation record keeps the statement
-honest either way: what was implemented, against which fold, is pinned there, whatever the head has
-since become.
+implementation retargets to the increment that contains it. The implementation record keeps the statement
+honest either way: what was implemented, against which increment, is pinned there, whatever the
+head has since become.
 
 When later design increments have already landed, this is **abort-and-retarget**: the
 implementation's amendments land at head, above whatever arrived meanwhile; the implementation
-retargets the fold that contains them, restarting or reconciling; and the loop repeats if further
+retargets to the increment that contains them, restarting or reconciling; and the loop repeats if further
 increments land first. Under fast enough design landings, nothing ever finishes implementing. That
 is accepted for a single owner authoring increments, where the race is rare and losing it is cheap.
 
@@ -98,20 +98,19 @@ agents autonomously managing increments at a pace where retargeting starves impl
 
 ## One channel: how implementation output lands
 
-Everything fold-relevant an implementation produces lands the same way: as an ordinary design
+Every design change an implementation produces lands the same way: as an ordinary design
 increment at head. There is no second channel — no decisions block on the record, no
-implementation-scoped entries in the fold, no interleaving semantics to define. The fold has one
-input kind, and everything in it passed a ratification.
+implementation-scoped entries in the effective design, no interleaving semantics to define. The
+fold has one input kind, and everything in it entered through an increment.
 
 The two landing moments differ only in urgency. **Escalation** is the mid-flight increment:
-requirements and pins, the things an implementation cannot safely build past, raised when met.
-**Wrap-up** is the end-of-flight increment: the unpinned decisions the implementation overturned,
-as superseding entries, and the choices worth keeping, as proposed decisions. The merge gate — no
-decision still proposed — forces the ruling before anything lands, so a supersession of a ratified
-entry is presented to the owner rather than discovered later. The cheap ruling for an unpinned
-overturn is `delegated`, and it is the expected default: "freely overturn unpinned decisions" means
-freely during flight, ruled at landing, and a wrap-up rejection is the priced exception rather than
-a second review pass.
+requirements and pins, the things an implementation cannot safely build past, raised when met and
+ruled then. **Wrap-up** is the end-of-flight increment: the unpinned decisions the implementation
+overturned, as superseding entries, and the choices worth keeping — and these open as `delegated`,
+recorded rather than ruled. The merge gate reads only `proposed`, so a wrap-up increment lands
+gated by pull-request review and the validation checks rather than by per-entry rulings; a
+supersession of a ratified entry is still presented in the diff rather than discovered later, and
+ruling one up — or reversing it — is implement-forward, whenever the owner chooses.
 
 **A record lands only at head.** Its `target` is the product's newest published increment at the
 moment it merges; a stale target is refused, and the implementation retargets first — recomputing
@@ -140,7 +139,7 @@ verification procedure — or its statement read literally, where it carries non
 Coverage is the implementation's artifact, not the design's. An implementation produces a record in
 the `implementations/` pool — filed like the other pools, immutable once its artifacts ship —
 linking the package versions produced to the design increment targeted, and carrying the manifest.
-Run by hand on the increment's own branch or autonomously against a published fold, an
+Run by hand on the increment's own branch or autonomously against a published increment, an
 implementation is the same mechanism either way, and both write this record:
 
 ```yaml
