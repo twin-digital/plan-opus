@@ -1,5 +1,5 @@
 ---
-version: 0.1.0
+version: "4"
 name: implement
 description: Run an implementation of a product against its published design — dispatch one implementer per package by kind, accumulate design consequences in a companion increment, and land the implementation record. Use when asked to implement a product, an increment, or the fold of a design in this repository.
 ---
@@ -62,8 +62,8 @@ the mapping is descriptive, never aspirational.
 3. File the record at `implementations/<product>/<NNN>-<k>.yaml` (`NNN` = the target, `k`
    dense from 1), conforming to `/design-process/implementation@1`: `product`, `target`,
    `built_at`, `packages` (path + version; tree-consumed kinds — document, agent-skill — carry
-   the version their file's frontmatter declares, bumped when the file changes), and
-   `coverage`.
+   the version their file's frontmatter declares: the string form of the increment the
+   content reflects), and `coverage`.
 4. Coverage names every claim in force at the target: an `attestation` from you on every claim
    you implemented — always — plus `code-test`, `manual-check`, or `conformance-case` entries
    where those artifacts exist. A `ref` names what carries the claim: if deleting the file

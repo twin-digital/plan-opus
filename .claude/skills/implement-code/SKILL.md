@@ -1,5 +1,5 @@
 ---
-version: 0.1.0
+version: "4"
 name: implement-code
 description: Implement one code package (npm-library, npm-cli, minecraft-addon) inside a running implementation, through the Define, Stub, Code, Document waves. Invoked by the implement skill; use directly when asked to build one code package against a product's fold.
 ---

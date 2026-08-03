@@ -1,5 +1,5 @@
 ---
-version: 0.1.0
+version: "4"
 name: implement-document
 description: Implement one tree-consumed package (document or agent-skill kind) inside a running implementation, through the Claims, Compose, Check waves. Invoked by the implement skill; use directly when asked to ship or revise a document or skill against a product's fold.
 ---
@@ -39,5 +39,6 @@ the companion increment or dropped, never transcribed.
 Read the finished document against the claim list, claim by claim — preferably with fresh
 eyes (a separate agent). Fix what is missing or misstated, then write the coverage entries:
 `attestation` with the document as `ref` for claims the document states, alongside any
-stronger evidence. A tree-consumed package declares its version in its frontmatter — bump it
-when you change the file; the record quotes it.
+stronger evidence. A tree-consumed package declares its version in its frontmatter — the
+string form of the increment this revision reflects; set it when you change the file, and the
+record quotes it.
