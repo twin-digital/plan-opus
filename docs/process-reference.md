@@ -483,7 +483,7 @@ kind: process
 packages:
   - path: nodejs/plan/design-process
     kind: npm-cli
-  - path: docs/design-process/process-reference.md
+  - path: docs/process-reference.md
     kind: document
     repo: twin-digital/plan-opus
 ```
@@ -515,8 +515,9 @@ The difference a document does have is how it is consumed. Code is consumed thro
 versions, so work-in-progress on the default branch touches no consumer; a document at a
 permanent path is read straight from the tree, so merge is what makes it live — its changes
 ride an implementation's pull request, drawing on the increments' frozen drafts, and go live
-only when it lands. Shipped document packages live at permanent homes under `docs/<domain>/`,
-entering `product.yaml` at the merge that ships them; synthesis drafts live at
+only when it lands. Shipped document packages live at permanent homes under `docs/<domain>/` —
+the process's own documents are the one carve-out, sitting at the `docs/` root — entering
+`product.yaml` at the merge that ships them; synthesis drafts live at
 `products/<product>/increments/<NNN>/drafts/`, merging with the increment that generated them
 and freezing at its publish.
 
