@@ -183,7 +183,8 @@ decisions:
     title: the code-kind implementer skill
     statement: |
       .claude/skills/implement-code carries the code wave shape — Define, Stub, Code,
-      Document — for the npm-library, npm-cli, and minecraft-addon kinds.
+      Document — for the npm-library, npm-cli, and minecraft-addon kinds; its prepare phase
+      is Define and Stub, its implement phase Code and Document.
     status: delegated
     because:
       - d-ng02vmcd
@@ -194,10 +195,71 @@ decisions:
     title: the document-kind implementer skill
     statement: |
       .claude/skills/implement-document carries the document wave shape — Claims, Compose,
-      Check — for the document and agent-skill kinds.
+      Check — for the document and agent-skill kinds; its prepare phase is Claims, its
+      implement phase Compose and Check.
     status: delegated
     because:
       - d-ng02vmcd
       - d-o81xclq7
       - d-zj004h21
+    facets: prompts
+
+  - id: d-sbcncyu2
+    title: every implementer skill exposes prepare and implement
+    statement: |
+      each kind-specific implementer skill partitions its waves into two generic phases the
+      dispatcher can call: prepare — standing up whatever sibling packages compile or check
+      against, a package's public surface or its share of a cross-package allocation — and
+      implement, which runs prepare first where it has not run and then completes the
+      package. a kind with nothing to stand up treats prepare as a no-op; the dispatcher
+      never needs to know any kind's waves.
+    status: accepted
+    pinned:
+      reason: public-api
+      notes: the contract between the dispatcher and every implementer skill, present and future
+    because:
+      - d-ng02vmcd
+      - d-qb67fb8s
+    facets: prompts
+
+  - id: d-msvpbva6
+    title: the orchestrator is the companion increment's only writer
+    statement: |
+      in a multi-implementer run, only the orchestrator edits the companion increment's
+      sources; implementers report proposed decisions, questions, and overturns as structured
+      findings, and the orchestrator triages and records them.
+    status: delegated
+    because:
+      - d-ig8vxolb
+      - d-ng02vmcd
+    facets: prompts
+
+  - id: d-vadqz73a
+    title: worktrees off one integration branch, one final PR
+    statement: |
+      a multi-implementer run creates one integration branch per repository receiving
+      changes; each implementer works in its own worktree on a branch off it. the
+      orchestrator merges finished phases back to the integration branch as they complete,
+      in workspace dependency order — prepare outputs first, so dependents rebase onto real
+      stubs, then implement outputs, so only completion is ordered, never the work. a single
+      pull request from the integration branch to main is what the owner approves, after the
+      companion increment merges.
+    status: delegated
+    because:
+      - d-sbcncyu2
+      - d-w74sea6u
+      - d-rputf2bx
+    facets: prompts
+
+  - id: d-nt7tach6
+    title: an implementer writes only under its package path
+    statement: |
+      an implementer's diff stays strictly inside its package directory; every shared file —
+      product.yaml, lockfiles, the implementation record, the companion increment's sources —
+      has the orchestrator as its only writer, and an implementer needing a change outside
+      its path reports it instead of editing.
+    status: delegated
+    because:
+      - d-vadqz73a
+      - d-msvpbva6
     facets: prompts
