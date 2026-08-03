@@ -346,3 +346,40 @@ decisions:
       - d-eaw3u72o
       - d-o99k4ld8
     facets: design-validator
+
+  - id: d-el21jvd0
+    title: the validator enforces id format and uniqueness
+    statement: |
+      the gate checks every requirement, decision, and question id against the opaque format
+      and refuses a duplicate — requirement and decision ids unique across the product,
+      question ids within their increment — so a collision is a regenerate at creation
+      rather than a latent bug.
+    status: delegated
+    because:
+      - d-e5ted839
+      - d-vx26i23m
+    facets: design-validator
+
+  - id: d-o7br0a9k
+    title: the projection lists a draft's open questions
+    statement: |
+      projecting a product whose working tree carries a questions source shows the open
+      questions blocking the increment from settling, beside the effective sets.
+    status: delegated
+    because:
+      - r-2gcehlp8
+      - d-ew65xgtj
+    facets: tooling
+
+  - id: d-qoks4n67
+    title: the companion increment opens first and closes unmerged if empty
+    statement: |
+      the companion increment opens before any implementation work begins, so design
+      consequences land as they happen; one that ends the implementation with nothing
+      declared closes unmerged — an increment that declares nothing is not published.
+    status: delegated
+    because:
+      - d-ig8vxolb
+    facets:
+      - process-doc
+      - prompts
