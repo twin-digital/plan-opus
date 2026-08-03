@@ -102,7 +102,25 @@ decisions:
       a package consumed from the tree — the document and agent-skill kinds — has no released
       version, so an implementation record carries the record's built_at date as that
       package's version.
+    status: rejected
+    rejection_reason: |
+      the record should carry the package's own declared version; every current tree-consumed
+      doc type supports yaml frontmatter, so the file can encode a version itself.
+    because:
+      - d-lm8br2p2
+      - d-0hedq82d
+    facets: schema
+
+  - id: d-39d4o4fn
+    title: tree-consumed packages version themselves in frontmatter
+    statement: |
+      a package consumed from the tree — the document and agent-skill kinds — declares its
+      version in a version field of its file's yaml frontmatter, bumped by the implementation
+      that changes the file; an implementation record carries that declared version. the
+      agent-skill loader ignores unrecognized frontmatter fields, so skills carry the field
+      the same way documents do.
     status: delegated
+    supersedes: d-sjxyurcz
     because:
       - d-lm8br2p2
       - d-0hedq82d
