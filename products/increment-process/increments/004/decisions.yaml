@@ -31,8 +31,8 @@ decisions:
   - id: d-0w7imrfe
     title: the documents live at the docs/ root
     statement: |
-      the initial document packages live at docs/process-reference.md, docs/agent-guidance.md,
-      and docs/process-migration.md — the process's own documents omit the product-name path
+      the initial document packages live at docs/process-reference.md and
+      docs/process-migration.md — the process's own documents omit the product-name path
       segment, one file per package.
     status: delegated
     supersedes: d-r9o8qni5
@@ -266,3 +266,39 @@ decisions:
       - d-vadqz73a
       - d-msvpbva6
     facets: prompts
+
+  - id: d-vt9r9zn5
+    title: the reference ships as two documents; agents get skills
+    statement: |
+      the process ships two reference documents — the process reference and the migration
+      record — each scoped so an agent loads only the context its task needs; instruction to
+      agents ships as agent-skill packages and this repository's CLAUDE.md, not as a document
+      deliverable.
+    status: accepted
+    supersedes: d-hdz4drvp
+    pinned:
+      reason: public-api
+    because:
+      - r-yzkxa2hj
+      - d-lm8br2p2
+      - d-ng02vmcd
+    facets: process-doc
+
+  - id: d-af2v9seu
+    title: authoring tests are their own document
+    statement: |
+      the content-quality tests for foundations — what makes a statement, a verification
+      procedure, a decision, or a model entry good — live in their own document package, the
+      successor of the old authoring design: one body of tests, each binding the writer of
+      what it governs, closing with the checklist that the post-Clarify review gate's agents
+      load as their rubric and authors self-check against. technique and orchestration stay
+      with the agent skills; the process reference stays one epistemic kind,
+      validator-backed, while this document is reviewer-applied and never a validator rule.
+    status: delegated
+    supersedes: d-y775xabw
+    because:
+      - r-yzkxa2hj
+      - r-gq90gngs
+    facets:
+      - process-doc
+      - prompts
