@@ -97,12 +97,43 @@ decisions:
     facets: design-validator
 
   - id: d-sjxyurcz
-    title: an in-tree document's version is the record's built_at date
+    title: an in-tree package's version is the record's built_at date
     statement: |
-      a document package consumed from the tree has no released version, so an implementation
-      record carries the record's built_at date as that package's version.
+      a package consumed from the tree — the document and agent-skill kinds — has no released
+      version, so an implementation record carries the record's built_at date as that
+      package's version.
     status: delegated
     because:
       - d-lm8br2p2
       - d-0hedq82d
     facets: schema
+
+  - id: d-zj004h21
+    title: agent-skill packages run the document wave shape
+    statement: |
+      the agent-skill kind runs Claims, Compose, Check: a skill is a shipped instruction
+      document read by agents, composed against the claims it operationalizes and checked
+      claim by claim like any document deliverable.
+    status: delegated
+    because:
+      - d-qb67fb8s
+      - d-o81xclq7
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-m0on5vin
+    title: the implementer skills, and how they dispatch
+    statement: |
+      the implementation process ships as agent-skill packages in this repository:
+      .claude/skills/implement — the dispatcher, running one implementer per package with the
+      package's kind selecting the skill — .claude/skills/implement-code for npm-library,
+      npm-cli, and minecraft-addon, and .claude/skills/implement-document for document and
+      agent-skill kinds. a kind without a skill is an open question for the implementation
+      that meets it.
+    status: delegated
+    because:
+      - d-qb67fb8s
+      - d-w74sea6u
+      - d-zj004h21
+    facets: prompts
