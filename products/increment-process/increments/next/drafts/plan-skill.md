@@ -6,16 +6,6 @@ Ratify loop as an operational sequence, dispatched rather than re-derived each s
 
 Content parked here from the dissolved `agent-guidance.md`, destined for that skill:
 
-## The synthesis draft
-
-Clarify's instrument is a written synthesis: connected prose arguing the increment from
-capture to implementation. Write it to find what is missing — the paragraph that does not
-follow is the decision not yet made. Before the increment publishes, run the remainder check:
-every claim in the draft either cites a foundation or is extracted into a decision, a fact, or
-an open question. Publish is allowed only at zero remainder. Polish is never the point;
-extraction is. The draft freezes in the increment's `drafts/` folder at publish, as the record
-of the argument rather than a second authority.
-
 ## Decide at the tier that has the information — the upward half
 
 A plan-tier agent may not settle a detail an implementer will meet with better information.
@@ -28,9 +18,10 @@ the implementer's.
 
 - **Capture** — create the increment, populate the requirements source directly with the
   owner; scope is nothing more than what the sources declare.
-- **Clarify** — spikes and research land as facts with evidence; the synthesis draft drives
-  extraction; unknowns become `questions.yaml` entries routed by `answer` kind; big-picture
-  decisions enter `proposed`.
+- **Clarify** — spikes and research land as facts with evidence, the ideal grounding for
+  decisions and the natural closer of questions; unknowns become `questions.yaml` entries
+  routed by `answer` kind; big-picture decisions enter `proposed`. Working drafts are
+  optional scaffolding, not a required artifact.
 - **Ratify** — present the owner the proposed set and the question list; apply rulings;
   iterate until the owner declares it settled; the gate holds until no `proposed` and no
   questions remain.
