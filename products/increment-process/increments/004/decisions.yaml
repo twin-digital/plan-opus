@@ -118,9 +118,10 @@ decisions:
       version in a version field of its file's yaml frontmatter: the string form of the
       design increment number its content reflects, set by the implementation that changes
       the file, with no semantic versioning process. an implementation record carries that
-      declared version. the agent-skill loader ignores unrecognized frontmatter fields, so
-      skills carry the field the same way documents do.
-    status: delegated
+      declared version.
+    status: accepted
+    pinned:
+      reason: data-format
     supersedes: d-sjxyurcz
     because:
       - d-lm8br2p2
@@ -165,10 +166,8 @@ decisions:
     title: the implementation process ships as agent skills
     statement: |
       the implementation process ships as agent-skill packages in this repository, and
-      .claude/skills/implement is the dispatcher: it binds to the fold at the target, opens
-      the companion increment, and runs one implementer per package with the package's kind
-      selecting the kind-specific skill; a kind without a skill is an open question for the
-      implementation that meets it.
+      .claude/skills/implement is the dispatcher every implementation runs through; a kind
+      without a skill is an open question for the implementation that meets it.
     status: accepted
     supersedes: d-m0on5vin
     pinned:
@@ -230,7 +229,10 @@ decisions:
       findings, and the orchestrator triages and records them. the loop runs on phase
       boundaries — findings return with each phase's result, rulings and answers arrive with
       the next dispatch, and a wholly blocked implementer ends its phase early.
-    status: delegated
+    status: accepted
+    pinned:
+      reason: other
+      notes: the owner wants visibility into changes to this behaviour
     because:
       - d-ig8vxolb
       - d-ng02vmcd
@@ -242,11 +244,9 @@ decisions:
       a multi-implementer run creates one integration branch per repository receiving
       changes; each implementer works in its own worktree on a branch off it. the
       orchestrator merges finished phases back to the integration branch as they complete,
-      in workspace dependency order — prepare outputs first, so dependents rebase onto real
-      stubs, then implement outputs, so only completion is ordered, never the work. a single
-      pull request from the integration branch to main is what the owner approves, after the
-      companion increment merges.
-    status: delegated
+      in workspace dependency order. a single pull request from the integration branch to
+      main is what the owner approves, after the companion increment merges.
+    status: accepted
     because:
       - d-sbcncyu2
       - d-w74sea6u
@@ -256,11 +256,12 @@ decisions:
   - id: d-nt7tach6
     title: an implementer writes only under its package path
     statement: |
-      an implementer's diff stays strictly inside its package directory; every shared file —
-      product.yaml, lockfiles, the implementation record, the companion increment's sources —
-      has the orchestrator as its only writer, and an implementer needing a change outside
-      its path reports it instead of editing.
-    status: delegated
+      an implementer's diff stays strictly within the path product.yaml names for its
+      package — a directory, or a single file for tree-consumed kinds; every other shared
+      file — product.yaml, lockfiles, the implementation record — has the orchestrator as
+      its only writer, and an implementer needing a change outside its path reports it
+      instead of editing.
+    status: tolerated
     because:
       - d-vadqz73a
       - d-msvpbva6
