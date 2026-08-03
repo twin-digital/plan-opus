@@ -49,8 +49,35 @@ package, the `kind` selects the wave skill:
 | `document`, `agent-skill` | `implement-document` |
 | anything else | raise an open question — the kind has no shape yet |
 
+Every implementer skill exposes the same two phases, so dispatch never depends on a kind's
+waves: **prepare** stands up whatever sibling packages compile or check against — a public
+surface, a share of a cross-package allocation — and **implement** runs prepare first where it
+has not run, then completes the package. A kind with nothing to stand up treats prepare as a
+no-op.
+
 Update `product.yaml` in the same change that creates, moves, or removes a package's files —
-the mapping is descriptive, never aspirational.
+the mapping is descriptive, never aspirational. In a multi-implementer run that file is yours
+alone; see below.
+
+## 3a. Running implementers in parallel
+
+- Create **one integration branch per repository** receiving changes; each implementer works
+  in its own worktree, on a branch off it. Never share a worktree between implementers.
+- **Two-pass dispatch:** run every package's prepare phase in parallel; merge each finished
+  prepare to the integration branch and have dependents rebase, so they build against real
+  stubs and allocations. Then run implement phases in parallel, merging completions in
+  workspace dependency order — a consumer's tests go green after its providers merge. Only
+  completion is ordered, never the work.
+- **An implementer's diff stays inside its package directory.** Every shared file —
+  `product.yaml`, lockfiles, the record, the companion increment's sources — has you, the
+  orchestrator, as its only writer. Implementers report what they cannot edit: proposed
+  decisions, open questions, overturns, and needed shared-file changes arrive as structured
+  findings, and you triage and record them in the companion increment.
+- A provider surface that shifts mid-implement follows the ordinary rules: unpinned — update
+  the stub, merge, dependents rebase, record the supersession; bound or pinned — escalate,
+  pausing exactly the dependents.
+- The owner approves **one pull request, integration branch to main**, opened after the
+  companion increment merges.
 
 ## 4. Land
 

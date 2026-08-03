@@ -11,12 +11,17 @@ before it. Full rules: `docs/process-reference.md` (Dispatch, Proving a claim is
 `docs/agent-guidance.md`. Design consequences land in the companion increment as they happen —
 see the `implement` skill for the escalation rules.
 
-| wave | produces | validated against |
-|---|---|---|
-| **Define** | the test plan | the requirements and decisions |
-| **Stub** | tests and API stubs | the test plan |
-| **Code** | the implementation | the stubs, by compiling; the tests, by passing |
-| **Document** | READMEs and user-facing documentation | the implementation |
+| wave | phase | produces | validated against |
+|---|---|---|---|
+| **Define** | prepare | the test plan | the requirements and decisions |
+| **Stub** | prepare | tests and API stubs | the test plan |
+| **Code** | implement | the implementation | the stubs, by compiling; the tests, by passing |
+| **Document** | implement | READMEs and user-facing documentation | the implementation |
+
+**prepare** ends with the Stub wave: the package's public surface exists and siblings can
+compile against it. **implement** runs prepare first where it has not run, then Code and
+Document. Expect a pause between the phases in a parallel run — the orchestrator merges
+prepare outputs before implement begins.
 
 ## Define
 

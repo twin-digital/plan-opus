@@ -112,3 +112,27 @@ risk, as an orchestration instruction rather than a process rule. The flavours:
 - **wave-by-wave** — pause after each wave for owner review before the next begins
 - **run-to-completion** — run every wave, review once at the end
 - **escalation-only** — stop only when an escalation fires
+
+## Parallel implementers
+
+Cross-package ordering is an ordering of contracts, not of implementations: a consumer needs
+its provider's surface, not its provider's finished code. Every implementer skill therefore
+exposes two phases — **prepare**, standing up whatever siblings compile or check against, and
+**implement**, which runs prepare first where it has not run and then completes the package —
+so an orchestrator dispatches in two passes without knowing any kind's waves.
+
+The mechanics when implementers run concurrently:
+
+- one integration branch per repository receiving changes; each implementer in its own
+  worktree, on a branch off it — never a shared worktree
+- the orchestrator merges finished phases to the integration branch in workspace dependency
+  order: prepare outputs first, so dependents rebase onto real stubs; then implement outputs,
+  so only completion is ordered, never the work
+- an implementer's diff stays inside its package directory; every shared file —
+  `product.yaml`, lockfiles, the record, the companion increment's sources — has the
+  orchestrator as its only writer, and implementers report findings rather than edit them in
+- the owner approves one pull request, integration branch to main, after the companion
+  increment merges
+
+Two implementers that genuinely must edit one file are a decomposition problem, not an
+orchestration one — split the file or merge the packages, and raise it as design work.

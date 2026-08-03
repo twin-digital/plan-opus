@@ -12,11 +12,15 @@ packages) and `docs/agent-guidance.md`. A document at a permanent path goes live
 its changes ride the implementation's pull request and merge only after the design increment
 they target has published.
 
-| wave | produces | validated against |
-|---|---|---|
-| **Claims** | the list of claims the document must state | the effective design at the targeted increment |
-| **Compose** | the document at its permanent home | the claim list; every draft claim checked against the fold |
-| **Check** | coverage entries per claim | the document, read against each claim |
+| wave | phase | produces | validated against |
+|---|---|---|---|
+| **Claims** | prepare | the list of claims the document must state | the effective design at the targeted increment |
+| **Compose** | implement | the document at its permanent home | the claim list; every draft claim checked against the fold |
+| **Check** | implement | coverage entries per claim | the document, read against each claim |
+
+**prepare** is the Claims wave — the allocation is what sibling documents check against, and
+running every document's Claims before any Compose is what surfaces a claim two documents own
+or none does. **implement** runs Claims first where it has not run, then Compose and Check.
 
 ## Claims
 

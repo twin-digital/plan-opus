@@ -472,3 +472,29 @@ coverage:
     covered_by:
       - kind: attestation
         ref: .claude/skills/implement-document/SKILL.md
+  - claim: d-sbcncyu2 # every implementer skill exposes prepare and implement
+    covered_by:
+      - kind: attestation
+        ref:
+          - .claude/skills/implement/SKILL.md
+          - .claude/skills/implement-code/SKILL.md
+          - .claude/skills/implement-document/SKILL.md
+        note: the dispatcher states the contract; each kind skill names its phase partition
+  - claim: d-msvpbva6 # the orchestrator is the companion increment's only writer
+    covered_by:
+      - kind: attestation
+        ref:
+          - .claude/skills/implement/SKILL.md
+          - docs/agent-guidance.md
+  - claim: d-vadqz73a # worktrees off one integration branch, one final PR
+    covered_by:
+      - kind: attestation
+        ref:
+          - .claude/skills/implement/SKILL.md
+          - docs/agent-guidance.md
+  - claim: d-nt7tach6 # an implementer writes only under its package path
+    covered_by:
+      - kind: attestation
+        ref:
+          - .claude/skills/implement/SKILL.md
+          - docs/agent-guidance.md
