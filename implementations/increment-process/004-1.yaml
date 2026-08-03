@@ -1,6 +1,6 @@
 version: "1"
 product: increment-process
-target: 5
+target: 4
 built_at: 2026-08-03
 packages:
   - path: nodejs/plan/design-process
@@ -96,7 +96,7 @@ coverage:
       - kind: attestation
         ref:
           - docs/design-process/process-reference.md
-          - implementations/increment-process/005-1.yaml
+          - implementations/increment-process/004-1.yaml
         note: increments 001-003 published with no implementation; this record names the increment it targeted
   - claim: r-bwtud1e5 # products declare their own requirements
     covered_by:
@@ -147,7 +147,7 @@ coverage:
         ref: test/project.test.ts
         note: the projection joins the implementations pool and counts uncovered and attestation-only claims
       - kind: attestation
-        ref: implementations/increment-process/005-1.yaml
+        ref: implementations/increment-process/004-1.yaml
         note: this manifest carries an entry for every claim in force at the target
   # ---- decisions, increment 001 ----
   - claim: d-auo2680a # plan is capture, clarify, ratify
@@ -321,7 +321,7 @@ coverage:
       - kind: attestation
         ref:
           - docs/design-process/process-reference.md
-          - products/increment-process/increments/005/decisions.yaml
+          - products/increment-process/increments/004/decisions.yaml
         note: every decision this implementation recorded entered as delegated
   - claim: d-0nl6sd96 # coverage is the implementation's artifact
     covered_by:
@@ -334,7 +334,7 @@ coverage:
         ref: test/changes.test.ts
         note: a shipped record is immutable
       - kind: attestation
-        ref: implementations/increment-process/005-1.yaml
+        ref: implementations/increment-process/004-1.yaml
   - claim: d-w74sea6u # by hand or autonomously, one record
     covered_by:
       - kind: attestation
@@ -351,7 +351,7 @@ coverage:
   - claim: d-4s0zoh1v # the implementer always attests
     covered_by:
       - kind: attestation
-        ref: implementations/increment-process/005-1.yaml
+        ref: implementations/increment-process/004-1.yaml
         note: every claim in this manifest carries at least an attestation from the implementer
   - claim: d-lm8br2p2 # the process's documents live at docs/
     covered_by:
@@ -361,7 +361,7 @@ coverage:
   - claim: d-ig8vxolb # implementation design output lands as increments
     covered_by:
       - kind: attestation
-        ref: products/increment-process/increments/005/decisions.yaml
+        ref: products/increment-process/increments/004/decisions.yaml
         note: every design consequence of this implementation landed in the companion increment; this record carries none
   - claim: d-ki941p9b # a record lands only at head
     covered_by:
@@ -398,8 +398,8 @@ coverage:
       - kind: code-test
         ref: test/validate.test.ts
       - kind: attestation
-        ref: implementations/increment-process/005-1.yaml
-  # ---- decisions, increment 005 (the companion) ----
+        ref: implementations/increment-process/004-1.yaml
+  # ---- decisions, increment 004 (the companion) ----
   - claim: d-uwnjk7rn # the tooling is one package, one CLI
     covered_by:
       - kind: attestation
@@ -438,5 +438,5 @@ coverage:
   - claim: d-sjxyurcz # an in-tree document's version is the record's built_at date
     covered_by:
       - kind: attestation
-        ref: implementations/increment-process/005-1.yaml
+        ref: implementations/increment-process/004-1.yaml
         note: the document package versions above carry the built_at date
