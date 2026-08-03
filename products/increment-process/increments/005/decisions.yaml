@@ -23,3 +23,59 @@ decisions:
       - d-lm8br2p2
       - d-hdz4drvp
     facets: process-doc
+
+  - id: d-wb0qq8wv
+    title: the gate reads preset conflict as id collision
+    statement: |
+      the mechanical conflict the merge gate blocks on is identity collision: a requirement id
+      declared both by an adopted preset and by the product, or by two adopted presets. a
+      semantic conflict between differently-numbered requirements stays with review and the
+      open-question channel.
+    status: delegated
+    because:
+      - r-bwtud1e5
+    facets: design-validator
+
+  - id: d-is1lgu15
+    title: schema pool versions are dense
+    statement: |
+      the validator holds schema pool versions to dense integers per entity, the same rule the
+      api pool carries by requirement.
+    status: delegated
+    because:
+      - d-3wjypyx6
+    facets: design-validator
+
+  - id: d-emngkw5c
+    title: pool immutability is content identity
+    statement: |
+      what the gate holds immutable about a bound pool version is its parsed content, keyed by
+      identity: the file may move or be renamed freely, and any content change or removal of a
+      bound identity blocks. binding is computed from every published increment — source
+      version fields and model references, closed transitively over $refs.
+    status: delegated
+    because:
+      - r-2fytqadu
+    facets: design-validator
+
+  - id: d-t03xkfj7
+    title: both trees are checked until the migration empties design/
+    statement: |
+      npm run check runs the legacy checker over design/ and design-process check over
+      products/, schemas/, apis/, and implementations/; the new validator ignores design/, and
+      the legacy checker retires with the last design out.
+    status: delegated
+    because:
+      - r-zcvxh2ty
+    facets: design-validator
+
+  - id: d-sjxyurcz
+    title: an in-tree document's version is the record's built_at date
+    statement: |
+      a document package consumed from the tree has no released version, so an implementation
+      record carries the record's built_at date as that package's version.
+    status: delegated
+    because:
+      - d-lm8br2p2
+      - d-0hedq82d
+    facets: schema
