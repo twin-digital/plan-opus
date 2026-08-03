@@ -25,12 +25,12 @@ coverage:
       - kind: attestation
         ref:
           - schemas/design-process
-          - docs/process-reference.md
+          - docs/process-reference.md#the-foundations
         note: the pool holds a schema per foundation kind; the reference states each kind's meaning
   - claim: r-6n45h5eb # foundations are expressed and reviewed directly
     covered_by:
       - kind: attestation
-        ref: docs/process-reference.md
+        ref: docs/process-reference.md#the-foundations
         note: foundations are plain YAML sources authored directly and reviewed as PR diffs; the reference states the practice
   - claim: r-2gcehlp8 # tooling folds foundations
     covered_by:
@@ -63,7 +63,7 @@ coverage:
   - claim: r-bs6wsobr # no maintained spec exists
     covered_by:
       - kind: attestation
-        ref: docs/process-reference.md
+        ref: docs/process-reference.md#clarify
         note: this implementation added no specification; the shipped documents are deliverables, and the reference states the rule
   - claim: r-yzkxa2hj # the process ships its reference
     covered_by:
@@ -98,7 +98,7 @@ coverage:
     covered_by:
       - kind: attestation
         ref:
-          - docs/process-reference.md
+          - docs/process-reference.md#design-and-implementation-keep-their-own-schedules
           - implementations/increment-process/004-1.yaml
         note: increments 001-003 published with no implementation; this record names the increment it targeted
   - claim: r-bwtud1e5 # products declare their own requirements
@@ -111,7 +111,7 @@ coverage:
     covered_by:
       - kind: attestation
         ref:
-          - docs/process-reference.md
+          - docs/process-reference.md#open-questions
           - CLAUDE.md
         note: the reference defines the open question; CLAUDE.md binds agents to raise rather than guess
   - claim: r-d181l3s2 # a question routes to whoever can answer it
@@ -120,7 +120,7 @@ coverage:
         ref: test/validate.test.ts
         note: questions validate against question@1, whose answer field is required
       - kind: attestation
-        ref: docs/process-reference.md
+        ref: docs/process-reference.md#open-questions
   - claim: r-m36ie8ee # nothing rests on an open question
     covered_by:
       - kind: code-test
@@ -132,7 +132,7 @@ coverage:
       - kind: attestation
         ref:
           - schemas/design-process/question.1.yaml
-          - docs/process-reference.md
+          - docs/process-reference.md#open-questions
   - claim: r-ygg7q7rh # questions close before an increment publishes
     covered_by:
       - kind: code-test
@@ -156,11 +156,11 @@ coverage:
   - claim: d-auo2680a # plan is capture, clarify, ratify
     covered_by:
       - kind: attestation
-        ref: docs/process-reference.md
+        ref: docs/process-reference.md#the-process
   - claim: d-o99k4ld8 # the facts pool carries forward
     covered_by:
       - kind: attestation
-        ref: docs/process-reference.md
+        ref: docs/process-reference.md#facts-record-what-research-found
         note: "the validator resolves f: citations against the unchanged facts/ pool"
   - claim: d-d6hwdg9d # concurrent increments collide on the number
     covered_by:
@@ -168,7 +168,7 @@ coverage:
         ref: test/validate.test.ts
         note: a gap in the increment sequence blocks, which is where the collision surfaces
       - kind: attestation
-        ref: docs/process-reference.md
+        ref: docs/process-reference.md#lifecycle--declare-changes-fold-for-state
   - claim: d-g5cs9o4i # effective state is a fold
     covered_by:
       - kind: code-test
@@ -180,7 +180,7 @@ coverage:
           - test/validate.test.ts
           - test/changes.test.ts
       - kind: attestation
-        ref: docs/process-reference.md
+        ref: docs/process-reference.md#publish-is-the-merge
   - claim: d-3wjypyx6 # the contract pools
     covered_by:
       - kind: code-test
@@ -197,7 +197,7 @@ coverage:
           - test/project.test.ts
         note: the fold at any increment is computed on demand from immutable inputs
       - kind: attestation
-        ref: docs/process-reference.md
+        ref: docs/process-reference.md#the-fold-at-an-increment-is-the-bundle
   - claim: d-k48jh86c # requirement presets are plan-only products
     covered_by:
       - kind: code-test
@@ -219,7 +219,7 @@ coverage:
         ref: test/validate.test.ts
         note: the decision schema admits exactly these statuses plus proposed, and rejected requires its reason
       - kind: attestation
-        ref: docs/process-reference.md
+        ref: docs/process-reference.md#ratify
   - claim: d-wrjhfbei # pinned is false or a named reason
     covered_by:
       - kind: attestation
@@ -235,7 +235,7 @@ coverage:
     covered_by:
       - kind: attestation
         ref:
-          - docs/process-reference.md
+          - docs/process-reference.md#a-product-maps-to-its-packages
           - products/increment-process/product.yaml
         note: the shipped documents live at docs/ and entered product.yaml at the merge that shipped them
   - claim: d-jy7x42nx # retirement is an id and a reason
@@ -262,17 +262,17 @@ coverage:
   - claim: d-af2v9seu # authoring tests are their own document
     covered_by:
       - kind: attestation
-        ref: docs/process-reference.md
+        ref: docs/process-reference.md#the-tooling-and-the-documents
         note: named as a separate package; its content is increment 004's and not part of this implementation
   - claim: d-i1reuf3u # implement forward
     covered_by:
       - kind: attestation
-        ref: docs/process-reference.md
+        ref: docs/process-reference.md#implement-forward
   - claim: d-rx3s2hqo # decisions record the observable
     covered_by:
       - kind: attestation
         ref:
-          - docs/process-reference.md
+          - docs/process-reference.md#the-foundations
           - .claude/skills/implement-code/SKILL.md
   # ---- decisions, increment 002 ----
   - claim: d-ew65xgtj # questions are a draft increment's own source
@@ -297,39 +297,39 @@ coverage:
   - claim: d-q8ur5u3f # decomposition is design work
     covered_by:
       - kind: attestation
-        ref: docs/process-reference.md
+        ref: docs/process-reference.md#decomposition-is-design-work
         note: this implementation built to the ratified decomposition and recorded its own package choices as companion-increment decisions
   - claim: d-qb67fb8s # kind selects the dispatch shape
     covered_by:
       - kind: attestation
         ref:
-          - docs/process-reference.md
+          - docs/process-reference.md#dispatch-kind-selects-the-wave-shape
           - .claude/skills/implement/SKILL.md
   - claim: d-rvvijts2 # the code wave shape
     covered_by:
       - kind: attestation
         ref:
-          - docs/process-reference.md
+          - docs/process-reference.md#dispatch-kind-selects-the-wave-shape
           - .claude/skills/implement-code/SKILL.md
         note: the tooling package ran Define, Stub, Code, Document; the reference states the shape and the skill operationalizes it
   - claim: d-o81xclq7 # the document wave shape
     covered_by:
       - kind: attestation
         ref:
-          - docs/process-reference.md
+          - docs/process-reference.md#dispatch-kind-selects-the-wave-shape
           - .claude/skills/implement-document/SKILL.md
         note: the documents ran Claims, Compose, Check; the reference states the shape and the skill operationalizes it
   - claim: d-dteorq7q # escalation fires only on requirements and pins
     covered_by:
       - kind: attestation
         ref:
-          - docs/process-reference.md
+          - docs/process-reference.md#the-companion-increment
           - .claude/skills/implement/SKILL.md
   - claim: d-n23bxend # implementation decisions open as delegated
     covered_by:
       - kind: attestation
         ref:
-          - docs/process-reference.md
+          - docs/process-reference.md#the-companion-increment
           - products/increment-process/increments/004/decisions.yaml
         note: every decision this implementation recorded entered as delegated
   - claim: d-0nl6sd96 # coverage is the implementation's artifact
@@ -348,16 +348,16 @@ coverage:
     covered_by:
       - kind: attestation
         ref:
-          - docs/process-reference.md
+          - docs/process-reference.md#proving-a-claim-is-met
           - .claude/skills/implement/SKILL.md
   - claim: d-7qh9hx2x # escalation aborts and retargets
     covered_by:
       - kind: attestation
-        ref: docs/process-reference.md
+        ref: docs/process-reference.md#everything-lands-at-head
   - claim: d-0g9l44e4 # evidence is graded by provenance and coupling
     covered_by:
       - kind: attestation
-        ref: docs/process-reference.md
+        ref: docs/process-reference.md#proving-a-claim-is-met
         note: the schema keeps kind open, and the reference states the grading
   - claim: d-4s0zoh1v # the implementer always attests
     covered_by:
@@ -393,7 +393,7 @@ coverage:
     covered_by:
       - kind: attestation
         ref:
-          - docs/process-reference.md
+          - docs/process-reference.md#the-tooling-and-the-documents
           - docs/process-migration.md
   - claim: d-jenq1f31 # the merge gate wiring is thin repository configuration
     covered_by:
@@ -471,10 +471,11 @@ coverage:
     covered_by:
       - kind: attestation
         ref:
+          - docs/process-reference.md#dispatch-kind-selects-the-wave-shape
           - .claude/skills/implement/SKILL.md
           - .claude/skills/implement-code/SKILL.md
           - .claude/skills/implement-document/SKILL.md
-        note: the dispatcher states the contract; each kind skill names its phase partition
+        note: the reference and dispatcher state the contract; each kind skill names its phase partition
   - claim: d-msvpbva6 # the orchestrator is the companion increment's only writer
     covered_by:
       - kind: attestation
@@ -487,3 +488,17 @@ coverage:
     covered_by:
       - kind: attestation
         ref: .claude/skills/implement/SKILL.md
+  - claim: d-rr1qmw72 # a record's coverage is complete at its target
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+      - kind: attestation
+        ref: implementations/increment-process/004-1.yaml
+        note: this record carries an entry for every claim in force at its target
+  - claim: d-eporg76f # document coverage refs carry section breadcrumbs
+    covered_by:
+      - kind: attestation
+        ref:
+          - implementations/increment-process/004-1.yaml
+          - .claude/skills/implement-document/SKILL.md
+        note: the document refs above carry their breadcrumbs
