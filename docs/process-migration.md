@@ -1,3 +1,7 @@
+---
+version: 0.1.0
+---
+
 # What the incremental process replaces
 
 Companion to `process-reference.md`. That document states the process as it is meant to work;

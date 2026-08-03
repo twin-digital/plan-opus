@@ -1,3 +1,7 @@
+---
+version: 0.1.0
+---
+
 # Agent guidance
 
 Companion to `process-reference.md`. That document defines the process; this one collects

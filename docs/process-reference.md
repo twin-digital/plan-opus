@@ -1,3 +1,7 @@
+---
+version: 0.1.0
+---
+
 # The incremental design process
 
 The normative reference for the incremental design process: what the owner and agents read to

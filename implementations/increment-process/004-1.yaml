@@ -6,17 +6,17 @@ packages:
   - path: nodejs/plan/design-process
     version: 0.1.0
   - path: docs/process-reference.md
-    version: 2026-08-03
+    version: 0.1.0
   - path: docs/agent-guidance.md
-    version: 2026-08-03
+    version: 0.1.0
   - path: docs/process-migration.md
-    version: 2026-08-03
+    version: 0.1.0
   - path: .claude/skills/implement
-    version: 2026-08-03
+    version: 0.1.0
   - path: .claude/skills/implement-code
-    version: 2026-08-03
+    version: 0.1.0
   - path: .claude/skills/implement-document
-    version: 2026-08-03
+    version: 0.1.0
 coverage:
   # ---- requirements, increment 001 ----
   - claim: r-gq90gngs # foundations have defined shapes and meanings
@@ -449,21 +449,26 @@ coverage:
     covered_by:
       - kind: code-test
         ref: test/validate.test.ts
-  - claim: d-sjxyurcz # an in-tree package's version is the record's built_at date
+  - claim: d-39d4o4fn # tree-consumed packages version themselves in frontmatter
     covered_by:
       - kind: attestation
         ref: implementations/increment-process/004-1.yaml
-        note: the document and agent-skill package versions above carry the built_at date
+        note: the document and agent-skill package versions above quote each file's frontmatter
   - claim: d-zj004h21 # agent-skill packages run the document wave shape
     covered_by:
       - kind: attestation
         ref:
           - .claude/skills/implement-document/SKILL.md
         note: the three skills were themselves composed and checked through Claims, Compose, Check
-  - claim: d-m0on5vin # the implementer skills, and how they dispatch
+  - claim: d-ng02vmcd # the implementation process ships as agent skills
     covered_by:
       - kind: attestation
-        ref:
-          - .claude/skills/implement/SKILL.md
-          - .claude/skills/implement-code/SKILL.md
-          - .claude/skills/implement-document/SKILL.md
+        ref: .claude/skills/implement/SKILL.md
+  - claim: d-x2xw2tp2 # the code-kind implementer skill
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/implement-code/SKILL.md
+  - claim: d-ydcyoa80 # the document-kind implementer skill
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/implement-document/SKILL.md
