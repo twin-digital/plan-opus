@@ -131,9 +131,54 @@ decisions:
       npm-cli, and minecraft-addon, and .claude/skills/implement-document for document and
       agent-skill kinds. a kind without a skill is an open question for the implementation
       that meets it.
-    status: delegated
+    status: rejected
+    rejection_reason: |
+      one entry mixes the general structure with per-kind detail; split so kinds and their
+      skills can be added, retired, or changed without superseding the general part, which is
+      pinned.
     because:
       - d-qb67fb8s
       - d-w74sea6u
+      - d-zj004h21
+    facets: prompts
+
+  - id: d-ng02vmcd
+    title: the implementation process ships as agent skills
+    statement: |
+      the implementation process ships as agent-skill packages in this repository, and
+      .claude/skills/implement is the dispatcher: it binds to the fold at the target, opens
+      the companion increment, and runs one implementer per package with the package's kind
+      selecting the kind-specific skill; a kind without a skill is an open question for the
+      implementation that meets it.
+    status: proposed
+    supersedes: d-m0on5vin
+    pinned:
+      reason: public-api
+      notes: the entry point every implementation of every product runs through
+    because:
+      - d-qb67fb8s
+      - d-w74sea6u
+    facets: prompts
+
+  - id: d-x2xw2tp2
+    title: the code-kind implementer skill
+    statement: |
+      .claude/skills/implement-code carries the code wave shape — Define, Stub, Code,
+      Document — for the npm-library, npm-cli, and minecraft-addon kinds.
+    status: delegated
+    because:
+      - d-ng02vmcd
+      - d-rvvijts2
+    facets: prompts
+
+  - id: d-ydcyoa80
+    title: the document-kind implementer skill
+    statement: |
+      .claude/skills/implement-document carries the document wave shape — Claims, Compose,
+      Check — for the document and agent-skill kinds.
+    status: delegated
+    because:
+      - d-ng02vmcd
+      - d-o81xclq7
       - d-zj004h21
     facets: prompts
