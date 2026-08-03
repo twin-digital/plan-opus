@@ -44,8 +44,17 @@ the companion increment or dropped, never transcribed.
 
 ## Check
 
-Read the finished document against the claim list, claim by claim — preferably with fresh
-eyes (a separate agent). Fix what is missing or misstated, then write the coverage entries:
+Check reads in both directions, preferably with fresh eyes (a separate agent):
+
+1. **Claims against the document** — each allocated claim must be stated where the allocation
+   placed it; fix what is missing or misstated.
+2. **The document against the fold** — the shadow-claim audit: every normative statement
+   ("must", "never", "is refused", a quantity, a name) must trace to a foundation in force. A
+   statement asserting a rule no foundation carries is fixed to match the fold where one
+   rules, extracted into the companion increment (a delegated decision for real behavior, a
+   question for a genuine unknown), or cut — never left standing.
+
+Then write the coverage entries:
 `attestation` for each claim the document states, alongside any stronger evidence. A document
 `ref` cites the file plus a section breadcrumb — `docs/process-reference.md#the-companion-increment`
 — narrowing to the section that carries the claim; the whole file only where the claim really
