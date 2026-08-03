@@ -7,8 +7,8 @@ description: Run an implementation of a product against its published design —
 # Implement a product
 
 You are running one implementation of `<product>` against the fold at a published increment.
-The normative rules are `docs/process-reference.md` (the Implement phase) and
-`docs/agent-guidance.md`; this skill is the operational sequence. Validate every change with
+The normative rules are `docs/process-reference.md` (the Implement phase); this skill is the
+operational sequence. Validate every change with
 `npm run check`.
 
 ## 1. Bind to the design
@@ -37,7 +37,10 @@ design-relevant lands there **as it happens**:
 A `proposed` entry, changes or additions to the external-facing schema or API surfaces, or
 an open question is an escalation: pause only what depends on the answer, keep building
 everything else. Overturning an *unpinned* decision is not an
-escalation — record the supersession and continue. Generate ids with `design-process id`.
+escalation — record the supersession and continue. Where escalation does fire, bring a
+**fact** — a measurement, a compile error, a captured output — not a preference; an opinion
+about a better framing is never grounds against a ratified entry. Generate ids with
+`design-process id`.
 
 ## 3. Dispatch one implementer per package
 
@@ -95,6 +98,17 @@ alone; see below.
   evidence, not only a document's.
 - The owner approves **one pull request, integration branch to main**, opened after the
   companion increment merges.
+- Two implementers that genuinely must edit one file are a decomposition problem, not an
+  orchestration one — split the file or merge the packages, and raise it as design work.
+
+## Orchestration flavours
+
+The process fixes what must escalate; when an implementation pauses beyond that is chosen per
+product, by risk, as orchestration configuration:
+
+- **wave-by-wave** — pause after each wave for owner review before the next begins
+- **run-to-completion** — run every wave, review once at the end
+- **escalation-only** — stop only when an escalation fires
 
 ## 4. Land
 

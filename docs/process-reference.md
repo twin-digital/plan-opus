@@ -5,9 +5,9 @@ version: "4"
 # The incremental design process
 
 The normative reference for the incremental design process: what the owner and agents read to
-run it. Instruction to agents working inside the process is in `agent-guidance.md`; what the
-process retired from earlier practice, and how existing designs convert, is in
-`process-migration.md`. The content-quality tests for foundations live in their own document,
+run it. Instruction to agents working inside the process ships as this repository's agent
+skills and `CLAUDE.md`; what the process retired from earlier practice, and how existing
+designs convert, is in `process-migration.md`. The content-quality tests for foundations live in their own document,
 shipped by a later increment. This reference is one epistemic kind: everything it states is a
 requirement or decision of the `increment-process` product, enforced by the design validator
 where a rule is mechanical.
@@ -739,8 +739,9 @@ through its top-level `package.json`; the merge gate wires to their commands.
 
 The process's normative reference is itself a shipped deliverable: separate document-kind
 packages rather than one, each scoped so an agent loads only the context its task needs, at
-permanent homes under `docs/` in this repository — this reference, the agent guidance, and the
-migration record. The content-quality tests for foundations — what makes a statement, a
+permanent homes under `docs/` in this repository — this reference and the migration record —
+with instruction to agents shipping as agent-skill packages and `CLAUDE.md` rather than as a
+document. The content-quality tests for foundations — what makes a statement, a
 verification procedure, a decision, or a model entry good — are their own document package,
 shipped by a later increment: one body of tests binding the writer of what each governs,
 reviewer-applied and never a validator rule.

@@ -7,8 +7,6 @@ packages:
     version: 0.1.0
   - path: docs/process-reference.md
     version: "4"
-  - path: docs/agent-guidance.md
-    version: "4"
   - path: docs/process-migration.md
     version: "4"
   - path: .claude/skills/implement
@@ -73,7 +71,6 @@ coverage:
         ref:
           - products/increment-process/product.yaml
           - docs/process-reference.md
-          - docs/agent-guidance.md
           - docs/process-migration.md
         note: product.yaml lists the document packages and their paths hold the current reference text
   - claim: r-0axqvtcc # pending decisions may not be published
@@ -115,8 +112,8 @@ coverage:
       - kind: attestation
         ref:
           - docs/process-reference.md
-          - docs/agent-guidance.md
-        note: the reference defines the open question; the guidance binds agents to raise rather than guess
+          - CLAUDE.md
+        note: the reference defines the open question; CLAUDE.md binds agents to raise rather than guess
   - claim: r-d181l3s2 # a question routes to whoever can answer it
     covered_by:
       - kind: code-test
@@ -262,7 +259,7 @@ coverage:
           - test/validate.test.ts
           - test/project.test.ts
         note: citations resolve or block; the projection orders by the citation topology
-  - claim: d-y775xabw # authoring tests are their own document
+  - claim: d-af2v9seu # authoring tests are their own document
     covered_by:
       - kind: attestation
         ref: docs/process-reference.md
@@ -276,7 +273,7 @@ coverage:
       - kind: attestation
         ref:
           - docs/process-reference.md
-          - docs/agent-guidance.md
+          - .claude/skills/implement-code/SKILL.md
   # ---- decisions, increment 002 ----
   - claim: d-ew65xgtj # questions are a draft increment's own source
     covered_by:
@@ -327,7 +324,7 @@ coverage:
       - kind: attestation
         ref:
           - docs/process-reference.md
-          - docs/agent-guidance.md
+          - .claude/skills/implement/SKILL.md
   - claim: d-n23bxend # implementation decisions open as delegated
     covered_by:
       - kind: attestation
@@ -392,12 +389,11 @@ coverage:
           - products/increment-process/product.yaml
           - package.json
         note: "@twin-digital/design-process at nodejs/plan/design-process in twin-digital/opus, pinned by this repository's package.json"
-  - claim: d-hdz4drvp # the reference ships as separate documents
+  - claim: d-vt9r9zn5 # the reference ships as separate documents, agents get skills
     covered_by:
       - kind: attestation
         ref:
           - docs/process-reference.md
-          - docs/agent-guidance.md
           - docs/process-migration.md
   - claim: d-jenq1f31 # the merge gate wiring is thin repository configuration
     covered_by:
@@ -425,7 +421,6 @@ coverage:
       - kind: attestation
         ref:
           - docs/process-reference.md
-          - docs/agent-guidance.md
           - docs/process-migration.md
   - claim: d-wb0qq8wv # the gate reads preset conflict as id collision
     covered_by:
@@ -483,18 +478,12 @@ coverage:
   - claim: d-msvpbva6 # the orchestrator is the companion increment's only writer
     covered_by:
       - kind: attestation
-        ref:
-          - .claude/skills/implement/SKILL.md
-          - docs/agent-guidance.md
+        ref: .claude/skills/implement/SKILL.md
   - claim: d-vadqz73a # worktrees off one integration branch, one final PR
     covered_by:
       - kind: attestation
-        ref:
-          - .claude/skills/implement/SKILL.md
-          - docs/agent-guidance.md
+        ref: .claude/skills/implement/SKILL.md
   - claim: d-nt7tach6 # an implementer writes only under its package path
     covered_by:
       - kind: attestation
-        ref:
-          - .claude/skills/implement/SKILL.md
-          - docs/agent-guidance.md
+        ref: .claude/skills/implement/SKILL.md

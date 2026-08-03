@@ -8,7 +8,7 @@ description: Implement one tree-consumed package (document or agent-skill kind) 
 
 The wave shape for tree-consumed kinds. Each wave produces one artifact, validated against
 what came before it. Full rules: `docs/process-reference.md` (Dispatch, A product maps to its
-packages) and `docs/agent-guidance.md`. A document at a permanent path goes live at merge — so
+packages). A document at a permanent path goes live at merge — so
 its changes ride the implementation's pull request and merge only after the design increment
 they target has published.
 
@@ -35,7 +35,9 @@ rules the skill operationalizes. The list is transient; keep it in a scratch loc
 ## Compose
 
 Write the document at its permanent home (`product.yaml` names it), drawing on the increments'
-frozen `drafts/` — raw material, never normative. Check every draft claim against the fold as
+frozen `drafts/` — raw material, never normative. Make the smallest decisions that complete
+the work: a question the fold left open is settled narrowly and recorded, not generalised
+from. Check every draft claim against the fold as
 you go: drafts predate rulings, so expect drift. What you find superseded, you write to the
 fold's state, not the draft's. A claim in the draft resting on no foundation is extracted into
 the companion increment or dropped, never transcribed.
