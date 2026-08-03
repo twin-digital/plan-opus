@@ -506,3 +506,19 @@ coverage:
     covered_by:
       - kind: code-test
         ref: test/validate.test.ts
+  - claim: d-el21jvd0 # the validator enforces id format and uniqueness
+    covered_by:
+      - kind: code-test
+        ref:
+          - test/validate.test.ts
+          - test/ids.test.ts
+  - claim: d-o7br0a9k # the projection lists a draft's open questions
+    covered_by:
+      - kind: code-test
+        ref: test/project.test.ts
+  - claim: d-qoks4n67 # the companion increment opens first and closes unmerged if empty
+    covered_by:
+      - kind: attestation
+        ref:
+          - docs/process-reference.md#the-companion-increment
+          - .claude/skills/implement/SKILL.md

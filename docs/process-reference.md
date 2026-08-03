@@ -7,8 +7,7 @@ version: "4"
 The normative reference for the incremental design process: what the owner and agents read to
 run it. Instruction to agents working inside the process ships as this repository's agent
 skills and `CLAUDE.md`; what the process retired from earlier practice, and how existing
-designs convert, is in `process-migration.md`. The content-quality tests for foundations live in their own document,
-shipped by a later increment. Everything this reference states is a ratified requirement or
+designs convert, is in `process-migration.md`. Everything this reference states is a ratified requirement or
 decision of the `increment-process` product — it adds nothing of its own — and the design
 validator enforces the rules that are mechanical.
 
@@ -48,9 +47,6 @@ has a job, an author, and a lifecycle:
 - **Facts** live in the repo-wide `facts/` pool, with the runs and artifacts that establish
   them under `evidence/`: findings about the world, citable from anywhere and governed by the
   existing evidence rules.
-- **Drafts** are optional working prose an increment may keep — design-drafted content for
-  document deliverables, an argument worth freezing — raw material for implementation, never
-  normative; most increments need none.
 
 One further entity is defined like a foundation but is not one: the **open question**, the
 structured ask an agent puts to the owner while an increment is a draft. It has a formally
@@ -67,9 +63,8 @@ Increment artifacts live at `products/<product>/increments/<NNN>/` — `requirem
 with no manifest file of its own. The product is declared by the presence of
 `products/<product>/product.yaml`, whose directory name is the product id.
 
-Lifecycle is uniform: **an increment declares changes, and state is the fold.** New entries
-add; superseding entries replace, carrying their reason in their own content; retirements
-remove, with a reason; and nothing is ever edited once its increment publishes.
+Lifecycle is uniform: **an increment declares changes, and state is the fold** — and nothing
+is ever edited once its increment publishes.
 
 ## The process
 
@@ -97,17 +92,14 @@ alone, without low-level code knowledge.
 
 What research finds lands as **facts** — documented with an upstream citation, or tested with
 the artifacts and a recorded run — and capturing them is the ideal way to ground a decision in
-truth or to answer an open question: a `because:` citing a fact is a decision that cannot
-quietly drift from the evidence that drove it. Outputs are those facts, plus a ratified set of
+truth or to answer an open question. Outputs are those facts, plus a ratified set of
 requirements, with any owner-approved amendments, and decisions reached from research, also
 owner-approved.
 
 Clarify works directly in the foundation sources. Where connected prose helps — an argument
 that must hold together can expose the decision not yet made and the question not yet asked —
 an increment *may* keep working drafts in its `drafts/` folder, merging with the increment and
-freezing at publish; most increments need none. A draft is raw material, never normative: the
-fold is what binds, and a claim in a draft that cites no foundation is a shadow decision —
-extracted into decisions, facts, and open questions, or dropped.
+freezing at publish; most increments need none. A draft is raw material, never normative: the fold is what binds.
 
 The design phase produces **no prose specification** for an implementer to follow.
 Implementation works strictly from the fold — requirements, decisions, and bound contracts —
@@ -117,9 +109,8 @@ as it goes.
 ### Open questions
 
 An agent that meets a question it cannot answer raises it to the owner as an open question
-rather than guessing an answer or dropping it. Decisions are the propose half of the
-Clarify–Ratify exchange; **a question is the ask half** — the structured form an agent uses to
-put something to the owner, and the list the owner works down when responding.
+rather than guessing an answer or dropping it. **A question is the structured form** an agent
+uses to put something to the owner, and the list the owner works down when responding.
 
 Questions live in `questions.yaml` beside the increment's other sources, carrying one
 `questions:` block:
@@ -149,13 +140,10 @@ shape of check as "no decision still proposed", and for the same reason. There i
 retirement form, no supersession, and no closure record; on main the file is absent or holds no
 questions.
 
-The gate is mechanical and narrow: it closes the leak of a recorded question drifting
-unanswered. It cannot catch a question nobody wrote down — the defence there is the owner's
-read at ratification.
 
 ### Ratify
 
-**Not a one-way handoff.** Clarify and Ratify iterate — agents raise questions and decisions,
+**Clarify and Ratify iterate** — agents raise questions and decisions,
 the owner responds, agents consume that feedback and raise more. The loop runs until the owner
 declares it settled enough to implement.
 
@@ -178,8 +166,7 @@ rework; the replacement's `supersedes` is what closes the rejected entry.
 a judgement; delegating is an abstention. Keeping them apart is what lets anyone ask,
 product-wide, how much the owner engaged and judged versus passed over — the projection labels
 each decision and counts the abstentions. The count of delegated decisions is the honest
-measure of how much of a product was reviewed, the same kind of ledger `attestation` provides
-for coverage on the other axis.
+measure of how much of a product was reviewed.
 
 ### Publish is the merge
 
@@ -202,18 +189,15 @@ entirely in the tooling packages.
 
 Main therefore holds only published increments, dense and immutable, and the validator refuses
 any edit to one: **a published increment is never unsettled by later work** — drafting
-increment N+1 changes nothing about increment N. There is no draft-on-main state: the fold over
-main is always a fold over settled history, and what a tree-consumed deliverable shows on main
-is always what a published increment built.
+increment N+1 changes nothing about increment N. What a tree-consumed deliverable shows on
+main is always what a published increment built.
 
 ### Design and implementation keep their own schedules
 
 An increment need not run Implement. Capture → Clarify → Ratify → publish is a complete
 increment — a preset's only shape, and any product's option. Its ratified requirements sit in
 the fold as claims with no coverage, which the projected view shows for what they are: ratified
-and unbuilt. That state belongs to increments no implementation has targeted — it never
-describes a gap inside an implementation, whose record covers every claim in force at its
-target. Several design increments may accumulate before any implementation; one
+and unbuilt. Several design increments may accumulate before any implementation; one
 implementation may target the consolidated fold, and nothing obliges one per increment. An
 implementation durably records the increment it targeted, and an implementation never amends
 the design it targets: an escalated change lands as an ordinary design increment, and the
@@ -232,18 +216,6 @@ implementation retargets the fold that contains it.
 | implementations | the record of each implementation — the increment it targeted, the package versions it produced, and its coverage |
 | released versions | tags and published artifacts — permanent once out, whatever happens to the source |
 
-**Transient** — generated, used, discarded:
-
-| artifact | why it is transient |
-|---|---|
-| test plan | an input to the implementation, not a description of the product |
-| implementation | regenerable from the durable set |
-
-The asymmetry is deliberate. The durable set is what the owner reviews and what tooling can
-diff; the transient set is where work happens. Released versions are durable for a reason no
-other entry shares: they are durable whether the process wants them or not — a published
-package cannot be recalled, so the record of what went out is the one durable artifact this
-repository does not control the lifecycle of.
 
 ## Mechanics
 
@@ -258,9 +230,7 @@ may be **pinned** — meaning it cannot be freely overturned.
   required with `other`, because there it is the reason; alongside a named reason it is almost
   never provided — only where why the named reason applies is unclear.
 
-Pin a decision when it fixes a public API surface, fixes a data format written to disk or sent
-over a wire, is something another product depends on, or changes behaviour a consumer would
-notice. **Pinning, not status, is what escalation reads.** No status on its own obliges an
+**Pinning, not status, is what escalation reads.** No status on its own obliges an
 implementer to stop.
 
 ### Lifecycle — declare changes, fold for state
@@ -287,14 +257,12 @@ force makes the record lie, and the record is what the owner reads. Overturns la
 superseding entries in the implementation's companion increment (see *The companion
 increment*).
 
-**Concurrent increments collide on the number, and that is the whole provision.** Two in flight
-both claiming `003` conflict at merge; the loser renames to the next slot and recomputes
-against the fold that moved, and the projection and validator report whatever the recomputed
-fold breaks. The process adds nothing further for this case.
+**Concurrent increments collide on the number, and that is the whole provision.** The process adds nothing further for this case: the loser renames to the next slot and
+recomputes against the fold that moved.
 
 ### Statements, and how they are verified
 
-A statement is one proposition of owner fiat, in product terms. It is **self-verifying** when
+A requirement's statement is owner fiat, in product terms. It is **self-verifying** when
 its truth is decidable by direct inspection of what it names, with no interpretive choice —
 then `verification` is omitted, and coverage targets the statement read literally. Where the
 statement carries a term an observer cannot decide directly — an unbounded quantifier, a
@@ -312,11 +280,8 @@ performable procedure that binds the term to observations:
 ```
 
 `do` steps are performed; `verify` steps assert about what a preceding `do` surfaced, and all
-must hold. The first step is a `do`, and a `verify` with no grounding `do` is malformed — which
-is what keeps the procedure from drifting into a restatement of the statement. Judgement is a
-final pair naming the judge. Steps exercise the requirement's intent through the product's
-published surfaces — and whatever a step names, the owner now expects: naming is binding, so
-internals are named only when binding them is the point.
+must hold. The first step is a `do`, and a `verify` with no grounding `do` is malformed.
+Steps exercise the requirement's intent through the product's published surfaces.
 
 **Decisions carry no verification, and the asymmetry is principled.** A requirement states an
 *end*, so how you would know is a genuinely separate question. A decision states a *means*, and
@@ -381,10 +346,7 @@ prefix `r-`, `d-`, or `q-`, the rest random, produced by a CLI generator; the va
 enforces format and uniqueness, so a collision is a regenerate at creation rather than a latent
 bug. The id is the citation form; `title` carries the human label and may churn freely.
 
-Random rather than meaningful, deliberately: a slug bakes a summary into the identity, which
-drifts as the statement iterates and breaks citations exactly when an entry churns most; a
-timestamp component makes batch-created ids near-identical, and batch-created entries are the
-ones that cite and supersede each other. Nothing reads structure out of an id. Question ids are
+Nothing reads structure out of an id. Question ids are
 unique within the increment that raised them — the only scope in which a question exists.
 
 Increments stay plain numbers — readable, and the merge collision on the number is the
@@ -416,9 +378,10 @@ when adopted and forbidden when dropped. Rules:
   requirement; the increment that declares the change is the record.
 - A preset is adopted whole. There are no exceptions or partial adoptions.
 - A preset does not adopt another preset.
-- A conflict between an adopted requirement and a product-local one blocks the merge. An agent
-  raises the underlying tension as an open question, and the increment cannot settle until it
-  is addressed.
+- The mechanical conflict the merge gate blocks on is identity collision — a requirement id
+  declared both by an adopted preset and by the product, or by two adopted presets. A semantic
+  conflict between differently-numbered requirements stays with review and the open-question
+  channel.
 - Adopting and dropping the same preset in one increment is an error.
 
 Drift is expected and not forced: products may sit on old preset versions indefinitely, and
@@ -449,14 +412,9 @@ What an implementer implements against is the fold at a published increment — 
 requirements, decisions, and bound contracts of `<product>@N`. Publication made every input
 immutable, so the view is derivable on demand and identical forever: nothing is archived,
 nothing is separately published, the increment number is the version, and the declared delta is
-the changelog. None of it is authored — all of it is a fold over artifacts that already exist,
-which is why it can be correct by construction where a spec could only be correct by diligence.
+the changelog.
 
 ### Facts record what research found
-
-Spikes, probes, and measurements produce findings about the world, kept past the increment that
-produced them because the next increment would otherwise re-derive them, and because a decision
-built on a finding should be traceable to it.
 
 - **`because:` on a decision** — what it rests on: the requirements it follows from, the facts
   that drove it, and the decisions it builds on. Citations give the projection a dependency
@@ -476,9 +434,7 @@ is a reading aid: the projection groups and filters by it, and no rule reads it.
 by facet, nothing escalates by facet, coverage and pinning ignore it — which is what keeps it
 cheap to assign and cheap to be wrong about.
 
-Wanting a rule that mentions a facet is the signal the facet has become a product, and the
-split happens then, on evidence of independent life. Facets do not draw component boundaries:
-where packages meet is decision content, pinned when a consumer could notice.
+Facets do not draw component boundaries: where packages meet is decision content.
 
 ### A product maps to its packages
 
@@ -502,7 +458,7 @@ works; anything else a kind might call for is read from the package at that path
 duplicated, so the mapping cannot drift from what it maps.
 
 Creating, splitting, or moving a package is a decision like any other — proposed and ratified
-in Plan, pinned once something outside the product depends on the boundary. The mapping
+in Plan. The mapping
 reflects the state those decisions produced, and it is descriptive, never aspirational:
 `product.yaml` is current state, freely edited rather than increment-locked, because the record
 of a package change is the decision that made it. An implementer adds, removes, or updates
@@ -526,9 +482,7 @@ permanent path is read straight from the tree, so merge is what makes it live �
 ride an implementation's pull request, drawing on the increments' frozen drafts, and go live
 only when it lands. Shipped document packages live at permanent homes under `docs/<domain>/` —
 the process's own documents are the one carve-out, sitting at the `docs/` root — entering
-`product.yaml` at the merge that ships them; synthesis drafts live at
-`products/<product>/increments/<NNN>/drafts/`, merging with the increment that generated them
-and freezing at its publish.
+`product.yaml` at the merge that ships them.
 
 ### Implement forward
 
@@ -560,8 +514,7 @@ packages an implementation has realized.
 ### Dispatch: kind selects the wave shape
 
 An implementation dispatches one implementer per package, and the package's `kind` — already in
-the mapping — selects its wave shape. Every shape shares one rule: each wave produces one
-artifact, validated against what came before it. And every shape partitions its waves into the
+the mapping — selects its wave shape. Every shape partitions its waves into the
 same two phases the dispatcher calls: **prepare** — standing up whatever sibling packages
 compile or check against — and **implement**, which runs prepare first where it has not run and
 then completes the package, so dispatch never depends on a kind's waves.
@@ -575,10 +528,7 @@ The shape for code kinds — `npm-library`, `npm-cli`, `minecraft-addon`:
 | **Code** | implement | the implementation | the stubs, by compiling; the tests, by passing |
 | **Document** | implement | READMEs and user-facing documentation | the implementation |
 
-Documentation is a wave rather than an afterthought because it is a deliverable of the product,
-not a by-product of implementing it.
-
-The shape for `document` kinds:
+The shape for the `document` and `agent-skill` kinds:
 
 | wave | phase | produces | validated against |
 |---|---|---|---|
@@ -588,9 +538,7 @@ The shape for `document` kinds:
 
 The claim list is a selection and an allocation, not a restatement. From everything in force at
 the targeted increment, it names the claims *this document* is responsible for stating and maps
-each to where the document will state it. Its value is what it surfaces before composition
-starts: a claim no document owns, two documents owning one claim, a claim whose statement
-cannot be read back out of any planned section.
+each to where the document will state it.
 
 Further kinds name their shapes as they earn them, each its own decision — the shapes are the
 process's initial vocabulary, not a closed set.
@@ -611,9 +559,7 @@ implementation begins. Everything design-relevant the work produces lands there 
 **A proposed entry is an escalation**: it requires the owner's ratification, and the build
 pauses where — and only where — it is blocked on the answer, progressing everywhere else until
 forced to stop. An open question blocks the same way. Only delegated entries accumulate without
-interrupting anything. The asymmetry between Plan and Implement is deliberate: Plan exists to
-surface and ratify the big rocks, so everything raised there reaches the owner; Implement
-exists to make progress, so only what is hard to reverse interrupts it. An implementation wave
+interrupting anything. An implementation wave
 escalates only to change a requirement, change a pinned decision, or propose a decision that
 would be pinned; otherwise agents decide and record, including overturning unpinned decisions.
 
@@ -637,7 +583,7 @@ increment that declares nothing is not published.
 
 A record's `target` is the product's newest published increment at the moment the record
 merges; a stale target is refused, and the implementation retargets first — recomputing against
-the declared deltas of whatever landed meanwhile, a bounded read rather than a re-review — so
+the declared deltas of whatever landed meanwhile — so
 merge order and target order coincide at every landing. When later design increments have
 already landed, this is **abort-and-retarget**: the companion increment lands at head, above
 whatever arrived meanwhile; the implementation retargets to the increment it produced; and the
@@ -647,9 +593,7 @@ rare and losing it is cheap.
 
 ### Proving a claim is met
 
-A product should be able to demonstrate, mechanically, that it meets what it claims — so that a
-decision cannot quietly describe a product that no longer exists, and so the owner can ask how
-much of a product is actually checked rather than merely asserted. **Every claim in force
+**Every claim in force
 carries coverage**, and how much of the product rests on an agent's word alone is visible
 without reading the code. A claim is a requirement or a decision: both are assertions about the
 product, and an assertion nothing checks can quietly become false. What a requirement's
@@ -689,8 +633,7 @@ coverage:
 ```
 
 `kind` + `ref` + an optional `note`, uniform across kinds, so new kinds land without a schema
-change. `ref` is one path or a list, naming what carries the claim — if removing the file would
-not touch whether the claim holds, it does not belong.
+change. `ref` is one path or a list, naming what carries the claim.
 
 | kind | what it is | what still rests on the implementer's word |
 |---|---|---|
@@ -700,13 +643,8 @@ not touch whether the claim holds, it does not belong.
 | `conformance-case` | a case the owner wrote or vetted, tied to the claim it checks — automated or manual | nothing |
 
 What makes evidence strong is **provenance and coupling** — who vetted the check and its tie to
-the claim — not automation. An attestation is believed whole; a test moves the verdict into the
-product, where it executes and can fail, leaving only "the test measures the claim" to trust —
-a smaller thing, and an auditable one. A conformance case retires that residue by moving
-authorship or vetting to the owner. A manual conformance case outranks an automated
-implementer's test; whether a check runs without a human prices re-running it, and is worth
-reporting on that ground alone. A check with no recorded steps is not a `manual-check` and does
-not enter the manifest at all.
+the claim — not automation: a manual conformance case outranks an automated implementer's
+test.
 
 **A manifest names only claims in force at the increment its implementation targeted — and
 names all of them.** Once an implementation targets an increment, every requirement and
@@ -716,15 +654,8 @@ inside a record. A claim still `proposed` never appears — coverage is evidence
 the owner has ruled on.
 Requirements adopted from a preset are coverage-tracked exactly like product-local ones.
 
-Who contributes, and when:
-
-| point | contributes |
-|---|---|
-| a requirement is authored | `verification` — not a coverage entry, but the procedure evidence will later demonstrate |
-| **Define** | the claim list, and which kind of evidence each claim is expected to get |
-| **Stub** | `code-test` and `conformance-case` entries, as those artifacts come into existence |
-| **Code** | an `attestation` for every claim it implemented — always, from the implementer, alongside whatever better evidence exists — and the entries written earlier now pass |
-| **Document** | `manual-check` entries, where a claim is verified by following documented steps |
+The implementer records an `attestation` for every claim it implemented — always — alongside
+whatever better evidence exists.
 
 ### API surfaces
 
@@ -750,10 +681,9 @@ the opus workspace (`twin-digital/opus`), and this repository installs them at p
 through its top-level `package.json`; the merge gate wires to their commands.
 
 The process's normative reference is itself a shipped deliverable: separate document-kind
-packages rather than one, each scoped so an agent loads only the context its task needs, at
+packages, each scoped so an agent loads only the context its task needs, at
 permanent homes under `docs/` in this repository — this reference and the migration record —
 with instruction to agents shipping as agent-skill packages and `CLAUDE.md` rather than as a
 document. The content-quality tests for foundations — what makes a statement, a
-verification procedure, a decision, or a model entry good — are their own document package,
-shipped by a later increment: one body of tests binding the writer of what each governs,
+verification procedure, a decision, or a model entry good — are their own document package: one body of tests binding the writer of what each governs,
 reviewer-applied and never a validator rule.
