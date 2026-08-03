@@ -105,3 +105,19 @@ After addressing the owner's review comments, reply to each thread with a link t
 addressed it and resolve the thread — without being asked. A thread that is a question, an
 information request, or anything needing more discussion stays open for the owner's next pass:
 resolving it would hide a conversation the owner wanted.
+
+## Decide at the tier that has the information
+
+Make the smallest decisions that complete the work, at the tier doing it. An unknown the
+evidence in hand already determines is settled now; one it does not determine becomes an open
+question — raising one is a form of answering now, not a deferral. A plausible answer written
+ahead of its evidence reads, a month later, exactly like one that was established, and the
+decision set then carries entries that look ruled and are not.
+
+## Propose pinning with the decision
+
+The agent proposing a decision proposes whether it is pinned, and the owner rules on both
+together. Propose pinning when the decision fixes a public API surface, fixes a data format
+written to disk or sent over a wire, is something another product depends on, or changes
+behaviour a consumer would notice. When in doubt, propose it pinned: an over-pinned decision
+costs one ratification; an under-pinned one is overturned silently by a later wave.

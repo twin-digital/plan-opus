@@ -1,0 +1,441 @@
+version: "1"
+decisions:
+  - id: d-uwnjk7rn
+    title: the tooling is one package, one CLI
+    statement: |
+      the validator, the projection, and the id generator ship as one opus workspace package —
+      @twin-digital/design-process at nodejs/plan/design-process, kind npm-cli — exposing one
+      design-process CLI with check, show, and id subcommands; structure below that surface
+      stays implementation.
+    status: accepted
+    because:
+      - d-cfe28w5z
+    facets: tooling
+
+  - id: d-r9o8qni5
+    title: the documents live under docs/design-process/
+    statement: |
+      the initial document packages live at docs/design-process/process-reference.md,
+      docs/design-process/agent-guidance.md, and docs/design-process/process-migration.md — the
+      domain directory named for the process, one file per package.
+    status: rejected
+    rejection_reason: |
+      violates the intention of d-lm8br2p2, which was documents at docs/process-reference.md,
+      docs/agent-guidance.md, and so on — the design-process is a special case, omitting the
+      typical product-name path segment under docs.
+    because:
+      - d-lm8br2p2
+      - d-hdz4drvp
+    facets: process-doc
+
+  - id: d-0w7imrfe
+    title: the documents live at the docs/ root
+    statement: |
+      the initial document packages live at docs/process-reference.md and
+      docs/process-migration.md — the process's own documents omit the product-name path
+      segment, one file per package.
+    status: delegated
+    supersedes: d-r9o8qni5
+    because:
+      - d-lm8br2p2
+      - d-hdz4drvp
+    facets: process-doc
+
+  - id: d-wb0qq8wv
+    title: the gate reads preset conflict as id collision
+    statement: |
+      the mechanical conflict the merge gate blocks on is identity collision: a requirement id
+      declared both by an adopted preset and by the product, or by two adopted presets. a
+      semantic conflict between differently-numbered requirements stays with review and the
+      open-question channel.
+    status: accepted
+    because:
+      - r-bwtud1e5
+    facets: design-validator
+
+  - id: d-is1lgu15
+    title: schema pool versions are dense
+    statement: |
+      the validator holds schema pool versions to dense integers per entity, the same rule the
+      api pool carries by requirement.
+    status: delegated
+    because:
+      - d-3wjypyx6
+    facets: design-validator
+
+  - id: d-emngkw5c
+    title: pool immutability is content identity
+    statement: |
+      what the gate holds immutable about a bound pool version is its parsed content, keyed by
+      identity: the file may move or be renamed freely, and any content change or removal of a
+      bound identity blocks. binding is computed from every published increment — source
+      version fields and model references, closed transitively over $refs.
+    status: delegated
+    because:
+      - r-2fytqadu
+    facets: design-validator
+
+  - id: d-t03xkfj7
+    title: both trees are checked until the migration empties design/
+    statement: |
+      npm run check runs the legacy checker over design/ and design-process check over
+      products/, schemas/, apis/, and implementations/; the new validator ignores design/, and
+      the legacy checker retires with the last design out.
+    status: accepted
+    because:
+      - r-zcvxh2ty
+    facets: design-validator
+
+  - id: d-a8hiceqo
+    title: one increment may not both adopt and drop a preset
+    statement: |
+      a single increment's presets block declaring one name both adopted and dropped is a
+      validator failure — the folded state would otherwise depend on entry order.
+    status: accepted
+    because:
+      - d-k48jh86c
+    facets: design-validator
+
+  - id: d-sjxyurcz
+    title: an in-tree package's version is the record's built_at date
+    statement: |
+      a package consumed from the tree — the document and agent-skill kinds — has no released
+      version, so an implementation record carries the record's built_at date as that
+      package's version.
+    status: rejected
+    rejection_reason: |
+      the record should carry the package's own declared version; every current tree-consumed
+      doc type supports yaml frontmatter, so the file can encode a version itself.
+    because:
+      - d-lm8br2p2
+      - d-0hedq82d
+    facets: schema
+
+  - id: d-39d4o4fn
+    title: tree-consumed packages version themselves in frontmatter
+    statement: |
+      a package consumed from the tree — the document and agent-skill kinds — declares its
+      version in a version field of its file's yaml frontmatter: the string form of the
+      design increment number its content reflects, set by the implementation that changes
+      the file, with no semantic versioning process. an implementation record carries that
+      declared version.
+    status: accepted
+    pinned:
+      reason: data-format
+    supersedes: d-sjxyurcz
+    because:
+      - d-lm8br2p2
+      - d-0hedq82d
+    facets: schema
+
+  - id: d-zj004h21
+    title: agent-skill packages run the document wave shape
+    statement: |
+      the agent-skill kind runs Claims, Compose, Check: a skill is a shipped instruction
+      document read by agents, composed against the claims it operationalizes and checked
+      claim by claim like any document deliverable.
+    status: delegated
+    because:
+      - d-qb67fb8s
+      - d-o81xclq7
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-m0on5vin
+    title: the implementer skills, and how they dispatch
+    statement: |
+      the implementation process ships as agent-skill packages in this repository:
+      .claude/skills/implement — the dispatcher, running one implementer per package with the
+      package's kind selecting the skill — .claude/skills/implement-code for npm-library,
+      npm-cli, and minecraft-addon, and .claude/skills/implement-document for document and
+      agent-skill kinds. a kind without a skill is an open question for the implementation
+      that meets it.
+    status: rejected
+    rejection_reason: |
+      one entry mixes the general structure with per-kind detail; split so kinds and their
+      skills can be added, retired, or changed without superseding the general part, which is
+      pinned.
+    because:
+      - d-qb67fb8s
+      - d-w74sea6u
+      - d-zj004h21
+    facets: prompts
+
+  - id: d-ng02vmcd
+    title: the implementation process ships as agent skills
+    statement: |
+      the implementation process ships as agent-skill packages in this repository, and
+      .claude/skills/implement is the dispatcher every implementation runs through; a kind
+      without a skill is an open question for the implementation that meets it.
+    status: accepted
+    supersedes: d-m0on5vin
+    pinned:
+      reason: public-api
+      notes: the entry point every implementation of every product runs through
+    because:
+      - d-qb67fb8s
+      - d-w74sea6u
+    facets: prompts
+
+  - id: d-x2xw2tp2
+    title: the code-kind implementer skill
+    statement: |
+      .claude/skills/implement-code carries the code wave shape — Define, Stub, Code,
+      Document — for the npm-library, npm-cli, and minecraft-addon kinds; its prepare phase
+      is Define and Stub, its implement phase Code and Document. prepare may return as soon
+      as the API stubs stand, with test authoring finishing inside implement — dependents
+      unblock at the earliest honest moment.
+    status: delegated
+    because:
+      - d-ng02vmcd
+      - d-rvvijts2
+    facets: prompts
+
+  - id: d-ydcyoa80
+    title: the document-kind implementer skill
+    statement: |
+      .claude/skills/implement-document carries the document wave shape — Claims, Compose,
+      Check — for the document and agent-skill kinds; its prepare phase is Claims, its
+      implement phase Compose and Check.
+    status: delegated
+    because:
+      - d-ng02vmcd
+      - d-o81xclq7
+      - d-zj004h21
+    facets: prompts
+
+  - id: d-sbcncyu2
+    title: every implementer skill exposes prepare and implement
+    statement: |
+      each kind-specific implementer skill partitions its waves into two generic phases the
+      dispatcher can call: prepare — standing up whatever sibling packages compile or check
+      against, a package's public surface or its share of a cross-package allocation — and
+      implement, which runs prepare first where it has not run and then completes the
+      package. a kind with nothing to stand up treats prepare as a no-op; the dispatcher
+      never needs to know any kind's waves.
+    status: accepted
+    pinned:
+      reason: public-api
+      notes: the contract between the dispatcher and every implementer skill, present and future
+    because:
+      - d-ng02vmcd
+      - d-qb67fb8s
+    facets: prompts
+
+  - id: d-msvpbva6
+    title: the orchestrator is the companion increment's only writer
+    statement: |
+      in a multi-implementer run, only the orchestrator edits the companion increment's
+      sources; implementers report proposed decisions, questions, and overturns as structured
+      findings, and the orchestrator triages and records them. the loop runs on phase
+      boundaries — findings return with each phase's result, rulings and answers arrive with
+      the next dispatch, and a wholly blocked implementer ends its phase early.
+    status: accepted
+    pinned:
+      reason: other
+      notes: the owner wants visibility into changes to this behaviour
+    because:
+      - d-ig8vxolb
+      - d-ng02vmcd
+    facets: prompts
+
+  - id: d-vadqz73a
+    title: worktrees off one integration branch, one final PR
+    statement: |
+      a multi-implementer run creates one integration branch per repository receiving
+      changes; each implementer works in its own worktree on a branch off it. the
+      orchestrator merges finished phases back to the integration branch as they complete,
+      in workspace dependency order. a single pull request from the integration branch to
+      main is what the owner approves, after the companion increment merges.
+    status: accepted
+    because:
+      - d-sbcncyu2
+      - d-w74sea6u
+      - d-rputf2bx
+    facets: prompts
+
+  - id: d-nt7tach6
+    title: an implementer writes only under its package path
+    statement: |
+      an implementer's diff stays strictly within the path product.yaml names for its
+      package — a directory, or a single file for tree-consumed kinds; every other shared
+      file — product.yaml, lockfiles, the implementation record — has the orchestrator as
+      its only writer, and an implementer needing a change outside its path reports it
+      instead of editing.
+    status: tolerated
+    because:
+      - d-vadqz73a
+      - d-msvpbva6
+    facets: prompts
+
+  - id: d-vt9r9zn5
+    title: the reference ships as two documents; agents get skills
+    statement: |
+      the process ships two reference documents — the process reference and the migration
+      record — each scoped so an agent loads only the context its task needs; instruction to
+      agents ships as agent-skill packages and this repository's CLAUDE.md, not as a document
+      deliverable.
+    status: accepted
+    supersedes: d-hdz4drvp
+    pinned:
+      reason: public-api
+    because:
+      - r-yzkxa2hj
+      - d-lm8br2p2
+      - d-ng02vmcd
+    facets: process-doc
+
+  - id: d-af2v9seu
+    title: authoring tests are their own document
+    statement: |
+      the content-quality tests for foundations — what makes a statement, a verification
+      procedure, a decision, or a model entry good — live in their own document package, the
+      successor of the old authoring design: one body of tests, each binding the writer of
+      what it governs, closing with the checklist that the post-Clarify review gate's agents
+      load as their rubric and authors self-check against. technique and orchestration stay
+      with the agent skills; the process reference stays one epistemic kind,
+      validator-backed, while this document is reviewer-applied and never a validator rule.
+    status: delegated
+    supersedes: d-y775xabw
+    because:
+      - r-yzkxa2hj
+      - r-gq90gngs
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-rr1qmw72
+    title: a record's coverage is complete at its target
+    statement: |
+      once an implementation targets an increment, its record carries a coverage entry for
+      every requirement and decision in force there, adopted preset requirements included;
+      the validator refuses a record with gaps. ratified-and-unbuilt describes increments no
+      implementation has targeted, never a hole inside a record.
+    status: accepted
+    because:
+      - r-tue7kfgt
+      - d-0nl6sd96
+    facets:
+      - design-validator
+      - schema
+
+  - id: d-eporg76f
+    title: document coverage refs carry section breadcrumbs
+    statement: |
+      a coverage ref into a document cites the file plus a section breadcrumb —
+      docs/process-reference.md#the-companion-increment — narrowing to the section that
+      carries the claim, with the bare file only where the claim is the whole file. the file
+      is immutable at the version the record quotes, so a breadcrumb stays verifiable.
+    status: delegated
+    because:
+      - d-0g9l44e4
+      - d-39d4o4fn
+    facets: schema
+
+  - id: d-08yrcfd7
+    title: no in-force citation rests on a retired fact
+    statement: |
+      the gate refuses an in-force requirement or decision whose because or informed_by cites
+      a status-retired fact — which also blocks retiring a fact until every in-force citer
+      moves to the replacement or leaves the fold, in the same change or before it. published
+      entries no longer in force keep their citations; they are history, and the fold no
+      longer rests on them.
+    status: delegated
+    because:
+      - d-eaw3u72o
+      - d-o99k4ld8
+    facets: design-validator
+
+  - id: d-el21jvd0
+    title: the validator enforces id format and uniqueness
+    statement: |
+      the gate checks every requirement, decision, and question id against the opaque format
+      and refuses a duplicate — requirement and decision ids unique across the product,
+      question ids within their increment — so a collision is a regenerate at creation
+      rather than a latent bug.
+    status: delegated
+    because:
+      - d-e5ted839
+      - d-vx26i23m
+    facets: design-validator
+
+  - id: d-o7br0a9k
+    title: the projection lists a draft's open questions
+    statement: |
+      projecting a product whose working tree carries a questions source shows the open
+      questions blocking the increment from settling, beside the effective sets.
+    status: delegated
+    because:
+      - r-2gcehlp8
+      - d-ew65xgtj
+    facets: tooling
+
+  - id: d-qoks4n67
+    title: the companion increment opens first and closes unmerged if empty
+    statement: |
+      the companion increment opens before any implementation work begins, so design
+      consequences land as they happen; one that ends the implementation with nothing
+      declared closes unmerged — an increment that declares nothing is not published.
+    status: delegated
+    because:
+      - d-ig8vxolb
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-vw0t1z62
+    title: the Check wave audits for shadow claims
+    statement: |
+      the document wave's Check reads in both directions: each allocated claim against the
+      document, and each normative statement in the document back against the fold. a
+      statement asserting a rule no foundation carries is fixed to match the fold where one
+      rules, extracted into the companion increment as a decision or question where the
+      behavior is real, or cut — never left standing.
+    status: delegated
+    because:
+      - d-o81xclq7
+      - d-ydcyoa80
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-bj3se96r
+    title: evidence demonstrates the verification procedure
+    statement: |
+      what a requirement's coverage evidence must demonstrate is its verification procedure —
+      or its statement read literally, where it carries none. an entry attached to a claim
+      whose evidence shows something else does not cover it.
+    status: delegated
+    because:
+      - r-tue7kfgt
+      - d-0g9l44e4
+    facets: schema
+
+  - id: d-mtbx4ktw
+    title: coverage refs resolve through the package mapping
+    statement: |
+      a coverage ref is package-relative, resolved by prefixing the carrying package's path
+      and anchored to a repository by its repo entry; an artifact belonging to no single
+      package is referenced repository-root-relative in this repository. a preset may read
+      against one package of several, with the manifest showing which package carries each
+      adopted claim.
+    status: delegated
+    because:
+      - d-8itv1czm
+      - d-eporg76f
+    facets: schema
+
+  - id: d-98df3rlb
+    title: escalation fires on requirements, pins, and contract surfaces
+    statement: |
+      an implementation wave escalates only to change a requirement, change a pinned
+      decision, propose a decision that would be pinned, or add or change an external-facing
+      contract surface; otherwise agents decide and record, including overturning unpinned
+      decisions.
+    status: accepted
+    supersedes: d-dteorq7q
+    because:
+      - r-bua9wl1s
+      - r-lll68661
+    facets: prompts

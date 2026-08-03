@@ -3,10 +3,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "node bin/check-design.mjs",
+    "check": "node bin/check-design.mjs && design-process check",
     "foundations": "node bin/foundations.mjs"
   },
   "dependencies": {
+    "@twin-digital/design-process": "0.1.0",
     "yaml": "^2.8.1"
   }
 }

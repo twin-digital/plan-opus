@@ -1,0 +1,290 @@
+version: "1"
+decisions:
+  - id: d-u3u3sbmb
+    title: api identity is a per-tech header
+    statement: |
+      an api pool file carries its identity in-file by a per-tech convention — "// api:
+      /<namespace>/<name>@<version>" in typescript, "# api: ..." in yaml formats, info.x-api-id
+      where openapi metadata fits — with the file's extension and content telling the design
+      validator which extractor reads it.
+    status: tolerated
+    because:
+      - r-lll68661
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - design-validator
+
+  - id: d-q8ur5u3f
+    title: decomposition is design work
+    statement: |
+      the consumer-visible package set — each package's existence, kind, and home — is proposed
+      and ratified in Plan, as decisions of the increment that calls for it; product.yaml
+      reflects the packages an implementation has realized.
+    status: accepted
+    because:
+      - d-8itv1czm
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-qb67fb8s
+    title: kind selects the dispatch shape
+    statement: |
+      an implementation dispatches one implementer per package, and the package's kind selects
+      its wave shape; the shape for a specific kind is defined as needed, each its own
+      decision.
+    status: accepted
+    because:
+      - d-q8ur5u3f
+      - d-8itv1czm
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-rvvijts2
+    title: the code wave shape
+    statement: |
+      code kinds — npm-library, npm-cli, minecraft-addon — run Define, Stub, Code, Document,
+      each wave producing one artifact validated against what came before it: the test plan
+      against the requirements and decisions, tests and API stubs against the test plan, the
+      implementation against the stubs by compiling and the tests by passing, and the
+      user-facing documentation against the implementation.
+    status: accepted
+    because:
+      - d-qb67fb8s
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-o81xclq7
+    title: the document wave shape
+    statement: |
+      document kinds run Claims, Compose, Check: the list of claims the document must state,
+      drawn from the effective design at the targeted increment; the document at its permanent
+      home, drawing on the increment's drafts and checked against the claim list; and coverage
+      entries per claim.
+    status: delegated
+    because:
+      - d-qb67fb8s
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-dteorq7q
+    title: escalation fires only on requirements and pins
+    statement: |
+      an implementation wave escalates only to change a requirement, change a pinned decision, or propose
+      a decision that would be pinned; otherwise agents decide and record, including overturning
+      unpinned decisions.
+    status: accepted
+    facets: prompts
+
+  - id: d-n23bxend
+    title: implementation decisions open as delegated
+    statement: |
+      a decision an implementation adds at wrap-up enters its increment as delegated —
+      recorded, not ruled — unless escalation already ruled it; the merge gate reads only
+      proposed, so an implementation increment lands gated by pull-request review and the
+      validation checks rather than by per-entry rulings.
+    status: accepted
+    because:
+      - d-dteorq7q
+      - d-9s4d3ww2
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-0nl6sd96
+    title: coverage is the implementation's artifact
+    statement: |
+      coverage manifests are produced by implementations, not checked into design increments; a
+      manifest names the increment version its implementation targeted, and only claims in
+      force there.
+    status: accepted
+    because:
+      - r-tue7kfgt
+      - r-sk47gw08
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - tooling
+
+  - id: d-0hedq82d
+    title: implementations are recorded in a pool
+    statement: |
+      implementations/ is a repo pool like evidence/ — one record per implementation, linking
+      the package versions produced to the targeted increment and carrying the coverage
+      manifest; a record is immutable once its artifacts ship, and filing is convenience.
+    status: tolerated
+    because:
+      - d-0nl6sd96
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - tooling
+
+  - id: d-w74sea6u
+    title: implementations run by hand or autonomously, one record
+    statement: |
+      an implementation may be run by hand — the owner and agents working the increment's own
+      branch, a document authored during its PR — or autonomously by an orchestrated Implement
+      phase; both are the same mechanism, target an increment, and write the same
+      implementations/ record.
+    status: tolerated
+    because:
+      - d-0hedq82d
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-7qh9hx2x
+    title: escalation aborts and retargets
+    statement: |
+      an implementation needing amendments after later design increments have landed does not
+      fork the design: its amendments land as a new increment at head, the implementation
+      retargets to the increment that contains them, and the loop repeats if further increments
+      land first.
+    status: accepted
+    because:
+      - r-sk47gw08
+      - d-0nl6sd96
+    revisit_when:
+      - agents autonomously manage increments at a pace where retargeting starves implementations,
+        and designs go unimplemented while the head advances
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-0g9l44e4
+    title: evidence is graded by provenance and coupling
+    statement: |
+      coverage kinds are attestation, code-test, manual-check, and conformance-case; what makes
+      one entry stronger evidence than another is who vetted the check and its tie to the
+      claim, not automation.
+    status: tolerated
+    pinned:
+      reason: data-format
+    facets: schema
+
+  - id: d-4s0zoh1v
+    title: the implementer always attests
+    statement: |
+      an implementer records an attestation for every claim it implemented, alongside whatever
+      better evidence exists.
+    status: accepted
+    facets: prompts
+
+  - id: d-lm8br2p2
+    title: the process's documents live at docs/
+    statement: |
+      the process's document deliverables are document-kind packages under docs/
+      in this repository — repo twin-digital/plan-opus, departing the mapping's default — one
+      package per shipped document.
+    status: accepted
+    because:
+      - r-yzkxa2hj
+    pinned:
+      reason: public-api
+      notes: the paths are read straight from the tree; a move breaks every reader
+    facets:
+      - process-doc
+      - schema
+
+  - id: d-ig8vxolb
+    title: implementation design output lands as increments
+    statement: |
+      every design change an implementation produces — escalations mid-flight, overturns and
+      kept choices at wrap-up — lands as an ordinary design increment at head; the
+      implementation record carries no design content, only the target, the packages produced,
+      and the coverage manifest.
+    status: tolerated
+    because:
+      - d-dteorq7q
+      - d-0hedq82d
+    pinned:
+      reason: data-format
+    facets:
+      - process-doc
+      - schema
+
+  - id: d-ki941p9b
+    title: a record lands only at head
+    statement: |
+      a record's target is the product's newest published increment at the moment the record
+      merges; a stale target is refused, and the implementation retargets before landing.
+    status: tolerated
+    because:
+      - d-j50yturh
+      - d-7qh9hx2x
+    facets:
+      - process-doc
+      - design-validator
+
+  - id: d-rputf2bx
+    title: releases wait for their design
+    statement: |
+      no package version releases and no document deliverable goes live before the design
+      increment its implementation targets is published; the controls enforcing this ordering
+      are deferred to a later increment.
+    status: accepted
+    because:
+      - d-6x6l6ws7
+    facets: process-doc
+
+  - id: d-cfe28w5z
+    title: the tooling ships as opus workspace packages
+    statement: |
+      the process tooling — the validator, the projection, the id generator — ships as
+      packages in the opus workspace, and this repository installs them at pinned versions
+      through its top-level package.json.
+    status: accepted
+    pinned:
+      reason: public-api
+      notes: this repository wires its merge gate to these packages' commands
+    facets: tooling
+
+  - id: d-hdz4drvp
+    title: the reference ships as separate documents
+    statement: |
+      the process ships separate reference documents rather than one, each scoped so an agent
+      loads only the context its task needs; the initial set is the process reference, the
+      agent guidance, and the migration record.
+    status: accepted
+    because:
+      - r-yzkxa2hj
+      - d-lm8br2p2
+    pinned:
+      reason: public-api
+    facets: process-doc
+
+  - id: d-jenq1f31
+    title: the merge gate wiring is thin repository configuration
+    statement: |
+      the merge gate's wiring is repository configuration, not a package: this repository
+      commits a thin workflow that installs the tooling packages and runs the check, and
+      branch protection marking the check required is set by hand once, covered by a
+      manual-check entry; the validator logic lives entirely in the tooling packages.
+    status: accepted
+    because:
+      - r-zcvxh2ty
+      - d-cfe28w5z
+    facets: design-validator
+
+  - id: d-vsrxwv8u
+    title: implementation records are named for their target
+    statement: |
+      an implementation record is filed at implementations/<product>/<NNN>-<k>.yaml — NNN the
+      increment it targeted, k a dense ordinal from 1 — so a record's name says what it
+      implemented and its place among that target's implementations.
+    status: accepted
+    because:
+      - d-0hedq82d
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - tooling
