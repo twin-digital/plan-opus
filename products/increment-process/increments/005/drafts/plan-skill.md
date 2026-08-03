@@ -1,6 +1,6 @@
-# The design skill
+# The plan skill
 
-Raw material for the design skill — the agent-skill package that carries the Plan phase the way
+Raw material for the plan skill — the agent-skill package that carries the Plan phase the way
 `.claude/skills/implement` carries Implement: Capture, Clarify, and the Ratify loop as an
 operational sequence. The normative rules stay in `docs/process-reference.md`; the authoring
 document carries the content-quality rubric; this skill is the sequence an agent follows.

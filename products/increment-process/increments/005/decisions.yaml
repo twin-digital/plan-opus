@@ -3,11 +3,11 @@ decisions:
   - id: d-ebyludv0
     title: the planning process ships as an agent skill
     statement: |
-      the Plan phase ships as an agent-skill package at .claude/skills/design in this
-      repository — a design skill that carries Capture, Clarify, and the Ratify loop the way
+      the Plan phase ships as an agent-skill package at .claude/skills/plan in this
+      repository — a plan skill that carries Capture, Clarify, and the Ratify loop the way
       .claude/skills/implement carries the Implement phase, so the loop is dispatched rather
       than re-derived each session.
-    status: proposed
+    status: accepted
     pinned:
       reason: public-api
       notes: agents invoke the skill by name; the path is the surface
@@ -17,9 +17,9 @@ decisions:
     facets: prompts
 
   - id: d-52uunxo6
-    title: the design skill drives one increment to publish
+    title: the plan skill drives one increment to publish
     statement: |
-      the design skill runs the Plan loop for one increment end to end: it opens the
+      the plan skill runs the Plan loop for one increment end to end: it opens the
       increment at the product's next number, works Clarify in the foundation sources —
       research landing as facts at the evidence bar, unknowns raised as open questions routed
       by answer, decisions entering proposed — checks the result against the authoring
@@ -27,7 +27,7 @@ decisions:
       request: presenting the projection and the question list, applying the owner's rulings,
       and consuming the feedback to raise more, iterating until the owner declares it settled
       and the merge gate passes.
-    status: proposed
+    status: accepted
     because:
       - d-ebyludv0
       - d-auo2680a
