@@ -5,9 +5,9 @@ decisions:
     statement: |
       the validator, the projection, and the id generator ship as one opus workspace package —
       @twin-digital/design-process at nodejs/plan/design-process, kind npm-cli — exposing one
-      design-process CLI with check, project, and id subcommands; structure below that surface
+      design-process CLI with check, show, and id subcommands; structure below that surface
       stays implementation.
-    status: delegated
+    status: accepted
     because:
       - d-cfe28w5z
     facets: tooling
@@ -18,7 +18,24 @@ decisions:
       the initial document packages live at docs/design-process/process-reference.md,
       docs/design-process/agent-guidance.md, and docs/design-process/process-migration.md — the
       domain directory named for the process, one file per package.
+    status: rejected
+    rejection_reason: |
+      violates the intention of d-lm8br2p2, which was documents at docs/process-reference.md,
+      docs/agent-guidance.md, and so on — the design-process is a special case, omitting the
+      typical product-name path segment under docs.
+    because:
+      - d-lm8br2p2
+      - d-hdz4drvp
+    facets: process-doc
+
+  - id: d-0w7imrfe
+    title: the documents live at the docs/ root
+    statement: |
+      the initial document packages live at docs/process-reference.md, docs/agent-guidance.md,
+      and docs/process-migration.md — the process's own documents omit the product-name path
+      segment, one file per package.
     status: delegated
+    supersedes: d-r9o8qni5
     because:
       - d-lm8br2p2
       - d-hdz4drvp
@@ -31,7 +48,7 @@ decisions:
       declared both by an adopted preset and by the product, or by two adopted presets. a
       semantic conflict between differently-numbered requirements stays with review and the
       open-question channel.
-    status: delegated
+    status: accepted
     because:
       - r-bwtud1e5
     facets: design-validator
@@ -64,7 +81,7 @@ decisions:
       npm run check runs the legacy checker over design/ and design-process check over
       products/, schemas/, apis/, and implementations/; the new validator ignores design/, and
       the legacy checker retires with the last design out.
-    status: delegated
+    status: accepted
     because:
       - r-zcvxh2ty
     facets: design-validator
@@ -74,7 +91,7 @@ decisions:
     statement: |
       a single increment's presets block declaring one name both adopted and dropped is a
       validator failure — the folded state would otherwise depend on entry order.
-    status: delegated
+    status: accepted
     because:
       - d-k48jh86c
     facets: design-validator
