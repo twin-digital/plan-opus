@@ -100,15 +100,6 @@ alone; see below.
 - Two implementers that genuinely must edit one file are a decomposition problem, not an
   orchestration one — split the file or merge the packages, and raise it as design work.
 
-## Orchestration flavours
-
-The process fixes what must escalate; when an implementation pauses beyond that is chosen per
-product, by risk, as orchestration configuration:
-
-- **wave-by-wave** — pause after each wave for owner review before the next begins
-- **run-to-completion** — run every wave, review once at the end
-- **escalation-only** — stop only when an escalation fires
-
 ## 4. Land
 
 1. The companion increment is ratified as a whole — every decision ruled (the gate blocks only
