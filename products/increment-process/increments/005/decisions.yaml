@@ -1,0 +1,25 @@
+version: "1"
+decisions:
+  - id: d-uwnjk7rn
+    title: the tooling is one package, one CLI
+    statement: |
+      the validator, the projection, and the id generator ship as one opus workspace package —
+      @twin-digital/design-process at nodejs/plan/design-process, kind npm-cli — exposing one
+      design-process CLI with check, project, and id subcommands; structure below that surface
+      stays implementation.
+    status: delegated
+    because:
+      - d-cfe28w5z
+    facets: tooling
+
+  - id: d-r9o8qni5
+    title: the documents live under docs/design-process/
+    statement: |
+      the initial document packages live at docs/design-process/process-reference.md,
+      docs/design-process/agent-guidance.md, and docs/design-process/process-migration.md — the
+      domain directory named for the process, one file per package.
+    status: delegated
+    because:
+      - d-lm8br2p2
+      - d-hdz4drvp
+    facets: process-doc
