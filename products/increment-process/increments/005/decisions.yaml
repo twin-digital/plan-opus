@@ -69,6 +69,16 @@ decisions:
       - r-zcvxh2ty
     facets: design-validator
 
+  - id: d-a8hiceqo
+    title: one increment may not both adopt and drop a preset
+    statement: |
+      a single increment's presets block declaring one name both adopted and dropped is a
+      validator failure — the folded state would otherwise depend on entry order.
+    status: delegated
+    because:
+      - d-k48jh86c
+    facets: design-validator
+
   - id: d-sjxyurcz
     title: an in-tree document's version is the record's built_at date
     statement: |
