@@ -183,7 +183,9 @@ decisions:
     statement: |
       .claude/skills/implement-code carries the code wave shape — Define, Stub, Code,
       Document — for the npm-library, npm-cli, and minecraft-addon kinds; its prepare phase
-      is Define and Stub, its implement phase Code and Document.
+      is Define and Stub, its implement phase Code and Document. prepare may return as soon
+      as the API stubs stand, with test authoring finishing inside implement — dependents
+      unblock at the earliest honest moment.
     status: delegated
     because:
       - d-ng02vmcd
@@ -302,3 +304,31 @@ decisions:
     facets:
       - process-doc
       - prompts
+
+  - id: d-rr1qmw72
+    title: a record's coverage is complete at its target
+    statement: |
+      once an implementation targets an increment, its record carries a coverage entry for
+      every requirement and decision in force there, adopted preset requirements included;
+      the validator refuses a record with gaps. ratified-and-unbuilt describes increments no
+      implementation has targeted, never a hole inside a record.
+    status: accepted
+    because:
+      - r-tue7kfgt
+      - d-0nl6sd96
+    facets:
+      - design-validator
+      - schema
+
+  - id: d-eporg76f
+    title: document coverage refs carry section breadcrumbs
+    statement: |
+      a coverage ref into a document cites the file plus a section breadcrumb —
+      docs/process-reference.md#the-companion-increment — narrowing to the section that
+      carries the claim, with the bare file only where the claim is the whole file. the file
+      is immutable at the version the record quotes, so a breadcrumb stays verifiable.
+    status: delegated
+    because:
+      - d-0g9l44e4
+      - d-39d4o4fn
+    facets: schema
