@@ -165,7 +165,7 @@ decisions:
       coverage kinds are attestation, code-test, manual-check, and conformance-case; what makes
       one entry stronger evidence than another is who vetted the check and its tie to the
       claim, not automation.
-    status: proposed
+    status: tolerated
     pinned:
       reason: data-format
     facets: schema
@@ -273,3 +273,18 @@ decisions:
       - r-zcvxh2ty
       - d-cfe28w5z
     facets: design-validator
+
+  - id: d-vsrxwv8u
+    title: implementation records are named for their target
+    statement: |
+      an implementation record is filed at implementations/<product>/<NNN>-<k>.yaml — NNN the
+      increment it targeted, k a dense ordinal from 1 — so a record's name says what it
+      implemented and its place among that target's implementations.
+    status: proposed
+    because:
+      - d-0hedq82d
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - tooling

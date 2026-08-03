@@ -17,10 +17,6 @@ pre-deciding it from the plan tier is the churn the agent guidance already forbi
 `product.yaml` stays descriptive, exactly as increment 001 rules: intent lives in the increment's
 decisions, and the mapping reflects the packages an implementation has realized.
 
-Escalation on decomposition then reverts to its intended rarity: it fires when reality contradicts
-the ratified package set — a fact-based stop like any other — not as the routine first act of every
-implementation.
-
 ## Dispatch: kind selects the wave shape
 
 An implementation dispatches one implementer per package, and the package's `kind` — already in the
@@ -47,45 +43,52 @@ The shape for `document` kinds:
 | **Compose** | the document at its permanent home, drawing on the increment's frozen drafts | the claim list; every draft claim checked against the fold |
 | **Check** | coverage entries per claim | the document, read against each claim |
 
+The claim list is a selection and an allocation, not a restatement. From everything in force at the
+targeted increment, it names the claims *this document* is responsible for stating — the process
+reference states the process's rules, not the tooling's CLI surface — and maps each to where the
+document will state it. Its value is what it surfaces before composition starts: a claim no
+document owns, two documents owning one claim, a claim whose statement cannot be read back out of
+any planned section. Check then reads the finished document against exactly this list, claim by
+claim.
+
 Further kinds name their shapes as they earn them — an `agent-skill` package will not test like a
 library or read like a reference. The shapes are the process's initial vocabulary, not a closed
 set.
 
-## Escalate
+## Amending the implemented design
 
-An escalation path is open at **every** wave. It is meant to be a rare escape hatch rather than a
-closed door, and agents are given explicit instruction about what qualifies. It fires when a wave
-needs to:
+An implementation never amends the design it targets; it accumulates amendments in a **companion
+increment** — a branch in this repository holding the product's next increment, opened when the
+implementation begins. Everything design-relevant the work produces lands there as it happens:
 
-- propose a change to a **requirement**
-- propose a change to a **pinned** decision
-- propose a **new** decision that would be pinned
+- **decisions** — entering as `delegated` where nothing pins them; as `proposed` where a
+  requirement, a pinned decision, or a decision that would be pinned is at stake
+- **open questions** — a requirement change to ask for, an unknown the implementer cannot answer
+- **contracts** — a new external-facing API surface or schema, as a pool version bound through the
+  companion increment's model
 
-Otherwise the implementation proceeds. Agents have wide latitude to decide and implement — including
-overturning unpinned decisions and introducing new unpinned ones — provided nothing contradicts a
-ratified decision or requirement.
+A **proposed entry is an escalation**: it requires the owner's ratification, and the build pauses
+where — and only where — it is blocked on the answer, progressing everywhere else until forced to
+stop. Delegated entries and open questions accumulate without interrupting anyone. The asymmetry
+between Plan and Implement is deliberate: **Plan exists to surface and ratify the big rocks**, so
+everything raised there reaches the owner; **Implement exists to make progress**, so only what is
+hard to reverse interrupts it. Where an implementation pauses beyond that — after every wave, at
+completion — is orchestration configuration rather than process definition; agent guidance carries
+the flavours, and a product runs under the one that fits its risk.
 
-The asymmetry between Plan and Implement is deliberate. **Plan exists to surface and ratify the big
-rocks**, so by definition everything raised there reaches the owner, who may simply tolerate what is
-easy to reverse. **Implement exists to make progress**, so only what is hard to reverse interrupts
-it.
+At completion the companion increment is ratified as a whole — every decision ruled, every question
+answered or removed — and merges through the ordinary gate. Only then does the implementation
+publish, since releases wait for their design; whether the finished implementation waits on its own
+branch or merged-but-unreleased is deliberately unspecified. An implementation whose companion
+increment stayed empty simply closes it — an increment that declares nothing is not published. The
+implementation record keeps the statement honest throughout: what was implemented, against which
+increment, is pinned there, whatever the head has since become.
 
-Escalation says *what* must reach the owner; where an implementation pauses — after every wave, at
-completion, or only when an escalation fires — is orchestration configuration rather than process
-definition. Agent guidance carries the flavours of orchestration instruction, and a product runs
-under the one that fits its risk.
-
-An implementation never amends the design tree it targets. An escalated change lands as an ordinary
-design increment — proposed from the implementation, ratified as any increment is — and the
-implementation retargets to the increment that contains it. The implementation record keeps the statement
-honest either way: what was implemented, against which increment, is pinned there, whatever the
-head has since become.
-
-When later design increments have already landed, this is **abort-and-retarget**: the
-implementation's amendments land at head, above whatever arrived meanwhile; the implementation
-retargets to the increment that contains them, restarting or reconciling; and the loop repeats if further
-increments land first. Under fast enough design landings, nothing ever finishes implementing. That
-is accepted for a single owner authoring increments, where the race is rare and losing it is cheap.
+When later design increments have already landed, this is **abort-and-retarget**: the companion
+increment lands at head, above whatever arrived meanwhile; the implementation retargets to the
+increment it produced, restarting or reconciling; and the loop repeats if further increments land
+first. Under fast enough design landings, nothing ever finishes implementing. That is accepted for
+a single owner authoring increments, where the race is rare and losing it is cheap.
 
 The alternative left behind, recorded so it is not relitigated: **implementer-amendment branches** —
 a hotfix increment forked from the targeted increment rather than landed at head, letting an
@@ -103,14 +106,15 @@ increment at head. There is no second channel — no decisions block on the reco
 implementation-scoped entries in the effective design, no interleaving semantics to define. The
 fold has one input kind, and everything in it entered through an increment.
 
-The two landing moments differ only in urgency. **Escalation** is the mid-flight increment:
-requirements and pins, the things an implementation cannot safely build past, raised when met and
-ruled then. **Wrap-up** is the end-of-flight increment: the unpinned decisions the implementation
-overturned, as superseding entries, and the choices worth keeping — and these open as `delegated`,
-recorded rather than ruled. The merge gate reads only `proposed`, so a wrap-up increment lands
-gated by pull-request review and the validation checks rather than by per-entry rulings; a
-supersession of a ratified entry is still presented in the diff rather than discovered later, and
-ruling one up — or reversing it — is implement-forward, whenever the owner chooses.
+The companion increment is the vehicle, and its entries differ only in urgency. **Escalation** is
+the urgent case: a proposed entry — a requirement change, a pinned change, a would-be pin — ruled
+when raised, because the build cannot safely proceed past it. **Wrap-up** is the ordinary case: the
+unpinned decisions the implementation overturned, as superseding entries, and the choices worth
+keeping — delegated on entry, recorded rather than ruled. The merge gate reads only `proposed`, so
+a companion increment whose escalations were ruled as they arose lands gated by pull-request review
+and the validation checks rather than by per-entry rulings; a supersession of a ratified entry is
+still presented in the diff rather than discovered later, and ruling a delegated entry up — or
+reversing it — is implement-forward, whenever the owner chooses.
 
 **A record lands only at head.** Its `target` is the product's newest published increment at the
 moment it merges; a stale target is refused, and the implementation retargets first — recomputing
@@ -137,8 +141,10 @@ verification procedure — or its statement read literally, where it carries non
 ### The coverage manifest maps claims to evidence
 
 Coverage is the implementation's artifact, not the design's. An implementation produces a record in
-the `implementations/` pool — filed like the other pools, immutable once its artifacts ship —
-linking the package versions produced to the design increment targeted, and carrying the manifest.
+the `implementations/` pool — immutable once its artifacts ship — linking the package versions
+produced to the design increment targeted, and carrying the manifest. A record is filed at
+`implementations/<product>/<NNN>-<k>.yaml`, `NNN` the increment it targeted and `k` a dense ordinal
+from 1, so its name says what it implemented and its place among that target's implementations.
 Run by hand on the increment's own branch or autonomously against a published increment, an
 implementation is the same mechanism either way, and both write this record:
 
