@@ -399,3 +399,29 @@ decisions:
     facets:
       - process-doc
       - prompts
+
+  - id: d-bj3se96r
+    title: evidence demonstrates the verification procedure
+    statement: |
+      what a requirement's coverage evidence must demonstrate is its verification procedure —
+      or its statement read literally, where it carries none. an entry attached to a claim
+      whose evidence shows something else does not cover it.
+    status: delegated
+    because:
+      - r-tue7kfgt
+      - d-0g9l44e4
+    facets: schema
+
+  - id: d-mtbx4ktw
+    title: coverage refs resolve through the package mapping
+    statement: |
+      a coverage ref is package-relative, resolved by prefixing the carrying package's path
+      and anchored to a repository by its repo entry; an artifact belonging to no single
+      package is referenced repository-root-relative in this repository. a preset may read
+      against one package of several, with the manifest showing which package carries each
+      adopted claim.
+    status: delegated
+    because:
+      - d-8itv1czm
+      - d-eporg76f
+    facets: schema
