@@ -36,6 +36,14 @@ decide directly. The tests:
 - **Judgement is named.** Where only judgement can verify, the final pair names the judge and the
   moment. "Not mechanically checkable" alone is a hand-wave, not a procedure.
 
+A fiat requirement cannot rot — whatever its verification names, the owner now expects, and the
+naming makes it normative. That is the discipline, not a hazard, and it gives the reviewer a
+two-way diagnostic for any step that reaches past the published surface into internals: either it
+found a missing piece of the fiat, which is then stated deliberately, or it overbound an
+implementation detail, which is then rewritten against the surface. Where a product's own tooling
+does not exist yet, its contracted surfaces do — bound schemas, the repository, the gate — and
+verification is written against those.
+
 ## Decisions
 
 - **The bar.** A decision is recorded when a consumer could observe its outcome or a
