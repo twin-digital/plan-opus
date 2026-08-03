@@ -151,3 +151,44 @@ decisions:
     facets:
       - process-doc
       - schema
+
+  - id: d-ig8vxolb
+    title: implementation design output lands as increments
+    statement: |
+      everything fold-relevant an implementation produces — escalations mid-flight, unpinned
+      overturns and proposed decisions at wrap-up — lands as ordinary design increments at
+      head, ruled at the gate like any other; the implementation record carries no fold
+      content, only the target, the packages produced, and the coverage manifest.
+    status: proposed
+    because:
+      - d-dteorq7q
+      - d-0hedq82d
+    pinned:
+      reason: data-format
+    facets:
+      - process-doc
+      - schema
+
+  - id: d-ki941p9b
+    title: a record lands only at head
+    statement: |
+      a record's target is the product's newest published increment at the moment the record
+      merges; a stale target is refused, and the implementation retargets before landing.
+    status: proposed
+    because:
+      - d-j50yturh
+      - d-7qh9hx2x
+    facets:
+      - process-doc
+      - design-validator
+
+  - id: d-rputf2bx
+    title: releases wait for their design
+    statement: |
+      no package version releases and no document deliverable goes live before the design
+      increment its implementation targets is published; the controls enforcing this ordering
+      are deferred to a later increment.
+    status: proposed
+    because:
+      - d-6x6l6ws7
+    facets: process-doc

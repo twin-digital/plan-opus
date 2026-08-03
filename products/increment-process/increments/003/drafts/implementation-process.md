@@ -96,6 +96,36 @@ mid-stream while pinned amendments await manual incorporation. It layers onto ab
 without breaking anything, which is exactly why it waits for the condition that would justify it:
 agents autonomously managing increments at a pace where retargeting starves implementations.
 
+## One channel: how implementation output lands
+
+Everything fold-relevant an implementation produces lands the same way: as an ordinary design
+increment at head. There is no second channel — no decisions block on the record, no
+implementation-scoped entries in the fold, no interleaving semantics to define. The fold has one
+input kind, and everything in it passed a ratification.
+
+The two landing moments differ only in urgency. **Escalation** is the mid-flight increment:
+requirements and pins, the things an implementation cannot safely build past, raised when met.
+**Wrap-up** is the end-of-flight increment: the unpinned decisions the implementation overturned,
+as superseding entries, and the choices worth keeping, as proposed decisions. The merge gate — no
+decision still proposed — forces the ruling before anything lands, so a supersession of a ratified
+entry is presented to the owner rather than discovered later. The cheap ruling for an unpinned
+overturn is `delegated`, and it is the expected default: "freely overturn unpinned decisions" means
+freely during flight, ruled at landing, and a wrap-up rejection is the priced exception rather than
+a second review pass.
+
+**A record lands only at head.** Its `target` is the product's newest published increment at the
+moment it merges; a stale target is refused, and the implementation retargets first — recomputing
+against the declared deltas of whatever landed meanwhile, which is a bounded read, not a re-review.
+The consequence is that merge order and target order coincide at every landing: intervening
+increments exist while an implementation is in flight, never at the seam.
+
+**Releases wait for their design.** A design with no implementation is a safe state the process
+explicitly supports; an implementation whose backing design has not published is not. So no package
+version releases and no document deliverable goes live before the design increment its
+implementation targets is on main. The controls enforcing this ordering — where the hold lives,
+what checks it — are deliberately deferred to a later increment; this one records the rule and the
+deferral.
+
 ## Proving a claim is met
 
 A product should be able to demonstrate, mechanically, that it meets what it claims — so that a
