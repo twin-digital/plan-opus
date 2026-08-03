@@ -1,0 +1,136 @@
+version: "1"
+decisions:
+  - id: d-t6dutbjw
+    title: a statement is one proposition of owner fiat
+    statement: |
+      a requirement's statement is one proposition of owner fiat, in product terms — what
+      must be true, naming no mechanism and no observation procedure. the test is reversal:
+      would the owner overturn a decision to hold it? a statement failing that test is design
+      work and enters the increment as a decision that can be argued with; carve-outs,
+      exceptions, and qualified absolutes move the same way. rationale appears only where
+      casually reversing the requirement would be a mistake the statement alone does not warn
+      of, and a rationale arguing the requirement is correct fails whatever else it says.
+    status: tolerated
+    because:
+      - d-af2v9seu
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-pgq1xwf5
+    title: the verification tests
+    statement: |
+      a requirement's verification is present only where its statement is not self-verifying
+      — where it carries a term an observer cannot decide directly. the tests: every verify
+      asserts about something a preceding do surfaced, and a verify whose content words are all the
+      statement's is a restatement, the one forbidden shape; every do is performable today
+      against the product's published surfaces, exercising the requirement's intent rather
+      than its form; a step performable at authoring time is performed at authoring time,
+      what it surfaces landing as facts cited in because rather than speculation the
+      procedure carries; where only judgement can verify, the final pair names the judge and
+      the moment.
+    status: delegated
+    because:
+      - d-af2v9seu
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-iufcotad
+    title: verification naming is binding
+    statement: |
+      whatever a verification step names, the owner now expects — a fiat requirement cannot
+      rot, because the naming is what makes it normative. that gives the reviewer a two-way
+      diagnostic for a step reaching past the published surface into internals: either it
+      found a missing piece of the fiat, which is then stated deliberately, or it overbound
+      an implementation detail, which is then rewritten against the surface. where a
+      product's own tooling does not exist yet, its contracted surfaces do — bound schemas,
+      the repository, the gate — and verification is written against those.
+    status: delegated
+    because:
+      - d-pgq1xwf5
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-dxscu5dy
+    title: a decision states the choice and cites its dependencies
+    statement: |
+      a decision's statement names the choice — the argument belongs to the increment's
+      drafts, the consequences to the reader — and its because carries only what the
+      decision rests on. the test runs both directions: a citation on motivation or
+      illustration is a false signal, and an absent citation on a real dependency hides one.
+    status: delegated
+    because:
+      - d-rx3s2hqo
+      - d-d6hwdg9d
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-m8217jow
+    title: pinning and revisit_when are proposal-time discipline
+    statement: |
+      the agent proposing a decision proposes whether it is pinned, and the owner rules on
+      both together: pinned when it fixes a public surface or a data format, when another
+      product depends on it, or when a consumer would notice the change — and when in doubt,
+      since an over-pin costs one ratification while an under-pin is overturned silently.
+      notes appears only where why the named reason applies is unclear. revisit_when is rare
+      and deliberate — a condition the owner sets on purpose — and most decisions carry
+      none: the reasoning that considered alternatives discharges into facts and the frozen
+      draft.
+    status: delegated
+    because:
+      - d-wrjhfbei
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-gewznny6
+    title: model entries speak the design's words
+    statement: |
+      a model entry's name is the design's word for the thing — the word the prose actually
+      uses — and its description anchors what the entity does in this design rather than
+      what the schema already says. the model binds what the design speaks about; a bound
+      entity nothing references is ballast.
+    status: accepted
+    because:
+      - d-ke7709uf
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-769urruv
+    title: the fact and evidence tests
+    statement: |
+      a documented fact cites the upstream original, with a verbatim quote that states the
+      claim the fact makes — a repository transcription is not a source, and a genuine quote
+      beside the point fails like a paraphrase. a tested fact's run can be run again:
+      command, output, and the state it ran against, with the dependence recorded where a
+      different version or fixture would change the result. an author searches the pool
+      before recording — a duplicate is a rival, two settled-looking ids for one claim — and
+      files by subject rather than by the increment that needed the fact. a fact found wrong
+      is corrected by a superseding evidenced fact.
+    status: delegated
+    because:
+      - d-o99k4ld8
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-oh2avr7i
+    title: a draft claim cites a foundation or is extracted
+    statement: |
+      a claim in a working draft that cites no foundation is a shadow decision, and
+      extracting it into requirements, decisions, facts, and open questions is Clarify's
+      discipline. the draft freezes with the increment as the record of the argument, with
+      the fold as the only authority; a mostly complete document drafted for a document
+      deliverable is content, not spec — the fold still binds, and implementation still
+      checks the draft's claims against it.
+    status: delegated
+    because:
+      - d-auo2680a
+      - d-vw0t1z62
+    facets:
+      - process-doc
+      - prompts
