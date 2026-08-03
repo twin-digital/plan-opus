@@ -84,32 +84,6 @@ outcome needs an entry of its own. The argument that produced the answer is in t
 which does freeze and publish; the answer itself is a foundation entry, which folds. A third record
 saying the question is now closed would restate both.
 
-## Why nothing is deferred to the implementer
-
-The tempting exception is the question an implementer will settle better than the design can — the
-one that could publish as a handoff saying "this is yours." It does not earn a record, because 001
-already routes that case by silence. Its agent guidance holds that a plan-tier agent may not settle
-a detail an implementer will meet with better information; the implementer meets it, decides
-narrowly, and records the decision. A design that says nothing about a detail has already delegated
-it.
-
-A published handoff list would therefore duplicate a mechanism that works without one. The
-implementer's action is identical either way, and the artifact that appears afterwards — the
-implementer's own recorded decision — is the honest one. What the list would add is the distinction
-between "we thought about this and left it to you" and "nobody thought about it," and no one acts
-differently on the strength of it.
-
-The cases are exhaustive, which is what makes the gate liveable:
-
-- **`answer: fact`** — either the spike runs now, or the decision resting on it cannot be made, so
-  the increment is narrower than its author thought. Publishing the narrower increment is correct.
-- **`answer: decision`, and it is the implementer's** — silence delegates it already.
-- **`answer: decision`, and it is the design's** — that is what Clarify is for, and the increment
-  is not finished.
-- **`answer: requirement`** — the owner's, and the increment cannot settle until they rule.
-
-Every branch resolves inside the increment.
-
 ## What the gate is, and what it is not
 
 The check is mechanical and narrow: no questions source with entries on main. That is genuinely
