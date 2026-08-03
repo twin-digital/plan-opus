@@ -8,9 +8,9 @@ The normative reference for the incremental design process: what the owner and a
 run it. Instruction to agents working inside the process ships as this repository's agent
 skills and `CLAUDE.md`; what the process retired from earlier practice, and how existing
 designs convert, is in `process-migration.md`. The content-quality tests for foundations live in their own document,
-shipped by a later increment. This reference is one epistemic kind: everything it states is a
-requirement or decision of the `increment-process` product, enforced by the design validator
-where a rule is mechanical.
+shipped by a later increment. Everything this reference states is a ratified requirement or
+decision of the `increment-process` product — it adds nothing of its own — and the design
+validator enforces the rules that are mechanical.
 
 ## Summary
 
@@ -48,9 +48,9 @@ has a job, an author, and a lifecycle:
 - **Facts** live in the repo-wide `facts/` pool, with the runs and artifacts that establish
   them under `evidence/`: findings about the world, citable from anywhere and governed by the
   existing evidence rules.
-- **Drafts** are the increment's frozen working prose — the synthesis argument, and
-  design-drafted content for document deliverables — raw material for implementation, never
-  normative.
+- **Drafts** are optional working prose an increment may keep — design-drafted content for
+  document deliverables, an argument worth freezing — raw material for implementation, never
+  normative; most increments need none.
 
 One further entity is defined like a foundation but is not one: the **open question**, the
 structured ask an agent puts to the owner while an increment is a draft. It has a formally
@@ -78,8 +78,9 @@ Plan:
   Capture → Clarify → Ratify    (loops until the owner declares it settled enough)
 
 Implement:
-  Define → Stub → Code → Document per code package; Claims → Compose → Check per document
-  package — waves, escalation, evidence; Plan hands Implement the ratified fold
+  prepare → implement, one implementer per package — prepare stands up what siblings
+  compile or check against, implement completes the package; each kind maps its own
+  waves onto the two phases. Plan hands Implement the ratified fold.
 ```
 
 ### Capture
@@ -94,16 +95,19 @@ Find the places missing research and do the spikes. Identify the open questions 
 ones that can be answered. Make the big-picture decisions that follow from the requirements
 alone, without low-level code knowledge.
 
-Outputs are the research and results collected, plus a ratified set of requirements, with any
-owner-approved amendments, and decisions reached from research, also owner-approved.
+What research finds lands as **facts** — documented with an upstream citation, or tested with
+the artifacts and a recorded run — and capturing them is the ideal way to ground a decision in
+truth or to answer an open question: a `because:` citing a fact is a decision that cannot
+quietly drift from the evidence that drove it. Outputs are those facts, plus a ratified set of
+requirements, with any owner-approved amendments, and decisions reached from research, also
+owner-approved.
 
-The working method is a **synthesis draft** — connected prose, because writing an argument that
-must hold together is what exposes the decision not yet made and the question not yet asked.
-The draft lives in the increment's `drafts/` folder, merges with the increment, and freezes at
-publish like every other increment file. It is raw material, never normative: the fold is what
-binds, and a claim in the draft that cites no foundation is a shadow decision — extraction into
-decisions, facts, and open questions is Clarify's discipline, with the frozen draft as the
-record of the argument rather than a second authority.
+Clarify works directly in the foundation sources. Where connected prose helps — an argument
+that must hold together can expose the decision not yet made and the question not yet asked —
+an increment *may* keep working drafts in its `drafts/` folder, merging with the increment and
+freezing at publish; most increments need none. A draft is raw material, never normative: the
+fold is what binds, and a claim in a draft that cites no foundation is a shadow decision —
+extracted into decisions, facts, and open questions, or dropped.
 
 The design phase produces **no prose specification** for an implementer to follow.
 Implementation works strictly from the fold — requirements, decisions, and bound contracts —
@@ -146,8 +150,8 @@ retirement form, no supersession, and no closure record; on main the file is abs
 questions.
 
 The gate is mechanical and narrow: it closes the leak of a recorded question drifting
-unanswered. It cannot catch a question nobody wrote down — the defences there are the synthesis
-draft's remainder check and the owner's read at ratification.
+unanswered. It cannot catch a question nobody wrote down — the defence there is the owner's
+read at ratification.
 
 ### Ratify
 
@@ -207,7 +211,9 @@ is always what a published increment built.
 An increment need not run Implement. Capture → Clarify → Ratify → publish is a complete
 increment — a preset's only shape, and any product's option. Its ratified requirements sit in
 the fold as claims with no coverage, which the projected view shows for what they are: ratified
-and unbuilt. Several design increments may accumulate before any implementation; one
+and unbuilt. That state belongs to increments no implementation has targeted — it never
+describes a gap inside an implementation, whose record covers every claim in force at its
+target. Several design increments may accumulate before any implementation; one
 implementation may target the consolidated fold, and nothing obliges one per increment. An
 implementation durably records the increment it targeted, and an implementation never amends
 the design it targets: an escalated change lands as an ordinary design increment, and the
@@ -223,7 +229,6 @@ implementation retargets the fold that contains it.
 | decisions | the path taken to meet them — each choice a consumer could observe or a reimplementation must preserve; choices below that bar live in the code |
 | facts | what has been observed about the world, with the runs and artifacts that establish it |
 | interfaces | the shapes something outside the implementation compiles against — the schema and api pools |
-| drafts | each increment's frozen synthesis prose — raw material for the shipped documents, never normative |
 | implementations | the record of each implementation — the increment it targeted, the package versions it produced, and its coverage |
 | released versions | tags and published artifacts — permanent once out, whatever happens to the source |
 
@@ -556,27 +561,30 @@ packages an implementation has realized.
 
 An implementation dispatches one implementer per package, and the package's `kind` — already in
 the mapping — selects its wave shape. Every shape shares one rule: each wave produces one
-artifact, validated against what came before it.
+artifact, validated against what came before it. And every shape partitions its waves into the
+same two phases the dispatcher calls: **prepare** — standing up whatever sibling packages
+compile or check against — and **implement**, which runs prepare first where it has not run and
+then completes the package, so dispatch never depends on a kind's waves.
 
 The shape for code kinds — `npm-library`, `npm-cli`, `minecraft-addon`:
 
-| wave | produces | validated against |
-|---|---|---|
-| **Define** | the test plan | the requirements and decisions |
-| **Stub** | tests and API stubs | the test plan |
-| **Code** | the implementation | the stubs, by compiling; the tests, by passing |
-| **Document** | READMEs and user-facing documentation | the implementation |
+| wave | phase | produces | validated against |
+|---|---|---|---|
+| **Define** | prepare | the test plan | the requirements and decisions |
+| **Stub** | prepare | tests and API stubs | the test plan |
+| **Code** | implement | the implementation | the stubs, by compiling; the tests, by passing |
+| **Document** | implement | READMEs and user-facing documentation | the implementation |
 
 Documentation is a wave rather than an afterthought because it is a deliverable of the product,
 not a by-product of implementing it.
 
 The shape for `document` kinds:
 
-| wave | produces | validated against |
-|---|---|---|
-| **Claims** | the list of claims the document must state | the effective design at the targeted increment |
-| **Compose** | the document at its permanent home, drawing on the increments' frozen drafts | the claim list; every draft claim checked against the fold |
-| **Check** | coverage entries per claim | the document, read against each claim |
+| wave | phase | produces | validated against |
+|---|---|---|---|
+| **Claims** | prepare | the list of claims the document must state | the effective design at the targeted increment |
+| **Compose** | implement | the document at its permanent home, drawing on the increments' frozen drafts | the claim list; every draft claim checked against the fold |
+| **Check** | implement | coverage entries per claim | the document, read against each claim |
 
 The claim list is a selection and an allocation, not a restatement. From everything in force at
 the targeted increment, it names the claims *this document* is responsible for stating and maps
@@ -700,8 +708,12 @@ implementer's test; whether a check runs without a human prices re-running it, a
 reporting on that ground alone. A check with no recorded steps is not a `manual-check` and does
 not enter the manifest at all.
 
-**A manifest names only claims in force at the increment its implementation targeted**, and
-never a claim still `proposed` — coverage is evidence about something the owner has ruled on.
+**A manifest names only claims in force at the increment its implementation targeted — and
+names all of them.** Once an implementation targets an increment, every requirement and
+decision in force there carries a coverage entry; the validator refuses a record with gaps.
+"Ratified and unbuilt" describes increments no implementation has targeted, never a hole
+inside a record. A claim still `proposed` never appears — coverage is evidence about something
+the owner has ruled on.
 Requirements adopted from a preset are coverage-tracked exactly like product-local ones.
 
 Who contributes, and when:

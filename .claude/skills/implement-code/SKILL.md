@@ -19,7 +19,9 @@ the escalation rules.
 | **Document** | implement | READMEs and user-facing documentation | the implementation |
 
 **prepare** ends with the Stub wave: the package's public surface exists and siblings can
-compile against it. **implement** runs prepare first where it has not run, then Code and
+compile against it. Prepare may return as soon as the API stubs stand — test authoring can
+finish inside implement — so dependents unblock at the earliest honest moment; a stub reworked
+while tests are written follows the ordinary churn path (update, re-merge, dependents rebase). **implement** runs prepare first where it has not run, then Code and
 Document. Expect a pause between the phases in a parallel run — the orchestrator merges
 prepare outputs before implement begins.
 

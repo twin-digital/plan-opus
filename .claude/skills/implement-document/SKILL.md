@@ -46,7 +46,10 @@ the companion increment or dropped, never transcribed.
 
 Read the finished document against the claim list, claim by claim — preferably with fresh
 eyes (a separate agent). Fix what is missing or misstated, then write the coverage entries:
-`attestation` with the document as `ref` for claims the document states, alongside any
-stronger evidence. A tree-consumed package declares its version in its frontmatter — the
+`attestation` for each claim the document states, alongside any stronger evidence. A document
+`ref` cites the file plus a section breadcrumb — `docs/process-reference.md#the-companion-increment`
+— narrowing to the section that carries the claim; the whole file only where the claim really
+is the whole file. Breadcrumbs stay verifiable across a version's lifetime because the file is
+immutable at the version the record quotes. A tree-consumed package declares its version in its frontmatter — the
 string form of the increment this revision reflects; set it when you change the file, and the
 record quotes it.

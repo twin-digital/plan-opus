@@ -16,7 +16,7 @@ operational sequence. Validate every change with
 - The target is the product's **newest published increment** on main. A record with a stale
   target is refused at merge — re-check before landing, and if a new increment published while
   you worked, retarget: read its declared delta and carry on.
-- Read the effective design: `design-process show <product>`, then every `requirements.yaml`
+- Read the effective design: `npx design-process show <product>`, then every `requirements.yaml`
   and `decisions.yaml` of the product's increments, in full. The fold binds; `drafts/` are raw
   material, never normative. Where a draft claim and a foundation disagree, the foundation
   wins.
@@ -40,7 +40,7 @@ everything else. Overturning an *unpinned* decision is not an
 escalation — record the supersession and continue. Where escalation does fire, bring a
 **fact** — a measurement, a compile error, a captured output — not a preference; an opinion
 about a better framing is never grounds against a ratified entry. Generate ids with
-`design-process id`.
+`npx design-process id`.
 
 ## 3. Dispatch one implementer per package
 
@@ -81,7 +81,10 @@ alone; see below.
   phase boundaries: an implementer returns its findings — proposed decisions, open questions,
   overturns, shared-file change requests, coverage entries — as structured data with each
   phase's result, and anything it must learn (a ruling, an answered question, a moved
-  contract) arrives in its next dispatch. An implementer that hits an escalation mid-phase
+  contract) arrives in its next dispatch. A change needed from **another package** — a
+  sibling's surface or behaviour a dependent discovers it needs — is a finding like any
+  other: it comes to you, and you route it to that package's implementer with its next
+  dispatch, never implementer-to-implementer. An implementer that hits an escalation mid-phase
   keeps building what does not depend on it; wholly blocked, it ends the phase early and
   returns its findings and state. You record findings in the companion increment as they
   arrive, escalate what needs the owner, and fold rulings into the next dispatch.
@@ -92,9 +95,9 @@ alone; see below.
   the stub, merge, dependents rebase, record the supersession; bound or pinned — escalate,
   pausing exactly the dependents.
 - **Reconcile coverage before filing the record.** Assemble the record from every
-  implementer's coverage entries, then run `design-process show <product>` and read the
-  uncovered count: a full implementation lands at zero, and any remaining gap is closed or
-  deliberately reported to the owner — never silent. A claim may be carried by any package's
+  implementer's coverage entries, then run `npx design-process show <product>`: the record
+  must cover every claim in force at the target — the validator refuses a record with gaps —
+  so the uncovered count reads zero before you file. A claim may be carried by any package's
   evidence, not only a document's.
 - The owner approves **one pull request, integration branch to main**, opened after the
   companion increment merges.
@@ -126,4 +129,4 @@ product, by risk, as orchestration configuration:
    you implemented — always — plus `code-test`, `manual-check`, or `conformance-case` entries
    where those artifacts exist. A `ref` names what carries the claim: if deleting the file
    would not touch whether the claim holds, it does not belong.
-5. Verify the merged result passes `design-process check` with zero findings.
+5. Verify the merged result passes `npx design-process check` with zero findings.
