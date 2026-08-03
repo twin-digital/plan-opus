@@ -1,21 +1,18 @@
 name: check-design
 
+# The design merge gate (d-jenq1f31): thin wiring only — install the tooling packages, run the
+# check. Runs on every pull request with no path filter, because the check is a required status
+# and a path-skipped required check would block the merge (r-zcvxh2ty).
 on:
   pull_request:
-    paths:
-      - ".github/workflows/check-design.yml"
-      - "bin/**"
-      - "design/**"
-      - "evidence/**"
-      - "facts/**"
-      - "package-lock.json"
-      - "package.json"
 
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 24

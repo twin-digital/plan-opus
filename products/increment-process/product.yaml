@@ -11,3 +11,21 @@ facets:
     description: the tools that parse, fold, display, and export the structured plan data
   - id: prompts
     description: instruction to agents working inside the process
+packages:
+  - path: nodejs/plan/design-process
+    kind: npm-cli
+  - path: docs/process-reference.md
+    kind: document
+    repo: twin-digital/plan-opus
+  - path: docs/process-migration.md
+    kind: document
+    repo: twin-digital/plan-opus
+  - path: .claude/skills/implement
+    kind: agent-skill
+    repo: twin-digital/plan-opus
+  - path: .claude/skills/implement-code
+    kind: agent-skill
+    repo: twin-digital/plan-opus
+  - path: .claude/skills/implement-document
+    kind: agent-skill
+    repo: twin-digital/plan-opus
