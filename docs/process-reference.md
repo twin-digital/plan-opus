@@ -203,20 +203,6 @@ implementation durably records the increment it targeted, and an implementation 
 the design it targets: an escalated change lands as an ordinary design increment, and the
 implementation retargets the fold that contains it.
 
-## What endures, and what is disposable
-
-**Durable** — these persist and accumulate:
-
-| artifact | what it holds |
-|---|---|
-| requirements | owner fiat: what the product must do to be accepted |
-| decisions | the path taken to meet them — each choice a consumer could observe or a reimplementation must preserve; choices below that bar live in the code |
-| facts | what has been observed about the world, with the runs and artifacts that establish it |
-| interfaces | the shapes something outside the implementation compiles against — the schema and api pools |
-| implementations | the record of each implementation — the increment it targeted, the package versions it produced, and its coverage |
-| released versions | tags and published artifacts — permanent once out, whatever happens to the source |
-
-
 ## Mechanics
 
 ### Pinned decisions

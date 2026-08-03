@@ -527,3 +527,14 @@ coverage:
       - kind: attestation
         ref: .claude/skills/implement-document/SKILL.md
         note: this implementation ran the audit on the reference; the skill now requires it
+  - claim: d-bj3se96r # evidence demonstrates the verification procedure
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#proving-a-claim-is-met
+  - claim: d-mtbx4ktw # coverage refs resolve through the package mapping
+    covered_by:
+      - kind: attestation
+        ref:
+          - docs/process-reference.md#a-product-maps-to-its-packages
+          - implementations/increment-process/004-1.yaml
+        note: this record's refs follow the convention — package-relative for the tooling package, root-relative for repository artifacts
