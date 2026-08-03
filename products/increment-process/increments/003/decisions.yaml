@@ -22,7 +22,7 @@ decisions:
       the consumer-visible package set — each package's existence, kind, and home — is proposed
       and ratified in Plan, as decisions of the increment that calls for it; product.yaml
       reflects the packages an implementation has realized.
-    status: proposed
+    status: accepted
     because:
       - d-8itv1czm
     facets:
@@ -35,7 +35,7 @@ decisions:
       an implementation dispatches one implementer per package, and the package's kind selects
       its wave shape; the shape for a specific kind is defined as needed, each its own
       decision.
-    status: proposed
+    status: accepted
     because:
       - d-q8ur5u3f
       - d-8itv1czm
@@ -51,7 +51,7 @@ decisions:
       against the requirements and decisions, tests and API stubs against the test plan, the
       implementation against the stubs by compiling and the tests by passing, and the
       user-facing documentation against the implementation.
-    status: proposed
+    status: accepted
     because:
       - d-qb67fb8s
     facets:
@@ -65,7 +65,7 @@ decisions:
       drawn from the effective design at the targeted increment; the document at its permanent
       home, drawing on the increment's drafts and checked against the claim list; and coverage
       entries per claim.
-    status: proposed
+    status: delegated
     because:
       - d-qb67fb8s
     facets:
@@ -88,7 +88,7 @@ decisions:
       recorded, not ruled — unless escalation already ruled it; the merge gate reads only
       proposed, so an implementation increment lands gated by pull-request review and the
       validation checks rather than by per-entry rulings.
-    status: proposed
+    status: accepted
     because:
       - d-dteorq7q
       - d-9s4d3ww2
@@ -162,9 +162,9 @@ decisions:
   - id: d-0g9l44e4
     title: evidence is graded by provenance and coupling
     statement: |
-      coverage kinds are attestation, code-test, manual-check, and conformance-case; a claim's
-      rung is attested, checked, or conformance, and what raises a rung is who vetted the check
-      and its tie to the claim, not automation.
+      coverage kinds are attestation, code-test, manual-check, and conformance-case; what makes
+      one entry stronger evidence than another is who vetted the check and its tie to the
+      claim, not automation.
     status: proposed
     pinned:
       reason: data-format
@@ -175,19 +175,18 @@ decisions:
     statement: |
       an implementer records an attestation for every claim it implemented, alongside whatever
       better evidence exists.
-    status: proposed
+    status: accepted
     facets: prompts
 
   - id: d-lm8br2p2
-    title: the process's documents live at docs/design-process/
+    title: the process's documents live at docs/
     statement: |
-      the process's document deliverables are document-kind packages under docs/design-process/
+      the process's document deliverables are document-kind packages under docs/
       in this repository — repo twin-digital/plan-opus, departing the mapping's default — one
       package per shipped document.
-    status: proposed
+    status: accepted
     because:
       - r-yzkxa2hj
-      - d-nzba0wqu
     pinned:
       reason: public-api
       notes: the paths are read straight from the tree; a move breaks every reader
@@ -269,7 +268,7 @@ decisions:
       commits a thin workflow that installs the tooling packages and runs the check, and
       branch protection marking the check required is set by hand once, covered by a
       manual-check entry; the validator logic lives entirely in the tooling packages.
-    status: proposed
+    status: accepted
     because:
       - r-zcvxh2ty
       - d-cfe28w5z

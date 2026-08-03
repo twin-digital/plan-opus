@@ -191,32 +191,24 @@ requirement and it is simply omitted from the next implementation's manifest. It
 name a claim that is still `proposed` — coverage is evidence about something the owner has ruled on,
 not about a suggestion.
 
-### The ladder
-
-Each rung is stronger evidence than the one below it, and a claim sits at the highest rung anything
-in its `covered_by` provides:
-
-| rung | means |
-|---|---|
-| `attested` | only an agent's word that it is met |
-| `checked` | a recorded check exists — an implementer's test, or steps a human re-runs |
-| `conformance` | the check is owner-vetted and tied to the claim |
+### How the kinds compare
 
 Why an implementer's test outranks the same implementer's word, when one agent wrote both: an
 attestation is believed whole — the agent observed, concluded, and reported, and none of that can be
 re-examined. A test moves the verdict into the product: it executes and can fail, now and on every
 later run. What still rests on the implementer is only that the test measures the claim — a smaller
 thing to trust, and an auditable one, since a reviewer can read a test where there is nothing to
-read behind an attestation. `conformance` retires that residue too, by moving authorship or vetting
-of the check to the owner.
+read behind an attestation. A conformance case retires that residue too, by moving authorship or
+vetting of the check to the owner.
 
-Automation is a property of a check, not a rung. A manual conformance case outranks an automated
-implementer's test, because strength comes from provenance and coupling; whether a check runs
-without a human prices re-running it, and is worth reporting on that ground alone.
+Automation is a property of a check, not of its strength. A manual conformance case outranks an
+automated implementer's test, because strength comes from provenance and coupling; whether a check
+runs without a human prices re-running it, and is worth reporting on that ground alone.
 
-The first increment sets the bar at `attested` and reports the distribution. Later increments raise
-a rung or turn a warning into an error. **The number worth watching is how many claims sit at
-`attested`** — that is the honest measure of how much of the product rests on an agent's word.
+The first increment sets the bar at coverage itself — an attestation suffices — and reports the
+distribution of kinds. Later increments tighten the bar or turn a warning into an error. **The
+number worth watching is how many claims rest on attestation alone** — that is the honest measure
+of how much of the product rests on an agent's word.
 
 Requirements adopted from a preset are coverage-tracked exactly like product-local ones. Nothing
 about their origin changes what has to be shown.
