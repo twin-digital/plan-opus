@@ -3,9 +3,31 @@
 Draft of increment 003, extending increment 001's draft of the planning process with the Implement
 phase: the waves, escalation, and evidence. Plan hands Implement the ratified fold.
 
-## The implementation waves
+## Decomposition is design work
 
-Each wave produces one artifact and is validated against what came before it:
+The consumer-visible package set — each package's existence, kind, and home — is proposed and
+ratified in Plan, as decisions of the increment that calls for it. The information is available
+there — what deliverables exist, what kind each is, what surfaces they expose — and the boundaries
+are pinned territory the owner rules on regardless, so settling them anywhere else is the
+ratification loop with extra steps and a blocked implementer in the middle.
+
+The line holds in both directions. Plan fixes the public shape only: structure below the package
+surface — a shared internal library, how code splits inside a package — is the implementer's, and
+pre-deciding it from the plan tier is the churn the agent guidance already forbids. And
+`product.yaml` stays descriptive, exactly as increment 001 rules: intent lives in the increment's
+decisions, and the mapping reflects the packages an implementation has realized.
+
+Escalation on decomposition then reverts to its intended rarity: it fires when reality contradicts
+the ratified package set — a fact-based stop like any other — not as the routine first act of every
+implementation.
+
+## Dispatch: kind selects the wave shape
+
+An implementation dispatches one implementer per package, and the package's `kind` — already in the
+mapping — selects its wave shape. Every shape shares one rule: each wave produces one artifact,
+validated against what came before it.
+
+The shape for code kinds — `npm-library`, `npm-cli`, `minecraft-addon`:
 
 | wave | produces | validated against |
 |---|---|---|
@@ -17,9 +39,17 @@ Each wave produces one artifact and is validated against what came before it:
 Documentation is a wave rather than an afterthought because it is a deliverable of the product, not a
 by-product of implementing it.
 
-These four waves are the code-focused shape of the phase. Other product shapes — documents,
-processes — may structure Implement their own way; the wave set is the phase's internal affair, not
-the process's contract.
+The shape for `document` kinds:
+
+| wave | produces | validated against |
+|---|---|---|
+| **Claims** | the list of fold claims the document must state | the fold at the targeted increment |
+| **Compose** | the document at its permanent home, drawing on the increment's frozen drafts | the claim list; every draft claim checked against the fold |
+| **Check** | coverage entries per claim | the document, read against each claim |
+
+Further kinds name their shapes as they earn them — an `agent-skill` package will not test like a
+library or read like a reference. The shapes are the process's initial vocabulary, not a closed
+set.
 
 ## Escalate
 

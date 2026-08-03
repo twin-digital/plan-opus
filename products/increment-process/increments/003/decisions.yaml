@@ -16,13 +16,31 @@ decisions:
       - schema
       - design-validator
 
-  - id: d-qb67fb8s
-    title: implement runs in four waves
+  - id: d-q8ur5u3f
+    title: decomposition is design work
     statement: |
-      Implement is Define, Stub, Code, Document — each wave producing one artifact validated
-      against what came before it, documentation included. this is the code-focused shape of the
-      phase; other product shapes may structure Implement their own way, wave names included.
+      the consumer-visible package set — each package's existence, kind, and home — is proposed
+      and ratified in Plan, as decisions of the increment that calls for it; structure below the
+      package surface is the implementer's. product.yaml reflects the packages an implementation
+      has realized.
     status: proposed
+    because:
+      - d-8itv1czm
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-qb67fb8s
+    title: kind selects the dispatch shape
+    statement: |
+      an implementation dispatches one implementer per package, and the package's kind selects
+      its wave shape — each wave producing one artifact validated against what came before it.
+      code kinds run Define, Stub, Code, Document; document kinds run Claims, Compose, Check;
+      further kinds name their shapes as they earn them.
+    status: proposed
+    because:
+      - d-q8ur5u3f
+      - d-8itv1czm
     facets:
       - process-doc
       - prompts
@@ -116,3 +134,20 @@ decisions:
       better evidence exists.
     status: proposed
     facets: prompts
+
+  - id: d-lm8br2p2
+    title: the process's documents live at docs/design-process/
+    statement: |
+      the process's document deliverables are document-kind packages under docs/design-process/
+      in this repository — repo twin-digital/plan-opus, departing the mapping's default — one
+      package per shipped document.
+    status: proposed
+    because:
+      - r-yzkxa2hj
+      - d-nzba0wqu
+    pinned:
+      reason: public-api
+      notes: the paths are read straight from the tree; a move breaks every reader
+    facets:
+      - process-doc
+      - schema
