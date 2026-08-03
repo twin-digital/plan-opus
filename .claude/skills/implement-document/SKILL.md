@@ -20,7 +20,9 @@ they target has published.
 
 **prepare** is the Claims wave — the allocation is what sibling documents check against, and
 running every document's Claims before any Compose is what surfaces a claim two documents own
-or none does. **implement** runs Claims first where it has not run, then Compose and Check.
+or none does; reconciling those collisions and gaps across siblings is the orchestrator's
+job, at the prepare merge. **implement** runs Claims first where it has not run, then Compose
+and Check.
 
 ## Claims
 

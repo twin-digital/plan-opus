@@ -131,6 +131,10 @@ The mechanics when implementers run concurrently:
 - an implementer's diff stays inside its package directory; every shared file —
   `product.yaml`, lockfiles, the record, the companion increment's sources — has the
   orchestrator as its only writer, and implementers report findings rather than edit them in
+- the findings loop runs on phase boundaries: findings — proposed decisions, questions,
+  overturns, coverage entries, shared-file requests — return with each phase's result;
+  rulings and answers arrive with the next dispatch; a wholly blocked implementer ends its
+  phase early rather than waiting in place
 - the owner approves one pull request, integration branch to main, after the companion
   increment merges
 

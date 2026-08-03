@@ -34,14 +34,15 @@ design-relevant lands there **as it happens**:
 - **contracts** — any new external-facing schema or API surface, as a pool version bound
   through the increment's model
 
-A `proposed` entry or an open question is an escalation: pause only what depends on the
-answer, keep building everything else. Overturning an *unpinned* decision is not an
+A `proposed` entry, changes or additions to the external-facing schema or API surfaces, or
+an open question is an escalation: pause only what depends on the answer, keep building
+everything else. Overturning an *unpinned* decision is not an
 escalation — record the supersession and continue. Generate ids with `design-process id`.
 
 ## 3. Dispatch one implementer per package
 
 The package set comes from the fold's decisions and the existing `product.yaml`. For each
-package, the `kind` selects the wave skill:
+package, the `kind` selects the agent skill to use when implementing that package:
 
 | kind | skill |
 |---|---|
@@ -73,9 +74,25 @@ alone; see below.
   orchestrator, as its only writer. Implementers report what they cannot edit: proposed
   decisions, open questions, overturns, and needed shared-file changes arrive as structured
   findings, and you triage and record them in the companion increment.
+- **The findings loop.** Nothing pushes into a working implementer, so the loop is built on
+  phase boundaries: an implementer returns its findings — proposed decisions, open questions,
+  overturns, shared-file change requests, coverage entries — as structured data with each
+  phase's result, and anything it must learn (a ruling, an answered question, a moved
+  contract) arrives in its next dispatch. An implementer that hits an escalation mid-phase
+  keeps building what does not depend on it; wholly blocked, it ends the phase early and
+  returns its findings and state. You record findings in the companion increment as they
+  arrive, escalate what needs the owner, and fold rulings into the next dispatch.
+- **Reconcile the claim allocation at the prepare merge.** When every prepare has returned,
+  diff the union of the documents' claim lists against the full in-force claim set: a claim
+  no document owns, or two documents own, is resolved before any Compose is dispatched.
 - A provider surface that shifts mid-implement follows the ordinary rules: unpinned — update
   the stub, merge, dependents rebase, record the supersession; bound or pinned — escalate,
   pausing exactly the dependents.
+- **Reconcile coverage before filing the record.** Assemble the record from every
+  implementer's coverage entries, then run `design-process show <product>` and read the
+  uncovered count: a full implementation lands at zero, and any remaining gap is closed or
+  deliberately reported to the owner — never silent. A claim may be carried by any package's
+  evidence, not only a document's.
 - The owner approves **one pull request, integration branch to main**, opened after the
   companion increment merges.
 
