@@ -1,0 +1,28 @@
+version: "1"
+decisions:
+  - id: d-bef5ysmj
+    title: the authoring document lives at docs/authoring.md
+    statement: |
+      the authoring document package is docs/authoring.md — repo twin-digital/plan-opus,
+      beside the process reference and the migration record at the docs/ root.
+    status: delegated
+    because:
+      - d-af2v9seu
+      - d-lm8br2p2
+    facets: process-doc
+
+  - id: d-8z7j435b
+    title: a decision states the choice and cites its dependencies
+    statement: |
+      a decision's statement names the choice — the argument belongs to the increment's
+      drafts, the consequences to the reader — and its because carries only what the
+      decision rests on. the test runs both directions: a citation on motivation or
+      illustration is a false signal, and an absent citation on a real dependency hides one.
+    status: delegated
+    supersedes: d-dxscu5dy
+    because:
+      - d-rx3s2hqo
+      - d-eaw3u72o
+    facets:
+      - process-doc
+      - prompts
