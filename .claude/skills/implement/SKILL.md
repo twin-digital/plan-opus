@@ -18,8 +18,7 @@ operational sequence. Validate every change with
   you worked, retarget: read its declared delta and carry on.
 - Read the effective design: `npx design-process show <product>`, then every `requirements.yaml`
   and `decisions.yaml` of the product's increments, in full. The fold binds; `drafts/` are raw
-  material, never normative. Where a draft claim and a foundation disagree, the foundation
-  wins.
+  material, never normative.
 
 ## 2. Open the companion increment
 
@@ -34,13 +33,11 @@ design-relevant lands there **as it happens**:
 - **contracts** — any new external-facing schema or API surface, as a pool version bound
   through the increment's model
 
-A `proposed` entry, changes or additions to the external-facing schema or API surfaces, or
-an open question is an escalation: pause only what depends on the answer, keep building
+A `proposed` entry, an addition or change to an external-facing schema or API surface, or an
+open question is an escalation: pause only what depends on the answer, keep building
 everything else. Overturning an *unpinned* decision is not an
-escalation — record the supersession and continue. Where escalation does fire, bring a
-**fact** — a measurement, a compile error, a captured output — not a preference; an opinion
-about a better framing is never grounds against a ratified entry. Generate ids with
-`npx design-process id`.
+escalation — record the supersession and continue. Where escalation does fire, bring a fact, not a
+preference — CLAUDE.md carries the bar. Generate ids with `npx design-process id`.
 
 ## 3. Dispatch one implementer per package
 
@@ -53,11 +50,9 @@ package, the `kind` selects the agent skill to use when implementing that packag
 | `document`, `agent-skill` | `implement-document` |
 | anything else | raise an open question — the kind has no shape yet |
 
-Every implementer skill exposes the same two phases, so dispatch never depends on a kind's
-waves: **prepare** stands up whatever sibling packages compile or check against — a public
-surface, a share of a cross-package allocation — and **implement** runs prepare first where it
-has not run, then completes the package. A kind with nothing to stand up treats prepare as a
-no-op.
+Every implementer skill exposes **prepare** — stand up what siblings compile or check
+against — and **implement** — run prepare where it has not run, then complete the package; a
+kind with nothing to stand up treats prepare as a no-op.
 
 Update `product.yaml` in the same change that creates, moves, or removes a package's files —
 the mapping is descriptive, never aspirational. In a multi-implementer run that file is yours
@@ -90,7 +85,8 @@ alone; see below.
   arrive, escalate what needs the owner, and fold rulings into the next dispatch.
 - **Reconcile the claim allocation at the prepare merge.** When every prepare has returned,
   diff the union of the documents' claim lists against the full in-force claim set: a claim
-  no document owns, or two documents own, is resolved before any Compose is dispatched.
+  two documents own, or one that no document states and no other package's evidence will
+  carry, is resolved before any Compose is dispatched.
 - A provider surface that shifts mid-implement follows the ordinary rules: unpinned — update
   the stub, merge, dependents rebase, record the supersession; bound or pinned — escalate,
   pausing exactly the dependents.
@@ -122,9 +118,8 @@ product, by risk, as orchestration configuration:
    deliverable goes live before the design it targets is published.
 3. File the record at `implementations/<product>/<NNN>-<k>.yaml` (`NNN` = the target, `k`
    dense from 1), conforming to `/design-process/implementation@1`: `product`, `target`,
-   `built_at`, `packages` (path + version; tree-consumed kinds — document, agent-skill — carry
-   the version their file's frontmatter declares: the string form of the increment the
-   content reflects), and `coverage`.
+   `built_at`, `packages` (path + version; tree-consumed kinds carry their file's frontmatter
+   `version`), and `coverage`.
 4. Coverage names every claim in force at the target: an `attestation` from you on every claim
    you implemented — always — plus `code-test`, `manual-check`, or `conformance-case` entries
    where those artifacts exist. A `ref` names what carries the claim: if deleting the file

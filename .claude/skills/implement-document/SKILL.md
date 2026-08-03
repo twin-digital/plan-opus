@@ -6,8 +6,7 @@ description: Implement one tree-consumed package (document or agent-skill kind) 
 
 # Implement a document or agent-skill package
 
-The wave shape for tree-consumed kinds. Each wave produces one artifact, validated against
-what came before it. Full rules: `docs/process-reference.md` (Dispatch, A product maps to its
+The wave shape for tree-consumed kinds. Full rules: `docs/process-reference.md` (Dispatch, A product maps to its
 packages). A document at a permanent path goes live at merge — so
 its changes ride the implementation's pull request and merge only after the design increment
 they target has published.
@@ -18,18 +17,16 @@ they target has published.
 | **Compose** | implement | the document at its permanent home | the claim list; every draft claim checked against the fold |
 | **Check** | implement | coverage entries per claim | the document, read against each claim |
 
-**prepare** is the Claims wave — the allocation is what sibling documents check against, and
-running every document's Claims before any Compose is what surfaces a claim two documents own
-or none does; reconciling those collisions and gaps across siblings is the orchestrator's
-job, at the prepare merge. **implement** runs Claims first where it has not run, then Compose
-and Check.
+**prepare** is the Claims wave; the orchestrator reconciles allocation collisions and gaps
+across siblings at the prepare merge. **implement** runs Claims first where it has not run,
+then Compose and Check.
 
 ## Claims
 
 A selection and an allocation, not a restatement: from everything in force at the target, the
 claims *this* document is responsible for stating, each mapped to where it will be stated.
-Surface the problems before composing: a claim no document owns, two documents owning one
-claim, a claim no planned section could state. For an agent-skill, the claims are the process
+Surface the problems before composing: two documents owning one claim, a claim no planned
+section could state, a claim nothing — document or another package's evidence — will carry. For an agent-skill, the claims are the process
 rules the skill operationalizes. The list is transient; keep it in a scratch location.
 
 ## Compose
@@ -58,7 +55,6 @@ Then write the coverage entries:
 `attestation` for each claim the document states, alongside any stronger evidence. A document
 `ref` cites the file plus a section breadcrumb — `docs/process-reference.md#the-companion-increment`
 — narrowing to the section that carries the claim; the whole file only where the claim really
-is the whole file. Breadcrumbs stay verifiable across a version's lifetime because the file is
-immutable at the version the record quotes. A tree-consumed package declares its version in its frontmatter — the
+is the whole file. A tree-consumed package declares its version in its frontmatter — the
 string form of the increment this revision reflects; set it when you change the file, and the
 record quotes it.

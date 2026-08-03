@@ -6,8 +6,7 @@ description: Implement one code package (npm-library, npm-cli, minecraft-addon) 
 
 # Implement a code package
 
-The wave shape for code kinds. Each wave produces one artifact, validated against what came
-before it. Full rules: `docs/process-reference.md` (Dispatch, Proving a claim is met). Design
+The wave shape for code kinds. Full rules: `docs/process-reference.md` (Dispatch, Proving a claim is met). Design
 consequences land in the companion increment as they happen — see the `implement` skill for
 the escalation rules.
 
@@ -33,33 +32,28 @@ plan is transient — an input to the work, not a deliverable; keep it in a scra
 
 ## Stub
 
-Write the tests and the public API stubs from the test plan. Coverage `code-test` and
-`conformance-case` entries begin here, as the artifacts come into existence.
+Write the tests and the public API stubs from the test plan. Coverage `code-test` entries
+begin here as the tests come into existence; `conformance-case` entries join only as the owner
+writes or vets a case.
 
-**Minimise the public contract.** Every export is a constraint on the reimplementation: the
-public surface is precisely what a regenerated implementation must preserve, and the surface a
-consumer can come to depend on whatever the contract says. Rules the design validator can
-enforce:
+**Minimise the public contract** — every export is surface a reimplementation must preserve
+and a consumer can come to depend on. Working defaults, each departure a companion-increment
+decision:
 
-- one entry point by default — a second is a decision, recorded in the companion increment
-- no subpath wildcards: a `"./*"` pattern surrenders the boundary
-- no `export *` from an entry point — the commonest way a surface grows without anyone
-  deciding; named re-exports only
-- `internal/` is unreachable from outside
-- the API report is committed, so a surface change appears as a reviewable diff
+- one entry point
+- no subpath wildcards — a `"./*"` pattern surrenders the boundary
+- no `export *` from an entry point; named re-exports only
+- internals unreachable from outside
 
-Type-only exports are cheaper than value exports and worth counting separately: they constrain
-what a consumer compiles against but carry no runtime behaviour to preserve. This is the
-*product's* boundary — minimising internal modules' surfaces is a different concern (coherence,
-not reimplementation cost), and internal structure stays free to reorganise.
+Internal structure stays free to reorganise.
 
 ## Code
 
 Implement until the stubs compile and the tests pass. Make the smallest decisions that
 complete the work: a question the fold left open is settled narrowly and recorded, not
-generalised from. Choices below the recording bar — a
-consumer could observe it, or a reimplementation must preserve it — live in the code; choices
-at or above it are companion-increment decisions. Record an `attestation` for every claim you
+generalised from. A choice a consumer could observe, or a
+reimplementation must preserve, is a companion-increment decision; anything below that bar
+lives in the code. Record an `attestation` for every claim you
 implemented, alongside whatever better evidence exists.
 
 ## Document

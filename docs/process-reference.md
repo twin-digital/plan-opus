@@ -546,8 +546,9 @@ implementation begins. Everything design-relevant the work produces lands there 
 pauses where — and only where — it is blocked on the answer, progressing everywhere else until
 forced to stop. An open question blocks the same way. Only delegated entries accumulate without
 interrupting anything. An implementation wave
-escalates only to change a requirement, change a pinned decision, or propose a decision that
-would be pinned; otherwise agents decide and record, including overturning unpinned decisions.
+escalates only to change a requirement, change a pinned decision, propose a decision that
+would be pinned, or add or change an external-facing contract surface; otherwise agents decide
+and record, including overturning unpinned decisions.
 
 The companion increment is the **only channel**: every design change an implementation produces
 lands through it, as an ordinary design increment, and the implementation record carries no
