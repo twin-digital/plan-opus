@@ -115,10 +115,11 @@ decisions:
     title: tree-consumed packages version themselves in frontmatter
     statement: |
       a package consumed from the tree — the document and agent-skill kinds — declares its
-      version in a version field of its file's yaml frontmatter, bumped by the implementation
-      that changes the file; an implementation record carries that declared version. the
-      agent-skill loader ignores unrecognized frontmatter fields, so skills carry the field
-      the same way documents do.
+      version in a version field of its file's yaml frontmatter: the string form of the
+      design increment number its content reflects, set by the implementation that changes
+      the file, with no semantic versioning process. an implementation record carries that
+      declared version. the agent-skill loader ignores unrecognized frontmatter fields, so
+      skills carry the field the same way documents do.
     status: delegated
     supersedes: d-sjxyurcz
     because:
@@ -168,7 +169,7 @@ decisions:
       the companion increment, and runs one implementer per package with the package's kind
       selecting the kind-specific skill; a kind without a skill is an open question for the
       implementation that meets it.
-    status: proposed
+    status: accepted
     supersedes: d-m0on5vin
     pinned:
       reason: public-api
