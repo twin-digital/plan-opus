@@ -227,7 +227,9 @@ decisions:
     statement: |
       in a multi-implementer run, only the orchestrator edits the companion increment's
       sources; implementers report proposed decisions, questions, and overturns as structured
-      findings, and the orchestrator triages and records them.
+      findings, and the orchestrator triages and records them. the loop runs on phase
+      boundaries — findings return with each phase's result, rulings and answers arrive with
+      the next dispatch, and a wholly blocked implementer ends its phase early.
     status: delegated
     because:
       - d-ig8vxolb
