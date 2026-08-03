@@ -69,26 +69,42 @@ implementation begins. Everything design-relevant the work produces lands there 
 
 A **proposed entry is an escalation**: it requires the owner's ratification, and the build pauses
 where — and only where — it is blocked on the answer, progressing everywhere else until forced to
-stop. Delegated entries and open questions accumulate without interrupting anyone. The asymmetry
-between Plan and Implement is deliberate: **Plan exists to surface and ratify the big rocks**, so
+stop. An **open question blocks the same way**: whatever depends on its answer waits while the rest
+proceeds. Only delegated entries accumulate without interrupting anything. The asymmetry between
+Plan and Implement is deliberate: **Plan exists to surface and ratify the big rocks**, so
 everything raised there reaches the owner; **Implement exists to make progress**, so only what is
 hard to reverse interrupts it. Where an implementation pauses beyond that — after every wave, at
 completion — is orchestration configuration rather than process definition; agent guidance carries
 the flavours, and a product runs under the one that fits its risk.
 
+The companion increment is the **only channel**: every design change an implementation produces
+lands through it, as an ordinary design increment, and the implementation record carries no design
+content — target, packages, and coverage only. The merge gate reads only `proposed`, so a companion
+increment whose escalations were ruled as they arose lands gated by pull-request review and the
+validation checks rather than by per-entry rulings; a supersession of a ratified entry is still
+presented in the diff rather than discovered later, and ruling a delegated entry up — or reversing
+it — is implement-forward, whenever the owner chooses.
+
 At completion the companion increment is ratified as a whole — every decision ruled, every question
 answered or removed — and merges through the ordinary gate. Only then does the implementation
-publish, since releases wait for their design; whether the finished implementation waits on its own
-branch or merged-but-unreleased is deliberately unspecified. An implementation whose companion
-increment stayed empty simply closes it — an increment that declares nothing is not published. The
+publish: a design with no implementation is a safe state the process explicitly supports, and an
+implementation whose backing design has not published is not — so no package version releases and
+no document goes live before the targeted design is on main, with the controls enforcing that
+ordering deliberately deferred to a later increment. Whether the finished implementation waits on
+its own branch or merged-but-unreleased is unspecified. An implementation whose companion increment
+stayed empty simply closes it — an increment that declares nothing is not published. The
 implementation record keeps the statement honest throughout: what was implemented, against which
 increment, is pinned there, whatever the head has since become.
 
-When later design increments have already landed, this is **abort-and-retarget**: the companion
-increment lands at head, above whatever arrived meanwhile; the implementation retargets to the
-increment it produced, restarting or reconciling; and the loop repeats if further increments land
-first. Under fast enough design landings, nothing ever finishes implementing. That is accepted for
-a single owner authoring increments, where the race is rare and losing it is cheap.
+**Everything lands at head.** A record's `target` is the product's newest published increment at
+the moment it merges; a stale target is refused, and the implementation retargets first —
+recomputing against the declared deltas of whatever landed meanwhile, a bounded read rather than a
+re-review — so merge order and target order coincide at every landing. When later design increments
+have already landed, this is **abort-and-retarget**: the companion increment lands at head, above
+whatever arrived meanwhile; the implementation retargets to the increment it produced; and the loop
+repeats if further increments land first. Under fast enough design landings, nothing ever finishes
+implementing — accepted for a single owner authoring increments, where the race is rare and losing
+it is cheap.
 
 The alternative left behind, recorded so it is not relitigated: **implementer-amendment branches** —
 a hotfix increment forked from the targeted increment rather than landed at head, letting an
@@ -98,36 +114,6 @@ implementations re-solving the same problems — possibly differently — and in
 mid-stream while pinned amendments await manual incorporation. It layers onto abort-and-retarget
 without breaking anything, which is exactly why it waits for the condition that would justify it:
 agents autonomously managing increments at a pace where retargeting starves implementations.
-
-## One channel: how implementation output lands
-
-Every design change an implementation produces lands the same way: as an ordinary design
-increment at head. There is no second channel — no decisions block on the record, no
-implementation-scoped entries in the effective design, no interleaving semantics to define. The
-fold has one input kind, and everything in it entered through an increment.
-
-The companion increment is the vehicle, and its entries differ only in urgency. **Escalation** is
-the urgent case: a proposed entry — a requirement change, a pinned change, a would-be pin — ruled
-when raised, because the build cannot safely proceed past it. **Wrap-up** is the ordinary case: the
-unpinned decisions the implementation overturned, as superseding entries, and the choices worth
-keeping — delegated on entry, recorded rather than ruled. The merge gate reads only `proposed`, so
-a companion increment whose escalations were ruled as they arose lands gated by pull-request review
-and the validation checks rather than by per-entry rulings; a supersession of a ratified entry is
-still presented in the diff rather than discovered later, and ruling a delegated entry up — or
-reversing it — is implement-forward, whenever the owner chooses.
-
-**A record lands only at head.** Its `target` is the product's newest published increment at the
-moment it merges; a stale target is refused, and the implementation retargets first — recomputing
-against the declared deltas of whatever landed meanwhile, which is a bounded read, not a re-review.
-The consequence is that merge order and target order coincide at every landing: intervening
-increments exist while an implementation is in flight, never at the seam.
-
-**Releases wait for their design.** A design with no implementation is a safe state the process
-explicitly supports; an implementation whose backing design has not published is not. So no package
-version releases and no document deliverable goes live before the design increment its
-implementation targets is on main. The controls enforcing this ordering — where the hold lives,
-what checks it — are deliberately deferred to a later increment; this one records the rule and the
-deferral.
 
 ## Proving a claim is met
 
@@ -210,11 +196,6 @@ vetting of the check to the owner.
 Automation is a property of a check, not of its strength. A manual conformance case outranks an
 automated implementer's test, because strength comes from provenance and coupling; whether a check
 runs without a human prices re-running it, and is worth reporting on that ground alone.
-
-The first increment sets the bar at coverage itself — an attestation suffices — and reports the
-distribution of kinds. Later increments tighten the bar or turn a warning into an error. **The
-number worth watching is how many claims rest on attestation alone** — that is the honest measure
-of how much of the product rests on an agent's word.
 
 Requirements adopted from a preset are coverage-tracked exactly like product-local ones. Nothing
 about their origin changes what has to be shown.
