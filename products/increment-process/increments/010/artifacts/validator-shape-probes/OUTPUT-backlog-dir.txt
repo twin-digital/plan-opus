@@ -1,0 +1,81 @@
+
+> check
+> node bin/check-design.mjs && design-process check
+
+ok    yaml parse: —
+note  legacy format — regenerate: how-to-plan/harness
+ok    id not kebab-case: —
+ok    slug not unique per kind: —
+ok    missing required field: —
+ok    bad backing: —
+ok    bad fact status: —
+ok    bad requirement status: —
+ok    bad decision status: —
+ok    bad force: —
+ok    bad retire reason: —
+ok    retired fact without reason: —
+ok    superseded fact without superseded_by: —
+ok    superseded_by unresolved: —
+ok    fact supersedes itself: —
+ok    decision without a falsifier: —
+ok    requirement with sources: —
+ok    rationale not a block scalar: —
+ok    fact file outside the pool: —
+ok    sets.yaml is not a mapping of set name to design scopes: —
+ok    set name not unique: —
+ok    set without members: —
+ok    set holds another set: —
+ok    set member unresolved: —
+ok    area set holds another area's design: —
+ok    applies_to on a design-scoped requirement: —
+ok    applies_to is not a non-empty list: —
+ok    applies_to names an undeclared set: —
+ok    applies_to names no such design: —
+ok    applies_to reaches outside its tier: —
+ok    fact without a source: —
+ok    source has more than one locator: —
+ok    source has no locator: —
+ok    tested fact without a run source: —
+ok    documented fact without a url source: —
+ok    assumed fact without a description source: —
+ok    run source unresolved: —
+ok    source cites a retired run: —
+ok    run without where: —
+ok    run source on a non-tested fact: —
+ok    run output not found: —
+ok    run ran_at not a date: —
+ok    bad run status: —
+ok    retired run without reason: —
+ok    superseded run without superseded_by: —
+ok    url without where: —
+ok    source without a quote: —
+ok    in-repo url not repo-root-relative: —
+ok    quote not a block scalar: —
+ok    quote not verbatim at its source: —
+ok    artifact source on a non-tested fact: —
+ok    default stated explicitly: —
+ok    empty questions block: —
+ok    empty components block: —
+ok    component missing id: —
+ok    component missing responsibility: —
+ok    component after unresolved: —
+ok    question missing id: —
+ok    question missing text: —
+ok    question closes bad kind: —
+ok    question gates non-local decision: —
+ok    malformed citation token: —
+ok    citation unresolved: —
+ok    citation kind mismatch: —
+ok    citation of dead entry: —
+ok    citation of non-foundation kind: —
+ok    decision cited across designs: —
+ok    cites another design's requirement: —
+ok    cites another area's requirement: —
+ok    uncited at settle: —
+
+33 runs
+
+7 designs: how-to-plan/authoring (settled), how-to-plan/doc-structure (settled), how-to-plan/harness (legacy), how-to-plan/planning-lib (exploring), how-to-plan/spec-bundles (settled), minecraft/artifacts (exploring), minecraft/server-shim (exploring)
+entries: {"pool":201,"global":2,"area":8,"design":163}
+design check passed
+exit: 0
