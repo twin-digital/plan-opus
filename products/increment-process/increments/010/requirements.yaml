@@ -1,0 +1,62 @@
+version: "1"
+requirements:
+  - id: r-hbihi1xh
+    title: future work has a home outside any increment
+    statement: |
+      an idea for future work — planned at no particular time — can be captured the moment
+      it arises and held durably without opening an increment; the owner can review what is
+      held, and a later increment adopts an item when its work is planned.
+    verification:
+      - do: with no increment in flight, capture an item for future work
+      - verify: the item is held durably where the owner's review reaches it
+      - do: open a later increment that adopts the item
+      - verify: the adopted content enters that increment's sources at the ordinary foundation bar
+    facets: process-doc
+
+  - id: r-pvcrlqg5
+    title: capture is one action, by anyone
+    statement: |
+      capturing an item is a single ceremony-free action — one commit, one opened issue, or
+      the like — with no pull request, no increment, and no review gate at capture; the
+      owner and agents alike write to the channel, and an item's content is reviewed when
+      an increment adopts it, not when it is captured.
+    verification:
+      - do: as an agent mid-task, capture an item
+      - verify: the capture is one action, with no pull request opened and the task uninterrupted
+      - do: adopt the item in a later increment
+      - verify: the adopting increment's review is where the content is judged
+    facets: process-doc
+
+  - id: r-9qhjtznd
+    title: the backlog is worked through the tooling
+    statement: |
+      the process tooling carries the backlog's operations: add an item, update it, delete
+      it, list and search what is held, and send items into an increment's capture — one,
+      all of a product's, or those matching a tag filter — the owner and agents work the
+      backlog through these, not by hand against the store.
+    verification:
+      - do: add an item through the tooling, update it, list and search for it, then delete it
+      - verify: each operation round-trips without touching the store directly
+      - do: send an item into an increment's capture, then a product's remaining items filtered by tag
+      - verify: each sent item's content reaches the increment's working sources and the item leaves the backlog
+    facets: tooling
+
+  - id: r-oabwygl2
+    title: an item belongs to a product
+    statement: |
+      every backlog item is associated with exactly one product, and the association is
+      visible wherever items are listed or searched.
+    facets:
+      - tooling
+      - process-doc
+
+  - id: r-fvi1hqkn
+    title: an item is a braindump
+    statement: |
+      capture accepts near free-form markdown — whatever the capturer has, from one line
+      to several paragraphs; any structure the channel imposes stays light, and
+      foundation-bar prose is never required at capture.
+    verification:
+      - do: capture an item as free prose — several paragraphs, no prescribed fields beyond the channel's light structure
+      - verify: the channel accepts it unreformatted
+    facets: process-doc
