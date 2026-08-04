@@ -1,5 +1,5 @@
 ---
-version: "4"
+version: "14"
 ---
 
 # What the incremental process replaces
@@ -130,8 +130,12 @@ The old `products.yaml` already names the merges — its slot names are the face
 
 Each design becomes one increment of its product, ordered statically by dependency — a design
 others consumed converts as the earlier increment. A settled, published design becomes a
-published increment; an exploring or draft one becomes a draft increment sitting where
-unratified work sits, mid-Plan.
+published increment; an exploring or draft one becomes a draft increment at
+`products/<product>/increments/wip-<NNN>-<slug>/`, on the conversion's own pull-request branch.
+
+That second case does not merge as it converts. Main never holds a `wip-` directory, so the
+conversion of an unsettled design finishes its Plan on the branch and lands into a number
+before the change merges — the conversion carries the design through to settled, or it waits.
 
 ### Entries
 
