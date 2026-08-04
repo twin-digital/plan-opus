@@ -1,0 +1,419 @@
+version: "1"
+product: mc-dev-kit
+target: 2
+built_at: 2026-08-04
+packages:
+  - path: nodejs/minecraft/mc-dev-kit
+    version: 0.2.0
+coverage:
+  # ---- requirements, increment 001 ----
+  - claim: r-ziw808ls # the kit is a typed library
+    covered_by:
+      - kind: code-test
+        ref: src/consumer.test.ts
+        note: imports the package by name from a TypeScript consumer suite and reads the typed entry array without a cast
+      - kind: attestation
+        ref:
+          - src/index.ts
+          - src/types.ts
+        note: the one export is an async function returning Promise<readonly PackEntry[]>; nothing prints
+  - claim: r-jvb29tpu # the library name
+    covered_by:
+      - kind: code-test
+        ref: src/discover-packs.test.ts
+        note: asserts the package.json name is @twin-digital/mc-dev-kit
+      - kind: attestation
+        ref: package.json
+        note: published to npm under that name at 0.2.0
+  - claim: r-co6glnme # pack discovery
+    covered_by:
+      - kind: code-test
+        ref: src/discover-packs.test.ts
+        note: sound and broken packs land in one flat list; valid entries carry every detail, invalid entries their problems plus every non-manifest detail
+      - kind: attestation
+        ref: src/discover-packs.ts
+  - claim: r-0l79om74 # packs enumerable without a build
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/workspace-enumerator.test.ts
+          - test/fixture.ts
+        note: enumerates a workspace asserted to hold no node_modules and no lockfile; every fixture is an uninstalled, unbuilt temp tree
+      - kind: attestation
+        ref: src/internal/workspace-enumerator.ts
+  - claim: r-zcdmh9p6 # membership from source manifest presence
+    covered_by:
+      - kind: code-test
+        ref: src/internal/pack-locator.test.ts
+        note: both kinds found from the two fixed manifest paths, nothing else probed, a package holding neither contributes nothing
+      - kind: attestation
+        ref: src/internal/pack-locator.ts
+  - claim: r-4f1obncy # packages come from the workspace definition
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/workspace-enumerator.test.ts
+          - src/discover-packs.test.ts
+        note: npm and pnpm workspaces both enumerate; a pack-shaped directory the definition does not include yields no entry
+      - kind: attestation
+        ref: src/internal/workspace-enumerator.ts
+  - claim: r-ijeqntrd # the root package is a candidate
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/workspace-enumerator.test.ts
+          - src/discover-packs.test.ts
+        note: root packs are discovered under both managers; under npm the root is added since mapWorkspaces never returns it
+      - kind: attestation
+        ref: src/internal/workspace-enumerator.ts
+  - claim: r-r9t69mz7 # enumeration uses the managers' own libraries
+    covered_by:
+      - kind: attestation
+        ref:
+          - package.json
+          - src/internal/workspace-enumerator.ts
+        note: >
+          performed the procedure: dependencies hold @pnpm/workspace.read-manifest,
+          @pnpm/workspace.find-packages, and @npmcli/map-workspaces, all called in-process; the
+          enumeration path forwards patterns unread and expands none of its own
+      - kind: code-test
+        ref: src/internal/workspace-enumerator.test.ts
+        note: exclusion patterns and absent-pattern defaults behave as the libraries define, showing the patterns reach them unread
+  - claim: r-7v7o1jy8 # pack search
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/filter.test.ts
+          - src/discover-packs.test.ts
+        note: each criterion alone matches exactly, combined criteria conjoin, no filter and empty filter return everything, no match returns []
+      - kind: attestation
+        ref: src/internal/filter.ts
+  - claim: r-x40c0qx5 # pack record details
+    covered_by:
+      - kind: code-test
+        ref: src/discover-packs.test.ts
+        note: a valid unbuilt pack carries all seven details; invalid entries lack only the manifest-derived ones, and a versionless package's pack lacks its version
+      - kind: attestation
+        ref: src/types.ts
+  - claim: r-8h864ke8 # built output defaults to dist
+    covered_by:
+      - kind: code-test
+        ref: src/internal/pack-locator.test.ts
+      - kind: attestation
+        ref: src/internal/pack-locator.ts
+  - claim: r-un786n7v # built output mirrors the source layout
+    covered_by:
+      - kind: code-test
+        ref: src/internal/pack-locator.test.ts
+        note: every outputDir ends in its kind-named subdirectory, the single-pack package included
+      - kind: attestation
+        ref: src/internal/pack-locator.ts
+  - claim: r-1bvvl9k7 # kit produces no built output
+    covered_by:
+      - kind: code-test
+        ref: src/internal/pack-locator.test.ts
+        note: an outputDir that does not exist is reported without a problem
+      - kind: attestation
+        ref: src/internal/pack-locator.ts
+        note: >
+          performed the procedure: snapshotted an unbuilt workspace, ran discovery, and diffed —
+          outputDir reported, tree byte-identical, nothing under any output path; the code
+          computes outputDir from packageDir and kind and never touches the output tree
+  - claim: r-dj86ixj8 # manifest format version passes through
+    covered_by:
+      - kind: code-test
+        ref: src/internal/manifest-completion.test.ts
+        note: format_version 1, 2, an unrecognised string, and absence all pass through untouched; completion succeeds at 1, 2, and 3
+      - kind: attestation
+        ref: src/internal/manifest-completion.ts
+  - claim: r-11l92k9x # kit completes partial source manifests
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/manifest-completion.test.ts
+          - src/discover-packs.test.ts
+        note: name from productName or scope-stripped name, versions from package.json as SemVer strings, workspace dependencies completed cross-package, specified fields and versionless external dependencies each an error, array version at format_version 3 an error
+      - kind: attestation
+        ref: src/internal/manifest-completion.ts
+  - claim: r-jl42pzah # manifest fields are validated by form
+    covered_by:
+      - kind: code-test
+        ref: src/internal/manifest-shape.test.ts
+        note: every declared field faults in the wrong form; unheard-of format versions, non-uuid strings, and non-SemVer version strings raise nothing
+      - kind: attestation
+        ref: src/internal/manifest-shape.ts
+        note: every field PackManifest declares is form-checked, and no check tests a value against a list
+  - claim: r-xcz7nzr6 # uuids are claimed once in a workspace
+    covered_by:
+      - kind: code-test
+        ref: src/internal/pack-validation.test.ts
+        note: every claimant reported with the uuid and all claimant locations, none preferred; module uuids never checked
+      - kind: attestation
+        ref: src/internal/pack-validation.ts
+  - claim: r-fmkhgklz # uuids compare case-insensitively
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/manifest-completion.test.ts
+          - src/internal/pack-validation.test.ts
+          - src/internal/filter.test.ts
+        note: dependency resolution, duplicate detection, and search each lowercase both sides
+      - kind: attestation
+        ref: src/internal/manifest-completion.ts
+  - claim: r-fghzi5qq # manifest corroborates the directory kind
+    covered_by:
+      - kind: code-test
+        ref: src/internal/pack-validation.test.ts
+        note: uncorroborated kinds, foreign-kind modules, and typeless modules each a problem; unrecognised types ignored
+      - kind: attestation
+        ref: src/internal/pack-validation.ts
+  - claim: r-iby30nx1 # unresolvable packs fail loudly
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/pack-validation.test.ts
+          - src/discover-packs.test.ts
+        note: unparseable, identity-less, and dependent-on-invalid packs all return as invalid entries; invalidity propagates along edges; a scripting-module dependency is never a missing pack
+      - kind: attestation
+        ref: src/discover-packs.ts
+  # ---- requirements adopted from nodejs-library@1 ----
+  - claim: r-ds3q3en9 # node libraries are ESM TypeScript
+    covered_by:
+      - kind: attestation
+        ref:
+          - package.json
+          - tsconfig.build.json
+        note: >
+          performed the procedure: npm pack --dry-run lists dist .d.ts declarations beside the
+          ESM js and nothing else; "type" is "module" and every exports path resolves under the
+          import condition to dist ESM; require() from a CommonJS consumer fails with
+          ERR_PACKAGE_PATH_NOT_EXPORTED; the build target is ES2024 with engines node 24.x, the
+          active Node LTS
+  # ---- decisions, increment 001 ----
+  - claim: d-s43hmdgr # pack locations are workspace-relative
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/pack-locator.test.ts
+          - src/discover-packs.test.ts
+      - kind: attestation
+        ref: src/internal/paths.ts
+  - claim: d-y4kgdkqk # entries ordered by package path
+    covered_by:
+      - kind: code-test
+        ref: src/discover-packs.test.ts
+      - kind: attestation
+        ref: src/internal/paths.ts
+  - claim: d-xnv5kh7k # pnpm marker wins, npm is the fallback
+    covered_by:
+      - kind: code-test
+        ref: src/internal/workspace-enumerator.test.ts
+        note: a root holding both definitions is read as pnpm; a root without the marker as npm
+      - kind: attestation
+        ref: src/internal/workspace-enumerator.ts
+  - claim: d-39486z2s # a package with no source manifest yields no entry
+    covered_by:
+      - kind: code-test
+        ref: src/internal/pack-locator.test.ts
+      - kind: attestation
+        ref: src/internal/pack-locator.ts
+  - claim: d-vn8mwr1d # unreadable and unparseable manifests are one problem
+    covered_by:
+      - kind: code-test
+        ref: src/internal/pack-locator.test.ts
+        note: an unreadable file and an unparseable one each report the single manifest-unreadable carrying the underlying message
+      - kind: attestation
+        ref: src/internal/pack-locator.ts
+  - claim: d-n2e2njf4 # empty header name reads as unspecified
+    covered_by:
+      - kind: code-test
+        ref: src/internal/manifest-completion.test.ts
+      - kind: attestation
+        ref: src/internal/manifest-completion.ts
+  - claim: d-r3gbrxre # only format version 3 restricts version form
+    covered_by:
+      - kind: code-test
+        ref: src/internal/manifest-completion.test.ts
+        note: array versions accepted at 1, 2, and absence; a format_version the form pass faulted restricts nothing
+      - kind: attestation
+        ref: src/internal/manifest-completion.ts
+  - claim: d-n2kiacta # productName must be a non-empty string
+    covered_by:
+      - kind: code-test
+        ref: src/internal/manifest-completion.test.ts
+        note: absent, empty, and non-string productName each fall back with no problem
+      - kind: attestation
+        ref: src/internal/manifest-completion.ts
+  - claim: d-thhboim6 # filtering is a parameter of the discovery call
+    covered_by:
+      - kind: code-test
+        ref: src/discover-packs.test.ts
+      - kind: attestation
+        ref: src/types.ts
+        note: criteria are DiscoverOptions.filter, and the call returns a bare entry array with no search method anywhere
+  - claim: d-k7py0qqv # the pack set is read once per call
+    covered_by:
+      - kind: code-test
+        ref: src/discover-packs.test.ts
+        note: a pack added between calls appears on the next call, so nothing is cached or watched
+      - kind: attestation
+        ref: src/discover-packs.ts
+  - claim: d-ydph1k7d # enumeration failure rejects the call
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/discover-packs.test.ts
+          - src/internal/workspace-enumerator.test.ts
+        note: a missing definition and a broken member package.json each reject with the library's own error unwrapped
+      - kind: attestation
+        ref: src/internal/workspace-enumerator.ts
+  - claim: d-6g8oo8je # output locations are computed, not probed
+    covered_by:
+      - kind: code-test
+        ref: src/internal/pack-locator.test.ts
+      - kind: attestation
+        ref: src/internal/pack-locator.ts
+  - claim: d-ed610d8c # the problem code set is closed
+    covered_by:
+      - kind: code-test
+        ref: src/discover-packs.test.ts
+        note: one workspace raises all eighteen codes and nothing outside the union
+      - kind: attestation
+        ref: src/types.ts
+        note: Problem is a closed discriminated union; no constructor takes a free-form code
+  - claim: d-61fegb3o # invalid entries omit only manifest-derived details
+    covered_by:
+      - kind: code-test
+        ref: src/discover-packs.test.ts
+      - kind: attestation
+        ref: src/types.ts
+  - claim: d-f72ia08n # entry version is the completed package version
+    covered_by:
+      - kind: code-test
+        ref: src/discover-packs.test.ts
+      - kind: attestation
+        ref: src/discover-packs.ts
+  - claim: d-fm9m41kc # relative paths are POSIX, with the root as a dot
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/pack-locator.test.ts
+          - src/internal/workspace-enumerator.test.ts
+      - kind: attestation
+        ref: src/internal/paths.ts
+  - claim: d-me8ieqnr # a nameless package is named by its directory
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/pack-locator.test.ts
+          - src/internal/manifest-completion.test.ts
+        note: the basename stands in as packageName, and package-name-missing invalidates the pack
+      - kind: attestation
+        ref: src/internal/pack-locator.ts
+  - claim: d-o0ebrog9 # manifest shape faults are one problem
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/manifest-shape.test.ts
+          - src/internal/pack-locator.test.ts
+      - kind: attestation
+        ref: src/internal/manifest-shape.ts
+  - claim: d-7ototrq5 # field type faults reuse the shape code
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/manifest-shape.test.ts
+          - src/discover-packs.test.ts
+      - kind: attestation
+        ref: src/internal/manifest-shape.ts
+  - claim: d-6w788t2t # a form fault suppresses the checks that read it
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/manifest-completion.test.ts
+          - src/internal/pack-validation.test.ts
+        note: a faulted field reports its shape fault alone; every completion and check reading it is skipped
+      - kind: attestation
+        ref: src/internal/candidate.ts
+  - claim: d-x0mb3mjg # an ambiguous dependency entry is a problem
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/manifest-completion.test.ts
+          - src/internal/manifest-shape.test.ts
+      - kind: attestation
+        ref: src/internal/manifest-shape.ts
+  - claim: d-dba1hiu7 # an unsatisfied dependency names both readings
+    covered_by:
+      - kind: code-test
+        ref: src/internal/manifest-completion.test.ts
+      - kind: attestation
+        ref: src/internal/manifest-completion.ts
+  - claim: d-dbf88op0 # invalidity propagates to a fixpoint
+    covered_by:
+      - kind: code-test
+        ref: src/internal/pack-validation.test.ts
+        note: a two-edge chain invalidates transitively, and a cycle among sound packs stays valid
+      - kind: attestation
+        ref: src/internal/pack-validation.ts
+  - claim: d-rl1msrus # workspace defaults to the current directory
+    covered_by:
+      - kind: code-test
+        ref: src/discover-packs.test.ts
+      - kind: attestation
+        ref: src/discover-packs.ts
+  - claim: d-a8lgrojc # the exported surface
+    covered_by:
+      - kind: code-test
+        ref: src/consumer.test.ts
+        note: the entry point and every named type import and typecheck; a valid manifest reads uncast, an invalid one is unknown
+      - kind: attestation
+        ref:
+          - src/index.ts
+          - src/types.ts
+  - claim: d-wytigz6u # the problem codes
+    covered_by:
+      - kind: code-test
+        ref: src/discover-packs.test.ts
+      - kind: attestation
+        ref: src/types.ts
+        note: the union carries exactly the eighteen listed codes with exactly the extra fields named for each
+  - claim: d-cdbyhv6x # which libraries enumerate
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/workspace-enumerator.test.ts
+          - src/discover-packs.test.ts
+        note: pnpm patterns forwarded unread, npm root added as its own candidate, a directory reached twice yields one candidate
+      - kind: attestation
+        ref:
+          - src/internal/workspace-enumerator.ts
+          - package.json
+  - claim: d-mqdghcuf # criteria on absent values never match
+    covered_by:
+      - kind: code-test
+        ref: src/internal/filter.test.ts
+      - kind: attestation
+        ref: src/internal/filter.ts
+  # ---- decisions, increment 002 (the coverage-reconstruction companion) ----
+  - claim: d-io1gczjj # a byte-order mark does not make a manifest unreadable
+    covered_by:
+      - kind: code-test
+        ref: src/internal/pack-locator.test.ts
+        note: a manifest saved with a byte-order mark parses with no problem
+      - kind: attestation
+        ref: src/internal/json.ts
+  - claim: d-6wjeomr5 # completion overwrites a specified field it reports
+    covered_by:
+      - kind: code-test
+        ref: src/internal/manifest-completion.test.ts
+        note: a specified header name, header version, and matched dependency version each report their error and carry the package-derived value anyway
+      - kind: attestation
+        ref: src/internal/manifest-completion.ts
+  - claim: d-0thqo4n0 # the entry uuid is the lowercased spelling
+    covered_by:
+      - kind: code-test
+        ref: src/discover-packs.test.ts
+        note: a mixed-case header uuid reports a lowercased entry uuid while the manifest keeps the source spelling
+      - kind: attestation
+        ref: src/discover-packs.ts
