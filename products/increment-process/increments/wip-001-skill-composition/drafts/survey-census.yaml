@@ -1,0 +1,272 @@
+# Survey census — increment-process, draft wip-001-skill-composition
+# Read-only. Entries are choices the draft fold neither decides nor defers.
+# Classification is Clarify's; readings are the implementer's.
+
+- package: .claude/skills/increment
+  kind: agent-skill
+  status: proposed new package (d-80yxesle, d-lv3oyfaj)
+  census:
+    - choice: >
+        the form the phase takes in the invocation — a positional argument the Skill
+        tool passes as `args`, a slash form, or prose in the dispatching prompt.
+      where: >
+        Compose, writing SKILL.md's opening router; and every other package's
+        instruction that names how to run a phase.
+      reading: >
+        d-80yxesle says "the phase is named in the invocation" and stops there. This is
+        the surface that replaces two skill names an agent used to type, so it is
+        consumer-visible and not an implementation detail.
+
+    - choice: >
+        what the skill does when invoked with no phase named, or with an unrecognised one.
+      where: Compose, the router at the head of SKILL.md.
+      reading: >
+        Observable behaviour with three plausible answers — ask, refuse, or infer from
+        the request. Nothing in the fold rules it.
+
+    - choice: >
+        the single `description` frontmatter spanning both phases, and whether the
+        package opts out of model invocation.
+      where: Compose, the frontmatter.
+      reading: >
+        `description` is what selects a skill among many. With two deliberately-invoked
+        phases, disabling model invocation may be the right answer. The wording is
+        authorial; whether the skill is model-selectable at all is not.
+
+    - choice: >
+        which of the Implement phase's landing steps sit in SKILL.md's shared landing
+        section and which stay in implement.md.
+      where: Compose, allocating the lifecycle content d-80yxesle assigns to SKILL.md.
+      reading: >
+        The two landings are not the same procedure. A plan draft lands with ancestry,
+        the conflict check, the rename, and a clean gate; a companion increment lands
+        with all of those plus ratify-as-a-whole, the overturn count (d-e8h0g9e3),
+        close-unmerged-if-empty (d-qoks4n67), and then the record. Under r-15psk4yp this
+        allocation is exactly what the requirement governs.
+
+    - choice: >
+        which package states each rule governing both orchestrator and implementer —
+        d-cau8oksc, d-29fjsjn2, d-blant5zn, d-ub6h6h5u, d-98df3rlb, d-msvpbva6,
+        d-nt7tach6 — and whether stating one in both violates r-15psk4yp.
+      where: >
+        Claims, allocating the in-force claim set across increment/implement.md and
+        implement-package/SKILL.md; then Compose in both.
+      reading: >
+        f:skill-references-stay-one-level-deep rules out one skill linking the other, and
+        no bundled-file trick spans them. So the build either duplicates these rules —
+        the two-copies failure r-15psk4yp names — or splits each rule so each side states
+        its own half. My reading is that r-15psk4yp as written is not satisfiable across
+        the two-package split for this set: the by-audience grouping answers r-w2m32yl6
+        without answering r-15psk4yp.
+
+    - choice: >
+        what becomes of the retired invocation names `plan` and `implement` — deleted
+        outright, or left as stubs pointing at the new one.
+      where: Compose / the orchestrator's package-set change.
+      reading: >
+        d-80yxesle and d-lv3oyfaj pin the new paths and say nothing about the old ones.
+        An agent, a stored prompt, or a CLAUDE.md line invoking `plan` gets nothing after
+        the merge, silently.
+
+    - choice: >
+        what the skill instructs when an agent opens a second draft increment in a tree
+        that already holds one it is not stacked on.
+      where: Compose, the "open a draft" step of the shared lifecycle.
+      reading: >
+        d-x0q4xgd8 says that tree state "is not supported" without saying what an agent
+        does instead. Unsupported is not a behaviour.
+
+- package: .claude/skills/implement-package
+  kind: agent-skill
+  status: proposed new package (d-63z31u0l, d-7a6o1qw9, d-mq2th41t)
+  census:
+    - choice: >
+        how the dispatched kind reaches the implementer, and where the kind → wave-file
+        mapping is written.
+      where: Compose, the head of SKILL.md; and the dispatch step of increment/implement.md.
+      reading: >
+        d-63z31u0l says the dispatcher "passes the kind" and d-cau8oksc pins that the
+        dispatcher never knows a kind's waves — so the mapping belongs to
+        implement-package/SKILL.md, which the fold implies but does not state. It is the
+        contract between two packages.
+
+    - choice: >
+        where a kind with no wave file is detected, and at which phase boundary the open
+        question is raised.
+      where: Compose, the router in SKILL.md; and the dispatch step in implement.md.
+      reading: >
+        The old dispatcher held a kind→skill table and could refuse before dispatching.
+        Under d-cau8oksc the merged dispatcher cannot know which kinds have wave files, so
+        detection moves inside the implementer, one dispatch later.
+
+    - choice: >
+        which shared implementer rules move out of the current implement/SKILL.md into
+        implement-package/SKILL.md, and which stay with the orchestrator.
+      where: Claims, the allocation; Compose, both packages.
+      reading: >
+        The other side of the increment-package entry above. The Claims wave cannot
+        produce its list without the answer.
+
+    - choice: >
+        whether waves/code.md and waves/document.md may restate any shared rule, or must
+        carry only the wave descriptions.
+      where: Compose, writing the two wave files.
+      reading: >
+        r-w2m32yl6 forbids the code implementer reading the document waves; it says
+        nothing about a wave file repeating the phase contract for local readability,
+        which r-15psk4yp forbids. The two requirements pull opposite ways on the same file.
+
+    - choice: >
+        whether an implementer is still pointed at docs/process-reference.md, and at
+        which sections.
+      where: Compose, the "Full rules:" line both current implementer skills open with.
+      reading: >
+        The reference's "Dispatch" section carries *both* wave tables. Following that
+        pointer puts the document waves in a code implementer's context, which is what
+        r-w2m32yl6 forbids — the requirement's verification turns on whether a linked
+        reference counts as something it reads.
+
+- package: .claude/skills/plan
+  kind: agent-skill
+  status: replaced by .claude/skills/increment (d-80yxesle supersedes d-ebyludv0)
+  census:
+    - choice: whether the directory is deleted, or kept as a stub redirecting to `increment`.
+      where: Compose / the product.yaml change removing the package.
+      reading: >
+        d-ebyludv0 is pinned public-api on the ground that "agents invoke the skill by
+        name; the path is the surface". Retiring a pinned surface with no transitional
+        form is a consumer-visible break the superseding decision does not address.
+
+- package: .claude/skills/implement
+  kind: agent-skill
+  status: replaced by .claude/skills/increment (d-lv3oyfaj supersedes d-ng02vmcd)
+  census:
+    - choice: whether the directory is deleted, or kept as a stub.
+      where: Compose / the product.yaml change removing the package.
+      reading: >
+        Sharper than the plan package's: d-ng02vmcd is pinned as "the entry point every
+        implementation of every product runs through".
+
+- package: .claude/skills/implement-code
+  kind: agent-skill
+  status: replaced by .claude/skills/implement-package (d-7a6o1qw9 supersedes d-x2xw2tp2)
+  census:
+    - choice: whether the directory is deleted outright.
+      where: Compose / the product.yaml change removing the package.
+      reading: >
+        d-x2xw2tp2 is delegated and unpinned, and the skill is dispatched rather than
+        typed, so the break is narrower. Close to an implementation detail — returned
+        because the same question has a different answer for the pinned pair, and a build
+        that answered it once for all four would get two wrong.
+
+- package: .claude/skills/implement-document
+  kind: agent-skill
+  status: replaced by .claude/skills/implement-package (d-mq2th41t supersedes d-ydcyoa80)
+  census:
+    - choice: whether the directory is deleted outright.
+      where: Compose / the product.yaml change removing the package.
+      reading: As for implement-code; d-ydcyoa80 is delegated and unpinned.
+
+- package: docs/process-reference.md
+  kind: document
+  census:
+    - choice: >
+        how far r-15psk4yp reaches — whether it governs only the skills among
+        themselves, or also the reference restating rules the skills operationalize.
+      where: Claims, whether the reference sheds content; Check, the shadow-claim audit.
+      reading: >
+        d-29fjsjn2 is stated by the reference and all four skills — five statements of
+        one rule. As written the requirement forbids that, and satisfying it would move
+        normative content into skills, which runs against d-vt9r9zn5 (pinned):
+        instruction to agents is not a document deliverable. A
+        requirement-against-pinned-decision collision, and a stop-and-ask.
+
+    - choice: which package states r-w2m32yl6 and r-15psk4yp themselves.
+      where: Claims, allocating the newly in-force requirements.
+      reading: >
+        The reference is where process requirements are normally stated, but these are
+        rules about how agent instruction is written, which d-vt9r9zn5 assigns to skills
+        and CLAUDE.md. A record could cover them by attestation on file layout with no
+        document stating them — legal, and the weakest outcome.
+
+    - choice: >
+        whether "Dispatch: kind selects the wave shape" is rewritten now that kind
+        selects a file inside one skill rather than a package.
+      where: Compose, the Dispatch section.
+      reading: >
+        The claim stays true and the reference never names a skill path, so a build could
+        leave it untouched. But the section carries both wave tables, which is the content
+        r-w2m32yl6 wants kept apart.
+
+- package: docs/process-migration.md
+  kind: document
+  census:
+    - choice: >
+        whether the migration record covers supersessions inside the process — four
+        retired skill packages — or only what predates the incremental process.
+      where: Claims, whether this package carries any of the draft's claims.
+      reading: >
+        Every section is about the pre-process regime. It matters because this is the only
+        place a reader holding a stale `implement-code` habit would look. My reading: the
+        remit is historical and it should stay untouched, but that is not written anywhere.
+
+- package: docs/authoring.md
+  kind: document
+  census: []
+  note: >
+    Empty. The draft proposes no foundation this package states, and increment 013 lands
+    nothing here either. A build meets no unaccounted choice in this package.
+
+- package: nodejs/plan/design-process
+  kind: npm-cli
+  repo: twin-digital/opus
+  census:
+    - note: >
+        The draft itself touches nothing here — `kind` is a free string and the tooling
+        holds no knowledge of skills or wave shapes, so the package-set change is a
+        product.yaml edit the validator already accepts. Every entry below arises from
+        increment 013 being published and unimplemented.
+
+    - choice: >
+        what makes a directory a wip directory to the parser, and what the gate does with
+        a near-miss — `wip-1-slug`, `wip-abc`, `wip-001` with no slug, `wip-001-` empty.
+      where: check and the projection's increment discovery.
+      reading: >
+        Neither d-x0q4xgd8 nor d-1qn5jzgd says whether a malformed name is a draft with a
+        bad name, an ordinary illegal increment directory, or invisible. An author either
+        sees a finding while drafting or sees nothing, which is what r-4z3yd1ri is about.
+
+    - choice: >
+        what the tooling does when a tree holds two draft increments that are not
+        ancestor and dependent.
+      where: the projection's fold ordering; check.
+      reading: >
+        d-x0q4xgd8 says that state "is not supported", which is not a behaviour. The build
+        must pick between a finding, a hard error, and folding by ordinal anyway.
+
+    - choice: whether `conflicts` still covers wip directories.
+      where: findLandingConflicts' directory selection.
+      reading: >
+        d-kmagri5u fixes coverage as "slug-named or numbered above the head", written
+        before wip-NNN existed. A `wip-001-slug` directory is slug-named on a loose
+        reading and not on a strict one. The landing gate silently covering nothing is the
+        failure mode, and it exits 0 either way.
+
+    - choice: >
+        how `show` renders a draft increment beyond its heading — the "changes at
+        increment N" trailer, the "previous increment" line, and the status counts.
+      where: the projection's rendering.
+      reading: >
+        The trailer sections are keyed to a number the draft does not have. Close to an
+        implementation detail, but the projection is what the owner reads at Ratify, so a
+        reader has to tell draft claims from published ones.
+
+    - choice: >
+        whether a coverage summary computed over a fold that includes draft increments is
+        the one an implementation record is checked against.
+      where: the projection's coverage join, and the record-filing step.
+      reading: >
+        d-x1mhu3a3 has the summary count a draft's claims; d-3orwwaze and the record's gap
+        refusal are written against the fold at a published target. An implementer filing
+        a record in a tree holding a draft could not reach zero uncovered. It blocks a
+        landing rather than degrading quietly.
