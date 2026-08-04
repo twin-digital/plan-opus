@@ -27,27 +27,29 @@ requirements:
       - tooling
 
   - id: r-ca9witxh
-    title: parallel drafts declare their dependencies
+    title: dependencies between drafts are implicit
     statement: |
-      an in-flight draft may depend on another by declaring it; landing respects the
-      declared order — a draft lands only after the drafts it names — and independent
-      drafts land in any order.
+      a draft depends on another when it builds on it — citing its foundations, amending
+      them, or retiring them — with nothing declared; landing respects the derived order,
+      a draft landing only after the drafts it builds on, and independent drafts land in
+      any order.
     verification:
-      - do: declare one draft dependent on another, then attempt to land the dependent one first
-      - verify: the landing is refused until the named draft has landed
+      - do: have one draft cite a foundation another in-flight draft proposes, then attempt to land the citing draft first
+      - verify: the landing is refused until the draft it builds on has landed
     facets:
       - process-doc
       - tooling
 
   - id: r-0701ctqx
-    title: parallel drafts stay disjoint, and landing checks it
+    title: drafts do not conflict, and landing checks it
     statement: |
-      two in-flight drafts may not rule the same choice or plan the same feature, and
-      landing into the sequence includes a sanity check for duplication or overlap —
-      against the fold and the remaining drafts — before the slot is claimed.
+      no two in-flight drafts rule the same choice or duplicate one another's rulings —
+      building on another draft's foundations is a dependency, not a conflict — and
+      landing into the sequence checks for overlapping or conflicting rulings, against the
+      fold and the remaining drafts, before the merge claims the slot.
     verification:
       - do: land a draft while another is in flight
-      - verify: the landing surfaces any duplicated or overlapping rulings the parallel work introduced, and a clean check claims the slot
+      - verify: the landing surfaces any duplicated or conflicting rulings the parallel work introduced, and a clean check claims the slot
     facets:
       - process-doc
       - tooling
