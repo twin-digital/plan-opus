@@ -1,0 +1,142 @@
+- id: an-unsatisfiable-peer-range-fails-npm-and-warns-pnpm-and-yarn
+  claim: |
+    A package declaring a peer dependency at a range the installing consumer's own pin cannot
+    satisfy is a hard install failure under npm and a warning under pnpm and yarn. Against a
+    consumer depending on `@minecraft/server` at `^1.17.0` (resolved to 1.19.0) and on a package
+    peer-declaring `^2.8.0`, npm 11.13.0 exited 1 with `ERESOLVE unable to resolve dependency
+    tree`, installing nothing at all — no `node_modules` for either package, so there is no run
+    time to reach. pnpm 11.17.0 and yarn 1.22.22 each exited 0, installed 1.19.0 alongside the
+    package, and reported the mismatch as a warning; the package imported cleanly afterwards.
+    `peerDependenciesMeta: { optional: true }` does not rescue the npm case: it still exits 1,
+    reporting `ERESOLVE could not resolve` and `Conflicting peer dependency` against a
+    `peerOptional` edge. Optional covers a peer that is absent, not one present at a conflicting
+    version. Under pnpm the flag changes nothing observable — the install still warns and
+    `pnpm peers check` still exits 1 listing the unmet peer — while under yarn classic it
+    suppresses the warning entirely.
+  caveat: |
+    npm enforces this only on the shape a published install takes. Where the package reaches
+    `node_modules` through a `file:` spec pointing at a source *directory*, npm 11.13.0 installed
+    it silently, exit 0 with no warning and no error, the peer range unenforced; the same manifest
+    delivered as an `npm pack` tarball failed. pnpm and yarn warned identically under both shapes.
+    So a local `file:` directory install is not a check on what a consumer installing from the
+    registry will see. The observation is of these manager versions, and npm's behaviour in
+    particular has changed across major versions.
+  backing: tested
+  sources:
+    - run: peer-range-mismatch-probe
+      where: npm 11.13.0 | packed tarball | plain peer — exit code and the head of the install output
+      quote: |
+        install exit code: 1
+        --- install output ---
+        npm error code ERESOLVE
+        npm error ERESOLVE unable to resolve dependency tree
+        npm error
+        npm error While resolving: peer-probe-consumer@0.0.0
+        npm error Found: @minecraft/server@1.19.0
+        npm error node_modules/@minecraft/server
+        npm error   @minecraft/server@"^1.17.0" from the root project
+        npm error
+        npm error Could not resolve dependency:
+        npm error peer @minecraft/server@"^2.8.0" from @twin-digital/peer-probe-shim@0.1.0-npm-tgz-plain
+    - run: peer-range-mismatch-probe
+      where: npm 11.13.0 | packed tarball | plain peer — the after-install block
+      quote: |
+        --- after install ---
+        shim-import=import failed (ERR_MODULE_NOT_FOUND)
+        installed-minecraft-server=absent (ENOENT)
+        installed-shim=absent (ENOENT)
+    - run: peer-range-mismatch-probe
+      where: npm 11.13.0 | packed tarball | peerDependenciesMeta.optional — exit code and the ERESOLVE lines naming the optional edge
+      quote: |
+        shim peerDependenciesMeta: {"@minecraft/server":{"optional":true}}
+        install exit code: 1
+        --- install output ---
+        npm error code ERESOLVE
+        npm error ERESOLVE could not resolve
+        npm error
+        npm error While resolving: @twin-digital/peer-probe-shim@0.1.0-npm-tgz-optional
+        npm error Found: @minecraft/server@1.19.0
+        npm error node_modules/@minecraft/server
+        npm error   @minecraft/server@"^1.17.0" from the root project
+        npm error
+        npm error Could not resolve dependency:
+        npm error peerOptional @minecraft/server@"^2.8.0" from @twin-digital/peer-probe-shim@0.1.0-npm-tgz-optional
+    - run: peer-range-mismatch-probe
+      where: "npm 11.13.0 | file: directory | plain peer — exit code, install output, and what landed"
+      quote: |
+        install exit code: 0
+        --- install output ---
+
+        added 4 packages, and audited 6 packages in 418ms
+
+        found 0 vulnerabilities
+
+        --- after install ---
+        shim-import=true
+        installed-minecraft-server=1.19.0
+    - run: peer-range-mismatch-probe
+      where: pnpm 11.17.0 | packed tarball | peerDependenciesMeta.optional — the warning, the peers check, and what landed
+      quote: |
+        install exit code: 0
+        --- install output ---
+        Progress: resolved 1, reused 0, downloaded 0, added 0
+        Packages: +4
+        ++++
+        Progress: resolved 4, reused 3, downloaded 1, added 4, done
+        [WARN] Issues with peer dependencies found. Run "pnpm peers check" to list them.
+
+        dependencies:
+        + @minecraft/server 1.19.0 (2.8.0 is available)
+        + @twin-digital/peer-probe-shim 0.1.0-pnpm-tgz-optional
+
+        Done in 628ms using pnpm v11.17.0
+
+        --- pnpm peers check (exit 1) ---
+        Issues with peer dependencies found
+
+        ✕ unmet peer @minecraft/server
+          Installed: 1.19.0
+          Wanted:
+            ^2.8.0:
+              @twin-digital/peer-probe-shim@0.1.0-pnpm-tgz-optional
+
+        --- after install ---
+        shim-import=true
+        installed-minecraft-server=1.19.0
+    - run: peer-range-mismatch-probe
+      where: yarn 1.22.22 | packed tarball | plain peer — exit code, the peer warning, and what landed
+      quote: |
+        install exit code: 0
+        --- install output ---
+        yarn install v1.22.22
+        info No lockfile found.
+        [1/4] Resolving packages...
+        [2/4] Fetching packages...
+        [3/4] Linking dependencies...
+        [4/4] Building fresh packages...
+        success Saved lockfile.
+        Done in 0.26s.
+        warning " > @minecraft/server@1.19.0" has unmet peer dependency "@minecraft/vanilla-data@>=1.20.70".
+        warning " > @twin-digital/peer-probe-shim@0.1.0-yarn-tgz-plain" has incorrect peer dependency "@minecraft/server@^2.8.0".
+
+        --- after install ---
+        shim-import=true
+        installed-minecraft-server=1.19.0
+    - run: peer-range-mismatch-probe
+      where: yarn 1.22.22 | packed tarball | peerDependenciesMeta.optional — the same install with no warning naming the shim
+      quote: |
+        install exit code: 0
+        --- install output ---
+        yarn install v1.22.22
+        info No lockfile found.
+        [1/4] Resolving packages...
+        [2/4] Fetching packages...
+        [3/4] Linking dependencies...
+        [4/4] Building fresh packages...
+        success Saved lockfile.
+        Done in 0.24s.
+        warning " > @minecraft/server@1.19.0" has unmet peer dependency "@minecraft/vanilla-data@>=1.20.70".
+
+        --- after install ---
+        shim-import=true
+        installed-minecraft-server=1.19.0
