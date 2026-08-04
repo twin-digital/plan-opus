@@ -1,0 +1,122 @@
+version: "1"
+
+# Consumer-observable choices the shipped package makes that increment 001 does not record,
+# found while reconstructing coverage for the first implementation record — plus one
+# supersession where the shipped classes do not carry what the inherited entry claims.
+decisions:
+  - id: d-1yoff5vk
+    title: subscription is set-shaped and dispatch snapshots
+    statement: |
+      `subscribe` returns the callback it was given, a reference subscribed twice is delivered
+      once, re-subscribing moves it to the end of the dispatch order, and unsubscribing a
+      never-subscribed function is ignored. A dispatch iterates a snapshot of the subscriber set —
+      a handler subscribed during it is not called in that dispatch, and one unsubscribed
+      mid-dispatch still runs — and every subscriber receives the same payload object, so a
+      before-event handler's writes are visible to the handlers after it. Cancellation is
+      last-write-wins: only the final value of `cancel` is consulted
+    status: delegated
+    because:
+      - r-1a9mpjev
+      - d-1z8ovey4
+    facets: fakes
+
+  - id: d-41hmcpd4
+    title: a filtered subscription throws
+    statement: |
+      a `subscribe` call carrying an options argument throws `NotImplementedError` naming the
+      signal class, rather than honouring the call and dropping the filter — which would deliver
+      events the engine withholds. The package carries this as its own ruling, raised for a design
+      ruling as plan-opus#119
+    status: delegated
+    because:
+      - d-qz2aoixe
+      - r-62r76czb
+    facets: fakes
+
+  - id: d-h2iduynr
+    title: advanceTicks edge rules
+    statement: |
+      `advanceTicks` requires a non-negative whole count, throwing `InvalidArgumentError`
+      otherwise; a delay or interval below one tick behaves as one, so no schedule can hang an
+      advance; and a scheduled callback that throws propagates out of the advance rather than
+      being recorded as a handler error — the run that threw is spent, the rest of that tick's
+      work stays owing and runs on the next advance, and a throwing interval is advanced to its
+      next period rather than skipping a firing
+    status: delegated
+    because:
+      - d-dodefnml
+      - d-pvnu83vf
+    facets: fakes
+
+  - id: d-kfvz7vjc
+    title: unswept guard tables follow the declarations
+    statement: |
+      the per-member guard tables for the surfaces no reflective sweep reached — the 61
+      unmodelled entity components, `ScreenDisplay`, and `ScoreboardObjective` — follow the
+      declarations' own `@throws` split rather than an observation, and `guard-data.json` records
+      that footing on each table
+    status: delegated
+    because:
+      - d-zv2x5luo
+    facets: fakes
+
+  - id: d-6jb4l8ox
+    title: the typeId requirement is the signature's
+    statement: |
+      `createEntity` requires `typeId` through its declared signature alone: a strict compile
+      refuses the omission, and the runtime re-checks nothing — a type-unchecked call without one
+      falls through the construction path shared with `createPlayer` to the player typeId rather
+      than throwing
+    status: delegated
+    because:
+      - r-nmkxdrga
+    facets: fakes
+
+  - id: d-6wcdebqb
+    title: addEffect refuses NaN and Infinity with its own error
+    statement: |
+      `addEffect` on a `NaN` or non-finite amplifier or duration throws the library's
+      `ArgumentOutOfBoundsError`, where the engine refuses these with a `TypeError` ahead of its
+      bounds check — the refusal is reproduced, the error's shape is not, and the README carries
+      the difference as a divergence
+    status: delegated
+    because:
+      - r-8r8gf6b7
+    facets: fakes
+
+  - id: d-tpckju5u
+    title: every hit lands — no invulnerability window
+    statement: |
+      `applyDamage` applies every call in full: the engine's post-hit invulnerability window is
+      not reproduced, so consecutive calls each take their full amount where the engine absorbs
+      the second, and the README carries the difference as a divergence
+    status: delegated
+    because:
+      - d-khn6zzgj
+    facets: fakes
+
+  - id: d-d8m2q6iz
+    title: two error classes match by name and message only
+    statement: |
+      the library exports its own `InvalidEntityError` matching the engine's declared shape — the
+      readonly `id` and `type` fields, assignable to the declaration without a cast — while its
+      `ArgumentOutOfBoundsError` and `InvalidArgumentError` match the engine's names and observed
+      messages but not the declared shapes, `@minecraft/common` declaring `index` and bounds
+      fields these classes do not carry; `NotImplementedError` and `UnsetValueError` are the
+      library's own
+    status: delegated
+    supersedes: d-9bys1gsh
+    facets: fakes
+
+  - id: d-ow872rp7
+    title: asSpawnedEntity zeroes the xp_orb frame too
+    statement: |
+      `asSpawnedEntity` applies the observed zero spawn frame — empty `nameTag`, zero rotation,
+      zero velocity — to every entity type, `minecraft:xp_orb` included, whose observed frame is a
+      randomized rotation and a nonzero randomized velocity; the preset simplifies past the
+      per-type draw and the README carries the difference as a divergence
+    status: delegated
+    because:
+      - d-fkbx974k
+      - r-8r8gf6b7
+    facets: fakes
