@@ -112,3 +112,57 @@ for the plan/implement pair — which the owner should see before it is decided.
    anywhere — which would reach the skills-restate-the-reference overlap too, a much larger
    change. If it is meant to govern only the skills among themselves, it should say so.
 2. **Is the plan/implement landing duplication in scope for this increment**, or a later one?
+
+## Revision: the vendor guidance settles it
+
+Anthropic's skill-authoring guidance answers two things the first pass guessed at.
+
+**Nested references are an anti-pattern.** "Claude may partially read files when they're
+referenced from other referenced files… Keep references one level deep from SKILL.md."
+(`f:skill-references-stay-one-level-deep`.) That kills option D — a skill citing a second
+skill puts the second skill's own references two hops from the reader, and a landing procedure
+read with `head -100` is a bad merge waiting to happen.
+
+**Per-domain files are the documented way to keep irrelevant context out.** The `bigquery-skill`
+example — `SKILL.md` plus `reference/{finance,sales,product}.md` — is structurally what
+`d-63z31u0l` proposes (`f:skill-domain-files-keep-irrelevant-context-out`).
+
+The guidance is otherwise **silent on sharing between skills**. Every reuse mechanism it
+describes lives inside one skill directory; the community workaround is symlinking a shared
+directory into each skill, which is a filesystem trick rather than a supported feature. The
+transferable instinct is not "extract a module and import it" — there is no import — but
+"cohesion beats DRY": two units sharing this much are one unit.
+
+### Why two packages and not one
+
+Grouping follows **who reads the SKILL.md**, because it loads in full for everyone who invokes
+it. Two audiences never overlap: the owner running a phase, and an implementer subagent
+dispatched for one package. `d-cau8oksc` already fixes that the dispatcher never knows a kind's
+waves, so nothing flows the other way either. One merged package would give every audience a
+router carrying material it cannot use.
+
+```
+.claude/skills/increment/          invoked per phase
+  SKILL.md          the draft-increment lifecycle: open, land
+  plan.md           Capture, Clarify, Check, Survey offer, Ratify
+  implement.md      bind, companion, dispatch, parallel, survey mode, record
+
+.claude/skills/implement-package/  dispatched to an implementer
+  SKILL.md          the three phases, survey, findings, the detail test
+  waves/code.md     Define, Stub, Code, Document
+  waves/document.md Claims, Compose, Check
+```
+
+Both skills sit far under the 500-line guidance, so size is not what drives the split —
+relevance is.
+
+### What it costs
+
+`/plan` and `/implement` become one skill taking the phase as an argument. The guidance notes
+`description` is what selects a skill among many, and one description spanning both phases is
+muddier than two sharp ones; the cost is small here only because these are invoked
+deliberately rather than discovered.
+
+The survey handshake stays split across both packages by nature: the plan phase offers and
+classifies, the implement phase dispatches, the implementer executes. Three ends of one
+protocol, not three copies of a rule.

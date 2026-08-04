@@ -94,3 +94,23 @@
         --- show ---
         draft requirement projected (occurrences): 3
         145 claims in force: 144 covered, 1 uncovered, 74 on attestation alone; 5 deferred excluded
+
+- id: skill-references-stay-one-level-deep
+  claim: a file referenced from a file that SKILL.md references may be read only partially;
+    Claude Code's guidance is that every reference link directly from SKILL.md
+  backing: documented
+  sources:
+    - url: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
+      where: Progressive disclosure patterns, "Avoid deeply nested references"
+      quote: |
+        Claude may partially read files when they're referenced from other referenced files. When encountering nested references, Claude might use commands like `head -100` to preview content rather than reading entire files, resulting in incomplete information.
+
+- id: skill-domain-files-keep-irrelevant-context-out
+  claim: organising a skill's material into per-domain files, linked from SKILL.md, is the
+    documented way to keep an agent from loading the domains it was not dispatched for
+  backing: documented
+  sources:
+    - url: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
+      where: Progressive disclosure patterns, the "Pattern 2 — Domain-specific organization" example
+      quote: |
+        For Skills with multiple domains, organize content by domain to avoid loading irrelevant context. When a user asks about sales metrics, Claude only needs to read sales-related schemas, not finance or marketing data. This keeps token usage low and context focused.

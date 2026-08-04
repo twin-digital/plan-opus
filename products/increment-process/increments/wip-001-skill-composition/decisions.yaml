@@ -62,3 +62,50 @@ decisions:
       - d-63z31u0l
       - r-w2m32yl6
     facets: prompts
+
+  - id: d-80yxesle
+    title: the phase skills are one package, their phases bundled beside it
+    statement: |
+      the Plan and Implement phases ship as one agent-skill package,
+      .claude/skills/increment. its SKILL.md carries the draft-increment lifecycle both
+      phases perform — opening a draft at its wip directory on its own branch, stacking by
+      ancestry, the findings a draft carries in flight, and the landing: ancestry order, the
+      conflict check against head, the rename into the claimed number, and the clean gate.
+
+      each phase is a file beside it, read only by an agent running that phase: plan.md
+      carries Capture, Clarify, the check before Ratify, the survey offer, and the Ratify
+      loop; implement.md carries binding to the fold, the companion increment, dispatch,
+      running implementers in parallel, survey mode, and the record.
+
+      the phase is named in the invocation. both files link directly from SKILL.md, and
+      neither links onward to the other.
+    status: proposed
+    supersedes: d-ebyludv0
+    pinned:
+      reason: public-api
+      notes: agents and the owner invoke the skill by name; the path is the surface
+    because:
+      - r-15psk4yp
+      - r-w2m32yl6
+      - f:skill-references-stay-one-level-deep
+      - f:skill-domain-files-keep-irrelevant-context-out
+      - f:subagent-skill-body-arrives-linked-files-do-not
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-lv3oyfaj
+    title: the dispatcher is the implement phase of that package
+    statement: |
+      .claude/skills/increment/implement.md is the dispatcher every implementation runs
+      through; a kind with no wave file is an open question for the implementation that
+      meets it.
+    status: proposed
+    supersedes: d-ng02vmcd
+    pinned:
+      reason: public-api
+      notes: the entry point every implementation of every product runs through
+    because:
+      - d-80yxesle
+      - d-qb67fb8s
+    facets: prompts
