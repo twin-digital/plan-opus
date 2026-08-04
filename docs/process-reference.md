@@ -45,8 +45,9 @@ has a job, an author, and a lifecycle:
   or API surface at a pinned version, in the `model:` block of the requirements source. Written
   as the shapes settle, ratified with the increment's requirements, folded by entity name.
 - **Facts** live in the repo-wide `facts/` pool, with the runs and artifacts that establish
-  them under `evidence/`: findings about the world, citable from anywhere and governed by the
-  existing evidence rules.
+  them under `evidence/`: findings about the world, citable from anywhere and validated by
+  `design-process check` — the one merge gate — against their pool schemas and the evidence bar,
+  like every other source.
 
 One further entity is defined like a foundation but is not one: the **open question**, the
 structured ask an agent puts to the owner while an increment is a draft. It has a formally
@@ -765,6 +766,16 @@ version releases and no document deliverable goes live before the design increme
 implementation targets is published, with the controls enforcing that ordering deferred to a
 later increment. An implementation whose companion increment stayed empty simply closes it — an
 increment that declares nothing is not published.
+
+The ordering holds in either discovery order. A design-first increment publishes its intent,
+then builds against it. A **code-first** increment inverts the discovery, not the invariant: the
+owner builds by hand, an agent then captures the design the code embodies into an increment, and
+only once that capture publishes does the code release. Code built ahead of its capture is
+**provisional** — unreleased, depended on by no one — and the plan side needs no new control for
+it: an implementation record cannot target an unpublished increment, so uncaptured code has no
+record and is not shipped. The captured increment is ordinary to everything downstream — it
+folds, agents extend it, its record covers its claims — which is what lets the two kinds
+interleave in one product.
 
 ### Everything lands at head
 

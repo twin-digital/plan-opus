@@ -40,6 +40,31 @@ ID=$(npx design-process backlog add <product>)   # body on stdin; add prints onl
 The rest of the surface — `list`, `search`, `show`, `update`, `delete` — is
 `npx design-process backlog <op> --help`.
 
+## 1b. Capture from code — the code-first path
+
+An increment may be captured after its code exists: the owner builds by hand, and an agent reads
+the design back out of what was built. The discovery inverts; the artifacts do not. A captured
+increment carries the same requirements and decisions, and at implementation the same record and
+coverage, as a designed one, and folds and extends identically — it claims a number and lands
+like any draft.
+
+Capture replaces Clarify's from-scratch research with a read of the built artifact. For each
+choice the code embodies, propose where it belongs by one test — would an agent later extending
+the code have to be **bound** by the choice, or be left **free** to change it:
+
+- **bound** → a requirement or decision the owner rules, recorded at the ordinary bar;
+- **free** → left uncaptured, the code merely happening to embody it.
+
+Propose the split; the owner rules it the fast way — affirm a requirement, or send a transcribed
+choice back to incidental. This triage is the guard against the code-first failure: freezing a
+thousand incidental choices as law and handcuffing the agents meant to extend the code. Capture
+the few you would defend, not the many the code contains.
+
+The built code is **provisional** until the capturing increment publishes — unreleased, depended
+on by no one; publishing the capture is what makes it extensible. At implementation the record's
+coverage is complete by construction, since the captured claims are drawn from code that already
+meets them, each carried by the owner's attestation and whatever tests exist.
+
 ## 2. Clarify — work the foundation sources
 
 Find the places missing research and do the spikes. Everything lands in the sources as it

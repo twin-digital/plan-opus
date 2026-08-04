@@ -3,13 +3,15 @@
 #
 # No record of the execution date survives; ran_at is the date its output was committed.
 
-- id: pack-layout-probe
-  command: node design/minecraft/artifacts/pack-layout/probe/run.mjs
-  output: design/minecraft/artifacts/pack-layout/probe/OUTPUT.txt
-  ran_at: 2026-07-25
-  environment: |
-    A real itzg/minecraft-bedrock-server container, driven through the compose project in
-    compose.yaml beside the script. The probe deploys its packs — bp/ and rp/, each a manifest and
-    content — into the server's pools, writes the world activation lists, and captures the server's
-    load output across numbered cases. Observations are that server image's behaviour and would
-    differ against another.
+version: "1"
+runs:
+  - id: pack-layout-probe
+    command: node design/minecraft/artifacts/pack-layout/probe/run.mjs
+    output: design/minecraft/artifacts/pack-layout/probe/OUTPUT.txt
+    ran_at: 2026-07-25
+    environment: |
+      A real itzg/minecraft-bedrock-server container, driven through the compose project in
+      compose.yaml beside the script. The probe deploys its packs — bp/ and rp/, each a manifest and
+      content — into the server's pools, writes the world activation lists, and captures the server's
+      load output across numbered cases. Observations are that server image's behaviour and would
+      differ against another.

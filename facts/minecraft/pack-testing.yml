@@ -1,273 +1,275 @@
 # Facts about testing Bedrock behavior packs: the tooling a pack author stands the engine up with,
 # and the commitments the test library makes to them.
 
-- id: alias-shim-runs-unmodified-pack-code
-  claim: |
-    A module aliased over `@minecraft/server` in a runner's resolver is enough to make unmodified
-    public pack code testable against `@twin-digital/minecraft-test-lib`'s fakes. A 26-line shim —
-    re-exporting enum values generated from the pinned 2.8.0 declarations, exposing `Player` and
-    `Entity` as `Symbol.hasInstance` brands over a member check, and holding `world` and `system`
-    as reassignable module-scope bindings a setter points at a fake server — carried 26 tests
-    across three suites over two third-party packs (`bencrob/marron-town-mod` at `2c025b4` and
-    `xigma0512/GunFight-Arena` at `0f16e88`), driving their combat handler, scoreboard and
-    messenger adapters, dynamic properties on the world and on an entity, `system` scheduling and
-    entity queries. Neither pack was edited. Removing the alias, with `@minecraft/server` 2.8.0
-    still installed, puts the same suite back to a resolution failure
-    [[f:server-import-fails-without-an-alias]].
-  backing: tested
-  caveat: |
-    This establishes that the shape works, not that it is the right one. The brands guess a
-    distinguishing member (`'onScreenDisplay' in value`) rather than asking the library; the
-    module-scope bindings are reset by an explicit setter call in each suite's `beforeEach`; and
-    the runner is vitest and ESM only — no jest, bun or CJS consumer was exercised. GunFight-Arena
-    declares `@minecraft/server` `^1.17.0` against the shim's 2.8.0 values.
+version: "1"
+facts:
+  - id: alias-shim-runs-unmodified-pack-code
+    claim: |
+      A module aliased over `@minecraft/server` in a runner's resolver is enough to make unmodified
+      public pack code testable against `@twin-digital/minecraft-test-lib`'s fakes. A 26-line shim —
+      re-exporting enum values generated from the pinned 2.8.0 declarations, exposing `Player` and
+      `Entity` as `Symbol.hasInstance` brands over a member check, and holding `world` and `system`
+      as reassignable module-scope bindings a setter points at a fake server — carried 26 tests
+      across three suites over two third-party packs (`bencrob/marron-town-mod` at `2c025b4` and
+      `xigma0512/GunFight-Arena` at `0f16e88`), driving their combat handler, scoreboard and
+      messenger adapters, dynamic properties on the world and on an entity, `system` scheduling and
+      entity queries. Neither pack was edited. Removing the alias, with `@minecraft/server` 2.8.0
+      still installed, puts the same suite back to a resolution failure
+      [[f:server-import-fails-without-an-alias]].
+    backing: tested
+    caveat: |
+      This establishes that the shape works, not that it is the right one. The brands guess a
+      distinguishing member (`'onScreenDisplay' in value`) rather than asking the library; the
+      module-scope bindings are reset by an explicit setter call in each suite's `beforeEach`; and
+      the runner is vitest and ESM only — no jest, bun or CJS consumer was exercised. GunFight-Arena
+      declares `@minecraft/server` `^1.17.0` against the shim's 2.8.0 values.
 
-    The quoted evidence carries the suite totals and the generator's enum counts, and nothing about
-    how the extraction works. That the shipped `index.d.ts` is read as CRLF, that reserved-word
-    member names arrive quoted, and that the script reproduces the committed generated module byte
-    for byte are visible in the harness script and in the run's `environment`, not in any quoted
-    passage; the 476-member total is in the generator's captured output but outside the quote. A
-    design leaning on those specifics is leaning on the artifacts rather than on this fact's
-    sources.
-  sources:
-    - run: alias-shim-harness-run
-      where: the suite totals
-      quote: |
-         Test Files  3 passed (3)
-              Tests  26 passed (26)
-    - run: alias-shim-enum-generation-run
-      where: the generator's summary — the declaration source, its version, and the enum counts
-      quote: |
-        @minecraft/server version: 2.8.0
-        export enum declarations in index.d.ts: 64
-        enums generated from the pinned declarations: 64
+      The quoted evidence carries the suite totals and the generator's enum counts, and nothing about
+      how the extraction works. That the shipped `index.d.ts` is read as CRLF, that reserved-word
+      member names arrive quoted, and that the script reproduces the committed generated module byte
+      for byte are visible in the harness script and in the run's `environment`, not in any quoted
+      passage; the 476-member total is in the generator's captured output but outside the quote. A
+      design leaning on those specifics is leaning on the artifacts rather than on this fact's
+      sources.
+    sources:
+      - run: alias-shim-harness-run
+        where: the suite totals
+        quote: |
+           Test Files  3 passed (3)
+                Tests  26 passed (26)
+      - run: alias-shim-enum-generation-run
+        where: the generator's summary — the declaration source, its version, and the enum counts
+        quote: |
+          @minecraft/server version: 2.8.0
+          export enum declarations in index.d.ts: 64
+          enums generated from the pinned declarations: 64
 
 
-- id: test-lib-does-not-intercept-the-module-import
-  status: retired
-  reason: stale
-  claim: |
-    `@twin-digital/minecraft-test-lib` commits, as owner fiat, to substituting fake objects passed
-    into code under test and to not replacing or intercepting the `@minecraft/server` module
-    import — code reachable only through a direct module import is outside its reach. Anything
-    that makes that import resolve is therefore something other than the library.
-  backing: documented
-  sources:
-    - url: products/mc-test-lib/increments/001/requirements.yaml
-      where: r-wv395rgn
-      quote: |
-        the library substitutes fake objects passed into code under test; it does not replace or
-        intercept the `@minecraft/server` module import. Code that can only reach the engine
-        through a direct module import is outside its reach.
+  - id: test-lib-does-not-intercept-the-module-import
+    status: retired
+    reason: stale
+    claim: |
+      `@twin-digital/minecraft-test-lib` commits, as owner fiat, to substituting fake objects passed
+      into code under test and to not replacing or intercepting the `@minecraft/server` module
+      import — code reachable only through a direct module import is outside its reach. Anything
+      that makes that import resolve is therefore something other than the library.
+    backing: documented
+    sources:
+      - url: products/mc-test-lib/increments/001/requirements.yaml
+        where: r-wv395rgn
+        quote: |
+          the library substitutes fake objects passed into code under test; it does not replace or
+          intercept the `@minecraft/server` module import. Code that can only reach the engine
+          through a direct module import is outside its reach.
 
-- id: alias-and-control-subpath-are-one-module-instance
-  claim: |
-    Under vitest 4.1.10 on node 24, a `resolve.alias` from `@minecraft/server` to a shim package
-    and an ordinary node-resolved import of that package's `./control` subpath reach the same
-    instance of the module holding the shared mutable state, so state written through the control
-    subpath is what the aliased specifier reads. Both alias shapes hold: aliasing to the shim's
-    bare package name and aliasing to its resolved entry file each report `same-instance=true`
-    with the state module evaluated once, under both a `file:` install (a node_modules symlink to
-    the source) and an unpacked `npm pack` tarball (a real node_modules directory) — four runs,
-    all four passing. A `__useServer` called through `./control` is therefore visible to pack code
-    that imports `@minecraft/server`: the pack read back the exact `world` and `system` objects the
-    test installed.
-  backing: tested
-  caveat: |
-    Measured on vitest 4.1.10 / node 24.16.0 with an ESM-only package and both entries re-exporting
-    one internal module; jest, bun and CJS were not exercised, and neither was a duplicate install
-    of the shim at two node_modules depths.
-  sources:
-    - run: alias-control-instance-probe-run
-      where: the identity line each of the four runs logs
-      quote: |
-        same-instance=true state-module-evaluations=1
-    - run: alias-control-instance-probe-run
-      where: what the pack side read back after the control side's __useServer
-      quote: |
-        pack-world={"tag":"fake-world"} pack-system={"tag":"fake-system"}
-    - run: alias-control-instance-probe-run
-      where: the suite totals, identical in all four runs
-      quote: |
-         Test Files  1 passed (1)
-              Tests  2 passed (2)
+  - id: alias-and-control-subpath-are-one-module-instance
+    claim: |
+      Under vitest 4.1.10 on node 24, a `resolve.alias` from `@minecraft/server` to a shim package
+      and an ordinary node-resolved import of that package's `./control` subpath reach the same
+      instance of the module holding the shared mutable state, so state written through the control
+      subpath is what the aliased specifier reads. Both alias shapes hold: aliasing to the shim's
+      bare package name and aliasing to its resolved entry file each report `same-instance=true`
+      with the state module evaluated once, under both a `file:` install (a node_modules symlink to
+      the source) and an unpacked `npm pack` tarball (a real node_modules directory) — four runs,
+      all four passing. A `__useServer` called through `./control` is therefore visible to pack code
+      that imports `@minecraft/server`: the pack read back the exact `world` and `system` objects the
+      test installed.
+    backing: tested
+    caveat: |
+      Measured on vitest 4.1.10 / node 24.16.0 with an ESM-only package and both entries re-exporting
+      one internal module; jest, bun and CJS were not exercised, and neither was a duplicate install
+      of the shim at two node_modules depths.
+    sources:
+      - run: alias-control-instance-probe-run
+        where: the identity line each of the four runs logs
+        quote: |
+          same-instance=true state-module-evaluations=1
+      - run: alias-control-instance-probe-run
+        where: what the pack side read back after the control side's __useServer
+        quote: |
+          pack-world={"tag":"fake-world"} pack-system={"tag":"fake-system"}
+      - run: alias-control-instance-probe-run
+        where: the suite totals, identical in all four runs
+        quote: |
+           Test Files  1 passed (1)
+                Tests  2 passed (2)
 
-- id: a-setup-file-server-makes-a-pack-test-file-boilerplate-free
-  claim: |
-    A setup file that installs one server at module scope — a bare `__useServer(createServer())`,
-    with no `beforeEach` and no naming of the pack's own modules — leaves a consumer's test file
-    holding static imports and nothing else: the pack imported for its side effects, and `world` and
-    `system` imported to arrange and assert. Vitest evaluates `setupFiles` before the test file's
-    own module evaluation, so the pack's module-scope `subscribe` and `runInterval` calls land on
-    the installed server, and no dynamic `await import` and no `vi.resetModules()` prelude appear
-    anywhere. Measured with bencrob/marron-town-mod at 2c025b4, unmodified, whose `src/main.ts`
-    subscribes to five world events and registers two `system.runInterval` loops while it evaluates,
-    against `@twin-digital/minecraft-test-lib`'s real fakes — and against both shim shapes, the
-    `export let` bindings the spec ships and fixed-identity Proxy bindings, with identical results.
-  backing: tested
-  caveat: |
-    The cost this shape does not remove is state: one server per file carries every test's leavings
-    into the next [[f:one-server-per-file-carries-state-into-the-next-test]]. The pack's
-    `@minecraft/server-ui` import needed a second alias to a stub, which is a second module the shim
-    does not cover rather than anything about the setup file. vitest 4.1.10 on node 24.16.0 only.
-  sources:
-    - run: file-scoped-server-probe-run
-      where: the setup file's line, printed before any test in the file ran, Proxy shim
-      quote: |
-        [setup] installed one server at module scope (shim=proxy)
-    - run: file-scoped-server-probe-run
-      where: the same run's suite totals — the pack reacted, from a test file with no install code in it
-      quote: |
-         Test Files  1 passed (1)
-              Tests  3 passed (3)
-    - run: file-scoped-server-probe-run
-      where: the `export let` shim invocation of the same suite
-      quote: |
-        [setup] installed one server at module scope (shim=let)
+  - id: a-setup-file-server-makes-a-pack-test-file-boilerplate-free
+    claim: |
+      A setup file that installs one server at module scope — a bare `__useServer(createServer())`,
+      with no `beforeEach` and no naming of the pack's own modules — leaves a consumer's test file
+      holding static imports and nothing else: the pack imported for its side effects, and `world` and
+      `system` imported to arrange and assert. Vitest evaluates `setupFiles` before the test file's
+      own module evaluation, so the pack's module-scope `subscribe` and `runInterval` calls land on
+      the installed server, and no dynamic `await import` and no `vi.resetModules()` prelude appear
+      anywhere. Measured with bencrob/marron-town-mod at 2c025b4, unmodified, whose `src/main.ts`
+      subscribes to five world events and registers two `system.runInterval` loops while it evaluates,
+      against `@twin-digital/minecraft-test-lib`'s real fakes — and against both shim shapes, the
+      `export let` bindings the spec ships and fixed-identity Proxy bindings, with identical results.
+    backing: tested
+    caveat: |
+      The cost this shape does not remove is state: one server per file carries every test's leavings
+      into the next [[f:one-server-per-file-carries-state-into-the-next-test]]. The pack's
+      `@minecraft/server-ui` import needed a second alias to a stub, which is a second module the shim
+      does not cover rather than anything about the setup file. vitest 4.1.10 on node 24.16.0 only.
+    sources:
+      - run: file-scoped-server-probe-run
+        where: the setup file's line, printed before any test in the file ran, Proxy shim
+        quote: |
+          [setup] installed one server at module scope (shim=proxy)
+      - run: file-scoped-server-probe-run
+        where: the same run's suite totals — the pack reacted, from a test file with no install code in it
+        quote: |
+           Test Files  1 passed (1)
+                Tests  3 passed (3)
+      - run: file-scoped-server-probe-run
+        where: the `export let` shim invocation of the same suite
+        quote: |
+          [setup] installed one server at module scope (shim=let)
 
-- id: one-server-per-file-carries-state-into-the-next-test
-  claim: |
-    A file-scoped server carries everything a test did into the tests after it, and the amount is
-    not marginal. Against bencrob/marron-town-mod at 2c025b4 driven through
-    `@twin-digital/minecraft-test-lib`: a first test that spawns one player and advances 40 ticks
-    hands the second test 1 entity, a tick clock at 40, and 11 scoreboard objectives its own code
-    never created; the second hands the third 2 entities and a clock at 80, with the first test's
-    player still in the dimension and still being iterated by the pack's module-scope loops. Nothing
-    resets between tests because nothing can: the state belongs to the one server the file
-    installed.
-  backing: tested
-  caveat: |
-    Three tests of one pack. The counters grow linearly here because each test does the same work;
-    a suite whose tests differ would leak differently, and how much of that leakage changes an
-    assertion rather than merely accumulating was not measured.
-  sources:
-    - run: file-scoped-server-probe-run
-      where: what each test found already in the world when it started, Proxy shim
-      quote: |
-        [carried into test 1] entities=0 currentTick=0 objectives=0 world-output=0 handler-errors=0
-    - run: file-scoped-server-probe-run
-      where: the same reading at the start of the second and third tests
-      quote: |
-        [carried into test 2] entities=1 currentTick=40 objectives=11 world-output=1 handler-errors=0
-    - run: file-scoped-server-probe-run
-      where: the third test's starting state, and the second test finding the first test's player still present
-      quote: |
-        [carried into test 3] entities=2 currentTick=80 objectives=11 world-output=1 handler-errors=0
+  - id: one-server-per-file-carries-state-into-the-next-test
+    claim: |
+      A file-scoped server carries everything a test did into the tests after it, and the amount is
+      not marginal. Against bencrob/marron-town-mod at 2c025b4 driven through
+      `@twin-digital/minecraft-test-lib`: a first test that spawns one player and advances 40 ticks
+      hands the second test 1 entity, a tick clock at 40, and 11 scoreboard objectives its own code
+      never created; the second hands the third 2 entities and a clock at 80, with the first test's
+      player still in the dimension and still being iterated by the pack's module-scope loops. Nothing
+      resets between tests because nothing can: the state belongs to the one server the file
+      installed.
+    backing: tested
+    caveat: |
+      Three tests of one pack. The counters grow linearly here because each test does the same work;
+      a suite whose tests differ would leak differently, and how much of that leakage changes an
+      assertion rather than merely accumulating was not measured.
+    sources:
+      - run: file-scoped-server-probe-run
+        where: what each test found already in the world when it started, Proxy shim
+        quote: |
+          [carried into test 1] entities=0 currentTick=0 objectives=0 world-output=0 handler-errors=0
+      - run: file-scoped-server-probe-run
+        where: the same reading at the start of the second and third tests
+        quote: |
+          [carried into test 2] entities=1 currentTick=40 objectives=11 world-output=1 handler-errors=0
+      - run: file-scoped-server-probe-run
+        where: the third test's starting state, and the second test finding the first test's player still present
+        quote: |
+          [carried into test 3] entities=2 currentTick=80 objectives=11 world-output=1 handler-errors=0
 
-- id: a-fake-server-can-be-cleared-in-place-with-its-subscriptions-intact
-  claim: |
-    A fake server's state can be cleared while the object identity a pack's module-scope
-    subscriptions are bound to is preserved, and the handlers still fire afterwards. Reaching
-    `@twin-digital/minecraft-test-lib`'s private `ServerState` directly — it exposes no reset — and
-    clearing the entities, the scoreboard, the dynamic properties, the output log and the tick clock
-    while leaving the signal objects alone, all 5 of bencrob/marron-town-mod's module-scope
-    subscribers survived every reset, `world` was the same object it was at install, and three
-    successive tests each started from `entities=0 currentTick=0 objectives=0` and each drove the
-    pack to the identical end state. The scheduled runs are the boundary case, not an afterthought:
-    a pack registers `system.runInterval` in the same evaluation as its subscriptions, so a reset
-    that clears the run queue unregisters half of what the pack set up. Clearing it left the same 5
-    subscribers in place and took the pack's two loops away, and the objectives those loops create
-    stopped appearing — 11 became 0 — with nothing raised anywhere; the suite's failing assertion is
-    the only thing that noticed.
-  backing: tested
-  caveat: |
-    The reset is the probe's own function writing the library's private record, not an API: it
-    reaches `src/runtime/state.ts` and `src/runtime/member.ts` through aliases, so this measures the
-    capability and its cost, not something a consumer can call
-    [[f:test-lib-ships-no-reset-hook]]. What a supported hook would have to preserve is what this one
-    preserved: the `world` and `system` fakes, the signal objects with their subscriber sets, the
-    registered dimensions, and the scheduled runs, with each surviving run re-based onto the reset
-    tick clock. Entities the cleared tests created were marked invalid rather than left readable,
-    which was a choice of the probe's and is not measured against the engine.
-  sources:
-    - run: in-place-reset-probe-run
-      where: what survived each reset, keeping the scheduled runs
-      quote: |
-        [reset] world-identity-preserved=true surviving-subscribers=5 surviving-scheduled-runs=2
-    - run: in-place-reset-probe-run
-      where: the second and third tests each starting from a cleared world and reaching the same end state
-      quote: |
-        [test 2 start] entities=0 currentTick=0 objectives=0
-        [test 2 end] entities=1 currentTick=40 objectives=11
-    - run: in-place-reset-probe-run
-      where: the same suite with the scheduled runs cleared — subscribers survive, the pack's loops do not
-      quote: |
-        [reset] world-identity-preserved=true surviving-subscribers=5 surviving-scheduled-runs=0
-    - run: in-place-reset-probe-run
-      where: what the cleared run queue costs — the same test, with the loops' objectives gone
-      quote: |
-        [test 2 start] entities=0 currentTick=0 objectives=0
-        [test 2 end] entities=1 currentTick=40 objectives=0
+  - id: a-fake-server-can-be-cleared-in-place-with-its-subscriptions-intact
+    claim: |
+      A fake server's state can be cleared while the object identity a pack's module-scope
+      subscriptions are bound to is preserved, and the handlers still fire afterwards. Reaching
+      `@twin-digital/minecraft-test-lib`'s private `ServerState` directly — it exposes no reset — and
+      clearing the entities, the scoreboard, the dynamic properties, the output log and the tick clock
+      while leaving the signal objects alone, all 5 of bencrob/marron-town-mod's module-scope
+      subscribers survived every reset, `world` was the same object it was at install, and three
+      successive tests each started from `entities=0 currentTick=0 objectives=0` and each drove the
+      pack to the identical end state. The scheduled runs are the boundary case, not an afterthought:
+      a pack registers `system.runInterval` in the same evaluation as its subscriptions, so a reset
+      that clears the run queue unregisters half of what the pack set up. Clearing it left the same 5
+      subscribers in place and took the pack's two loops away, and the objectives those loops create
+      stopped appearing — 11 became 0 — with nothing raised anywhere; the suite's failing assertion is
+      the only thing that noticed.
+    backing: tested
+    caveat: |
+      The reset is the probe's own function writing the library's private record, not an API: it
+      reaches `src/runtime/state.ts` and `src/runtime/member.ts` through aliases, so this measures the
+      capability and its cost, not something a consumer can call
+      [[f:test-lib-ships-no-reset-hook]]. What a supported hook would have to preserve is what this one
+      preserved: the `world` and `system` fakes, the signal objects with their subscriber sets, the
+      registered dimensions, and the scheduled runs, with each surviving run re-based onto the reset
+      tick clock. Entities the cleared tests created were marked invalid rather than left readable,
+      which was a choice of the probe's and is not measured against the engine.
+    sources:
+      - run: in-place-reset-probe-run
+        where: what survived each reset, keeping the scheduled runs
+        quote: |
+          [reset] world-identity-preserved=true surviving-subscribers=5 surviving-scheduled-runs=2
+      - run: in-place-reset-probe-run
+        where: the second and third tests each starting from a cleared world and reaching the same end state
+        quote: |
+          [test 2 start] entities=0 currentTick=0 objectives=0
+          [test 2 end] entities=1 currentTick=40 objectives=11
+      - run: in-place-reset-probe-run
+        where: the same suite with the scheduled runs cleared — subscribers survive, the pack's loops do not
+        quote: |
+          [reset] world-identity-preserved=true surviving-subscribers=5 surviving-scheduled-runs=0
+      - run: in-place-reset-probe-run
+        where: what the cleared run queue costs — the same test, with the loops' objectives gone
+        quote: |
+          [test 2 start] entities=0 currentTick=0 objectives=0
+          [test 2 end] entities=1 currentTick=40 objectives=0
 
-- id: pack-isolation-comes-from-under-the-fakes-not-from-the-shim
-  claim: |
-    For a behavior pack that registers at module scope, per-test isolation cannot come from the
-    shim repointing `world` and `system` at a different server; it has to come from beneath the
-    fakes. Pointing the shim's bindings at a freshly created `@twin-digital/minecraft-test-lib`
-    server between tests left bencrob/marron-town-mod's 5 subscribers and 3 scheduled runs on the
-    server that was installed while the pack evaluated, and every swapped-in server saw
-    `subscribers=0 scheduled=0` and none of the pack's behaviour
-    [[f:a-proxy-target-swap-strands-a-completed-registration]]. Leaving the bindings on one server
-    and replacing the state under its fakes instead — clearing entities, scoreboard, dynamic
-    properties, output and the tick clock, leaving `signals` alone — kept all 5 subscribers, and
-    each test started from an empty world and drove the pack to the same 11 objectives.
-  backing: tested
-  caveat: |
-    The lower layer is reached by writing the library's private `ServerState` through aliases to
-    `src/runtime/state.ts` and `src/runtime/member.ts`; the library exposes no such hook and has
-    decided against one [[f:test-lib-ships-no-reset-hook]], so this says where the capability has to
-    live, not that it exists. What a swap *can* carry, at a price, is measured separately
-    [[f:replaying-a-modules-calls-carries-its-registrations-across-a-target-swap]]. One pack, vitest
-    4.1.10 on node 24.16.0.
-  sources:
-    - run: proxy-target-swap-probe-run
-      where: the swap at the shim's layer — where the pack's registrations stayed
-      quote: |
-        [test 1: server A] subscribers=5 scheduled=3 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
-        [test 1: current server] subscribers=0 scheduled=0 objectives=0 entities=0 tick=0 signals=none
-    - run: state-swapped-beneath-the-fakes-probe-run
-      where: the same pack with the bindings never moved and the state under them replaced
-      quote: |
-        [test 1: before] subscribers=5 scheduled=3 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
-        [test 1: after] subscribers=5 scheduled=2 objectives=11 entities=1 tick=40 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
-    - run: state-swapped-beneath-the-fakes-probe-run
-      where: the second test, starting clean with the subscriptions still bound
-      quote: |
-        [test 2: before] subscribers=5 scheduled=2 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+  - id: pack-isolation-comes-from-under-the-fakes-not-from-the-shim
+    claim: |
+      For a behavior pack that registers at module scope, per-test isolation cannot come from the
+      shim repointing `world` and `system` at a different server; it has to come from beneath the
+      fakes. Pointing the shim's bindings at a freshly created `@twin-digital/minecraft-test-lib`
+      server between tests left bencrob/marron-town-mod's 5 subscribers and 3 scheduled runs on the
+      server that was installed while the pack evaluated, and every swapped-in server saw
+      `subscribers=0 scheduled=0` and none of the pack's behaviour
+      [[f:a-proxy-target-swap-strands-a-completed-registration]]. Leaving the bindings on one server
+      and replacing the state under its fakes instead — clearing entities, scoreboard, dynamic
+      properties, output and the tick clock, leaving `signals` alone — kept all 5 subscribers, and
+      each test started from an empty world and drove the pack to the same 11 objectives.
+    backing: tested
+    caveat: |
+      The lower layer is reached by writing the library's private `ServerState` through aliases to
+      `src/runtime/state.ts` and `src/runtime/member.ts`; the library exposes no such hook and has
+      decided against one [[f:test-lib-ships-no-reset-hook]], so this says where the capability has to
+      live, not that it exists. What a swap *can* carry, at a price, is measured separately
+      [[f:replaying-a-modules-calls-carries-its-registrations-across-a-target-swap]]. One pack, vitest
+      4.1.10 on node 24.16.0.
+    sources:
+      - run: proxy-target-swap-probe-run
+        where: the swap at the shim's layer — where the pack's registrations stayed
+        quote: |
+          [test 1: server A] subscribers=5 scheduled=3 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+          [test 1: current server] subscribers=0 scheduled=0 objectives=0 entities=0 tick=0 signals=none
+      - run: state-swapped-beneath-the-fakes-probe-run
+        where: the same pack with the bindings never moved and the state under them replaced
+        quote: |
+          [test 1: before] subscribers=5 scheduled=3 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+          [test 1: after] subscribers=5 scheduled=2 objectives=11 entities=1 tick=40 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+      - run: state-swapped-beneath-the-fakes-probe-run
+        where: the second test, starting clean with the subscriptions still bound
+        quote: |
+          [test 2: before] subscribers=5 scheduled=2 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
 
-- id: signals-are-shape-discoverable-but-scheduler-members-are-not
-  claim: |
-    A shim can find every event signal from the shape alone, and cannot find the scheduler
-    registrations that way. On a `@twin-digital/minecraft-test-lib` server built from the
-    @minecraft/server 2.8.0 manifests, all 69 members of the three signal containers — 55 on
-    `world.afterEvents`, 13 on `world.beforeEvents`, 1 on `system.afterEvents` — are readable and
-    every one of them carries both a `subscribe` and an `unsubscribe` function, so
-    `subscribe`/`unsubscribe` is a complete structural test for a signal. `system` offers no such
-    test: 8 of its 13 prototype members are plain functions — `clearJob,clearRun,run,runInterval,
-    runJob,runTimeout,sendScriptEvent,waitTicks` — and the 4 that hold a callback for later are
-    indistinguishable from the 4 that do not, including by arity, where `run/1` matches `clearRun/1`
-    and `runInterval/2` matches `runTimeout/2`. A shim that must treat registrations specially can
-    therefore be generic about events and only hardcoded about scheduling.
-  backing: tested
-  caveat: |
-    Measured against the library's fakes, whose containers are generated from the pinned 2.8.0
-    declarations, not against the engine; the counts are what those declarations carry at that
-    version and move with it. `subscribe`/`unsubscribe` being a complete test *here* rests on every
-    declared signal existing on the fake [[f:subscription-semantics-observed]]; a real engine object
-    that answered the same shape without being a signal would defeat it, and none was looked for.
-  sources:
-    - run: signal-and-scheduler-shape-probe-run
-      where: the three signal containers, every member readable and every one signal-shaped
-      quote: |
-        [container] world.afterEvents members=55 reachable=55 subscribe+unsubscribe-shaped=55 threw=0
-        [container] world.beforeEvents members=13 reachable=13 subscribe+unsubscribe-shaped=13 threw=0
-        [container] system.afterEvents members=1 reachable=1 subscribe+unsubscribe-shaped=1 threw=0
-    - run: signal-and-scheduler-shape-probe-run
-      where: what `system` offers instead — plain functions, with the schedulers among them
-      quote: |
-        [system] members=13 function-valued=8
-        [system] function-valued members: clearJob,clearRun,run,runInterval,runJob,runTimeout,sendScriptEvent,waitTicks
-    - run: signal-and-scheduler-shape-probe-run
-      where: arity, the only other thing a call site exposes
-      quote: |
-        [system] arity of the scheduler members: run/1 runInterval/2 runTimeout/2 clearRun/1
+  - id: signals-are-shape-discoverable-but-scheduler-members-are-not
+    claim: |
+      A shim can find every event signal from the shape alone, and cannot find the scheduler
+      registrations that way. On a `@twin-digital/minecraft-test-lib` server built from the
+      @minecraft/server 2.8.0 manifests, all 69 members of the three signal containers — 55 on
+      `world.afterEvents`, 13 on `world.beforeEvents`, 1 on `system.afterEvents` — are readable and
+      every one of them carries both a `subscribe` and an `unsubscribe` function, so
+      `subscribe`/`unsubscribe` is a complete structural test for a signal. `system` offers no such
+      test: 8 of its 13 prototype members are plain functions — `clearJob,clearRun,run,runInterval,
+      runJob,runTimeout,sendScriptEvent,waitTicks` — and the 4 that hold a callback for later are
+      indistinguishable from the 4 that do not, including by arity, where `run/1` matches `clearRun/1`
+      and `runInterval/2` matches `runTimeout/2`. A shim that must treat registrations specially can
+      therefore be generic about events and only hardcoded about scheduling.
+    backing: tested
+    caveat: |
+      Measured against the library's fakes, whose containers are generated from the pinned 2.8.0
+      declarations, not against the engine; the counts are what those declarations carry at that
+      version and move with it. `subscribe`/`unsubscribe` being a complete test *here* rests on every
+      declared signal existing on the fake [[f:subscription-semantics-observed]]; a real engine object
+      that answered the same shape without being a signal would defeat it, and none was looked for.
+    sources:
+      - run: signal-and-scheduler-shape-probe-run
+        where: the three signal containers, every member readable and every one signal-shaped
+        quote: |
+          [container] world.afterEvents members=55 reachable=55 subscribe+unsubscribe-shaped=55 threw=0
+          [container] world.beforeEvents members=13 reachable=13 subscribe+unsubscribe-shaped=13 threw=0
+          [container] system.afterEvents members=1 reachable=1 subscribe+unsubscribe-shaped=1 threw=0
+      - run: signal-and-scheduler-shape-probe-run
+        where: what `system` offers instead — plain functions, with the schedulers among them
+        quote: |
+          [system] members=13 function-valued=8
+          [system] function-valued members: clearJob,clearRun,run,runInterval,runJob,runTimeout,sendScriptEvent,waitTicks
+      - run: signal-and-scheduler-shape-probe-run
+        where: arity, the only other thing a call site exposes
+        quote: |
+          [system] arity of the scheduler members: run/1 runInterval/2 runTimeout/2 clearRun/1

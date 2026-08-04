@@ -73,15 +73,19 @@ const poolFiles = (dir) => fs.existsSync(dir) ? fs.readdirSync(dir, { withFileTy
 const factFiles = poolFiles;
 
 // Runs are loaded before facts, so a run: source resolves while its fact is being checked.
-// A run file parses to a sequence of entries; other yaml under evidence/ is moved probe
-// material (fixtures, inputs) and is not read as runs.
+// A run file is a sequence, either bare or under a version: wrapper's runs:/facts: key; other
+// yaml under evidence/ is moved probe material (fixtures, inputs) and is not read as runs.
+const poolEntries = (raw, key) => Array.isArray(raw) ? raw : (raw && Array.isArray(raw[key]) ? raw[key] : null);
 for (const file of poolFiles(EVIDENCE)) {
-  const entries = loadYaml(file);
-  if (!Array.isArray(entries)) continue;
+  const entries = poolEntries(loadYaml(file), "runs");
+  if (!entries) continue;
   for (const e of entries) { declare(e.id, { kind: "e", tier: "pool", scope: file, e, file }); checkEntry("e", e, file, file); }
 }
-for (const file of factFiles(FACTS))
-  for (const e of loadYaml(file)) { declare(e.id, { kind: "f", tier: "pool", scope: file, e, file }); checkEntry("f", e, file, file); }
+for (const file of factFiles(FACTS)) {
+  const entries = poolEntries(loadYaml(file), "facts");
+  if (!entries) continue;
+  for (const e of entries) { declare(e.id, { kind: "f", tier: "pool", scope: file, e, file }); checkEntry("f", e, file, file); }
+}
 
 // A fact file under design/ would be silently invisible, and its entries unresolvable, so it is
 // an error rather than a file nobody reads.
