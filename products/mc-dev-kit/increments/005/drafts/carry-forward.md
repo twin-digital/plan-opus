@@ -58,3 +58,12 @@ Still held, not filed:
   (`d-s43hmdgr`) but nothing states `packageDir`'s anchor, and the packageName-basename fallback
   survives only in the delegated `d-me8ieqnr`. Not a clean re-point; a consumer loop
   re-establishes what it needs.
+
+## Review rulings applied
+
+The source-manifest question resolved as an error: `r-wi7qf6to` amends the completion
+requirement with the `modules[].entry` must-not line, and `d-9se0yv0h` follows it. Both
+decisions ruled delegated. The four ported dev-kit facts were removed — each existed only to
+let sibling designs cite dev-kit behavior across the legacy design fence, nothing cites them,
+and same-product entries cite requirements directly; the three held facts stay unported for
+the same reason.

@@ -6,7 +6,7 @@ decisions:
     statement: |
       `scriptOutput` is present on every entry and carries `null` where a pack has no script location,
       rather than being an optional field a resource pack's entry omits
-    status: proposed
+    status: delegated
     because:
       - r-rlh87pau
       - d-61fegb3o
@@ -16,17 +16,18 @@ decisions:
     facets: discovery
 
   - id: d-9se0yv0h
-    title: the script module's entry is declared and form-checked, read for nothing
+    title: the script module's entry is declared, kit-written, and an error to source-specify
     statement: |
-      `ManifestModule` declares `entry?: string`, and the field is form-checked like every declared
-      field: a `modules[].entry` that is not a string is `manifest-shape-invalid`. Nothing reads it —
-      no check or completion consumes a module's `entry`, and the built script location is computed
-      from the kind — so a fault there suppresses nothing downstream.
-    status: proposed
+      `ManifestModule` declares `entry?: string`; the kit writes it into completed manifests,
+      computed from the pack's kind, and a source manifest specifying it is reported as the
+      error the amended completion requirement defines. Nothing reads a source `entry` — no
+      check or completion consumes it — so a fault there suppresses nothing downstream.
+    status: delegated
     because:
       - r-jl42pzah
       - r-5qo6fzs4
+      - r-wi7qf6to
       - d-7ototrq5
     revisit_when:
-      - the kit gains a check or completion that reads a module's `entry`, so the empty suppression row no longer holds
+      - the kit gains a check or completion that reads a module's `entry`
     facets: discovery
