@@ -39,8 +39,9 @@ decisions:
       a test that needs a fresh world resets the module registry and dynamically imports the
       pack and the surface it asserts through — the accepted test-library pattern — and the
       package ships no reset of any kind, public or internal. A second install within one
-      module-registry generation fails loudly
-    status: accepted
+      module-registry generation fails loudly on the terms the replace ruling defines: it
+      throws when the server being replaced is live with subscribers or scheduled runs
+    status: delegated
     pinned:
       reason: other
       notes: consumer-visible isolation contract and misuse behaviour
@@ -77,7 +78,7 @@ decisions:
     statement: |
       the aliased surface exports every enum the pinned declarations declare as a frozen object
       and every module-level numeric constant, generated together from the same pass
-    status: accepted
+    status: delegated
     because:
       - r-vzz9rnrc
       - r-29dlrp9r
@@ -88,7 +89,7 @@ decisions:
     statement: |
       every class the pinned declarations export is exported by the aliased surface, whether or
       not the fakes implement it
-    status: accepted
+    status: delegated
     because:
       - r-vzz9rnrc
     facets: shim
@@ -98,7 +99,7 @@ decisions:
     statement: |
       a declared class whose ancestry reaches Error is emitted as a real Error subclass setting
       its own name, with its declared readonly members left to whoever throws it
-    status: accepted
+    status: delegated
     facets: shim
 
   - id: d-uj5gbt9w
@@ -106,7 +107,7 @@ decisions:
     statement: |
       reading `world` or `system` before a server is installed throws ShimNotInstalledError
       rather than reading undefined
-    status: accepted
+    status: delegated
     facets: shim
 
   - id: d-ahlsuc8z
@@ -114,7 +115,7 @@ decisions:
     statement: |
       __useServer replaces both bindings wholesale and __useServer() with no argument returns
       them to the unset state; there is no separate entry point
-    status: accepted
+    status: delegated
     because:
       - r-rpm1k57j
     facets: shim
@@ -124,7 +125,7 @@ decisions:
     statement: |
       the derived `@minecraft/server` version is stated as an exported string and in the README,
       and the surface performs no runtime comparison and emits no warning
-    status: accepted
+    status: delegated
     pinned:
       reason: public-api
     because:
@@ -136,7 +137,7 @@ decisions:
     statement: |
       a name the pinned declarations do not declare is not exported — no Proxy, no auto-vivified
       stub, no fallback value
-    status: accepted
+    status: delegated
     facets: shim
 
   # accepted by the owner's harvest ruling of 2026-08-04, from the same branch record
@@ -147,7 +148,7 @@ decisions:
       fresh, installs a new server, then calls the one importer, in that order, and returns the
       installed server rather than the pack's namespace; it is exported from the vitest tooling
       subpath, the one entry that may reach `vi`
-    status: accepted
+    status: delegated
     pinned:
       reason: public-api
     because:
@@ -246,8 +247,10 @@ decisions:
       handed to the implementation's companion increment: the placeholder behaviour of
       module-surface classes the fakes do not implement, beyond what the harvested rulings fix;
       the `world`/`system` binding mechanism within what the ruled isolation shape fixes; the
-      sibling-module stubs' surface and behaviour; and how a test reaches the setup-installed
-      default server
+      sibling-module stubs' surface and behaviour; how a test reaches the setup-installed
+      default server; the mechanism putting the exported classes on the fakes' prototype
+      chains; whether the fakes throw the surface's error classes (one class object per name);
+      which entry carries __useServer; and the presets' invocation shape
     status: delegated
     because:
       - d-2mngzzpg

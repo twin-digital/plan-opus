@@ -46,3 +46,10 @@ root barrel — the layout of the module-surface and runner-tooling entry points
 increment's design to make — superseding `d-19qu2ih2`. The fiat fact
 `test-lib-supplies-the-module-surface-and-the-runner-tooling` records the amended commitment, and
 `test-lib-does-not-intercept-the-module-import` is retired in its favour.
+
+## The ESM ruling
+
+q-2rr36skd resolved 2026-08-04: the merged package is ESM-only, as the adopted
+nodejs-library@1 preset (r-ds3q3en9) already binds. The July note that the shim's writer
+designs for CJS consumers too is superseded by the merge into the library; no new foundation
+is needed — the adopted requirement is the answer.
