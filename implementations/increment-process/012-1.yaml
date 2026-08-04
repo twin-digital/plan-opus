@@ -214,15 +214,18 @@ coverage:
         note: scoped to the companion increment
       - kind: code-test
         ref: test/conflicts.test.ts
-  - claim: d-0lkxin7b # a fold version is an increment number or a git ref
+  - claim: d-9y7b8qtd # an increment and a git ref are separate parameters
     covered_by:
       - kind: code-test
         ref: test/version.test.ts
+        note: >
+          the bare parameter takes an increment padded or not, the -ref counterpart a git ref,
+          and giving both is an error
       - kind: manual-check
         ref: README.md#fold-versions
-        note: --at 009 folds increment 9; --at 9 is read as a ref
       - kind: attestation
         ref: docs/process-reference.md#the-fold-at-an-increment-is-the-bundle
+        note: the paired parameters, the both-given error, and padding not significant on input
   - claim: d-5xa0g4mp # the draft branch name is plan/<product>/<slug>
     covered_by:
       - kind: attestation
