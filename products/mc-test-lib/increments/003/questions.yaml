@@ -10,14 +10,3 @@ questions:
       without a ruling.
     answer: requirement
     facets: shim
-
-  - id: q-mzfp1udy
-    question: |
-      What does the one-entry install owe a pack that imports `@minecraft/server-ui`? Every probe
-      run needed a consumer-written stub alias for that import — a second module the supplied
-      surface does not cover — so such a pack meets `r-uobnqsfg` (one runner-config entry, no
-      consumer setup) and `r-vzz9rnrc` (unmodified pack code loads) only if the package grows a
-      `server-ui` surface, which is scope nothing has ruled, or the requirements carve the second
-      module out and the stub-alias workaround is documented.
-    answer: requirement
-    facets: shim

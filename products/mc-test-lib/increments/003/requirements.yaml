@@ -148,3 +148,15 @@ requirements:
     facets:
       - fakes
       - shim
+
+  # ruled by the owner during this increment's Plan loop, answering q-mzfp1udy
+  - id: r-w2ud6qa9
+    title: sibling-module imports resolve to shipped stubs
+    statement: |
+      a pack's imports of `@minecraft/*` script modules the fakes do not cover —
+      `@minecraft/server-ui` first among them — resolve to stubs the package ships, under the
+      same one runner-config entry and with no consumer-written stub or alias.
+    verification:
+      - do: run the one-entry install against an unmodified pack that imports `@minecraft/server-ui`
+      - verify: the pack's modules load, the consumer having written no stub and no second config entry
+    facets: shim

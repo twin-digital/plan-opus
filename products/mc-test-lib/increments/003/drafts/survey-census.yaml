@@ -118,8 +118,8 @@ census:
       triggered-event log, handler errors, and the tick clock; preserve the signal subscriber
       sets and the scheduled runs — clearing the run queue unregisters half of what a pack set
       up.
-    classification: deferred by d-ksotjt7v, contingent on the d-bslnaeg6 ruling
-    determined_by: d-bslnaeg6, f:a-fake-server-can-be-cleared-in-place-with-its-subscriptions-intact, r-qayd22z2
+    classification: retired by the owner's ruling — d-bslnaeg6 rejected, no clear ships (d-2mngzzpg)
+    determined_by: d-2mngzzpg
 
   - choice: reconciling the carried double-install throw with the supported install-your-own-fakes path
     arises: Code — the install setter's misuse check
@@ -127,7 +127,7 @@ census:
       A test-facing install replaces the current bundle without throwing; the throw guards only
       a duplicate tooling install within one module-registry generation. Does not resurrect the
       dropped stronger loud-failure form.
-    classification: answered inside d-bslnaeg6 as amended
+    classification: answered by d-2mngzzpg — the per-generation throw stands, and each test's reset opens a new generation
 
   - choice: what the package does about @minecraft/server-ui imports
     arises: Define/Document — the second-module gap
@@ -135,7 +135,7 @@ census:
       Every probe run needed a consumer-supplied stub alias for the pack's @minecraft/server-ui
       import, so a pack importing it fails resolution under the one-entry install. Shipping even
       a values-only server-ui surface is new scope the owner has not ruled.
-    classification: question — q-mzfp1udy
+    classification: answered by r-w2ud6qa9 (owner ruling — the plugin installs the needed stubs; q-mzfp1udy closed)
     determined_by: r-uobnqsfg, r-vzz9rnrc
 
   - choice: how the typechecking seam is satisfied — whether the aliased surface ships declarations

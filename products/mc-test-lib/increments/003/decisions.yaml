@@ -33,7 +33,10 @@ decisions:
       subscriptions and scheduled runs still live. A test that wants fakes of its own installs
       them in place of the default without failing; the loud failure the July ruling kept guards
       a duplicate tooling install within one module-registry generation
-    status: proposed
+    status: rejected
+    rejection_reason: |
+      dynamic import and module reset is the accepted pattern in test libraries for this case;
+      the fake library is not shipping a reset
     pinned:
       reason: other
       notes: consumer-visible ergonomics contract — the documented default path and its per-test isolation behaviour
@@ -47,6 +50,25 @@ decisions:
       - f:pack-isolation-comes-from-under-the-fakes-not-from-the-shim
       - f:a-fake-server-can-be-cleared-in-place-with-its-subscriptions-intact
       - f:test-lib-ships-no-reset-hook
+    facets:
+      - fakes
+      - shim
+
+  - id: d-2mngzzpg
+    title: per-test isolation is module reset and dynamic import
+    statement: |
+      a test that needs a fresh world resets the module registry and dynamically imports the
+      pack and the surface it asserts through — the accepted test-library pattern — and the
+      package ships no reset of any kind, public or internal. A second install within one
+      module-registry generation fails loudly
+    status: accepted
+    pinned:
+      reason: other
+      notes: consumer-visible isolation contract and misuse behaviour
+    because:
+      - r-rpm1k57j
+      - r-qayd22z2
+    supersedes: d-bslnaeg6
     facets:
       - fakes
       - shim
@@ -75,8 +97,8 @@ decisions:
       the package's published exports are the root barrel and one subpath per supported runner's
       tooling — vitest, the one runner supported at this increment, at
       `@twin-digital/minecraft-test-lib/vitest` — and nothing else: the aliased
-      `@minecraft/server` surface and the setup module are files inside the package the plugin
-      references by resolved path, not published subpaths
+      `@minecraft/server` surface and the sibling-module stubs are files inside the package the
+      plugin references by resolved path, not published subpaths
     status: proposed
     pinned:
       reason: public-api
@@ -114,11 +136,11 @@ decisions:
       module-surface classes the fakes do not implement; the failure mode of reading `world` or
       `system` before any install; the install function's name and signature, amending the
       free-function list; the `world`/`system` binding mechanism within what the ruled isolation
-      shape fixes; and the per-test clear's exact inventory beyond the subscriber sets and
-      scheduled runs the evidence fixes as surviving
+      shape fixes; and the sibling-module stubs' surface and behaviour
     status: delegated
     because:
-      - d-bslnaeg6
+      - d-2mngzzpg
+      - r-w2ud6qa9
       - d-ksk6d7ua
       - d-qz2aoixe
     facets:

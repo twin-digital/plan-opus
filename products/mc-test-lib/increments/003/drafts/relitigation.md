@@ -35,6 +35,10 @@ separate library package, which the library does not expose
 capability lives inside the package, called by its own runner tooling — nothing exposed, and fake
 state stays instance-scoped as `r-qayd22z2` holds.
 
+**Ruled**: the owner rejected `d-bslnaeg6` — dynamic import and module reset is the accepted
+test-library pattern for this case, and the fake library ships no reset. `d-2mngzzpg` carries
+the ruling.
+
 ## The version statement is inert (d-vjeple9k)
 
 Enforcing the derived version through a `@minecraft/server` peer range takes consumer installs
