@@ -186,6 +186,27 @@ decisions:
       - d-u3744xlr
     facets: tooling
 
+  - id: d-o6v57l9y
+    title: a prepare phase returns the allocation problems it can see
+    statement: |
+      an implementer's prepare phase returns, beside its own list, the allocation problems
+      visible from where it sits: a claim it believes a sibling package should own, a claim no
+      planned section or test of its own could carry, and a claim it has taken that it thinks
+      another package also will.
+
+      the orchestrator's reconciliation at the prepare merge is a mechanical diff of the union
+      against the claims in force, and finds a claim nobody listed. it does not find the ones
+      that turn on a package's own judgement — whether two packages holding one claim is a
+      deliberate split or a duplicate, and whether a claim is unstatable here rather than
+      merely unclaimed.
+    status: delegated
+    because:
+      - d-euwmthl9
+      - d-msvpbva6
+      - d-cau8oksc
+      - d-vw0t1z62
+    facets: prompts
+
   - id: d-jokpfmyj
     title: converting a design removes it from the legacy tree in the same change
     statement: |
