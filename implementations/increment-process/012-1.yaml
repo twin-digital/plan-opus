@@ -340,6 +340,11 @@ coverage:
           - package.json
           - src/index.ts
         note: one "." entry, named re-exports only, no wildcard and no export *
+      - kind: attestation
+        ref: .repo-kit.yml
+        note: >
+          the package-manifest rule is disabled for this package; without the opt-out
+          repo-kit sync regenerates the "./*" subpath exports and the entry point reverts
   - claim: d-euwmthl9 # a prepare-wave working list is transient
     covered_by:
       - kind: attestation
