@@ -29,7 +29,6 @@ decisions:
     status: proposed
     because:
       - r-v4z0h7dn
-      - d-29fjsjn2
       - r-d181l3s2
     facets:
       - process-doc
@@ -67,6 +66,7 @@ decisions:
       - d-63f18oml
       - d-eaw3u72o
       - d-ig8vxolb
+      - d-98df3rlb
     facets:
       - process-doc
       - prompts
@@ -79,16 +79,20 @@ decisions:
       the census of choices its package's build would meet, each classified decided,
       deferred, or below the recording bar, plus the questions the fold cannot answer,
       building nothing — then prepare and implement as before: prepare standing up whatever
-      sibling packages compile or check against, implement running prepare first where it
-      has not run and then completing the package. a kind with nothing to stand up treats
-      prepare as a no-op; the dispatcher never needs to know any kind's waves.
+      sibling packages compile or check against, a package's public surface or its share of
+      a cross-package allocation, and implement running prepare first where it has not run
+      and then completing the package. a kind with nothing to stand up treats prepare as a
+      no-op; the dispatcher never needs to know any kind's waves.
     status: proposed
     pinned:
       reason: public-api
+      notes: the contract between the dispatcher and every implementer skill, present and future
     supersedes: d-sbcncyu2
     because:
       - r-v4z0h7dn
       - d-29fjsjn2
+      - d-qb67fb8s
+      - d-ng02vmcd
     facets:
       - process-doc
       - prompts
@@ -109,4 +113,5 @@ decisions:
       - r-v4z0h7dn
       - d-52uunxo6
       - d-cau8oksc
+      - d-63f18oml
     facets: prompts
