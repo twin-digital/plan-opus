@@ -16,10 +16,13 @@ requirements:
   - id: r-15psk4yp
     title: a rule governing more than one role is stated once
     statement: |
-      where a rule governs more than one agent role, kind, or phase, it is written in one
+      where one rule governs more than one agent role, kind, or phase, it is written in one
       place and reached from each — not restated per audience. two copies that must be
-      updated together are the failure this forbids.
+      updated together are the failure this forbids. where two roles each perform part of
+      one exchange, each states its own part, and that is not a copy.
     verification:
       - do: change a rule that governs every implementer, whatever its kind
       - verify: the change lands in exactly one place
+      - do: read what each of two roles is told about an exchange they share
+      - verify: each states its own part and neither restates the other's
     facets: prompts
