@@ -1,0 +1,298 @@
+version: "1"
+
+# Harvested from the #123 branch (`design/minecraft-pack-build`, tip afd5881): the rulings the
+# conversion to this product did not carry. Statements are the branch's, verbatim; the owner ruled
+# on 2026-08-04 that they enter in force. `drafts/harvest-map.md` maps slug to id. The branch's
+# five rejected entries stay on the preserved branch as history and are not re-entered.
+decisions:
+  # the shape of the export
+  - id: d-5ej8yfki
+    title: the export is a fragment carrying a Rolldown plugin
+    statement: |
+      the build half exports one function returning a tsdown config fragment whose `plugins` array
+      holds a single Rolldown plugin that performs the whole build
+    status: accepted
+    pinned:
+      reason: public-api
+    because:
+      - r-hlnbi41r
+      - f:tsdown-takes-rolldown-plugins-through-its-config
+    facets: build
+
+  - id: d-qtq0ccy6
+    title: the consumer hands over its package directory
+    statement: |
+      the exported function takes one required option, `packageDir`, the filesystem path of the
+      package directory the build is for
+    status: accepted
+    pinned:
+      reason: public-api
+    facets: build
+
+  - id: d-vpwz0dps
+    title: the build reads the kit pack set
+    statement: |
+      the build calls the dev kit at build time and takes the packs of its own package from the pack
+      set, rather than reading the package's source manifests itself
+    status: accepted
+    because:
+      - r-gyrsw1mq
+    facets: build
+
+  - id: d-ai68xorc
+    title: the workspace root is the nearest pnpm workspace file
+    statement: |
+      the workspace root handed to the kit is the nearest ancestor of the package directory holding a
+      `pnpm-workspace.yaml`, and a package directory with no such ancestor fails the build
+    status: proposed
+    facets: build
+
+  - id: d-d727qv5z
+    title: script sources live in the pack's scripts directory
+    statement: |
+      a behavior pack's script sources sit under `behavior_pack/scripts/`, with `main.ts` the bundle
+      entry, and nothing under that directory is copied into the output tree
+    status: accepted
+    pinned:
+      reason: other
+      notes: the source layout a consuming pack package must follow
+    facets: build
+
+  - id: d-oln00v7s
+    title: the script output path is set in config and checked against the kit
+    statement: |
+      the configuration points the bundler's `outDir` and entry filename at
+      `<package>/dist/behavior_pack/scripts/main.js`, and the plugin fails the build when the script
+      location the pack set reports for that pack is not that path
+    status: proposed
+    pinned:
+      reason: data-format
+    because:
+      - r-2alueo3d
+    facets: build
+
+  - id: d-3sb0vrc2
+    title: externals come from the manifest's module dependencies
+    statement: |
+      the external set is exactly the `module_name` dependencies the pack's completed manifest
+      declares, and an undeclared `@minecraft/`-scoped import fails the build only when nothing
+      importable resolves for it
+    status: accepted
+    pinned:
+      reason: data-format
+    because:
+      - r-2alueo3d
+      - f:a-plugin-resolveid-external-return-wins-over-noexternal
+    facets: build
+
+  - id: d-llnhw1k1
+    title: the bundler writes its chunks and the plugin writes the rest
+    statement: |
+      the bundler writes the entry chunk and any chunk split out of it, and the plugin writes only
+      the completed manifests and the copied assets
+    status: proposed
+    because:
+      - f:tsdown-entry-chunk-name-comes-from-entryfilenames
+    facets: build
+
+  - id: d-5meg5uy7
+    title: a chunk no pack claims is pruned like any other stale output
+    statement: |
+      a chunk the bundler writes for a package whose behavior pack declares no script module, or
+      which holds no behavior pack at all, is removed by the end-of-build prune rather than prevented
+      from being written
+    status: proposed
+    because:
+      - d-p06hnnc0
+    facets: build
+
+  - id: d-64tw58t0
+    title: a script-less package builds through a virtual entry
+    statement: |
+      a package whose behavior pack has no script sources builds with a virtual entry module the
+      plugin resolves and loads, rather than with an empty entry list or a stub file on disk
+    status: accepted
+    facets: build
+
+  - id: d-3kcr1672
+    title: a rebuild emits no report
+    statement: |
+      a build writes no record of which packs it changed; a watching consumer reads the output tree
+    status: accepted
+    pinned:
+      reason: other
+      notes: a watching consumer's contract — the output tree is the only change report
+    because:
+      - r-8xmkne8a
+      - d-nclb1c8l
+    facets: build
+
+  - id: d-6ewrh1g3
+    title: the archive is a single mcaddon per package
+    statement: |
+      a package is cut into one `.mcaddon` holding one `.mcpack` per pack in its output tree, whatever
+      the number of packs
+    status: accepted
+    pinned:
+      reason: data-format
+    because:
+      - r-phxrb6qn
+    facets: build
+
+  # the owner tolerated this on the branch (thread 3673915455); delegated is this product's
+  # status for a ruling that lets the choice stand without endorsing it
+  - id: d-j9qge6s1
+    title: the archive ships as a bin command
+    statement: |
+      the archive half is a command, `mc-pack-archive`, that the kit package declares in its `bin`
+    status: delegated
+    pinned:
+      reason: public-api
+    because:
+      - r-hlnbi41r
+    facets: build
+
+  # the defaults gate — ruled accepted in bulk before the branch's review rounds
+  - id: d-h91x9nxz
+    title: assets copy verbatim except the manifest and scripts
+    statement: |
+      every file under a pack's source directory reaches the output unchanged except its
+      `manifest.json` and everything under `scripts/`; dotfiles and unknown extensions copy like the
+      rest
+    status: accepted
+    pinned:
+      reason: data-format
+    because:
+      - r-umoo5i1i
+      - r-imfmv0qc
+    facets: build
+
+  - id: d-xnnslpns
+    title: empty source directories produce no output directory
+    statement: a source directory holding no files creates no directory in the output tree
+    status: accepted
+    facets: build
+
+  - id: d-exzp1618
+    title: the completed manifest is two-space JSON
+    statement: |
+      a completed `manifest.json` is written as JSON with two-space indentation and a trailing newline
+    status: accepted
+    pinned:
+      reason: data-format
+    facets: build
+
+  - id: d-nclb1c8l
+    title: output files are written only when their bytes change
+    statement: |
+      every file the build writes — the completed manifests and the copied assets — is compared
+      with what already sits at that path and written only on a difference
+    status: accepted
+    pinned:
+      reason: other
+      notes: a watching consumer keys on unchanged files keeping their timestamps
+    facets: build
+
+  - id: d-p06hnnc0
+    title: stale output is pruned, not wiped
+    statement: |
+      output the current build did not write is deleted at the end of the build, rather than the
+      output tree being cleared before it
+    status: accepted
+    because:
+      - r-8xmkne8a
+    facets: build
+
+  - id: d-jxv1x5ht
+    title: the bundle is one unminified ESM chunk
+    statement: |
+      the bundle is ESM, unminified, with no type declarations and no sourcemap; any further chunk the
+      bundler produces is written beside the entry file
+    status: accepted
+    pinned:
+      reason: data-format
+    facets: build
+
+  - id: d-no9a9s0x
+    title: an invalid pack fails the build
+    statement: |
+      a pack the kit reports invalid fails the build with the kit's problems printed, and no sibling
+      pack in the package is built
+    status: accepted
+    facets: build
+
+  - id: d-4e0kt69q
+    title: a package with no pack fails the build
+    statement: |
+      a package for which the kit reports no pack fails the build, naming the package directory that
+      was searched
+    status: accepted
+    facets: build
+
+  - id: d-s5ymp8ai
+    title: the archive command takes no arguments
+    statement: |
+      the archive command takes no arguments, works on the package directory it is run in, and writes
+      into `.release-assets/`, creating that directory
+    status: accepted
+    pinned:
+      reason: public-api
+    because:
+      - r-phxrb6qn
+    facets: build
+
+  - id: d-9hbe6ixx
+    title: archive names come from the package name and version
+    statement: |
+      the archive is named `<package name with its npm scope stripped>-<version>.mcaddon` and its
+      members `behavior_pack.mcpack` and `resource_pack.mcpack`
+    status: accepted
+    pinned:
+      reason: data-format
+    because:
+      - r-kbgjy2pt
+    facets: build
+
+  - id: d-mle1zwtz
+    title: a missing output tree fails the archive
+    statement: |
+      the archive command fails naming the missing directory when a package's output tree is absent,
+      and never runs a build itself
+    status: accepted
+    because:
+      - r-phxrb6qn
+    facets: build
+
+  - id: d-9s4tdc8z
+    title: documentation ships as TSDoc and a README section
+    statement: |
+      the export's documentation is TSDoc on the exported function and its options plus a usage
+      section in the kit package's README, not a separate document
+    status: accepted
+    because:
+      - r-ifvxhl2p
+    facets: build
+
+  # proposed at the branch tip, never ruled — re-entered for the owner to rule or reject
+  - id: d-wzmofsc8
+    title: a stale virtual entry fails the build
+    statement: |
+      a build configured with the virtual entry fails at `buildStart` when
+      `<package>/behavior_pack/scripts/main.ts` is on disk, rather than writing the empty script over
+      sources the configuration was evaluated too early to see
+    status: proposed
+    because:
+      - d-64tw58t0
+    facets: build
+
+  - id: d-s1haiu19
+    title: the export takes over the package's build
+    statement: |
+      a package taking up the export gives it the whole of its tsdown configuration and the whole of
+      its `dist/`, so a pack package builds its packs and nothing else
+    status: proposed
+    pinned:
+      reason: public-api
+    because:
+      - r-8xmkne8a
+    facets: build
