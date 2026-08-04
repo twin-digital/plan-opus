@@ -1,0 +1,24 @@
+version: "1"
+
+decisions:
+  - id: d-c1awo33f
+    title: the root entry point is the fakes' barrel
+    statement: |
+      the package's root entry point re-exports every fake type and free function, and the entry
+      points carrying the aliased module surface and the runner tooling are this increment's
+      design to lay out
+    status: delegated
+    because:
+      - r-3dgnq0sp
+      - r-qklf4op9
+    revisit_when:
+      - the library's own parts come to import each other through the root barrel, and the cycle
+        that creates cannot be broken without a subpath export a builder can import directly
+      - a sibling package must depend on the error classes at a version cadence independent of the
+        fakes, which one entry point in one package cannot express
+      - this increment's layout needs the fakes reachable from somewhere other than the root, so
+        the two halves of the package cannot both be laid out as this says
+    supersedes: d-19qu2ih2
+    facets:
+      - fakes
+      - shim

@@ -42,7 +42,26 @@
         export enum declarations in index.d.ts: 64
         enums generated from the pinned declarations: 64
 
+- id: test-lib-supplies-the-module-surface-and-the-runner-tooling
+  claim: |
+    `@twin-digital/minecraft-test-lib` commits, as owner fiat, to keeping suites that inject fake
+    objects into code under test working, and to additionally supplying the `@minecraft/server`
+    module surface a consumer aliases together with the runner tooling that configures that alias.
+    Both styles are the library's: code reachable only through a direct module import is within its
+    reach, and nothing it ships breaks a suite written against injection.
+  backing: documented
+  sources:
+    - url: products/mc-test-lib/increments/003/requirements.yaml
+      where: r-qklf4op9
+      quote: |
+        a suite that injects fake objects into code under test stays supported, and nothing the
+        library ships breaks one. The library additionally supplies the `@minecraft/server` module
+        surface a consumer aliases, and the runner tooling that configures that alias.
+
 - id: test-lib-does-not-intercept-the-module-import
+  status: retired
+  reason: superseded
+  superseded_by: test-lib-supplies-the-module-surface-and-the-runner-tooling
   claim: |
     `@twin-digital/minecraft-test-lib` commits, as owner fiat, to substituting fake objects passed
     into code under test and to not replacing or intercepting the `@minecraft/server` module

@@ -30,3 +30,19 @@ Two items are open for this Plan loop to argue afresh, on their merits:
 1. The zero-boilerplate / no-hand-written-ordering ergonomics rule.
 2. Whether the shim's version statement (`r-29dlrp9r`'s "states which version it was derived
    from") is inert or enforced.
+
+## Harvest landed
+
+The shim cycle's probe evidence is in the pool: sixteen runs across
+`evidence/minecraft/pack-testing.yml`, `evidence/javascript-modules.yml`,
+`evidence/vitest-configuration.yml` and `evidence/package-manager-peer-dependencies.yml`, with
+their artifacts under `evidence/minecraft/server-shim/` and the facts they back filed beside the
+existing pools. The Plan loop reads them from there rather than re-running the probes.
+
+The owner-approved module-surface rulings are this increment's entries: `r-qklf4op9` (injection
+suites stay supported) amends the object-substitution fiat `r-wv395rgn`, `r-qayd22z2` (fake state
+is instance-scoped) amends `r-892696vk`, and `d-c1awo33f` narrows the entry-point ruling to the
+root barrel — the layout of the module-surface and runner-tooling entry points is this
+increment's design to make — superseding `d-19qu2ih2`. The fiat fact
+`test-lib-supplies-the-module-surface-and-the-runner-tooling` records the amended commitment, and
+`test-lib-does-not-intercept-the-module-import` is retired in its favour.

@@ -1,0 +1,12 @@
+version: "1"
+
+questions:
+  - id: q-2rr36skd
+    question: |
+      Does the merged package stay ESM-only, or must the shim's module surface and runner tooling
+      also support CJS consumers? The owner's July ruling that the shim's writer designs for CJS
+      consumers too predates merging the shim into `@twin-digital/minecraft-test-lib`, which the
+      adopted nodejs-library@1 preset binds to shipping as ESM only — the two cannot both hold
+      without a ruling.
+    answer: requirement
+    facets: shim

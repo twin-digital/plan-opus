@@ -112,3 +112,39 @@ requirements:
       - do: install the shim in a consumer project by following its documentation
       - verify: the runner's configuration gained one entry, and the consumer wrote no setup file
     facets: shim
+
+  # owner-approved amendments: the library's own commitments absorb the shim
+  - id: r-qklf4op9
+    title: injection suites stay supported
+    statement: |
+      a suite that injects fake objects into code under test stays supported, and nothing the
+      library ships breaks one. The library additionally supplies the `@minecraft/server` module
+      surface a consumer aliases, and the runner tooling that configures that alias.
+    rationale: |
+      The retired fiat barred a module-shim story to protect suites written against object
+      substitution. The protection is that guarantee, not the absence of the shim.
+    verification:
+      - do: run a suite that injects fake objects into code under test, with the shipped package installed
+      - verify: the suite stays supported, and nothing the library ships breaks it
+      - do: inventory what the package supplies for a consumer reaching the engine through the module import
+      - verify: it supplies the `@minecraft/server` module surface the consumer aliases, and the runner tooling that configures that alias
+    amends: r-wv395rgn
+    facets:
+      - fakes
+      - shim
+
+  - id: r-qayd22z2
+    title: fake state is instance-scoped
+    statement: |
+      all fake state belongs to a world instance a test creates. The only module-level mutable
+      state is the `world`/`system` bindings a test installs and controls; no fake's state lives
+      there.
+    verification:
+      - do: create two world instances in one process and mutate state through the first
+      - verify: nothing changed in the second, with no reset hook called
+      - do: inventory the package's module-level mutable state
+      - verify: only the `world`/`system` bindings a test installs and controls live there, and no fake's state does
+    amends: r-892696vk
+    facets:
+      - fakes
+      - shim
