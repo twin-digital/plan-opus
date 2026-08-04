@@ -1,0 +1,83 @@
+# Runs backing facts about the bundler toolchain — tsdown and the Rolldown plugin API beneath it.
+#
+# A run records one execution and the output it captured. It makes no claim: the output says what
+# happened, the fact that cites it says what that means.
+
+- id: tsdown-clean-probe
+  command: NO_COLOR=1 node evidence/bundlers/tsdown-clean-probe/probe.mjs
+  output: evidence/bundlers/tsdown-clean-probe/OUTPUT.txt
+  ran_at: 2026-07-29
+  environment: |
+    tsdown 0.22.14 on node v24.16.0, with tsdown resolvable from the working directory
+    (`npm i -D tsdown@0.22.14`). The probe synthesises its fixture in a temp directory and seeds the
+    output directory before each build with the files a previous build of a pack would have left —
+    `behavior_pack/manifest.json` and `behavior_pack/textures/a.png` — none of which the entry
+    graph reaches. The two builds differ only in `clean`. The reading turns on the seeded files
+    being unreachable from the entry, which is what makes them stand for a pack's assets.
+
+- id: tsdown-emit-probe
+  command: NO_COLOR=1 node evidence/bundlers/tsdown-emit-probe/probe.mjs
+  output: evidence/bundlers/tsdown-emit-probe/OUTPUT.txt
+  ran_at: 2026-07-29
+  environment: |
+    tsdown 0.22.14 on node v24.16.0, with tsdown resolvable from the working directory
+    (`npm i -D tsdown@0.22.14`). The probe synthesises its fixture in a temp directory: a
+    `src/main.ts` importing a `src/helper.ts`, built with `format: ['esm']`, `dts: false` and
+    `clean: false` in every case. The three cases differ only in whether the plugin deletes every
+    key from the bundle object in `generateBundle` and writes a file of its own, and whether a file
+    was seeded into `outDir` beforehand. The reading turns on `clean: false`, which is what leaves
+    an existing `outDir` alone.
+
+- id: tsdown-entry-name-probe
+  command: NO_COLOR=1 node evidence/bundlers/tsdown-entry-name-probe/probe.mjs
+  output: evidence/bundlers/tsdown-entry-name-probe/OUTPUT.txt
+  ran_at: 2026-07-29
+  environment: |
+    tsdown 0.22.14 on node v24.16.0, with tsdown resolvable from the working directory
+    (`npm i -D tsdown@0.22.14`). The probe synthesises its fixture in a temp directory: a
+    `src/main.ts` importing a `src/helper.ts`, and a `src/split.ts` dynamically importing a
+    `src/lazy.ts` so one case has a chunk the bundler split out. Every case builds with
+    `format: ['esm']`, `dts: false` and `clean: false`; they differ only in the entry, in whether
+    the config sets `outputOptions.entryFileNames`, in `sourcemap`, and in whether an observer
+    plugin deletes the files the bundler wrote from `writeBundle`. The fixture's `package.json`
+    declares `type: module`, which is the state the default entry name is read against.
+
+- id: tsdown-output-naming-probe
+  command: NO_COLOR=1 node evidence/bundlers/tsdown-output-naming-probe/probe.mjs
+  output: evidence/bundlers/tsdown-output-naming-probe/OUTPUT.txt
+  ran_at: 2026-07-29
+  environment: |
+    tsdown 0.22.14 on node v24.16.0, with tsdown resolvable from the working directory
+    (`npm i -D tsdown@0.22.14`). The probe synthesises its fixture in a temp directory: a
+    `src/main.ts` dynamically importing a `src/lazy.ts`, built with `format: ['esm']`,
+    `dts: false` and `clean: false`, and with no `outputOptions` in the configuration — the hook
+    is the only thing setting output names in either case. The first case's plugin reads, from its
+    `outputOptions` hook, a value its own `buildStart` sets, and the build throws where that value
+    is still null; the reading turns on the order the two hooks reported, not on the throw.
+
+- id: tsdown-rewrite-probe
+  command: NO_COLOR=1 node evidence/bundlers/tsdown-rewrite-probe/probe.mjs
+  output: evidence/bundlers/tsdown-rewrite-probe/OUTPUT.txt
+  ran_at: 2026-07-29
+  environment: |
+    tsdown 0.22.14 on node v24.16.0, with tsdown resolvable from the working directory
+    (`npm i -D tsdown@0.22.14`). The probe synthesises its fixture in a temp directory and builds
+    it twice into one output directory with `clean: false`, touching no source file between the
+    two builds and pausing 50ms so the second write lands at a distinguishable modification time.
+    The reading turns on the two builds being identical in input and on the filesystem recording
+    modification times finely enough to separate them.
+
+- id: tsdown-externals-probe
+  command: NO_COLOR=1 node evidence/bundlers/tsdown-externals-probe/probe.mjs
+  output: evidence/bundlers/tsdown-externals-probe/OUTPUT.txt
+  ran_at: 2026-07-29
+  environment: |
+    tsdown 0.22.14 on node v24.16.0, with tsdown resolvable from the working directory
+    (`npm i -D tsdown@0.22.14`). The probe synthesises its own fixture in a temp directory: a
+    package declaring `dep-a` and `dep-b` as runtime `dependencies`, a `node_modules` holding both
+    as ESM packages, and a `src/main.ts` importing each. Every case builds that one entry with
+    `format: ['esm']`; they differ only in the `noExternal` value and whether a plugin whose
+    `resolveId` returns `{ id, external: true }` for `dep-a` is present. What tsdown externalises
+    by default depends on the package's declared dependencies, so the fixture's `dependencies`
+    field is the state the reading turns on. tsdown warns that `noExternal` is deprecated in favour
+    of `deps.alwaysBundle` at this version; the key still takes effect.

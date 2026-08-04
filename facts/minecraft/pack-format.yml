@@ -29,6 +29,24 @@
           world_resource_packs.json = [{"pack_id":"f5ebc4c3-7d8a-4e9f-0a1b-2c3d4e5f6a7b","version":[1,0,0]}]
         [2026-07-24 23:49:22:860 INFO] Pack Stack - [00] layout probe behavior pack (id: d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f, version: 1.0.0) @ development_behavior_packs/resource_pack_totally
 
+- id: a-script-module-names-its-entry-point-path
+  claim: |
+    A manifest module of type `script` carries an `entry`, a string naming the entry-point file the
+    game loads for that module. The path a pack's built script bundle must sit at is therefore
+    declared by the pack's own manifest rather than fixed by the format.
+  backing: documented
+  sources:
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/manifestreference/packmanifestdocument
+      where: 3.0.0.Module — the section description
+      quote: |
+        Declares a module within the pack. Modules define what the pack contains: 'data' for
+        behavior packs, 'resources' for resource packs, or 'script' for packs with
+        JavaScript/TypeScript code. Script modules require an entry point file path.
+    - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/manifestreference/packmanifestdocument
+      where: 3.0.0.Module Properties — the entry row of the properties table
+      quote: |
+        | entry | *not set* | String |
+
 - id: release-archives-follow-pack-content
   claim: |
     The format's distribution archives follow what a project contains: an `.mcpack` is one zipped

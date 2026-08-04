@@ -1,0 +1,168 @@
+# Facts about how vitest assembles a run from its configuration — what a plugin's `config` hook can
+# contribute, how `setupFiles` entries are resolved, and what `vi.mock` can stand in for. The
+# subject is the runner, not anything it is configured to test.
+
+- id: vi-mock-substitutes-a-specifier-vite-cannot-resolve
+  claim: |
+    `vi.mock(specifier, factory)` makes a specifier importable that the resolver cannot resolve at
+    all. Measured on vitest 4.1.10 / vite 8.1.5 / node 24.16.0 against `@minecraft/server` 2.8.0,
+    which publishes no `main`, `module`, `types` or `exports` key: with no `resolve.alias`
+    configured, the same suite fails to start with `Failed to resolve entry for package
+    "@minecraft/server"` [[f:server-import-fails-without-an-alias]], and adding only a
+    `vi.mock('@minecraft/server', factory)` — no alias — passes. The substitution reaches the whole
+    module graph of the test file, not just the test file's own import: the subject was
+    bencrob/marron-town-mod at 2c025b4 unmodified, whose `src/main.ts` imports the specifier, and
+    the pack's five module-scope `subscribe` calls and two `system.runInterval` registrations
+    landed on the server the factory built.
+  backing: tested
+  caveat: |
+    vitest 4.1.10 / vite 8.1.5 on node 24.16.0, ESM, one process. The factory returned the module
+    namespace of a real shim package it imported dynamically, rather than an object literal;
+    whether a snapshot-shaped return keeps live bindings is not measured. jest, bun and CJS were
+    not exercised.
+  sources:
+    - run: vi-mock-without-an-alias-probe-run
+      where: the control — the same pack and imports, with neither an alias nor a mock
+      quote: |
+        Error: Failed to resolve entry for package "@minecraft/server". The package may have incorrect main/module/exports specified in its package.json.
+    - run: vi-mock-without-an-alias-probe-run
+      where: the same config plus a `vi.mock` in the test file — the pack's own import reached the factory's server
+      quote: |
+        [census] {"label":"vi.mock factory","subscriptions":["after.entityHurtx1","after.itemCompleteUsex1","after.itemUsex1","after.playerBreakBlockx1","after.playerSpawnx1"],"subscriptionCount":5,"intervals":2,"queuedRuns":1,"dimensions":["overworld"],"messages":0}
+
+- id: a-setup-file-vi-mock-applies-to-every-test-file
+  claim: |
+    A `vi.mock` called in a `setupFiles` module applies to the test files that follow it, and the
+    factory is re-run per test file: two test files under one setup file each got their own module
+    instance and their own server, each carrying that file's own pack subscriptions and no other
+    file's. The mock is in force before the test file's own module evaluation, so a pack imported
+    statically at the top of the test file subscribes on the mocked module. A live `export let`
+    binding inside the mocked module still moves after the mock is installed — a test that called
+    `__useServer` through the shim's `./control` subpath read the new server back through its
+    static `import { world }` from the mocked specifier.
+  backing: tested
+  caveat: |
+    vitest 4.1.10 / vite 8.1.5 on node 24.16.0, ESM, one process, two test files. The mock factory
+    returned a real module namespace object, which is what keeps the live binding live; an object
+    literal of copied values was not measured.
+  sources:
+    - run: vi-mock-without-an-alias-probe-run
+      where: the setup-file mock — the second test file's own server, with its own five subscriptions
+      quote: |
+        [second file census] {"label":"setup vi.mock factory","subscriptions":["after.entityHurtx1","after.itemCompleteUsex1","after.itemUsex1","after.playerBreakBlockx1","after.playerSpawnx1"],"subscriptionCount":5,"intervals":2,"queuedRuns":1,"dimensions":["overworld"],"messages":0}
+    - run: vi-mock-without-an-alias-probe-run
+      where: the same file, after reinstalling a second server through the control subpath
+      quote: |
+        [after reinstall] world.label=reinstalled server system.currentTick=0
+
+- id: a-vite-plugin-contributes-an-alias-and-a-setup-file
+  claim: |
+    A vite plugin's `config` hook can contribute both a `resolve.alias` entry and a
+    `test.setupFiles` entry, and vitest honours both: a consumer config listing only
+    `plugins: [thePlugin()]` — no alias of its own for the aliased specifier, no `setupFiles` of
+    its own — ran an unmodified pack's suite green on vitest 4.1.10 / vite 8.1.5 / node 24.16.0.
+    The ordering the shape needs holds: the plugin-contributed setup module evaluates before the
+    test file's own module evaluation, so bencrob/marron-town-mod at 2c025b4, imported statically
+    at the top of the test file, landed its five module-scope `subscribe` calls and two
+    `system.runInterval` loops on the server that setup module installed.
+  backing: tested
+  caveat: |
+    vitest 4.1.10 / vite 8.1.5 on node 24.16.0, ESM, one process, one plugin. The server installed
+    is the probe's own ~120-line fake, not a fake library's; what is measured is the runner's
+    assembly of the config, not the server's behaviour.
+  sources:
+    - run: plugin-contributed-install-probe-run
+      where: the plugin's setup module, evaluated before the test file
+      quote: |
+        [shim setup] via=env label=plugin default dimensions=["overworld"] factory=@probe/fake-server
+    - run: plugin-contributed-install-probe-run
+      where: the four assertions of the suite whose whole install is the plugin
+      quote: |
+         ✓ plugin.test.ts > the alias came from the plugin — the pack’s import resolved to the shim 2ms
+         ✓ plugin.test.ts > the setup file came from the plugin — the pack subscribed before this file evaluated 1ms
+
+- id: setup-files-resolve-as-modules-from-the-project-root
+  claim: |
+    A `test.setupFiles` entry is resolved by node module resolution from the project root, not
+    through the plugin pipeline. A bare specifier naming a subpath the package's `exports` map
+    declares resolves and runs — so a package can ship a self-registering setup module a consumer
+    names by package specifier. A specifier that resolution cannot answer falls back to being
+    joined onto the root as a path and fails with `ERR_MODULE_NOT_FOUND`: measured for a subpath
+    the `exports` map does not declare, and for a virtual module id the plugin's own
+    `resolveId`/`load` hooks answer. A plugin therefore cannot emit its setup module virtually; it
+    has to name a real file.
+  backing: tested
+  caveat: |
+    vitest 4.1.10 / vite 8.1.5 on node 24.16.0. The package holding the setup subpath is installed
+    through a `file:` spec, which node_modules holds as a symlink; a registry install was not
+    exercised. Vitest's `resolvePath` tries `resolveModule(path, { paths: [root] })` and falls back
+    to `resolve(root, path)`, which is the mechanism the two failures show.
+  sources:
+    - run: plugin-options-probe-run
+      where: the setup entry named by a bare specifier the package's exports map declares
+      quote: |
+        === options: setup file named by a bare specifier the package exports (plugin.config.ts) ===
+        PROBE_SHIM_PLUGIN_OPTIONS={"setupEntry":"bare"}
+    - run: plugin-options-probe-run
+      where: the same entry as a subpath the exports map does not declare
+      quote: |
+        Error: Cannot find module '<probe>/@probe/shim/setup.js'
+    - run: plugin-options-probe-run
+      where: the same entry as a virtual module id the plugin resolves
+      quote: |
+        Error: Cannot find module '<probe>/virtual:probe-shim-setup'
+
+- id: plugin-options-reach-a-setup-file-through-env-or-define
+  claim: |
+    A `setupFiles` module takes no arguments, so a plugin's options reach it through a channel the
+    same `config` hook sets: `test.env`, read as `process.env` in the setup module, or vite's
+    `define`, replaced at transform time. Both carried a JSON options object on vitest 4.1.10 /
+    vite 8.1.5 / node 24.16.0, and the options were observable in the installed server: one
+    invocation built a world holding `overworld`, a second built an empty world, and a third
+    selected an entirely different server factory by module specifier — the setup module `import`s
+    whatever `serverModule` names. A plugin can therefore be parameterised where a bare
+    `setupFiles` entry can only bake in defaults.
+  backing: tested
+  caveat: |
+    vitest 4.1.10 / vite 8.1.5 on node 24.16.0, node environment. `define` reached a setup module
+    that vitest transformed; a setup module vitest externalises to node would see no replacement,
+    and `test.env` has no such dependency. Only a node-side setup module was measured.
+  sources:
+    - run: plugin-options-probe-run
+      where: the same options carried through test.env, and through define
+      quote: |
+        [shim setup] via=env label=plugin default dimensions=["overworld"] factory=@probe/fake-server
+    - run: plugin-options-probe-run
+      where: a second option set — an empty world — reaching the installed server
+      quote: |
+        [shim setup] via=env label=empty world dimensions=[] factory=@probe/fake-server
+    - run: plugin-options-probe-run
+      where: a consumer server factory chosen by the plugin's serverModule option
+      quote: |
+        [shim setup] via=env label=chosen factory (alt factory) dimensions=["overworld"] factory=<probe>/alt-server.js
+
+- id: a-plugins-config-merges-with-the-consumers-own-entries
+  claim: |
+    A plugin's contributed `resolve.alias` and `test.setupFiles` merge with a consumer's own rather
+    than replacing them. Measured on vitest 4.1.10 / vite 8.1.5 / node 24.16.0 with a consumer
+    config carrying an alias table of its own — one entry of which its own setup file imports — and
+    a `setupFiles` entry of its own, beside the plugin: both alias entries resolved, both setup
+    files ran, and the plugin's alias and setup file did their work in the same run. The consumer's
+    alias table merged in both of vite's forms, an object and an array of `{find, replacement}`.
+    The consumer's setup file ran **first** and the plugin's second, so a plugin that installs
+    state at setup time overwrites what a consumer's own setup file installed, not the other way
+    round.
+  backing: tested
+  caveat: |
+    vitest 4.1.10 / vite 8.1.5 on node 24.16.0, one plugin and one consumer setup file. The
+    ordering measured is a plugin-contributed entry against a root-config entry; two plugins
+    against each other, and `configResolved`-stage rewrites, were not exercised.
+  sources:
+    - run: plugin-config-merge-probe-run
+      where: both setup files ran, consumer first
+      quote: |
+        [setup order] ["consumer","plugin"]
+    - run: plugin-config-merge-probe-run
+      where: the consumer's own alias entry, imported by their own setup file, resolved alongside the plugin's
+      quote: |
+        [consumer setup] ran, order=["consumer"] marker=consumer alias resolved
