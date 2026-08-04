@@ -1,0 +1,31 @@
+version: "1"
+
+# Two amendments the harvested build rulings require. Both are input changes and called out for
+# review in the pull request.
+requirements:
+  - id: r-yg1djnta
+    title: the build half is an exported bundler config
+    statement: |
+      the build half of this design is exported for a consuming package's bundler configuration to
+      use — not a command the package runs. The package embeds no bundler at runtime and ships no
+      command line of its own. Naming a bundler's types on the exported surface, and depending on a
+      bundler to develop and test that export, are both within this. The archive half is not bound
+      by this: it may ship a command line.
+    verification:
+      - do: open the package's exports, runtime dependencies, and declared commands
+      - verify: the build half is an export a consuming package's bundler configuration takes up, and no bundler is a runtime dependency of the package
+      - verify: no declared command line serves the build half; any the package declares belongs to the archive half
+    facets: build
+    amends: r-hlnbi41r
+
+  - id: r-iavfb8qj
+    title: discovery produces no built output
+    statement: |
+      the kit's discovery half reports where a pack's built output is expected and produces none of
+      it: discovery neither reads nor writes the output tree. The build half, shipping in the same
+      package, is what reads and writes that tree.
+    verification:
+      - do: snapshot a workspace with no built output present, then run discovery
+      - verify: every entry reports its output location, and the tree is unchanged — nothing under any output path was created, read into the result, or modified
+    facets: discovery
+    amends: r-1bvvl9k7
