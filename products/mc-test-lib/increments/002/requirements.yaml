@@ -1,0 +1,114 @@
+version: "1"
+
+requirements:
+  # converted from design/minecraft/server-shim
+  - id: r-vzz9rnrc
+    title: unmodified pack code loads under test
+    statement: |
+      a test process configured with the shim loads a pack's engine-facing module unmodified — its
+      value imports from `@minecraft/server`, enum members and classes alike, resolve — with no edit
+      to the pack and no hand-written stub from the pack's author.
+    verification:
+      - do: configure a test process with the shim, against an unmodified public pack module that imports enum members and classes from `@minecraft/server`
+      - verify: the module loads and every value import resolves, with no edit to the pack and no hand-written stub from its author
+    facets: shim
+
+  - id: r-29dlrp9r
+    title: enum values come from the pinned declarations
+    statement: |
+      every enum value the shim supplies is derived from a pinned `@minecraft/server` version's
+      declarations rather than hand-authored, and the shim states which version it was derived from.
+    verification:
+      - do: sample enum values the shim supplies and trace each to its origin
+      - verify: each derives from the pinned `@minecraft/server` version's declarations; none is hand-authored
+      - verify: the shim states which version its values were derived from
+    facets: shim
+
+  - id: r-956kxrsc
+    title: instanceof answers for a fake
+    statement: |
+      `instanceof` against a class the shim exports answers true for the corresponding fake and
+      false for a value that is not one, without the consumer naming a member or other
+      implementation detail of the fakes.
+    rationale: |
+      A silently false `instanceof` leaves a handler returning early and its test passing while
+      exercising nothing.
+    verification:
+      - do: evaluate `instanceof` against a shim-exported class, once with the corresponding fake and once with a value that is not one
+      - verify: it answers true for the fake and false for the other value, the consumer having named no member or implementation detail of the fakes
+    facets: shim
+
+  - id: r-rpm1k57j
+    title: module singletons are test-controlled
+    statement: |
+      a test can point the module-scope `world` and `system` at fakes it created, code that reaches
+      the engine through the module import sees them, and a test starts from what it installed with
+      nothing carried over from a previous test.
+    verification:
+      - do: in one test, point the module-scope `world` and `system` at fakes the test created, and run code that reaches the engine through the module import
+      - verify: that code sees the installed fakes
+      - do: run a second test installing its own fakes
+      - verify: it starts from what it installed, with nothing carried over from the first test
+    facets: shim
+
+  - id: r-9z0icbhi
+    title: shim supplies values, not behaviour
+    statement: |
+      the shim supplies only what a module import must carry — values, classes, and the singleton
+      bindings — and models no engine behaviour of its own; every behaviour a test observes comes
+      from `@twin-digital/minecraft-test-lib`.
+    verification:
+      - do: inventory what the shim supplies
+      - verify: each item is a value, a class, or a singleton binding, and none models an engine behaviour of its own
+      - do: trace the behaviours a test observes through the shim
+      - verify: every one comes from `@twin-digital/minecraft-test-lib`'s fakes
+    facets: shim
+
+  - id: r-4bgnaff8
+    title: a consumer suite still typechecks
+    statement: |
+      a TypeScript pack's test suite typechecks with the shim installed, without a cast or an `any`
+      at the seam between the shim and the pack's `@minecraft/server` types.
+    verification:
+      - do: typecheck a TypeScript pack's test suite with the shim installed
+      - verify: the compile passes with no cast and no `any` at the seam between the shim and the pack's `@minecraft/server` types
+    facets: shim
+
+  # lifted by owner ruling from the rejected shim spec cycle — constraints, not open to reargument
+  - id: r-3dgnq0sp
+    title: one package
+    statement: |
+      the aliased `@minecraft/server` surface, the fakes, and the runner tooling ship as one
+      package, `@twin-digital/minecraft-test-lib`.
+    rationale: |
+      Owner fiat from the rejected shim spec cycle; the packaging is not open to reargument.
+    verification:
+      - do: open the published package manifests
+      - verify: the aliased surface, the fakes, and the runner tooling all ship in `@twin-digital/minecraft-test-lib`, and no second package publishes any of them
+    facets: shim
+
+  - id: r-d5v1hzgp
+    title: instanceof answers by class identity
+    statement: |
+      `instanceof` answers by class identity: a fake is an instance of the class the aliased
+      surface exports.
+    rationale: |
+      Owner fiat from the rejected shim spec cycle; brand mechanisms answering in place of the
+      class itself are not open to reargument.
+    verification:
+      - do: create a fake and read the class the aliased surface exports for its type
+      - verify: the fake is an instance of that class — the exported class sits on the fake's prototype chain, with no `Symbol.hasInstance` override answering for it
+    facets: shim
+
+  - id: r-uobnqsfg
+    title: install is one runner-config entry
+    statement: |
+      a consumer installs the shim with one entry in their runner's configuration, and writes no
+      setup file.
+    rationale: |
+      Owner fiat from the rejected shim spec cycle; the one-entry install is not open to
+      reargument.
+    verification:
+      - do: install the shim in a consumer project by following its documentation
+      - verify: the runner's configuration gained one entry, and the consumer wrote no setup file
+    facets: shim
