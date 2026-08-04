@@ -1,5 +1,6 @@
-# Requirements at minecraft area scope: those binding more than one design in the area. Each names
-# the designs it binds, since nothing here binds the whole area.
+# Requirements at minecraft area scope. All retired: each bound only the pack set whose one
+# member, village-guard, converted to products/village-guard, and the merged `minecraft-addon`
+# preset carries their statements now.
 #
 # rationale is omitted unless the statement's intent is genuinely non-obvious.
 
@@ -9,7 +10,7 @@
     configuration merges the fragment that toolchain exports, and it implements no build logic of
     its own. Every route to a built pack — a build script, a watch rebuild, a
     continuous-integration run — goes through it.
-  applies_to: [set:minecraft-addon-packs]
+  status: retired
   rationale: |
     A second path to a built pack is a path around manifest completion.
 
@@ -18,10 +19,10 @@
     a pack implements no delivery of its own: whatever release or deploy hook the monorepo's
     conventions require of it delegates to shared tooling, and the pack itself publishes and deploys
     nothing.
-  applies_to: [set:minecraft-addon-packs]
+  status: retired
 
 - id: packs-unit-test-with-the-shared-test-lib
   statement: |
     a pack's unit tests stand up `@minecraft/server` with `@twin-digital/minecraft-test-lib`
     rather than a hand-rolled double or a module mock.
-  applies_to: [set:minecraft-addon-packs]
+  status: retired

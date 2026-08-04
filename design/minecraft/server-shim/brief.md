@@ -98,7 +98,7 @@ line of the pack changes, and no enum value is hand-written by the author.
   state, and it will not satisfy both readings.
 - **Ecosystem shape versus the library's shape.** Every surveyed public pack that tests
   engine-facing code at all does it by aliasing `@minecraft/server` onto a hand-written stub — 6 of
-  103, none by injecting the engine as a parameter (`design/minecraft/test-lib/artifacts/
+  103, none by injecting the engine as a parameter (`evidence/minecraft/test-lib/
   pack-testing-survey.md`). The library was designed for injection. A shim that only makes value
   imports resolve serves the injection style; one that also holds the singletons serves what packs
   actually do, and pulls module-level mutable state into a project that has none.
