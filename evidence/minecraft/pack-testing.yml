@@ -5,10 +5,10 @@
 
 - id: alias-shim-harness-run
   command: MC_TEST_LIB=<opus>/nodejs/minecraft/test-lib/src/index.ts npx vitest run --reporter=verbose
-  output: design/minecraft/server-shim/artifacts/alias-shim-harness/harness.out.txt
+  output: evidence/minecraft/server-shim/alias-shim-harness/harness.out.txt
   ran_at: 2026-07-29
   environment: |
-    Run in design/minecraft/server-shim/artifacts/alias-shim-harness. vitest 4.1.10 on node 24,
+    Run in evidence/minecraft/server-shim/alias-shim-harness. vitest 4.1.10 on node 24,
     @minecraft/server 2.8.0 installed, @twin-digital/minecraft-test-lib at opus `e79e8f4`
     (unpublished, aliased from source via MC_TEST_LIB). Subjects cloned by fetch-packs.mjs:
     bencrob/marron-town-mod at 2c025b4 and xigma0512/GunFight-Arena at 0f16e88. Absolute paths in
@@ -26,7 +26,7 @@
 
 - id: alias-shim-control-run
   command: MC_TEST_LIB=<opus>/nodejs/minecraft/test-lib/src/index.ts npx vitest run -c no-alias.config.ts
-  output: design/minecraft/server-shim/artifacts/alias-shim-harness/no-alias.out.txt
+  output: evidence/minecraft/server-shim/alias-shim-harness/no-alias.out.txt
   ran_at: 2026-07-29
   environment: |
     The same harness and versions as alias-shim-harness-run, with the `@minecraft/server` alias

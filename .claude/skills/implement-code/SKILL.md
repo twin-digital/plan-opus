@@ -1,5 +1,5 @@
 ---
-version: "9"
+version: "12"
 name: implement-code
 description: Implement one code package (npm-library, npm-cli, minecraft-addon) inside a running implementation, through the Define, Stub, Code, Document waves. Invoked by the implement skill; use directly when asked to build one code package against a product's fold.
 ---
@@ -47,16 +47,16 @@ Write the tests and the public API stubs from the test plan. Coverage `code-test
 begin here as the tests come into existence; `conformance-case` entries join only as the owner
 writes or vets a case.
 
-**Minimise the public contract** — every export is surface a reimplementation must preserve
-and a consumer can come to depend on. Working defaults, each departure a companion-increment
-decision:
+**Build to a minimal public surface** — every export is surface a reimplementation must
+preserve and a consumer can come to depend on:
 
 - one entry point
-- no subpath wildcards — a `"./*"` pattern surrenders the boundary
+- no subpath wildcards
 - no `export *` from an entry point; named re-exports only
 - internals unreachable from outside
 
-Internal structure stays free to reorganise.
+These are working defaults, not gates: a package that departs from one records the departure
+as a companion-increment decision. Internal structure stays free to reorganise.
 
 ## Code
 

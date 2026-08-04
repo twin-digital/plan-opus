@@ -1,0 +1,33 @@
+version: "1"
+
+decisions:
+  - id: d-jewbwtye
+    title: an absent script location is null, not a missing field
+    statement: |
+      `scriptOutput` is present on every entry and carries `null` where a pack has no script location,
+      rather than being an optional field a resource pack's entry omits
+    status: delegated
+    because:
+      - r-rlh87pau
+      - d-61fegb3o
+    revisit_when:
+      - consumers routinely forget the null branch, so an optional field TypeScript forces them to narrow would catch more
+      - a further location arises that a valid entry can genuinely lack, so absence needs a representation anyway
+    facets: discovery
+
+  - id: d-9se0yv0h
+    title: the script module's entry is declared, kit-written, and an error to source-specify
+    statement: |
+      `ManifestModule` declares `entry?: string`; the kit writes it into completed manifests,
+      computed from the pack's kind, and a source manifest specifying it is reported as the
+      error the amended completion requirement defines. Nothing reads a source `entry` — no
+      check or completion consumes it — so a fault there suppresses nothing downstream.
+    status: delegated
+    because:
+      - r-jl42pzah
+      - r-5qo6fzs4
+      - r-wi7qf6to
+      - d-7ototrq5
+    revisit_when:
+      - the kit gains a check or completion that reads a module's `entry`
+    facets: discovery

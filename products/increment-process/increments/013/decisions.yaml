@@ -1,0 +1,77 @@
+version: "2"
+decisions:
+  - id: d-x0q4xgd8
+    title: a draft increment directory is wip-NNN-<slug>
+    statement: |
+      an unnumbered draft increment is products/<product>/increments/wip-<NNN>-<slug>/ on its
+      own pull-request branch — a three-digit ordinal, then a slug naming what the draft
+      increment is about. landing renames the directory into the next published number on that
+      branch before the merge, and main never holds a wip directory.
+
+      the ordinal orders the draft increments a tree holds, and nothing else: it is not a claim
+      on a published number, and two on unrelated branches may carry the same one. a tree holds
+      more than one only when one is stacked on another, and then the ordinal is their relative
+      order — a stack lands in it, wip-001 before wip-002.
+
+      the ordinals are not dense and no gate checks them. when an ancestor lands, the dependent
+      keeps its ordinal rather than renumbering; gaps are ordinary.
+
+      a tree holding two draft increments that are not ancestor and dependent is not supported.
+    status: accepted
+    supersedes: d-f7knzaf9
+    pinned:
+      reason: data-format
+      notes: a directory name the tooling parses and the shipped skills write
+    because:
+      - r-c0zi3pv0
+      - r-05tkrv7r
+      - r-4z3yd1ri
+      - d-kn05wb30
+      - d-oel258yc
+      - f:check-rejects-slug-increment-dirs
+    facets:
+      - process-doc
+      - prompts
+      - tooling
+
+  - id: d-1qn5jzgd
+    title: the merge gate reads a draft increment as it is worked
+    statement: |
+      a wip directory under a product's increments/ is read as a draft increment in flight:
+      its sources validate against their schemas, its citations resolve, and its proposed
+      decisions and open questions are reported — every rule the merge gate applies to a
+      published increment, applied to it too.
+
+      the increment-dir-name finding is what keeps it out of main, and it is unchanged: the
+      landing rename clears it, and nothing else does. the check stays the merge gate it is.
+
+      the density gate reads published numbers only. a wip ordinal is not one, so a draft
+      increment neither fills a gap nor makes one.
+    status: accepted
+    supersedes: d-yu9hbn3h
+    because:
+      - r-4z3yd1ri
+      - d-x0q4xgd8
+      - d-kn05wb30
+      - f:slug-named-draft-is-invisible-to-the-gate
+      - f:check-rejects-slug-increment-dirs
+    facets:
+      - tooling
+      - design-validator
+
+  - id: d-x1mhu3a3
+    title: draft increments fold after the published ones, in ordinal order
+    statement: |
+      the projection folds a tree's draft increments after every published increment, ordered
+      by their wip ordinals — the order their landings would claim. each one's foundations
+      appear in the fold, its supersessions close what they name, and the coverage summary
+      counts its claims.
+
+      a draft increment shows as its directory name, since it holds no published number until
+      it lands.
+    status: accepted
+    because:
+      - r-4z3yd1ri
+      - d-x0q4xgd8
+      - d-j50yturh
+    facets: tooling
