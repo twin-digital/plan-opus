@@ -10,10 +10,13 @@
     the run's script re-answers it in one command.
   sources:
     - run: foundations-script-reference-search
-      where: the full match list
+      where: the first two matches — the plan skill and CLAUDE.md
       quote: |
         .claude/skills/plan/SKILL.md:30:  Search `node bin/foundations.mjs --facts` and cite what exists before recording.
         CLAUDE.md:77:`node bin/foundations.mjs --facts` and cite what is already there. File a new fact at the
+    - run: foundations-script-reference-search
+      where: the package.json alias match
+      quote: |
         package.json:7:    "foundations": "node bin/foundations.mjs"
 
 - id: backlog-schema-validates
