@@ -29,13 +29,12 @@ requirements:
   - id: r-ca9witxh
     title: dependencies between drafts are implicit
     statement: |
-      a draft depends on another when it builds on it — citing its foundations, amending
-      them, or retiring them — with nothing declared; landing respects the derived order,
-      a draft landing only after the drafts it builds on, and independent drafts land in
-      any order.
+      a draft depends on another when it builds on it — branching from it and citing,
+      amending, or retiring its foundations — with nothing declared; a dependent draft
+      lands only after the draft it builds on, and independent drafts land in any order.
     verification:
-      - do: have one draft cite a foundation another in-flight draft proposes, then attempt to land the citing draft first
-      - verify: the landing is refused until the draft it builds on has landed
+      - do: branch a draft from one still in flight, land the ancestor, then land the dependent
+      - verify: each claims its number in ancestry order, and the dependent's landing diff contains only its own changes
     facets:
       - process-doc
       - tooling
@@ -45,11 +44,11 @@ requirements:
     statement: |
       no two in-flight drafts rule the same choice or duplicate one another's rulings —
       building on another draft's foundations is a dependency, not a conflict — and
-      landing into the sequence checks for overlapping or conflicting rulings, against the
-      fold and the remaining drafts, before the merge claims the slot.
+      landing into the sequence checks for overlapping or conflicting rulings against the
+      fold at head before the merge claims the slot.
     verification:
       - do: land a draft while another is in flight
-      - verify: the landing surfaces any duplicated or conflicting rulings the parallel work introduced, and a clean check claims the slot
+      - verify: the landing surfaces any duplicated or conflicting rulings against the head, and the later overlapping draft recomputes when the head moves
     facets:
       - process-doc
       - tooling

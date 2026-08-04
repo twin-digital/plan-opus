@@ -1,0 +1,65 @@
+version: "2"
+decisions:
+  - id: d-f7knzaf9
+    title: a draft lives on its branch, slug-named
+    statement: |
+      an unnumbered draft is products/<product>/increments/<slug>/ on its own pull-request
+      branch; landing renames the directory into the next number on that branch before the
+      merge, and main never holds a slug-named increment.
+    status: proposed
+    pinned:
+      reason: data-format
+    because:
+      - r-c0zi3pv0
+      - r-05tkrv7r
+      - d-kn05wb30
+      - f:check-rejects-slug-increment-dirs
+    revisit_when:
+      - in-flight drafts routinely exceed what the owner can scope disjointly — the recorded alternative is a per-product wip/<product> aggregation branch holding every draft in one tree
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-oel258yc
+    title: stacking is the dependency
+    statement: |
+      a draft that builds on another branches from it, so the dependency is git ancestry
+      and nothing is declared; the dependent draft's tree carries its ancestor's content,
+      its landing diff shrinks to its own changes once the ancestor merges, and a tree
+      that skips or repeats a number is refused by the density gate.
+    status: proposed
+    because:
+      - r-ca9witxh
+      - f:check-enforces-dense-increments
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-u3744xlr
+    title: conflicts are checked at landing, against the head
+    statement: |
+      landing runs the conflict check against the fold at head — overlapping or duplicated
+      rulings surface there, and the later of two overlapping drafts recomputes when the
+      head moves. no gate reads in-flight drafts against each other; the owner's scan of
+      open drafts covers that window.
+    status: proposed
+    because:
+      - r-0701ctqx
+      - r-c0zi3pv0
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-yu9hbn3h
+    title: the validator is unchanged
+    statement: |
+      no validator change ships for parallel drafting: a slug-named directory fails the
+      name finding while the draft is worked — beside its proposed-decision and
+      open-question findings — and the landing rename clears it. the check stays the merge
+      gate it is.
+    status: proposed
+    because:
+      - d-f7knzaf9
+      - d-kn05wb30
+      - f:check-rejects-slug-increment-dirs
+    facets: tooling
