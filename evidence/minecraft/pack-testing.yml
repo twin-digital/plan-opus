@@ -1,6 +1,6 @@
 # Runs backing facts about how a pack's engine-facing code is stood up under a test runner.
 #
-# Both runs use the same harness directory; `node fetch-packs.mjs` and `npm install` there
+# All three runs use the same harness directory; `node fetch-packs.mjs` and `npm install` there
 # reproduce its inputs.
 
 - id: alias-shim-harness-run
@@ -14,6 +14,16 @@
     bencrob/marron-town-mod at 2c025b4 and xigma0512/GunFight-Arena at 0f16e88. Absolute paths in
     the captured output are rewritten to <harness>.
 
+- id: alias-shim-enum-generation-run
+  command: node generate-enums.mjs
+  output: evidence/minecraft/server-shim/alias-shim-harness/generate-enums.out.txt
+  ran_at: 2026-07-29
+  environment: |
+    Run in evidence/minecraft/server-shim/alias-shim-harness on node 24 after
+    `npm install`, against the installed @minecraft/server 2.8.0 `index.d.ts`. The script rewrites
+    stub/enums.generated.js in place; the committed file was reproduced byte for byte (`git diff`
+    reported no change). Absolute paths in the captured output are rewritten to <harness>.
+
 - id: alias-shim-control-run
   command: MC_TEST_LIB=<opus>/nodejs/minecraft/test-lib/src/index.ts npx vitest run -c no-alias.config.ts
   output: design/minecraft/server-shim/artifacts/alias-shim-harness/no-alias.out.txt
@@ -22,3 +32,104 @@
     The same harness and versions as alias-shim-harness-run, with the `@minecraft/server` alias
     removed and one suite selected. @minecraft/server 2.8.0 is installed, so the failure is the
     package's missing entry points and not a missing package.
+
+- id: alias-control-instance-probe-run
+  command: node run.mjs
+  output: evidence/minecraft/server-shim/alias-control-instance-probe/probe.out.txt
+  ran_at: 2026-07-29
+  environment: |
+    Run in evidence/minecraft/server-shim/alias-control-instance-probe after `npm install`.
+    vitest 4.1.10 on node 24.16.0, against the probe's own `@twin-digital/minecraft-server-shim`
+    package (an `exports` map with `.` and `./control`, both re-exporting one `state.js`). The
+    script runs the same suite four times — the two alias shapes (bare package specifier, resolved
+    entry file) crossed with the two install shapes (`npm i file:./shim`, which symlinks the source
+    into node_modules, and an unpacked `npm pack` tarball, a real directory) — and captures each
+    run's exit code and output. Absolute paths in the captured output are rewritten to <probe>.
+
+- id: file-scoped-server-probe-run
+  command: MC_TEST_LIB=<opus>/nodejs/minecraft/test-lib/src/index.ts node run.mjs file-scoped
+  output: evidence/minecraft/server-shim/clean-test-file-probes/file-scoped.out.txt
+  ran_at: 2026-07-29
+  environment: |
+    Run in evidence/minecraft/server-shim/clean-test-file-probes after `npm install` and
+    `node fetch-packs.mjs`. vitest 4.1.10 on node 24.16.0, @twin-digital/minecraft-test-lib at opus
+    `4ea1287` (unpublished, aliased from source via MC_TEST_LIB). The subject is
+    bencrob/marron-town-mod at 2c025b4, unmodified, whose src/main.ts subscribes to five world
+    events and registers two `system.runInterval` loops at module scope; its
+    `@minecraft/server-ui` import is aliased to a form stub that nothing drives. A setup file
+    installs one `createServer()` at module scope and the test file holds static imports only. The
+    same suite runs twice, against the stable-Proxy shim and against the `export let` shim.
+    Absolute paths in the captured output are rewritten to <probe>.
+
+- id: in-place-reset-probe-run
+  command: MC_TEST_LIB=<opus>/nodejs/minecraft/test-lib/src/index.ts node run.mjs reset
+  output: evidence/minecraft/server-shim/clean-test-file-probes/reset.out.txt
+  ran_at: 2026-07-29
+  environment: |
+    The same probe directory, subject, versions and setup-file shape as file-scoped-server-probe-run,
+    with a reset in the setup file's `beforeEach`. The library exposes no reset, so the probe's
+    `reset-in-place.ts` writes the library's private `ServerState` directly, reaching
+    `src/runtime/state.ts` and `src/runtime/member.ts` through aliases: it clears entities,
+    scoreboard, dynamic properties, output and the tick clock, and leaves the signal objects — and
+    so the pack's subscribers — alone. The suite runs twice, once keeping the scheduled runs and
+    once clearing them; the second invocation exits 1, which is the measurement.
+
+- id: proxy-target-swap-probe-run
+  command: MC_TEST_LIB=<opus>/nodejs/minecraft/test-lib/src/index.ts node run.mjs swap
+  output: evidence/minecraft/server-shim/proxy-swap-probes/swap.out.txt
+  ran_at: 2026-07-29
+  environment: |
+    Run in evidence/minecraft/server-shim/proxy-swap-probes after `npm install` and
+    `node fetch-packs.mjs`. vitest 4.1.10 on node 24.16.0, @minecraft/server 2.8.0 installed for
+    its declarations, @twin-digital/minecraft-test-lib at opus `e79e8f4` (unpublished, aliased from
+    source via MC_TEST_LIB). The subject is bencrob/marron-town-mod at 2c025b4, unmodified, whose
+    src/main.ts subscribes to five world events and registers two `system.runInterval` loops at
+    module scope; its `@minecraft/server-ui` import is aliased to a form stub that nothing drives.
+    A setup file installs server A at module scope, the test file imports the pack for its side
+    effects, and a `beforeEach` points the shim's bindings at a freshly created server. The same
+    suite runs four times, against four shim packages the probe installs `file:`: `shim-shallow`
+    (one stable Proxy per binding), `shim-deep` (one stable Proxy per property path), `shim-signal`
+    (shim-deep plus the shim holding the subscriber sets, with a trampoline per signal and a
+    journal of the scheduler calls, keyed off a hardcoded list of member names) and `shim-replay`
+    (shim-deep plus a journal of every call made through the proxy tree before the first swap,
+    re-issued on each swap, with no member names anywhere). The per-server counts are read through
+    the library's private `ServerState`, reached at `src/runtime/state.ts` through an alias; the
+    library exposes no such census. The first two invocations exit 1, which is the measurement.
+    Absolute paths in the captured output are rewritten to <probe>.
+
+- id: proxy-swap-captured-value-probe-run
+  command: MC_TEST_LIB=<opus>/nodejs/minecraft/test-lib/src/index.ts node run.mjs capture
+  output: evidence/minecraft/server-shim/proxy-swap-probes/capture.out.txt
+  ran_at: 2026-07-29
+  environment: |
+    The same probe directory, versions and swapping setup file as proxy-target-swap-probe-run,
+    driving the probe's own `capture-pack.ts` instead of marron-town-mod: a pack that takes
+    `world.getDimension('overworld')` and `world.scoreboard` at module scope, keeps two module-scope
+    counters, subscribes one `playerSpawn` handler that uses all four, and registers one
+    `system.runInterval`. Only the two shims that carried registrations across the swap are run,
+    `shim-signal` and `shim-replay`. Each test spawns a player, emits `playerSpawn` and advances
+    five ticks.
+
+- id: state-swapped-beneath-the-fakes-probe-run
+  command: MC_TEST_LIB=<opus>/nodejs/minecraft/test-lib/src/index.ts node run.mjs beneath
+  output: evidence/minecraft/server-shim/proxy-swap-probes/beneath.out.txt
+  ran_at: 2026-07-29
+  environment: |
+    The same probe directory, versions and subject as proxy-target-swap-probe-run, with the swap
+    moved to the other layer. `shim-shallow` is installed once with server A and never repointed;
+    the `beforeEach` instead replaces the state beneath A's fakes, writing the library's private
+    `ServerState` directly through aliases to `src/runtime/state.ts` and `src/runtime/member.ts` —
+    clearing entities, scoreboard, dynamic properties, output and the tick clock, leaving `signals`
+    alone and re-basing each surviving scheduled run onto the reset clock.
+
+- id: signal-and-scheduler-shape-probe-run
+  command: MC_TEST_LIB=<opus>/nodejs/minecraft/test-lib/src/index.ts node run.mjs shape
+  output: evidence/minecraft/server-shim/proxy-swap-probes/shape.out.txt
+  ran_at: 2026-07-29
+  environment: |
+    The same probe directory and versions, with no shim involved: one `createServer()` from
+    @twin-digital/minecraft-test-lib at opus `e79e8f4`, whose signal containers are built from the
+    manifests generated off @minecraft/server 2.8.0. The test enumerates each container's prototype
+    members, reads every one, and counts those carrying both a `subscribe` and an `unsubscribe`
+    function; then lists the function-valued prototype members of `system` and of `world`, and the
+    arity of `system`'s four scheduler members.

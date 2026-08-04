@@ -1,0 +1,117 @@
+=== reset: in-place reset, scheduled runs kept (reset.config.ts, PROBE_RESET=keep-scheduled) ===
+exit code: 0
+
+
+ RUN  v4.1.10 <probe>
+
+stdout | reset.test.ts
+[setup] one server installed; reset mode=keep-scheduled
+
+stdout | reset.test.ts > test 1
+[reset] world-identity-preserved=true surviving-subscribers=5 surviving-scheduled-runs=3
+
+stdout | reset.test.ts > test 1
+[test 1 start] entities=0 currentTick=0 objectives=0
+[test 1 end] entities=1 currentTick=40 objectives=11
+
+stdout | reset.test.ts > test 2
+[reset] world-identity-preserved=true surviving-subscribers=5 surviving-scheduled-runs=2
+
+stdout | reset.test.ts > test 2
+[test 2 start] entities=0 currentTick=0 objectives=0
+[test 2 end] entities=1 currentTick=40 objectives=11
+
+stdout | reset.test.ts > test 3
+[reset] world-identity-preserved=true surviving-subscribers=5 surviving-scheduled-runs=2
+
+stdout | reset.test.ts > test 3
+[test 3 start] entities=0 currentTick=0 objectives=0
+[test 3 end] entities=1 currentTick=40 objectives=11
+
+ ✓ reset.test.ts > test 1 4ms
+ ✓ reset.test.ts > test 2 1ms
+ ✓ reset.test.ts > test 3 1ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  03:50:43
+   Duration  680ms (transform 455ms, setup 471ms, import 103ms, tests 8ms, environment 0ms)
+
+stderr | reset.test.ts > test 1
+[MarronTown] init-player: Player.level is declared by @minecraft/server but is not modelled by this library.
+[MarronTown] award-points: Player.level is declared by @minecraft/server but is not modelled by this library.
+
+stderr | reset.test.ts > test 2
+[MarronTown] init-player: Player.level is declared by @minecraft/server but is not modelled by this library.
+[MarronTown] award-points: Player.level is declared by @minecraft/server but is not modelled by this library.
+
+stderr | reset.test.ts > test 3
+[MarronTown] init-player: Player.level is declared by @minecraft/server but is not modelled by this library.
+[MarronTown] award-points: Player.level is declared by @minecraft/server but is not modelled by this library.
+
+
+=== reset: in-place reset, scheduled runs cleared (reset.config.ts, PROBE_RESET=clear-scheduled) ===
+exit code: 1
+
+
+ RUN  v4.1.10 <probe>
+
+stdout | reset.test.ts
+[setup] one server installed; reset mode=clear-scheduled
+
+stdout | reset.test.ts > test 1
+[reset] world-identity-preserved=true surviving-subscribers=5 surviving-scheduled-runs=0
+
+stdout | reset.test.ts > test 1
+[test 1 start] entities=0 currentTick=0 objectives=0
+[test 1 end] entities=1 currentTick=40 objectives=0
+
+stdout | reset.test.ts > test 2
+[reset] world-identity-preserved=true surviving-subscribers=5 surviving-scheduled-runs=0
+
+stdout | reset.test.ts > test 2
+[test 2 start] entities=0 currentTick=0 objectives=0
+[test 2 end] entities=1 currentTick=40 objectives=0
+
+stdout | reset.test.ts > test 3
+[reset] world-identity-preserved=true surviving-subscribers=5 surviving-scheduled-runs=0
+
+stdout | reset.test.ts > test 3
+[test 3 start] entities=0 currentTick=0 objectives=0
+[test 3 end] entities=1 currentTick=40 objectives=0
+
+ × reset.test.ts > test 1 5ms
+   → expected 0 to be greater than 0
+ ✓ reset.test.ts > test 2 1ms
+ ✓ reset.test.ts > test 3 0ms
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  03:50:45
+   Duration  677ms (transform 447ms, setup 458ms, import 107ms, tests 7ms, environment 0ms)
+
+stderr | reset.test.ts > test 1
+[MarronTown] init-player: Player.level is declared by @minecraft/server but is not modelled by this library.
+
+stderr | reset.test.ts > test 2
+[MarronTown] init-player: Player.level is declared by @minecraft/server but is not modelled by this library.
+
+stderr | reset.test.ts > test 3
+[MarronTown] init-player: Player.level is declared by @minecraft/server but is not modelled by this library.
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  reset.test.ts > test 1
+AssertionError: expected 0 to be greater than 0
+ ❯ reset.test.ts:36:51
+     34| it('test 1', () => {
+     35|   runOne('test 1', 'Alice')
+     36|   expect(world.scoreboard.getObjectives().length).toBeGreaterThan(0)
+       |                                                   ^
+     37| })
+     38|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
