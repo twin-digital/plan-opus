@@ -1,0 +1,24 @@
+version: "1"
+requirements:
+  - id: r-v4z0h7dn
+    title: every choice a build meets is accounted for
+    statement: |
+      an increment whose delta an implementation would build publishes with every choice a
+      builder meets accounted for: decided by a foundation, explicitly deferred, or below
+      the recording bar. silence — a choice none of the three covers — is the only gap.
+    verification:
+      - do: dispatch the implementers in survey mode against the increment's draft fold
+      - verify: every choice in the returned census is decided, deferred, or below the recording bar
+      - do: read the companion increment of the implementation that later builds the delta
+      - verify: each entry answers a recorded deferral or reports a discovery, and the owner judges at its ratify whether any unaccounted choice slipped through
+    facets:
+      - process-doc
+      - prompts
+
+model:
+  - name: decision
+    schema: /design-process/decision@2
+    description: one recorded choice, now carrying who it defers to when Plan declines to choose
+  - name: decisions-source
+    schema: /design-process/decisions@2
+    description: the per-increment decisions file at the version whose entries can defer
