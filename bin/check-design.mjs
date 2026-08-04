@@ -43,7 +43,7 @@ const literalHas = (file, id, key) => {
 // compared. An off-repo url cannot be read here and is not checked.
 const normalise = (s) => String(s).replace(/\s+/g, " ").trim();
 const quoteMissing = (url, quote) => {
-  if (!/^(design|prompts|docs|bin)\//.test(url)) return false; // off-repo
+  if (!/^(design|prompts|docs|bin|evidence|products)\//.test(url)) return false; // off-repo
   const file = url.split("#")[0];
   if (!fs.existsSync(file)) return "source file not found";
   return normalise(fs.readFileSync(file, "utf8")).includes(normalise(quote)) ? false : "quote not present";
@@ -73,8 +73,13 @@ const poolFiles = (dir) => fs.existsSync(dir) ? fs.readdirSync(dir, { withFileTy
 const factFiles = poolFiles;
 
 // Runs are loaded before facts, so a run: source resolves while its fact is being checked.
-for (const file of poolFiles(EVIDENCE))
-  for (const e of loadYaml(file)) { declare(e.id, { kind: "e", tier: "pool", scope: file, e, file }); checkEntry("e", e, file, file); }
+// A run file parses to a sequence of entries; other yaml under evidence/ is moved probe
+// material (fixtures, inputs) and is not read as runs.
+for (const file of poolFiles(EVIDENCE)) {
+  const entries = loadYaml(file);
+  if (!Array.isArray(entries)) continue;
+  for (const e of entries) { declare(e.id, { kind: "e", tier: "pool", scope: file, e, file }); checkEntry("e", e, file, file); }
+}
 for (const file of factFiles(FACTS))
   for (const e of loadYaml(file)) { declare(e.id, { kind: "f", tier: "pool", scope: file, e, file }); checkEntry("f", e, file, file); }
 

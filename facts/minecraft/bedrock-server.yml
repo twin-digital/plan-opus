@@ -17,8 +17,8 @@
     data rather than text to parse.
   backing: documented
   sources:
-    - url: design/minecraft/dev-kit/requirements.yaml
-      where: dev-kit-provides-a-library
+    - url: products/mc-dev-kit/increments/001/requirements.yaml
+      where: r-ziw808ls — the kit is a typed library
       quote: |
         the kit provides a typed library: a consumer imports it and receives the pack set as data,
         not as text it must parse.
@@ -32,13 +32,13 @@
     write its activation entry from the pack set alone, without reading a manifest or a directory itself.
   backing: documented
   sources:
-    - url: design/minecraft/dev-kit/requirements.yaml
-      where: packs-enumerable-without-a-build
+    - url: products/mc-dev-kit/increments/001/requirements.yaml
+      where: r-0l79om74 — packs enumerable without a build
       quote: |
         the kit must be able to discover workspace packs from a clean checkout, with no build having run,
         no install having run, and no server running.
-    - url: design/minecraft/dev-kit/requirements.yaml
-      where: pack-record-details
+    - url: products/mc-dev-kit/increments/001/requirements.yaml
+      where: r-x40c0qx5 — pack record details
       quote: |
         for every pack discovered, the kit provides the following details:
 
@@ -49,7 +49,7 @@
           - its source location
           - its build output location (even if that location is not present because the pack is unbuilt),
           - the full content of its manifest in object form (including content auto-populated as
-            described by `r:kit-completes-partial-source-manifests`)
+            described by `r-11l92k9x`)
 
 - id: dev-kit-rejects-a-pack-set-with-an-unresolved-identity
   claim: |
@@ -60,27 +60,27 @@
     activation lists key on, and the harness has no duplicate-identity case of its own to detect.
   backing: documented
   sources:
-    - url: design/minecraft/dev-kit/requirements.yaml
-      where: unresolvable-packs-fail-loudly
+    - url: products/mc-dev-kit/increments/001/requirements.yaml
+      where: r-iby30nx1 — unresolvable packs fail loudly
       quote: |
-        a pack the kit cannot resolve is returned as an `invalid` entry, per `r:pack-discovery`. A pack
+        a pack the kit cannot resolve is returned as an `invalid` entry, per `r-co6glnme`. A pack
         is unresolvable when its manifest cannot be parsed, when its identity is missing, when its
         manifest completion data is invalid or missing, or when it carries a manifest dependency the set
         does not satisfy
-    - url: design/minecraft/dev-kit/requirements.yaml
-      where: uuids-are-claimed-once-in-a-workspace
+    - url: products/mc-dev-kit/increments/001/requirements.yaml
+      where: r-xcz7nzr6 — uuids are claimed once in a workspace
       quote: |
         a header `uuid` is claimed by exactly one pack in the workspace. A duplicated uuid is an error,
-        reported per `r:unresolvable-packs-fail-loudly`, and every pack claiming one is unresolvable —
+        reported per `r-iby30nx1`, and every pack claiming one is unresolvable —
         no claimant is preferred over another.
-    - url: design/minecraft/dev-kit/requirements.yaml
-      where: pack-discovery
+    - url: products/mc-dev-kit/increments/001/requirements.yaml
+      where: r-co6glnme — pack discovery
       quote: |
         Every discovered pack is returned as one entry in a single flat list, so that list is the whole
         of what was found: nothing is reported in one place and omitted from another.
 
         An entry is `valid` or `invalid`, and a consumer reads that status before anything else. A
-        valid entry carries every detail `r:pack-record-details` requires, with nothing absent or in
+        valid entry carries every detail `r-x40c0qx5` requires, with nothing absent or in
         doubt. An invalid entry carries the structured problems that invalidated it, alongside every
         detail that does not come from the manifest and that its sources hold — so a consumer can always
         name and locate a pack it cannot use.
@@ -99,17 +99,17 @@
     The layout is fixed by the kit's requirements, so a package cannot state an output root of its
     own; whether one is ever needed is outside what this records.
   sources:
-    - url: design/minecraft/dev-kit/requirements.yaml
-      where: built-output-defaults-to-dist
+    - url: products/mc-dev-kit/increments/001/requirements.yaml
+      where: r-8h864ke8 — built output defaults to dist
       quote: |
         a pack's built output is found at `dist/` within its package.
-    - url: design/minecraft/dev-kit/requirements.yaml
-      where: built-output-mirrors-the-source-layout
+    - url: products/mc-dev-kit/increments/001/requirements.yaml
+      where: r-un786n7v — built output mirrors the source layout
       quote: |
         a package's output root always holds one kind-named subdirectory per pack — `behavior_pack`,
         `resource_pack` — mirroring the source layout. A single-pack package still nests.
-    - url: design/minecraft/dev-kit/requirements.yaml
-      where: kit-produces-no-built-output
+    - url: products/mc-dev-kit/increments/001/requirements.yaml
+      where: r-1bvvl9k7 — kit produces no built output
       quote: |
         the kit reports where a pack's built output is expected and produces none of it: it neither
         reads nor writes the output tree.

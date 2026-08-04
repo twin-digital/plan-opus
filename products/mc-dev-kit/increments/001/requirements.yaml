@@ -1,0 +1,334 @@
+version: "1"
+
+presets:
+  - name: nodejs-library
+    version: 1
+
+requirements:
+  # product kind
+  - id: r-ziw808ls
+    title: the kit is a typed library
+    statement: |
+      the kit provides a typed library: a consumer imports it and receives the pack set as data,
+      not as text it must parse.
+    verification:
+      - do: import the package from a TypeScript consumer and call its discovery entry point
+      - verify: the result is a typed array of pack entries, with no text output to parse
+    facets: discovery
+
+  - id: r-jvb29tpu
+    title: the library name
+    statement: |
+      the name of the npm package containing the dev-kit library is `@twin-digital/mc-dev-kit`
+    facets: discovery
+
+  # pack discovery
+  - id: r-co6glnme
+    title: pack discovery
+    statement: |
+      the kit provides a way to discover Minecraft behavior packs and resource packs in a workspace.
+      Every discovered pack is returned as one entry in a single flat list, so that list is the whole
+      of what was found: nothing is reported in one place and omitted from another.
+
+      An entry is `valid` or `invalid`, and a consumer reads that status before anything else. A
+      valid entry carries every detail `r-x40c0qx5` requires, with nothing absent or in
+      doubt. An invalid entry carries the structured problems that invalidated it, alongside every
+      detail that does not come from the manifest and that its sources hold — so a consumer can always
+      name and locate a pack it cannot use.
+    verification:
+      - do: run discovery over a workspace holding one sound pack and one whose manifest is broken
+      - verify: both appear in one flat list, each entry marked valid or invalid
+      - verify: the valid entry carries every required detail
+      - verify: the invalid entry carries its structured problems plus every non-manifest detail, so it can be named and located
+    facets: discovery
+
+  - id: r-0l79om74
+    title: packs enumerable without a build
+    statement: |
+      the kit must be able to discover workspace packs from a clean checkout, with no build having run,
+      no install having run, and no server running.
+    verification:
+      - do: clone a pack-holding workspace fresh, running no install, no build, and no server
+      - do: run discovery over it
+      - verify: every pack the checkout holds is returned
+    facets: discovery
+
+  - id: r-zcdmh9p6
+    title: membership from source manifest presence
+    statement: |
+      a workspace package is a pack-bearing package when its source holds `behavior_pack/manifest.json`
+      or `resource_pack/manifest.json`; presence of those source manifests is the whole membership
+      test. Both kinds are discovered. No marker field, keyword, or central list is required, and
+      adding, removing, or renaming a pack needs no edit anywhere but the package itself. Note that
+      this makes it structurally impossible for a workspace package to hold more than one behavior pack
+      or more than one resource pack. A package holding two packs of the same kind is out of scope.
+    verification:
+      - do: run discovery over a workspace where one package holds `behavior_pack/manifest.json`, one holds `resource_pack/manifest.json`, and one holds neither — none carrying a marker field or appearing in any central list
+      - verify: the first two packages' packs are discovered and the third contributes nothing
+      - do: add a source manifest to a fresh package, editing nothing outside that package, and rerun discovery
+      - verify: the new pack appears
+    facets: discovery
+
+  - id: r-4f1obncy
+    title: packages come from the workspace definition
+    statement: |
+      candidate packages are enumerated from the workspace's package-manager workspace definition,
+      not from walking the directory tree. Both `npm` and `pnpm` workspaces must be supported.
+    verification:
+      - do: run discovery over an npm workspace and a pnpm workspace, each holding a pack in a member package plus a pack-shaped directory the workspace definition does not include
+      - verify: under both managers, the member's pack is found and the excluded directory's is not
+    facets: discovery
+
+  - id: r-ijeqntrd
+    title: the root package is a candidate
+    statement: |
+      the workspace root package is always a candidate package, whichever package manager defines the
+      workspace.
+    verification:
+      - do: place a source pack at the workspace root of an npm workspace and of a pnpm workspace, then run discovery over each
+      - verify: the root package's pack is in the list under both managers
+    facets: discovery
+
+  - id: r-r9t69mz7
+    title: enumeration uses the managers' own libraries
+    statement: |
+      workspace packages are enumerated by each package manager's own published enumeration library,
+      called in-process, rather than by the kit reading the workspace definition and expanding its
+      patterns itself.
+    rationale: |
+      Reversing this means owning each manager's glob dialect, exclusion ordering, and
+      `node_modules` rules, where drift from upstream is silent and surfaces as a pack that
+      quietly stops being found.
+    verification:
+      - do: open the package's dependencies and its enumeration code path
+      - verify: workspace expansion is delegated to each manager's published enumeration library, called in-process, and the kit expands no workspace pattern of its own
+    facets: discovery
+
+  # pack query
+  - id: r-7v7o1jy8
+    title: pack search
+    statement: |
+      the kit allows users to search for packs using the following criteria:
+
+        - npm package name
+        - pack name
+        - pack uuid
+        - entry status
+
+      Every criterion matches on the exact name, identity, or status; no substring or
+      case-insensitive matching. Where more than one criterion is given, an entry matches only if it
+      satisfies all of them. No filter is applied by default: a search that does not constrain status
+      returns every pack regardless of status. Search results are provided as an array of entries. If
+      no results are found, an empty array is returned.
+    verification:
+      - do: search a known workspace by each criterion alone — package name, pack name, uuid, and status
+      - verify: each returns exactly the entries matching that value, with no substring or case-folded matches
+      - do: search with two criteria combined, then with none, then with a value nothing carries
+      - verify: the combined search returns only entries satisfying both, the unconstrained search returns every pack regardless of status, and the unmatched search returns an empty array
+    facets: discovery
+
+  # pack details
+  - id: r-x40c0qx5
+    title: pack record details
+    statement: |
+      for every pack discovered, the kit provides the following details:
+
+        - its identity, the `header` uuid
+        - its version
+        - its owning package
+        - its kind (behavior pack or resource pack)
+        - its source location
+        - its build output location (even if that location is not present because the pack is unbuilt),
+        - the full content of its manifest in object form (including content auto-populated as
+          described by `r-11l92k9x`)
+
+      Every detail above is available for any discovered pack except its identity and its manifest
+      content, which a pack whose manifest could not be parsed, or which declares no `header.uuid`,
+      does not have — and its version, which a pack whose owning package declares none does not have.
+      A package declaring no version is itself a problem, so the pack is reported invalid either way.
+    verification:
+      - do: discover a workspace holding a valid, unbuilt pack
+      - verify: its entry carries identity, version, owning package, kind, source location, output location, and the completed manifest
+      - do: discover a pack whose manifest cannot be parsed
+      - verify: its entry is invalid, lacks only the manifest-derived details, and still carries the rest
+    facets: discovery
+
+  - id: r-8h864ke8
+    title: built output defaults to dist
+    statement: |
+      a pack's built output is found at `dist/` within its package.
+    verification:
+      - do: discover any pack
+      - verify: its reported build output location sits under `dist/` within its owning package
+    facets: discovery
+
+  - id: r-un786n7v
+    title: built output mirrors the source layout
+    statement: |
+      a package's output root always holds one kind-named subdirectory per pack — `behavior_pack`,
+      `resource_pack` — mirroring the source layout. A single-pack package still nests.
+    verification:
+      - do: discover a package holding one pack and a package holding both kinds
+      - verify: every reported output location ends in its pack's kind-named subdirectory, the single-pack package included
+    facets: discovery
+
+  - id: r-1bvvl9k7
+    title: kit produces no built output
+    statement: |
+      the kit reports where a pack's built output is expected and produces none of it: it neither
+      reads nor writes the output tree.
+    verification:
+      - do: snapshot a workspace with no built output present, then run discovery
+      - verify: every entry reports its output location, and the tree is unchanged — nothing under any output path was created, read into the result, or modified
+    facets: discovery
+
+  - id: r-dj86ixj8
+    title: manifest format version passes through
+    statement: |
+      a source `manifest.json` is accepted whatever manifest format version it declares, and the
+      completed manifest the kit reports stays in that version. The kit does not normalise between
+      versions.
+    verification:
+      - do: discover packs declaring `format_version` 2, `format_version` 3, and an unrecognised value
+      - verify: each is accepted, and each completed manifest still declares the version its source did
+    facets: discovery
+
+  - id: r-11l92k9x
+    title: kit completes partial source manifests
+    statement: |
+      a pack's source `manifest.json` is partial by design:
+
+        - it MUST NOT specify a `header.name` field; a specified field is an error
+        - it MUST NOT specify a `header.version` field; a specified field is an error
+        - it MUST NOT specify the version of a `dependencies` entry naming a pack within the same
+          workspace; a specified version is an error
+
+      A `version` is left unspecified by omitting it, or by supplying a placeholder value:
+
+        - an empty string
+        - the string '0.0.0'
+        - the array value `[0, 0, 0]` (not valid if manifest `format_version` is 3)
+
+      A version is written as a `[major, minor, revision]` array or as a SemVer string, and both forms
+      are accepted at every manifest format version but one: at `format_version` 3 a version must be
+      the string. A source manifest carrying an array version at `format_version` 3 is an error,
+      placeholder or not; no other format version restricts the form.
+
+      Whenever this component provides manifest details for a pack, it populates missing fields
+      as follows:
+
+        - `header.name` is set to the owning package's `package.json` `productName` when present,
+          and otherwise set to the package name with its npm scope stripped (`@scope/mc-pack-1`
+          becomes `mc-pack-1`)
+        - `header.version` is set to the owning package's `package.json` version field, written as a
+          SemVer string. Every format version accepts that form, so completion does not branch on the
+          format version and a pre-release version completes like any other. What the source used is
+          not consulted. A `package.json` version that is missing, or is not a version at all, is a
+          problem
+        - a `dependencies` entry whose `uuid` names a pack within the same workspace has its `version`
+          set to that pack's owning package's `package.json` version, using the same parsing and error
+          reporting rules described for `header.version`
+
+      Every dependency a pack has is declared in its own source `manifest.json`. The owning package's
+      `package.json` `dependencies` are not consulted and contribute no manifest dependency entry.
+
+      A `dependencies` entry whose `uuid` names no pack in the workspace, and one naming a built-in
+      scripting module by `module_name`, are external: the kit passes each through untouched and never
+      completes it, so each MUST carry its own `version`.
+    verification:
+      - do: discover a pack whose source manifest omits `header.name` and `header.version` and leaves a workspace dependency's version unspecified
+      - verify: the completed manifest carries the name from `productName` or the scope-stripped package name, the owning package's version as a SemVer string, and the depended-on package's version on the dependency entry
+      - do: discover a pack whose source specifies `header.name`, one specifying `header.version`, and one specifying a workspace dependency's version
+      - verify: each specified field is reported as an error
+      - do: discover a pack whose manifest declares `format_version` 3 with an array version, and one whose external dependency carries no version
+      - verify: each is reported as an error, and external dependency entries are passed through uncompleted
+    facets: discovery
+
+  # validation
+  - id: r-jl42pzah
+    title: manifest fields are validated by form
+    statement: |
+      the kit declares every manifest field it reads, reasons about, writes, or mentions in its spec,
+      and validates every field it declares: a field whose declared type the source contradicts is a
+      reported problem, not a value passed through under a type it does not have, and a declaration is
+      never dropped to avoid validating it. Validation tests form, never value — the kit checks that a
+      version is a SemVer string or a `[major, minor, revision]` array, and never which versions or
+      which format versions exist.
+    verification:
+      - do: discover a pack whose manifest carries a declared field in the wrong form — a numeric `header.uuid`, say
+      - verify: the fault is a reported problem, and no value reaches the consumer under a type it does not have
+      - do: discover a pack whose declared fields are well-formed but carry values no list would bless — an unheard-of `format_version`, an arbitrary uuid string
+      - verify: no problem is reported, since form and never value is tested
+    facets: discovery
+
+  - id: r-xcz7nzr6
+    title: uuids are claimed once in a workspace
+    statement: |
+      a header `uuid` is claimed by exactly one pack in the workspace. A duplicated uuid is an error,
+      reported per `r-iby30nx1`, and every pack claiming one is unresolvable —
+      no claimant is preferred over another.
+
+      The error names the duplicated uuid and every pack claiming it, so a reader can reach the copies
+      without searching the workspace. Module `uuid`s are not checked for uniqueness: nothing
+      establishes that the format requires it.
+    verification:
+      - do: discover a workspace where two packs claim one header uuid, and where two modules share a uuid
+      - verify: both claimant packs are invalid, with neither preferred
+      - verify: the problem names the duplicated uuid and the location of every claimant
+      - verify: the shared module uuid raises no problem
+    facets: discovery
+
+  - id: r-fmkhgklz
+    title: uuids compare case-insensitively
+    statement: |
+      header and dependency uuids are normalised to lowercase before every comparison — uniqueness,
+      dependency resolution, and search.
+    verification:
+      - do: discover a workspace where a dependency's uuid differs from its target's header uuid only by case, and search for a pack by an upper-cased spelling of its uuid
+      - verify: the dependency resolves and the search matches
+    facets: discovery
+
+  - id: r-fghzi5qq
+    title: manifest corroborates the directory kind
+    statement: |
+      a pack's kind comes from the directory membership is read from, `behavior_pack/` or
+      `resource_pack/`, and the manifest must corroborate it. A disagreement between the two is a
+      reported error, never a silent preference for one side, so a pack carries one kind and no
+      consumer reconciles two.
+
+      every module in a pack's manifest must declare a `type`, and the manifest must carry a module
+      corroborating the kind its directory declares — `data` or `script` for a behavior pack,
+      `resources` for a resource pack — and must carry no module of the other kind. A module with no
+      `type`, a manifest carrying no corroborating module, and a manifest carrying modules of both
+      kinds are each a problem. Any further module type is ignored: the kit validates no enumeration of
+      module types and treats an unrecognised one as neither corroborating nor a problem.
+    rationale: |
+      The set of module types is not enumerable, as `f:module-type-enumerations-disagree` records, so
+      validating against any list would report a problem against packs the format allows. Corroboration
+      therefore tests only the types that carry the kind: `resources`, and the `data` and `script` that
+      both sit in a behavior pack. Everything else is either a companion module riding inside a pack,
+      or a different artifact the fixed-path membership test never reaches.
+    informed_by:
+      - f:module-type-enumerations-disagree
+    verification:
+      - do: discover a `behavior_pack/` whose manifest carries only a `resources` module
+      - verify: the disagreement is a reported error, with neither side silently preferred
+      - do: discover a behavior pack whose manifest carries a `data` module plus a module of an unrecognised type, and one carrying a module with no `type`
+      - verify: the unrecognised type raises no problem, and the typeless module does
+    facets: discovery
+
+  - id: r-iby30nx1
+    title: unresolvable packs fail loudly
+    statement: |
+      a pack the kit cannot resolve is returned as an `invalid` entry, per `r-co6glnme`. A pack
+      is unresolvable when its manifest cannot be parsed, when its identity is missing, when its
+      manifest completion data is invalid or missing, or when it carries a manifest dependency the set
+      does not satisfy — a dependency naming no pack in the set, or one naming a pack that is itself
+      invalid, so invalidity propagates along dependency edges. A dependency naming a built-in
+      scripting module is not a missing pack.
+    verification:
+      - do: discover a workspace holding a pack with an unparseable manifest, one declaring no `header.uuid`, one depending on an invalid pack, and one depending on a built-in scripting module
+      - verify: the first three are each returned as an invalid entry — nothing is thrown or omitted
+      - verify: invalidity propagated along the dependency edge to the dependent pack
+      - verify: the scripting-module dependency is not treated as a missing pack
+    facets: discovery
