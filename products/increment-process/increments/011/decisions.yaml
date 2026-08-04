@@ -6,7 +6,7 @@ decisions:
       an unnumbered draft is products/<product>/increments/<slug>/ on its own pull-request
       branch; landing renames the directory into the next number on that branch before the
       merge, and main never holds a slug-named increment.
-    status: proposed
+    status: accepted
     pinned:
       reason: data-format
     because:
@@ -27,7 +27,7 @@ decisions:
       and nothing is declared; the dependent draft's tree carries its ancestor's content,
       its landing diff shrinks to its own changes once the ancestor merges, and a tree
       that skips or repeats a number is refused by the density gate.
-    status: proposed
+    status: tolerated
     because:
       - r-ca9witxh
       - f:check-enforces-dense-increments
@@ -42,7 +42,7 @@ decisions:
       rulings surface there, and the later of two overlapping drafts recomputes when the
       head moves. no gate reads in-flight drafts against each other; the owner's scan of
       open drafts covers that window.
-    status: proposed
+    status: accepted
     because:
       - r-0701ctqx
       - r-c0zi3pv0
@@ -56,7 +56,7 @@ decisions:
       wherever the tooling takes a fold version, a three-digit argument names an increment
       number and anything else names a git ref; a ref resolves to the product's latest
       published increment at that ref.
-    status: proposed
+    status: accepted
     pinned:
       reason: public-api
       notes: agents and the shipped documents pass versions in this form
@@ -76,6 +76,19 @@ decisions:
       - r-v6mknsh7
     facets: tooling
 
+  - id: d-5xa0g4mp
+    title: the draft branch name is plan/<product>/<slug>
+    statement: |
+      an agent opening a parallel draft creates its branch as plan/<product>/<slug>; no
+      check requires the name — it is the anti-bikeshedding default agents reach for.
+    status: accepted
+    because:
+      - d-f7knzaf9
+      - r-05tkrv7r
+    facets:
+      - process-doc
+      - prompts
+
   - id: d-yu9hbn3h
     title: the validator is unchanged
     statement: |
@@ -83,7 +96,7 @@ decisions:
       name finding while the draft is worked — beside its proposed-decision and
       open-question findings — and the landing rename clears it. the check stays the merge
       gate it is.
-    status: proposed
+    status: accepted
     because:
       - d-f7knzaf9
       - d-kn05wb30
