@@ -1,26 +1,65 @@
 version: "2"
 decisions:
-  - id: d-gpwpa7ma
-    title: the tooling surfaces the backlog
+  - id: d-kfy1sexh
+    title: the backlog is an orphan branch
     statement: |
-      the process tooling lists and searches held items the same way it surfaces facts and
-      foundations, whatever store backs the backlog; an agent or the owner reaches the
-      backlog through the tooling without knowing the store.
+      the backlog lives on a branch named backlog with no shared history with main —
+      created orphan, holding only backlog files. capture pushes commits straight to it,
+      which the rulesets permit, and the branch is never merged anywhere: its history is
+      the only residue of items that have left.
     status: proposed
+    pinned:
+      reason: public-api
+      notes: capturers and the shipped tooling name the branch
     because:
+      - r-pvcrlqg5
       - r-hbihi1xh
-      - r-2gcehlp8
+      - f:main-rulesets-require-prs
+    facets:
+      - tooling
+      - process-doc
+
+  - id: d-ubltnjpp
+    title: an item is a product-keyed markdown file
+    statement: |
+      an item is <product>/<id>.md on the backlog branch: the directory names the product,
+      the filename is the tooling-generated id — b- and eight lowercase base36 characters —
+      the first heading is the title, and the body is free prose. an optional yaml
+      frontmatter carries tags for filtering, and nothing else; there is no other
+      structured data.
+    status: proposed
+    pinned:
+      reason: data-format
+    because:
+      - r-fvi1hqkn
+      - r-oabwygl2
+      - d-kfy1sexh
     facets: tooling
 
   - id: d-wpih0mc1
     title: adoption rewrites, then drains
     statement: |
       a later increment adopts an item by writing the foundations it plans into its own
-      sources at the ordinary bar — the braindump is raw material, never moved text — and
-      the item leaves the backlog once that increment merges. the increment's sources are
-      the record; the backlog keeps none.
+      sources at the ordinary bar — the braindump is raw material, never moved text. the
+      send-to-capture operation copies the item's content into the adopting increment's
+      working sources and deletes the item from the branch in the same action; the
+      increment's sources are the record, and the backlog keeps none.
     status: proposed
     because:
       - r-hbihi1xh
       - r-fvi1hqkn
+      - r-9qhjtznd
+      - d-kfy1sexh
     facets: process-doc
+
+  - id: d-dxlllx6y
+    title: the tooling's surface is the implementer's
+    statement: |
+      the command names, flags, and output layout of the backlog tooling — the add, update,
+      delete, list, search, and send-to-capture operations, and how listing renders the
+      product association and tags — are deferred to the implementer.
+    status: deferred
+    because:
+      - r-9qhjtznd
+      - r-oabwygl2
+    facets: tooling
