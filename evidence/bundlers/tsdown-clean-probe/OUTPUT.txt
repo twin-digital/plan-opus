@@ -1,0 +1,22 @@
+ℹ entry: src/main.ts
+ℹ Build start
+ℹ out-clean-false/main.mjs  0.07 kB │ gzip: 0.08 kB
+ℹ 1 files, total: 0.07 kB
+✔ Build complete in 12ms
+ℹ entry: src/main.ts
+ℹ Build start
+ℹ Cleaning 4 files
+ℹ out-clean-true/main.mjs  0.07 kB │ gzip: 0.08 kB
+ℹ 1 files, total: 0.07 kB
+✔ Build complete in 9ms
+
+=== RESULTS ===
+tsdown 0.22.14 on node v24.16.0
+fixture: outDir seeded with behavior_pack/manifest.json and behavior_pack/textures/a.png before each build
+
+clean=false buildStart sees: behavior_pack/manifest.json | behavior_pack/textures/a.png
+clean=false generateBundle sees: behavior_pack/manifest.json | behavior_pack/textures/a.png
+clean=false after build: behavior_pack/manifest.json | behavior_pack/textures/a.png | main.mjs
+clean=true buildStart sees: (empty)
+clean=true generateBundle sees: (empty)
+clean=true after build: main.mjs

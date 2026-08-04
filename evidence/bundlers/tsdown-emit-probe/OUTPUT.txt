@@ -1,0 +1,32 @@
+ℹ entry: src/main.ts
+ℹ Build start
+ℹ 0 files, total: 0.00 kB
+✔ Build complete in 10ms
+ℹ entry: src/main.ts
+ℹ Build start
+ℹ dist/plugin-leaves-the-bundle-alone/main.mjs  0.14 kB │ gzip: 0.12 kB
+ℹ 1 files, total: 0.14 kB
+✔ Build complete in 5ms
+ℹ entry: src/main.ts
+ℹ Build start
+ℹ 0 files, total: 0.00 kB
+✔ Build complete in 3ms
+
+=== RESULTS ===
+tsdown 0.22.14 on node v24.16.0
+fixture: src/main.ts imports src/helper.ts; every build runs with clean: false
+
+--- plugin empties the bundle and writes its own file
+    generateBundle saw: main.mjs
+    plugin wrote: dist/plugin-empties-the-bundle-and-writes-its-own-file/scripts/main.js
+    writeBundle saw: (nothing)
+    outDir after: scripts/main.js
+--- plugin leaves the bundle alone
+    generateBundle saw: main.mjs
+    outDir after: main.mjs
+--- plugin empties the bundle, stale file already in outDir, clean false
+    generateBundle saw: main.mjs
+    plugin wrote: dist/plugin-empties-the-bundle-stale-file-already-in-outDir-clean-false/scripts/main.js
+    writeBundle saw: (nothing)
+    outDir after: left-over.txt | scripts/main.js
+    seeded left-over.txt: STALE-SEED
