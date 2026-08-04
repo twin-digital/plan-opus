@@ -4,8 +4,8 @@ Working material for this increment's Plan loop. mc-dev-server and mc-dev-kit ar
 the dev loop's entire input is the kit's pack set, and the boundary between them was carried by
 eleven `f:dev-kit-*` facts that transcribe mc-dev-kit's own `requirements.yaml` into the facts
 pool. This increment brings mc-dev-server's published requirements into the kit under a new
-`dev-loop` facet, consolidated. The harness may still ship as its own package; the package set is
-design work this increment does not do.
+`dev-loop` facet, consolidated, and re-enters its decisions against them. The harness still ships as
+its own package, beside the library rather than inside it.
 
 ## Requirements (9 declared, from 11 absorbed)
 
