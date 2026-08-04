@@ -33,17 +33,17 @@ proposal:
 | new id | title |
 |---|---|
 | r-3dgnq0sp | one package |
-| r-d5v1hzgp | instanceof answers by class identity |
+| r-956kxrsc | instanceof answers by class identity |
 | r-uobnqsfg | install is one runner-config entry |
 
-`r-d5v1hzgp` was ruled to live in test-lib's requirements. Increment 001 does not carry it —
+`r-956kxrsc` was ruled to live in test-lib's requirements. Increment 001 does not carry it —
 its closest entry, `r-28cg0y2h` (fakes are structurally assignable), is about type-level
 assignability, not runtime class identity — so it lands here, in the same product's
 requirements as ruled. It carries `facets: shim` like the rest; it also binds the `fakes`
 facet's construction, which the Plan loop may re-facet.
 
 `r-956kxrsc` (the converted instanceof requirement) states the observable answer;
-`r-d5v1hzgp` states the identity basis behind it. Both stand.
+`r-956kxrsc` states the identity basis behind it. Both stand.
 
 ## Presets
 
@@ -75,7 +75,7 @@ that. Carried into this increment's `decisions.yaml`:
 
 Statements carry verbatim except where the old regime's words no longer exist: "the shim" reads
 "the aliased surface"/"the package" (one package per `r-3dgnq0sp`), and "branded as" reads "the
-fakes implement" (brands were retired by `r-d5v1hzgp`). The branch's remaining proposed set and
+fakes implement" (brands were retired by `r-956kxrsc`). The branch's remaining proposed set and
 its 13 rejected decisions stay on the preserved branch as Plan-loop history.
 
 ## Other dispositions

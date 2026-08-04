@@ -1,27 +1,6 @@
 version: "1"
 
 decisions:
-  - id: d-c1awo33f
-    title: the root entry point is the fakes' barrel
-    statement: |
-      the package's root entry point re-exports every fake type and free function, and the entry
-      points carrying the aliased module surface and the runner tooling are this increment's
-      design to lay out
-    status: delegated
-    because:
-      - r-3dgnq0sp
-      - r-qklf4op9
-    revisit_when:
-      - the library's own parts come to import each other through the root barrel, and the cycle
-        that creates cannot be broken without a subpath export a builder can import directly
-      - a sibling package must depend on the error classes at a version cadence independent of the
-        fakes, which one entry point in one package cannot express
-      - this increment's layout needs the fakes reachable from somewhere other than the root, so
-        the two halves of the package cannot both be laid out as this says
-    supersedes: d-19qu2ih2
-    facets:
-      - fakes
-      - shim
 
   - id: d-bslnaeg6
     title: the default path is boilerplate-free with per-test isolation
@@ -204,17 +183,18 @@ decisions:
   - id: d-bvhynmr8
     title: exports are the root barrel plus one runner-tooling subpath
     statement: |
-      the package's published exports are the root barrel and one subpath per supported runner's
-      tooling — vitest, the one runner supported at this increment, at
-      `@twin-digital/minecraft-test-lib/vitest` — and nothing else: the aliased
-      `@minecraft/server` surface and the sibling-module stubs are files inside the package the
-      plugin references by resolved path, not published subpaths
+      the package's published exports are the root barrel — re-exporting every fake type and
+      free function — and one subpath per supported runner's tooling — vitest, the one runner
+      supported at this increment, at `@twin-digital/minecraft-test-lib/vitest` — and nothing
+      else: the aliased `@minecraft/server` surface and the sibling-module stubs are files
+      inside the package the plugin references by resolved path, not published subpaths
     status: proposed
     pinned:
       reason: public-api
+    supersedes: d-19qu2ih2
     because:
-      - d-c1awo33f
       - r-3dgnq0sp
+      - r-qklf4op9
       - r-uobnqsfg
       - f:a-vite-plugin-contributes-an-alias-and-a-setup-file
       - f:setup-files-resolve-as-modules-from-the-project-root

@@ -11,7 +11,7 @@ absent from the legacy `requirements.yaml` and enter this increment as converted
 
 1. **One package** (`r-3dgnq0sp`): the aliased `@minecraft/server` surface, the fakes, and the
    runner tooling ship as `@twin-digital/minecraft-test-lib`.
-2. **`instanceof` answers by class identity** (`r-d5v1hzgp`): a fake is an instance of the class
+2. **`instanceof` answers by class identity** (`r-956kxrsc`): a fake is an instance of the class
    the aliased surface exports. Ruled to live in test-lib's requirements; increment 001 does not
    carry it, so it lands here.
 3. **Install is one runner-config entry** (`r-uobnqsfg`): the consumer configures the runner in
@@ -41,7 +41,7 @@ existing pools. The Plan loop reads them from there rather than re-running the p
 
 The owner-approved module-surface rulings are this increment's entries: `r-qklf4op9` (injection
 suites stay supported) amends the object-substitution fiat `r-wv395rgn`, `r-qayd22z2` (fake state
-is instance-scoped) amends `r-892696vk`, and `d-c1awo33f` narrows the entry-point ruling to the
+is instance-scoped) amends `r-892696vk`, and `d-bvhynmr8` narrows the entry-point ruling to the
 root barrel — the layout of the module-surface and runner-tooling entry points is this
 increment's design to make — superseding `d-19qu2ih2`. The fiat fact
 `test-lib-supplies-the-module-surface-and-the-runner-tooling` records the amended commitment, and

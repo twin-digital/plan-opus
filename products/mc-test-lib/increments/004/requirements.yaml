@@ -25,17 +25,21 @@ requirements:
     facets: shim
 
   - id: r-956kxrsc
-    title: instanceof answers for a fake
+    title: instanceof answers by class identity
     statement: |
-      `instanceof` against a class the shim exports answers true for the corresponding fake and
-      false for a value that is not one, without the consumer naming a member or other
-      implementation detail of the fakes.
+      `instanceof` against a class the shim exports answers by class identity: a fake is an
+      instance of the class the aliased surface exports, so the check answers true for the
+      corresponding fake and false for a value that is not one, without the consumer naming a
+      member or other implementation detail of the fakes.
     rationale: |
       A silently false `instanceof` leaves a handler returning early and its test passing while
-      exercising nothing.
+      exercising nothing. Owner fiat from the rejected shim spec cycle: brand mechanisms
+      answering in place of the class itself are not open to reargument.
     verification:
       - do: evaluate `instanceof` against a shim-exported class, once with the corresponding fake and once with a value that is not one
       - verify: it answers true for the fake and false for the other value, the consumer having named no member or implementation detail of the fakes
+      - do: read the fake's prototype chain
+      - verify: the exported class sits on it, with no `Symbol.hasInstance` override answering for it
     facets: shim
 
   - id: r-rpm1k57j
@@ -87,19 +91,6 @@ requirements:
       - verify: the aliased surface, the fakes, and the runner tooling all ship in `@twin-digital/minecraft-test-lib`, and no second package publishes any of them
     facets: shim
 
-  - id: r-d5v1hzgp
-    title: instanceof answers by class identity
-    statement: |
-      `instanceof` answers by class identity: a fake is an instance of the class the aliased
-      surface exports.
-    rationale: |
-      Owner fiat from the rejected shim spec cycle; brand mechanisms answering in place of the
-      class itself are not open to reargument.
-    verification:
-      - do: create a fake and read the class the aliased surface exports for its type
-      - verify: the fake is an instance of that class — the exported class sits on the fake's prototype chain, with no `Symbol.hasInstance` override answering for it
-    facets: shim
-
   - id: r-uobnqsfg
     title: install is one runner-config entry
     statement: |
@@ -118,16 +109,13 @@ requirements:
     title: injection suites stay supported
     statement: |
       a suite that injects fake objects into code under test stays supported, and nothing the
-      library ships breaks one. The library additionally supplies the `@minecraft/server` module
-      surface a consumer aliases, and the runner tooling that configures that alias.
+      library ships breaks one.
     rationale: |
       The retired fiat barred a module-shim story to protect suites written against object
       substitution. The protection is that guarantee, not the absence of the shim.
     verification:
       - do: run a suite that injects fake objects into code under test, with the shipped package installed
       - verify: the suite stays supported, and nothing the library ships breaks it
-      - do: inventory what the package supplies for a consumer reaching the engine through the module import
-      - verify: it supplies the `@minecraft/server` module surface the consumer aliases, and the runner tooling that configures that alias
     amends: r-wv395rgn
     facets:
       - fakes
