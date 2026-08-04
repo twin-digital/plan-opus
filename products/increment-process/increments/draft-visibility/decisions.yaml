@@ -1,0 +1,42 @@
+version: "2"
+decisions:
+  - id: d-1qn5jzgd
+    title: the gate reads a draft as an in-flight increment
+    statement: |
+      a slug-named directory under a product's increments/ is read as an in-flight increment:
+      its sources validate against their schemas, its citations resolve, and its proposed
+      decisions and open questions are reported — every rule the gate applies to a numbered
+      increment, applied to it too.
+
+      the increment-dir-name finding is what keeps it out of main, and it is unchanged: the
+      landing rename clears it, and nothing else does. the check stays the merge gate it is.
+      what changes is that a draft is checked while it can still be fixed, rather than the
+      author discovering a schema violation at the rename.
+    status: proposed
+    supersedes: d-yu9hbn3h
+    because:
+      - r-4z3yd1ri
+      - d-f7knzaf9
+      - d-kn05wb30
+      - f:slug-named-draft-is-invisible-to-the-gate
+      - f:check-rejects-slug-increment-dirs
+    facets:
+      - tooling
+      - design-validator
+
+  - id: d-x1mhu3a3
+    title: a draft folds at the number its landing would claim
+    statement: |
+      the projection folds a slug-named draft as though it held the number a landing would
+      claim — after every published increment, in the position the rename will give it. the
+      draft's own foundations appear in the fold, its supersessions close what they name, and
+      the coverage summary counts its claims.
+
+      the slug is what the projection shows for its increment, since it has no number until
+      it lands.
+    status: proposed
+    because:
+      - r-4z3yd1ri
+      - d-f7knzaf9
+      - d-j50yturh
+    facets: tooling

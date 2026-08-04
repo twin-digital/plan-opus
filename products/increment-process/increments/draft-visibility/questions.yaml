@@ -1,0 +1,22 @@
+version: "1"
+questions:
+  - id: q-ao1fg4q1
+    question: |
+      When a tree holds two slug-named drafts, in what order do they fold?
+
+      This is the stacking case, and it is ordinary rather than exotic: d-oel258yc says a
+      dependent draft branches from its ancestor and "its tree carries the ancestor's content
+      while both are in flight". So a dependent's working tree holds two slug-named
+      directories, and d-x1mhu3a3 gives them the same position — the number a landing would
+      claim.
+
+      Nothing in the tree records which is the ancestor. Git ancestry does, but the fold is
+      computed from the tree, not from history. Candidate answers: fold them in the order the
+      branch's commits introduced them; refuse to project more than one and say so; or order
+      by directory name and accept that it is arbitrary.
+
+      A wrong order is not cosmetic — a supersession in the ancestor that the dependent builds
+      on would resolve differently, so the projection would show a fold that no landing
+      produces.
+    answer: decision
+    facets: tooling
