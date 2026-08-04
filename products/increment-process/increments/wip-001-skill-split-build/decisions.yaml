@@ -1,2 +1,207 @@
 version: "2"
-decisions: []
+decisions:
+  - id: d-7px9m0v5
+    title: each of the two skill packages states its own half of a shared rule
+    statement: |
+      a rule the implementer executes is stated in .claude/skills/implement-package/SKILL.md;
+      a rule the orchestrator executes is stated in .claude/skills/increment/implement.md.
+      neither restates the other's half, and nothing crosses between the two packages by
+      reference.
+
+      d-msvpbva6, d-nt7tach6, d-cau8oksc, and d-blant5zn split that way. d-98df3rlb,
+      d-euwmthl9, d-i8qe4bmp, and d-4s0zoh1v are wholly the implementer's; d-ub6h6h5u,
+      d-vadqz73a, and d-e8h0g9e3 are wholly the orchestrator's.
+
+      where one file enumerates and the other refers, the enumeration sits with the role that
+      owns the thing enumerated: implement.md names the shared files it alone writes, and
+      SKILL.md says only that an implementer's diff stays in its package path.
+    status: delegated
+    because:
+      - r-15psk4yp
+      - r-w2m32yl6
+      - d-63z31u0l
+      - d-80yxesle
+      - d-i8qe4bmp
+    facets: prompts
+
+  - id: d-70giusy0
+    title: the implementation-detail test is stated once inside the instruction
+    statement: |
+      .claude/skills/implement-package/SKILL.md states the implementation-detail test, which
+      d-63z31u0l assigns it by name. .claude/skills/increment/plan.md and implement.md cite
+      docs/process-reference.md at the section carrying it and do not restate it.
+
+      that leaves one statement of d-29fjsjn2 inside the instruction agents read. the process
+      reference also stating it is not a second copy, per r-15psk4yp.
+    status: delegated
+    because:
+      - r-15psk4yp
+      - d-29fjsjn2
+      - d-63z31u0l
+      - d-vt9r9zn5
+    facets: prompts
+
+  - id: d-w507rgth
+    title: an implementer is pointed at the reference only where no wave shape lives
+    statement: |
+      the implementer skill cites docs/process-reference.md at sections carrying no
+      kind-specific wave shape, and never at the section carrying the wave tables. a section an
+      agent is told to open is loaded alongside what it reads.
+
+      the reference keeps that section whole, both wave shapes in one place: r-w2m32yl6 governs
+      the instruction an agent is dispatched with, and a section nothing links is not loaded
+      alongside anything.
+    status: delegated
+    because:
+      - r-w2m32yl6
+      - d-vt9r9zn5
+      - d-63z31u0l
+    facets:
+      - prompts
+      - process-doc
+
+  - id: d-ly23faio
+    title: the phase is settled before anything else, and an unknown phase is refused
+    statement: |
+      invoked with no phase, the skill settles which is meant from the request where that is
+      unambiguous and asks the caller where it is not. invoked with a phase it does not
+      recognise, it refuses and names the two valid phases rather than guessing.
+    status: delegated
+    because:
+      - d-1vt3677q
+      - d-80yxesle
+    facets: prompts
+
+  - id: d-3lnj73ds
+    title: the migration record covers what predates the process, not retirements inside it
+    statement: |
+      docs/process-migration.md carries the pre-process regime and the conversion of the legacy
+      design/ tree. a foundation retired by an ordinary increment — a superseded decision, a
+      replaced package — is recorded by the increment that retires it and does not enter the
+      migration record.
+
+      so d-lzisn9cb is stated by no document: the four deleted directories and the removed
+      product.yaml entries carry it.
+    status: delegated
+    because:
+      - d-lzisn9cb
+      - d-nzba0wqu
+      - d-lm8br2p2
+    facets: process-doc
+
+  - id: d-grc2wbfo
+    title: the wip directory grammar, and what a near-miss is
+    statement: |
+      a draft increment directory matches /^wip-(\d{3})-([a-z0-9]+(?:-[a-z0-9]+)*)$/. a
+      directory whose name begins wip- and does not match is not a draft increment: it draws
+      the increment-dir-name finding worded for the wip form, and its sources are read by
+      nothing.
+
+      wip-1-slug, wip-abc, wip-001, wip-001-, and wip-0001-slug are each a near-miss.
+    status: delegated
+    because:
+      - d-x0q4xgd8
+      - r-4z3yd1ri
+    facets:
+      - tooling
+      - design-validator
+
+  - id: d-yaefvf6x
+    title: a draft increment directory always draws the name finding
+    statement: |
+      a well-formed wip directory draws exactly one increment-dir-name finding beside whatever
+      else it violates, so check never exits 0 while a draft increment is in flight. the
+      landing rename clears it and nothing else does.
+    status: delegated
+    because:
+      - d-1qn5jzgd
+      - d-x0q4xgd8
+    facets:
+      - tooling
+      - design-validator
+
+  - id: d-5smb6h2g
+    title: drafts fold into the default projection only
+    statement: |
+      show with no fold version asked for folds the tree as it stands, draft increments
+      included. a named increment or git ref projects published state and excludes them — a
+      draft holds no number to name. diff, where, and the head side of conflicts stay
+      published-only.
+    status: delegated
+    because:
+      - d-x1mhu3a3
+      - d-9y7b8qtd
+      - d-j50yturh
+    facets: tooling
+
+  - id: d-a6go362q
+    title: an implementation record is checked against the published fold
+    statement: |
+      record coverage completeness folds at the record's numeric target with draft increments
+      excluded, so a record lands cleanly in a tree that holds one. the projection's coverage
+      summary still counts a draft's claims and shows them uncovered, as d-x1mhu3a3 states; the
+      two readers are separate.
+    status: delegated
+    because:
+      - d-x1mhu3a3
+      - d-3orwwaze
+      - r-tue7kfgt
+      - d-ki941p9b
+    facets:
+      - tooling
+      - design-validator
+
+  - id: d-jcvr833x
+    title: a shared ordinal is a finding; an unsupported pair is prevented, not detected
+    statement: |
+      two wip directories in one tree carrying the same ordinal are reported by the
+      draft-ordinal-unique rule, since the ordinal is a stack's relative order and they carry
+      none. distinct ordinals fold in ordinal order with no comment.
+
+      the tree that d-x0q4xgd8 calls unsupported — two draft increments that are not ancestor
+      and dependent — is not detectable from a checkout, which shows no ancestry and so cannot
+      tell a legal stack from an unsupported pair. the skill prevents it instead: an agent
+      opening a draft in a tree that already holds one it is not stacked on works in a fresh
+      worktree, from the ancestor when stacking and from main otherwise.
+    status: delegated
+    because:
+      - d-x0q4xgd8
+      - d-oel258yc
+      - d-x1mhu3a3
+    facets:
+      - tooling
+      - prompts
+
+  - id: d-ra5uhjmg
+    title: the landing conflict check covers wip directories
+    statement: |
+      findLandingConflicts reads every increment directory in the working tree carrying no
+      published number, a wip directory among them. d-kmagri5u's coverage — what this branch
+      would add to the sequence — is unbroken by 013 renaming the draft form, and a test
+      asserts it rather than leaving it to the reading of "slug-named".
+    status: delegated
+    because:
+      - d-kmagri5u
+      - d-x0q4xgd8
+      - d-u3744xlr
+    facets: tooling
+
+  - id: d-9yzzvfow
+    title: an increment is named by number or by draft directory across the fold types
+    statement: |
+      the entry point exports IncrementRef = number | string. FoldedClaim.increment,
+      OutOfForce.increment, AddedClaim.increment, and ClosedClaim.increment carry it, and Fold
+      gains label: IncrementRef and drafts: string[].
+
+      d-x1mhu3a3 makes a draft increment appear in the fold under its directory name, so every
+      type that names an increment has to admit one. the change widens the surface and breaks
+      no consumer.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: named exports of the package entry point, which d-211hgo91 fixes
+    because:
+      - d-x1mhu3a3
+      - d-211hgo91
+      - d-cueyrbon
+    facets: tooling
