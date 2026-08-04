@@ -1,4 +1,4 @@
-# Conversion map: design/minecraft/server-shim → mc-test-lib increment 002
+# Conversion map: design/minecraft/server-shim → mc-test-lib increment 003
 
 Working material for the conversion review. The legacy design was `exploring`, so this increment
 enters as a draft, mid-Plan: the branch carries it until the owner ratifies and the merge gate
