@@ -28,6 +28,4 @@ harvested from those runs.
 
 ## Numbering
 
-Built as 004 because the open shim-facet PR claims 003. Whichever of the two merges first
-renumbers down to 003 for density; that renumbering belongs to the merge order, not to this
-branch.
+This increment landed as 003; the shim-facet draft renumbers to 004 at its merge.
