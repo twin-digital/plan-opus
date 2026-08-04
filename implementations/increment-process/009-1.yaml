@@ -1,0 +1,755 @@
+version: "1"
+product: increment-process
+target: 9
+built_at: 2026-08-04
+packages:
+  - path: nodejs/plan/design-process
+    version: "0.2.0"
+  - path: docs/authoring.md
+    version: "7"
+  - path: .claude/skills/plan
+    version: "9"
+  - path: docs/process-reference.md
+    version: "9"
+  - path: docs/process-migration.md
+    version: "4"
+  - path: .claude/skills/implement
+    version: "9"
+  - path: .claude/skills/implement-code
+    version: "9"
+  - path: .claude/skills/implement-document
+    version: "9"
+coverage:
+  # ---- requirements, increment 001 ----
+  - claim: r-gq90gngs # foundations have defined shapes and meanings
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-foundations
+        note: states each foundation kind's job, author, and lifecycle
+      - kind: code-test
+        ref: test/validate.test.ts
+        note: every structured file validates against the pool schema its version names
+  - claim: r-6n45h5eb # foundations are expressed and reviewed directly
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-foundations
+  - claim: r-2gcehlp8 # tooling folds foundations
+    covered_by:
+      - kind: code-test
+        ref:
+          - test/fold.test.ts
+          - test/project.test.ts
+  - claim: r-zcvxh2ty # the design validator gates merges
+    covered_by:
+      - kind: attestation
+        ref: .github/workflows/check-design.yml
+        note: the workflow runs npm run check on every pull request, no path filter
+      - kind: manual-check
+        ref: .github/workflows/check-design.yml
+        note: >
+          branch protection is set by hand: repository settings → branches → protection rule for main →
+          require status checks to pass → add the "check" job of check-design; re-verify by opening any
+          PR and confirming the check is listed as required
+  - claim: r-caao9k3z # shipped increments stay shipped
+    covered_by:
+      - kind: code-test
+        ref: test/changes.test.ts
+  - claim: r-ei82daip # decisions are comprehensible as a set
+    covered_by:
+      - kind: code-test
+        ref: test/project.test.ts
+        note: the projection renders the effective decision set, because-ordered
+      - kind: attestation
+        note: read the projection of increment-process at the target; the decision set states what is built
+  - claim: r-bs6wsobr # no maintained spec exists
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#clarify
+  - claim: r-yzkxa2hj # the process ships its reference
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md
+        note: the claim is the file itself at its permanent home
+  - claim: r-0axqvtcc # pending decisions may not be published
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+  - claim: r-gc7a3m56 # ruled-on is distinguishable from passed-over
+    covered_by:
+      - kind: code-test
+        ref: test/project.test.ts
+        note: rulings are labelled per decision and abstentions counted
+  - claim: r-2fytqadu # contracts are shared and versioned
+    covered_by:
+      - kind: code-test
+        ref:
+          - test/pools.test.ts
+          - test/changes.test.ts
+          - test/validate.test.ts
+  - claim: r-bua9wl1s # the model binds schemas as requirements
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+        note: unresolved model references and duplicate entity names block
+  - claim: r-sk47gw08 # design and implementation keep their own schedules
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#design-and-implementation-keep-their-own-schedules
+      - kind: attestation
+        ref: implementations/increment-process/004-1.yaml
+        note: increments 001-003 published with no implementation; each record names the increment it
+          targeted
+  - claim: r-bwtud1e5 # products declare their own requirements
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+        note: preset adoption rules and identity conflicts block; the schemas admit no wider scopes
+  # ---- requirements, increment 002 ----
+  - claim: r-kylqsn5a # unresolved uncertainty has a home
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#open-questions
+  - claim: r-d181l3s2 # a question routes to whoever can answer it
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#open-questions
+      - kind: code-test
+        ref: test/validate.test.ts
+        note: questions validate against question@1, whose answer field is required
+  - claim: r-m36ie8ee # nothing rests on an open question
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+  - claim: r-dbfxxr6g # the open question is defined like a foundation is
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#open-questions
+      - kind: code-test
+        ref: test/validate.test.ts
+  - claim: r-ygg7q7rh # questions close before an increment publishes
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+  # ---- requirements, increment 003 ----
+  - claim: r-lll68661 # public api surfaces are shared and versioned
+    covered_by:
+      - kind: code-test
+        ref:
+          - test/pools.test.ts
+          - test/changes.test.ts
+  - claim: r-tue7kfgt # every claim carries graded evidence
+    covered_by:
+      - kind: code-test
+        ref: test/project.test.ts
+        note: the projection joins the implementations pool and counts uncovered and attestation-only claims
+      - kind: attestation
+        ref: implementations/increment-process/009-1.yaml
+        note: this manifest carries an entry for every claim in force at the target, deferred decisions
+          excepted
+  # ---- requirements, increment 008 ----
+  - claim: r-v4z0h7dn # every choice is decided, deferred, or an implementation detail
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#every-choice-is-accounted-for
+      - kind: attestation
+        ref:
+          - .claude/skills/plan/SKILL.md#4-survey--offer-it-and-classify-the-census
+          - .claude/skills/plan/SKILL.md#6-drive-to-mergeable
+        note: the Clarify-side duty — every surveyed choice classified decided, deferred, or omitted as an
+          implementation detail before the increment publishes
+      - kind: attestation
+        ref: .claude/skills/implement-code/SKILL.md#survey
+        note: survey mode exists for the code kind and returns unclassified choices with readings;
+          classification is the plan skill's share
+  # ---- decisions, increment 001 ----
+  - claim: d-auo2680a # plan is capture, clarify, ratify
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-process
+  - claim: d-o99k4ld8 # the facts pool carries forward
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#facts-record-what-research-found
+  - claim: d-d6hwdg9d # concurrent increments collide on the number
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#lifecycle--declare-changes-fold-for-state
+      - kind: code-test
+        ref: test/validate.test.ts
+        note: a gap in the increment sequence blocks, which is where the collision surfaces
+  - claim: d-g5cs9o4i # effective state is a fold
+    covered_by:
+      - kind: code-test
+        ref: test/fold.test.ts
+  - claim: d-6x6l6ws7 # publish is the merge
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#publish-is-the-merge
+      - kind: code-test
+        ref:
+          - test/validate.test.ts
+          - test/changes.test.ts
+  - claim: d-3wjypyx6 # the contract pools
+    covered_by:
+      - kind: code-test
+        ref: test/pools.test.ts
+  - claim: d-i47qv6oa # files name their own schema version
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+  - claim: d-j50yturh # the fold at an increment is the bundle
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-fold-at-an-increment-is-the-bundle
+      - kind: code-test
+        ref:
+          - test/fold.test.ts
+          - test/project.test.ts
+        note: the fold at any increment is computed on demand from immutable inputs
+  - claim: d-k48jh86c # requirement presets are plan-only products
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+  - claim: d-kn05wb30 # increment sources live under products/
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+        note: the loader reads products/<id>/increments/<NNN>/ and both extensions
+  - claim: d-ke7709uf # the model is a block of the requirements source
+    covered_by:
+      - kind: code-test
+        ref:
+          - test/fold.test.ts
+          - test/validate.test.ts
+  - claim: d-9s4d3ww2 # rulings are accepted, tolerated, delegated, or rejected
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ratify
+        note: the four ruling values, with deferred stated as an entry path rather than a fifth ruling
+      - kind: code-test
+        ref: test/validate.test.ts
+        note: the decision schema admits exactly these statuses plus proposed, and rejected requires its
+          reason
+  - claim: d-wrjhfbei # pinned is false or a named reason
+    covered_by:
+      - kind: attestation
+        ref: schemas/design-process/decision.1.yaml
+        note: the schema encodes the pinned shape, and source validation enforces it
+  - claim: d-e5ted839 # ids are opaque and random
+    covered_by:
+      - kind: code-test
+        ref:
+          - test/ids.test.ts
+          - test/validate.test.ts
+  - claim: d-nzba0wqu # documents live under docs/, drafts under the increment
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#a-product-maps-to-its-packages
+  - claim: d-jy7x42nx # retirement is an id and a reason
+    covered_by:
+      - kind: code-test
+        ref: test/fold.test.ts
+  - claim: d-i8rwe1sv # facets are labels no rule reads
+    covered_by:
+      - kind: code-test
+        ref: test/project.test.ts
+        note: the projection filters by facet; no validator rule reads one
+  - claim: d-8itv1czm # products map to packages by path and kind
+    covered_by:
+      - kind: attestation
+        ref: products/increment-process/product.yaml
+        note: each package entry was added in the change that created its files
+  - claim: d-eaw3u72o # because cites requirements, facts, and decisions
+    covered_by:
+      - kind: code-test
+        ref:
+          - test/validate.test.ts
+          - test/project.test.ts
+        note: citations resolve or block; the projection orders by the citation topology
+  - claim: d-i1reuf3u # implement forward
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#implement-forward
+  - claim: d-rx3s2hqo # decisions record the observable
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-foundations
+      - kind: attestation
+        ref: .claude/skills/implement-code/SKILL.md#code
+        note: the Code wave states the observable/preserve bar for companion-increment decisions
+  # ---- decisions, increment 002 ----
+  - claim: d-ew65xgtj # questions are a draft increment's own source
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+  - claim: d-vx26i23m # question ids join the opaque id regime
+    covered_by:
+      - kind: code-test
+        ref:
+          - test/ids.test.ts
+          - test/validate.test.ts
+  - claim: d-uzygmhfc # an increment publishes with no open question
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+  # ---- decisions, increment 003 ----
+  - claim: d-u3u3sbmb # api identity is a per-tech header
+    covered_by:
+      - kind: code-test
+        ref: test/pools.test.ts
+  - claim: d-q8ur5u3f # decomposition is design work
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#decomposition-is-design-work
+  - claim: d-qb67fb8s # kind selects the dispatch shape
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#dispatch-kind-selects-the-wave-shape
+      - kind: attestation
+        ref: .claude/skills/implement/SKILL.md#3-dispatch-one-implementer-per-package
+        note: the kind table maps each kind to its implementer skill; unknown kinds raise an open question
+  - claim: d-rvvijts2 # the code wave shape
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#dispatch-kind-selects-the-wave-shape
+        note: the code-kind table; its waves partition across prepare and implement
+      - kind: attestation
+        ref: .claude/skills/implement-code/SKILL.md#implement-a-code-package
+        note: the wave table and the Define, Stub, Code, Document sections state each wave's product and
+          what validates it
+  - claim: d-o81xclq7 # the document wave shape
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#dispatch-kind-selects-the-wave-shape
+        note: the document-kind table; its waves partition across prepare and implement
+      - kind: attestation
+        ref: .claude/skills/implement-document/SKILL.md#implement-a-document-or-agent-skill-package
+        note: the wave table states Claims, Compose, Check with each wave's product and what validates it
+  - claim: d-n23bxend # implementation decisions open as delegated
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-companion-increment
+      - kind: attestation
+        ref: products/increment-process/increments/009/decisions.yaml
+        note: every decision this implementation recorded entered as delegated
+  - claim: d-0nl6sd96 # coverage is the implementation's artifact
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+        note: coverage naming a claim not in force at the target blocks
+  - claim: d-0hedq82d # implementations are recorded in a pool
+    covered_by:
+      - kind: code-test
+        ref: test/changes.test.ts
+        note: a shipped record is immutable
+      - kind: attestation
+        ref: implementations/increment-process/004-1.yaml
+  - claim: d-w74sea6u # implementations run by hand or autonomously, one record
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#proving-a-claim-is-met
+      - kind: attestation
+        ref: .claude/skills/implement/SKILL.md#4-land
+        note: the run files one record at implementations/, whatever built it
+  - claim: d-7qh9hx2x # escalation aborts and retargets
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#everything-lands-at-head
+  - claim: d-0g9l44e4 # evidence is graded by provenance and coupling
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#proving-a-claim-is-met
+  - claim: d-4s0zoh1v # the implementer always attests
+    covered_by:
+      - kind: attestation
+        ref: implementations/increment-process/009-1.yaml
+        note: every claim this implementation implemented carries at least an attestation from its
+          implementer
+  - claim: d-lm8br2p2 # the process's documents live at docs/
+    covered_by:
+      - kind: attestation
+        ref: products/increment-process/product.yaml
+        note: the document packages carry repo twin-digital/plan-opus and docs/ paths
+  - claim: d-ig8vxolb # implementation design output lands as increments
+    covered_by:
+      - kind: attestation
+        ref: products/increment-process/increments/004/decisions.yaml
+        note: every design consequence of this implementation landed in the companion increment; this record
+          carries none
+      - kind: attestation
+        ref: products/increment-process/increments/009/decisions.yaml
+        note: every design consequence of this implementation landed in the companion increment; this record
+          carries none
+  - claim: d-ki941p9b # a record lands only at head
+    covered_by:
+      - kind: code-test
+        ref: test/changes.test.ts
+  - claim: d-rputf2bx # releases wait for their design
+    covered_by:
+      - kind: attestation
+        note: the tooling released and the documents went live only after the companion increment published
+  - claim: d-cfe28w5z # the tooling ships as opus workspace packages
+    covered_by:
+      - kind: attestation
+        ref:
+          - products/increment-process/product.yaml
+          - package.json
+        note: "@twin-digital/design-process at nodejs/plan/design-process in twin-digital/opus, pinned by
+          this repository's package.json"
+  - claim: d-jenq1f31 # the merge gate wiring is thin repository configuration
+    covered_by:
+      - kind: attestation
+        ref: .github/workflows/check-design.yml
+        note: the workflow installs the pinned tooling and runs the check; the validator logic lives in the
+          package
+      - kind: manual-check
+        ref: .github/workflows/check-design.yml
+        note: branch protection marking the check required is the by-hand step recorded under r-zcvxh2ty
+  - claim: d-vsrxwv8u # implementation records are named for their target
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+      - kind: attestation
+        ref: implementations/increment-process/009-1.yaml
+  # ---- decisions, increment 004 ----
+  - claim: d-af2v9seu # authoring tests are their own document
+    covered_by:
+      - kind: attestation
+        ref: docs/authoring.md
+        note: the whole document is the claim — intro states role and boundary, the body is the one set of
+          tests, the checklist closes it as the review-gate rubric and author self-check
+  - claim: d-98df3rlb # escalation fires on requirements, pins, and contract surfaces
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-companion-increment
+      - kind: attestation
+        ref: .claude/skills/implement/SKILL.md#2-open-the-companion-increment
+        note: proposed entries, contract-surface changes, and open questions escalate; unpinned overturns do
+          not
+  - claim: d-vt9r9zn5 # the reference ships as two documents; agents get skills
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-tooling-and-the-documents
+  - claim: d-uwnjk7rn # the tooling is one package, one CLI
+    covered_by:
+      - kind: attestation
+        ref:
+          - nodejs/plan/design-process/package.json
+          - nodejs/plan/design-process/bin/design-process.js
+  - claim: d-0w7imrfe # the documents live at the docs/ root
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md
+        note: carried by the file sitting at the docs/ root
+  - claim: d-wb0qq8wv # the gate reads preset conflict as id collision
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+  - claim: d-is1lgu15 # schema pool versions are dense
+    covered_by:
+      - kind: code-test
+        ref: test/pools.test.ts
+  - claim: d-emngkw5c # pool immutability is content identity
+    covered_by:
+      - kind: code-test
+        ref: test/changes.test.ts
+        note: a bound schema may move with identical content; any content change blocks
+  - claim: d-t03xkfj7 # both trees are checked until the migration empties design/
+    covered_by:
+      - kind: attestation
+        ref: package.json
+        note: npm run check runs bin/check-design.mjs and design-process check in sequence
+  - claim: d-a8hiceqo # one increment may not both adopt and drop a preset
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+  - claim: d-39d4o4fn # tree-consumed packages version themselves in frontmatter
+    covered_by:
+      - kind: attestation
+        ref: implementations/increment-process/009-1.yaml
+        note: the document and agent-skill package versions above quote each file's frontmatter
+  - claim: d-zj004h21 # agent-skill packages run the document wave shape
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/implement-document/SKILL.md#implement-a-document-or-agent-skill-package
+        note: the title, description, and Claims section bind the agent-skill kind to the document shape
+  - claim: d-ng02vmcd # the implementation process ships as agent skills
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/implement/SKILL.md
+        note: the skill exists at the pinned path as the implementation orchestrator
+  - claim: d-x2xw2tp2 # the code-kind implementer skill
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/implement-code/SKILL.md#implement-a-code-package
+        note: the skill exists at the delegated path; the phase paragraph fixes prepare as Define + Stub
+          with the early return at stubs, implement as Code + Document
+  - claim: d-ydcyoa80 # the document-kind implementer skill
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/implement-document/SKILL.md
+        note: the skill exists at the decided path for the document and agent-skill kinds; prepare is
+          Claims, implement is Compose and Check — the claim is the whole file
+  - claim: d-msvpbva6 # the orchestrator is the companion increment's only writer
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/implement/SKILL.md#3a-running-implementers-in-parallel
+        note: every shared file has the orchestrator as its only writer; implementers report via findings
+  - claim: d-vadqz73a # worktrees off one integration branch, one final PR
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/implement/SKILL.md#3a-running-implementers-in-parallel
+        note: one integration branch per repository, worktrees off it, one final PR after the companion
+          merges
+  - claim: d-nt7tach6 # an implementer writes only under its package path
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/implement/SKILL.md#3a-running-implementers-in-parallel
+        note: an implementer's diff stays within the path product.yaml names
+  - claim: d-eporg76f # document coverage refs carry section breadcrumbs
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/implement-document/SKILL.md#check
+        note: document refs cite file plus section breadcrumb, whole file only where the claim is the whole
+          file
+      - kind: attestation
+        ref: implementations/increment-process/009-1.yaml
+        note: the document refs above carry their breadcrumbs
+  - claim: d-08yrcfd7 # no in-force citation rests on a retired fact
+    covered_by:
+      - kind: code-test
+        ref: test/validate.test.ts
+  - claim: d-el21jvd0 # the validator enforces id format and uniqueness
+    covered_by:
+      - kind: code-test
+        ref:
+          - test/validate.test.ts
+          - test/ids.test.ts
+  - claim: d-o7br0a9k # the projection lists a draft's open questions
+    covered_by:
+      - kind: code-test
+        ref: test/project.test.ts
+  - claim: d-qoks4n67 # the companion increment opens first and closes unmerged if empty
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-companion-increment
+      - kind: attestation
+        ref:
+          - .claude/skills/implement/SKILL.md#2-open-the-companion-increment
+          - .claude/skills/implement/SKILL.md#4-land
+        note: the companion opens before building anything and closes unmerged if it stayed empty
+  - claim: d-vw0t1z62 # the Check wave audits for shadow claims
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/implement-document/SKILL.md#check
+        note: Check reads both directions; the shadow-claim audit's fix/extract/cut disposition is stated
+          verbatim to the fold
+  - claim: d-bj3se96r # evidence demonstrates the verification procedure
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#proving-a-claim-is-met
+  - claim: d-mtbx4ktw # coverage refs resolve through the package mapping
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#a-product-maps-to-its-packages
+  # ---- decisions, increment 005 ----
+  - claim: d-ebyludv0 # the planning process ships as an agent skill
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/plan/SKILL.md
+        note: the skill stands at the pinned path, name plan, carrying Capture, Clarify, the survey offer,
+          and the Ratify loop
+  - claim: d-52uunxo6 # the plan skill drives one increment to publish
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/plan/SKILL.md#1-capture--open-the-increment
+        note: sections 1-6 sequence the full drive to publish — next number, Clarify, the checklist review,
+          the survey offer, the Ratify loop, and the merge gate
+  # ---- decisions, increment 006 ----
+  - claim: d-t6dutbjw # a statement is one proposition of owner fiat
+    covered_by:
+      - kind: attestation
+        ref: docs/authoring.md#statements
+        note: one-proposition fiat, reversal test, carve-outs move to decisions, both rationale rules
+  - claim: d-pgq1xwf5 # the verification tests
+    covered_by:
+      - kind: attestation
+        ref: docs/authoring.md#verification
+        note: presence condition and the four tests — grounded, performable, tested now, judgement named —
+          scoped to requirements per the fold
+  - claim: d-iufcotad # verification naming is binding
+    covered_by:
+      - kind: attestation
+        ref: docs/authoring.md#verification
+        note: naming is binding, fiat cannot rot, two-way internals diagnostic, contracted surfaces where
+          tooling does not exist yet; rubric row 6 carries it
+  - claim: d-m8217jow # pinning and revisit_when are proposal-time discipline
+    covered_by:
+      - kind: attestation
+        ref: docs/authoring.md#decisions
+        note: pinning proposed with the decision, owner rules on both, pin triggers and when-in-doubt, notes
+          rule, revisit_when rare and deliberate
+  - claim: d-gewznny6 # model entries speak the design's words
+    covered_by:
+      - kind: attestation
+        ref: docs/authoring.md#model-entries
+        note: name is the design's word, description anchors this design, unreferenced bound entity is
+          ballast
+  - claim: d-769urruv # the fact and evidence tests
+    covered_by:
+      - kind: attestation
+        ref: docs/authoring.md#facts-and-evidence
+        note: documented and tested fact tests, search-before-recording, file by subject, wrong facts
+          superseded
+  - claim: d-oh2avr7i # a draft claim cites a foundation or is extracted
+    covered_by:
+      - kind: attestation
+        ref: docs/authoring.md#drafts-and-extraction
+        note: uncited draft claim is a shadow decision, extraction is Clarify's discipline, fold is the only
+          authority, document-deliverable drafts are content not spec
+  # ---- decisions, increment 007 ----
+  - claim: d-bef5ysmj # the authoring document lives at docs/authoring.md
+    covered_by:
+      - kind: attestation
+        ref: docs/authoring.md
+        note: the document exists at the decided path, beside the process reference and the migration record
+  - claim: d-8z7j435b # a decision states the choice and cites its dependencies
+    covered_by:
+      - kind: attestation
+        ref: docs/authoring.md#decisions
+        note: statement names the choice; because carries only dependencies, tested in both directions
+  # ---- decisions, increment 008 ----
+  - claim: d-uz9wis6a # deferred is a status
+    covered_by:
+      - kind: code-test
+        ref:
+          - test/validate.test.ts
+        note: a v2 source with deferred validates clean; a v1 source carrying deferred fails
+          source-validates via the pool schema enum
+      - kind: attestation
+        ref: docs/process-reference.md#deferrals
+        note: the document states the status; decision@2 in the schema pool and the tooling tests carry the
+          enforcement
+      - kind: attestation
+        ref:
+          - schemas/design-process/decision.2.yaml
+          - schemas/design-process/decisions.2.yaml
+        note: the pool carries the widened enum; a source adopts it by naming version "2"
+  - claim: d-3orwwaze # coverage skips deferrals
+    covered_by:
+      - kind: code-test
+        ref:
+          - test/fold.test.ts
+          - test/validate.test.ts
+        note: coverableClaimIds excludes deferred while the entry stays in force; record-covers-deferred
+          fires on a coverage entry naming one; an omitted deferral is not a gap
+      - kind: attestation
+        ref: docs/process-reference.md#proving-a-claim-is-met
+        note: the completeness rule with the deferral exception; the validator test carries enforcement
+      - kind: attestation
+        ref: .claude/skills/implement-document/SKILL.md#claims
+        note: this package's share — deferred decisions get no allocation, and a deferral without an answer
+          is not a gap
+      - kind: attestation
+        ref: implementations/increment-process/009-1.yaml
+        note: this record omits the three deferred decisions in force at 9
+  - claim: d-29fjsjn2 # an implementation detail is one test, applied at two moments
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#every-choice-is-accounted-for
+        note: the one test named, applied at the two moments
+      - kind: attestation
+        ref: .claude/skills/plan/SKILL.md#4-survey--offer-it-and-classify-the-census
+        note: the Clarify moment only — a surveyed choice omitted as an implementation detail, pointing at
+          the one test the reference carries
+      - kind: attestation
+        ref: .claude/skills/implement/SKILL.md#2-open-the-companion-increment
+        note: wrap-up moment only — the implementation-detail test applied in the findings triage, failing
+          choices left in the code
+      - kind: attestation
+        ref: .claude/skills/implement-code/SKILL.md#survey
+        note: the survey and the Code wave's wrap-up are named as one test; the canonical statement is
+          pointed to in the reference
+      - kind: attestation
+        ref: .claude/skills/implement-document/SKILL.md#compose
+        note: the wrap-up moment — extract or drop by the implementation-detail test, pointing to the
+          canonical statement in the reference
+  - claim: d-63f18oml # a deferral is an ordinary decision
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#deferrals
+      - kind: attestation
+        ref: .claude/skills/plan/SKILL.md#2-clarify--work-the-foundation-sources
+        note: "the minting side: a choice that cannot yet be made is recorded as a decision naming what is
+          deferred and to whom, and a question routed to a decision may close by minting one"
+  - claim: d-ub6h6h5u # license by because, overturn by supersedes
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-companion-increment
+        note: licensed / overturn / discovery, in the decision's own words
+      - kind: attestation
+        ref: .claude/skills/implement/SKILL.md#2-open-the-companion-increment
+        note: every companion entry is licensed, an overturn, or a discovery; overturns litigated at the
+          companion's ratify
+  - claim: d-cau8oksc # survey is a third implementer phase
+    covered_by:
+      - kind: attestation
+        ref:
+          - docs/process-reference.md#dispatch-kind-selects-the-wave-shape
+          - docs/process-reference.md#the-process
+        note: the three-phase contract; the skills state the operational slices
+      - kind: attestation
+        ref: .claude/skills/implement/SKILL.md#3-dispatch-one-implementer-per-package
+        note: dispatcher side — every implementer exposes survey / prepare / implement, and the dispatcher
+          never knows a kind's waves
+      - kind: attestation
+        ref: .claude/skills/implement-code/SKILL.md#survey
+        note: the code kind's three-phase partition — survey maps to no wave, read-only, returning the
+          choices the fold neither decides nor defers with the implementer's reading
+      - kind: attestation
+        ref: .claude/skills/implement-document/SKILL.md#phases
+        note: this kind's share — survey read-only against a fold or draft fold, mapping to no wave,
+          returning the choices the build would meet that the fold neither decides nor defers
+  - claim: d-xxxo61q9 # the plan skill offers the survey and recommends
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/plan/SKILL.md#4-survey--offer-it-and-classify-the-census
+        note: report what is captured, recommend from the delta's shape, the owner's word runs it any number
+          of times, gaps route back into Clarify
+  - claim: d-bignbf6h # the survey reads the draft fold whole
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/plan/SKILL.md#4-survey--offer-it-and-classify-the-census
+        note: dispatch scope in the decision's own words — every package the draft fold names; the implement
+          skill states the same scope on the dispatcher side
+      - kind: attestation
+        ref: .claude/skills/implement/SKILL.md#3b-survey-mode
+        note: dispatcher side — the dispatch covers every package the draft fold names, product.yaml's and
+          the increment's proposed
+  # ---- decisions, increment 009 ----
+  - claim: d-4nez3mjh # the projection counts deferrals and excludes them from coverage
+    covered_by:
+      - kind: code-test
+        ref:
+          - test/project.test.ts
+        note: the heading counts deferred beside the rulings; a deferred entry renders with its status line;
+          the coverage list omits deferred and the summary names how many were excluded
+      - kind: attestation
+        note: "run design-process show increment-process at 9: three deferred counted in the heading and
+          named excluded by the coverage summary"
+  - claim: d-blant5zn # the census is per-package YAML under the increment's drafts
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/plan/SKILL.md#4-survey--offer-it-and-classify-the-census
+        note: the persistence clause — an acted-on census lands at drafts/survey-census.yaml in the
+          increment that ran it, one acted on in no way is discarded
+      - kind: attestation
+        ref: .claude/skills/implement/SKILL.md#3b-survey-mode
+        note: dispatcher side — one census per package as structured YAML (choice met, where it arises, the
+          reading), concatenated for Clarify
+  - claim: d-e8h0g9e3 # the overturn count lands in the companion's pull request description
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/implement/SKILL.md#4-land
+        note: step 1 counts overturns by supersedes-names-a-plan-ruled-decision and states the count in the
+          companion's PR description
