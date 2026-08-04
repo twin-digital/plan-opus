@@ -74,8 +74,9 @@ buys all four, and costs only what a branch already provides.
 **Retired:** the checker rule that every requirement binding a design must be cited somewhere
 in its `spec.md`.
 
-**Replaced by:** the coverage manifest, which maps every claim — requirement or decision — to
-evidence that something checks it.
+**Replaced by:** the coverage manifest, which maps every claim in force — requirement or
+decision — to evidence that something checks it. Deferred decisions are the exception: no entry
+covers one directly, and a deferral without an answer is not a gap.
 
 The rule was the only mechanical evidence of compliance the process had, and it was theatre: a
 citation proves a document *mentions* a requirement, nothing more. It also could not survive
@@ -109,9 +110,12 @@ at a pace where retargeting starves implementations.
 The old `design/` tree converts product by product, each conversion its own reviewed change,
 and the two trees coexist until the last design moves: `npm run check` runs the legacy checker
 over `design/` and `design-process check` over `products/`, `schemas/`, `apis/`, and
-`implementations/`, and the legacy checker retires with the last design out. A design never
-exists in both trees: the change that publishes a converted increment deletes the design
-directory it came from.
+`implementations/`, and the legacy checker retires with the last design out.
+
+Converting a design removes it from the legacy tree in the same change: the change that
+publishes a converted increment deletes the `design/<area>/<design>/` directory it came from. So
+no design is readable in both trees at once, there is never a question which copy governs, and
+the legacy checker can retire with the last design out.
 
 ### Designs to products
 
@@ -124,7 +128,7 @@ The old `products.yaml` already names the merges — its slot names are the face
 | `minecraft/dev-server` | `mc-dev-server` | — |
 | `minecraft/server-shim` | own product, or a facet of `mc-test-lib` — owner call | — |
 | `minecraft/village-guard` | `village-guard` | — |
-| `how-to-plan/*` | absorbed by `increment-process`, their documents as its deliverables — owner call | — |
+| `how-to-plan/*` | absorbed by `increment-process`, their documents as its deliverables | — |
 
 ### One design, one increment
 
@@ -137,14 +141,18 @@ That second case does not merge as it converts. Main never holds a `wip-` direct
 conversion of an unsettled design finishes its Plan on the branch and lands into a number
 before the change merges — the conversion carries the design through to settled, or it waits.
 
+A product absorbing more than one unsettled design — `increment-process`, taking `how-to-plan`'s,
+is one — stacks them: each draft increment sits on a branch off the one it depends on, and the
+ordinals give that order.
+
 ### Entries
 
 - **Ids**: the old slug becomes `title`; an opaque id is generated. Old falsifier conditions
   carry over as `revisit_when` where the owner keeps them.
-- **Statuses**: `accepted` carries. Old `tolerated` defaults to `delegated` — its old
-  definition, "cleared to proceed but not endorsed, so a later author may rework it freely," is
-  the new `delegated`; the owner promotes individual entries to the new `tolerated` where they
-  remember actually ruling. `proposed` stays proposed, and appears only in draft increments.
+- **Statuses**: `accepted` carries. Old `tolerated` defaults to `delegated`, the ruling that
+  claims least about what the owner reviewed; the owner promotes individual entries to the new
+  `tolerated` where they remember actually ruling. `proposed` stays proposed, and appears only in
+  draft increments.
 - **Rejected decisions are not migrated.** They were never in force; git history keeps the
   record.
 - **Requirements gain `verification` at conversion, where their statements are not
@@ -164,10 +172,17 @@ reimplementation must preserve it) that exist only in spec prose become decision
 converted increment. How deep to harvest is chosen per product; for designs already built, the
 spec's build-guiding job is done and the cheap default is a shallow pass.
 
-**Where the spec is the product** — `doc-structure`, `authoring` — the document is the
-deliverable, not a description of one. The product records a `document`-kind package whose
-`path` is the document's permanent home, and the file moves there as built output. Nothing is
-discarded; later increments revise it through implementation waves like any other deliverable.
+**Where the spec is the product** — `doc-structure`, `authoring` — the deliverable is a document,
+not a description of one. The absorbing product records a `document`-kind package whose `path` is
+the document's permanent home under `docs/`, and an implementation composes the document there
+against the fold. The old `spec.md` is that composition's raw material: it froze under the process
+being retired, so what the fold now settles differently is written to the fold's state. Later
+increments revise the document through implementation waves like any other deliverable.
+
+The homes here are already fixed. `increment-process` ships two reference documents —
+`docs/process-reference.md` and this file — and the authoring successor at `docs/authoring.md`.
+Instruction to agents is not among them: it ships as agent-skill packages and this repository's
+`CLAUDE.md`.
 
 ### Sweeps
 
