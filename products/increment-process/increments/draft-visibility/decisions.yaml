@@ -1,30 +1,23 @@
 version: "2"
 decisions:
   - id: d-x0q4xgd8
-    title: a draft directory is wip-NNN-<slug>
+    title: a draft increment directory is wip-NNN-<slug>
     statement: |
-      an unnumbered draft is products/<product>/increments/wip-<NNN>-<slug>/ on its own
-      pull-request branch — a three-digit ordinal, then a slug naming what the draft is about.
-      landing renames the directory into the next published number on that branch before the
-      merge, and main never holds a wip directory.
+      an unnumbered draft increment is products/<product>/increments/wip-<NNN>-<slug>/ on its
+      own pull-request branch — a three-digit ordinal, then a slug naming what the draft
+      increment is about. landing renames the directory into the next published number on that
+      branch before the merge, and main never holds a wip directory.
 
-      the ordinal orders the drafts a tree holds, and nothing else: it is not a claim on a
-      published number, and two drafts on unrelated branches may carry the same one because
-      they never share a tree. a tree holds more than one draft only when one is stacked on
-      another, and then the ordinal is their relative order — a stack lands in it,
-      wip-001 before wip-002.
+      the ordinal orders the draft increments a tree holds, and nothing else: it is not a claim
+      on a published number, and two on unrelated branches may carry the same one. a tree holds
+      more than one only when one is stacked on another, and then the ordinal is their relative
+      order — a stack lands in it, wip-001 before wip-002.
 
-      the ordinals are not dense and no gate checks them. when an ancestor lands, the
-      dependent's remaining draft keeps its ordinal rather than renumbering; gaps are ordinary.
+      the ordinals are not dense and no gate checks them. when an ancestor lands, the dependent
+      keeps its ordinal rather than renumbering; gaps are ordinary.
 
-      the slug carries what the ordinal cannot: a reader seeing two wip directories in a diff
-      should be able to tell them apart without opening them.
-
-      a tree holding two drafts that are not ancestor and dependent is not supported. two
-      drafts branched separately from the same ancestor are fine — each has its own tree and
-      they never meet — but deliberately merging two independent drafts into one tree has no
-      defined order and none is provided.
-    status: proposed
+      a tree holding two draft increments that are not ancestor and dependent is not supported.
+    status: accepted
     supersedes: d-f7knzaf9
     pinned:
       reason: data-format
@@ -42,21 +35,19 @@ decisions:
       - tooling
 
   - id: d-1qn5jzgd
-    title: the gate reads a draft as an in-flight increment
+    title: the merge gate reads a draft increment as it is worked
     statement: |
-      a wip directory under a product's increments/ is read as an in-flight increment: its
-      sources validate against their schemas, its citations resolve, and its proposed decisions
-      and open questions are reported — every rule the gate applies to a numbered increment,
-      applied to it too.
+      a wip directory under a product's increments/ is read as a draft increment in flight:
+      its sources validate against their schemas, its citations resolve, and its proposed
+      decisions and open questions are reported — every rule the merge gate applies to a
+      published increment, applied to it too.
 
       the increment-dir-name finding is what keeps it out of main, and it is unchanged: the
       landing rename clears it, and nothing else does. the check stays the merge gate it is.
-      what changes is that a draft is checked while it can still be fixed, rather than the
-      author discovering a schema violation at the rename.
 
       the density gate reads published numbers only. a wip ordinal is not one, so a draft
-      neither fills a gap nor makes one.
-    status: proposed
+      increment neither fills a gap nor makes one.
+    status: accepted
     supersedes: d-yu9hbn3h
     because:
       - r-4z3yd1ri
@@ -69,17 +60,16 @@ decisions:
       - design-validator
 
   - id: d-x1mhu3a3
-    title: drafts fold after the published increments, in ordinal order
+    title: draft increments fold after the published ones, in ordinal order
     statement: |
-      the projection folds a tree's drafts after every published increment, ordered by their
-      wip ordinals — the order their landings would claim. each draft's foundations appear in
-      the fold, its supersessions close what they name, and the coverage summary counts its
-      claims.
+      the projection folds a tree's draft increments after every published increment, ordered
+      by their wip ordinals — the order their landings would claim. each one's foundations
+      appear in the fold, its supersessions close what they name, and the coverage summary
+      counts its claims.
 
-      the fold stays a function of the tree alone: the ordinal that orders a stack is in the
-      directory name, so no git history is read to compute a projection. a draft's increment
-      shows as its directory name, since it holds no published number until it lands.
-    status: proposed
+      a draft increment shows as its directory name, since it holds no published number until
+      it lands.
+    status: accepted
     because:
       - r-4z3yd1ri
       - d-x0q4xgd8

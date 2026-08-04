@@ -1,15 +1,15 @@
 version: "1"
 requirements:
   - id: r-4z3yd1ri
-    title: a draft is checked as it is worked
+    title: a draft increment is checked as it is worked
     statement: |
-      the gate reads a draft while it is being worked: its sources validate against their
-      schemas, its proposed decisions and open questions are reported, and its foundations
-      project — so an author sees what is wrong before landing, not after.
+      the merge gate reads a draft increment while it is being worked: its sources validate
+      against their schemas, its proposed decisions and open questions are reported, and its
+      foundations project — so an author sees what is wrong before landing, not after.
     verification:
-      - do: put a schema violation into an in-flight draft's requirements source
-      - verify: the gate reports it while the draft is still in flight
-      - do: ask for the product's projection while the draft is in flight
+      - do: put a schema violation into an in-flight draft increment's requirements source
+      - verify: the merge gate reports it while the draft increment is still in flight
+      - do: ask for the product's projection while the draft increment is in flight
       - verify: the draft's own requirements and decisions appear in it
     facets:
       - tooling
