@@ -1,5 +1,193 @@
 version: "2"
 decisions:
+  - id: d-dyfgmg2u
+    title: the backlog command surface
+    statement: |
+      the backlog is worked through `design-process backlog <op>`, a subcommand group of the
+      one design-process CLI. every operation takes `--root <dir>` (default `.`),
+      `--remote <name>` (default `origin`), and `--offline` to skip the fetch that refreshes
+      the local view; every mutating operation takes `--no-push` to commit without pushing.
+
+        design-process backlog add <product> [--title <text>] [--tag <tag>]... [--file <path>]
+        design-process backlog list [--product <id>] [--tag <tag>]... [--json]
+        design-process backlog search <query> [--product <id>] [--tag <tag>]... [--json]
+        design-process backlog show <id>
+        design-process backlog update <id> [--title <text>] [--tag <tag>]... [--add-tag <tag>]...
+                                           [--remove-tag <tag>]... [--file <path>] [--product <id>]
+        design-process backlog delete <id>...
+        design-process backlog send <increment-dir> [--item <id>]... [--product <id>] [--tag <tag>]...
+
+      `add` takes the body from stdin, or from `--file <path>` (`-` for stdin); `--title` heads
+      an untitled body with `# <title>`, and a body that already leads with a heading supplies
+      the title itself — giving both is an error, giving neither is an error. `add` prints the
+      new id and nothing else, so `ID=$(design-process backlog add ...)` is the capture idiom.
+      the id is minted by the tooling as `b-` plus eight random lowercase base36 characters,
+      unique against the ids already on the branch; `design-process id` still takes only
+      r, d, and q — a backlog id is never asked for separately.
+
+      `list` and `search` print one item per line as four space-separated, padded columns —
+      id, product, title, comma-joined tags — with the product column always present and
+      never suppressed, and a title of `(untitled)` where the item carries no heading. items
+      sort by product, then id. `--tag` repeats and requires every tag named; `--product`
+      narrows to one product. `search` matches case-insensitive substrings over an item's id,
+      title, and body. `--json` emits an array of `{id, product, title, tags}`. an empty
+      result writes a note to stderr and nothing to stdout, so the machine-readable stream
+      stays clean.
+
+      `update`'s `--tag` replaces the tag set outright; `--add-tag` and `--remove-tag` adjust
+      it; `--product` moves the item to another product keeping its id. `delete` takes one or
+      more ids in a single commit.
+
+      `send` copies each selected item's content into the increment directory named and
+      deletes the item from the branch in the same action, printing `<id>\t<path>` per item.
+      `<increment-dir>` is a repo-relative `products/<product>/increments/<name>` — a
+      slug-named draft directory as readily as a numbered one. at least one of `--item`
+      (repeatable), `--product`, `--tag` is required; a bare `send` is an error rather than a
+      drain of everything.
+
+      commits on the branch are subject-lined `backlog: <op> <id> — <title>`, and
+      `backlog: <op> <n> items` with the ids in the body when an operation touches several.
+    status: delegated
+    pinned:
+      reason: public-api
+      notes: the shipped skills and documents write these command lines, and agents script
+        against add's single-token stdout
+    because:
+      - d-dxlllx6y
+      - r-9qhjtznd
+      - r-oabwygl2
+      - d-ubltnjpp
+      - d-kfy1sexh
+      - d-wpih0mc1
+    facets: tooling
+
+  - id: d-z2n96v40
+    title: the resolver and diff surfaces
+    statement: |
+      two commands, both taking `--root <dir>` (default `.`).
+
+        design-process where <product> [--at <version>] [--next]
+        design-process diff <product> --from <version> [--to <version>] [--json]
+
+      `where` prints the product's latest published increment at `--at`, zero-padded to three
+      digits, and nothing else — one token, for shell substitution. `--at` defaults to the
+      working tree. `--next` prints the number a landing would claim instead: the latest plus
+      one, or `001` for a product with no increments there. without `--next`, a product that
+      has published nothing at that version writes a message to stderr and exits 1.
+
+      `diff` reports the delta between two fold versions in four categories: `added` (a
+      foundation in force at the later version and not the earlier), `amended` (a requirement
+      replaced by a later requirement's `amends:`), `superseded` (a decision replaced by a
+      later decision's `supersedes:`), and `retired` (an entry closed by a `retires:` entry,
+      carrying its recorded reason). `--to` defaults to the working tree, so `--from 010`
+      alone answers what this branch has changed since 010. the default rendering is markdown
+      in the projection's idiom — an `# <product>: <from> → <to>` heading, then an
+      `## <category> (<n>)` section per non-empty category, each entry
+      `- <id> (<increment>) [<kind>] — <title>` for added and `- <id> (<increment>) by <id>`
+      for a closure; `(no change)` when nothing moved. `--json` emits the same delta
+      structurally. a `--to` that precedes `--from` is an error, not a reverse diff.
+
+      both commands read `<version>` as d-0lkxin7b fixes it, as does `show --at`, which
+      widens from a bare increment number to accept a git ref.
+    status: delegated
+    pinned:
+      reason: public-api
+      notes: skills and documents pass versions and parse where's single-token output
+    because:
+      - d-twb4uga9
+      - r-tne4cdos
+      - r-v6mknsh7
+      - d-0lkxin7b
+    facets: tooling
+
+  - id: d-imz61dd5
+    title: the CLI carries the subcommands the fold requires
+    statement: |
+      the validator, the projection, and the id generator ship as one opus workspace package —
+      @twin-digital/design-process at nodejs/plan/design-process, kind npm-cli — exposing one
+      design-process CLI whose subcommands are check, show, id, where, diff, conflicts, and
+      the backlog group; structure below that surface stays implementation. the enumeration
+      grows as the fold requires tooling, and naming a subcommand here is not what makes it
+      public: the surface decision that introduces one does that.
+    status: delegated
+    supersedes: d-uwnjk7rn
+    because:
+      - d-cfe28w5z
+      - r-9qhjtznd
+      - r-tne4cdos
+      - r-v6mknsh7
+      - r-0701ctqx
+    facets: tooling
+
+  - id: d-kmagri5u
+    title: the landing conflict check is its own command, over mechanical overlaps only
+    statement: |
+      `design-process conflicts <product> [--root <dir>] [--against <version>]` runs the
+      landing check. `--against` names the head to check against, defaulting to `origin/main`
+      then `main`. it covers every increment directory in the working tree that is
+      slug-named or numbered above the head — what this branch would add to the sequence —
+      and reads slug-named directories, which `check` refuses by design.
+
+      two overlaps are findings: a foundation id the draft declares that the head already
+      declares (`landing-duplicate-id`), and an `amends:`, `supersedes:`, or `retires:` aimed
+      at an entry not in force at the head (`landing-already-closed`). semantic overlap — two
+      drafts ruling the same choice under different ids — is not machine-checkable and stays
+      the owner's scan of open drafts, as d-u3744xlr rules.
+
+      findings print in `check`'s shape — `✖ [<rule>] <path>: <message> (<claims>)` — and the
+      command exits 1 when any exist, so landing can gate on it. the check ships as a
+      separate command and not as a validator rule, keeping d-yu9hbn3h intact.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: the plan skill's landing step runs it and reads its exit code
+    because:
+      - r-0701ctqx
+      - d-u3744xlr
+      - d-yu9hbn3h
+      - d-oel258yc
+    facets: tooling
+
+  - id: d-hg0f9shd
+    title: a sent item lands in the increment's drafts
+    statement: |
+      send-to-capture writes an item's content to
+      `products/<product>/increments/<name>/drafts/backlog/<id>.md`. the increment's `drafts/`
+      folder is where the process already keeps raw material that is never normative, which is
+      what d-wpih0mc1 calls the braindump; the `backlog/` subdirectory keeps adopted items
+      identifiable as such. the file is the item's stored form verbatim, frontmatter included,
+      so the tags travel with it. the adopting agent then writes foundations at the ordinary
+      bar and the draft freezes with the increment at publish.
+    status: proposed
+    pinned:
+      reason: data-format
+      notes: a path written to disk that the plan skill and the process reference both name
+    because:
+      - d-wpih0mc1
+      - r-9qhjtznd
+      - d-kn05wb30
+    facets: tooling
+
+  - id: d-5pzfayi8
+    title: the backlog is written with git plumbing, never a checkout
+    statement: |
+      every backlog write builds its commit with `hash-object`, a temporary index,
+      `write-tree`, `commit-tree`, and `update-ref`, and pushes the branch by refspec. the
+      working tree and the checked-out branch are never touched, so an agent captures an item
+      mid-task with a dirty tree and nothing is interrupted — which is what r-pvcrlqg5's one
+      action, task uninterrupted costs in practice. the first write creates `backlog` as a
+      parentless commit, so the branch shares no history with main.
+
+      the branch tip is the remote's where a remote exists; a best-effort fetch refreshes the
+      local mirror before every operation, and `--offline` skips it, in which case a read may
+      be stale. a repository with no such remote skips the push silently rather than failing.
+    status: delegated
+    because:
+      - d-kfy1sexh
+      - r-pvcrlqg5
+      - d-dxlllx6y
+    facets: tooling
+
   - id: d-81dz2qz2
     title: landing replaces the number collision
     statement: |

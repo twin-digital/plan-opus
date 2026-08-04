@@ -1,0 +1,21 @@
+version: "1"
+questions:
+  - id: q-ao4fvfl4
+    question: |
+      Should the design-process package narrow its "./*" subpath wildcard to a single "."
+      entry point, at a major version?
+
+      package.json exports "./*", so every module under src/ — including the five this
+      increment adds — is public surface a consumer could import and a reimplementation must
+      preserve. d-uwnjk7rn ruled that the CLI is the surface and structure below it stays
+      implementation; the wildcard does not deliver that, and d-fiul12e8 makes a narrow export
+      map the working default, so the package stands as an unrecorded departure from it.
+
+      Narrowing is a breaking change to a published 0.2.0, so it is out of scope here. What
+      makes it cheap right now is that it has no consumers: plan-opus depends on the package
+      but uses only the design-process binary through npm run check, and nothing in either
+      repository imports a module from it. The change is one line — replace "./*" with a "."
+      entry point re-exporting the named types a consumer would want — with zero migration
+      cost today, and the cost only grows.
+    answer: decision
+    facets: tooling
