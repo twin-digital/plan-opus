@@ -186,6 +186,26 @@ decisions:
       - d-u3744xlr
     facets: tooling
 
+  - id: d-ro5uce2s
+    title: a coverage ref names an artifact whose deletion would change whether the claim holds
+    statement: |
+      a coverage entry's ref names what actually carries the claim: if deleting the file, or the
+      section the breadcrumb narrows to, would not touch whether the claim holds, it does not
+      belong in the entry.
+
+      the test is what keeps a record's refs from drifting into citations of where a claim is
+      merely discussed. d-bj3se96r governs what the evidence must demonstrate; this governs what
+      the ref may point at.
+    status: delegated
+    because:
+      - d-0g9l44e4
+      - d-bj3se96r
+      - d-mtbx4ktw
+      - d-eporg76f
+    facets:
+      - schema
+      - prompts
+
   - id: d-o6v57l9y
     title: a prepare phase returns the allocation problems it can see
     statement: |
