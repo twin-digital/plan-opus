@@ -1,0 +1,169 @@
+version: "2"
+decisions:
+  - id: d-29fjsjn2
+    title: an implementation detail is one test, applied at two moments
+    statement: |
+      whether a choice is an implementation detail — no consumer could observe it, and no
+      reimplementation must preserve it — is one test: the Clarify agent omitting a
+      surveyed choice and the implementer declining to record one at wrap-up apply it
+      identically.
+    status: tolerated
+    because:
+      - r-v4z0h7dn
+      - d-rx3s2hqo
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-63f18oml
+    title: a deferral is an ordinary decision
+    statement: |
+      during a Plan phase, a choice that cannot yet be made is recorded as a decision like
+      any other: its statement names what is deferred and to whom, the owner ratifies it,
+      and it stands in force as the license its answer cites. a question routed to a
+      decision may close by minting a deferral. a deferral is not superseded by its
+      answer.
+    status: tolerated
+    because:
+      - r-v4z0h7dn
+      - r-d181l3s2
+    facets:
+      - process-doc
+      - schema
+
+  - id: d-uz9wis6a
+    title: deferred is a status
+    statement: |
+      deferred joins the status values, and a deferral enters as deferred directly — the
+      merge ratifies it, like a requirement. decision@2 carries the widened enum, and a
+      decisions source adopts it by naming version "2".
+    status: accepted
+    pinned:
+      reason: data-format
+    because:
+      - d-63f18oml
+      - d-i47qv6oa
+    facets:
+      - schema
+      - tooling
+
+  - id: d-3orwwaze
+    title: coverage skips deferrals
+    statement: |
+      once an implementation targets an increment, its record carries a coverage entry for
+      every requirement and decision in force there, adopted preset requirements included —
+      except deferred decisions: no entry may cover one directly, and a deferral without an
+      answer is not a gap. ratified-and-unbuilt describes increments no implementation has
+      targeted, never a hole inside a record.
+    status: accepted
+    supersedes: d-rr1qmw72
+    because:
+      - r-tue7kfgt
+      - d-0nl6sd96
+      - d-63f18oml
+      - d-uz9wis6a
+    facets:
+      - design-validator
+      - schema
+
+  - id: d-ub6h6h5u
+    title: license by because, overturn by supersedes
+    statement: |
+      a companion increment entry is one of three: licensed — its because cites the
+      deferral it answers; an overturn — it supersedes a plan-ruled decision, legal when
+      unpinned and counted at the companion's ratify; or a discovery — neither. licensed
+      entries and discoveries pass; overturns are litigated.
+    status: tolerated
+    because:
+      - d-63f18oml
+      - d-eaw3u72o
+      - d-ig8vxolb
+      - d-98df3rlb
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-cau8oksc
+    title: survey is a third implementer phase
+    statement: |
+      each kind-specific implementer partitions its waves into three phases the dispatcher
+      can call: survey — read-only against a fold or draft fold, returning the choices the
+      package's build would meet that the fold neither decides nor defers, with the
+      implementer's reading of each, for Clarify to classify; prepare — standing up what
+      sibling packages compile or check against, a package's public surface or its share
+      of a cross-package allocation; and implement — running prepare where it has not run,
+      then completing the package. a kind with nothing to stand up treats prepare as a
+      no-op; the dispatcher never knows a kind's waves.
+    status: tolerated
+    pinned:
+      reason: public-api
+      notes: the contract between the dispatcher and every implementer, present and future
+    supersedes: d-sbcncyu2
+    because:
+      - r-v4z0h7dn
+      - d-29fjsjn2
+      - d-qb67fb8s
+      - d-ng02vmcd
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-xxxo61q9
+    title: the plan skill offers the survey and recommends
+    statement: |
+      before ratify, the plan skill reports what the increment has captured and asks the
+      owner whether to dispatch the survey, and recommends from the delta's shape: for,
+      when packages, contracts, or consumer surfaces change; against, when norm-only. the
+      owner's word runs it, any number of times across the loop; the census's gaps route
+      back into Clarify.
+    status: tolerated
+    because:
+      - r-v4z0h7dn
+      - d-52uunxo6
+      - d-cau8oksc
+    facets: prompts
+
+  - id: d-bignbf6h
+    title: the survey reads the draft fold whole
+    statement: |
+      a survey dispatch covers every package the draft fold names: those product.yaml holds
+      and those the increment's decisions propose.
+    status: tolerated
+    because:
+      - r-v4z0h7dn
+      - d-q8ur5u3f
+      - d-cau8oksc
+    facets: prompts
+
+  - id: d-o1atez5i
+    title: rendering deferred entries is the implementer's
+    statement: |
+      how the projection renders deferred entries — the status counts and the coverage
+      join — is deferred to the implementer.
+    status: deferred
+    because:
+      - d-uz9wis6a
+      - d-3orwwaze
+    facets: tooling
+
+  - id: d-uupj1stg
+    title: the census's shape and home are the implementer's
+    statement: |
+      the survey census's return shape, and where a census the increment acted on persists,
+      are deferred to the implementer; d-cau8oksc fixes the content.
+    status: deferred
+    because:
+      - d-cau8oksc
+    facets: prompts
+
+  - id: d-o2jjvrk5
+    title: the overturn count's home is the implementer's
+    statement: |
+      where the overturn count is produced — orchestrator prose at the companion's pull
+      request, the projection, or the validator — is deferred to the implementer.
+    status: deferred
+    because:
+      - d-ub6h6h5u
+    facets:
+      - prompts
+      - tooling

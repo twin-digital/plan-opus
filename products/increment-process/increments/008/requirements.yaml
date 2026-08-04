@@ -1,0 +1,25 @@
+version: "1"
+requirements:
+  - id: r-v4z0h7dn
+    title: every choice is decided, deferred, or an implementation detail
+    statement: |
+      when an increment is planned, every choice an implementer would meet must be decided
+      by a foundation, explicitly deferred, or found to be an implementation detail —
+      something no consumer could observe and no reimplementation must preserve. a choice
+      that is none of the three is a gap.
+    verification:
+      - do: dispatch the implementers in survey mode against the increment's draft fold
+      - verify: every returned choice is classified — decided, deferred, or omitted as an implementation detail — before the increment publishes
+      - do: read the companion increment of the implementation that later builds the delta
+      - verify: each entry answers a recorded deferral, supersedes an unpinned plan-ruled decision, or reports a discovery, and the owner judges at its ratify whether any unaccounted choice slipped through
+    facets:
+      - process-doc
+      - prompts
+
+model:
+  - name: decision
+    schema: /design-process/decision@2
+    description: one recorded choice; its status now carries the deferred ruling
+  - name: decisions-source
+    schema: /design-process/decisions@2
+    description: the per-increment decisions file at the version whose entries can be ruled deferred
