@@ -1,0 +1,48 @@
+version: "1"
+
+requirements:
+  - id: r-rlh87pau
+    title: pack record details
+    statement: |
+      for every pack discovered, the kit provides the following details:
+
+        - its identity, the `header` uuid
+        - its version
+        - its owning package
+        - its kind (behavior pack or resource pack)
+        - its source location
+        - its build output location (even if that location is not present because the pack is unbuilt),
+        - its built script location, where a behavior pack's bundled script module belongs (even if
+          that location is not present because the pack is unbuilt, and reported as absent for a
+          resource pack, which has no script)
+        - the full content of its manifest in object form (including content auto-populated as
+          described by `r-11l92k9x`)
+
+      Every detail above is available for any discovered pack except its identity and its manifest
+      content, which a pack whose manifest could not be parsed, or which declares no `header.uuid`,
+      does not have — and its version, which a pack whose owning package declares none does not have.
+      A package declaring no version is itself a problem, so the pack is reported invalid either way.
+    verification:
+      - do: discover a workspace holding a valid, unbuilt behavior pack and a valid resource pack
+      - verify: the behavior pack's entry carries identity, version, owning package, kind, source location, output location, built script location, and the completed manifest
+      - verify: the resource pack's entry reports its built script location as absent
+      - do: discover a pack whose manifest cannot be parsed
+      - verify: its entry is invalid, lacks only the manifest-derived details, and still carries the rest
+    facets: discovery
+    amends: r-x40c0qx5
+
+  - id: r-5qo6fzs4
+    title: built script defaults to scripts/main.js
+    statement: |
+      a behavior pack's built script is found at `scripts/main.js` within that pack's build output
+      location. The kit computes it rather than reading it from the manifest, and does not probe for
+      script sources: the location is where a built script belongs, not a claim that one is there.
+    rationale: |
+      A consumer that builds the script and a consumer that deploys it must agree on the path without
+      negotiating it, and the kit is the one place both already read.
+    verification:
+      - do: discover an unbuilt behavior pack, and one holding no script sources at all
+      - verify: each entry reports its built script location at `scripts/main.js` within its build output location, the source-less pack included
+      - do: discover a behavior pack whose source manifest's script module names a different `entry`
+      - verify: the reported location is still `scripts/main.js` within the build output location — computed from the kind, not read from the manifest
+    facets: discovery
