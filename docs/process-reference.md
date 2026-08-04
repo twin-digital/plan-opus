@@ -1,5 +1,5 @@
 ---
-version: "9"
+version: "12"
 ---
 
 # The incremental design process
@@ -60,7 +60,9 @@ they are rich enough to comprehend a product from, read as a set.
 Increment artifacts live at `products/<product>/increments/<NNN>/` — `requirements.yaml`,
 `decisions.yaml`, a `drafts/` folder, and the sources later process increments define, with
 `.yaml` and `.yml` both accepted wherever a source is named. The increment is its directory,
-with no manifest file of its own. The product is declared by the presence of
+with no manifest file of its own. While an increment is an in-flight draft it holds no number,
+and its directory is slug-named on its own branch (see *Drafts run in parallel*); `<NNN>` is
+what main holds. The product is declared by the presence of
 `products/<product>/product.yaml`, whose directory name is the product id.
 
 Lifecycle is uniform: **an increment declares changes, and state is the fold** — and nothing
@@ -69,8 +71,12 @@ is ever edited once its increment publishes.
 ## The process
 
 ```
+Backlog:
+  future work captured outside any increment, adopted by whichever increment plans it
+
 Plan:
   Capture → Clarify → Ratify    (loops until the owner declares it settled enough)
+  Several drafts of one product run this at once; a draft claims its number at landing.
 
 Implement:
   prepare → implement, one implementer per package — prepare stands up what siblings
@@ -84,6 +90,60 @@ Implement:
 Capture is the step where the owner and agents create the increment and populate its initial
 requirements, directly into its requirements source. An increment's scope is nothing more than
 the changes its sources declare.
+
+Opening an increment never requires targeting the product's next head number: a new increment
+opens as a parallel draft at any time (see *Drafts run in parallel*). Capture's material comes
+from the owner and agents directly, and from the backlog — and a capture flow, the backlog's
+send among them, targets a newly opened draft as readily as one already in flight.
+
+### The backlog
+
+An idea for future work — planned at no particular time — is captured the moment it arises and
+held durably, without opening an increment. The owner reviews what is held, and a later
+increment adopts an item when its work is planned.
+
+Capturing an item is a single ceremony-free action: one commit, no pull request, no increment,
+and no review gate at capture. The owner and agents alike write to the channel. An item's
+content is reviewed when an increment adopts it, never when it is captured.
+
+Every item belongs to exactly one product, and that association is visible wherever items are
+listed or searched.
+
+**An item is a braindump.** Capture accepts near free-form markdown — whatever the capturer
+has, from one line to several paragraphs. Any structure the channel imposes stays light, and
+foundation-bar prose is never required at capture; the ordinary bar is applied when an
+increment adopts the item.
+
+The backlog lives on a branch named `backlog`, created orphan, with no shared history with main
+and holding only backlog files. Capture pushes commits straight to it, which the rulesets
+permit, and the branch is never merged anywhere: its history is the only residue of items that
+have left. An item is `<product>/<id>.md` on that branch — the directory names the product, the
+filename is the tooling-generated id (`b-` and eight lowercase base36 characters), the first
+heading is the title, and the body is free prose. Optional YAML frontmatter carries tags for
+filtering and nothing else; there is no other structured data.
+
+The owner and agents work the backlog through the tooling rather than by hand against the
+store — `design-process backlog add|list|search|show|update|delete|send`. `add <product>` takes
+the item body on stdin and prints only the new id, so `ID=$(design-process backlog add ...)` is
+the capture idiom. Writes go to the branch through git plumbing: a backlog write never touches
+the working tree or the checked-out branch, so an agent captures mid-task against a dirty tree
+and nothing it was doing is interrupted.
+
+### Adopting a backlog item
+
+A later increment adopts an item by writing the foundations it plans into its own sources at
+the ordinary bar. The send operation is what moves the raw material into reach:
+
+```
+design-process backlog send <increment-dir> [--item <id>]... [--product <id>] [--tag <tag>]...
+```
+
+`<increment-dir>` is a repo-relative `products/<product>/increments/<name>` — a slug-named
+draft as readily as a numbered increment. Send takes one item, all of a product's, or those
+matching a tag filter. Each sent item lands at
+`products/<product>/increments/<name>/drafts/backlog/<id>.md` and is deleted from the backlog
+branch in the same action: it arrives as raw material in `drafts/`, not in the increment's
+foundation sources. The increment's sources are the record, and the backlog keeps none.
 
 ### Clarify
 
@@ -189,17 +249,60 @@ product-wide, how much the owner engaged and judged versus passed over — the p
 each decision and counts the abstentions. The count of delegated decisions is the honest
 measure of how much of a product was reviewed.
 
+### Drafts run in parallel
+
+Several increments of one product run Clarify at once, none committed to a sequence number
+while drafting. The landing order is chosen when planning is done, and a draft claims its
+number only as it lands.
+
+An unnumbered draft is `products/<product>/increments/<slug>/` on its own pull-request branch,
+which agents name `plan/<product>/<slug>` — no check requires that name; it is the default
+agents reach for rather than deliberate over. Landing renames the directory into the next
+number on that branch before the merge, so main never holds a slug-named increment.
+
+No validator change comes with parallel drafting. A slug-named directory fails the name
+finding while the draft is worked — beside its proposed-decision and open-question findings —
+and the landing rename clears it. The check stays the merge gate it is.
+
+### Dependencies between drafts
+
+A draft depends on another when it builds on it: branching from it and citing, amending, or
+retiring its foundations. Nothing is declared — the dependency is git ancestry. A dependent
+draft's tree carries its ancestor's content, and its landing diff shrinks to its own changes
+once the ancestor merges. A dependent draft lands only after the draft it builds on;
+independent drafts land in any order. A tree that skips or repeats a number is refused by the
+density gate.
+
+### Landing claims the number
+
+No two in-flight drafts rule the same choice or duplicate one another's rulings — building on
+another draft's foundations is a dependency, not a conflict. Landing into the sequence checks
+for overlapping or conflicting rulings against the fold at head before the merge claims the
+slot, and the later of two overlapping drafts recomputes when the head moves.
+
+The check is its own command:
+
+```
+design-process conflicts <product> [--against <version>]
+```
+
+It exits 1 on findings, and it applies two mechanical rules only: an id the head already
+declares, and an `amends`/`supersedes`/`retires` aimed at an entry already closed at head. No
+gate reads in-flight drafts against each other; semantic overlap between open drafts is the
+owner's scan, and that is what covers the window.
+
 ### Publish is the merge
 
 An increment is draft or published, and the boundary is main — draft is a location, not a
 stored field. A draft lives on its increment's branch, freely editable the whole time: proposed
-decisions and questions may be removed outright, the number is provisional, and nothing
-downstream builds on it. Merging to main is the publish act, and the gate runs there:
+decisions and questions may be removed outright, and it holds no number. Another draft may
+build on it by branching from it (see *Dependencies between drafts*); nothing on main does.
+Merging to main is the publish act, and the gate runs there:
 
 - no decision still `proposed`
 - no open question still carried
-- the number is the next in the product's sequence — a concurrent increment's collision
-  surfaces here, and the loser renames and recomputes against the fold that moved
+- the number is the next in the product's sequence — the landing rename claims it, and the
+  conflict check runs against the fold at head first (see *Landing claims the number*)
 
 The gate is a required pull-request check: the design validator runs on every pull request,
 applies every rule in force at that point, and any failure blocks the merge — the gate is not
@@ -278,8 +381,11 @@ force makes the record lie, and the record is what the owner reads. Overturns la
 superseding entries in the implementation's companion increment (see *The companion
 increment*).
 
-**Concurrent increments collide on the number, and that is the whole provision.** The process adds nothing further for this case: the loser renames to the next slot and
-recomputes against the fold that moved.
+**Concurrent increments cannot collide on the number.** A draft holds no number while it is in
+flight, so two drafts never claim one and nothing collides at the merge. The number is claimed
+serially, by the landing rename. What landing checks is overlapping or duplicated rulings
+against the fold at head, and the later of two overlapping drafts recomputes against the head
+that moved (see *Landing claims the number*).
 
 ### Statements, and how they are verified
 
@@ -370,9 +476,9 @@ bug. The id is the citation form; `title` carries the human label and may churn 
 Nothing reads structure out of an id. Question ids are
 unique within the increment that raised them — the only scope in which a question exists.
 
-Increments stay plain numbers — readable, and the merge collision on the number is the
-concurrency detection. Products and presets are named by their directory, and adoption uses
-that name.
+Increments stay plain numbers once published, claimed serially by the landing rename; an
+in-flight draft is identified by its slug instead. Products and presets are named by their
+directory, and adoption uses that name.
 
 ### Requirement presets
 
@@ -434,6 +540,20 @@ requirements, decisions, and bound contracts of `<product>@N`. Publication made 
 immutable, so the view is derivable on demand and identical forever: nothing is archived,
 nothing is separately published, the increment number is the version, and the declared delta is
 the changelog.
+
+**A fold version is an increment number or a git ref.** Wherever the tooling takes one, a
+three-digit argument names an increment number and anything else names a git ref; a ref
+resolves to the product's latest published increment at that ref. The resolver answers where a
+product stands, and the diff reports what changed between two folds — the foundations added,
+amended, superseded, and retired:
+
+```
+design-process where <product> [--at <version>] [--next]
+design-process diff <product> --from <version> [--to <version>] [--json]
+```
+
+`where` prints the increment number zero-padded to three digits and nothing else, so it drops
+straight into a path.
 
 ### Facts record what research found
 
@@ -712,7 +832,8 @@ abort-and-retarget applying.
 
 ## The tooling, and the documents
 
-The process tooling — the validator, the projection, the id generator — ships as packages in
+The process tooling — the validator, the projection, the id generator, the backlog operations,
+the fold resolver and diff, and the landing conflict check — ships as packages in
 the opus workspace (`twin-digital/opus`), and this repository installs them at pinned versions
 through its top-level `package.json`; the merge gate wires to their commands.
 
