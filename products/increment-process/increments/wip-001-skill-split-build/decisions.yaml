@@ -186,6 +186,22 @@ decisions:
       - d-u3744xlr
     facets: tooling
 
+  - id: d-jokpfmyj
+    title: converting a design removes it from the legacy tree in the same change
+    statement: |
+      a design's conversion deletes its design/<area>/<design>/ directory in the change that
+      publishes the converted increment, so no design is readable in both trees at once and
+      there is never a question which copy governs.
+
+      d-t03xkfj7 retires the legacy checker with the last design out; this is what makes that
+      true.
+    status: delegated
+    because:
+      - d-t03xkfj7
+      - d-6x6l6ws7
+      - r-caao9k3z
+    facets: process-doc
+
   - id: d-9yzzvfow
     title: an increment is named by number or by draft directory across the fold types
     statement: |
