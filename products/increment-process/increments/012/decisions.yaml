@@ -18,6 +18,20 @@ decisions:
       - process-doc
       - design-validator
 
+  - id: d-fiul12e8
+    title: a code package's public contract is minimised by default
+    statement: |
+      a code implementer builds to a minimal public surface: one entry point, no subpath
+      wildcards, no export * from an entry point, and internals unreachable from outside.
+      these are working defaults, not gates — a package that departs from one records the
+      departure as a companion-increment decision, and internal structure stays free to
+      reorganise.
+    status: delegated
+    because:
+      - d-rx3s2hqo
+      - d-x2xw2tp2
+    facets: prompts
+
   - id: d-wcnyuwkv
     title: the plan skill drives one draft to publish
     statement: |
