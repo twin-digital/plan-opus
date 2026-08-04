@@ -58,7 +58,7 @@ decisions:
       the package carries no runtime dependencies and no `@minecraft/server` peer range, and
       nothing at install, configuration, or run time checks a consumer's engine pin against the
       derived version
-    status: proposed
+    status: delegated
     pinned:
       reason: other
       notes: consumer-visible install behaviour — a consumer on a different engine pin never has an install or a run fail over it
@@ -75,8 +75,8 @@ decisions:
   - id: d-0z0sfc5v
     title: generated values cover declared constants
     statement: |
-      the aliased surface exports the declarations' 64 enums as frozen objects and their five
-      module-level numeric constants, generated together from the same pass
+      the aliased surface exports every enum the pinned declarations declare as a frozen object
+      and every module-level numeric constant, generated together from the same pass
     status: accepted
     because:
       - r-vzz9rnrc
@@ -110,10 +110,10 @@ decisions:
     facets: shim
 
   - id: d-ahlsuc8z
-    title: install call is the reset
+    title: install replaces the bindings wholesale
     statement: |
       __useServer replaces both bindings wholesale and __useServer() with no argument returns
-      them to the unset state; there is no separate reset entry point
+      them to the unset state; there is no separate entry point
     status: accepted
     because:
       - r-rpm1k57j
@@ -161,7 +161,7 @@ decisions:
     statement: |
       the README documents one scenario per file as the pattern and loadPack as the escape hatch
       beneath it, rather than presenting the two as equal choices
-    status: proposed
+    status: delegated
     because:
       - d-c9mjn8o5
       - f:one-server-per-file-carries-state-into-the-next-test
@@ -174,7 +174,7 @@ decisions:
       subscribers or scheduled runs, with the counts and the loadPack fix in the message; an
       explicit __useServer() unset never throws, and a server the package did not build is not
       inspected
-    status: proposed
+    status: delegated
     because:
       - d-2mngzzpg
       - d-ahlsuc8z
@@ -188,7 +188,7 @@ decisions:
       supported at this increment, at `@twin-digital/minecraft-test-lib/vitest` — and nothing
       else: the aliased `@minecraft/server` surface and the sibling-module stubs are files
       inside the package the plugin references by resolved path, not published subpaths
-    status: proposed
+    status: delegated
     pinned:
       reason: public-api
     supersedes: d-19qu2ih2
@@ -210,7 +210,7 @@ decisions:
       them — world, system, and the eight registry classes — and that bundle is the fakes API's
       route to them; code reaching the engine through the module import reaches the same objects
       by the surface the package supplies
-    status: proposed
+    status: delegated
     because:
       - r-qklf4op9
       - r-rpm1k57j

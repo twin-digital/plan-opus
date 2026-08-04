@@ -47,11 +47,13 @@ requirements:
     statement: |
       a test can point the module-scope `world` and `system` at fakes it created, code that reaches
       the engine through the module import sees them, and a test starts from what it installed with
-      nothing carried over from a previous test.
+      nothing carried over from a previous test — the fresh start reached through the ruled
+      isolation path, a fresh module-registry generation or an explicit unset, never by replacing
+      a live server.
     verification:
       - do: in one test, point the module-scope `world` and `system` at fakes the test created, and run code that reaches the engine through the module import
       - verify: that code sees the installed fakes
-      - do: run a second test installing its own fakes
+      - do: in a fresh module-registry generation, or after an explicit unset, run a second test installing its own fakes
       - verify: it starts from what it installed, with nothing carried over from the first test
     facets: shim
 
