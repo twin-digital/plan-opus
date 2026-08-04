@@ -21,7 +21,7 @@ including what only the implementer should care about.
 The fix is a classification that can say it. Every choice a build meets is exactly one of:
 
 - **decided** — a foundation determines it;
-- **deferred** — a ruled decision names the choice and hands it to the implementer;
+- **deferred** — a ruled decision names the choice and whom it is handed to;
 - **an implementation detail** — no consumer could observe it and no reimplementation must
   preserve it, the test d-rx3s2hqo already sets, applied identically by the Clarify agent
   omitting a surveyed choice and the implementer declining to record one.

@@ -1,4 +1,4 @@
-version: "1"
+version: "2"
 decisions:
   - id: d-29fjsjn2
     title: an implementation detail is one test, applied at two moments
@@ -32,7 +32,7 @@ decisions:
       - schema
 
   - id: d-uz9wis6a
-    title: deferred is a ruling
+    title: deferred is a status
     statement: |
       deferred joins the status values, and a deferral enters as deferred directly — the
       merge ratifies it, like a requirement. decision@2 carries the widened enum, and a
@@ -54,7 +54,8 @@ decisions:
       every requirement and decision in force there, adopted preset requirements included —
       except a deferred decision, which no entry may cover directly. a deferral is covered
       when an in-force decision citing it in because itself carries coverage; the validator
-      refuses a record with a gap or a direct entry on a deferral.
+      refuses a record with a gap or a direct entry on a deferral. ratified-and-unbuilt
+      describes increments no implementation has targeted, never a hole inside a record.
     status: accepted
     supersedes: d-rr1qmw72
     because:
@@ -121,5 +122,49 @@ decisions:
       - r-v4z0h7dn
       - d-52uunxo6
       - d-cau8oksc
-      - d-63f18oml
     facets: prompts
+
+  - id: d-bignbf6h
+    title: the survey reads the draft fold whole
+    statement: |
+      a survey dispatch covers every package the draft fold names: those product.yaml holds
+      and those the increment's decisions propose.
+    status: proposed
+    because:
+      - r-v4z0h7dn
+      - d-q8ur5u3f
+      - d-cau8oksc
+    facets: prompts
+
+  - id: d-o1atez5i
+    title: rendering deferred entries is the implementer's
+    statement: |
+      how the projection renders deferred entries — the status counts and the coverage
+      join — is deferred to the implementer.
+    status: deferred
+    because:
+      - d-uz9wis6a
+      - d-3orwwaze
+    facets: tooling
+
+  - id: d-uupj1stg
+    title: the census's shape and home are the implementer's
+    statement: |
+      the survey census's return shape, and where a census the increment acted on persists,
+      are deferred to the implementer; d-cau8oksc fixes the content.
+    status: deferred
+    because:
+      - d-cau8oksc
+    facets: prompts
+
+  - id: d-o2jjvrk5
+    title: the overturn count's home is the implementer's
+    statement: |
+      where the overturn count is produced — orchestrator prose at the companion's pull
+      request, the projection, or the validator — is deferred to the implementer.
+    status: deferred
+    because:
+      - d-ub6h6h5u
+    facets:
+      - prompts
+      - tooling
