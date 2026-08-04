@@ -1,0 +1,31 @@
+version: "2"
+decisions:
+  - id: d-qo2qelw4
+    title: a malformed pool file is a finding
+    statement: |
+      design-process check reports a facts/ or evidence/ pool file that fails to parse as YAML as
+      a finding, rather than dropping it unseen. r-xxa1st52 requires the pool be validated by the
+      merge gate; a file the loader cannot parse contributes no entries and would otherwise pass
+      silently, taking its facts and runs out of the pool with no signal. an unparseable pool file
+      is itself the finding.
+    status: accepted
+    because:
+      - r-xxa1st52
+    facets:
+      - design-validator
+      - tooling
+
+  - id: d-te89mei4
+    title: uncited-run output existence is the implementer's call
+    statement: |
+      whether design-process check enforces output-existence for a run that no fact cites is
+      delegated to the implementer. d-0e325noj already requires a cited run's output to exist and
+      hold its quote — the evidence bar proper; extending that to uncited runs is a robustness
+      choice the bar does not rest on, so the implementer decides whether design-process carries
+      it.
+    status: delegated
+    because:
+      - d-0e325noj
+    facets:
+      - design-validator
+      - tooling
