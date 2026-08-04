@@ -20,3 +20,12 @@
     design-process 0.2.0 from this repository's node_modules, Node 24, against the
     increment-010 draft tree with the probe's fixture file present, run by an agent. The same
     tree without fixtures reports design check passed.
+
+- id: sequence-gap-probe
+  command: sh products/increment-process/increments/011/artifacts/sequence-gap-probe/probe.sh
+  output: products/increment-process/increments/011/artifacts/sequence-gap-probe/OUTPUT.txt
+  ran_at: 2026-08-04
+  environment: |
+    design-process 0.2.0 from this repository's node_modules, Node 24, against the
+    increment-011 draft tree with the probe's fixture directory present, run by an agent.
+    The same tree without the fixture reports only the draft's carried question.

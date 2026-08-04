@@ -1,0 +1,102 @@
+version: "1"
+
+requirements:
+  - id: r-rlh87pau
+    title: pack record details
+    statement: |
+      for every pack discovered, the kit provides the following details:
+
+        - its identity, the `header` uuid
+        - its version
+        - its owning package
+        - its kind (behavior pack or resource pack)
+        - its source location
+        - its build output location (even if that location is not present because the pack is unbuilt),
+        - its built script location, where a behavior pack's bundled script module belongs (even if
+          that location is not present because the pack is unbuilt, and reported as absent for a
+          resource pack, which has no script)
+        - the full content of its manifest in object form (including content auto-populated as
+          described by `r-11l92k9x`)
+
+      Every detail above is available for any discovered pack except its identity and its manifest
+      content, which a pack whose manifest could not be parsed, or which declares no `header.uuid`,
+      does not have — and its version, which a pack whose owning package declares none does not have.
+      A package declaring no version is itself a problem, so the pack is reported invalid either way.
+    verification:
+      - do: discover a workspace holding a valid, unbuilt behavior pack and a valid resource pack
+      - verify: the behavior pack's entry carries identity, version, owning package, kind, source location, output location, built script location, and the completed manifest
+      - verify: the resource pack's entry reports its built script location as absent
+      - do: discover a pack whose manifest cannot be parsed
+      - verify: its entry is invalid, lacks only the manifest-derived details, and still carries the rest
+    facets: discovery
+    amends: r-x40c0qx5
+
+  - id: r-5qo6fzs4
+    title: built script defaults to scripts/main.js
+    statement: |
+      a behavior pack's built script is found at `scripts/main.js` within that pack's build output
+      location. The kit computes it rather than reading it from the manifest, and does not probe for
+      script sources: the location is where a built script belongs, not a claim that one is there.
+    rationale: |
+      A consumer that builds the script and a consumer that deploys it must agree on the path without
+      negotiating it, and the kit is the one place both already read.
+    verification:
+      - do: discover an unbuilt behavior pack, and one holding no script sources at all
+      - verify: each entry reports its built script location at `scripts/main.js` within its build output location, the source-less pack included
+      - do: discover a behavior pack whose source manifest's script module names a different `entry`
+      - verify: the reported location is still `scripts/main.js` within the build output location — computed from the kind, not read from the manifest
+    facets: discovery
+
+  - id: r-wi7qf6to
+    title: kit completes partial source manifests
+    statement: |
+      a pack's source `manifest.json` is partial by design:
+
+        - it MUST NOT specify a `header.name` field; a specified field is an error
+        - it MUST NOT specify a `header.version` field; a specified field is an error
+        - it MUST NOT specify the version of a `dependencies` entry naming a pack within the same
+          workspace; a specified version is an error
+        - it MUST NOT specify a `modules[].entry`; a specified entry is an error — the built script
+          location is the kit's to compute
+
+      A `version` is left unspecified by omitting it, or by supplying a placeholder value:
+
+        - an empty string
+        - the string '0.0.0'
+        - the array value `[0, 0, 0]` (not valid if manifest `format_version` is 3)
+
+      A version is written as a `[major, minor, revision]` array or as a SemVer string, and both forms
+      are accepted at every manifest format version but one: at `format_version` 3 a version must be
+      the string. A source manifest carrying an array version at `format_version` 3 is an error,
+      placeholder or not; no other format version restricts the form.
+
+      Whenever this component provides manifest details for a pack, it populates missing fields
+      as follows:
+
+        - `header.name` is set to the owning package's `package.json` `productName` when present,
+          and otherwise set to the package name with its npm scope stripped (`@scope/mc-pack-1`
+          becomes `mc-pack-1`)
+        - `header.version` is set to the owning package's `package.json` version field, written as a
+          SemVer string. Every format version accepts that form, so completion does not branch on the
+          format version and a pre-release version completes like any other. What the source used is
+          not consulted. A `package.json` version that is missing, or is not a version at all, is a
+          problem
+        - a `dependencies` entry whose `uuid` names a pack within the same workspace has its `version`
+          set to that pack's owning package's `package.json` version, using the same parsing and error
+          reporting rules described for `header.version`
+
+      Every dependency a pack has is declared in its own source `manifest.json`. The owning package's
+      `package.json` `dependencies` are not consulted and contribute no manifest dependency entry.
+
+      A `dependencies` entry whose `uuid` names no pack in the workspace, and one naming a built-in
+      scripting module by `module_name`, are external: the kit passes each through untouched and never
+      completes it, so each MUST carry its own `version`.
+    verification:
+      - do: discover a pack whose source manifest omits `header.name` and `header.version` and leaves a workspace dependency's version unspecified
+      - verify: the completed manifest carries the name from `productName` or the scope-stripped package name, the owning package's version as a SemVer string, and the depended-on package's version on the dependency entry
+      - do: discover a pack whose source specifies `header.name`, one specifying `header.version`, one specifying a workspace dependency's version, and one specifying a `modules[].entry`
+      - verify: each specified field is reported as an error
+      - do: discover a pack whose manifest declares `format_version` 3 with an array version, and one whose external dependency carries no version
+      - verify: each is reported as an error, and external dependency entries are passed through uncompleted
+    amends: r-11l92k9x
+    facets: discovery

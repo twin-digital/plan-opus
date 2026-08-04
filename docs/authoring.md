@@ -1,5 +1,5 @@
 ---
-version: "7"
+version: "12"
 ---
 
 # Authoring
@@ -94,6 +94,14 @@ freezes with the increment as the record of the argument, with the fold as the o
 A mostly complete document drafted for a document deliverable is content, not spec: the fold
 still binds, and implementation still checks the draft's claims against it.
 
+## Backlog items
+
+These tests judge foundation-bar work, and an item captured to the backlog is not that: capture
+takes whatever the capturer has, and no test in this document reaches it. The bar arrives at
+adoption — the increment taking an item up writes the foundations it plans into its own sources,
+and the item's prose is raw material rather than text to move across. Anything arriving that way
+is judged exactly as what the increment wrote from scratch.
+
 ---
 
 ## The checklist
@@ -116,3 +124,4 @@ still binds, and implementation still checks the draft's claims against it.
 | 14 | model | Entities named in the design's words, described for this design, each referenced by the prose? |
 | 15 | facts | Upstream originals with claim-carrying verbatim quotes, re-runnable runs, the pool searched first, filed by subject, wrong ones superseded? |
 | 16 | draft | Every claim citing a foundation or extracted — no shadow decisions frozen in? |
+| 17 | backlog adoption | Does everything the adopting increment records meet the ordinary bar, the captured item read as raw material rather than moved text — and is the captured item itself left unjudged by these tests? |
