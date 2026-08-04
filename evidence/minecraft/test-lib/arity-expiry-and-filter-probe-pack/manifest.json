@@ -1,0 +1,25 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "mc-test-lib arity, expiry, handler-write and filter probes",
+    "description": "Four questions the design carries as inference: whether a member called with more arguments than its declared maximum throws; where an effect's duration lands on the tick it expires; what the engine does with an out-of-range duration written by a beforeEvents.effectAdd handler; and whether subscribe options intersect or union, and which payload member they read. Run /scriptevent mctest8:arity, mctest8:expiry, mctest8:handlerwrite and mctest8:filters, and copy the [mctest] lines.",
+    "uuid": "080eede9-d882-4606-a68d-9240d3fc3f92",
+    "version": [0, 1, 0],
+    "min_engine_version": [1, 26, 0]
+  },
+  "modules": [
+    {
+      "type": "script",
+      "language": "javascript",
+      "entry": "scripts/main.js",
+      "uuid": "c39b4f2e-ace6-4ad3-ad20-204b7560e1ee",
+      "version": [0, 1, 0]
+    }
+  ],
+  "dependencies": [
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.8.0"
+    }
+  ]
+}
