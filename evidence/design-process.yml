@@ -42,14 +42,3 @@
     new skill directory entered the session's registry, discarded as invalid and recorded in the
     output; the second after it appeared in the available-skills listing. teardown.sh removes the
     throwaway skill.
-
-- id: draft-visibility-probe
-  command: sh products/increment-process/increments/skill-composition/artifacts/draft-visibility-probe/probe.sh
-  output: products/increment-process/increments/skill-composition/artifacts/draft-visibility-probe/OUTPUT.txt
-  ran_at: 2026-08-04
-  environment: |
-    design-process 0.3.0 from this repository's node_modules, Node 24, on the
-    skill-composition draft branch, run by an agent. The probe runs check and show against the
-    draft slug-named, renames it to the number where --next reports, runs both again, and
-    renames it back. The requirements source held six schema violations at the time, which
-    section A does not report and section B does.

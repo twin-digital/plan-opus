@@ -69,22 +69,3 @@
       where: the section's opening paragraph
       quote: |
         When you or Claude invoke a skill, the rendered `SKILL.md` content enters the conversation as a single message and stays there for the rest of the session. This persistence applies to the skill's instructions, not its permissions: an [`allowed-tools`](#pre-approve-tools-for-a-skill) grant clears when you send your next message. Claude Code does not re-read the skill file on later turns, so write guidance that should apply throughout a task as standing instructions rather than one-time steps.
-
-- id: slug-named-draft-is-invisible-to-the-gate
-  claim: while an increment directory is slug-named, its sources are not schema-validated, its
-    proposed decisions and open questions are not reported, and its foundations do not project;
-    only the increment-dir-name finding fires, and the rest appear when the landing rename makes
-    the directory a number
-  backing: tested
-  sources:
-    - run: draft-visibility-probe
-      where: the two sections, on identical content
-      quote: |
-        === A. slug-named (as a draft is worked) ===
-        design check failed: 3 finding(s)
-        draft entries found: 0
-        === B. same content, renamed into the next number ===
-        ✖ [no-proposed-decision] products/increment-process/increments/013/decisions.yaml: d-63z31u0l is still proposed (r-0axqvtcc)
-        ✖ [no-open-questions] products/increment-process/increments/013/questions.yaml: 2 open question(s) still carried: q-6fsj8zo0, q-pd7w1o2w (r-ygg7q7rh, d-uzygmhfc)
-        design check failed: 10 finding(s)
-        draft entries found: 8
