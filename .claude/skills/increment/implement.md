@@ -126,5 +126,6 @@ The companion increment lands by SKILL.md's steps. What a companion's landing ad
    deferred decisions: no entry may cover a deferral directly, and a deferral without an answer is
    not a gap. An `attestation` from you on every claim you implemented — always — plus
    `code-test`, `manual-check`, or `conformance-case` entries where those artifacts exist. A `ref`
-   is package-relative and names what carries the claim.
+   is package-relative and names what carries the claim: if deleting the file, or the section the
+   breadcrumb narrows to, would not touch whether the claim holds, it does not belong.
 7. Verify the merged result passes `npm run check` with zero findings.
