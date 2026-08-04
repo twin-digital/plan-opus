@@ -29,3 +29,26 @@
     design-process 0.2.0 from this repository's node_modules, Node 24, against the
     increment-011 draft tree with the probe's fixture directory present, run by an agent.
     The same tree without the fixture reports only the draft's carried question.
+
+- id: bundled-file-probe
+  command: |
+    sh products/increment-process/increments/014/artifacts/bundled-file-probe/setup.sh
+    then a general-purpose subagent dispatched to invoke the probe-bundled skill with kind=alpha
+    and report which marker tokens were in its context before any file read
+  output: products/increment-process/increments/014/artifacts/bundled-file-probe/OUTPUT.txt
+  ran_at: 2026-08-04
+  environment: |
+    Claude Code, Opus 5, this repository, run by an agent. Two dispatches: the first before the
+    new skill directory entered the session's registry, discarded as invalid and recorded in the
+    output; the second after it appeared in the available-skills listing. teardown.sh removes the
+    throwaway skill.
+
+- id: draft-visibility-probe
+  command: sh products/increment-process/increments/013/artifacts/draft-visibility-probe/probe.sh
+  output: products/increment-process/increments/013/artifacts/draft-visibility-probe/OUTPUT.txt
+  ran_at: 2026-08-04
+  environment: |
+    design-process 0.3.0 from this repository's node_modules, Node 24, on the draft-visibility
+    branch, run by an agent. The probe injects one schema violation the requirement schema
+    forbids, runs check and show with the directory slug-named, renames it to the number
+    where --next reports, runs both again, renames it back and removes the fixture.

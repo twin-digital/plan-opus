@@ -1,0 +1,50 @@
+version: "2"
+decisions:
+  - id: d-yc56w54u
+    title: facts and their evidence join the version regime
+    statement: |
+      facts and their evidence carry forward in the repo-wide facts/ pool — findings about the
+      world, with the runs and artifacts that establish them under evidence/, filed by subject
+      and citable from any product — and they are validated by design-process check, the one
+      merge gate, like every other source. a facts/ file carries version: and is
+      /design-process/facts@1 — a facts: sequence of fact@1 entries; an evidence/ file is
+      /design-process/runs@1, a runs: sequence of run@1 entries. a fact carries id, claim,
+      backing (tested, documented, or assumed), and its sources, with an optional status of
+      active or retired; a run carries id, command, output, and ran_at. the version: wrapper is
+      what marks a pool file: other yaml under evidence/ — a probe's fixtures and inputs —
+      carries none and is artifact material, not a run source. entry shape is the schema pool's
+      to check, so the facts pool evolves its shape by the same versioning every other source
+      uses.
+    status: delegated
+    supersedes: d-o99k4ld8
+    pinned:
+      reason: data-format
+      notes: the on-disk shape of every facts/ and evidence/ file, and the pool schemas that validate them
+    because:
+      - r-xxa1st52
+      - r-gq90gngs
+      - d-i47qv6oa
+    facets:
+      - schema
+      - design-validator
+
+  - id: d-0e325noj
+    title: the checker enforces the evidence bar and the entries' cross-references
+    statement: |
+      beyond entry shape, design-process check enforces the rules that make the evidence hold —
+      the checks a schema cannot express. a documented fact carries at least one url source, a
+      tested fact at least one run source, an assumed fact at least one description. a quote at
+      an in-repo source is verified verbatim, whitespace normalised on both sides; an in-repo
+      source path that resolves to no file is itself a finding, and an off-repo url — one
+      carrying a scheme — is not read. a run: source resolves to a live run entry — a retired
+      one may not be cited — belongs only on a tested fact, and the run's recorded output file
+      exists and holds the quote. a url into an artifacts/ path backs only a tested fact. a
+      retired fact or run carries a reason from its enumeration, and a superseded fact or run
+      names a superseded_by that resolves within the pool and is not itself. entry ids are
+      unique across the whole pool, facts and runs sharing one namespace.
+    status: delegated
+    because:
+      - r-xxa1st52
+    facets:
+      - schema
+      - design-validator

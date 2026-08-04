@@ -46,3 +46,57 @@ requirements:
       - do: discover a behavior pack whose source manifest's script module names a different `entry`
       - verify: the reported location is still `scripts/main.js` within the build output location — computed from the kind, not read from the manifest
     facets: discovery
+
+  - id: r-wi7qf6to
+    title: kit completes partial source manifests
+    statement: |
+      a pack's source `manifest.json` is partial by design:
+
+        - it MUST NOT specify a `header.name` field; a specified field is an error
+        - it MUST NOT specify a `header.version` field; a specified field is an error
+        - it MUST NOT specify the version of a `dependencies` entry naming a pack within the same
+          workspace; a specified version is an error
+        - it MUST NOT specify a `modules[].entry`; a specified entry is an error — the built script
+          location is the kit's to compute
+
+      A `version` is left unspecified by omitting it, or by supplying a placeholder value:
+
+        - an empty string
+        - the string '0.0.0'
+        - the array value `[0, 0, 0]` (not valid if manifest `format_version` is 3)
+
+      A version is written as a `[major, minor, revision]` array or as a SemVer string, and both forms
+      are accepted at every manifest format version but one: at `format_version` 3 a version must be
+      the string. A source manifest carrying an array version at `format_version` 3 is an error,
+      placeholder or not; no other format version restricts the form.
+
+      Whenever this component provides manifest details for a pack, it populates missing fields
+      as follows:
+
+        - `header.name` is set to the owning package's `package.json` `productName` when present,
+          and otherwise set to the package name with its npm scope stripped (`@scope/mc-pack-1`
+          becomes `mc-pack-1`)
+        - `header.version` is set to the owning package's `package.json` version field, written as a
+          SemVer string. Every format version accepts that form, so completion does not branch on the
+          format version and a pre-release version completes like any other. What the source used is
+          not consulted. A `package.json` version that is missing, or is not a version at all, is a
+          problem
+        - a `dependencies` entry whose `uuid` names a pack within the same workspace has its `version`
+          set to that pack's owning package's `package.json` version, using the same parsing and error
+          reporting rules described for `header.version`
+
+      Every dependency a pack has is declared in its own source `manifest.json`. The owning package's
+      `package.json` `dependencies` are not consulted and contribute no manifest dependency entry.
+
+      A `dependencies` entry whose `uuid` names no pack in the workspace, and one naming a built-in
+      scripting module by `module_name`, are external: the kit passes each through untouched and never
+      completes it, so each MUST carry its own `version`.
+    verification:
+      - do: discover a pack whose source manifest omits `header.name` and `header.version` and leaves a workspace dependency's version unspecified
+      - verify: the completed manifest carries the name from `productName` or the scope-stripped package name, the owning package's version as a SemVer string, and the depended-on package's version on the dependency entry
+      - do: discover a pack whose source specifies `header.name`, one specifying `header.version`, one specifying a workspace dependency's version, and one specifying a `modules[].entry`
+      - verify: each specified field is reported as an error
+      - do: discover a pack whose manifest declares `format_version` 3 with an array version, and one whose external dependency carries no version
+      - verify: each is reported as an error, and external dependency entries are passed through uncompleted
+    amends: r-11l92k9x
+    facets: discovery

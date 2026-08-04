@@ -1,0 +1,34 @@
+version: "1"
+requirements:
+  - id: r-xxa1st52
+    title: the facts pool is held to its evidence bar by the merge gate
+    statement: |
+      the facts/ pool and the evidence/ runs that establish it are validated by
+      design-process check, the one merge gate: an entry that fails its bar — a missing field, a
+      quote absent from the in-repo source it cites, a run or superseded_by reference resolving
+      to nothing, a documented fact with no url or a tested one with no run — is a finding that
+      blocks the merge. the discipline holds under a single checker, so a fact filed anywhere in
+      the repository is held to its bar before a design cites it.
+    verification:
+      - do: file a fact whose quote is not present at the in-repo source it cites
+      - verify: design-process check reports a finding against it
+      - do: file a tested fact whose source names a run id that no evidence entry declares
+      - verify: design-process check reports a finding against it
+      - do: file a documented fact whose only source is a url with a where and a verbatim quote present at that url
+      - verify: design-process check raises no finding against it
+    facets:
+      - schema
+      - design-validator
+model:
+  - name: fact
+    schema: /design-process/fact@1
+    description: one finding in the repo-wide facts/ pool
+  - name: facts-source
+    schema: /design-process/facts@1
+    description: a facts/ file — its version and the facts it declares
+  - name: run
+    schema: /design-process/run@1
+    description: one execution under evidence/ that a tested fact rests on
+  - name: runs-source
+    schema: /design-process/runs@1
+    description: an evidence/ file — its version and the runs it declares

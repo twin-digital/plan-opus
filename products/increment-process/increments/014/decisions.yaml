@@ -1,0 +1,145 @@
+version: "2"
+decisions:
+  - id: d-63z31u0l
+    title: one implementer skill, its kind-specific waves bundled beside it
+    statement: |
+      the code-kind and document-kind implementer skills become one package,
+      .claude/skills/implement-package. its SKILL.md carries what every implementer does
+      whatever its kind — the three phases and their contract, survey, the
+      implementation-detail test, findings and escalation, the transient working list, the
+      narrow scoping of a decision — and nothing kind-specific. each kind's wave shape is a
+      file beside it under waves/, linked from SKILL.md and read only by an implementer
+      dispatched for that kind.
+
+      adding a kind is a file under waves/ and its own wave-shape decision.
+
+      the dispatcher names one skill for every code and tree-consumed kind and passes the
+      kind; the kind no longer selects between skills.
+    status: accepted
+    pinned:
+      reason: public-api
+      notes: product.yaml and the orchestrator skill both name this path
+    because:
+      - r-w2m32yl6
+      - r-15psk4yp
+      - d-qb67fb8s
+      - f:skill-supporting-files-load-on-demand
+      - f:subagent-skill-body-arrives-linked-files-do-not
+    facets: prompts
+
+  - id: d-7a6o1qw9
+    title: the code kind's waves are a bundled file
+    statement: |
+      the code wave shape — Define, Stub, Code, Document — lives at
+      .claude/skills/implement-package/waves/code.md and governs the npm-library, npm-cli, and
+      minecraft-addon kinds. prepare is Define and Stub, implement is Code and Document, and
+      prepare may return as soon as the API stubs stand, with test authoring finishing inside
+      implement so dependents unblock at the earliest honest moment.
+
+      only an implementer dispatched for one of these kinds reads it.
+    status: tolerated
+    supersedes: d-x2xw2tp2
+    because:
+      - d-63z31u0l
+      - r-w2m32yl6
+    facets: prompts
+
+  - id: d-mq2th41t
+    title: the document kind's waves are a bundled file
+    statement: |
+      the document wave shape — Claims, Compose, Check — lives at
+      .claude/skills/implement-package/waves/document.md and governs the document and
+      agent-skill kinds. prepare is Claims, implement is Compose and Check.
+
+      only an implementer dispatched for one of these kinds reads it.
+    status: tolerated
+    supersedes: d-ydcyoa80
+    because:
+      - d-63z31u0l
+      - r-w2m32yl6
+    facets: prompts
+
+  - id: d-80yxesle
+    title: the phase skills are one package, their phases bundled beside it
+    statement: |
+      the Plan and Implement phases ship as one agent-skill package,
+      .claude/skills/increment. its SKILL.md carries the draft-increment lifecycle both
+      phases perform — opening a draft at its wip directory on its own branch, stacking by
+      ancestry, the findings a draft carries in flight, and the landing: ancestry order, the
+      conflict check against head, the rename into the claimed number, and the clean gate.
+
+      each phase is a file beside it, read only by an agent running that phase: plan.md
+      carries Capture, Clarify, the check before Ratify, the survey offer, and the Ratify
+      loop; implement.md carries binding to the fold, the companion increment, dispatch,
+      running implementers in parallel, survey mode, and the record.
+
+      the phase is named in the invocation. both files link directly from SKILL.md, and
+      neither links onward to the other.
+    status: tolerated
+    supersedes: d-ebyludv0
+    pinned:
+      reason: public-api
+      notes: agents and the owner invoke the skill by name; the path is the surface
+    because:
+      - r-15psk4yp
+      - r-w2m32yl6
+      - f:skill-references-stay-one-level-deep
+      - f:skill-domain-files-keep-irrelevant-context-out
+      - f:subagent-skill-body-arrives-linked-files-do-not
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-lv3oyfaj
+    title: the dispatcher is the implement phase of that package
+    statement: |
+      .claude/skills/increment/implement.md is the dispatcher every implementation runs
+      through; a kind with no wave file is an open question for the implementation that
+      meets it.
+    status: accepted
+    supersedes: d-ng02vmcd
+    pinned:
+      reason: public-api
+      notes: the entry point every implementation of every product runs through
+    because:
+      - d-80yxesle
+      - d-qb67fb8s
+    facets: prompts
+
+  - id: d-1vt3677q
+    title: the phase is the skill's first argument, and the skill stays model-selectable
+    statement: |
+      a phase is run as `/increment <phase>`, the phase being the skill's first argument and
+      the rest of the invocation carrying whatever the caller wants to say. `plan` and
+      `implement` are the phases.
+
+      the skill does not set disable-model-invocation: it stays selectable from a request that
+      names neither the skill nor the phase, because that is how an agent reaches it when a
+      person describes the work rather than typing the command. its description therefore has
+      to carry the triggers for both phases, and where the invocation names no phase the skill
+      settles which is meant before doing anything else.
+    status: tolerated
+    pinned:
+      reason: public-api
+      notes: the form every caller types or an agent selects on
+    because:
+      - d-80yxesle
+      - f:skills-are-the-command-unit
+    facets:
+      - prompts
+      - process-doc
+
+  - id: d-lzisn9cb
+    title: a replaced skill package is deleted outright
+    statement: |
+      .claude/skills/plan, .claude/skills/implement, .claude/skills/implement-code, and
+      .claude/skills/implement-document are removed when their replacements ship. no
+      redirecting stub stands in for a retired name: an invocation of a name that is gone
+      fails loudly, and a stub kept to preserve a name would outlive the reason for it.
+    status: accepted
+    because:
+      - d-80yxesle
+      - d-lv3oyfaj
+      - d-7a6o1qw9
+      - d-mq2th41t
+    facets: prompts

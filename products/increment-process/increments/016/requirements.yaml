@@ -1,0 +1,37 @@
+version: "1"
+requirements:
+  - id: r-imt7131t
+    title: a design may be captured from code after the fact
+    statement: |
+      a product's design may be captured after its code exists — an agent reads what was built
+      and records the requirements and decisions the code embodies into an increment — and that
+      increment is, to everything downstream, an ordinary one: it folds, agents extend it, and
+      its implementation record covers its claims exactly as a design-first increment's would.
+      code-first and design-first increments interleave in one product, each claiming its number
+      and folding the same way, so the owner may build some increments by hand and hand others to
+      an agent to design.
+    verification:
+      - do: build a small package with no increment describing it
+      - do: run the capture path to record the requirements and decisions it embodies, and land the increment
+      - verify: the product's projection folds the captured increment beside the design-first ones
+      - verify: the merge gate passes with an implementation record covering the captured claims
+    facets:
+      - process-doc
+      - prompts
+
+  - id: r-k8hqvl8r
+    title: code built ahead of its capture is provisional
+    statement: |
+      code built before its capture is provisional — unreleased, and nothing depends on it —
+      until the capturing increment publishes. publishing the capture is the act that makes the
+      code extensible; before it, the built code has no implementation record and is a foundation
+      for no one. the ordering the process already holds — nothing goes live before the design it
+      targets is published — is unchanged; provisional code is how a code-first increment honours
+      it.
+    verification:
+      - do: build code first, and attempt to file its implementation record before landing the capturing increment
+      - verify: the record is refused because its target is not a published increment
+      - do: land the capturing increment, then file the record
+      - verify: the merge gate passes and the captured claims are now in force and coverable
+    facets:
+      - process-doc
