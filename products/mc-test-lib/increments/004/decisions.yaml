@@ -1,0 +1,262 @@
+version: "1"
+
+decisions:
+
+  - id: d-bslnaeg6
+    title: the default path is boilerplate-free with per-test isolation
+    statement: |
+      with the one runner-config entry in place and nothing else, a consumer's test file holds
+      static imports alone — the pack imported for its side effects, `world` and `system` imported
+      to arrange and assert — with no install call, no reset prelude, and no ordering the consumer
+      hand-writes. Each test starts against a fresh world with the pack's module-scope
+      subscriptions and scheduled runs still live. A test that wants fakes of its own installs
+      them in place of the default without failing; the loud failure the July ruling kept guards
+      a duplicate tooling install within one module-registry generation
+    status: rejected
+    rejection_reason: |
+      dynamic import and module reset is the accepted pattern in test libraries for this case;
+      the fake library is not shipping a reset
+    pinned:
+      reason: other
+      notes: consumer-visible ergonomics contract — the documented default path and its per-test isolation behaviour
+    because:
+      - r-uobnqsfg
+      - r-vzz9rnrc
+      - r-rpm1k57j
+      - r-qayd22z2
+      - f:a-setup-file-server-makes-a-pack-test-file-boilerplate-free
+      - f:one-server-per-file-carries-state-into-the-next-test
+      - f:pack-isolation-comes-from-under-the-fakes-not-from-the-shim
+      - f:a-fake-server-can-be-cleared-in-place-with-its-subscriptions-intact
+      - r-892696vk
+    facets:
+      - fakes
+      - shim
+
+  - id: d-2mngzzpg
+    title: per-test isolation is module reset and dynamic import
+    statement: |
+      a test that needs a fresh world resets the module registry and dynamically imports the
+      pack and the surface it asserts through — the accepted test-library pattern — and the
+      package ships no reset of any kind, public or internal. A second install within one
+      module-registry generation fails loudly on the terms the replace ruling defines: it
+      throws when the server being replaced is live with subscribers or scheduled runs
+    status: delegated
+    pinned:
+      reason: other
+      notes: consumer-visible isolation contract and misuse behaviour
+    because:
+      - r-rpm1k57j
+      - r-qayd22z2
+    supersedes: d-bslnaeg6
+    facets:
+      - fakes
+      - shim
+
+  - id: d-vjeple9k
+    title: no peer range gates an install
+    statement: |
+      the package carries no runtime dependencies and no `@minecraft/server` peer range, and
+      nothing at install, configuration, or run time checks a consumer's engine pin against the
+      derived version
+    status: delegated
+    pinned:
+      reason: other
+      notes: consumer-visible install behaviour — a consumer on a different engine pin never has an install or a run fail over it
+    because:
+      - r-uobnqsfg
+      - d-wygo3zhy
+      - f:an-unsatisfiable-peer-range-fails-npm-and-warns-pnpm-and-yarn
+    supersedes: d-c5odl61n
+    facets: shim
+
+  # harvested from the preserved #121 branch record (75d01c8) — the seven decisions the owner
+  # accepted in that cycle, carried with statements adapted only where the old regime's words
+  # (a separate shim package, brands) no longer exist
+  - id: d-0z0sfc5v
+    title: generated values cover declared constants
+    statement: |
+      the aliased surface exports every enum the pinned declarations declare as a frozen object
+      and every module-level numeric constant, generated together from the same pass
+    status: delegated
+    because:
+      - r-vzz9rnrc
+      - r-29dlrp9r
+    facets: shim
+
+  - id: d-fd8y6nwv
+    title: every declared class is exported
+    statement: |
+      every class the pinned declarations export is exported by the aliased surface, whether or
+      not the fakes implement it
+    status: delegated
+    because:
+      - r-vzz9rnrc
+    facets: shim
+
+  - id: d-9r5i9qog
+    title: declared error classes are real classes
+    statement: |
+      a declared class whose ancestry reaches Error is emitted as a real Error subclass setting
+      its own name, with its declared readonly members left to whoever throws it
+    status: delegated
+    facets: shim
+
+  - id: d-uj5gbt9w
+    title: unset singletons throw
+    statement: |
+      reading `world` or `system` before a server is installed throws ShimNotInstalledError
+      rather than reading undefined
+    status: delegated
+    facets: shim
+
+  - id: d-ahlsuc8z
+    title: install replaces the bindings wholesale
+    statement: |
+      __useServer replaces both bindings wholesale and __useServer() with no argument returns
+      them to the unset state; there is no separate entry point
+    status: delegated
+    because:
+      - r-rpm1k57j
+    facets: shim
+
+  - id: d-wygo3zhy
+    title: the version statement is inert
+    statement: |
+      the derived `@minecraft/server` version is stated as an exported string and in the README,
+      and the surface performs no runtime comparison and emits no warning
+    status: delegated
+    pinned:
+      reason: public-api
+    because:
+      - r-29dlrp9r
+    facets: shim
+
+  - id: d-v6pg1wph
+    title: undeclared exports stay absent
+    statement: |
+      a name the pinned declarations do not declare is not exported — no Proxy, no auto-vivified
+      stub, no fallback value
+    status: delegated
+    facets: shim
+
+  # accepted by the owner's harvest ruling of 2026-08-04, from the same branch record
+  - id: d-c9mjn8o5
+    title: loadPack owns the reset ordering and returns the server
+    statement: |
+      `loadPack(importer, options?)` resets the module registry, imports the control surface
+      fresh, installs a new server, then calls the one importer, in that order, and returns the
+      installed server rather than the pack's namespace; it is exported from the vitest tooling
+      subpath, the one entry that may reach `vi`
+    status: delegated
+    pinned:
+      reason: public-api
+    because:
+      - d-2mngzzpg
+      - f:a-globalthis-store-survives-a-module-registry-reset
+    facets: shim
+
+  # re-entered from the branch record's proposed-final set, for ruling
+  - id: d-03cbb3td
+    title: the setup file installs a fresh default server per test file
+    statement: |
+      the plugin's shipped setup file installs a fresh default server before each test file
+      evaluates, so an unmodified pack loads by static import with no install call and no
+      ordering the consumer writes. Freshness is per file — the runner's native per-file module
+      registries — and state carries between tests within a file; per-test freshness is
+      loadPack's alone. The consumer still writes no setup file
+    status: delegated
+    because:
+      - r-uobnqsfg
+      - d-2mngzzpg
+      - d-c9mjn8o5
+      - f:a-setup-file-server-makes-a-pack-test-file-boilerplate-free
+      - f:one-server-per-file-carries-state-into-the-next-test
+    facets: shim
+
+  - id: d-fa9h5y34
+    title: the static-import default leads, loadPack beneath it
+    statement: |
+      the README documents the default path as the pattern — static imports against the
+      setup-installed server, one scenario per file — and loadPack as the escape hatch beneath
+      it, named for the cases that need a fresh evaluation: pack module-scope state a test
+      mutates, load-time behaviour itself, scheduled-run accumulation, or a server that must
+      differ before the pack evaluates. The two are not presented as equal choices
+    status: delegated
+    because:
+      - d-03cbb3td
+      - d-c9mjn8o5
+      - f:one-server-per-file-carries-state-into-the-next-test
+    facets: shim
+
+  - id: d-vfqnezgt
+    title: replacing a live server throws
+    statement: |
+      __useServer throws ShimServerInUseError when the server being replaced already carries
+      subscribers or scheduled runs, with the counts and the loadPack fix in the message; an
+      explicit __useServer() unset never throws, and a server the package did not build is not
+      inspected
+    status: delegated
+    because:
+      - d-2mngzzpg
+      - d-ahlsuc8z
+    facets: shim
+
+  - id: d-bvhynmr8
+    title: exports are the root barrel plus one runner-tooling subpath
+    statement: |
+      the package's published exports are the root barrel — re-exporting every fake type and
+      free function — and one subpath per supported runner's tooling — vitest, the one runner
+      supported at this increment, at `@twin-digital/minecraft-test-lib/vitest` — and nothing
+      else: the aliased `@minecraft/server` surface and the sibling-module stubs are files
+      inside the package the plugin references by resolved path, not published subpaths
+    status: delegated
+    pinned:
+      reason: public-api
+    supersedes: d-19qu2ih2
+    because:
+      - r-3dgnq0sp
+      - r-qklf4op9
+      - r-uobnqsfg
+      - f:a-vite-plugin-contributes-an-alias-and-a-setup-file
+      - f:setup-files-resolve-as-modules-from-the-project-root
+      - f:alias-and-control-subpath-are-one-module-instance
+    facets:
+      - fakes
+      - shim
+
+  - id: d-gjzbiyl6
+    title: the bundle is the fakes API's route, not the only one
+    statement: |
+      createServer returns one bundle whose properties are named as `@minecraft/server` exports
+      them — world, system, and the eight registry classes — and that bundle is the fakes API's
+      route to them; code reaching the engine through the module import reaches the same objects
+      by the surface the package supplies
+    status: delegated
+    because:
+      - r-qklf4op9
+      - r-rpm1k57j
+    supersedes: d-nmjafny2
+    facets:
+      - fakes
+      - shim
+
+  - id: d-ksotjt7v
+    title: surface details handed to the implementation
+    statement: |
+      handed to the implementation's companion increment: the placeholder behaviour of
+      module-surface classes the fakes do not implement, beyond what the harvested rulings fix;
+      the `world`/`system` binding mechanism within what the ruled isolation shape fixes; the
+      sibling-module stubs' surface and behaviour; how a test reaches the setup-installed
+      default server; the mechanism putting the exported classes on the fakes' prototype
+      chains; whether the fakes throw the surface's error classes (one class object per name);
+      which entry carries __useServer; and the presets' invocation shape
+    status: delegated
+    because:
+      - d-2mngzzpg
+      - r-w2ud6qa9
+      - d-ksk6d7ua
+      - d-qz2aoixe
+    facets:
+      - fakes
+      - shim

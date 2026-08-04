@@ -1,0 +1,168 @@
+version: "1"
+
+requirements:
+  # converted from design/minecraft/server-shim
+  - id: r-vzz9rnrc
+    title: unmodified pack code loads under test
+    statement: |
+      a test process configured with the shim loads a pack's engine-facing module unmodified — its
+      value imports from `@minecraft/server`, enum members and classes alike, resolve — with no edit
+      to the pack and no hand-written stub from the pack's author.
+    verification:
+      - do: configure a test process with the shim, against an unmodified public pack module that imports enum members and classes from `@minecraft/server`
+      - verify: the module loads and every value import resolves, with no edit to the pack and no hand-written stub from its author
+    facets: shim
+
+  - id: r-29dlrp9r
+    title: enum values come from the pinned declarations
+    statement: |
+      every enum value the shim supplies is derived from a pinned `@minecraft/server` version's
+      declarations rather than hand-authored, and the shim states which version it was derived from.
+    verification:
+      - do: sample enum values the shim supplies and trace each to its origin
+      - verify: each derives from the pinned `@minecraft/server` version's declarations; none is hand-authored
+      - verify: the shim states which version its values were derived from
+    facets: shim
+
+  - id: r-956kxrsc
+    title: instanceof answers by class identity
+    statement: |
+      `instanceof` against a class the shim exports answers by class identity: a fake is an
+      instance of the class the aliased surface exports, so the check answers true for the
+      corresponding fake and false for a value that is not one, without the consumer naming a
+      member or other implementation detail of the fakes.
+    rationale: |
+      A silently false `instanceof` leaves a handler returning early and its test passing while
+      exercising nothing. Owner fiat from the rejected shim spec cycle: brand mechanisms
+      answering in place of the class itself are not open to reargument.
+    verification:
+      - do: evaluate `instanceof` against a shim-exported class, once with the corresponding fake and once with a value that is not one
+      - verify: it answers true for the fake and false for the other value, the consumer having named no member or implementation detail of the fakes
+      - do: read the fake's prototype chain
+      - verify: the exported class sits on it, with no `Symbol.hasInstance` override answering for it
+    facets: shim
+
+  - id: r-rpm1k57j
+    title: module singletons are test-controlled
+    statement: |
+      a test can point the module-scope `world` and `system` at fakes it created, code that reaches
+      the engine through the module import sees them, and a test starts from what it installed with
+      nothing carried over from a previous test — the fresh start reached through the ruled
+      isolation path, a fresh module-registry generation or an explicit unset, never by replacing
+      a live server.
+    verification:
+      - do: in one test, point the module-scope `world` and `system` at fakes the test created, and run code that reaches the engine through the module import
+      - verify: that code sees the installed fakes
+      - do: in a fresh module-registry generation, or after an explicit unset, run a second test installing its own fakes
+      - verify: it starts from what it installed, with nothing carried over from the first test
+    facets: shim
+
+  - id: r-9z0icbhi
+    title: shim supplies values, not behaviour
+    statement: |
+      the shim supplies only what a module import must carry — values, classes, and the singleton
+      bindings — and models no engine behaviour of its own; every behaviour a test observes comes
+      from `@twin-digital/minecraft-test-lib`.
+    verification:
+      - do: inventory what the shim supplies
+      - verify: each item is a value, a class, or a singleton binding, and none models an engine behaviour of its own
+      - do: trace the behaviours a test observes through the shim
+      - verify: every one comes from `@twin-digital/minecraft-test-lib`'s fakes
+    facets: shim
+
+  - id: r-4bgnaff8
+    title: a consumer suite still typechecks
+    statement: |
+      a TypeScript pack's test suite typechecks with the shim installed, without a cast or an `any`
+      at the seam between the shim and the pack's `@minecraft/server` types.
+    verification:
+      - do: typecheck a TypeScript pack's test suite with the shim installed
+      - verify: the compile passes with no cast and no `any` at the seam between the shim and the pack's `@minecraft/server` types
+    facets: shim
+
+  # lifted by owner ruling from the rejected shim spec cycle — constraints, not open to reargument
+  - id: r-3dgnq0sp
+    title: one package
+    statement: |
+      the aliased `@minecraft/server` surface, the fakes, and the runner tooling ship as one
+      package, `@twin-digital/minecraft-test-lib`.
+    rationale: |
+      Owner fiat from the rejected shim spec cycle; the packaging is not open to reargument.
+    verification:
+      - do: open the published package manifests
+      - verify: the aliased surface, the fakes, and the runner tooling all ship in `@twin-digital/minecraft-test-lib`, and no second package publishes any of them
+    facets: shim
+
+  - id: r-uobnqsfg
+    title: install is one runner-config entry
+    statement: |
+      a consumer installs the shim with one entry in their runner's configuration, and writes no
+      setup file.
+    rationale: |
+      Owner fiat from the rejected shim spec cycle; the one-entry install is not open to
+      reargument.
+    verification:
+      - do: install the shim in a consumer project by following its documentation
+      - verify: the runner's configuration gained one entry, and the consumer wrote no setup file
+    facets: shim
+
+  # owner-approved amendments: the library's own commitments absorb the shim
+  - id: r-qklf4op9
+    title: injection suites stay supported
+    statement: |
+      a suite that injects fake objects into code under test stays supported, and nothing the
+      library ships breaks one.
+    rationale: |
+      The retired fiat barred a module-shim story to protect suites written against object
+      substitution. The protection is that guarantee, not the absence of the shim.
+    verification:
+      - do: run a suite that injects fake objects into code under test, with the shipped package installed
+      - verify: the suite stays supported, and nothing the library ships breaks it
+    amends: r-wv395rgn
+    facets:
+      - fakes
+      - shim
+
+  - id: r-qayd22z2
+    title: fake state is instance-scoped
+    statement: |
+      all fake state belongs to a world instance a test creates. The only module-level mutable
+      state is the `world`/`system` bindings a test installs and controls; no fake's state lives
+      there.
+    verification:
+      - do: create two world instances in one process and mutate state through the first
+      - verify: nothing changed in the second, with no reset hook called
+      - do: inventory the package's module-level mutable state
+      - verify: only the `world`/`system` bindings a test installs and controls live there, and no fake's state does
+    amends: r-892696vk
+    facets:
+      - fakes
+      - shim
+
+  # ruled by the owner during this increment's Plan loop, answering q-mzfp1udy
+  - id: r-w2ud6qa9
+    title: sibling-module imports resolve to shipped stubs
+    statement: |
+      a pack's imports of `@minecraft/*` script modules the fakes do not cover —
+      `@minecraft/server-ui` first among them — resolve to stubs the package ships, under the
+      same one runner-config entry and with no consumer-written stub or alias.
+    verification:
+      - do: run the one-entry install against an unmodified pack that imports `@minecraft/server-ui`
+      - verify: the pack's modules load, the consumer having written no stub and no second config entry
+    facets: shim
+
+  # ruled by the owner 2026-08-04, resolving the peer-range contradiction with d-vjeple9k
+  - id: r-6oj56on1
+    title: target server version
+    statement: |
+      the library targets the stable `@minecraft/server` 2.x line, pinned at 2.8.0; every
+      derivation and behaviour reading is taken from the pinned version. The pin is stated
+      inertly — no `@minecraft/server` peer range is declared, and nothing at install,
+      configuration, or run time checks a consumer's engine pin against it.
+    verification:
+      - do: open the published package.json
+      - verify: no `@minecraft/server` peer range is declared
+      - do: sample the library's derivations and behaviour readings
+      - verify: each is taken from the pinned 2.8.0 version
+    amends: r-d141nytz
+    facets: fakes
