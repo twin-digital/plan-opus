@@ -1,0 +1,44 @@
+Probe: do bundled files linked from SKILL.md enter a subagent's context at invocation?
+
+Environment: Claude Code, Opus 5, this repository, 2026-08-04. Skill installed by setup.sh at
+.claude/skills/probe-bundled/ with SKILL.md linking waves/alpha.md and waves/beta.md, each
+holding a distinct marker token. A general-purpose subagent was dispatched, told to invoke the
+skill with kind=alpha, and asked to report which markers were visible before any file read.
+
+
+=== RUN 1 — INVALID, recorded for completeness ===
+
+Dispatched immediately after setup.sh, in the same session that created the skill.
+
+    SKILL_LOADED: no
+    Q1: ALPHA NOT IN CONTEXT
+    Q2: BETA NOT IN CONTEXT
+    Q3: <repository CLAUDE.md and user rules only>
+    Q4: ALPHA-7Q4X2M9K
+    NOTES: The skill did not load. Skill(probe-bundled) returned "Unknown skill:
+    probe-bundled", and probe-bundled does not appear in the available-skills listing. So no
+    skill body or wave file arrived in context on its own; Q1/Q2 reflect a state where the
+    skill never dispatched, not a state where a loaded skill withheld the markers.
+
+This run measures nothing: with the skill unloaded, "marker not in context" has no bearing on
+whether a loaded skill would have brought it. The newly created skill directory was not yet in
+the session's registry. Discarded.
+
+
+=== RUN 2 — VALID ===
+
+Dispatched after the skill appeared in the session's available-skills listing. Same prompt,
+with an added instruction to abort and report rather than work around a failed load.
+
+    SKILL_LOADED: yes
+    Q1: ALPHA NOT IN CONTEXT
+    Q2: BETA NOT IN CONTEXT
+    Q3: yes
+    Q4: ALPHA-7Q4X2M9K
+    NOTES: The skill invocation returned only SKILL.md's body plus its base directory and
+    ARGUMENTS line; neither waves/alpha.md nor waves/beta.md content was present. Q1/Q2 were
+    answered before any file read. waves/beta.md was never read.
+
+Reading: with the skill loaded and its body in context (Q3 yes), neither linked file's content
+was present (Q1, Q2). The alpha marker appeared only after an explicit Read (Q4), and matches
+the token setup.sh wrote. The beta file was never read and its marker never appeared.
