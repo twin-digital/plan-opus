@@ -4,8 +4,8 @@
 # happened, the fact that cites it says what that means.
 
 - id: foundations-script-reference-search
-  command: sh products/increment-process/increments/009/artifacts/foundations-script-references/search.sh
-  output: products/increment-process/increments/009/artifacts/foundations-script-references/OUTPUT.txt
+  command: sh products/increment-process/increments/010/artifacts/foundations-script-references/search.sh
+  output: products/increment-process/increments/010/artifacts/foundations-script-references/OUTPUT.txt
   ran_at: 2026-08-03
   environment: |
     git grep over the tracked tree at the increment-009 draft (main at ac68b0d plus the draft
@@ -13,8 +13,8 @@
     files move; re-run the script for the current answer.
 
 - id: backlog-schema-probe
-  command: node products/increment-process/increments/009/artifacts/backlog-schema-validates/validate.mjs
-  output: products/increment-process/increments/009/artifacts/backlog-schema-validates/OUTPUT.txt
+  command: node products/increment-process/increments/010/artifacts/backlog-schema-validates/validate.mjs
+  output: products/increment-process/increments/010/artifacts/backlog-schema-validates/OUTPUT.txt
   ran_at: 2026-08-03
   environment: |
     ajv 2020-12 from this repository's node_modules (installed with design-process 0.1.0), Node
