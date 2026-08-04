@@ -156,13 +156,34 @@ decisions:
     facets: shim
 
   # re-entered from the branch record's proposed-final set, for ruling
-  - id: d-fa9h5y34
-    title: one scenario per file leads
+  - id: d-03cbb3td
+    title: the setup file installs a fresh default server per test file
     statement: |
-      the README documents one scenario per file as the pattern and loadPack as the escape hatch
-      beneath it, rather than presenting the two as equal choices
+      the plugin's shipped setup file installs a fresh default server before each test file
+      evaluates, so an unmodified pack loads by static import with no install call and no
+      ordering the consumer writes. Freshness is per file — the runner's native per-file module
+      registries — and state carries between tests within a file; per-test freshness is
+      loadPack's alone. The consumer still writes no setup file
     status: delegated
     because:
+      - r-uobnqsfg
+      - d-2mngzzpg
+      - d-c9mjn8o5
+      - f:a-setup-file-server-makes-a-pack-test-file-boilerplate-free
+      - f:one-server-per-file-carries-state-into-the-next-test
+    facets: shim
+
+  - id: d-fa9h5y34
+    title: the static-import default leads, loadPack beneath it
+    statement: |
+      the README documents the default path as the pattern — static imports against the
+      setup-installed server, one scenario per file — and loadPack as the escape hatch beneath
+      it, named for the cases that need a fresh evaluation: pack module-scope state a test
+      mutates, load-time behaviour itself, scheduled-run accumulation, or a server that must
+      differ before the pack evaluates. The two are not presented as equal choices
+    status: delegated
+    because:
+      - d-03cbb3td
       - d-c9mjn8o5
       - f:one-server-per-file-carries-state-into-the-next-test
     facets: shim
@@ -224,8 +245,9 @@ decisions:
     statement: |
       handed to the implementation's companion increment: the placeholder behaviour of
       module-surface classes the fakes do not implement, beyond what the harvested rulings fix;
-      the `world`/`system` binding mechanism within what the ruled isolation shape fixes; and
-      the sibling-module stubs' surface and behaviour
+      the `world`/`system` binding mechanism within what the ruled isolation shape fixes; the
+      sibling-module stubs' surface and behaviour; and how a test reaches the setup-installed
+      default server
     status: delegated
     because:
       - d-2mngzzpg
