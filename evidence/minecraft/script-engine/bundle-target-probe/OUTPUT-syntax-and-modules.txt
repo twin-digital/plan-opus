@@ -1,0 +1,321 @@
+=== environment
+Docker Compose version v5.2.0
+DOCKER_HOST=ssh://prod-development-docker
+bedrock_server-1.26.40.8
+world activation list: [{"pack_id":"a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70","version":[1,0,0]}]
+base manifest: {"format_version":2,"header":{"name":"script engine probe","description":"probes the Bedrock script engine's syntax level and module semantics","uuid":"a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70","version":[1,0,0],"min_engine_version":[1,26,0]},"modules":[{"type":"script","language":"javascript","entry":"scripts/main.js","uuid":"b4e2da05-8c3e-4f69-ab12-7d9e6a3f5c81","version":[1,0,0]}],"dependencies":[{"module_name":"@minecraft/server","version":"2.0.0"}]}
+
+=== globals   (entry=scripts/main.js, applied by restart)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/manifest.json
+    /data/development_behavior_packs/probe-pack/scripts/main.js
+  server said:
+    [2026-08-04 21:42:35:998 INFO] Pack Stack - [00] script engine probe (id: a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70, version: 1.0.0) @ development_behavior_packs/probe-pack
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: start
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: typeof globalThis = object
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: typeof console = object
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: console methods = error,info,log,warn
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: typeof process = undefined
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: typeof Buffer = undefined
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: typeof require = undefined
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: typeof module = undefined
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: typeof exports = undefined
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: typeof __dirname = undefined
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: typeof __filename = undefined
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: typeof global = undefined
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: typeof setTimeout = undefined
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: typeof setInterval = undefined
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: typeof queueMicrotask = undefined
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: typeof fetch = undefined
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: typeof TextEncoder = undefined
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: typeof structuredClone = undefined
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: typeof URL = undefined
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: typeof WeakRef = function
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: typeof FinalizationRegistry = function
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: typeof Intl = undefined
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: typeof BigInt = function
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: typeof Proxy = function
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: typeof Reflect = object
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: typeof SharedArrayBuffer = function
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: typeof Atomics = undefined
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: typeof eval = undefined
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: eval works = THREW ReferenceError: 'eval' is not defined
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: new Function works = THREW TypeError: Function from string is not supported
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: Object.hasOwn = function
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: Object.groupBy = function
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: Object.fromEntries = function
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: Array.prototype.at = function
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: Array.prototype.flat = function
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: Array.prototype.findLast = function
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: Array.prototype.toSorted = function
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: Array.prototype.toReversed = function
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: Array.prototype.with = function
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: Array.fromAsync = undefined
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: String.prototype.replaceAll = function
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: String.prototype.at = function
+    [2026-08-04 21:42:36:020 WARN] [Scripting] [probe] globals: String.prototype.trimStart = function
+    [2026-08-04 21:42:36:021 WARN] [Scripting] [probe] globals: Promise.allSettled = function
+    [2026-08-04 21:42:36:021 WARN] [Scripting] [probe] globals: Promise.any = function
+    [2026-08-04 21:42:36:021 WARN] [Scripting] [probe] globals: Promise.withResolvers = function
+    [2026-08-04 21:42:36:021 WARN] [Scripting] [probe] globals: Promise.try = undefined
+    [2026-08-04 21:42:36:021 WARN] [Scripting] [probe] globals: Set.prototype.union = undefined
+    [2026-08-04 21:42:36:021 WARN] [Scripting] [probe] globals: Iterator global = undefined
+    [2026-08-04 21:42:36:021 WARN] [Scripting] [probe] globals: Symbol.asyncIterator = symbol
+    [2026-08-04 21:42:36:021 WARN] [Scripting] [probe] globals: Error cause supported = c
+    [2026-08-04 21:42:36:021 WARN] [Scripting] [probe] globals: typeof import.meta (indirect) = see import-meta variant
+    [2026-08-04 21:42:36:021 WARN] [Scripting] [probe] globals: Function.prototype.toString of native = function keys() {
+    [2026-08-04 21:42:36:021 WARN] [Scripting] [probe] globals: engine hint: Error.prototype.stack =     at <anonymous> (main.js)
+    [2026-08-04 21:42:36:021 WARN] [Scripting] [probe] globals: engine hint: quickjs marker = undefined/undefined/undefined
+    [2026-08-04 21:42:36:021 WARN] [Scripting] [probe] globals: engine hint: v8 marker = undefined/undefined
+    [2026-08-04 21:42:36:021 WARN] [Scripting] [probe] globals: engine hint: RegExp source flags = compile,constructor,dotAll,exec,flags,global,hasIndices,ignoreCase,multiline,source,sticky,test,toString,unicode
+    [2026-08-04 21:42:36:021 WARN] [Scripting] [probe] globals: done
+
+=== es2020   (entry=scripts/main.js, applied by restart)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/manifest.json
+    /data/development_behavior_packs/probe-pack/scripts/main.js
+  server said:
+    [2026-08-04 21:42:47:478 INFO] Pack Stack - [00] script engine probe (id: a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70, version: 1.0.0) @ development_behavior_packs/probe-pack
+    [2026-08-04 21:42:47:500 WARN] [Scripting] [probe] es2020: start
+    [2026-08-04 21:42:47:500 WARN] [Scripting] [probe] es2020: OK oc=1 ocCall=7 nn=fallback big=1000 matchAll=2
+
+=== es2021   (entry=scripts/main.js, applied by restart)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/manifest.json
+    /data/development_behavior_packs/probe-pack/scripts/main.js
+  server said:
+    [2026-08-04 21:42:58:800 INFO] Pack Stack - [00] script engine probe (id: a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70, version: 1.0.0) @ development_behavior_packs/probe-pack
+    [2026-08-04 21:42:58:823 WARN] [Scripting] [probe] es2021: start
+    [2026-08-04 21:42:58:823 WARN] [Scripting] [probe] es2021: OK a=set b=5 c=9 n=1000000 r=x+y+z
+
+=== es2022-syntax   (entry=scripts/main.js, applied by restart)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/manifest.json
+    /data/development_behavior_packs/probe-pack/scripts/main.js
+  server said:
+    [2026-08-04 21:43:10:322 INFO] Pack Stack - [00] script engine probe (id: a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70, version: 1.0.0) @ development_behavior_packs/probe-pack
+    [2026-08-04 21:43:10:344 WARN] [Scripting] [probe] es2022-syntax: start
+    [2026-08-04 21:43:10:345 WARN] [Scripting] [probe] es2022-syntax: OK value=1 brand=true static=static-block-ran kind=counter at=3 cause=why
+
+=== top-level-await   (entry=scripts/main.js, applied by restart)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/manifest.json
+    /data/development_behavior_packs/probe-pack/scripts/main.js
+  server said:
+    [2026-08-04 21:43:21:594 INFO] Pack Stack - [00] script engine probe (id: a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70, version: 1.0.0) @ development_behavior_packs/probe-pack
+    [2026-08-04 21:43:21:617 WARN] [Scripting] [probe] top-level-await: start
+    [2026-08-04 21:43:21:617 WARN] [Scripting] [probe] top-level-await: OK v=resolved-at-top-level
+
+=== es2023-2024   (entry=scripts/main.js, applied by restart)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/manifest.json
+    /data/development_behavior_packs/probe-pack/scripts/main.js
+  server said:
+    [2026-08-04 21:43:32:687 INFO] Pack Stack - [00] script engine probe (id: a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70, version: 1.0.0) @ development_behavior_packs/probe-pack
+    [2026-08-04 21:43:32:709 WARN] [Scripting] [probe] es2023-2024: start
+    [2026-08-04 21:43:32:709 WARN] [Scripting] [probe] es2023-2024: findLast=2
+    [2026-08-04 21:43:32:709 WARN] [Scripting] [probe] es2023-2024: toSorted=[1,2,3]
+    [2026-08-04 21:43:32:709 WARN] [Scripting] [probe] es2023-2024: with=[9,1,2]
+    [2026-08-04 21:43:32:709 WARN] [Scripting] [probe] es2023-2024: hasOwn=true
+    [2026-08-04 21:43:32:709 WARN] [Scripting] [probe] es2023-2024: groupBy={"odd":[1,3],"even":[2]}
+    [2026-08-04 21:43:32:709 WARN] [Scripting] [probe] es2023-2024: withResolvers=function
+    [2026-08-04 21:43:32:709 WARN] [Scripting] [probe] es2023-2024: done
+
+=== regexp-v-flag   (entry=scripts/main.js, applied by restart)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/manifest.json
+    /data/development_behavior_packs/probe-pack/scripts/main.js
+  server said:
+    [2026-08-04 21:43:43:811 INFO] Pack Stack - [00] script engine probe (id: a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70, version: 1.0.0) @ development_behavior_packs/probe-pack
+    [2026-08-04 21:43:43:835 ERROR] [Scripting] [script engine probe] SyntaxError: invalid regular expression flags    at main.js:2
+    [2026-08-04 21:43:43:835 ERROR] [Scripting] Plugin [script engine probe - 1.0.0] - [main.js] ran with error: [SyntaxError: invalid regular expression flags    at main.js:2
+
+=== async-generators   (entry=scripts/main.js, applied by restart)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/manifest.json
+    /data/development_behavior_packs/probe-pack/scripts/main.js
+  server said:
+    [2026-08-04 21:43:54:898 INFO] Pack Stack - [00] script engine probe (id: a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70, version: 1.0.0) @ development_behavior_packs/probe-pack
+    [2026-08-04 21:43:54:921 WARN] [Scripting] [probe] async-generators: start
+    [2026-08-04 21:43:54:921 WARN] [Scripting] [probe] async-generators: OK sum=3
+
+=== import-meta   (entry=scripts/main.js, applied by restart)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/manifest.json
+    /data/development_behavior_packs/probe-pack/scripts/main.js
+  server said:
+    [2026-08-04 21:44:06:222 INFO] Pack Stack - [00] script engine probe (id: a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70, version: 1.0.0) @ development_behavior_packs/probe-pack
+    [2026-08-04 21:44:06:244 WARN] [Scripting] [probe] import-meta: start
+    [2026-08-04 21:44:06:244 WARN] [Scripting] [probe] import-meta: typeof import.meta = object
+    [2026-08-04 21:44:06:244 WARN] [Scripting] [probe] import-meta: url = undefined
+    [2026-08-04 21:44:06:244 WARN] [Scripting] [probe] import-meta: keys =
+
+=== cjs-module   (entry=scripts/main.js, applied by restart)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/manifest.json
+    /data/development_behavior_packs/probe-pack/scripts/main.js
+  server said:
+    [2026-08-04 21:44:17:374 INFO] Pack Stack - [00] script engine probe (id: a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70, version: 1.0.0) @ development_behavior_packs/probe-pack
+    [2026-08-04 21:44:17:395 WARN] [Scripting] [probe] cjs-module: start
+    [2026-08-04 21:44:17:395 ERROR] [Scripting] [script engine probe] ReferenceError: 'module' is not defined    at <anonymous> (main.js:2)
+    [2026-08-04 21:44:17:395 ERROR] [Scripting] Plugin [script engine probe - 1.0.0] - [main.js] ran with error: [ReferenceError: 'module' is not defined    at <anonymous> (main.js:2)
+
+=== node-globals-bare   (entry=scripts/main.js, applied by restart)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/manifest.json
+    /data/development_behavior_packs/probe-pack/scripts/main.js
+  server said:
+    [2026-08-04 21:44:28:551 INFO] Pack Stack - [00] script engine probe (id: a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70, version: 1.0.0) @ development_behavior_packs/probe-pack
+    [2026-08-04 21:44:28:573 WARN] [Scripting] [probe] node-globals-bare: start
+    [2026-08-04 21:44:28:573 WARN] [Scripting] [probe] node-globals-bare: process THREW ReferenceError: 'process' is not defined
+    [2026-08-04 21:44:28:573 WARN] [Scripting] [probe] node-globals-bare: Buffer THREW ReferenceError: 'Buffer' is not defined
+    [2026-08-04 21:44:28:573 WARN] [Scripting] [probe] node-globals-bare: __dirname THREW ReferenceError: '__dirname' is not defined
+    [2026-08-04 21:44:28:573 WARN] [Scripting] [probe] node-globals-bare: require THREW ReferenceError: 'require' is not defined
+    [2026-08-04 21:44:28:573 WARN] [Scripting] [probe] node-globals-bare: done
+
+=== node-builtin-import   (entry=scripts/main.js, applied by restart)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/manifest.json
+    /data/development_behavior_packs/probe-pack/scripts/main.js
+  server said:
+    [2026-08-04 21:44:40:056 INFO] Pack Stack - [00] script engine probe (id: a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70, version: 1.0.0) @ development_behavior_packs/probe-pack
+    [2026-08-04 21:44:40:078 ERROR] [Scripting] [script engine probe] ReferenceError: Import [node:url.js] not found.
+    [2026-08-04 21:44:40:078 ERROR] [Scripting] Plugin [script engine probe - 1.0.0] - [main.js] ran with error: [ReferenceError: Import [node:url.js] not found.]
+
+=== import-sibling-js   (entry=scripts/main.js, applied by restart)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/manifest.json
+    /data/development_behavior_packs/probe-pack/scripts/helper.js
+    /data/development_behavior_packs/probe-pack/scripts/main.js
+  server said:
+    [2026-08-04 21:44:51:034 INFO] Pack Stack - [00] script engine probe (id: a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70, version: 1.0.0) @ development_behavior_packs/probe-pack
+    [2026-08-04 21:44:51:056 WARN] [Scripting] [probe] import-sibling-js: helper.js evaluated
+    [2026-08-04 21:44:51:056 WARN] [Scripting] [probe] import-sibling-js: start
+    [2026-08-04 21:44:51:056 WARN] [Scripting] [probe] import-sibling-js: OK value=from-sibling-helper-js
+
+=== import-noext   (entry=scripts/main.js, applied by restart)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/manifest.json
+    /data/development_behavior_packs/probe-pack/scripts/helper.js
+    /data/development_behavior_packs/probe-pack/scripts/main.js
+  server said:
+    [2026-08-04 21:45:02:399 INFO] Pack Stack - [00] script engine probe (id: a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70, version: 1.0.0) @ development_behavior_packs/probe-pack
+    [2026-08-04 21:45:02:421 WARN] [Scripting] [probe] import-noext: start
+    [2026-08-04 21:45:02:421 WARN] [Scripting] [probe] import-noext: OK value=from-extensionless-specifier
+
+=== import-bare-relative   (entry=scripts/main.js, applied by restart)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/manifest.json
+    /data/development_behavior_packs/probe-pack/scripts/helper.js
+    /data/development_behavior_packs/probe-pack/scripts/main.js
+  server said:
+    [2026-08-04 21:45:13:698 INFO] Pack Stack - [00] script engine probe (id: a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70, version: 1.0.0) @ development_behavior_packs/probe-pack
+    [2026-08-04 21:45:13:720 WARN] [Scripting] [probe] import-bare-relative: start
+    [2026-08-04 21:45:13:720 WARN] [Scripting] [probe] import-bare-relative: OK value=resolved-from-a-specifier-with-no-dot-slash
+
+=== import-mjs   (entry=scripts/main.js, applied by restart)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/manifest.json
+    /data/development_behavior_packs/probe-pack/scripts/helper.mjs
+    /data/development_behavior_packs/probe-pack/scripts/main.js
+  server said:
+    [2026-08-04 21:45:24:974 INFO] Pack Stack - [00] script engine probe (id: a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70, version: 1.0.0) @ development_behavior_packs/probe-pack
+    [2026-08-04 21:45:24:995 ERROR] [Scripting] [script engine probe] ReferenceError: Import [helper.mjs.js] not found.
+    [2026-08-04 21:45:24:995 ERROR] [Scripting] Plugin [script engine probe - 1.0.0] - [main.js] ran with error: [ReferenceError: Import [helper.mjs.js] not found.]
+
+=== import-subdir   (entry=scripts/main.js, applied by restart)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/manifest.json
+    /data/development_behavior_packs/probe-pack/scripts/lib/deep.js
+    /data/development_behavior_packs/probe-pack/scripts/main.js
+  server said:
+    [2026-08-04 21:45:36:401 INFO] Pack Stack - [00] script engine probe (id: a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70, version: 1.0.0) @ development_behavior_packs/probe-pack
+    [2026-08-04 21:45:36:423 WARN] [Scripting] [probe] import-subdir: start
+    [2026-08-04 21:45:36:423 WARN] [Scripting] [probe] import-subdir: OK value=from-subdir-lib-deep-js
+
+=== import-parent-dir   (entry=scripts/main.js, applied by restart)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/manifest.json
+    /data/development_behavior_packs/probe-pack/scripts/main.js
+    /data/development_behavior_packs/probe-pack/scripts/nested/leaf.js
+    /data/development_behavior_packs/probe-pack/scripts/shared.js
+  server said:
+    [2026-08-04 21:45:47:436 INFO] Pack Stack - [00] script engine probe (id: a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70, version: 1.0.0) @ development_behavior_packs/probe-pack
+    [2026-08-04 21:45:47:458 WARN] [Scripting] [probe] import-parent-dir: start
+    [2026-08-04 21:45:47:458 WARN] [Scripting] [probe] import-parent-dir: OK leaf=leaf+from-parent-dir-shared
+
+=== import-from-pack-root   (entry=scripts/main.js, applied by restart)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/helper.js
+    /data/development_behavior_packs/probe-pack/manifest.json
+    /data/development_behavior_packs/probe-pack/scripts/main.js
+  server said:
+    [2026-08-04 21:45:58:590 INFO] Pack Stack - [00] script engine probe (id: a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70, version: 1.0.0) @ development_behavior_packs/probe-pack
+    [2026-08-04 21:45:58:612 ERROR] [Scripting] [script engine probe] ReferenceError: Import [helper.js] not found.
+    [2026-08-04 21:45:58:612 ERROR] [Scripting] Plugin [script engine probe - 1.0.0] - [main.js] ran with error: [ReferenceError: Import [helper.js] not found.]
+
+=== import-scripts-prefixed   (entry=scripts/main.js, applied by restart)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/manifest.json
+    /data/development_behavior_packs/probe-pack/scripts/helper.js
+    /data/development_behavior_packs/probe-pack/scripts/main.js
+  server said:
+    [2026-08-04 21:46:09:619 INFO] Pack Stack - [00] script engine probe (id: a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70, version: 1.0.0) @ development_behavior_packs/probe-pack
+    [2026-08-04 21:46:09:640 ERROR] [Scripting] [script engine probe] ReferenceError: Import [scripts/helper.js] not found.
+    [2026-08-04 21:46:09:641 ERROR] [Scripting] Plugin [script engine probe - 1.0.0] - [main.js] ran with error: [ReferenceError: Import [scripts/helper.js] not found.]
+
+=== dynamic-import   (entry=scripts/main.js, applied by restart)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/manifest.json
+    /data/development_behavior_packs/probe-pack/scripts/lazy.js
+    /data/development_behavior_packs/probe-pack/scripts/main.js
+  server said:
+    [2026-08-04 21:46:20:780 INFO] Pack Stack - [00] script engine probe (id: a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70, version: 1.0.0) @ development_behavior_packs/probe-pack
+    [2026-08-04 21:46:20:805 WARN] [Scripting] [probe] dynamic-import: start typeof-import-expr-parsed
+    [2026-08-04 21:46:20:805 WARN] [Scripting] [probe] dynamic-import: main body finished
+    [2026-08-04 21:46:20:805 WARN] [Scripting] [probe] dynamic-import: lazy.js evaluated
+    [2026-08-04 21:46:20:805 WARN] [Scripting] [probe] dynamic-import: OK lazy=from-dynamically-imported-chunk
+
+=== orphan-file   (entry=scripts/main.js, applied by restart)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/manifest.json
+    /data/development_behavior_packs/probe-pack/scripts/main.js
+    /data/development_behavior_packs/probe-pack/scripts/orphan.js
+  server said:
+    [2026-08-04 21:46:31:798 INFO] Pack Stack - [00] script engine probe (id: a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70, version: 1.0.0) @ development_behavior_packs/probe-pack
+    [2026-08-04 21:46:31:819 WARN] [Scripting] [probe] orphan-file: entry evaluated; an orphan.js sits beside it, unimported
+
+=== entry-mjs   (entry=scripts/main.mjs, applied by restart)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/manifest.json
+    /data/development_behavior_packs/probe-pack/scripts/main.mjs
+  server said:
+    [2026-08-04 21:46:42:616 INFO] Pack Stack - [00] script engine probe (id: a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70, version: 1.0.0) @ development_behavior_packs/probe-pack
+    [2026-08-04 21:46:42:626 ERROR] [Scripting] Plugin [script engine probe - 1.0.0] - entry [scripts/main.mjs] not supported for runtime [JavaScript].
+
+=== entry-nested   (entry=scripts/deep/inner/start.js, applied by restart)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/manifest.json
+    /data/development_behavior_packs/probe-pack/scripts/deep/inner/start.js
+  server said:
+    [2026-08-04 21:46:53:439 INFO] Pack Stack - [00] script engine probe (id: a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70, version: 1.0.0) @ development_behavior_packs/probe-pack
+    [2026-08-04 21:46:53:461 WARN] [Scripting] [probe] entry-nested: OK a nested entry path was evaluated
+
+=== entry-pack-root   (entry=bootstrap.js, applied by restart)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/bootstrap.js
+    /data/development_behavior_packs/probe-pack/manifest.json
+  server said:
+    [2026-08-04 21:47:04:191 INFO] Pack Stack - [00] script engine probe (id: a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70, version: 1.0.0) @ development_behavior_packs/probe-pack
+    [2026-08-04 21:47:04:202 ERROR] [Scripting] Plugin [script engine probe - 1.0.0] - does not contain main file [bootstrap.js].
+
+=== entry-other-dir   (entry=assets/main.js, applied by restart)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/assets/main.js
+    /data/development_behavior_packs/probe-pack/manifest.json
+  server said:
+    [2026-08-04 21:47:16:230 INFO] Pack Stack - [00] script engine probe (id: a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70, version: 1.0.0) @ development_behavior_packs/probe-pack
+    [2026-08-04 21:47:16:241 ERROR] [Scripting] Plugin [script engine probe - 1.0.0] - does not contain main file [assets/main.js].
+
+
+=== done

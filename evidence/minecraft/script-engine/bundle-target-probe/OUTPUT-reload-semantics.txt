@@ -1,0 +1,66 @@
+=== environment
+Docker Compose version v5.2.0
+DOCKER_HOST=ssh://prod-development-docker
+bedrock_server-1.26.40.8
+world activation list: [{"pack_id":"a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70","version":[1,0,0]}]
+base manifest: {"format_version":2,"header":{"name":"script engine probe","description":"probes the Bedrock script engine's syntax level and module semantics","uuid":"a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70","version":[1,0,0],"min_engine_version":[1,26,0]},"modules":[{"type":"script","language":"javascript","entry":"scripts/main.js","uuid":"b4e2da05-8c3e-4f69-ab12-7d9e6a3f5c81","version":[1,0,0]}],"dependencies":[{"module_name":"@minecraft/server","version":"2.0.0"}]}
+
+=== import-sibling-js   (entry=scripts/main.js, applied by restart)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/manifest.json
+    /data/development_behavior_packs/probe-pack/scripts/helper.js
+    /data/development_behavior_packs/probe-pack/scripts/main.js
+  server said:
+    [2026-08-04 21:49:20:997 INFO] Pack Stack - [00] script engine probe (id: a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70, version: 1.0.0) @ development_behavior_packs/probe-pack
+    [2026-08-04 21:49:21:018 WARN] [Scripting] [probe] import-sibling-js: helper.js evaluated
+    [2026-08-04 21:49:21:018 WARN] [Scripting] [probe] import-sibling-js: start
+    [2026-08-04 21:49:21:018 WARN] [Scripting] [probe] import-sibling-js: OK value=from-sibling-helper-js
+
+=== reload-adds-a-new-file   (entry=scripts/main.js, applied by reload)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/manifest.json
+    /data/development_behavior_packs/probe-pack/scripts/late-helper.js
+    /data/development_behavior_packs/probe-pack/scripts/main.js
+  server said:
+    [2026-08-04 21:49:30:804 ERROR] [Scripting] Plugin [script engine probe - 1.0.0] - [main.js] ran with error: [ReferenceError: Import [late-helper.js] not found.]
+
+=== reload-adds-a-new-file-then-restart   (entry=scripts/main.js, applied by restart)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/manifest.json
+    /data/development_behavior_packs/probe-pack/scripts/late-helper.js
+    /data/development_behavior_packs/probe-pack/scripts/main.js
+  server said:
+    [2026-08-04 21:49:41:046 INFO] Pack Stack - [00] script engine probe (id: a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70, version: 1.0.0) @ development_behavior_packs/probe-pack
+    [2026-08-04 21:49:41:068 WARN] [Scripting] [probe] reload-adds-a-new-file-then-restart: start
+    [2026-08-04 21:49:41:068 WARN] [Scripting] [probe] reload-adds-a-new-file-then-restart: OK value=late-helper.js, first deployed after the world had loaded
+
+=== reload-edits-a-loaded-file   (entry=scripts/main.js, applied by reload)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/manifest.json
+    /data/development_behavior_packs/probe-pack/scripts/helper.js
+    /data/development_behavior_packs/probe-pack/scripts/main.js
+  server said:
+    [2026-08-04 21:49:51:122 ERROR] [Scripting] Plugin [script engine probe - 1.0.0] - [main.js] ran with error: [ReferenceError: Import [helper.js] not found.]
+
+=== done
+=== import-sibling-js   (entry=scripts/main.js, applied by restart)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/manifest.json
+    /data/development_behavior_packs/probe-pack/scripts/helper.js
+    /data/development_behavior_packs/probe-pack/scripts/main.js
+  server said:
+    [2026-08-04 21:50:12:450 INFO] Pack Stack - [00] script engine probe (id: a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70, version: 1.0.0) @ development_behavior_packs/probe-pack
+    [2026-08-04 21:50:12:471 WARN] [Scripting] [probe] import-sibling-js: helper.js evaluated
+    [2026-08-04 21:50:12:471 WARN] [Scripting] [probe] import-sibling-js: start
+    [2026-08-04 21:50:12:471 WARN] [Scripting] [probe] import-sibling-js: OK value=from-sibling-helper-js
+
+=== reload-edits-a-loaded-file   (entry=scripts/main.js, applied by reload)
+  pack as deployed:
+    /data/development_behavior_packs/probe-pack/manifest.json
+    /data/development_behavior_packs/probe-pack/scripts/helper.js
+    /data/development_behavior_packs/probe-pack/scripts/main.js
+  server said:
+    [2026-08-04 21:50:22:661 WARN] [Scripting] [probe] reload-edits-a-loaded-file: start
+    [2026-08-04 21:50:22:661 WARN] [Scripting] [probe] reload-edits-a-loaded-file: OK value=EDITED-then-reloaded-without-a-restart
+
+=== done

@@ -1,0 +1,37 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "script engine probe",
+    "description": "probes the Bedrock script engine's syntax level and module semantics",
+    "uuid": "a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      26,
+      0
+    ]
+  },
+  "modules": [
+    {
+      "type": "script",
+      "language": "javascript",
+      "entry": "scripts/main.js",
+      "uuid": "b4e2da05-8c3e-4f69-ab12-7d9e6a3f5c81",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.0.0"
+    }
+  ]
+}

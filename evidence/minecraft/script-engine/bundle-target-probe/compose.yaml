@@ -1,0 +1,16 @@
+name: bp-script-engine-probe
+services:
+  bedrock:
+    image: itzg/minecraft-bedrock-server
+    environment:
+      EULA: "TRUE"
+      LEVEL_NAME: dev
+      SERVER_NAME: bp-script-engine-probe
+      GAMEMODE: creative
+      CONTENT_LOG_FILE_ENABLED: "true"
+      CONTENT_LOG_CONSOLE_OUTPUT_ENABLED: "true"
+      SERVER_PORT: "19132"
+    volumes:
+      - data:/data
+volumes:
+  data:
