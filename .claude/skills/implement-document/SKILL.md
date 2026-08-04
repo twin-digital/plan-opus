@@ -1,5 +1,5 @@
 ---
-version: "4"
+version: "9"
 name: implement-document
 description: Implement one tree-consumed package (document or agent-skill kind) inside a running implementation, through the Claims, Compose, Check waves. Invoked by the implement skill; use directly when asked to ship or revise a document or skill against a product's fold.
 ---
@@ -17,15 +17,20 @@ they target has published.
 | **Compose** | implement | the document at its permanent home | the claim list; every draft claim checked against the fold |
 | **Check** | implement | coverage entries per claim | the document, read against each claim |
 
-**prepare** is the Claims wave; the orchestrator reconciles allocation collisions and gaps
-across siblings at the prepare merge. **implement** runs Claims first where it has not run,
-then Compose and Check.
+## Phases
+
+**survey** maps to no wave: read-only against a fold or draft fold, it returns the choices
+this package's build would meet that the fold neither decides nor defers, with the
+implementer's reading of each, for Clarify to classify — a census in the shape the
+dispatcher's skill defines. **prepare** is the Claims wave; the orchestrator reconciles
+allocation collisions and gaps across siblings at the prepare merge. **implement** runs
+Claims first where it has not run, then Compose and Check.
 
 ## Claims
 
 A selection and an allocation, not a restatement: from everything in force at the target, the
 claims *this* document is responsible for stating, each mapped to where it will be stated.
-Surface the problems before composing: two documents owning one claim, a claim no planned
+Deferred decisions get no allocation: a deferral without an answer is not a gap. Surface the problems before composing: two documents owning one claim, a claim no planned
 section could state, a claim nothing — document or another package's evidence — will carry. For an agent-skill, the claims are the process
 rules the skill operationalizes. The list is transient; keep it in a scratch location.
 
@@ -37,7 +42,9 @@ the work: a question the fold left open is settled narrowly and recorded, not ge
 from. Check every draft claim against the fold as
 you go: drafts predate rulings, so expect drift. What you find superseded, you write to the
 fold's state, not the draft's. A claim in the draft resting on no foundation is extracted into
-the companion increment or dropped, never transcribed.
+the companion increment or dropped, never transcribed. Extract or drop by the
+implementation-detail test (`docs/process-reference.md`): drop what no consumer could observe
+and no reimplementation must preserve.
 
 ## Check
 

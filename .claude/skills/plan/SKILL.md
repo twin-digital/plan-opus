@@ -1,13 +1,13 @@
 ---
-version: "7"
+version: "9"
 name: plan
 description: Run the Plan phase for one increment — open it at the product's next number, work Clarify in the foundation sources, and loop Ratify through the increment's pull request until the owner declares it settled and the merge gate passes. Use when asked to plan an increment, run the Plan phase, or drive a product's design to a mergeable state in this repository.
 ---
 
 # Plan an increment
 
-You are driving one increment of `<product>` from creation to publish: Capture, Clarify, and
-the Ratify loop. The normative rules are `docs/process-reference.md` (Capture, Clarify, Open
+You are driving one increment of `<product>` from creation to publish: Capture, Clarify, the
+survey offer, and the Ratify loop. The normative rules are `docs/process-reference.md` (Capture, Clarify, Open
 questions, Ratify, Publish is the merge); the content-quality rubric is `docs/authoring.md`;
 this skill is the operational sequence. Validate every change with `npm run check`.
 
@@ -32,7 +32,9 @@ happens:
   (fact, decision, or requirement); raising one is a form of answering now, and beats a guess.
 - **decisions** — the big-picture calls that follow from the requirements, entering
   `proposed`. The consumer-visible package set a build would need is proposed here too, as
-  decisions: decomposition is design work.
+  decisions: decomposition is design work. A choice that cannot yet be made is recorded as
+  a decision too — a deferral, its statement naming what is deferred and to whom; a
+  question routed to a decision may close by minting one.
 - **contracts** — the shapes the design speaks about, bound through the model as they settle.
 
 **Plan fixes the public shape only.** Structure below the package surface is the
@@ -46,16 +48,35 @@ Check every foundation against the closing checklist of `docs/authoring.md` befo
 to the owner — the same checklist the post-Clarify review agents load as their rubric.
 Finding nothing to raise is a successful review.
 
-## 4. Ratify — the loop
+## 4. Survey — offer it and classify the census
+
+Before Ratify, report what the increment has captured and ask the owner whether to dispatch
+the survey. Recommend from the delta's shape: for, when packages, contracts, or consumer
+surfaces change; against, when norm-only. The owner's word runs it, any number of times
+across the loop.
+
+- Dispatch the implement orchestrator in survey mode — read-only — against the draft fold on
+  the increment's branch. The survey covers every package the draft fold names: those
+  `product.yaml` holds and those the increment's decisions propose.
+- Classify every choice the census returns: **decided** — a foundation determines it;
+  **deferred** — a ruled decision names the choice and whom it is handed to; or omitted as
+  an **implementation detail** — no consumer could observe it and no reimplementation must
+  preserve it, the one test `docs/process-reference.md` carries. The gaps route back into
+  Clarify.
+- A census the increment acted on persists at `drafts/survey-census.yaml` in the increment
+  that ran it; one acted on in no way is discarded.
+
+## 5. Ratify — the loop
 
 Present the owner the projection (`npx design-process show <product>`) and the question list
 through the increment's pull request. The owner rules each decision **accepted**,
 **tolerated**, **delegated**, or **rejected** — a rejection carries the owner's reason and is
-closed by a replacement whose `supersedes` names it. Apply the rulings, consume the feedback,
-and raise what it surfaces; Clarify and Ratify iterate until the owner declares the increment
-settled enough.
+closed by a replacement whose `supersedes` names it. A deferral is not among these rulings:
+it enters as `deferred` directly, and the merge ratifies it. Apply the rulings, consume the
+feedback, and raise what it surfaces; Clarify and Ratify iterate until the owner declares the
+increment settled enough.
 
-## 5. Drive to mergeable
+## 6. Drive to mergeable
 
 The increment publishes by merging, and the gate runs there:
 
@@ -64,6 +85,9 @@ The increment publishes by merging, and the gate runs there:
 - the number is the next in the product's sequence — on collision with a concurrent
   increment, the loser renames and recomputes against the fold that moved
 - `npm run check` clean
+
+Every surveyed choice is classified — decided, deferred, or omitted as an implementation
+detail — before the increment publishes.
 
 ## Bounds
 
