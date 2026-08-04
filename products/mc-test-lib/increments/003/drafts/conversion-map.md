@@ -54,10 +54,29 @@ the fold carries forward.
 
 ## Decisions
 
-None. The legacy design was exploring and had no `decisions.yaml` and no `spec.md` to harvest;
-the brief's content is motivation, scope, open questions, and tensions, none of it
-decision-shaped. No `decisions.yaml` is created; the Plan loop will propose the first ones,
-honouring `drafts/carry-forward.md`.
+On main the legacy design was exploring — `brief.md` only. The full spec cycle lived on the
+unmerged PR #121 branch (preserved; tip `75d01c8`), whose `decisions.yaml` holds 44 decisions:
+7 accepted, 13 rejected, 24 proposed when the owner rejected the spec wholesale. The original
+conversion read main alone and missed it; the owner's harvest ruling of 2026-08-04 corrected
+that. Carried into this increment's `decisions.yaml`:
+
+| branch slug | new id | status here |
+|---|---|---|
+| generated-values-cover-declared-constants | d-0z0sfc5v | accepted (was accepted) |
+| every-declared-class-is-exported | d-fd8y6nwv | accepted (was accepted) |
+| declared-error-classes-are-real-classes | d-9r5i9qog | accepted (was accepted) |
+| unset-singletons-throw | d-uj5gbt9w | accepted (was accepted) |
+| install-call-is-the-reset | d-ahlsuc8z | accepted (was accepted) |
+| version-statement-is-inert | d-wygo3zhy | accepted (was accepted) |
+| undeclared-exports-stay-absent | d-v6pg1wph | accepted (was accepted) |
+| load-pack-owns-the-ordering-and-returns-the-server | d-c9mjn8o5 | accepted by the harvest ruling |
+| one-scenario-per-file-leads | d-fa9h5y34 | proposed (was proposed-final) |
+| replacing-a-live-server-throws | d-vfqnezgt | proposed (was proposed-final) |
+
+Statements carry verbatim except where the old regime's words no longer exist: "the shim" reads
+"the aliased surface"/"the package" (one package per `r-3dgnq0sp`), and "branded as" reads "the
+fakes implement" (brands were retired by `r-d5v1hzgp`). The branch's remaining proposed set and
+its 13 rejected decisions stay on the preserved branch as Plan-loop history.
 
 ## Other dispositions
 

@@ -14,7 +14,7 @@ census:
       world/system singletons and 5 numeric constants. Enums carry generated values, the 5
       numeric constants their literal values.
     classification: decided
-    determined_by: r-vzz9rnrc, r-29dlrp9r, f:engine-surface-outside-instances
+    determined_by: r-vzz9rnrc, r-29dlrp9r, f:engine-surface-outside-instances, d-0z0sfc5v, d-fd8y6nwv, d-v6pg1wph
 
   - choice: what class each exported class binding is — fake class, placeholder, and what a placeholder does
     arises: Stub/Code — the aliased surface's class exports
@@ -62,8 +62,8 @@ census:
       Reachable only when a consumer wires the alias without the tooling; throw a distinctive
       library error on access of an uninstalled binding rather than reading undefined, in the
       spirit of r-62r76czb.
-    classification: deferred by d-ksotjt7v
-    determined_by: r-62r76czb
+    classification: decided by the harvested d-uj5gbt9w — ShimNotInstalledError
+    determined_by: d-uj5gbt9w
 
   - choice: the runner tooling's shape — what the one config entry is
     arises: Define — the tooling surface
@@ -108,8 +108,8 @@ census:
       Export one free function (an installServer(bundle)-style setter feeding the module
       bindings) from the root barrel per r-5mlc26io's everything-else-is-a-free-function rule,
       amending d-ksk6d7ua's list.
-    classification: deferred by d-ksotjt7v
-    determined_by: r-rpm1k57j, r-5mlc26io, d-ksk6d7ua
+    classification: decided by the harvested d-ahlsuc8z (__useServer semantics); its export site rides d-bvhynmr8
+    determined_by: d-ahlsuc8z, d-bvhynmr8
 
   - choice: the exact inventory of the per-test state clear — what resets, what survives
     arises: Code — the tooling's beforeEach
@@ -154,8 +154,8 @@ census:
       State it in the README beside the install instructions and in the generated surface's
       header comment; an exported version constant would be new public API not spent here. The
       peer-block collision with d-c5odl61n resolves at d-vjeple9k's ratification.
-    classification: decided by d-vjeple9k as amended (supersedes d-c5odl61n); placement is implementation-detail
-    determined_by: r-29dlrp9r, d-vjeple9k
+    classification: decided by the harvested d-wygo3zhy (exported string + README); the peer-range half is d-vjeple9k, pending
+    determined_by: r-29dlrp9r, d-wygo3zhy, d-vjeple9k
 
   - choice: how the README's coverage enumeration treats the shim facet
     arises: Document
