@@ -6,7 +6,7 @@
 
 - id: engine-probe-run
   command: execute as <player> run scriptevent mctest:run
-  output: design/minecraft/test-lib/artifacts/mctest-engine-probe-results.md
+  output: evidence/minecraft/test-lib/mctest-engine-probe-results.md
   ran_at: 2026-07-24
   environment: |
     itzg/minecraft-bedrock-server, Bedrock dedicated 1.26.31.1, @minecraft/server 2.8.0 as a pack
@@ -17,7 +17,7 @@
 
 - id: engine-deep-probe-run
   command: execute as @e[type=armor_stand,c=1] run scriptevent mctest:deep
-  output: design/minecraft/test-lib/artifacts/mctest-engine-probe-results.md
+  output: evidence/minecraft/test-lib/mctest-engine-probe-results.md
   ran_at: 2026-07-24
   environment: |
     Same server and module version as engine-probe-run, with engine-probe-pack at 0.2.0. 4/4
@@ -25,7 +25,7 @@
 
 - id: resting-state-probe-run
   command: execute as <entity> run scriptevent mctest2:rest
-  output: design/minecraft/test-lib/artifacts/mctest-resting-state-probe-results.md
+  output: evidence/minecraft/test-lib/mctest-resting-state-probe-results.md
   ran_at: 2026-07-25
   environment: |
     itzg/minecraft-bedrock-server, Bedrock dedicated 1.26.31.1, @minecraft/server 2.8.0, no
@@ -35,7 +35,7 @@
 
 - id: resting-kinematics-run
   command: execute as <armor stand> run scriptevent mctest2:rest resting-kinematics
-  output: design/minecraft/test-lib/artifacts/mctest-resting-state-probe-results.md
+  output: evidence/minecraft/test-lib/mctest-resting-state-probe-results.md
   ran_at: 2026-07-25
   environment: |
     Same server and module version as resting-state-probe-run, with the pack at 0.2.0. Two source
@@ -44,69 +44,69 @@
 
 - id: resting-kinematics-isolated-run
   command: execute as <armor stand> run scriptevent mctest2:rest resting-kinematics-isolated
-  output: design/minecraft/test-lib/artifacts/mctest-resting-state-probe-results.md
+  output: evidence/minecraft/test-lib/mctest-resting-state-probe-results.md
   ran_at: 2026-07-25
   environment: |
     Same server and module version, pack at 0.3.0, re-run with the sample uncontended after the
     earlier run's confound. 8/8 types, no PROBE CRASHED lines.
 
 - id: package-contents-probe
-  command: node design/minecraft/test-lib/artifacts/type-probes/package-contents-probe.mjs
-  output: design/minecraft/test-lib/artifacts/type-probes/package-contents-probe.out.txt
+  command: node evidence/minecraft/test-lib/type-probes/package-contents-probe.mjs
+  output: evidence/minecraft/test-lib/type-probes/package-contents-probe.out.txt
   ran_at: 2026-07-26
   environment: |
     @minecraft/server 2.8.0 installed in the type-probes project beside the script.
 
 - id: component-ids-probe
-  command: node design/minecraft/test-lib/artifacts/type-probes/component-ids-probe.mjs
-  output: design/minecraft/test-lib/artifacts/type-probes/component-ids-probe.out.txt
+  command: node evidence/minecraft/test-lib/type-probes/component-ids-probe.mjs
+  output: evidence/minecraft/test-lib/type-probes/component-ids-probe.out.txt
   ran_at: 2026-07-26
   environment: |
     Reads the declarations in @minecraft/server 2.8.0's index.d.ts. The counts are that version's
     and would differ against another.
 
 - id: component-ids-typecheck
-  command: npm run check   # tsc --noEmit, strict, in design/minecraft/test-lib/artifacts/type-probes
-  output: design/minecraft/test-lib/artifacts/type-probes/component-ids-probe.tsc.out.txt
+  command: npm run check   # tsc --noEmit, strict, in evidence/minecraft/test-lib/type-probes
+  output: evidence/minecraft/test-lib/type-probes/component-ids-probe.tsc.out.txt
   ran_at: 2026-07-26
   environment: |
     component-ids-probe.ts compiled against @minecraft/server 2.8.0 under strict mode.
 
 - id: assignability-probe
-  command: node design/minecraft/test-lib/artifacts/type-probes/assignability-probe.mjs
-  output: design/minecraft/test-lib/artifacts/type-probes/assignability-probe.out.txt
+  command: node evidence/minecraft/test-lib/type-probes/assignability-probe.mjs
+  output: evidence/minecraft/test-lib/type-probes/assignability-probe.out.txt
   ran_at: 2026-07-26
   environment: |
     Parses @minecraft/server 2.8.0's index.d.ts and re-runs assignability-probe.ts under tsc
     --noEmit, strict, reporting its exit status. Counts are that version's.
 
 - id: vanilla-data-probe
-  command: node design/minecraft/test-lib/artifacts/type-probes/vanilla-data-probe.mjs
-  output: design/minecraft/test-lib/artifacts/type-probes/vanilla-data-probe.out.txt
+  command: node evidence/minecraft/test-lib/type-probes/vanilla-data-probe.mjs
+  output: evidence/minecraft/test-lib/type-probes/vanilla-data-probe.out.txt
   ran_at: 2026-07-26
   environment: |
     @minecraft/vanilla-data 1.26.33 installed as a devDependency of the type-probes project.
 
 - id: module-surface-probe
-  command: node design/minecraft/test-lib/artifacts/type-probes/module-surface-probe.mjs
-  output: design/minecraft/test-lib/artifacts/type-probes/module-surface-probe.out.txt
+  command: node evidence/minecraft/test-lib/type-probes/module-surface-probe.mjs
+  output: evidence/minecraft/test-lib/type-probes/module-surface-probe.out.txt
   ran_at: 2026-07-26
   environment: |
     Parses @minecraft/server 2.8.0's index.d.ts for every export const and every static member.
 
 - id: pack-api-survey
   command: node 1-discover.mjs && node 2-api-index.mjs && node 3-fetch.mjs && node 4-analyze.mjs && node 5-report.mjs
-  output: design/minecraft/test-lib/artifacts/pack-api-survey/5-report.out.txt
+  output: evidence/minecraft/test-lib/pack-api-survey/5-report.out.txt
   ran_at: 2026-07-26
   environment: |
-    A five-stage pipeline in design/minecraft/test-lib/artifacts/pack-api-survey/, each stage's
+    A five-stage pipeline in evidence/minecraft/test-lib/pack-api-survey/, each stage's
     output captured beside it — 1-discover, 2-api-index, 3-fetch, 4-analyze and this report.
     3-fetch cloned 850 candidate repositories from the public GitHub corpus as it stood on the run
     date; the population is a snapshot and a later run would draw a different one.
 
 - id: throws-annotation-probe
-  command: node design/minecraft/test-lib/artifacts/type-probes/throws-annotation-probe.mjs
-  output: design/minecraft/test-lib/artifacts/type-probes/throws-annotation-probe.out.txt
+  command: node evidence/minecraft/test-lib/type-probes/throws-annotation-probe.mjs
+  output: evidence/minecraft/test-lib/type-probes/throws-annotation-probe.out.txt
   ran_at: 2026-07-26
   environment: |
     Pairs each declared member of @minecraft/server 2.8.0's index.d.ts with its `@throws`
@@ -116,7 +116,7 @@
 
 - id: access-guard-probe-run
   command: execute as <armor stand> run scriptevent mctest6:<set>
-  output: design/minecraft/test-lib/artifacts/mctest-access-guard-probe-results.md
+  output: evidence/minecraft/test-lib/mctest-access-guard-probe-results.md
   ran_at: 2026-07-28
   environment: |
     itzg/minecraft-bedrock-server, Bedrock dedicated 1.26.31.1, @minecraft/server 2.8.0 as a pack
@@ -128,7 +128,7 @@
 
 - id: damage-threshold-probe-run
   command: execute as <armor stand> run scriptevent mctest4:<set>
-  output: design/minecraft/test-lib/artifacts/mctest-damage-threshold-probe-results.md
+  output: evidence/minecraft/test-lib/mctest-damage-threshold-probe-results.md
   ran_at: 2026-07-27
   environment: |
     itzg/minecraft-bedrock-server, Bedrock dedicated 1.26.31.1, @minecraft/server 2.8.0 as a pack
@@ -140,7 +140,7 @@
 
 - id: effect-name-probe-run
   command: execute as <armor stand> run scriptevent mctest5:<set>
-  output: design/minecraft/test-lib/artifacts/mctest-effect-name-probe-results.md
+  output: evidence/minecraft/test-lib/mctest-effect-name-probe-results.md
   ran_at: 2026-07-27
   environment: |
     itzg/minecraft-bedrock-server, Bedrock dedicated 1.26.31.1, @minecraft/server 2.8.0 as a pack
@@ -152,7 +152,7 @@
 
 - id: guard-and-effect-probe-run
   command: execute as <armor stand> run scriptevent mctest3:<set>
-  output: design/minecraft/test-lib/artifacts/mctest-guard-and-effect-probe-results.md
+  output: evidence/minecraft/test-lib/mctest-guard-and-effect-probe-results.md
   ran_at: 2026-07-27
   environment: |
     itzg/minecraft-bedrock-server, Bedrock dedicated 1.26.31.1, @minecraft/server 2.8.0 as a pack
@@ -164,7 +164,7 @@
 
 - id: return-value-probe-run
   command: execute as <armor stand> run scriptevent mctest5:<set>
-  output: design/minecraft/test-lib/artifacts/mctest-return-value-probe-results.md
+  output: evidence/minecraft/test-lib/mctest-return-value-probe-results.md
   ran_at: 2026-07-27
   environment: |
     itzg/minecraft-bedrock-server, Bedrock dedicated 1.26.31.1, @minecraft/server 2.8.0 as a pack
@@ -176,7 +176,7 @@
 
 - id: death-invalidation-probe-run
   command: execute as <armor stand> run scriptevent mctest7:<set>
-  output: design/minecraft/test-lib/artifacts/mctest-death-invalidation-probe-results.md
+  output: evidence/minecraft/test-lib/mctest-death-invalidation-probe-results.md
   ran_at: 2026-07-28
   environment: |
     itzg/minecraft-bedrock-server, Bedrock dedicated 1.26.31.1, @minecraft/server 2.8.0 as a pack

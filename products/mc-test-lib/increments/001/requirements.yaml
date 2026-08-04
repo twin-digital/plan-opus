@@ -1,0 +1,301 @@
+version: "1"
+
+presets:
+  - name: nodejs-library
+    version: 1
+
+requirements:
+  # fidelity and behaviour
+  - id: r-0lbj68w9
+    title: modelled behaviour is the engine's
+    statement: |
+      where the library models a behaviour, it models the engine's, quirks included, not a
+      convenient approximation. Which behaviours are modelled is a scope decision the spec makes.
+    verification:
+      - do: pick a behaviour the library documents as modelled and look up the recorded observation or pinned declaration behind it
+      - do: exercise that behaviour against the fakes
+      - verify: the fake reproduces the recorded engine behaviour, quirks included, not a smoothed approximation of it
+    facets: fakes
+
+  - id: r-8r8gf6b7
+    title: engine claims are sourced
+    statement: |
+      a behaviour the library presents as the engine's rests on a source: the pinned version's
+      declarations and the official API reference, or a recorded observation where those are
+      silent or wrong. Where an observation and the reference disagree, the observation governs
+      and the spec records the disagreement. A simplification is never presented as the engine's
+      behaviour; the spec marks it as the library's own.
+    rationale: |
+      Requiring a recorded observation for every behaviour puts the library's cost under the
+      engine's quirkiness rather than under what the library is for.
+    verification:
+      - do: sample claims the library's documentation presents as the engine's behaviour
+      - verify: each rests on the pinned version's declarations, the official API reference, or a recorded observation
+      - verify: where an observation and the reference disagree, the observation governs and the disagreement is recorded
+      - verify: every simplification is marked as the library's own, never presented as the engine's
+    facets: fakes
+
+  - id: r-ovyzy5ey
+    title: coverage is enumerated
+    statement: |
+      the library enumerates the engine behaviours within its scope, stating each as modelled, not
+      modelled, or modelled with a divergence; every divergence is described where a user of the
+      library will find it, not only in the spec.
+    rationale: |
+      Reversing this leaves a user to meet a divergence by writing a test that passes against the
+      fake and fails against the engine — the failure the library exists to prevent.
+    verification:
+      - do: open the coverage enumeration where a user of the library finds it — the package's user-facing documentation
+      - verify: every engine behaviour within scope is stated as modelled, not modelled, or modelled with a divergence
+      - verify: each divergence is described there, not only in design material
+    facets: fakes
+
+  - id: r-dyu1bb04
+    title: synchronous event delivery
+    statement: |
+      the fake dispatches a behaving method's after-events synchronously, within the causing
+      call, rather than same-tick-deferred as the engine does.
+    rationale: |
+      The engine defers within the same tick (`f:after-events-deferred`,
+      `f:after-event-deferral-subtick`); a tickless fake has none to defer within. The cost is
+      that code after the mutating call runs after the handlers, not before.
+    informed_by:
+      - f:after-events-deferred
+      - f:after-event-deferral-subtick
+    verification:
+      - do: subscribe to a behaving method's after-event, call the method, and record the order of the handler and the statement following the call
+      - verify: the handler ran inside the causing call, before the statement after it
+    facets: fakes
+
+  - id: r-1a9mpjev
+    title: before-events can cancel
+    statement: |
+      the fake dispatches before-events synchronously ahead of the action they gate, and an event
+      a handler cancels does not take effect.
+    verification:
+      - do: subscribe to a cancellable before-event, set cancel in the handler, and call the gated action
+      - verify: the handler ran ahead of the action, and the cancelled action changed no state
+    facets: fakes
+
+  - id: r-b01oxjf9
+    title: scheduling is test-advanced
+    statement: |
+      the fake records `system` scheduling and runs a callback only when the test advances it; the
+      library starts no timer and awaits nothing.
+    rationale: |
+      84% of surveyed public packs reach `system` (`f:public-packs-reach-past-entities-and-events`) —
+      more than reach items or blocks.
+    informed_by:
+      - f:public-packs-reach-past-entities-and-events
+    verification:
+      - do: schedule callbacks through the fake `system` and let real time pass without advancing
+      - verify: nothing runs
+      - do: advance the clock through the control plane
+      - verify: only then do the recorded callbacks run
+    facets: fakes
+
+  - id: r-4dt4f8zn
+    title: fakes behave, not record
+    statement: |
+      the doubles hold real state and mutate it as their methods are called; a test asserts on
+      the resulting state (an entity's current health, the effect it now carries) rather than on
+      which methods were invoked with which arguments.
+    verification:
+      - do: call a mutating method on a fake — damage an entity carrying a health component
+      - verify: the resulting state reads back mutated, so the assertion is on state with no call log needed
+    facets: fakes
+
+  - id: r-62r76czb
+    title: fakes never fabricate
+    statement: |
+      a fake never fabricates: a read of a value the test did not supply and the engine could not
+      lack fails loudly with a distinctive error, and an unimplemented member throws distinctly.
+      Absence the engine can exhibit is not fabrication, and reads back as the engine reports it.
+    verification:
+      - do: read a value the test never supplied and the engine could not lack, and call an unimplemented member
+      - verify: the unsupplied read fails loudly with a distinctive error, and the unimplemented member throws distinctly
+      - do: read an absence the engine can exhibit — a component that is not attached
+      - verify: it reads back as the engine reports it rather than failing
+    facets: fakes
+
+  - id: r-dsjwpahw
+    title: invalidation is modelled
+    statement: |
+      a fake can be put into the unloaded/invalid state in which the real API leaves a stale
+      reference — member access throws, per the engine's actual (non-uniform) behaviour — and
+      the transition can happen mid-test on a reference a test already holds.
+    rationale: |
+      The hit that fires an event is routinely the hit that unloaded the entity, so the try/catch
+      guarding every handler is untestable without this.
+    verification:
+      - do: hold a reference to a fake entity, then put it into the invalid state mid-test
+      - verify: member access on the held reference throws per the engine's actual non-uniform behaviour
+    facets: fakes
+
+  # substitution, typing, and surface
+  - id: r-wv395rgn
+    title: object substitution, not module mocking
+    statement: |
+      the library substitutes fake objects passed into code under test; it does not replace or
+      intercept the `@minecraft/server` module import. Code that can only reach the engine
+      through a direct module import is outside its reach.
+    rationale: |
+      A later module-shim story would invalidate whole suites written against object
+      substitution, so this is fiat, not open to reargument.
+    verification:
+      - do: inspect the package for any replacement or interception of the `@minecraft/server` module import
+      - verify: none exists — a fake reaches code under test only as an object the test passes in
+    facets: fakes
+
+  - id: r-28cg0y2h
+    title: fakes are structurally assignable
+    statement: |
+      a fake declares the real type's full public shape, so it is assignable where the real
+      declared type is expected without a cast; every declared member either behaves or throws,
+      so an access never reads `undefined`.
+    verification:
+      - do: assign each fake where its real declared type is expected, in a strict TypeScript compile with no cast
+      - verify: the compile passes
+      - do: access declared members across the shape
+      - verify: each behaves or throws; no access reads undefined
+    facets: fakes
+
+  - id: r-5mlc26io
+    title: only real members; free functions for the rest
+    statement: |
+      a fake exposes no member that duplicates or shadows a real one; everything the real API
+      cannot express — constructing worlds and entities, invalidation, event emission, and any
+      read the real surface has no member for — is an exported free function over the fakes, not
+      a fake-only member.
+    verification:
+      - do: compare a fake's members against the real type's declared surface
+      - verify: no member exists that the real type does not declare
+      - do: find how construction, invalidation, event emission, and reads the real surface lacks are reached
+      - verify: each is an exported free function over the fakes
+    facets: fakes
+
+  - id: r-2trs9aai
+    title: no test-framework dependency
+    statement: |
+      the library depends on no test framework at runtime; the fakes are plain objects a caller
+      can wrap with their own spy library if they must, and they behave identically under any
+      runner.
+    verification:
+      - do: open the package's dependency declarations
+      - verify: no test framework appears at runtime
+      - do: run one suite under two different runners, wrapping a fake with a caller-supplied spy library
+      - verify: the fakes behave identically under both, and the spy wraps them like plain objects
+    facets: fakes
+
+  - id: r-d141nytz
+    title: target server version
+    statement: |
+      the library targets the stable `@minecraft/server` 2.x line, pinned at 2.8.0 and declared
+      as the peer range a consumer must satisfy; every derivation and behaviour reading is taken
+      from the pinned version.
+    verification:
+      - do: open the published package.json
+      - verify: '`@minecraft/server` is declared as a peer range on the stable 2.x line that 2.8.0 satisfies'
+      - do: sample the library's derivations and behaviour readings
+      - verify: each is taken from the pinned 2.8.0 version
+    facets: fakes
+
+  # construction, ids, and the control plane
+  - id: r-892696vk
+    title: instance-scoped world
+    statement: |
+      all fake state belongs to a world instance a test creates; the library holds no
+      module-level mutable state.
+    verification:
+      - do: create two world instances in one process and mutate state through the first
+      - verify: nothing changed in the second, with no reset hook called
+    facets: fakes
+
+  - id: r-qak2scbs
+    title: no implicit defaults
+    statement: |
+      constructing a fake populates nothing the caller did not ask for: every collection starts
+      empty and every value unset, whatever the engine would have populated there.
+    rationale: |
+      Keeping construction empty puts fidelity in presets, which can grow without reopening this rule.
+    verification:
+      - do: construct a fake with the minimum arguments and read its collections and values
+      - verify: every collection starts empty and every value the caller did not supply is unset, whatever the engine would have populated
+    facets: fakes
+
+  - id: r-b92y0kb7
+    title: presets are opt-in
+    statement: |
+      a populated starting point ships as a named preset the caller invokes explicitly, never as
+      constructor behaviour, and presets compose. A preset supplies only values a source pins; one
+      needing per-type vanilla data belongs to a package built on this one. Data a modelled member
+      needs to answer its own read is not a preset, and this bar does not reach it.
+    rationale: |
+      The source-pinned bar is what stops a preset from reintroducing invented values by the back
+      door: the three vanilla dimensions, their height ranges and localization keys are recorded
+      facts; a sheep's 14 components are not.
+    verification:
+      - do: construct a fake without invoking any preset
+      - verify: nothing a preset supplies is present
+      - do: invoke more than one preset explicitly, and inspect what each supplies
+      - verify: the presets compose, and each supplies only values a source pins
+    facets: fakes
+
+  - id: r-nmkxdrga
+    title: ids auto-assigned, typeId required
+    statement: |
+      constructing a fake entity requires a typeId; the library assigns each entity a unique
+      opaque id, which the caller may override at construction — in the engine, too, the spawner
+      never chooses the id.
+    verification:
+      - do: construct entities with and without a caller-supplied id, and attempt one without a typeId
+      - verify: the typeId-less construction is refused
+      - verify: an omitted id is auto-assigned unique and opaque, and a supplied one is used
+    facets: fakes
+
+  - id: r-rnnnz98l
+    title: control plane includes component mutation
+    statement: |
+      the control plane includes component add and remove over a live entity, since the real API
+      reshapes an entity's components only through data-driven paths the fakes do not model.
+    verification:
+      - do: add a component to a live fake entity through the control plane, then remove it
+      - verify: the entity's components reshape accordingly, mid-test, with no data-driven path involved
+    facets: fakes
+
+  - id: r-v1r7n10i
+    title: canonical prefixed storage
+    statement: |
+      an id-taking input accepts bare or prefixed ids wherever the engine accepts both, normalizes
+      on entry, and stores and reports the canonical `minecraft:`-prefixed form.
+    rationale: |
+      The engine reports the prefixed form, so reads compare equal against the
+      `@minecraft/vanilla-data` constants a test typically holds — but its tolerance of bare ids
+      is surface-dependent, not universal (`f:namespace-prefix-tolerance-is-per-surface`).
+    informed_by:
+      - f:namespace-prefix-tolerance-is-per-surface
+    verification:
+      - do: supply a bare id to an input where the engine accepts both forms, then read it back
+      - verify: the stored and reported form is the canonical `minecraft:`-prefixed one, comparing equal to the `@minecraft/vanilla-data` constant
+    facets: fakes
+
+  - id: r-94keu5iz
+    title: persisted state is modelled
+    statement: |
+      dynamic properties and scoreboard state are real state the fakes hold — readable and writable
+      on the world and on entities — and a test reads back what the code under test wrote. Neither
+      is a stub.
+    verification:
+      - do: write dynamic properties and scoreboard state on the world and on an entity from code under test
+      - verify: a test reads back exactly what was written, on both surfaces
+    facets: fakes
+
+  - id: r-lawr69rs
+    title: output is capturable
+    statement: |
+      what a fake would send to a player or to the world — messages, titles, action bars — is
+      recorded and readable through the control plane rather than discarded.
+    verification:
+      - do: send messages, titles and action bars to a player and to the world from code under test
+      - verify: each is recorded and readable through the control plane
+    facets: fakes
