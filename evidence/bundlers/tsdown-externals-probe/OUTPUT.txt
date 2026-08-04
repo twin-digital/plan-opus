@@ -1,0 +1,56 @@
+ℹ entry: src/main.ts
+ℹ Build start
+ℹ dist/noExternal-unset-no-plugin/main.mjs  0.15 kB │ gzip: 0.12 kB
+ℹ 1 files, total: 0.15 kB
+✔ Build complete in 12ms
+ℹ entry: src/main.ts
+
+ WARN  `noExternal` is deprecated. Use `deps.alwaysBundle` instead.
+
+ℹ Build start
+ℹ Hint: consider adding deps.onlyBundle option to avoid unintended bundling of dependencies, or set deps.onlyBundle: false to disable this hint.
+See more at https://tsdown.dev/options/dependencies#deps-onlybundle
+Detected dependencies in bundle:
+- dep-a
+- dep-b
+ℹ dist/noExternal-true-no-plugin/main.mjs  0.10 kB │ gzip: 0.10 kB
+ℹ 1 files, total: 0.10 kB
+✔ Build complete in 6ms
+ℹ entry: src/main.ts
+
+ WARN  `noExternal` is deprecated. Use `deps.alwaysBundle` instead.
+
+ℹ Build start
+ℹ dist/noExternal-false-no-plugin/main.mjs  0.15 kB │ gzip: 0.12 kB
+ℹ 1 files, total: 0.15 kB
+✔ Build complete in 3ms
+ℹ entry: src/main.ts
+
+ WARN  `noExternal` is deprecated. Use `deps.alwaysBundle` instead.
+
+ℹ Build start
+ℹ Hint: consider adding deps.onlyBundle option to avoid unintended bundling of dependencies, or set deps.onlyBundle: false to disable this hint.
+See more at https://tsdown.dev/options/dependencies#deps-onlybundle
+Detected dependencies in bundle:
+- dep-b
+ℹ dist/noExternal-true-plugin-externalises-dep-a/main.mjs  0.12 kB │ gzip: 0.12 kB
+ℹ 1 files, total: 0.12 kB
+✔ Build complete in 3ms
+ℹ entry: src/main.ts
+
+ WARN  `noExternal` is deprecated. Use `deps.alwaysBundle` instead.
+
+ℹ Build start
+ℹ dist/noExternal-false-plugin-externalises-dep-a/main.mjs  0.15 kB │ gzip: 0.12 kB
+ℹ 1 files, total: 0.15 kB
+✔ Build complete in 3ms
+
+=== RESULTS ===
+tsdown 0.22.14 on node v24.16.0
+fixture: src/main.ts imports dep-a and dep-b, both in the fixture package's dependencies
+
+noExternal unset, no plugin: dep-a=EXTERNAL dep-b=EXTERNAL
+noExternal () => true, no plugin: dep-a=BUNDLED dep-b=BUNDLED
+noExternal () => false, no plugin: dep-a=EXTERNAL dep-b=EXTERNAL
+noExternal () => true, plugin externalises dep-a: dep-a=EXTERNAL dep-b=BUNDLED
+noExternal () => false, plugin externalises dep-a: dep-a=EXTERNAL dep-b=EXTERNAL

@@ -1,0 +1,248 @@
+# The bundler toolchain itself — tsdown and the Rolldown plugin API beneath it. Reality any design
+# that ships bundler configuration has to fit.
+
+- id: tsdown-takes-rolldown-plugins-through-its-config
+  claim: |
+    tsdown is built on Rolldown and accepts every Rolldown plugin, as well as most Rollup and
+    Unplugin plugins. A plugin is supplied through the `plugins` array of the configuration file and
+    cannot be supplied on the command line, so behaviour a design wants a tsdown build to perform
+    travels as a plugin inside the configuration rather than as an invocation.
+  backing: documented
+  caveat: |
+    The quotes carry the Rolldown half — all Rolldown plugins are supported, and a plugin is
+    declared in the `plugins` array and not on the CLI. They say nothing about Rollup or Unplugin
+    plugins, so a design relying on one of those needs its own evidence.
+  sources:
+    - url: https://tsdown.dev/advanced/plugins
+      where: Rolldown Plugins — what tsdown accepts
+      quote: |
+        Since `tsdown` is built on Rolldown, it supports all Rolldown plugins.
+    - url: https://tsdown.dev/advanced/plugins
+      where: Using Plugins — where a plugin is declared
+      quote: |
+        To use plugins in `tsdown`, you need to add them to the `plugins` array in your configuration
+        file. Plugins **cannot** be added via the CLI.
+
+- id: tsdown-externalises-a-packages-declared-dependencies-by-default
+  claim: |
+    tsdown leaves an import of a package listed in the building package's `dependencies` external
+    by default: the output carries the bare specifier rather than the package's code. Setting
+    `noExternal` to a predicate that matches nothing does not switch externalisation off — it drops
+    the override and restores that default, so the import stays external. Only a `noExternal` that
+    matches forces such an import into the bundle.
+  backing: tested
+  sources:
+    - run: tsdown-externals-probe
+      where: the results — the same fixture built with no `noExternal` and with one matching nothing
+      quote: |
+        noExternal unset, no plugin: dep-a=EXTERNAL dep-b=EXTERNAL
+        noExternal () => true, no plugin: dep-a=BUNDLED dep-b=BUNDLED
+        noExternal () => false, no plugin: dep-a=EXTERNAL dep-b=EXTERNAL
+
+- id: a-plugin-resolveid-external-return-wins-over-noexternal
+  claim: |
+    A specifier a plugin's `resolveId` returns as `{ external: true }` is left external even under
+    `noExternal: () => true`, which would otherwise force every import into the bundle. Imports the
+    plugin does not claim still follow the `noExternal` setting. A plugin can therefore own the
+    external set outright: with `noExternal` forcing everything else bundled, exactly what the
+    plugin returns as external stays external, and no upstream default is consulted.
+  backing: tested
+  sources:
+    - run: tsdown-externals-probe
+      where: the results — the plugin case under each `noExternal` setting
+      quote: |
+        noExternal () => true, plugin externalises dep-a: dep-a=EXTERNAL dep-b=BUNDLED
+        noExternal () => false, plugin externalises dep-a: dep-a=EXTERNAL dep-b=EXTERNAL
+
+- id: tsdown-clean-empties-the-whole-output-directory-before-buildstart
+  claim: |
+    tsdown's `clean` option empties the entire output directory before the build's first plugin hook
+    runs: a plugin's `buildStart` sees an empty directory, whatever a previous build left there, and
+    files no module graph reaches are deleted along with the rest. So a build whose output directory
+    holds more than the bundler's own emit cannot use `clean` to prune its stale output — the option
+    removes everything, and it removes it too early for a plugin to read what was there.
+  backing: tested
+  sources:
+    - run: tsdown-clean-probe
+      where: the seeded tree under each `clean` setting, at buildStart and after the build
+      quote: |
+        clean=false buildStart sees: behavior_pack/manifest.json | behavior_pack/textures/a.png
+        clean=false generateBundle sees: behavior_pack/manifest.json | behavior_pack/textures/a.png
+        clean=false after build: behavior_pack/manifest.json | behavior_pack/textures/a.png | main.mjs
+        clean=true buildStart sees: (empty)
+        clean=true generateBundle sees: (empty)
+        clean=true after build: main.mjs
+
+- id: emptying-the-bundle-in-generatebundle-leaves-the-bundler-nothing-to-write
+  claim: |
+    A plugin that deletes every key from the bundle object in `generateBundle` leaves the bundler
+    nothing to write: `writeBundle` receives an empty bundle and no chunk file appears in the output
+    directory, which then holds only what the plugin wrote itself. Left alone, the same build writes
+    its chunk there. The two never overlap in time — `generateBundle` runs to completion before any
+    file is written — so a plugin writing from that hook is not racing the bundler's write. With
+    `clean: false` the bundler creates and removes nothing else: a file already in the output
+    directory is still there, unchanged, after the build.
+  backing: tested
+  sources:
+    - run: tsdown-emit-probe
+      where: the emptied case — what each hook saw and what the output directory held afterwards
+      quote: |
+        --- plugin empties the bundle and writes its own file
+            generateBundle saw: main.mjs
+            plugin wrote: dist/plugin-empties-the-bundle-and-writes-its-own-file/scripts/main.js
+            writeBundle saw: (nothing)
+            outDir after: scripts/main.js
+    - run: tsdown-emit-probe
+      where: the untouched case, and the seeded case under clean false
+      quote: |
+        --- plugin leaves the bundle alone
+            generateBundle saw: main.mjs
+            outDir after: main.mjs
+    - run: tsdown-emit-probe
+      where: the seeded case — what clean false leaves alone
+      quote: |
+        outDir after: left-over.txt | scripts/main.js
+            seeded left-over.txt: STALE-SEED
+
+- id: a-rolldown-plugin-can-declare-extra-watch-inputs
+  claim: |
+    A Rolldown plugin's context carries `addWatchFile(id)`, which registers a path the bundler
+    watches so a change to it triggers a rebuild. The path may name a file or a directory, so a file
+    no module graph reaches — an asset, a manifest, a `package.json` — can be made a rebuild trigger
+    by the plugin that reads it, and a directory can be registered for the files it does not hold
+    yet.
+  backing: documented
+  sources:
+    - url: https://rolldown.rs/reference/Interface.PluginContext
+      where: addWatchFile — the method's description
+      quote: |
+        Adds additional files to be monitored in watch mode so that changes to these files will
+        trigger rebuilds.
+    - url: https://rolldown.rs/reference/Interface.PluginContext
+      where: addWatchFile — the `id` parameter
+      quote: |
+        The path to be monitored. This can be an absolute path to a file or directory or a path
+        relative to the current working directory.
+
+- id: tsdown-entry-chunk-name-comes-from-entryfilenames
+  claim: |
+    tsdown names the ESM entry chunk it writes `main.mjs` by default, even in a package declaring
+    `type: module`, and `outputOptions.entryFileNames` in the configuration renames it: with
+    `entryFileNames: 'main.js'` the entry chunk is written as `main.js`. A chunk the bundler splits
+    out is named separately and keeps the default hashed `.mjs` form, landing beside the entry in
+    the same output directory. So a build whose output filename is fixed by something else — a
+    manifest naming the file it loads — gets that name from the configuration rather than from a
+    plugin writing the chunk itself.
+  backing: tested
+  caveat: |
+    The split chunk's name is what the probe's fixture produced, and the fixture set no naming
+    options beyond `entryFileNames`: a configuration that disables hashing or sets `chunkFileNames`
+    names that chunk differently. What the observation settles is that `entryFileNames` governs the
+    entry and not the chunks split out of it, not what any particular split chunk ends up called.
+  sources:
+    - run: tsdown-entry-name-probe
+      where: the default case and the `entryFileNames` case — what was written into outDir
+      quote: |
+        --- default naming, no outputOptions
+            generateBundle bundle keys: main.mjs
+            writeBundle bundle keys: main.mjs
+            outDir at writeBundle: main.mjs
+            outDir after build: main.mjs
+        --- entryFileNames main.js
+            generateBundle bundle keys: main.js
+            writeBundle bundle keys: main.js
+            outDir at writeBundle: main.js
+            outDir after build: main.js
+    - run: tsdown-entry-name-probe
+      where: the split-chunk case — what a chunk the bundler split out is named
+      quote: |
+        --- entryFileNames main.js, entry with a dynamic import
+            generateBundle bundle keys: lazy-CAeZz49T.mjs | main.js
+            writeBundle bundle keys: lazy-CAeZz49T.mjs | main.js
+            outDir at writeBundle: lazy-CAeZz49T.mjs | main.js
+            outDir after build: lazy-CAeZz49T.mjs | main.js
+
+- id: the-bundle-object-names-every-file-the-bundler-writes
+  claim: |
+    The keys of the bundle object a plugin receives in `writeBundle` are exactly the files the
+    bundler puts in the output directory: the entry chunk, every chunk it split out, and — when
+    `sourcemap` is on — the map, which arrives as its own entry beside its chunk rather than being
+    written invisibly. A plugin that reads those keys therefore knows the whole of the bundler's
+    emit by name, without predicting the bundler's naming rules.
+  backing: tested
+  sources:
+    - run: tsdown-entry-name-probe
+      where: the sourcemap case — the bundle keys beside the outDir listing
+      quote: |
+        --- entryFileNames main.js, sourcemap true
+            generateBundle bundle keys: main.js | main.js.map
+            writeBundle bundle keys: main.js | main.js.map
+            outDir at writeBundle: main.js | main.js.map
+            outDir after build: main.js | main.js.map
+    - run: tsdown-entry-name-probe
+      where: the split-chunk case — the bundle keys beside the outDir listing
+      quote: |
+        --- entryFileNames main.js, entry with a dynamic import
+            generateBundle bundle keys: lazy-CAeZz49T.mjs | main.js
+            writeBundle bundle keys: lazy-CAeZz49T.mjs | main.js
+            outDir at writeBundle: lazy-CAeZz49T.mjs | main.js
+            outDir after build: lazy-CAeZz49T.mjs | main.js
+
+- id: a-file-the-bundler-wrote-can-be-deleted-from-writebundle
+  claim: |
+    By the time a plugin's `writeBundle` runs, the bundler's own files are already on disk, and a
+    plugin that deletes one there leaves the output directory without it when the build ends: no
+    later step rewrites it. A plugin sweeping the output tree from that hook can therefore treat
+    the bundler's emit like any other file it finds — keeping it or removing it — rather than
+    having to prevent the write.
+  backing: tested
+  sources:
+    - run: tsdown-entry-name-probe
+      where: the deleting case — the outDir listing at writeBundle and after the build
+      quote: |
+        --- entryFileNames main.js, plugin deletes the written chunk in writeBundle
+            generateBundle bundle keys: main.js
+            writeBundle bundle keys: main.js
+            outDir at writeBundle: main.js
+            plugin deleted from writeBundle: main.js
+            outDir after build: (outDir exists, empty)
+
+- id: the-outputoptions-hook-runs-before-buildstart
+  claim: |
+    A Rolldown plugin's `outputOptions` hook fires before its `buildStart`, so nothing a plugin
+    reads at `buildStart` can reach the output options. What the hook returns does take effect:
+    an `outputOptions` hook setting `dir` and `entryFileNames` puts the entry chunk and the chunks
+    split out from it under the directory and name it gave. So where a build's output goes is
+    settled by the configuration, from what is knowable before the build starts, and not by a
+    plugin acting on what it read from disk.
+  backing: tested
+  sources:
+    - run: tsdown-output-naming-probe
+      where: the first case — the order the two hooks reported
+      quote: |
+        --- plugin sets entryFileNames and chunkFileNames from the outputOptions hook
+            outputOptions ran; buildStart had run: false
+    - run: tsdown-output-naming-probe
+      where: the second case — the hook's `dir` and `entryFileNames` against the outDir listing
+      quote: |
+        --- plugin moves the output directory from the outputOptions hook
+            outputOptions saw dir: dist/plugin-moves-the-output-directory-from-the-outputOptions-hook
+            buildStart ran
+            writeBundle bundle keys: lazy-CAeZz49T.mjs | main.js
+            outDir after build: behavior_pack/scripts/lazy-CAeZz49T.mjs | behavior_pack/scripts/main.js
+
+- id: tsdown-rewrites-an-output-file-whose-bytes-did-not-change
+  claim: |
+    tsdown writes its output files unconditionally: a second build of an unchanged source produces
+    byte-identical output and still rewrites the file in place, moving its modification time. A
+    consumer watching the output tree and keying on modification time therefore sees the bundler's
+    files change on every build, whether or not anything about them did.
+  backing: tested
+  sources:
+    - run: tsdown-rewrite-probe
+      where: the second build — bytes, modification time, and inode against the first
+      quote: |
+        --- second build, nothing changed in the source
+            bytes identical: true
+            mtime changed: true
+            inode changed: false
