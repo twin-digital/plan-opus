@@ -54,7 +54,7 @@ discovery is this product's own requirement rather than an upstream fact.
 A `dev-loop` facet joins `discovery` and `build` in `product.yaml`. All nine requirements carry
 it.
 
-## Decisions (19 proposed)
+## Decisions (20 proposed)
 
 The stranded cycle on `design/minecraft-dev-server` (tip c43cefe) proposed sixteen, harvested into
 mc-dev-server's increment 002 draft (PR #168) and never ruled. They are re-entered here against
