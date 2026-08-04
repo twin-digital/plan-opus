@@ -1,5 +1,5 @@
 ---
-version: "9"
+version: "12"
 name: implement-document
 description: Implement one tree-consumed package (document or agent-skill kind) inside a running implementation, through the Claims, Compose, Check waves. Invoked by the implement skill; use directly when asked to ship or revise a document or skill against a product's fold.
 ---
@@ -14,7 +14,7 @@ they target has published.
 | wave | phase | produces | validated against |
 |---|---|---|---|
 | **Claims** | prepare | the list of claims the document must state | the effective design at the targeted increment |
-| **Compose** | implement | the document at its permanent home | the claim list; every draft claim checked against the fold |
+| **Compose** | implement | the document at its permanent home | the claim list; every claim in the increments' `drafts/` checked against the fold |
 | **Check** | implement | coverage entries per claim | the document, read against each claim |
 
 ## Phases
@@ -39,10 +39,10 @@ rules the skill operationalizes. The list is transient; keep it in a scratch loc
 Write the document at its permanent home (`product.yaml` names it), drawing on the increments'
 frozen `drafts/` — raw material, never normative. Make the smallest decisions that complete
 the work: a question the fold left open is settled narrowly and recorded, not generalised
-from. Check every draft claim against the fold as
-you go: drafts predate rulings, so expect drift. What you find superseded, you write to the
-fold's state, not the draft's. A claim in the draft resting on no foundation is extracted into
-the companion increment or dropped, never transcribed. Extract or drop by the
+from. Check every claim in that material against the fold as you go: it froze with its
+increment and predates later rulings, so expect drift. What you find superseded, you write
+to the fold's state, not the material's. A claim in the material resting on no foundation is
+extracted into the companion increment or dropped, never transcribed. Extract or drop by the
 implementation-detail test (`docs/process-reference.md`): drop what no consumer could observe
 and no reimplementation must preserve.
 
