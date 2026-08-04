@@ -54,11 +54,16 @@ discovery is this product's own requirement rather than an upstream fact.
 A `dev-loop` facet joins `discovery` and `build` in `product.yaml`. All nine requirements carry
 it.
 
+## Decisions (1 proposed)
+
+- **d-zyo6kku9 — the harness is its own package beside the library**, at
+  `nodejs/minecraft/mc-dev-server`, published as `@twin-digital/mc-dev-server`, kind `npm-cli`.
+  Proposed pinned on `public-api`: it fixes a published name, and it is the split that keeps a
+  pack package's dependency on the kit's discovery and build halves free of Docker. `product.yaml`
+  is descriptive, so the implementer declares the package when its files exist.
+
 ## Left for the Plan loop
 
-- **The package set.** The harness is expected to ship as its own package beside the library.
-  `packages:` in `product.yaml` is descriptive, so nothing is added there until the files exist;
-  the decomposition is decision work this increment does not do.
 - **The dev-server decisions and open questions.** mc-dev-server's increment 002 draft (PR #168)
   holds sixteen proposed decisions and five open questions. They are not carried here: several are
   written against the product boundary this increment removes, and three of the five questions are

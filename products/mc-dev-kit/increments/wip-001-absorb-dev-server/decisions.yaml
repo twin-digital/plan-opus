@@ -1,0 +1,21 @@
+version: "1"
+
+decisions:
+  - id: d-zyo6kku9
+    title: the harness is its own package beside the library
+    statement: |
+      the harness ships as a second package of this product, `nodejs/minecraft/mc-dev-server`,
+      published as `@twin-digital/mc-dev-server` with kind `npm-cli`. It depends on
+      `@twin-digital/mc-dev-kit`; the library depends on nothing of the harness's, and a pack
+      package consuming the kit's discovery or build halves takes on no dependency on Docker.
+
+      `product.yaml` declares the package when the package's files exist, not before.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: the published name a consumer installs, and the split that keeps Docker out of a pack package's dependencies
+    facets: dev-loop
+    because:
+      - r-8et233c9
+      - r-whacwz1b
+      - r-jvb29tpu
