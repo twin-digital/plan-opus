@@ -1,0 +1,61 @@
+version: "2"
+decisions:
+  - id: d-wis1whfn
+    title: a preset may adopt presets, and inclusion is transitive
+    statement: |
+      shared requirements live in presets — products that implement nothing — adopted whole, at a
+      pinned version, through the presets declaration in an increment's requirements source:
+      entries of name, version, and a status of adopted (the default) or dropped, folding by name.
+      adopting and dropping are owner fiat, and the wider requirement scopes are retired.
+
+      a preset's own requirements source carries that same presets declaration, so a preset
+      adopts presets like any other product. adoption is transitive: a product's requirements are
+      its own, plus those of every preset in the closure its declarations reach.
+
+      the closure is a directed acyclic graph. a cycle is a finding, naming the path that closes
+      it. a preset reached by more than one path contributes its requirements once — requirement
+      ids are opaque and unique, so one id arriving by two paths is one requirement, and
+      deduplicating by id is exact.
+
+      every hop pins: a preset names the version of each preset it adopts, exactly as a product
+      does. one preset reached at two different versions within a single closure is a finding
+      rather than a resolution — nothing chooses between them.
+
+      no schema change: the presets declaration is a property of the requirements source and was
+      never conditioned on the adopting product's kind.
+    status: accepted
+    supersedes: d-k48jh86c
+    pinned:
+      reason: data-format
+      notes: the presets declaration's meaning, which the validator and the fold both read
+    because:
+      - r-bwtud1e5
+      - d-e5ted839
+    facets:
+      - schema
+      - process-doc
+      - tooling
+
+  - id: d-wlkql151
+    title: a preset conflict is a double declaration, not a double path
+    statement: |
+      the mechanical conflict the merge gate blocks on is identity collision between two
+      declarations of one requirement id: declared by an adopted preset and by the adopting
+      product, or declared by two presets in the closure.
+
+      a retired declaration does not count. an id whose only remaining declaration is in force
+      collides with nothing, so a requirement may move from a product into a preset the product
+      adopts — retired in the one, declared in the other — without the gate reading the move as a
+      collision.
+
+      an id reached by more than one path through the closure is not a collision. it is one
+      declaration seen twice, which d-wis1whfn deduplicates.
+
+      a semantic conflict between differently-numbered requirements stays with review and the
+      open-question channel.
+    status: accepted
+    supersedes: d-wb0qq8wv
+    because:
+      - r-bwtud1e5
+      - d-wis1whfn
+    facets: design-validator
