@@ -9,10 +9,11 @@ description: Run one phase of a product's increment in this repository. Plan —
 `/increment <phase>`, where the phase is `plan` or `implement` and the rest of the invocation
 carries whatever the caller wants to say.
 
-**Settle the phase before doing anything else.** Where the invocation names it, that is the
-phase. Where it names neither the skill nor a phase — someone described the work rather than
-typing the command — settle it from the request where the request is unambiguous, and ask where
-it is not. A phase that is neither `plan` nor `implement` is refused, naming the two that are.
+**Settle the phase before doing anything else.** Where the invocation names a phase, that is the
+phase. Where it names none — a bare `/increment`, or a request that describes the work without
+naming the skill at all — settle it from the request where the request is unambiguous, and ask
+the caller where it is not. A phase that is neither `plan` nor `implement` is refused, naming the
+two that are.
 
 Then read that phase's file, and only that one:
 
@@ -59,10 +60,11 @@ every rule the gate applies to a published increment, applied to this one too. T
 after every published increment, in ordinal order, each shown by its directory name; its
 supersessions close what they name and the coverage summary counts its claims.
 
-So expect three findings from `npm run check` in flight — the `increment-dir-name` finding for
-the `wip-` directory, plus the proposed-decision and open-question findings. All three are
-expected, and all three clear before the merge. **The `increment-dir-name` finding is cleared by
-the landing rename and by nothing else**, so the check never exits 0 while a draft is in flight.
+So expect findings from `npm run check` in flight — one `increment-dir-name` finding per wip
+directory the tree holds, plus the proposed-decision and open-question findings, plus a
+`draft-ordinal-unique` finding if two drafts share an ordinal. All of them are expected, and all
+of them clear before the merge. **The `increment-dir-name` finding is cleared by the landing
+rename and by nothing else**, so the check never exits 0 while a draft is in flight.
 
 The density gate reads published numbers only. A wip ordinal is not one, so a draft neither
 fills a gap nor makes one.

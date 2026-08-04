@@ -25,13 +25,11 @@ below. Both are the same mechanism, both target an increment, and both write the
 ## 2. Open the companion increment
 
 **The companion opens before any implementation work begins**, so design consequences land as
-they happen. It is a draft increment on its own branch; open it as SKILL.md says. If it builds on
-another draft of the product still in flight — citing, amending, or retiring its foundations —
-branch from that draft.
+they happen. It is a draft increment on its own branch; open it as SKILL.md says.
 
 Everything design-relevant lands there as it happens: **decisions**, **open questions** in
 `questions.yaml`, and **contracts** for any new external-facing schema or API surface, bound as a
-pool version through the increment's model. Generate ids with `npx design-process id`.
+pool version through the increment's model.
 
 Every companion entry is one of three: **licensed** — its `because` cites the deferral it
 answers; an **overturn** — it `supersedes` a plan-ruled decision, legal when unpinned and counted
@@ -64,8 +62,8 @@ mapping is descriptive, never aspirational.
   its own worktree, on a branch off it. Never share a worktree between implementers. You merge
   finished phases back to the integration branch as they complete, in workspace dependency order.
 - **Two-pass dispatch:** run every package's prepare phase in parallel; merge each finished
-  prepare to the integration branch and have dependents rebase, so they build against real stubs
-  and allocations. Then run implement phases in parallel, merging completions in workspace
+  prepare to the integration branch and have dependents rebase, so they build against real
+  surfaces and allocations. Then run implement phases in parallel, merging completions in workspace
   dependency order — a consumer's tests go green after its providers merge. Only completion is
   ordered, never the work.
 - **Every shared file is yours.** `product.yaml`, lockfiles, the implementation record, and the
@@ -79,13 +77,13 @@ mapping is descriptive, never aspirational.
   companion increment as they arrive, escalate what needs the owner, and fold the rulings into the
   next dispatch.
 - **Reconcile the claim allocation at the prepare merge.** When every prepare has returned, diff
-  the union of the documents' claim lists against the full in-force claim set. That diff is
-  mechanical — it catches a claim two documents own and a claim no list names. What it cannot see
-  is judgement: whether a claim one package took is really a sibling's, whether the evidence a
-  package plans could carry a claim at all. Those reach you as findings with the prepare results,
-  from the implementers that noticed them. Resolve both kinds before any Compose is dispatched.
+  the union of the returned lists against the claims in force. That diff is mechanical, and what
+  it finds is a claim nobody listed. It does not settle what turns on a package's own judgement —
+  whether two packages holding one claim is a deliberate split or a duplicate, whether a claim is
+  unstatable in a package rather than merely unclaimed. Those reach you as findings with the
+  prepare results. Resolve both kinds before any Compose is dispatched.
 - A provider surface that shifts mid-implement follows the ordinary rules: unpinned — update the
-  stub, merge, dependents rebase, record the supersession; bound or pinned — escalate, pausing
+  surface, merge, dependents rebase, record the supersession; bound or pinned — escalate, pausing
   exactly the dependents.
 - Two implementers that genuinely must edit one file are a decomposition problem, not an
   orchestration one — split the file or merge the packages, and raise it as design work.
@@ -128,6 +126,5 @@ The companion increment lands by SKILL.md's steps. What a companion's landing ad
    deferred decisions: no entry may cover a deferral directly, and a deferral without an answer is
    not a gap. An `attestation` from you on every claim you implemented — always — plus
    `code-test`, `manual-check`, or `conformance-case` entries where those artifacts exist. A `ref`
-   is package-relative and names what carries the claim: if deleting the file would not touch
-   whether the claim holds, it does not belong.
+   is package-relative and names what carries the claim.
 7. Verify the merged result passes `npm run check` with zero findings.
