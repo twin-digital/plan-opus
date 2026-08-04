@@ -1,0 +1,38 @@
+version: "1"
+
+decisions:
+  - id: d-1w5rjhg6
+    title: the fragment states the settings the build depends on
+    statement: |
+      the fragment sets `clean`, `format`, `target`, `platform`, `shims`, `dts`, `sourcemap`,
+      `minify`, `noExternal`, `entry`, `outDir`, `outputOptions.entryFileNames`, and
+      `resolve.conditionNames` itself rather than inheriting them, so the build behaves the same
+      merged over a shared base as it does alone.
+
+      Three of those are what the script engine forces. `target` is `es2022`: the engine parses
+      ES2022 in full and rejects the ES2024 RegExp `v` flag outright, so `esnext` would let syntax
+      through that dies at parse time with no build-time signal. `platform` is `neutral`, not
+      `node`: `node` marks `node:*` builtins external, and a surviving `node:` import fails
+      resolution and takes the module with it. `shims` is false for the same reason — the shim
+      prelude imports `node:url` to synthesise `__dirname`. `format` is `esm` because a CommonJS
+      wrapper fails on `module` before anything runs.
+
+      `clean` is false: emptying the output directory before the build would take the end-of-build
+      prune's inputs with it.
+    status: proposed
+    pinned:
+      reason: other
+      notes: the keys a consuming package's own bundler configuration must not silently supply instead
+    supersedes: d-0341uo0g
+    because:
+      - d-jxv1x5ht
+      - d-3sb0vrc2
+      - d-p06hnnc0
+      - f:bedrock-script-engine-accepts-es2022-and-rejects-the-regexp-v-flag
+      - f:bedrock-script-engine-kills-a-module-that-carries-node-shims
+      - f:tsdown-clean-empties-the-whole-output-directory-before-buildstart
+      - f:opus-bundler-config-merges-partial-fragments
+      - f:opus-bundler-base-forces-every-import-bundled
+    revisit_when:
+      - a Bedrock engine build is measured that rejects ES2022 syntax the current one accepts, or accepts the RegExp `v` flag
+    facets: build

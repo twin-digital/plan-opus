@@ -1,0 +1,43 @@
+# Runs backing facts about the Bedrock script engine — the runtime that loads a behavior pack's
+# script module, as distinct from the @minecraft/server API surface those scripts call.
+#
+# One harness drives both runs. For each variant `run.mjs` writes the payload over the deployed
+# pack, applies it, and captures what the server logged; `variants/` holds the payloads, one
+# directory per variant, so a source's `where` names the variant heading its quote sits under. A
+# variant carrying an ENTRY file rewrites the manifest's script-module entry and is applied by a
+# restart, since the manifest is read at world load; one without is applied by `send-command
+# reload`. The harness always writes `OUTPUT.txt` beside itself, kept here under a name per sweep.
+
+version: "1"
+runs:
+  - id: script-engine-bundle-target-probe
+    command: node evidence/minecraft/script-engine/bundle-target-probe/run.mjs
+    output: evidence/minecraft/script-engine/bundle-target-probe/OUTPUT-syntax-and-modules.txt
+    ran_at: 2026-08-04
+    environment: |
+      itzg/minecraft-bedrock-server, Bedrock dedicated 1.26.40.8 (branch r/26_u4, build 48609423),
+      Docker Compose v5.2.0 against a remote daemon. One behavior pack, uuid
+      a3f1c9e4-7b2d-4e58-9a01-6c8d5f2e4b70, manifest `format_version` 2, `min_engine_version`
+      [1,26,0], one script module declaring `@minecraft/server` 2.0.0, deployed to
+      `development_behavior_packs/probe-pack` and activated through the world's
+      `world_behavior_packs.json`. `CONTENT_LOG_CONSOLE_OUTPUT_ENABLED` puts script output and
+      script errors into the container log.
+
+      The no-argument form runs the 22 variants the harness lists; `entry-other-dir` was added by
+      naming it as an argument in a follow-up invocation, which appends to the same document. Every
+      variant here carries an ENTRY file and so was applied by a restart. 23 variants, single run
+      each.
+
+      Every observation is that engine build's behaviour and would differ against another. Nothing
+      here is a conformance guarantee, and the engine's identity is not established by it.
+
+  - id: script-engine-reload-semantics-probe
+    command: node evidence/minecraft/script-engine/bundle-target-probe/run.mjs import-sibling-js reload-adds-a-new-file reload-adds-a-new-file-then-restart reload-edits-a-loaded-file
+    output: evidence/minecraft/script-engine/bundle-target-probe/OUTPUT-reload-semantics.txt
+    ran_at: 2026-08-04
+    environment: |
+      Same server, pack, and harness as script-engine-bundle-target-probe. `import-sibling-js`
+      restarts first to establish the loaded file set; the three `reload-*` variants then cover both
+      application paths — a payload adding a module file applied by `reload`, the same payload
+      applied by a restart, and a payload editing an already-loaded module file applied by `reload`.
+      The document also holds a shorter repeat of the edit case.
