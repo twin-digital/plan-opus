@@ -1,0 +1,32 @@
+version: "1"
+
+decisions:
+  - id: d-jewbwtye
+    title: an absent script location is null, not a missing field
+    statement: |
+      `scriptOutput` is present on every entry and carries `null` where a pack has no script location,
+      rather than being an optional field a resource pack's entry omits
+    status: proposed
+    because:
+      - r-rlh87pau
+      - d-61fegb3o
+    revisit_when:
+      - consumers routinely forget the null branch, so an optional field TypeScript forces them to narrow would catch more
+      - a further location arises that a valid entry can genuinely lack, so absence needs a representation anyway
+    facets: discovery
+
+  - id: d-9se0yv0h
+    title: the script module's entry is declared and form-checked, read for nothing
+    statement: |
+      `ManifestModule` declares `entry?: string`, and the field is form-checked like every declared
+      field: a `modules[].entry` that is not a string is `manifest-shape-invalid`. Nothing reads it —
+      no check or completion consumes a module's `entry`, and the built script location is computed
+      from the kind — so a fault there suppresses nothing downstream.
+    status: proposed
+    because:
+      - r-jl42pzah
+      - r-5qo6fzs4
+      - d-7ototrq5
+    revisit_when:
+      - the kit gains a check or completion that reads a module's `entry`, so the empty suppression row no longer holds
+    facets: discovery
