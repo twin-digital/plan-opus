@@ -300,12 +300,17 @@ decisions:
       findLandingConflicts, and the seven backlog operations with BACKLOG_BRANCH — together
       with DirTree, GitTree, resolveGitRef, and the types those signatures name. nothing else
       under src/ is reachable, and no export is a wildcard or an `export *`.
+
+      the enumeration is what is fixed here; a signature follows the decision that rules the
+      surface it serves — parseFoldVersion takes a flag pair because d-9y7b8qtd made a fold
+      version two parameters.
     status: delegated
     pinned:
       reason: public-api
       notes: the named exports a consumer resolves and can come to depend on
     because:
       - d-cueyrbon
+      - d-9y7b8qtd
       - d-fiul12e8
       - d-imz61dd5
     facets: tooling
