@@ -11,15 +11,11 @@ decisions:
       file beside it under waves/, linked from SKILL.md and read only by an implementer
       dispatched for that kind.
 
-      a linked file's content does not enter context when the skill runs, so an implementer
-      carries its own kind's waves and not another's while the shared rules are written once.
-      adding a kind is a file under waves/ and its own wave-shape decision, which is what
-      d-qb67fb8s already contemplates — that decision fixes where a shape is ruled, not which
-      file holds it.
+      adding a kind is a file under waves/ and its own wave-shape decision.
 
       the dispatcher names one skill for every code and tree-consumed kind and passes the
       kind; the kind no longer selects between skills.
-    status: proposed
+    status: accepted
     pinned:
       reason: public-api
       notes: product.yaml and the orchestrator skill both name this path
@@ -41,7 +37,7 @@ decisions:
       implement so dependents unblock at the earliest honest moment.
 
       only an implementer dispatched for one of these kinds reads it.
-    status: proposed
+    status: tolerated
     supersedes: d-x2xw2tp2
     because:
       - d-63z31u0l
@@ -56,7 +52,7 @@ decisions:
       agent-skill kinds. prepare is Claims, implement is Compose and Check.
 
       only an implementer dispatched for one of these kinds reads it.
-    status: proposed
+    status: tolerated
     supersedes: d-ydcyoa80
     because:
       - d-63z31u0l
@@ -79,7 +75,7 @@ decisions:
 
       the phase is named in the invocation. both files link directly from SKILL.md, and
       neither links onward to the other.
-    status: proposed
+    status: tolerated
     supersedes: d-ebyludv0
     pinned:
       reason: public-api
@@ -100,7 +96,7 @@ decisions:
       .claude/skills/increment/implement.md is the dispatcher every implementation runs
       through; a kind with no wave file is an open question for the implementation that
       meets it.
-    status: proposed
+    status: accepted
     supersedes: d-ng02vmcd
     pinned:
       reason: public-api
@@ -122,7 +118,7 @@ decisions:
       person describes the work rather than typing the command. its description therefore has
       to carry the triggers for both phases, and where the invocation names no phase the skill
       settles which is meant before doing anything else.
-    status: proposed
+    status: tolerated
     pinned:
       reason: public-api
       notes: the form every caller types or an agent selects on
@@ -140,7 +136,7 @@ decisions:
       .claude/skills/implement-document are removed when their replacements ship. no
       redirecting stub stands in for a retired name: an invocation of a name that is gone
       fails loudly, and a stub kept to preserve a name would outlive the reason for it.
-    status: proposed
+    status: accepted
     because:
       - d-80yxesle
       - d-lv3oyfaj
