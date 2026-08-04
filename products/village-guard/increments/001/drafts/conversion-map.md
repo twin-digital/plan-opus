@@ -25,10 +25,11 @@ set; the merged `minecraft-addon` preset now carries them, adopted here at versi
 Village-guard sat in no global set (`nodejs:libraries` never held it), so no other preset is
 adopted.
 
-The three area requirements existed only to bind that set, and their statements are carried by
-the preset (`r-odoqiqo3`, `r-r316qhk6`, `r-hear6pun`); with village-guard out of the legacy
-tree they are retired in `design/minecraft/requirements.yaml`, and the emptied
-`minecraft-addon-packs` set is removed from `design/minecraft/sets.yaml`.
+Four legacy requirements existed only to bind that set, and the preset carries every one: the
+three at minecraft area scope (`r-odoqiqo3`, `r-r316qhk6`, `r-hear6pun`) and the global
+`package-config-is-repo-kit-managed` (`r-wh01d5cg`). With village-guard out of the legacy tree
+they are retired in place — `design/minecraft/requirements.yaml` and `design/requirements.yaml`
+— and the emptied set's `design/minecraft/sets.yaml` is removed.
 
 ## Decisions
 
