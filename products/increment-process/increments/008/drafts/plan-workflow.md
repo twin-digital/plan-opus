@@ -90,8 +90,9 @@ The partition is mechanical off existing fields, and the
 overturn count is the empirical feedback for the dial: overturns climbing means over-planning
 is manufacturing churn; companions bloating with unlicensed entries means under-planning.
 
-## Coverage closes the loop
+## Coverage skips deferrals
 
-A deferral is not implementable, so no record entry may cover one directly; it is covered
-when an in-force decision citing it in `because` carries coverage. For coverage to be
-complete, every deferred choice has been made, and the choice made has evidence.
+A deferral is not implementable, so no record entry may cover one directly — and none need
+cover it at all: an implementer may find the deferred choice never arises. Deferrals exist
+to force a thorough plan, not to bind the build; an answered deferral's answer is an
+ordinary decision and carries ordinary coverage.

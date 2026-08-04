@@ -48,14 +48,13 @@ decisions:
       - tooling
 
   - id: d-3orwwaze
-    title: coverage reaches deferrals through their answers
+    title: coverage skips deferrals
     statement: |
       once an implementation targets an increment, its record carries a coverage entry for
       every requirement and decision in force there, adopted preset requirements included —
-      except a deferred decision, which no entry may cover directly. a deferral is covered
-      when an in-force decision citing it in because itself carries coverage; the validator
-      refuses a record with a gap or a direct entry on a deferral. ratified-and-unbuilt
-      describes increments no implementation has targeted, never a hole inside a record.
+      except deferred decisions: no entry may cover one directly, and a deferral without an
+      answer is not a gap. ratified-and-unbuilt describes increments no implementation has
+      targeted, never a hole inside a record.
     status: accepted
     supersedes: d-rr1qmw72
     because:
@@ -74,7 +73,7 @@ decisions:
       deferral it answers; an overturn — it supersedes a plan-ruled decision, legal when
       unpinned and counted at the companion's ratify; or a discovery — neither. licensed
       entries and discoveries pass; overturns are litigated.
-    status: proposed
+    status: tolerated
     because:
       - d-63f18oml
       - d-eaw3u72o
@@ -129,7 +128,7 @@ decisions:
     statement: |
       a survey dispatch covers every package the draft fold names: those product.yaml holds
       and those the increment's decisions propose.
-    status: proposed
+    status: tolerated
     because:
       - r-v4z0h7dn
       - d-q8ur5u3f
