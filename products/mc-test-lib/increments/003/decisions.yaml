@@ -22,3 +22,46 @@ decisions:
     facets:
       - fakes
       - shim
+
+  - id: d-bslnaeg6
+    title: the default path is boilerplate-free with per-test isolation
+    statement: |
+      with the one runner-config entry in place and nothing else, a consumer's test file holds
+      static imports alone — the pack imported for its side effects, `world` and `system` imported
+      to arrange and assert — with no install call, no reset prelude, and no ordering the consumer
+      hand-writes. Each test starts against a fresh world with the pack's module-scope
+      subscriptions and scheduled runs still live. A test that wants fakes of its own installs
+      them in place of the default
+    status: proposed
+    pinned:
+      reason: other
+      notes: consumer-visible ergonomics contract — the documented default path and its per-test isolation behaviour
+    because:
+      - r-uobnqsfg
+      - r-vzz9rnrc
+      - r-rpm1k57j
+      - r-qayd22z2
+      - f:a-setup-file-server-makes-a-pack-test-file-boilerplate-free
+      - f:one-server-per-file-carries-state-into-the-next-test
+      - f:pack-isolation-comes-from-under-the-fakes-not-from-the-shim
+      - f:a-fake-server-can-be-cleared-in-place-with-its-subscriptions-intact
+      - f:test-lib-ships-no-reset-hook
+    facets:
+      - fakes
+      - shim
+
+  - id: d-vjeple9k
+    title: the version statement is inert
+    statement: |
+      the package states the `@minecraft/server` version its supplied values derive from, where a
+      consumer reads it, and nothing checks a consumer's own engine pin against it: no
+      `@minecraft/server` peer range gates an install, and no check at configuration or run time
+      warns or fails on a mismatch
+    status: proposed
+    pinned:
+      reason: other
+      notes: consumer-visible install behaviour — a consumer on a different engine pin never has an install or a run fail over it
+    because:
+      - r-29dlrp9r
+      - f:an-unsatisfiable-peer-range-fails-npm-and-warns-pnpm-and-yarn
+    facets: shim
