@@ -30,8 +30,10 @@ Claims first where it has not run, then Compose and Check.
 
 A selection and an allocation, not a restatement: from everything in force at the target, the
 claims *this* document is responsible for stating, each mapped to where it will be stated.
-Deferred decisions get no allocation: a deferral without an answer is not a gap. Surface the problems before composing: two documents owning one claim, a claim no planned
-section could state, a claim nothing — document or another package's evidence — will carry. For an agent-skill, the claims are the process
+Deferred decisions get no allocation: a deferral without an answer is not a gap. Surface these
+before composing, for the orchestrator to rule — two documents owning one claim, which may be a
+deliberate split; a claim no planned section could state; a claim nothing — document or another
+package's evidence — will carry. For an agent-skill, the claims are the process
 rules the skill operationalizes. The list is transient; keep it in a scratch location.
 
 ## Compose
