@@ -31,7 +31,8 @@ decisions:
       to arrange and assert — with no install call, no reset prelude, and no ordering the consumer
       hand-writes. Each test starts against a fresh world with the pack's module-scope
       subscriptions and scheduled runs still live. A test that wants fakes of its own installs
-      them in place of the default
+      them in place of the default without failing; the loud failure the July ruling kept guards
+      a duplicate tooling install within one module-registry generation
     status: proposed
     pinned:
       reason: other
@@ -54,14 +55,72 @@ decisions:
     title: the version statement is inert
     statement: |
       the package states the `@minecraft/server` version its supplied values derive from, where a
-      consumer reads it, and nothing checks a consumer's own engine pin against it: no
-      `@minecraft/server` peer range gates an install, and no check at configuration or run time
-      warns or fails on a mismatch
+      consumer reads it, and nothing checks a consumer's own engine pin against it: the package
+      carries no runtime dependencies and no `@minecraft/server` peer range, and no check at
+      configuration or run time warns or fails on a mismatch
     status: proposed
     pinned:
       reason: other
       notes: consumer-visible install behaviour — a consumer on a different engine pin never has an install or a run fail over it
     because:
       - r-29dlrp9r
+      - r-uobnqsfg
       - f:an-unsatisfiable-peer-range-fails-npm-and-warns-pnpm-and-yarn
+    supersedes: d-c5odl61n
     facets: shim
+
+  - id: d-bvhynmr8
+    title: exports are the root barrel plus one runner-tooling subpath
+    statement: |
+      the package's published exports are the root barrel and one subpath per supported runner's
+      tooling — vitest, the one runner supported at this increment, at
+      `@twin-digital/minecraft-test-lib/vitest` — and nothing else: the aliased
+      `@minecraft/server` surface and the setup module are files inside the package the plugin
+      references by resolved path, not published subpaths
+    status: proposed
+    pinned:
+      reason: public-api
+    because:
+      - d-c1awo33f
+      - r-3dgnq0sp
+      - r-uobnqsfg
+      - f:a-vite-plugin-contributes-an-alias-and-a-setup-file
+      - f:setup-files-resolve-as-modules-from-the-project-root
+      - f:alias-and-control-subpath-are-one-module-instance
+    facets:
+      - fakes
+      - shim
+
+  - id: d-gjzbiyl6
+    title: the bundle is the fakes API's route, not the only one
+    statement: |
+      createServer returns one bundle whose properties are named as `@minecraft/server` exports
+      them — world, system, and the eight registry classes — and that bundle is the fakes API's
+      route to them; code reaching the engine through the module import reaches the same objects
+      by the surface the package supplies
+    status: proposed
+    because:
+      - r-qklf4op9
+      - r-rpm1k57j
+    supersedes: d-nmjafny2
+    facets:
+      - fakes
+      - shim
+
+  - id: d-ksotjt7v
+    title: surface details handed to the implementation
+    statement: |
+      handed to the implementation's companion increment: the placeholder behaviour of
+      module-surface classes the fakes do not implement; the failure mode of reading `world` or
+      `system` before any install; the install function's name and signature, amending the
+      free-function list; the `world`/`system` binding mechanism within what the ruled isolation
+      shape fixes; and the per-test clear's exact inventory beyond the subscriber sets and
+      scheduled runs the evidence fixes as surviving
+    status: delegated
+    because:
+      - d-bslnaeg6
+      - d-ksk6d7ua
+      - d-qz2aoixe
+    facets:
+      - fakes
+      - shim
