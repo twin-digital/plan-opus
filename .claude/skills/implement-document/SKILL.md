@@ -22,7 +22,7 @@ they target has published.
 **survey** maps to no wave: read-only against a fold or draft fold, it returns the choices
 this package's build would meet that the fold neither decides nor defers, with the
 implementer's reading of each, for Clarify to classify — a census in the shape the
-dispatcher's skill defines. **prepare** is the Claims wave; the orchestrator reconciles
+dispatcher's skill states. **prepare** is the Claims wave; the orchestrator reconciles
 allocation collisions and gaps across siblings at the prepare merge. **implement** runs
 Claims first where it has not run, then Compose and Check.
 
