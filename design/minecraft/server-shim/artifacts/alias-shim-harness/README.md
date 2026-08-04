@@ -14,7 +14,8 @@ against `@twin-digital/minecraft-test-lib`, with `@minecraft/server` aliased to 
 | `no-alias.config.ts` | the control: same suite, no alias |
 | `combat-handler.test.ts`, `adapters.test.ts` | `bencrob/marron-town-mod` (MIT) at `2c025b4` |
 | `gunfight.test.ts` | `xigma0512/GunFight-Arena` (MIT) at `0f16e88` |
-| `harness.out.txt`, `no-alias.out.txt` | captured output of the two runs |
+| `generate-enums.mjs` | reads the installed `index.d.ts` and writes `stub/enums.generated.js` |
+| `harness.out.txt`, `no-alias.out.txt`, `generate-enums.out.txt` | captured output of the three runs |
 
 The pack sources are not committed; `fetch-packs.mjs` clones them at those commits.
 
@@ -30,3 +31,6 @@ export MC_TEST_LIB=<opus>/nodejs/minecraft/test-lib/src/index.ts
 npx vitest run --reporter=verbose      # 26 passed
 npx vitest run -c no-alias.config.ts   # fails to resolve @minecraft/server
 ```
+
+`node generate-enums.mjs` rewrites `stub/enums.generated.js` from the installed declarations; on
+2.8.0 it reproduces the committed file byte for byte.

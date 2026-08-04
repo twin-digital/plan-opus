@@ -1,0 +1,18 @@
+{
+  "name": "proxy-swap-probes",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "probe": "node run.mjs"
+  },
+  "dependencies": {
+    "@probe/shim-deep": "file:./shim-deep",
+    "@probe/shim-replay": "file:./shim-replay",
+    "@probe/shim-shallow": "file:./shim-shallow",
+    "@probe/shim-signal": "file:./shim-signal"
+  },
+  "devDependencies": {
+    "@minecraft/server": "^2.8.0",
+    "vitest": "^4.1.10"
+  }
+}

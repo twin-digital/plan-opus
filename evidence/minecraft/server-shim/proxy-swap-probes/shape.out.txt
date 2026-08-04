@@ -1,0 +1,24 @@
+=== shape: what the fake’s own shape reveals about which members register (shape.config.ts) ===
+exit code: 0
+
+
+ RUN  v4.1.10 <probe>
+
+stdout | shape.test.ts > what the shape reveals
+[container] world.afterEvents members=55 reachable=55 subscribe+unsubscribe-shaped=55 threw=0
+[container] world.beforeEvents members=13 reachable=13 subscribe+unsubscribe-shaped=13 threw=0
+[container] system.afterEvents members=1 reachable=1 subscribe+unsubscribe-shaped=1 threw=0
+[system] members=13 function-valued=8
+[system] function-valued members: clearJob,clearRun,run,runInterval,runJob,runTimeout,sendScriptEvent,waitTicks
+[world] members=36 function-valued=27
+[world] function-valued members: clearDynamicProperties,getAbsoluteTime,getAimAssist,getAllPlayers,getDay,getDefaultSpawnLocation,getDifficulty,getDimension,getDynamicProperty,getDynamicPropertyIds,getDynamicPropertyTotalByteCount,getEntity,getLootTableManager,getMoonPhase,getPackSettings,getPlayers,getTimeOfDay,playMusic,queueMusic,sendMessage,setAbsoluteTime,setDefaultSpawnLocation,setDifficulty,setDynamicProperties,setDynamicProperty,setTimeOfDay,stopMusic
+[system] arity of the scheduler members: run/1 runInterval/2 runTimeout/2 clearRun/1
+
+ ✓ shape.test.ts > what the shape reveals 4ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  04:54:48
+   Duration  580ms (transform 378ms, setup 0ms, import 473ms, tests 5ms, environment 0ms)
+
+

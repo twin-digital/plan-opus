@@ -1,0 +1,246 @@
+=== swap: A — the naive swap: one stable Proxy per binding (swap-shallow.config.ts) ===
+exit code: 1
+
+
+ RUN  v4.1.10 <probe>
+
+stdout | swap.test.ts
+[setup] server A installed at module scope (shim=shallow)
+
+stdout | swap.test.ts > test 1 — the first swapped-in server
+[swap] installs=2 carried-registrations=0
+
+stdout | swap.test.ts > test 1 — the first swapped-in server
+[test 1: server A] subscribers=5 scheduled=3 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+[test 1: current server] subscribers=0 scheduled=0 objectives=0 entities=0 tick=0 signals=none
+[test 1: server A after driving] subscribers=5 scheduled=3 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+[test 1: current server after driving] subscribers=0 scheduled=0 objectives=0 entities=1 tick=40 signals=none
+[test 1] drive outcome: no throw
+[test 1] handler errors on current: 0
+[test 1] handler isolation on current: ran=first+second threw-to-caller=no
+
+stdout | swap.test.ts > test 2 — a second swapped-in server
+[swap] installs=3 carried-registrations=0
+
+stdout | swap.test.ts > test 2 — a second swapped-in server
+[test 2: server A] subscribers=5 scheduled=3 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+[test 2: current server] subscribers=0 scheduled=0 objectives=0 entities=0 tick=0 signals=none
+[test 2: server A after driving] subscribers=5 scheduled=3 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+[test 2: current server after driving] subscribers=0 scheduled=0 objectives=0 entities=1 tick=40 signals=none
+[test 2] drive outcome: no throw
+[test 2] handler errors on current: 0
+[test 2] handler isolation on current: ran=first+second threw-to-caller=no
+
+ × swap.test.ts > test 1 — the first swapped-in server 5ms
+   → expected 0 to be greater than 0
+ × swap.test.ts > test 2 — a second swapped-in server 1ms
+   → expected 0 to be greater than 0
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  04:54:39
+   Duration  713ms (transform 466ms, setup 477ms, import 119ms, tests 7ms, environment 0ms)
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  swap.test.ts > test 1 — the first swapped-in server
+AssertionError: expected 0 to be greater than 0
+ ❯ swap.test.ts:76:48
+     74|   round('test 1')
+     75|   // The pack made objectives on whichever server received its `player…
+     76|   expect(census(world as MC.World).objectives).toBeGreaterThan(0)
+       |                                                ^
+     77| })
+     78|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  swap.test.ts > test 2 — a second swapped-in server
+AssertionError: expected 0 to be greater than 0
+ ❯ swap.test.ts:81:47
+     79| it('test 2 — a second swapped-in server', () => {
+     80|   round('test 2')
+     81|   expect(census(world as MC.World).scheduled).toBeGreaterThan(0)
+       |                                               ^
+     82| })
+     83|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+=== swap: B — recursive proxying, one stable Proxy per path (swap-deep.config.ts) ===
+exit code: 1
+
+
+ RUN  v4.1.10 <probe>
+
+stdout | swap.test.ts
+[setup] server A installed at module scope (shim=deep)
+
+stdout | swap.test.ts > test 1 — the first swapped-in server
+[swap] installs=2 carried-registrations=0 proxy-nodes=15
+
+stdout | swap.test.ts > test 1 — the first swapped-in server
+[test 1: server A] subscribers=5 scheduled=3 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+[test 1: current server] subscribers=0 scheduled=0 objectives=0 entities=0 tick=0 signals=none
+[test 1: server A after driving] subscribers=5 scheduled=3 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+[test 1: current server after driving] subscribers=0 scheduled=0 objectives=0 entities=1 tick=40 signals=none
+[test 1] drive outcome: no throw
+[test 1] handler errors on current: 0
+[test 1] handler isolation on current: ran=first+second threw-to-caller=no
+
+stdout | swap.test.ts > test 2 — a second swapped-in server
+[swap] installs=3 carried-registrations=0 proxy-nodes=16
+
+stdout | swap.test.ts > test 2 — a second swapped-in server
+[test 2: server A] subscribers=5 scheduled=3 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+[test 2: current server] subscribers=0 scheduled=0 objectives=0 entities=0 tick=0 signals=none
+[test 2: server A after driving] subscribers=5 scheduled=3 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+[test 2: current server after driving] subscribers=0 scheduled=0 objectives=0 entities=1 tick=40 signals=none
+[test 2] drive outcome: no throw
+[test 2] handler errors on current: 0
+[test 2] handler isolation on current: ran=first+second threw-to-caller=no
+
+ × swap.test.ts > test 1 — the first swapped-in server 5ms
+   → expected 0 to be greater than 0
+ × swap.test.ts > test 2 — a second swapped-in server 1ms
+   → expected 0 to be greater than 0
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  04:54:41
+   Duration  704ms (transform 470ms, setup 476ms, import 113ms, tests 7ms, environment 0ms)
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  swap.test.ts > test 1 — the first swapped-in server
+AssertionError: expected 0 to be greater than 0
+ ❯ swap.test.ts:76:48
+     74|   round('test 1')
+     75|   // The pack made objectives on whichever server received its `player…
+     76|   expect(census(world as MC.World).objectives).toBeGreaterThan(0)
+       |                                                ^
+     77| })
+     78|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  swap.test.ts > test 2 — a second swapped-in server
+AssertionError: expected 0 to be greater than 0
+ ❯ swap.test.ts:81:47
+     79| it('test 2 — a second swapped-in server', () => {
+     80|   round('test 2')
+     81|   expect(census(world as MC.World).scheduled).toBeGreaterThan(0)
+       |                                               ^
+     82| })
+     83|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+=== swap: C — the shim owns the subscriber set, with trampolines and a scheduler journal (swap-signal.config.ts) ===
+exit code: 0
+
+
+ RUN  v4.1.10 <probe>
+
+stdout | swap.test.ts
+[setup] server A installed at module scope (shim=signal)
+
+stdout | swap.test.ts > test 1 — the first swapped-in server
+[swap] installs=2 carried-signals=5 carried-handlers=5 carried-scheduler-calls=3
+
+stdout | swap.test.ts > test 1 — the first swapped-in server
+[test 1: server A] subscribers=5 scheduled=3 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+[test 1: current server] subscribers=5 scheduled=3 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+[test 1: server A after driving] subscribers=5 scheduled=3 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+[test 1: current server after driving] subscribers=5 scheduled=2 objectives=11 entities=1 tick=40 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+[test 1] drive outcome: no throw
+[test 1] handler errors on current: 0
+[test 1] handler isolation on current: ran=first threw-to-caller=no
+
+stdout | swap.test.ts > test 2 — a second swapped-in server
+[swap] installs=3 carried-signals=5 carried-handlers=7 carried-scheduler-calls=3
+
+stdout | swap.test.ts > test 2 — a second swapped-in server
+[test 2: server A] subscribers=5 scheduled=3 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+[test 2: current server] subscribers=5 scheduled=3 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+[test 2: server A after driving] subscribers=5 scheduled=3 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+[test 2: current server after driving] subscribers=5 scheduled=2 objectives=11 entities=1 tick=40 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+[test 2] drive outcome: no throw
+[test 2] handler errors on current: 0
+[test 2] handler isolation on current: ran=none threw-to-caller=no
+
+ ✓ swap.test.ts > test 1 — the first swapped-in server 6ms
+ ✓ swap.test.ts > test 2 — a second swapped-in server 2ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  04:54:42
+   Duration  695ms (transform 464ms, setup 467ms, import 115ms, tests 9ms, environment 0ms)
+
+stderr | swap.test.ts > test 1 — the first swapped-in server
+[MarronTown] init-player: Player.level is declared by @minecraft/server but is not modelled by this library.
+[MarronTown] award-points: Player.level is declared by @minecraft/server but is not modelled by this library.
+[MarronTown] combat: Cannot read properties of undefined (reading 'cause')
+
+stderr | swap.test.ts > test 2 — a second swapped-in server
+[MarronTown] init-player: Player.level is declared by @minecraft/server but is not modelled by this library.
+[MarronTown] award-points: Player.level is declared by @minecraft/server but is not modelled by this library.
+[MarronTown] combat: Cannot read properties of undefined (reading 'cause')
+
+
+=== swap: D — journal every call made before the first swap and replay it (swap-replay.config.ts) ===
+exit code: 0
+
+
+ RUN  v4.1.10 <probe>
+
+stdout | swap.test.ts
+[setup] server A installed at module scope (shim=replay)
+
+stdout | swap.test.ts > test 1 — the first swapped-in server
+[swap] installs=2 carried-registrations=8 journalled-paths=system.run,world.afterEvents.playerSpawn.subscribe,world.afterEvents.itemUse.subscribe,world.afterEvents.itemCompleteUse.subscribe,world.afterEvents.entityHurt.subscribe,world.afterEvents.playerBreakBlock.subscribe,system.runInterval
+
+stdout | swap.test.ts > test 1 — the first swapped-in server
+[test 1: server A] subscribers=5 scheduled=3 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+[test 1: current server] subscribers=5 scheduled=3 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+[test 1: server A after driving] subscribers=5 scheduled=3 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+[test 1: current server after driving] subscribers=5 scheduled=2 objectives=11 entities=1 tick=40 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+[test 1] drive outcome: no throw
+[test 1] handler errors on current: 0
+[test 1] handler isolation on current: ran=first+second threw-to-caller=no
+
+stdout | swap.test.ts > test 2 — a second swapped-in server
+[swap] installs=3 carried-registrations=8 journalled-paths=system.run,world.afterEvents.playerSpawn.subscribe,world.afterEvents.itemUse.subscribe,world.afterEvents.itemCompleteUse.subscribe,world.afterEvents.entityHurt.subscribe,world.afterEvents.playerBreakBlock.subscribe,system.runInterval
+
+stdout | swap.test.ts > test 2 — a second swapped-in server
+[test 2: server A] subscribers=5 scheduled=3 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+[test 2: current server] subscribers=5 scheduled=3 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+[test 2: server A after driving] subscribers=5 scheduled=3 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+[test 2: current server after driving] subscribers=5 scheduled=2 objectives=11 entities=1 tick=40 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+[test 2] drive outcome: no throw
+[test 2] handler errors on current: 0
+[test 2] handler isolation on current: ran=first+second threw-to-caller=no
+
+ ✓ swap.test.ts > test 1 — the first swapped-in server 6ms
+ ✓ swap.test.ts > test 2 — a second swapped-in server 2ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  04:54:43
+   Duration  742ms (transform 502ms, setup 486ms, import 143ms, tests 9ms, environment 0ms)
+
+stderr | swap.test.ts > test 1 — the first swapped-in server
+[MarronTown] init-player: Player.level is declared by @minecraft/server but is not modelled by this library.
+[MarronTown] award-points: Player.level is declared by @minecraft/server but is not modelled by this library.
+[MarronTown] combat: Cannot read properties of undefined (reading 'cause')
+
+stderr | swap.test.ts > test 2 — a second swapped-in server
+[MarronTown] init-player: Player.level is declared by @minecraft/server but is not modelled by this library.
+[MarronTown] award-points: Player.level is declared by @minecraft/server but is not modelled by this library.
+[MarronTown] combat: Cannot read properties of undefined (reading 'cause')
+
+
