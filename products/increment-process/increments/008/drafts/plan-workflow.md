@@ -50,7 +50,7 @@ recommends for; a norm-only delta recommends against — and the owner calls it.
 
 ## License and overturn, concretely
 
-The deferral (in the plan increment, ruled by the owner — deferred is the ruling):
+The deferral (in the plan increment, entered as deferred directly; the merge ratifies it):
 
 ```yaml
 - id: d-yyyyyyyy

@@ -34,9 +34,10 @@ decisions:
   - id: d-uz9wis6a
     title: deferred is a ruling
     statement: |
-      deferred joins the status values: a deferral enters proposed, and the owner's
-      ratification sets its status to deferred. decision@2 carries the widened enum, and a
-      decisions source adopts it by naming version "2".
+      deferred joins the status values, and a deferral enters as deferred directly — the
+      merge ratifies it, like a requirement, and the pull-request diff is where a new one
+      meets the owner. decision@2 carries the widened enum, and a decisions source adopts
+      it by naming version "2".
     status: proposed
     pinned:
       reason: data-format
@@ -111,8 +112,9 @@ decisions:
   - id: d-xxxo61q9
     title: the plan skill offers the survey and recommends
     statement: |
-      before ratify, the plan skill reports what the increment has captured, asks the
-      owner whether to dispatch the survey, and recommends from the delta's shape: for,
+      before ratify, the plan skill reports what the increment has captured — naming the
+      deferrals added since the owner's last pass — asks the owner whether to dispatch the
+      survey, and recommends from the delta's shape: for,
       when packages, contracts, or consumer surfaces change; against, when norm-only. the
       owner's word runs it, any number of times across the loop; the census's gaps route
       back into Clarify.
