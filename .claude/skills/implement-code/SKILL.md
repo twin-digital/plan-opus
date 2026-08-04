@@ -1,5 +1,5 @@
 ---
-version: "4"
+version: "9"
 name: implement-code
 description: Implement one code package (npm-library, npm-cli, minecraft-addon) inside a running implementation, through the Define, Stub, Code, Document waves. Invoked by the implement skill; use directly when asked to build one code package against a product's fold.
 ---
@@ -17,12 +17,23 @@ the escalation rules.
 | **Code** | implement | the implementation | the stubs, by compiling; the tests, by passing |
 | **Document** | implement | READMEs and user-facing documentation | the implementation |
 
-**prepare** ends with the Stub wave: the package's public surface exists and siblings can
+**survey** precedes the waves and maps to none of them: read-only against a fold or draft
+fold, it returns its census and builds nothing. **prepare** ends with the Stub wave: the package's public surface exists and siblings can
 compile against it. Prepare may return as soon as the API stubs stand — test authoring can
 finish inside implement — so dependents unblock at the earliest honest moment; a stub reworked
 while tests are written follows the ordinary churn path (update, re-merge, dependents rebase). **implement** runs prepare first where it has not run, then Code and
 Document. Expect a pause between the phases in a parallel run — the orchestrator merges
 prepare outputs before implement begins.
+
+## Survey
+
+Read-only, against a fold or draft fold — edit nothing, commit nothing. Walk what building
+this package would take and return the choices the build would meet that the fold neither
+decides nor defers, with your reading of each, as the census in the dispatcher's shape (the
+`implement` skill defines it). Classifying is Clarify's: where your reading finds an
+implementation detail — no consumer could observe it, no reimplementation must preserve
+it — say so in the reading and return the choice anyway. It is the same test the Code wave
+applies at wrap-up; `docs/process-reference.md` states it.
 
 ## Define
 
