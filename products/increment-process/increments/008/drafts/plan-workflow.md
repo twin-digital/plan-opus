@@ -50,9 +50,9 @@ The deferral (in the plan increment, ruled by the owner):
 ```yaml
 - id: d-yyyyyyyy
   title: the facts flag layout is the implementer's
-  statement: exact flags and output layout of design-process facts are deferred.
+  statement: exact flags and output layout of design-process facts are deferred to the
+    implementer.
   status: accepted
-  deferred_to: implementer
 ```
 
 The licensed answer (in the companion increment — rubber stamp):

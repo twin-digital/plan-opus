@@ -30,20 +30,18 @@ decisions:
       - schema
 
   - id: d-uz9wis6a
-    title: deferrals are marked in the source
+    title: deferrals carry no marker field
     statement: |
-      decision@2 adds one optional field, deferred_to — today always implementer — marking
-      the decision as a deferral. the field is additive, and a decisions source adopts it
-      by naming version "2".
+      a deferral is identified by its statement alone; the decision schema gains no
+      deferred_to field. everything that must read the partition mechanically reads
+      supersedes.
     status: proposed
-    pinned:
-      reason: data-format
     because:
       - d-63f18oml
-      - d-i47qv6oa
-    facets:
-      - schema
-      - tooling
+      - d-ub6h6h5u
+    revisit_when:
+      - a tool needs to enumerate deferrals mechanically — the projection listing them, or a count of licenses
+    facets: schema
 
   - id: d-ub6h6h5u
     title: license by because, overturn by supersedes
