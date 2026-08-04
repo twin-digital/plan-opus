@@ -1,5 +1,5 @@
 ---
-version: "9"
+version: "12"
 name: implement
 description: Run an implementation of a product against its published design — dispatch one implementer per package by kind, accumulate design consequences in a companion increment, and land the implementation record. Use when asked to implement a product, an increment, or the fold of a design in this repository.
 ---
@@ -8,8 +8,7 @@ description: Run an implementation of a product against its published design —
 
 You are running one implementation of `<product>` against the fold at a published increment.
 The normative rules are `docs/process-reference.md` (the Implement phase); this skill is the
-operational sequence. Validate every change with
-`npm run check`.
+operational sequence. Validate every change with `npm run check`.
 
 ## 1. Bind to the design
 
@@ -25,9 +24,21 @@ operational sequence. Validate every change with
 
 ## 2. Open the companion increment
 
-Before building anything, create a branch holding the product's next increment
-(`products/<product>/increments/<NNN>/`, the next number in the sequence). Everything
-design-relevant lands there **as it happens**:
+Before building anything, create a branch holding the companion increment at
+`products/<product>/increments/<slug>/` — a slug naming the increment, not a number. The
+companion holds no number while it is drafted and claims one only at its landing (§4), so
+opening it neither waits on nor reserves the product's head number. Name the branch
+`plan/<product>/<slug>`: no check requires the name, it is the default to reach for.
+
+While the companion is drafted, `npx design-process check` reports an increment-name finding
+against the slug directory, beside the findings for its proposed decisions and open questions.
+The landing rename clears it — the validator is unchanged and needs no fix.
+
+If the companion builds on another draft of the product still in flight — citing, amending, or
+retiring its foundations — branch from that draft rather than from main. That ancestry is the
+dependency; nothing is declared, and the companion lands after the draft it builds on.
+
+Everything design-relevant lands there **as it happens**:
 
 - **decisions** — `delegated` where nothing pins them; `proposed` where a requirement, a
   pinned decision, or a decision that would be pinned is at stake
@@ -46,9 +57,9 @@ fails it in the code.
 
 A `proposed` entry, an addition or change to an external-facing schema or API surface, or an
 open question is an escalation: pause only what depends on the answer, keep building
-everything else. Overturning an *unpinned* decision is not an
-escalation — record the supersession and continue. Where escalation does fire, bring a fact, not a
-preference — CLAUDE.md carries the bar. Generate ids with `npx design-process id`.
+everything else. Overturning an *unpinned* decision is not an escalation — record the
+supersession and continue. Where escalation does fire, bring a fact, not a preference —
+CLAUDE.md carries the bar. Generate ids with `npx design-process id`.
 
 ## 3. Dispatch one implementer per package
 
@@ -88,9 +99,10 @@ alone; see below.
   completion is ordered, never the work.
 - **An implementer's diff stays within its package's path** — the directory, or single file,
   that `product.yaml` names. Every other shared file — `product.yaml`, lockfiles, the record,
-  the companion increment's sources — has you, the orchestrator, as its only writer. Implementers report what they cannot edit: proposed
-  decisions, open questions, overturns, and needed shared-file changes arrive as structured
-  findings, and you triage and record them in the companion increment.
+  the companion increment's sources — has you, the orchestrator, as its only writer.
+  Implementers report what they cannot edit: proposed decisions, open questions, overturns,
+  and needed shared-file changes arrive as structured findings, and you triage and record them
+  in the companion increment.
 - **The findings loop.** Nothing pushes into a working implementer, so the loop is built on
   phase boundaries: an implementer returns its findings — proposed decisions, open questions,
   overturns, shared-file change requests, coverage entries — as structured data with each
@@ -105,7 +117,9 @@ alone; see below.
 - **Reconcile the claim allocation at the prepare merge.** When every prepare has returned,
   diff the union of the documents' claim lists against the full in-force claim set: a claim
   two documents own, or one that no document states and no other package's evidence will
-  carry, is resolved before any Compose is dispatched.
+  carry, is resolved before any Compose is dispatched. Those lists are working material:
+  keep them out of the tree and drop them when the phase ends — the coverage entries, not
+  the lists, are what the record keeps.
 - A provider surface that shifts mid-implement follows the ordinary rules: unpinned — update
   the stub, merge, dependents rebase, record the supersession; bound or pinned — escalate,
   pausing exactly the dependents.
@@ -130,25 +144,37 @@ branch, no companion increment.
 - Each package's survey returns one census — structured YAML whose entries each carry the
   choice met, where in the build it arises, and the implementer's reading.
 - Concatenate the per-package censuses and return the result to Clarify. Persistence is the
-  plan skill's: a census the increment acts on lands under that increment's `drafts/`.
+  plan skill's: a census the increment acts on lands at `drafts/survey-census.yaml` in that
+  increment, and one acted on in no way is discarded.
 
 ## 4. Land
 
 1. The companion increment is ratified as a whole — every decision ruled (the gate blocks only
-   `proposed`), every question answered or removed — and merges through the gate. Count its
-   overturns — entries whose `supersedes` names a plan-ruled decision — and state the count
-   in the companion increment's pull request description, where the owner rules at ratify.
-   If it stayed empty, close it unmerged.
-2. Only then do implementation changes merge and packages release: no release and no in-tree
+   `proposed`), every question answered or removed. Count its overturns — entries whose
+   `supersedes` names a plan-ruled decision — and state the count in the companion increment's
+   pull request description, where the owner rules at ratify. If it stayed empty, close it
+   unmerged.
+2. Before the merge claims a slot, run `npx design-process conflicts <product>` on the branch:
+   it checks the companion's rulings against the fold at head and exits 1 when it finds
+   overlapping or duplicated rulings. `--against <version>` names a different fold to check
+   against. It applies two mechanical rules only — semantic overlap is the owner's scan of the
+   open drafts, and no gate reads in-flight drafts against each other. If the head moves before
+   you merge, run it again against the new head.
+3. Rename `increments/<slug>/` to the next number in the sequence, on the branch and before the
+   merge, so main never holds a slug-named increment. The rename is what clears the check's
+   increment-name finding. The number must be dense — the next one, never a skip or a repeat —
+   and a companion stacked on another draft takes its number after that draft lands. Then merge
+   through the gate.
+4. Only then do implementation changes merge and packages release: no release and no in-tree
    deliverable goes live before the design it targets is published.
-3. File the record at `implementations/<product>/<NNN>-<k>.yaml` (`NNN` = the target, `k`
+5. File the record at `implementations/<product>/<NNN>-<k>.yaml` (`NNN` = the target, `k`
    dense from 1), conforming to `/design-process/implementation@1`: `product`, `target`,
    `built_at`, `packages` (path + version; tree-consumed kinds carry their file's frontmatter
    `version`), and `coverage`.
-4. Coverage names every requirement and decision in force at the target, except deferred
+6. Coverage names every requirement and decision in force at the target, except deferred
    decisions: no entry may cover a deferral directly, and a deferral without an answer is not
    a gap. An `attestation` from you on every claim you implemented — always — plus
    `code-test`, `manual-check`, or `conformance-case` entries where those artifacts exist. A
    `ref` names what carries the claim: if deleting the file would not touch whether the claim
    holds, it does not belong.
-5. Verify the merged result passes `npx design-process check` with zero findings.
+7. Verify the merged result passes `npx design-process check` with zero findings.
