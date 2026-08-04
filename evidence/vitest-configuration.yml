@@ -4,65 +4,67 @@
 # All five runs live in one probe directory; `npm install` and `node fetch-packs.mjs` there
 # reproduce their inputs.
 
-- id: vi-mock-without-an-alias-probe-run
-  command: node run.mjs vi-mock
-  output: evidence/minecraft/server-shim/plugin-install-probes/vi-mock.out.txt
-  ran_at: 2026-07-29
-  environment: |
-    Run in evidence/minecraft/server-shim/plugin-install-probes after `npm install` and
-    `node fetch-packs.mjs`. vitest 4.1.10 / vite 8.1.5 on node 24.16.0, ESM, with
-    @minecraft/server 2.8.0 installed. Three invocations, none of which configures a
-    `resolve.alias` for `@minecraft/server`: a control with no mock either, a `vi.mock` in the test
-    file, and the same `vi.mock` in a `setupFiles` module with two test files under it. The mock
-    factory builds a server from the probe's own `fake-server` package and installs it through the
-    shim's `./control` subpath, then returns the shim's root namespace. The subject is
-    bencrob/marron-town-mod at 2c025b4, unmodified, whose src/main.ts subscribes to five world
-    events and registers two `system.runInterval` loops at module scope; its `@minecraft/server-ui`
-    import is aliased to a form stub that nothing drives. Absolute paths in the captured output are
-    rewritten to <probe>.
+version: "1"
+runs:
+  - id: vi-mock-without-an-alias-probe-run
+    command: node run.mjs vi-mock
+    output: evidence/minecraft/server-shim/plugin-install-probes/vi-mock.out.txt
+    ran_at: 2026-07-29
+    environment: |
+      Run in evidence/minecraft/server-shim/plugin-install-probes after `npm install` and
+      `node fetch-packs.mjs`. vitest 4.1.10 / vite 8.1.5 on node 24.16.0, ESM, with
+      @minecraft/server 2.8.0 installed. Three invocations, none of which configures a
+      `resolve.alias` for `@minecraft/server`: a control with no mock either, a `vi.mock` in the test
+      file, and the same `vi.mock` in a `setupFiles` module with two test files under it. The mock
+      factory builds a server from the probe's own `fake-server` package and installs it through the
+      shim's `./control` subpath, then returns the shim's root namespace. The subject is
+      bencrob/marron-town-mod at 2c025b4, unmodified, whose src/main.ts subscribes to five world
+      events and registers two `system.runInterval` loops at module scope; its `@minecraft/server-ui`
+      import is aliased to a form stub that nothing drives. Absolute paths in the captured output are
+      rewritten to <probe>.
 
-- id: plugin-contributed-install-probe-run
-  command: node run.mjs plugin
-  output: evidence/minecraft/server-shim/plugin-install-probes/plugin.out.txt
-  ran_at: 2026-07-29
-  environment: |
-    The same probe directory, versions and subject. The consumer's config lists one plugin and no
-    `resolve.alias` for `@minecraft/server` and no `setupFiles` of its own; the plugin's `config`
-    hook returns both. The `@minecraft/server-ui` alias — the pack's second engine module, which
-    the shim does not cover — is the consumer's own and is the only alias entry they wrote.
+  - id: plugin-contributed-install-probe-run
+    command: node run.mjs plugin
+    output: evidence/minecraft/server-shim/plugin-install-probes/plugin.out.txt
+    ran_at: 2026-07-29
+    environment: |
+      The same probe directory, versions and subject. The consumer's config lists one plugin and no
+      `resolve.alias` for `@minecraft/server` and no `setupFiles` of its own; the plugin's `config`
+      hook returns both. The `@minecraft/server-ui` alias — the pack's second engine module, which
+      the shim does not cover — is the consumer's own and is the only alias entry they wrote.
 
-- id: plugin-options-probe-run
-  command: node run.mjs options
-  output: evidence/minecraft/server-shim/plugin-install-probes/options.out.txt
-  ran_at: 2026-07-29
-  environment: |
-    The same probe directory, versions and subject, over six invocations of one config that passes
-    the plugin whatever `PROBE_SHIM_PLUGIN_OPTIONS` holds. Four vary the plugin's options — the
-    setup entry named by absolute path, by a bare specifier the package's `exports` map declares,
-    by a bare specifier it does not declare, and by a virtual module id the plugin's own
-    `resolveId`/`load` hooks answer — and two vary what the options carry: an empty world, and a
-    second server factory selected by a `serverModule` option. One invocation carries the options
-    through vite's `define` rather than `test.env`. The test file's assertions come from
-    `PROBE_EXPECT`.
+  - id: plugin-options-probe-run
+    command: node run.mjs options
+    output: evidence/minecraft/server-shim/plugin-install-probes/options.out.txt
+    ran_at: 2026-07-29
+    environment: |
+      The same probe directory, versions and subject, over six invocations of one config that passes
+      the plugin whatever `PROBE_SHIM_PLUGIN_OPTIONS` holds. Four vary the plugin's options — the
+      setup entry named by absolute path, by a bare specifier the package's `exports` map declares,
+      by a bare specifier it does not declare, and by a virtual module id the plugin's own
+      `resolveId`/`load` hooks answer — and two vary what the options carry: an empty world, and a
+      second server factory selected by a `serverModule` option. One invocation carries the options
+      through vite's `define` rather than `test.env`. The test file's assertions come from
+      `PROBE_EXPECT`.
 
-- id: plugin-config-merge-probe-run
-  command: node run.mjs merge
-  output: evidence/minecraft/server-shim/plugin-install-probes/merge.out.txt
-  ran_at: 2026-07-29
-  environment: |
-    The same probe directory, versions and subject. The consumer's config carries a `setupFiles`
-    entry of its own and an alias table of its own — one entry of which, `@consumer/marker`, is
-    imported by that setup file, so a clobbered table fails the run rather than passing quietly —
-    and lists the plugin beside them. Two invocations: the consumer's alias table as an object, and
-    the same table in vite's array-of-`{find, replacement}` form.
+  - id: plugin-config-merge-probe-run
+    command: node run.mjs merge
+    output: evidence/minecraft/server-shim/plugin-install-probes/merge.out.txt
+    ran_at: 2026-07-29
+    environment: |
+      The same probe directory, versions and subject. The consumer's config carries a `setupFiles`
+      entry of its own and an alias table of its own — one entry of which, `@consumer/marker`, is
+      imported by that setup file, so a clobbered table fails the run rather than passing quietly —
+      and lists the plugin beside them. Two invocations: the consumer's alias table as an object, and
+      the same table in vite's array-of-`{find, replacement}` form.
 
-- id: setup-subpath-without-a-plugin-probe-run
-  command: node run.mjs subpath
-  output: evidence/minecraft/server-shim/plugin-install-probes/subpath.out.txt
-  ran_at: 2026-07-29
-  environment: |
-    The same probe directory, versions and subject, with no plugin at all: the consumer writes both
-    entries themselves, and the `setupFiles` entry is the shim package's published `./setup`
-    subpath rather than a file in their own tree. Nothing sets the options environment variable, so
-    the setup module falls back to its baked-in defaults — an unlabelled server holding no
-    dimensions.
+  - id: setup-subpath-without-a-plugin-probe-run
+    command: node run.mjs subpath
+    output: evidence/minecraft/server-shim/plugin-install-probes/subpath.out.txt
+    ran_at: 2026-07-29
+    environment: |
+      The same probe directory, versions and subject, with no plugin at all: the consumer writes both
+      entries themselves, and the `setupFiles` entry is the shim package's published `./setup`
+      subpath rather than a file in their own tree. Nothing sets the options environment variable, so
+      the setup module falls back to its baked-in defaults — an unlabelled server holding no
+      dimensions.

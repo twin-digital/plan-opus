@@ -1,18 +1,20 @@
-- id: checkout-action-fetches-no-tags-by-default
-  claim: |
-    `actions/checkout` clones one commit and no tags unless told otherwise: `fetch-depth`
-    defaults to 1 and `fetch-tags` to false, so a workflow that reads tags has to ask for them
-  backing: documented
-  sources:
-    - url: https://github.com/actions/checkout
-      where: README — Usage, the commented input list
-      quote: |
-        # Number of commits to fetch. 0 indicates all history for all branches and tags.
-        # Default: 1
-        fetch-depth: ''
-    - url: https://github.com/actions/checkout
-      where: README — Usage, the commented input list
-      quote: |
-        # Whether to fetch tags, even if fetch-depth > 0.
-        # Default: false
-        fetch-tags: ''
+version: "1"
+facts:
+  - id: checkout-action-fetches-no-tags-by-default
+    claim: |
+      `actions/checkout` clones one commit and no tags unless told otherwise: `fetch-depth`
+      defaults to 1 and `fetch-tags` to false, so a workflow that reads tags has to ask for them
+    backing: documented
+    sources:
+      - url: https://github.com/actions/checkout
+        where: README — Usage, the commented input list
+        quote: |
+          # Number of commits to fetch. 0 indicates all history for all branches and tags.
+          # Default: 1
+          fetch-depth: ''
+      - url: https://github.com/actions/checkout
+        where: README — Usage, the commented input list
+        quote: |
+          # Whether to fetch tags, even if fetch-depth > 0.
+          # Default: false
+          fetch-tags: ''

@@ -3,77 +3,79 @@
 # A run records one execution and the output it captured. It makes no claim: the output says what
 # happened, the fact that cites it says what that means.
 
-- id: pack-detection-probe
-  command: node evidence/minecraft/dev-kit/pack-detection/detect-probe.mjs
-  output: evidence/minecraft/dev-kit/pack-detection/OUTPUT.txt
-  ran_at: 2026-07-25
-  environment: |
-    Scored against twin-digital/opus at archive/minecraft-prototype (4e731f5b), a 41-package pnpm
-    workspace holding two behavior packs. Ground truth is pack content under the add-on format —
-    a committed manifest.json with a header uuid and a data or script module. Packages are read
-    through git, so the probe needs no checkout and no build; one pass reads dist/ on disk for the
-    built-output rule. No record of the execution date survives; ran_at is the date its output was
-    committed.
+version: "1"
+runs:
+  - id: pack-detection-probe
+    command: node evidence/minecraft/dev-kit/pack-detection/detect-probe.mjs
+    output: evidence/minecraft/dev-kit/pack-detection/OUTPUT.txt
+    ran_at: 2026-07-25
+    environment: |
+      Scored against twin-digital/opus at archive/minecraft-prototype (4e731f5b), a 41-package pnpm
+      workspace holding two behavior packs. Ground truth is pack content under the add-on format —
+      a committed manifest.json with a header uuid and a data or script module. Packages are read
+      through git, so the probe needs no checkout and no build; one pass reads dist/ on disk for the
+      built-output rule. No record of the execution date survives; ran_at is the date its output was
+      committed.
 
-- id: registry-probe
-  command: node evidence/minecraft/dev-kit/registry-probe/probe.mjs
-  output: evidence/minecraft/dev-kit/registry-probe/OUTPUT.txt
-  ran_at: 2026-07-26
-  environment: |
-    The public npm registry as it stood on the run date; the observation is of registry state and
-    would differ as packages are published. Its output records the two enumeration libraries at
-    @npmcli/map-workspaces 6.0.0 and @pnpm/workspace.find-packages 1000.0.65.
+  - id: registry-probe
+    command: node evidence/minecraft/dev-kit/registry-probe/probe.mjs
+    output: evidence/minecraft/dev-kit/registry-probe/OUTPUT.txt
+    ran_at: 2026-07-26
+    environment: |
+      The public npm registry as it stood on the run date; the observation is of registry state and
+      would differ as packages are published. Its output records the two enumeration libraries at
+      @npmcli/map-workspaces 6.0.0 and @pnpm/workspace.find-packages 1000.0.65.
 
-- id: workspace-enumeration-probe
-  command: node evidence/minecraft/dev-kit/workspace-enumeration-probe/probe.mjs
-  output: evidence/minecraft/dev-kit/workspace-enumeration-probe/OUTPUT.txt
-  ran_at: 2026-07-26
-  environment: |
-    Two committed fixture workspaces beside the script, one npm and one pnpm, neither ever
-    installed — the probe checks and prints that. Enumerated through @npmcli/map-workspaces and
-    @pnpm/workspace.find-packages, whose versions this run does not record; npm 11.13.0 and pnpm
-    11.17.0 were on PATH, which its own environment section prints.
+  - id: workspace-enumeration-probe
+    command: node evidence/minecraft/dev-kit/workspace-enumeration-probe/probe.mjs
+    output: evidence/minecraft/dev-kit/workspace-enumeration-probe/OUTPUT.txt
+    ran_at: 2026-07-26
+    environment: |
+      Two committed fixture workspaces beside the script, one npm and one pnpm, neither ever
+      installed — the probe checks and prints that. Enumerated through @npmcli/map-workspaces and
+      @pnpm/workspace.find-packages, whose versions this run does not record; npm 11.13.0 and pnpm
+      11.17.0 were on PATH, which its own environment section prints.
 
-- id: workspace-member-fault-probe
-  command: node evidence/minecraft/dev-kit/workspace-member-fault-probe/probe.mjs
-  output: evidence/minecraft/dev-kit/workspace-member-fault-probe/OUTPUT.txt
-  ran_at: 2026-07-26
-  environment: |
-    Four committed fixture workspaces beside the script, one per (library, fault) pair, each
-    pattern matching both a healthy packages/good member and one faulty directory. Committed
-    uninstalled, as the probe checks and prints. The thrown errors are the two enumeration
-    libraries', at versions this run does not record — registry-probe places them at
-    @npmcli/map-workspaces 6.0.0 and @pnpm/workspace.find-packages 1000.0.65 the same week.
+  - id: workspace-member-fault-probe
+    command: node evidence/minecraft/dev-kit/workspace-member-fault-probe/probe.mjs
+    output: evidence/minecraft/dev-kit/workspace-member-fault-probe/OUTPUT.txt
+    ran_at: 2026-07-26
+    environment: |
+      Four committed fixture workspaces beside the script, one per (library, fault) pair, each
+      pattern matching both a healthy packages/good member and one faulty directory. Committed
+      uninstalled, as the probe checks and prints. The thrown errors are the two enumeration
+      libraries', at versions this run does not record — registry-probe places them at
+      @npmcli/map-workspaces 6.0.0 and @pnpm/workspace.find-packages 1000.0.65 the same week.
 
-- id: workspace-root-candidate-probe
-  command: node evidence/minecraft/dev-kit/workspace-root-candidate-probe/probe.mjs
-  output: evidence/minecraft/dev-kit/workspace-root-candidate-probe/OUTPUT.txt
-  ran_at: 2026-07-27
-  environment: |
-    Four committed fixture workspaces beside the script: an npm root with no workspaces array, one
-    with an empty array, one with a populated array and a single member, and a pnpm root whose
-    pnpm-workspace.yaml holds no packages field. Committed uninstalled, as the probe checks and
-    prints. Its output records @npmcli/map-workspaces 6.0.0 and @pnpm/workspace.find-packages
-    1000.0.65.
+  - id: workspace-root-candidate-probe
+    command: node evidence/minecraft/dev-kit/workspace-root-candidate-probe/probe.mjs
+    output: evidence/minecraft/dev-kit/workspace-root-candidate-probe/OUTPUT.txt
+    ran_at: 2026-07-27
+    environment: |
+      Four committed fixture workspaces beside the script: an npm root with no workspaces array, one
+      with an empty array, one with a populated array and a single member, and a pnpm root whose
+      pnpm-workspace.yaml holds no packages field. Committed uninstalled, as the probe checks and
+      prints. Its output records @npmcli/map-workspaces 6.0.0 and @pnpm/workspace.find-packages
+      1000.0.65.
 
-- id: pnpm-default-patterns-probe
-  command: node evidence/minecraft/dev-kit/pnpm-default-patterns-probe/probe.mjs
-  output: evidence/minecraft/dev-kit/pnpm-default-patterns-probe/OUTPUT.txt
-  ran_at: 2026-07-27
-  environment: |
-    Two committed fixture workspaces beside the script: a pnpm root whose pnpm-workspace.yaml
-    holds only a catalog:, with two nested packages, and an npm root with no workspaces array and
-    one nested package. Committed uninstalled, as the probe checks and prints, and records
-    @npmcli/map-workspaces 6.0.0 and @pnpm/workspace.find-packages 1000.0.65. Its output also
-    carries the deeper tooling/nested/beta sweep.
+  - id: pnpm-default-patterns-probe
+    command: node evidence/minecraft/dev-kit/pnpm-default-patterns-probe/probe.mjs
+    output: evidence/minecraft/dev-kit/pnpm-default-patterns-probe/OUTPUT.txt
+    ran_at: 2026-07-27
+    environment: |
+      Two committed fixture workspaces beside the script: a pnpm root whose pnpm-workspace.yaml
+      holds only a catalog:, with two nested packages, and an npm root with no workspaces array and
+      one nested package. Committed uninstalled, as the probe checks and prints, and records
+      @npmcli/map-workspaces 6.0.0 and @pnpm/workspace.find-packages 1000.0.65. Its output also
+      carries the deeper tooling/nested/beta sweep.
 
-- id: pnpm-node-modules-probe
-  command: node evidence/minecraft/dev-kit/pnpm-node-modules-probe/probe.mjs
-  output: evidence/minecraft/dev-kit/pnpm-node-modules-probe/OUTPUT.txt
-  ran_at: 2026-07-27
-  environment: |
-    Three committed fixture workspaces beside the script: a pnpm root with no packages field, a
-    pnpm root with packages: ['**'], and an npm root with workspaces: ["**"], each holding
-    packages/alpha as a control plus node_modules/plain-dep and node_modules/@scope/scoped-dep.
-    Committed uninstalled, as the probe checks and prints, and records @npmcli/map-workspaces
-    6.0.0 and @pnpm/workspace.find-packages 1000.0.65.
+  - id: pnpm-node-modules-probe
+    command: node evidence/minecraft/dev-kit/pnpm-node-modules-probe/probe.mjs
+    output: evidence/minecraft/dev-kit/pnpm-node-modules-probe/OUTPUT.txt
+    ran_at: 2026-07-27
+    environment: |
+      Three committed fixture workspaces beside the script: a pnpm root with no packages field, a
+      pnpm root with packages: ['**'], and an npm root with workspaces: ["**"], each holding
+      packages/alpha as a control plus node_modules/plain-dep and node_modules/@scope/scoped-dep.
+      Committed uninstalled, as the probe checks and prints, and records @npmcli/map-workspaces
+      6.0.0 and @pnpm/workspace.find-packages 1000.0.65.

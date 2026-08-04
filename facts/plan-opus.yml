@@ -1,19 +1,21 @@
 # Facts about this repository's GitHub hosting configuration.
 
-- id: main-rulesets-require-prs
-  claim: three active rulesets bind this repository's main branch — a pull_request rule,
-    required status checks, and deletion/non-fast-forward/signature rules — with no bypass
-    actors, and no ruleset's conditions name any branch besides the default
-  backing: tested
-  caveat: |
-    An observation of the repository settings on the run's date; rulesets change outside the
-    tree, and the run's script re-answers it in one command.
-  sources:
-    - run: main-branch-rulesets-query
-      where: the require-reviews ruleset's detail line
-      quote: |
-        {"bypass_actors":null,"conditions":{"ref_name":{"exclude":[],"include":["~DEFAULT_BRANCH"]}},"enforcement":"active","name":"require-reviews","rules":["pull_request"]}
-    - run: main-branch-rulesets-query
-      where: the required-checks ruleset's detail line
-      quote: |
-        {"bypass_actors":null,"conditions":{"ref_name":{"exclude":[],"include":["refs/heads/main"]}},"enforcement":"active","name":"required-checks","rules":["required_status_checks"]}
+version: "1"
+facts:
+  - id: main-rulesets-require-prs
+    claim: three active rulesets bind this repository's main branch — a pull_request rule,
+      required status checks, and deletion/non-fast-forward/signature rules — with no bypass
+      actors, and no ruleset's conditions name any branch besides the default
+    backing: tested
+    caveat: |
+      An observation of the repository settings on the run's date; rulesets change outside the
+      tree, and the run's script re-answers it in one command.
+    sources:
+      - run: main-branch-rulesets-query
+        where: the require-reviews ruleset's detail line
+        quote: |
+          {"bypass_actors":null,"conditions":{"ref_name":{"exclude":[],"include":["~DEFAULT_BRANCH"]}},"enforcement":"active","name":"require-reviews","rules":["pull_request"]}
+      - run: main-branch-rulesets-query
+        where: the required-checks ruleset's detail line
+        quote: |
+          {"bypass_actors":null,"conditions":{"ref_name":{"exclude":[],"include":["refs/heads/main"]}},"enforcement":"active","name":"required-checks","rules":["required_status_checks"]}

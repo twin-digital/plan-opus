@@ -3,11 +3,13 @@
 # A run records one execution and the output it captured. It makes no claim: the output says
 # what happened, the fact that cites it says what that means.
 
-- id: main-branch-rulesets-query
-  command: sh products/increment-process/increments/010/artifacts/main-branch-rulesets/query.sh
-  output: products/increment-process/increments/010/artifacts/main-branch-rulesets/OUTPUT.txt
-  ran_at: 2026-08-04
-  environment: |
-    gh with a twin-digital App-installation token, against the live repository settings, run
-    by an agent. The observation is of the settings at that moment; re-run the script for the
-    current answer.
+version: "1"
+runs:
+  - id: main-branch-rulesets-query
+    command: sh products/increment-process/increments/010/artifacts/main-branch-rulesets/query.sh
+    output: products/increment-process/increments/010/artifacts/main-branch-rulesets/OUTPUT.txt
+    ran_at: 2026-08-04
+    environment: |
+      gh with a twin-digital App-installation token, against the live repository settings, run
+      by an agent. The observation is of the settings at that moment; re-run the script for the
+      current answer.
