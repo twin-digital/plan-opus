@@ -166,3 +166,37 @@ deliberately rather than discovered.
 The survey handshake stays split across both packages by nature: the plan phase offers and
 classifies, the implement phase dispatches, the implementer executes. Three ends of one
 protocol, not three copies of a rule.
+
+## The invocation path, and what nearly sank the merge
+
+The merge's cost was misjudged twice before the owner corrected it. The reasoning was that a
+muddier `description` mattered little "because these are invoked deliberately rather than
+discovered" — but the owner does not type the skill names at all. "Let's plan a new increment
+for foo" *is* model invocation, and `description` is the whole selection mechanism.
+
+That made the phase merge a daily-use regression: one description matching both phrasings, then
+a router re-deriving the phase from the same sentence. Three ways out were weighed —
+
+- **drop the phase merge** and record the lifecycle duplication as tolerated;
+- **merge and disable model invocation**, making the skill fire only as `/name`;
+- **merge, keep model invocation, and switch the owner to slash commands**.
+
+The owner took the third: typing `/increment plan` is more precise anyway, and the two are not
+exclusive — the slash form does not require giving up model selection, which stays as the
+fallback for anyone describing the work instead of naming it.
+
+Note the merge's cost lands only on the phase skills. `implement-package` is dispatched by the
+orchestrator and never selected from a sentence, so its merge was never exposed to this.
+
+### Recorded, untested: disable-model-invocation on a dispatched skill
+
+`f:template-skills-opt-out-of-model-invocation` says the flag makes a skill fire "only when
+invoked as /name, not when the model judges it relevant". The documentation does not
+distinguish *the model judged this relevant* from *an agent called the Skill tool by name*, and
+the difference decides whether the flag is safe on a skill an orchestrator dispatches: every
+implementer is told to invoke its skill by name, and a flag that blocked that would break
+dispatch outright.
+
+Nothing here sets the flag, so the increment does not turn on it. Recorded because a later
+increment reaching for it must probe first — a throwaway skill with the flag set, dispatched to
+a subagent told to invoke it by name, is the whole experiment.

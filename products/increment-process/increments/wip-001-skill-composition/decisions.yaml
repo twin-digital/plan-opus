@@ -109,3 +109,41 @@ decisions:
       - d-80yxesle
       - d-qb67fb8s
     facets: prompts
+
+  - id: d-1vt3677q
+    title: the phase is the skill's first argument, and the skill stays model-selectable
+    statement: |
+      a phase is run as `/increment <phase>`, the phase being the skill's first argument and
+      the rest of the invocation carrying whatever the caller wants to say. `plan` and
+      `implement` are the phases.
+
+      the skill does not set disable-model-invocation: it stays selectable from a request that
+      names neither the skill nor the phase, because that is how an agent reaches it when a
+      person describes the work rather than typing the command. its description therefore has
+      to carry the triggers for both phases, and where the invocation names no phase the skill
+      settles which is meant before doing anything else.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: the form every caller types or an agent selects on
+    because:
+      - d-80yxesle
+      - f:skills-are-the-command-unit
+    facets:
+      - prompts
+      - process-doc
+
+  - id: d-lzisn9cb
+    title: a replaced skill package is deleted outright
+    statement: |
+      .claude/skills/plan, .claude/skills/implement, .claude/skills/implement-code, and
+      .claude/skills/implement-document are removed when their replacements ship. no
+      redirecting stub stands in for a retired name: an invocation of a name that is gone
+      fails loudly, and a stub kept to preserve a name would outlive the reason for it.
+    status: proposed
+    because:
+      - d-80yxesle
+      - d-lv3oyfaj
+      - d-7a6o1qw9
+      - d-mq2th41t
+    facets: prompts
