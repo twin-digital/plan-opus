@@ -1,0 +1,34 @@
+version: "1"
+
+requirements:
+  # what protection is worth
+  - id: r-pe87rfqq
+    title: protection survives ordinary play
+    statement: |
+      a protected mob does not die from anything ordinary gameplay produces: mobs, players, fire,
+      falling, drowning, suffocation, and explosions among them. Operator action and the void are
+      outside what the pack must prevent, as is any loss that is not a death — a wandering trader's
+      vanilla despawn among them.
+    verification:
+      - do: subject a protected mob, in turn, to lethal doses of each ordinary source — hostile-mob attacks, player attacks, fire, a fall, drowning, suffocation, and an explosion
+      - verify: the mob survives every one
+      - do: leave a protected wandering trader alone until its vanilla despawn timer runs out
+      - verify: the trader despawns as vanilla would — nothing the pack does keeps it in the world
+    amends: r-uyqd39on
+
+  # staying out of the way
+  - id: r-eh0aac98
+    title: the pack changes nothing else
+    statement: |
+      apart from not dying and not being converted, a protected mob behaves exactly as it does in
+      vanilla: trading, restocking, breeding, gossip, panic, and golem spawning are unchanged, and a
+      mob that is hit still visibly takes the hit — flinch, knockback, sound, and panic as vanilla
+      would. The protection adds no tell of its own — no effect particles, no name tag, no chat
+      output.
+    verification:
+      - do: with the pack running, trade with a protected villager, let it restock, breed a pair, provoke panic, and let a village spawn a golem, alongside the same scenario in a world without the pack
+      - verify: each behaviour matches the vanilla world's
+      - do: strike a protected mob and watch the same strike land in the vanilla world
+      - verify: the hit visibly lands as vanilla's does — flinch, knockback, sound, and panic alike
+      - verify: nothing on screen is added by the protection — no effect particles, no name tag, no chat output
+    amends: r-g8trct40
