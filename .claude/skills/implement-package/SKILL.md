@@ -22,6 +22,12 @@ Your dispatcher calls three phases:
   prepare as a no-op.
 - **implement** — run prepare where it has not run, then complete the package.
 
+Beside your own list, a prepare phase returns the allocation problems visible from where you
+sit: a claim you believe a sibling package should own, a claim nothing you plan to produce
+could carry, and a claim you have taken that you think another package also will. The
+reconciliation across siblings is a mechanical diff and finds a claim nobody listed; the three
+above turn on your judgement of your own package and are found nowhere else.
+
 Which waves each phase covers is your kind's business. Read your wave file:
 
 | kind | wave file |
@@ -66,7 +72,8 @@ package: a directory, or a single file for a tree-consumed kind. A change you ne
 that path — including one you need from another package — is reported, never made.
 
 Findings return as structured data with each phase's result: proposed decisions, open
-questions, overturns, the changes you need outside your path, and your coverage entries. An
+questions, overturns, the changes you need outside your path, the allocation problems a
+prepare phase saw, and your coverage entries. An
 escalation you hit mid-phase does not stop you — keep building what does not depend on it; if
 you are wholly blocked, end the phase early and return your findings and state.
 
