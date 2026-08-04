@@ -1,0 +1,50 @@
+version: "1"
+
+# The five open questions the stranded spec cycle carried (branch tip c43cefe). Each names the
+# harvested decisions it gates. All five close as facts: kit behaviour is documented by the kit's
+# published foundations, and the server questions close with a probe or a documented source.
+questions:
+  - id: q-7ssvrzhv
+    question: |
+      Under what field and type does a kit pack-set entry name the built output directory the
+      harness copies from, and does the kit resolve that location for a package that names an
+      alternate one, or is applying the `dist/` default the consumer's job? Gates d-hgci9q17
+      (packages rebuild and the harness watches built output) and d-snejjjs6 (activation version
+      read from the built manifest).
+    answer: fact
+
+  - id: q-ivw91zit
+    question: |
+      Is a built output directory per pack or per package? The kit allows one pack of each kind
+      in a package while placing "a pack's built output" at a single `dist/`, so a package holding
+      both kinds may leave the harness one directory where it expects two. Gates d-hgci9q17
+      (packages rebuild and the harness watches built output) and d-snejjjs6 (activation version
+      read from the built manifest).
+    answer: fact
+
+  - id: q-g13pltdt
+    question: |
+      How does the harness run a selected package's build — does the kit offer an invocation for
+      the one-shot build and for the watch build, or does the harness spawn the package's own
+      scripts directly? Gates d-hgci9q17 (packages rebuild and the harness watches built output)
+      and d-dsrjqw4m (start builds once before the first reconcile).
+    answer: fact
+
+  - id: q-rtjmsq1r
+    question: |
+      Does an edit to a world's activation list take effect without a server restart, and is the
+      world directory the only place the list is read from? The probe behind
+      f:bedrock-activation-list-read-only-at-world-load restarts between every list change and
+      the prototype it also rests on wrote the list and restarted together, so no observation in
+      hand separates a list edit from the restart beside it; the world directory is likewise only
+      where the list was observed to work, not a place shown to be the only one. Closed by a probe
+      that edits a list without restarting, or by a documented source. Gates d-pz0ibyit (live
+      reload limited to active behavior pack content).
+    answer: fact
+
+  - id: q-h2uaejbd
+    question: |
+      Does any console command — `/reload all` among them — bring a pack newly copied into the pool
+      into the running world, or is a restart the only path? Gates d-pz0ibyit (live reload limited
+      to active behavior pack content).
+    answer: fact
