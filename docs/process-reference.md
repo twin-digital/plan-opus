@@ -1,5 +1,5 @@
 ---
-version: "12"
+version: "14"
 ---
 
 # The incremental design process
@@ -61,8 +61,8 @@ Increment artifacts live at `products/<product>/increments/<NNN>/` — `requirem
 `decisions.yaml`, a `drafts/` folder, and the sources later process increments define, with
 `.yaml` and `.yml` both accepted wherever a source is named. The increment is its directory,
 with no manifest file of its own. While an increment is an in-flight draft it holds no number,
-and its directory is slug-named on its own branch (see *Drafts run in parallel*); `<NNN>` is
-what main holds. The product is declared by the presence of
+and its directory is `wip-<NNN>-<slug>` on its own branch (see *Drafts run in parallel*); a
+plain number is what main holds. The product is declared by the presence of
 `products/<product>/product.yaml`, whose directory name is the product id.
 
 Lifecycle is uniform: **an increment declares changes, and state is the fold** — and nothing
@@ -84,6 +84,9 @@ Implement:
   waves onto those two phases. Implementers also expose survey, the read-only phase
   Clarify dispatches. Plan hands Implement the ratified fold.
 ```
+
+Plan and Implement are the two phases an agent runs, invoked as `/increment <phase>` — the
+phase naming which, and the rest of the invocation carrying whatever the caller wants to say.
 
 ### Capture
 
@@ -138,8 +141,8 @@ the ordinary bar. The send operation is what moves the raw material into reach:
 design-process backlog send <increment-dir> [--item <id>]... [--product <id>] [--tag <tag>]...
 ```
 
-`<increment-dir>` is a repo-relative `products/<product>/increments/<name>` — a slug-named
-draft as readily as a numbered increment. Send takes one item, all of a product's, or those
+`<increment-dir>` is a repo-relative `products/<product>/increments/<name>` — a draft's `wip-`
+directory as readily as a numbered increment. Send takes one item, all of a product's, or those
 matching a tag filter. Each sent item lands at
 `products/<product>/increments/<name>/drafts/backlog/<id>.md` and is deleted from the backlog
 branch in the same action: it arrives as raw material in `drafts/`, not in the increment's
@@ -255,14 +258,33 @@ Several increments of one product run Clarify at once, none committed to a seque
 while drafting. The landing order is chosen when planning is done, and a draft claims its
 number only as it lands.
 
-An unnumbered draft is `products/<product>/increments/<slug>/` on its own pull-request branch,
-which agents name `plan/<product>/<slug>` — no check requires that name; it is the default
-agents reach for rather than deliberate over. Landing renames the directory into the next
-number on that branch before the merge, so main never holds a slug-named increment.
+An unnumbered draft is `products/<product>/increments/wip-<NNN>-<slug>/` on its own
+pull-request branch, which agents name `plan/<product>/<slug>` — no check requires that name;
+it is the default agents reach for rather than deliberate over. `<NNN>` is a three-digit
+ordinal and `<slug>` names what the draft is about. Landing renames the directory into the next
+published number on that branch before the merge, so main never holds a wip directory.
 
-No validator change comes with parallel drafting. A slug-named directory fails the name
-finding while the draft is worked — beside its proposed-decision and open-question findings —
-and the landing rename clears it. The check stays the merge gate it is.
+**The ordinal orders the draft increments one tree holds, and nothing else.** It is not a claim
+on a published number, and two drafts on unrelated branches may carry the same one. A tree holds
+more than one draft only when one is stacked on another, and then the ordinal is their relative
+order — a stack lands in it, `wip-001` before `wip-002`. The ordinals are not dense and no gate
+checks them: when an ancestor lands, the dependent keeps its ordinal rather than renumbering,
+and gaps are ordinary. A tree holding two drafts that are not ancestor and dependent is not
+supported.
+
+**The merge gate reads a draft increment while it is worked**, so an author sees what is wrong
+before landing rather than after. A wip directory is read as a draft increment in flight: its
+sources validate against their schemas, its citations resolve, and its proposed decisions and
+open questions are reported — every rule the gate applies to a published increment, applied to
+it too. What keeps it out of main is the increment-dir-name finding, unchanged: the landing
+rename clears it and nothing else does, and the check stays the merge gate it is. The density
+gate reads published numbers only, so a wip ordinal neither fills a gap nor makes one.
+
+**A draft's foundations project.** The projection folds a tree's draft increments after every
+published increment, ordered by their wip ordinals — the order their landings would claim. Each
+one's foundations appear in the fold, its supersessions close what they name, and the coverage
+summary counts its claims. A draft shows as its directory name, since it holds no published
+number until it lands.
 
 ### Dependencies between drafts
 
@@ -270,8 +292,9 @@ A draft depends on another when it builds on it: branching from it and citing, a
 retiring its foundations. Nothing is declared — the dependency is git ancestry. A dependent
 draft's tree carries its ancestor's content, and its landing diff shrinks to its own changes
 once the ancestor merges. A dependent draft lands only after the draft it builds on;
-independent drafts land in any order. A tree that skips or repeats a number is refused by the
-density gate.
+independent drafts land in any order. A tree that skips or repeats a published number is refused
+by the density gate; a wip ordinal is not a published number and the density gate does not read
+it.
 
 ### Landing claims the number
 
@@ -478,8 +501,8 @@ Nothing reads structure out of an id. Question ids are
 unique within the increment that raised them — the only scope in which a question exists.
 
 Increments stay plain numbers once published, claimed serially by the landing rename; an
-in-flight draft is identified by its slug instead. Products and presets are named by their
-directory, and adoption uses that name.
+in-flight draft is identified by its `wip-<NNN>-<slug>` directory name instead. Products and
+presets are named by their directory, and adoption uses that name.
 
 ### Requirement presets
 
@@ -683,6 +706,9 @@ The shape for code kinds — `npm-library`, `npm-cli`, `minecraft-addon`:
 | **Code** | implement | the implementation | the stubs, by compiling; the tests, by passing |
 | **Document** | implement | READMEs and user-facing documentation | the implementation |
 
+Prepare may return as soon as the API stubs stand, with test authoring finishing inside
+implement, so dependents unblock at the earliest honest moment.
+
 The shape for the `document` and `agent-skill` kinds:
 
 | wave | phase | produces | validated against |
@@ -850,3 +876,23 @@ with instruction to agents shipping as agent-skill packages and `CLAUDE.md` rath
 document. The content-quality tests for foundations — what makes a statement, a
 verification procedure, a decision, or a model entry good — are their own document package: one body of tests binding the writer of what each governs,
 reviewer-applied and never a validator rule.
+
+### Instruction is scoped to the dispatch
+
+Two rules divide that instruction, and the skill packages are laid out to satisfy them.
+
+**An agent reads only what its dispatch needs.** The instruction an agent receives carries what
+applies to the work it was dispatched for and not what applies to a different role, kind, or
+phase; guidance that does not bear on this dispatch is neither in the file it reads nor loaded
+alongside it.
+
+**A rule governing more than one role is stated once.** Within the instruction agents read,
+where one rule governs more than one role, kind, or phase, it is written in one place and
+reached from each, not restated per audience — two copies that must be updated together are the
+failure this forbids. Where two roles each perform part of one exchange, each states its own
+part, and that is not a copy; nor is a normative document like this one restating what the
+instruction operationalizes.
+
+The Plan and Implement phases ship as one agent-skill package, `.claude/skills/increment`: its
+`SKILL.md` carries the draft-increment lifecycle both phases perform, and each phase is a file
+beside it, read only by an agent running that phase.
