@@ -14,14 +14,15 @@ requirements:
     facets: process-doc
 
   - id: r-pvcrlqg5
-    title: capture is one commit, by anyone
+    title: capture is one action, by anyone
     statement: |
-      capturing an item is a single direct commit — no pull request, no increment, no
-      review gate at capture — and the owner and agents alike write to the channel; an
-      item's content is reviewed when an increment adopts it, not when it is captured.
+      capturing an item is a single ceremony-free action — one commit, one opened issue, or
+      the like — with no pull request, no increment, and no review gate at capture; the
+      owner and agents alike write to the channel, and an item's content is reviewed when
+      an increment adopts it, not when it is captured.
     verification:
       - do: as an agent mid-task, capture an item
-      - verify: the capture is one commit, with no pull request opened and the task uninterrupted
+      - verify: the capture is one action, with no pull request opened and the task uninterrupted
       - do: adopt the item in a later increment
       - verify: the adopting increment's review is where the content is judged
     facets: process-doc

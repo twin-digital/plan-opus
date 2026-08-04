@@ -1,70 +1,26 @@
 version: "2"
 decisions:
-  - id: d-d1kp9g5p
-    title: the backlog is a directory of markdown items
+  - id: d-gpwpa7ma
+    title: the tooling surfaces the backlog
     statement: |
-      a product's backlog is products/<product>/backlog/ — one markdown file per item,
-      named by a slug the capturer picks, holding free prose with no prescribed fields;
-      the filename slug is the only structure the channel imposes, and the capturer files
-      under whichever product the idea most nearly serves. an item is raw material outside
-      the fold: nothing may cite one, and no gate reads one.
+      the process tooling lists and searches held items the same way it surfaces facts and
+      foundations, whatever store backs the backlog; an agent or the owner reaches the
+      backlog through the tooling without knowing the store.
     status: proposed
-    pinned:
-      reason: data-format
     because:
       - r-hbihi1xh
-      - r-fvi1hqkn
-      - d-kn05wb30
-      - f:check-ignores-product-backlog-dir
-      - f:check-rejects-slug-increment-dirs
-    facets: process-doc
-
-  - id: d-2n4ebv7t
-    title: capture lands on the backlog branch
-    statement: |
-      a long-lived branch named backlog carries the products' backlog directories, and
-      capturing an item is one commit pushed directly to it — no pull request, since the
-      rulesets bind only main. the branch never merges into main: backlog files live only
-      there, and the owner reads the branch to review what is held.
-    status: proposed
-    pinned:
-      reason: public-api
-      notes: capturers and the shipped skills name the branch
-    because:
-      - r-pvcrlqg5
-      - r-hbihi1xh
-      - f:main-rulesets-require-prs
-      - d-d1kp9g5p
-    facets:
-      - process-doc
-      - prompts
+      - r-2gcehlp8
+    facets: tooling
 
   - id: d-wpih0mc1
     title: adoption rewrites, then drains
     statement: |
       a later increment adopts an item by writing the foundations it plans into its own
       sources at the ordinary bar — the braindump is raw material, never moved text — and
-      the item's file is deleted from the backlog branch once that increment merges. the
-      increment's sources are the record; the backlog keeps none.
+      the item leaves the backlog once that increment merges. the increment's sources are
+      the record; the backlog keeps none.
     status: proposed
     because:
       - r-hbihi1xh
       - r-fvi1hqkn
-      - d-d1kp9g5p
-      - d-2n4ebv7t
     facets: process-doc
-
-  - id: d-z2baj97d
-    title: the tooling is untouched
-    statement: |
-      the validator and the projection read nothing from the backlog: the review surface
-      for held items is the backlog branch itself, and npm run check passes with or
-      without a backlog directory present.
-    status: proposed
-    because:
-      - r-hbihi1xh
-      - f:check-ignores-product-backlog-dir
-      - d-2n4ebv7t
-    revisit_when:
-      - reading the branch proves too thin a review surface for the owner
-    facets: tooling
