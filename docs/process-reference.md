@@ -1,5 +1,5 @@
 ---
-version: "14"
+version: "18"
 ---
 
 # The incremental design process
@@ -47,7 +47,7 @@ has a job, an author, and a lifecycle:
 - **Facts** live in the repo-wide `facts/` pool, with the runs and artifacts that establish
   them under `evidence/`: findings about the world, citable from anywhere and validated by
   `design-process check` — the one merge gate — against their pool schemas and the evidence bar,
-  like every other source.
+  like every other source (see *The facts pool and its evidence*).
 
 One further entity is defined like a foundation but is not one: the **open question**, the
 structured ask an agent puts to the owner while an increment is a draft. It has a formally
@@ -529,12 +529,29 @@ when adopted and forbidden when dropped. Rules:
 - Adopting and dropping are direct owner action — fiat, like adding or removing any other
   requirement; the increment that declares the change is the record.
 - A preset is adopted whole. There are no exceptions or partial adoptions.
-- A preset does not adopt another preset.
-- The mechanical conflict the merge gate blocks on is identity collision — a requirement id
-  declared both by an adopted preset and by the product, or by two adopted presets. A semantic
-  conflict between differently-numbered requirements stays with review and the open-question
-  channel.
+- **A preset adopts presets.** A preset's own requirements source carries the same `presets:`
+  block, so it adopts like any other product — the declaration is a property of the requirements
+  source and was never conditioned on the adopting product's kind. Adoption is transitive: a
+  product's requirements are its own, plus those of every preset in the closure its declarations
+  reach.
+- **The closure is a directed acyclic graph.** A cycle is a finding, naming the path that closes
+  it. A preset reached by more than one path contributes its requirements once — requirement ids
+  are opaque and unique, so one id arriving by two paths is one requirement, and deduplicating by
+  id is exact.
+- **Every hop pins.** A preset names the version of each preset it adopts, exactly as a product
+  does. One preset reached at two different versions within a single closure is a finding rather
+  than a resolution — nothing chooses between them.
 - Adopting and dropping the same preset in one increment is an error.
+
+**A conflict is a double declaration, not a double path.** The mechanical conflict the merge gate
+blocks on is identity collision between two declarations of one requirement id: declared by an
+adopted preset and by the adopting product, or declared by two presets in the closure. A retired
+declaration does not count — an id whose only remaining declaration is in force collides with
+nothing, so a requirement may move from a product into a preset the product adopts, retired in
+the one and declared in the other, without the gate reading the move as a collision. An id
+reached by more than one path through the closure is not a collision: it is one declaration seen
+twice, and deduplication is what handles it. A semantic conflict between differently-numbered
+requirements stays with review and the open-question channel.
 
 Drift is expected and not forced: products may sit on old preset versions indefinitely, and
 nothing obliges an upgrade.
@@ -585,7 +602,42 @@ design-process diff <product> (--from <increment> | --from-ref <gitref>)
 `where` prints the increment number zero-padded to three digits and nothing else, so it drops
 straight into a path.
 
-### Facts record what research found
+### The facts pool and its evidence
+
+**Facts and their evidence carry forward in the repo-wide `facts/` pool** — findings about the
+world, with the runs and artifacts that establish them under `evidence/`, filed by subject and
+citable from any product. They are validated by `design-process check`, the one merge gate, like
+every other source: an entry that fails its bar — a missing field, a quote absent from the
+in-repo source it cites, a `run` or `superseded_by` reference resolving to nothing, a documented
+fact with no url or a tested one with no run — is a finding that blocks the merge. The discipline
+holds under a single checker, so a fact filed anywhere in the repository is held to its bar
+before a design cites it.
+
+A `facts/` file is `/design-process/facts@1` — a `facts:` sequence of `fact@1` entries; an
+`evidence/` file is `/design-process/runs@1`, a `runs:` sequence of `run@1` entries. A fact
+carries `id`, `claim`, `backing` — `tested`, `documented`, or `assumed` — and its `sources`, with
+an optional `status` of `active` or `retired`; a run carries `id`, `command`, `output`, and
+`ran_at`. **The `version:` wrapper is what marks a pool file**: other YAML under `evidence/` — a
+probe's fixtures and inputs — carries none and is artifact material, not a run source. Entry
+shape is the schema pool's to check, so the facts pool evolves its shape by the same versioning
+every other source uses.
+
+Beyond entry shape, the checker enforces the rules that make the evidence hold — the checks a
+schema cannot express:
+
+- a documented fact carries at least one `url` source, a tested fact at least one `run` source,
+  and an assumed fact at least one `description`
+- a quote at an in-repo source is verified verbatim, whitespace normalised on both sides; an
+  in-repo source path that resolves to no file is itself a finding, and an off-repo url — one
+  carrying a scheme — is not read
+- a `run:` source resolves to a live run entry — a retired one may not be cited — belongs only on
+  a tested fact, and the run's recorded output file exists and holds the quote
+- a url into an `artifacts/` path backs only a tested fact
+- a retired fact or run carries a `reason` from its enumeration, and a superseded fact or run
+  names a `superseded_by` that resolves within the pool and is not itself
+- entry ids are unique across the whole pool, facts and runs sharing one namespace
+
+### Citing what a claim rests on
 
 - **`because:` on a decision** — what it rests on: the requirements it follows from, the facts
   that drove it, and the decisions it builds on. Citations give the projection a dependency
@@ -763,19 +815,25 @@ question answered or removed — and merges through the ordinary gate. **Only th
 implementation publish**: a design with no implementation is a safe state the process
 supports, and an implementation whose backing design has not published is not — so no package
 version releases and no document deliverable goes live before the design increment its
-implementation targets is published, with the controls enforcing that ordering deferred to a
-later increment. An implementation whose companion increment stayed empty simply closes it — an
-increment that declares nothing is not published.
+implementation targets is published. An implementation whose companion increment stayed empty
+simply closes it — an increment that declares nothing is not published.
 
 The ordering holds in either discovery order. A design-first increment publishes its intent,
 then builds against it. A **code-first** increment inverts the discovery, not the invariant: the
 owner builds by hand, an agent then captures the design the code embodies into an increment, and
 only once that capture publishes does the code release. Code built ahead of its capture is
-**provisional** — unreleased, depended on by no one — and the plan side needs no new control for
-it: an implementation record cannot target an unpublished increment, so uncaptured code has no
-record and is not shipped. The captured increment is ordinary to everything downstream — it
-folds, agents extend it, its record covers its claims — which is what lets the two kinds
-interleave in one product.
+**provisional** — unreleased, depended on by no one, a foundation for no one; publishing the
+capture is the act that makes it extensible.
+
+The plan side needs no new control for this. An implementation record cannot target an
+unpublished increment, so uncaptured code has no record and is not shipped; a code repository
+keeping an unpublished package unreleased is discipline this process recommends and does not
+itself reach in to enforce. A captured increment reuses the increment artifacts unchanged — the
+same requirements and decisions sources, the same version regime, the same implementation record
+and coverage — and carries no marker recording that its design was read from code rather than
+written ahead of it. It is ordinary to everything downstream: it folds, agents extend it, its
+record covers its claims, and it claims its number like any other. The merge gate is indifferent
+to discovery order, and that indifference is what lets the two kinds interleave in one product.
 
 ### Everything lands at head
 
