@@ -3,8 +3,8 @@
 # No record of the execution dates survives; ran_at is the date each output was committed.
 
 - id: activation-list-probe
-  command: node design/minecraft/dev-server/artifacts/activation-list-probe/run.mjs
-  output: design/minecraft/dev-server/artifacts/activation-list-probe/OUTPUT.txt
+  command: node evidence/minecraft/dev-server/activation-list-probe/run.mjs
+  output: evidence/minecraft/dev-server/activation-list-probe/OUTPUT.txt
   ran_at: 2026-07-25
   environment: |
     A real itzg/minecraft-bedrock-server container under Compose v5.2.0, against a remote daemon
@@ -16,8 +16,8 @@
     Compose version.
 
 - id: compose-watch-probes
-  command: node design/minecraft/dev-server/artifacts/compose-watch-probes/run.mjs
-  output: design/minecraft/dev-server/artifacts/compose-watch-probes/OUTPUT.txt
+  command: node evidence/minecraft/dev-server/compose-watch-probes/run.mjs
+  output: evidence/minecraft/dev-server/compose-watch-probes/OUTPUT.txt
   ran_at: 2026-07-25
   environment: |
     Compose v5.2.0 against Docker Engine 29.5.3 on a remote daemon (DOCKER_HOST=ssh://…, no bind
@@ -27,8 +27,8 @@
     output records the case table.
 
 - id: env-file-resolution
-  command: node design/minecraft/dev-server/artifacts/env-file-resolution/run.mjs
-  output: design/minecraft/dev-server/artifacts/env-file-resolution/OUTPUT.txt
+  command: node evidence/minecraft/dev-server/env-file-resolution/run.mjs
+  output: evidence/minecraft/dev-server/env-file-resolution/OUTPUT.txt
   ran_at: 2026-07-25
   environment: |
     Compose v5.2.0. The script builds a cwd and a separate compose-file directory, each holding a

@@ -1,12 +1,12 @@
-# Facts scoped to the minecraft/dev-server design. All are PROPOSED by an agent and await owner
-# review.
+# Facts about the Bedrock dev server; the mc-dev-server product rests on them. All are PROPOSED
+# by an agent and await owner review.
 #
-# The first three facts are this design's dependency on minecraft/dev-kit, each sourced by
-# verbatim quote to the kit's requirements — its pinned artifact — per
-# r:cross-design-dependency-is-cited-as-a-fact. The rest are Compose and Bedrock mechanics that
-# only the server harness rests on. pack-kind-mismatch-fails-silently-at-the-server rests on the
-# pool-layout probe under design/minecraft/artifacts/, which sits at area scope rather than in
-# this design because an area-scope fact rests on the same probe.
+# The first three facts are the server harness's dependency on mc-dev-kit, each sourced by
+# verbatim quote to the kit's requirements — its pinned artifact. The rest are Compose and
+# Bedrock mechanics that only the server harness rests on.
+# pack-kind-mismatch-fails-silently-at-the-server rests on the pool-layout probe under
+# design/minecraft/artifacts/, which sits at area scope because an area-scope fact rests on the
+# same probe.
 #
 # Sources still naming who ran a probe predate the run kind; the clause is dropped as each
 # converts.
@@ -199,7 +199,7 @@
         bedrock:<pool>/<pack>` against a daemon on another host (socket, no bind mount); the
         server subsequently reported the pack in its Pack Stack and `/reload` picked up script
         changes. Copy succeeded with no volume or mount configured. The in-repo probes at
-        design/minecraft/dev-server/artifacts/ and design/minecraft/artifacts/pack-layout/probe/
+        evidence/minecraft/dev-server/ and design/minecraft/artifacts/pack-layout/probe/
         all deploy this way against a remote daemon and corroborate that `compose cp` needs no
         mount.
 
@@ -397,7 +397,7 @@
         Level Name: dev" and "Opening level 'worlds/dev/db'" — and the world files (including
         world_behavior_packs.json) lived under /data/worlds/<level-name>. One instance served one
         world; no configuration produced two active worlds in one container. The in-repo probes at
-        design/minecraft/dev-server/artifacts/activation-list-probe/ and
+        evidence/minecraft/dev-server/activation-list-probe/ and
         design/minecraft/artifacts/pack-layout/probe/ both address exactly one world directory,
         /data/worlds/dev, and corroborate the deploy target being unambiguous.
 
