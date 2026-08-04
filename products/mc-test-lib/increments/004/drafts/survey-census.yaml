@@ -1,0 +1,167 @@
+# Survey census — read-only survey of `nodejs/minecraft/test-lib` against the draft fold
+# (increments 001 + 002 + this draft), run 2026-08-04 during this increment's Plan loop.
+# `classification` is Clarify's disposition of each choice: decided (a foundation determines
+# it), deferred (a ruled decision hands it on), question (routed to the owner), or
+# implementation-detail (omitted from the record).
+
+census:
+  - choice: breadth of the aliased module surface — which exported names of @minecraft/server 2.8.0 the shim supplies
+    arises: Define/Stub — the aliased-module entry's export list
+    reading: >
+      Generate the full export surface from the pinned declarations, not just the probe shim's
+      enums + two brands: r-vzz9rnrc requires every value import of an unmodified pack to
+      resolve, unqualified, and @minecraft/server 2.8.0 exports 64 enums, 439 classes, the
+      world/system singletons and 5 numeric constants. Enums carry generated values, the 5
+      numeric constants their literal values.
+    classification: decided
+    determined_by: r-vzz9rnrc, r-29dlrp9r, f:engine-surface-outside-instances, d-0z0sfc5v, d-fd8y6nwv, d-v6pg1wph
+
+  - choice: what class each exported class binding is — fake class, placeholder, and what a placeholder does
+    arises: Stub/Code — the aliased surface's class exports
+    reading: >
+      For every type the fakes implement, export the library's own generated class, so
+      r-956kxrsc's prototype-chain identity holds with no Symbol.hasInstance — one package
+      (r-3dgnq0sp) makes this free. Unfaked classes emit generated placeholders whose
+      constructors and members throw NotImplementedError, extending the d-qz2aoixe pattern.
+    classification: decided for faked classes (r-956kxrsc, d-tzww1yuv); placeholder behaviour deferred by d-ksotjt7v
+    determined_by: r-956kxrsc, d-tzww1yuv, d-qz2aoixe
+
+  - choice: whether exported classes carry the engine's static members
+    arises: Stub — class generation
+    reading: >
+      Yes for constant-valued statics — the 86 `static componentId` and the 4 constant statics —
+      generated from the declarations; the registry get/getAll statics keep d-duelxt32's
+      NotImplementedError throw, exporting the same class objects the createServer bundle
+      carries so there is one identity. d-nmjafny2's "only route" phrasing is contradicted by
+      the module surface r-qklf4op9 requires.
+    classification: decided (f:engine-surface-outside-instances, d-duelxt32); d-nmjafny2 corrected by d-gjzbiyl6
+    determined_by: f:engine-surface-outside-instances, d-duelxt32, r-9z0icbhi
+
+  - choice: enum/value generation mechanism and when it runs
+    arises: Code — build tooling
+    reading: >
+      Extend the existing build-time generator (d-tzww1yuv: committed manifests, uncommitted
+      output) to emit the module surface from the pinned index.d.ts at package build, shipping
+      the generated values; no consumer postinstall.
+    classification: decided
+    determined_by: r-29dlrp9r, d-tzww1yuv
+
+  - choice: the world/system binding mechanism — export let live bindings vs fixed-identity Proxy
+    arises: Code — the aliased surface's singleton bindings
+    reading: >
+      `export let` live bindings reassigned by the install function: the ruled isolation shape
+      clears in place and keeps object identity, so live bindings suffice, while a Proxy costs
+      consumer-visible quirks (`server.world === world` false, typeof 'function',
+      JSON.stringify undefined). Document the vi.resetModules stranding caveat.
+    classification: deferred by d-ksotjt7v, within what the d-bslnaeg6 ruling fixes
+    determined_by: r-rpm1k57j, f:a-stable-proxy-binding-costs-identity-and-json-not-member-access, f:a-globalthis-store-survives-a-module-registry-reset
+
+  - choice: what reading world/system before any install does
+    arises: Code — the bindings' unset state
+    reading: >
+      Reachable only when a consumer wires the alias without the tooling; throw a distinctive
+      library error on access of an uninstalled binding rather than reading undefined, in the
+      spirit of r-62r76czb.
+    classification: decided by the harvested d-uj5gbt9w — ShimNotInstalledError
+    determined_by: d-uj5gbt9w
+
+  - choice: the runner tooling's shape — what the one config entry is
+    arises: Define — the tooling surface
+    reading: >
+      A vite plugin whose config hook contributes both the resolve.alias and the test.setupFiles
+      entry, so the consumer writes `plugins: [thePlugin()]` and nothing else — the only
+      measured shape that satisfies one entry + no consumer setup file, and it survives
+      consumers with alias tables and setup files of their own.
+    classification: decided
+    determined_by: r-uobnqsfg, f:a-vite-plugin-contributes-an-alias-and-a-setup-file, f:a-plugins-config-merges-with-the-consumers-own-entries
+
+  - choice: which runners are supported this increment
+    arises: Define — tooling scope
+    reading: >
+      Vitest only — every probe and fact is vitest 4.x/ESM; the jest path rides on the pending
+      ESM/CJS question.
+    classification: decided by d-bvhynmr8 (enters at vitest alone), contingent on the q-2rr36skd ruling
+    determined_by: q-2rr36skd
+
+  - choice: plugin options surface
+    arises: Stub — the plugin's public API
+    reading: >
+      Ship the plugin with no options this increment — the minimal public contract; nothing in
+      the fold requires a parameterised default world or a swappable server factory. Any option
+      added later is its own companion decision.
+    classification: implementation-detail — the absence of options is the default the companion increment may propose against
+    determined_by: r-uobnqsfg
+
+  - choice: entry-point layout specifics (the d-bvhynmr8 known gap)
+    arises: Stub — package exports map
+    reading: >
+      The setup module must be a real file, and the alias target and setup file can both be
+      referenced by absolute path inside the package from the plugin's own hook, needing no
+      published subpath. The minimal public contract is the root barrel plus exactly one new
+      subpath for the plugin.
+    classification: answered by d-bvhynmr8 (proposed)
+    determined_by: d-bvhynmr8, f:setup-files-resolve-as-modules-from-the-project-root, f:alias-and-control-subpath-are-one-module-instance
+
+  - choice: the install function a test calls to put its own fakes in place, and where it lives
+    arises: Stub — public API
+    reading: >
+      Export one free function (an installServer(bundle)-style setter feeding the module
+      bindings) from the root barrel per r-5mlc26io's everything-else-is-a-free-function rule,
+      amending d-ksk6d7ua's list.
+    classification: decided by the harvested d-ahlsuc8z (__useServer semantics); its export site rides d-bvhynmr8
+    determined_by: d-ahlsuc8z, d-bvhynmr8
+
+  - choice: the exact inventory of the per-test state clear — what resets, what survives
+    arises: Code — the tooling's beforeEach
+    reading: >
+      Clear entities, components, effects, scoreboard, dynamic properties, output log,
+      triggered-event log, handler errors, and the tick clock; preserve the signal subscriber
+      sets and the scheduled runs — clearing the run queue unregisters half of what a pack set
+      up.
+    classification: retired by the owner's ruling — d-bslnaeg6 rejected, no clear ships (d-2mngzzpg)
+    determined_by: d-2mngzzpg
+
+  - choice: reconciling the carried double-install throw with the supported install-your-own-fakes path
+    arises: Code — the install setter's misuse check
+    reading: >
+      A test-facing install replaces the current bundle without throwing; the throw guards only
+      a duplicate tooling install within one module-registry generation. Does not resurrect the
+      dropped stronger loud-failure form.
+    classification: answered by d-2mngzzpg — the per-generation throw stands, and each test's reset opens a new generation
+
+  - choice: what the package does about @minecraft/server-ui imports
+    arises: Define/Document — the second-module gap
+    reading: >
+      Every probe run needed a consumer-supplied stub alias for the pack's @minecraft/server-ui
+      import, so a pack importing it fails resolution under the one-entry install. Shipping even
+      a values-only server-ui surface is new scope the owner has not ruled.
+    classification: answered by r-w2ud6qa9 (owner ruling — the plugin installs the needed stubs; q-mzfp1udy closed)
+    determined_by: r-uobnqsfg, r-vzz9rnrc
+
+  - choice: how the typechecking seam is satisfied — whether the aliased surface ships declarations
+    arises: Stub/Document — r-4bgnaff8's compile
+    reading: >
+      Rely on the real @minecraft/server index.d.ts for the aliased specifier — TypeScript
+      resolves it by convention, unaffected by the runtime resolution failure — and on the
+      fakes' structural assignability for values crossing the seam; the aliased surface module
+      ships no consumer-facing .d.ts of its own.
+    classification: decided
+    determined_by: r-4bgnaff8, r-28cg0y2h, f:server-import-fails-without-an-alias, f:server-classes-are-structurally-assignable
+
+  - choice: where the derived-version statement is surfaced
+    arises: Document
+    reading: >
+      State it in the README beside the install instructions and in the generated surface's
+      header comment; an exported version constant would be new public API not spent here. The
+      peer-block collision with d-c5odl61n resolves at d-vjeple9k's ratification.
+    classification: decided by the harvested d-wygo3zhy (exported string + README); the peer-range half is d-vjeple9k, pending
+    determined_by: r-29dlrp9r, d-wygo3zhy, d-vjeple9k
+
+  - choice: how the README's coverage enumeration treats the shim facet
+    arises: Document
+    reading: >
+      An install/shim section stating what the surface supplies, which classes are behaving
+      fakes versus throwing placeholders, and the vi.resetModules caveat, rather than new
+      coverage rows per exported name.
+    classification: implementation-detail
+    determined_by: r-ovyzy5ey, r-9z0icbhi, r-uobnqsfg
