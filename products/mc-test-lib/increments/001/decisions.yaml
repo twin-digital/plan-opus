@@ -1,0 +1,561 @@
+version: "1"
+
+decisions:
+  - id: d-nmjafny2
+    title: server bundle mirrors module exports
+    statement: |
+      createServer returns one bundle whose properties are named as `@minecraft/server` exports
+      them — world, system, and the eight registry classes — and that bundle is the only route to
+      system and the registries
+    status: delegated
+    revisit_when:
+      - surveyed packs overwhelmingly take `world` alone as a parameter and reach `system` by direct
+        import, so a bundle carrying system is a shape no real pack can receive
+      - the registry classes turn out to need per-call state a single per-bundle object cannot hold,
+        forcing a registry to be constructed against something narrower than the world
+    facets: fakes
+
+  - id: d-khn6zzgj
+    title: modelled surface is world, entity, effect
+    statement: |
+      the behaving surface this cycle is the world, dimensions, entity identity and lifecycle, the
+      seven attribute-shaped components, effects, events, scheduling, persisted state and output;
+      every other entity component carries only typeId, isValid and entity
+    status: delegated
+    revisit_when:
+      - a component outside the attribute-shaped seven is reached by enough packs that tests written
+        against the library routinely hit NotImplementedError on a first attempt
+      - the attribute-shaped components turn out to differ from one another in behaviour, so treating
+        the seven as one modelled family produces wrong readings for some of them
+    facets: fakes
+
+  - id: d-1z8ovey4
+    title: every signal exists, few are raised
+    statement: |
+      every declared event signal exists and accepts subscribers, while the fakes' own behaviour
+      raises only the entity spawn, remove, hurt, health-changed and die signals; any other signal is
+      driven by the emit free function
+    status: delegated
+    revisit_when:
+      - tests routinely need a payload built for them because hand-constructing an event payload for
+        emit is more work than the assertion it enables
+      - a modelled action turns out to raise a signal outside the named set, so the set as written
+        makes the fake silently miss an event a handler depends on
+    facets: fakes
+
+  - id: d-zv2x5luo
+    title: guard list comes from the observation
+    statement: |
+      the invalidation guard list is a per-member table transcribed from what the engine was observed
+      to do (`f:invalidation-guard-list-complete`,
+      `f:invalidation-guard-covers-argument-taking-methods`), not derived from the declarations'
+      @throws annotations
+    status: delegated
+    because:
+      - f:invalidation-guard-list-complete
+      - f:invalidation-guard-covers-argument-taking-methods
+    revisit_when:
+      - the annotations come to name InvalidEntityError on every guarded member, so derivation
+        becomes mechanical and tracks a version bump for free where a transcribed table needs a
+        server run to refresh
+      - guard behaviour is observed to differ between entity types, so no single per-member table
+        can describe the engine at all
+    facets: fakes
+
+  - id: d-9bys1gsh
+    title: library declares its error classes
+    statement: |
+      the library exports its own InvalidEntityError, ArgumentOutOfBoundsError and
+      InvalidArgumentError matching the engine's declared shapes and messages, plus NotImplementedError
+      and UnsetValueError of its own
+    status: delegated
+    revisit_when:
+      - the engine's error classes become reachable at runtime in a test process — `@minecraft/server`
+        starts shipping JavaScript, or a runner resolves it to a shim that defines them — so two
+        definitions of InvalidEntityError coexist and a pack's `instanceof` check splits between them
+      - a pack under test imports these classes from a third package that already defines them at
+        runtime, so the library's own class is never the one the code being tested catches
+    facets: fakes
+
+  - id: d-fkbx974k
+    title: presets are vanilla dimensions and spawn frame
+    statement: |
+      two presets ship — withVanillaDimensions and asSpawnedEntity — supplying only the dimension and
+      spawn-frame values a source pins
+    status: delegated
+    revisit_when:
+      - nearly every test opens with the same further preamble beyond these two, showing a third
+        preset is pinned well enough to ship
+      - the spawn-frame values prove type-dependent often enough that asSpawnedEntity misleads more
+        tests than it saves
+    facets: fakes
+
+  - id: d-sbml8eor
+    title: effect durations decay on the advance clock
+    statement: |
+      an effect's duration decreases by one for every tick the test advances, at the engine's observed
+      rate (`f:effect-replacement-compares-remaining-duration`), and never otherwise; within each tick
+      of an advance the decay applies before that tick's scheduled callbacks run, so a callback reads
+      the duration for the tick it is running on and an effect that runs out partway through a
+      multi-tick advance is gone for the remaining ticks' callbacks
+    status: accepted
+    because:
+      - f:effect-replacement-compares-remaining-duration
+    revisit_when:
+      - the engine is observed applying its own effect tick after a tick's scheduled callbacks rather
+        than before them, so every callback in the fake reads one less than an engine handler would on
+        the same tick
+      - tests routinely advance ticks for unrelated scheduling and find the effects they set up
+        expired underneath them, so decay costs more setup than the silent wrong read it closes
+      - a pack branches on a duration expecting the value it applied, which the engine never reports
+        after a tick has passed, so agreeing with the engine here breaks the packs rather than the
+        tests
+    facets: fakes
+
+  - id: d-94hinqww
+    title: effect expiry is the library's own
+    statement: |
+      the library removes an effect on the tick its decaying duration reaches 0 — never readable at 0,
+      getEffect undefined, absent from getEffects, the handle left as removeEffect leaves one — and
+      dispatches nothing, 2.8.0 declaring no effect-remove or effect-expire signal. The engine's own
+      boundary is unobserved, so this is stated as the library's rule and no divergence from the
+      engine is claimed
+    status: delegated
+    revisit_when:
+      - a probe fixes the engine's boundary and it is not this one — an effect readable at 0, or gone
+        a tick earlier — so every test asserting on an effect's last tick reads the wrong side of it,
+        which is the probe this entry is waiting for
+      - the engine leaves an expired effect in place with a duration that stops at 0 rather than
+        removing it, so absence is a fabricated answer where the engine still has one to give
+      - the engine raises something on expiry that a later version's declarations expose, so silent
+        removal misses an event a handler depends on
+    facets: fakes
+
+  - id: d-gw0c8usd
+    title: coverage rows carry stable ids
+    statement: |
+      every coverage row carries a kebab-case id naming its subject rather than its verdict, and that
+      id — not the row's prose — is what a consumer pins; a row keeps its id when its coverage
+      changes, a split or a removal retires the id rather than passing it to a successor, and nothing
+      mechanical enforces any of this, the checker having no coverage entry kind
+    status: delegated
+    revisit_when:
+      - a second design needs a coverage table of its own, at which point promoting coverage to a
+        validated entry kind the checker enforces is the right answer and per-design id discipline
+        was a stopgap
+      - ids drift from the subjects they name as rows are reworded, since nothing checks that a row
+        still describes what its id says, so a consumer pins a stable string to a moving subject —
+        the failure mode this shape trades for the reworded-prose one it fixes
+      - the package comes to be generated from the spec table, one repository to the other, making
+        the identity contract internal to a build step rather than something either side maintains
+    facets: fakes
+
+  - id: d-dk3rf1w8
+    title: custom effect display name is supplied
+    statement: |
+      a custom effect type's displayName reads back from the base name the test registered, and
+      throws UnsetValueError when none was registered rather than deriving one from the identifier
+    status: delegated
+    revisit_when:
+      - a base name derived from the identifier turns out to match the engine for custom types, whose
+        strings the engine has no localisation entry for, making the throw an obstacle rather than a
+        guard against fabrication
+      - tests that never touch displayName are forced to register one anyway because some modelled
+        path reads it internally
+    facets: fakes
+
+  - id: d-d2v43iqn
+    title: triggerEvent requires the prefix and records
+    statement: |
+      Entity.triggerEvent requires the prefixed id, throws InvalidArgumentError on a bare one, changes
+      no state, and records the call for getTriggeredEvents
+    status: delegated
+    revisit_when:
+      - a later observation shows the engine does assume the namespace on this surface, making the
+        bare-id rejection wrong
+      - packs depend on a triggered event reshaping components, so recording alone leaves the handler
+        under test reading state that never changed
+    facets: fakes
+
+  - id: d-ie8qhnr2
+    title: remove raises only entityRemove
+    statement: |
+      Entity.remove raises entityRemove and nothing else
+    status: delegated
+    revisit_when:
+      - a targeted probe attributes another event to removal, showing the fake omits an event handlers
+        really receive
+    facets: fakes
+
+  - id: d-7mkz86s2
+    title: projectile damage is verbatim
+    statement: |
+      applyDamage with the projectile options form applies the amount requested and reports cause
+      projectile
+    status: delegated
+    revisit_when:
+      - packs branch on the fractional adjustment the engine applies to projectile damage, so verbatim
+        damage hides a real difference
+    facets: fakes
+
+  - id: d-y8oeiw5p
+    title: placement and motion are literal
+    statement: |
+      a fake entity is placed at exactly the requested location and never moves on its own
+    status: delegated
+    revisit_when:
+      - a pack's logic keys on the engine's placement adjustment or on post-spawn drift, so a static
+        entity cannot exercise it
+    facets: fakes
+
+  - id: d-qz2aoixe
+    title: out-of-scope members throw NotImplementedError
+    statement: |
+      a member the cycle does not model is present in the declared shape and throws
+      NotImplementedError, from the body the generator wrote for it, rather than being absent or
+      reading undefined
+    status: delegated
+    revisit_when:
+      - packs commonly feature-detect a member by reading it, so a throwing member breaks code that a
+        missing one would not
+      - a test cannot reach the modelled path without first stubbing past unmodelled members it never
+        meant to call, so the throwing floor obstructs more tests than the fabricated answers it
+        prevents
+    facets: fakes
+
+  - id: d-soaea8n2
+    title: currentTick starts at zero
+    statement: |
+      system.currentTick starts at 0 and advances only under advanceTicks
+    status: accepted
+    revisit_when:
+      - a pack treats a small currentTick as a startup condition, so starting at 0 puts every test in
+        a state the engine rarely presents
+    facets: fakes
+
+  - id: d-ow40nqqi
+    title: entity ids are sequential opaque strings
+    statement: |
+      an auto-assigned entity id is a decimal string issued sequentially from 1 per bundle and never
+      reissued
+    status: delegated
+    revisit_when:
+      - a pack parses or orders ids in a way the engine's negative-integer spelling supports and this
+        one does not
+    facets: fakes
+
+  - id: d-2qq6agnx
+    title: absence reads as undefined
+    statement: |
+      an absent component, an unset dynamic property, and an unknown objective or participant read
+      undefined rather than throwing
+    status: delegated
+    revisit_when:
+      - the engine is observed to throw on one of these reads, making undefined a fabricated answer
+    facets: fakes
+
+  - id: d-c5odl61n
+    title: one peer dependency
+    statement: |
+      the package carries no runtime dependencies and `@minecraft/server` 2.8.0 as its single peer
+      dependency
+    status: accepted
+    revisit_when:
+      - a fake's behaviour cannot be reproduced without pulling in a runtime dependency
+      - a consumer's toolchain resolves the peer to a version the fakes were not read from
+    facets: fakes
+
+  - id: d-duelxt32
+    title: registries are declared and throw
+    statement: |
+      all eight registry classes on the bundle are declared with every member throwing
+      NotImplementedError, and no registry tracks world state
+    status: delegated
+    revisit_when:
+      - a pack resolves an id through DimensionTypes.getAll or EntityTypes.get on the path its test
+        exercises, rather than in startup code the test never enters, so the throwing registry blocks
+        the test itself
+      - dimension registration grows past withVanillaDimensions and tests need DimensionTypes.getAll
+        to agree with world.getDimension, which two independent stores cannot do
+    facets: fakes
+
+  - id: d-fgib2fcb
+    title: damage without health is a no-op
+    statement: |
+      applyDamage on an entity carrying no health component changes nothing, fires no event, returns
+      false, and leaves the entity valid
+    status: accepted
+    revisit_when:
+      - a health-less type outside the three observed — arrow, snowball and xp_orb — returns true or
+        fires entityHurt, so the silent false does not generalize across types
+    facets: fakes
+
+  - id: d-dbv8udc6
+    title: killing hit lands at or below minimum
+    statement: |
+      applyDamage fires entityDie when the write leaves currentValue at or below effectiveMin, the
+      boundary value included
+    status: accepted
+    revisit_when:
+      - a type with a non-zero effectiveMin reaches that minimum and lives, so the rule holds only
+        where the minimum is zero — which is every type the survey reached
+    facets: fakes
+
+  - id: d-6bnub7bw
+    title: entity lookups honour a filter subset
+    statement: |
+      the world and dimension entity lookups return what is registered in creation order, and an
+      EntityQueryOptions argument — to a lookup or to entity.matches — is honoured on type, tags,
+      name, excludeTypes, excludeTags and excludeNames, each of the other eighteen fields throwing
+      NotImplementedError that names it
+    status: delegated
+    revisit_when:
+      - packs filter inside the query on a field outside the six — a distance, family or score filter
+        on the path under test rather than in setup — so the honoured subset does not reach the
+        pattern packs actually write
+      - a pack orders its own work by the sequence getEntities returns and the engine's order proves
+        to be something creation order does not reproduce
+    facets: fakes
+
+  - id: d-rjnyvnzm
+    title: cancelled actions return the engine's value
+    statement: |
+      a cancelled action returns what the engine was observed to return, not a no-op value:
+      applyDamage true and addEffect undefined
+    status: accepted
+    revisit_when:
+      - a later engine version returns false from a cancelled applyDamage, so reproducing today's
+        true becomes the deviation the ruling exists to avoid
+      - the same admission-shaped true appears on another cancellable non-void call, making it a
+        general engine convention the fake should express as one rule rather than a per-surface quirk
+    facets: fakes
+
+  - id: d-ka348xdn
+    title: before-event field writes are honoured
+    statement: |
+      a handler's write to entityHurt.damage or effectAdd.duration changes what the action does and
+      what its after-event reports; the other four mutable before-event fields are writable and
+      unread, because the fake raises no action that would consume them
+    status: delegated
+    revisit_when:
+      - a modelled action grows behind one of the other four fields — healing or weather — so
+        "writable and unread" becomes a silent wrong answer rather than an honest gap
+      - honouring the write while applyDamage's boolean is settled from the requested amount reads
+        as a contradiction to test authors, who see true returned for a handler-written zero
+    facets: fakes
+
+  - id: d-mclpuv0u
+    title: display names resolve from a shipped table
+    statement: |
+      Effect.displayName resolves with no test setup, from a shipped table of the 37 observed base
+      names stored verbatim plus the observed numeral mapping computed over the amplifier, with
+      registerEffectBaseName supplying a base for a custom type or overriding a shipped one
+    status: accepted
+    revisit_when:
+      - a version bump changes a vanilla display name, so the transcribed table silently disagrees
+        with the engine where a derivation would have tracked it
+      - the numeral mapping proves locale-dependent — a locale placing the numeral elsewhere, or
+        using different numerals — so computing the suffix cannot be right for every locale the
+        shipped bases might be replaced with
+      - packs read displayName rarely enough that shipping and maintaining 37 strings costs more than
+        the reads it answers
+    facets: fakes
+
+  - id: d-nw4v0fag
+    title: generated members check arity before the guard
+    statement: |
+      each generated member opens with a check that it received at least its declared required
+      parameter count, throwing the engine's TypeError before the validity guard prologue runs; no
+      maximum is checked and extra arguments pass through, because the engine's response to them is
+      unobserved
+    status: accepted
+    revisit_when:
+      - the engine is observed rejecting extra arguments, so letting them through makes the fake
+        permissive on a real difference and a test passes where the engine would have thrown
+      - the engine's minimum turns out not to be the declared required-parameter count — a member
+        accepting fewer arguments at runtime than its signature requires — so a manifest read off the
+        declarations rejects calls the engine allows
+      - the check costs more than it buys, no pack calling a member with too few arguments on
+        purpose, so the branch sits in front of all 1010 members to serve a case tests do not write
+    facets: fakes
+
+  - id: d-tzww1yuv
+    title: fakes are generated classes with guard prologues
+    statement: |
+      a build-time generator emits, from the pinned index.d.ts and the committed guard data, plain
+      TypeScript classes declaring `implements MC.Entity` and its siblings, each member carrying its
+      own guard prologue and then either a delegation to hand-written behaviour or a
+      NotImplementedError throw; the manifests are committed and the generated code is not
+    status: accepted
+    revisit_when:
+      - the generator is itself the defect surface — a wrong prologue or a mistyped body reproduces
+        across every member it emits, and nothing but the generator's own tests stands between that
+        and every fake in the library
+      - the prebuild step costs a contributor more than it saves — a clone that does not typecheck
+        until it runs, an editor showing errors against code that does not yet exist — so the
+        committed-manifest, generated-output split is the wrong side of the line
+      - the committed manifests drift from the surface they describe, so a version bump moves a member
+        and the manifest diff a reviewer reads no longer says what actually changed
+    facets: fakes
+
+  - id: d-19qu2ih2
+    title: one public entry point
+    statement: |
+      the package exposes a single entry point re-exporting every fake type and free function, with no
+      subpath exports
+    status: delegated
+    revisit_when:
+      - the library's own parts come to import each other through the single barrel, and the cycle
+        that creates cannot be broken without a subpath export a builder can import directly
+      - a sibling package must depend on the error classes at a version cadence independent of the
+        fakes, which one entry point in one package cannot express
+    facets: fakes
+
+  - id: d-72iyl1su
+    title: attribute id set is a checked literal array
+    statement: |
+      the seven attribute-shaped component ids ship as a literal array the library maintains, with the
+      type-derived union as the compile-time completeness check
+    status: delegated
+    revisit_when:
+      - a component behaves as an attribute without matching the conditional mapping over
+        EntityComponentTypeMap, so the derived union no longer describes the set and cannot check the
+        array at all
+      - the same runtime-enumeration need appears for the other derived id sets, making generation
+        from the declarations at build time the cheaper single mechanism
+    facets: fakes
+
+  - id: d-990n6j2l
+    title: component state is the attribute four
+    statement: |
+      addComponent's state argument is the four attribute numbers, or one of two shorthands for them
+      — a single number, or a [min, max] pair — is rejected with InvalidArgumentError on any
+      non-attribute id, and leaves any number it omits unset
+    status: delegated
+    revisit_when:
+      - a component outside the seven gains modelled fields, so state must carry per-component shapes
+        rather than one attribute-shaped record
+      - tests that supply only currentValue routinely hit UnsetValueError from setCurrentValue's
+        bounds check or a reset, so the optional record forces every test to supply all four anyway
+    facets: fakes
+
+  - id: d-dodefnml
+    title: tick advance semantics
+    statement: |
+      advanceTicks steps one tick at a time, incrementing currentTick and running that tick's
+      callbacks in scheduling order before it steps again, so an advance of n runs every intervening
+      tick's callbacks; run is due on the next tick, runTimeout(cb, n) on the nth tick after
+      scheduling, and runInterval(cb, n) every nth tick
+    status: delegated
+    revisit_when:
+      - the engine is observed running a run callback on the scheduling tick itself, so the
+        convention here misses every scheduled callback by a tick
+      - a probe schedules runTimeout(cb, 1) and observes it on the second tick after scheduling, so
+        the convention here lands every scheduled callback a tick early
+    facets: fakes
+
+  - id: d-u8u72i58
+    title: output log record shape
+    statement: |
+      getOutput returns an array of { kind, value, options? } with kind one of message, title,
+      subtitle and actionBar
+    status: delegated
+    revisit_when:
+      - tests need the interleaving across targets — a world message and a player message in the
+        order they were sent — which per-target logs of these records cannot express
+      - a modelled output member carries something that is neither the message value nor its options,
+        so the record cannot hold what a test asserts on
+    facets: fakes
+
+  - id: d-pvnu83vf
+    title: handler errors are isolated and recorded
+    statement: |
+      a subscriber that throws does not reach the caller, does not stop the other subscribers, and
+      does not stop the rest of the cascade, as the engine was observed to behave; the library
+      records the error for getHandlerErrors rather than discarding it as the engine does
+    status: accepted
+    revisit_when:
+      - tests never read getHandlerErrors, so a throwing handler is lost as silently as the engine
+        loses it and the recording buys nothing over plain absorption
+      - the engine is observed propagating a handler's throw on some other signal or dispatch path,
+        so isolation is not universal and the fake generalizes past what was observed on entityHurt
+    facets: fakes
+
+  # harvested from the retired spec: constraints a consumer observes that no prior entry recorded
+  - id: d-ksk6d7ua
+    title: the exported free functions
+    statement: |
+      the free functions the entry point exports over the fakes are `createServer()`,
+      `createEntity(server, { typeId, id?, dimension?, location? })`, `createPlayer(server,
+      { typeId?, id?, name?, dimension?, location? })`, `addComponent(entity, componentId, state?)`,
+      `removeComponent(entity, componentId)`, `registerEffectBaseName(server, effectTypeId,
+      baseName)`, `invalidate(entity)`, `emit(signal, payload)`, `advanceTicks(server, count)`,
+      `getOutput(target)`, `getTriggeredEvents(entity)`, and `getHandlerErrors(server)`.
+      `createEntity`'s and `createPlayer`'s `dimension` option takes a `Dimension` object — the one
+      a preset registered and `world.getDimension` returns — not an id string
+    status: delegated
+    because:
+      - r-5mlc26io
+      - d-nmjafny2
+      - d-19qu2ih2
+    facets: fakes
+
+  - id: d-vwdg6xle
+    title: unanswerable reads resolve in a fixed order
+    statement: |
+      a call or read with no value behind it resolves through five rules applied in order, and a
+      member matching an earlier rule never reaches a later one: too few arguments throw the
+      engine's TypeError first of all, ahead of the guard; the validity guard fires next; an
+      out-of-scope member throws NotImplementedError; a modelled member reading an absence the
+      engine can exhibit returns undefined; and a modelled member reading a value the test never
+      supplied throws UnsetValueError. The last two are told apart by the declaration's own type —
+      a member declared `T | undefined` has an absence the engine can present, a bare `T` has none —
+      and a member that is both out of scope and declared `T | undefined` takes the
+      NotImplementedError rule and throws
+    status: delegated
+    because:
+      - d-nw4v0fag
+      - d-zv2x5luo
+      - d-qz2aoixe
+      - d-2qq6agnx
+      - r-62r76czb
+    facets: fakes
+
+  - id: d-w0ebi621
+    title: corpse invalidation rides the advance clock
+    statement: |
+      kill() on an entity carrying a health component leaves the reference valid — inside the
+      entityDie handler and after it — and schedules its invalidation for 21 ticks after the call,
+      the constant the engine was measured at, so the corpse goes stale only when the test advances
+      that far. On an entity carrying no health component the reference is invalidated before
+      entityDie is raised, as the engine's is within the call
+    status: delegated
+    because:
+      - f:corpse-invalidation-is-twenty-one-ticks
+      - f:kill-no-health-behaviour
+      - r-dsjwpahw
+    facets: fakes
+
+  - id: d-0fmcw6n8
+    title: component state shorthands expand to fixed records
+    statement: |
+      addComponent's two state shorthands are exactly the records they abbreviate: a single number
+      is currentValue with effectiveMin 0 and effectiveMax equal to it, and a two-element
+      [min, max] gives those bounds with currentValue at max; both leave defaultValue unset
+    status: delegated
+    because:
+      - d-990n6j2l
+    facets: fakes
+
+  - id: d-k9up7nmc
+    title: three before-events are raised
+    statement: |
+      the fakes' own behaviour raises exactly three before-events — entityHurt ahead of
+      applyDamage, entityRemove ahead of remove(), and effectAdd ahead of addEffect — and no
+      other; kill() raises none, and the declarations carry no before-event for spawn, health
+      change or death
+    status: delegated
+    because:
+      - d-1z8ovey4
+      - r-1a9mpjev
+    facets: fakes
