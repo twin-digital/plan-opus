@@ -31,13 +31,14 @@ requirements:
     title: the backlog is worked through the tooling
     statement: |
       the process tooling carries the backlog's operations: add an item, update it, delete
-      it, list and search what is held, and send an item into an increment's capture — the
-      owner and agents work the backlog through these, not by hand against the store.
+      it, list and search what is held, and send items into an increment's capture — one,
+      all of a product's, or those matching a tag filter — the owner and agents work the
+      backlog through these, not by hand against the store.
     verification:
       - do: add an item through the tooling, update it, list and search for it, then delete it
       - verify: each operation round-trips without touching the store directly
-      - do: send an item into an increment's capture
-      - verify: the item's content reaches the increment's working sources and the item leaves the backlog
+      - do: send an item into an increment's capture, then a product's remaining items filtered by tag
+      - verify: each sent item's content reaches the increment's working sources and the item leaves the backlog
     facets: tooling
 
   - id: r-oabwygl2

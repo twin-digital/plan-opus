@@ -7,7 +7,7 @@ decisions:
       created orphan, holding only backlog files. capture pushes commits straight to it,
       which the rulesets permit, and the branch is never merged anywhere: its history is
       the only residue of items that have left.
-    status: proposed
+    status: accepted
     pinned:
       reason: public-api
       notes: capturers and the shipped tooling name the branch
@@ -27,7 +27,7 @@ decisions:
       the first heading is the title, and the body is free prose. an optional yaml
       frontmatter carries tags for filtering, and nothing else; there is no other
       structured data.
-    status: proposed
+    status: tolerated
     pinned:
       reason: data-format
     because:
@@ -44,7 +44,7 @@ decisions:
       send-to-capture operation copies the item's content into the adopting increment's
       working sources and deletes the item from the branch in the same action; the
       increment's sources are the record, and the backlog keeps none.
-    status: proposed
+    status: accepted
     because:
       - r-hbihi1xh
       - r-fvi1hqkn
