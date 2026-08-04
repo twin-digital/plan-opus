@@ -1,0 +1,54 @@
+=== merge: a consumer with their own alias table and setup file (merge.config.ts) ===
+exit code: 0
+
+
+ RUN  v4.1.10 <probe>
+
+stdout | merge.test.ts
+[consumer setup] ran, order=["consumer"] marker=consumer alias resolved
+
+stdout | merge.test.ts
+[shim setup] via=env label=plugin default dimensions=["overworld"] factory=@probe/fake-server
+
+stdout | merge.test.ts > both setup files ran, and in this order
+[setup order] ["consumer","plugin"]
+
+stdout | merge.test.ts > both alias tables survived
+[consumer marker] consumer alias resolved [census] {"label":"plugin default","subscriptions":["after.entityHurtx1","after.itemCompleteUsex1","after.itemUsex1","after.playerBreakBlockx1","after.playerSpawnx1"],"subscriptionCount":5,"intervals":2,"queuedRuns":1,"dimensions":["overworld"],"messages":0}
+
+ ✓ merge.test.ts > both setup files ran, and in this order 2ms
+ ✓ merge.test.ts > both alias tables survived 0ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  05:16:38
+   Duration  268ms (transform 127ms, setup 33ms, import 128ms, tests 3ms, environment 0ms)
+
+
+=== merge: the same consumer, alias table written in vite’s array form (merge-array.config.ts) ===
+exit code: 0
+
+
+ RUN  v4.1.10 <probe>
+
+stdout | merge.test.ts
+[consumer setup] ran, order=["consumer"] marker=consumer alias resolved
+
+stdout | merge.test.ts
+[shim setup] via=env label=plugin default dimensions=["overworld"] factory=@probe/fake-server
+
+stdout | merge.test.ts > both setup files ran, and in this order
+[setup order] ["consumer","plugin"]
+
+stdout | merge.test.ts > both alias tables survived
+[consumer marker] consumer alias resolved [census] {"label":"plugin default","subscriptions":["after.entityHurtx1","after.itemCompleteUsex1","after.itemUsex1","after.playerBreakBlockx1","after.playerSpawnx1"],"subscriptionCount":5,"intervals":2,"queuedRuns":1,"dimensions":["overworld"],"messages":0}
+
+ ✓ merge.test.ts > both setup files ran, and in this order 2ms
+ ✓ merge.test.ts > both alias tables survived 0ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  05:16:38
+   Duration  271ms (transform 133ms, setup 34ms, import 133ms, tests 3ms, environment 0ms)
+
+

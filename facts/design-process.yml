@@ -1,0 +1,36 @@
+# Facts about the design process's own surfaces in this repository.
+
+- id: check-rejects-slug-increment-dirs
+  claim: npm run check fails a slug-named directory under a product's increments/ with the
+    increment-dir-name finding, citing d-kn05wb30's zero-padded-number rule
+  backing: tested
+  sources:
+    - run: validator-shape-probe-slug
+      where: the finding and closing lines
+      quote: |
+        ✖ [increment-dir-name] products/increment-process/increments/some-future-idea/item.md: increment directory "some-future-idea" is not a zero-padded number (d-kn05wb30)
+        design check failed: 1 finding(s)
+
+- id: check-ignores-product-backlog-dir
+  claim: npm run check passes unchanged with a backlog/ directory of free markdown beside a
+    product's product.yaml
+  backing: tested
+  caveat: |
+    The baseline tree without the fixture also passes; the probe shows the fixture adds no
+    finding, not that the validator reads the directory.
+  sources:
+    - run: validator-shape-probe-backlog-dir
+      where: the closing lines
+      quote: |
+        design check passed
+        exit: 0
+
+- id: check-enforces-dense-increments
+  claim: npm run check fails a product whose increment numbers skip a value, with the
+    increment-sequence-dense finding naming the missing number
+  backing: tested
+  sources:
+    - run: sequence-gap-probe
+      where: the finding line
+      quote: |
+        ✖ [increment-sequence-dense] products/increment-process: increment numbers are not dense: missing 12 (d-6x6l6ws7, d-d6hwdg9d)

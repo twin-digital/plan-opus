@@ -1,0 +1,203 @@
+=== options: setup file named by absolute path, options via test.env (plugin.config.ts) ===
+PROBE_SHIM_PLUGIN_OPTIONS={"setupEntry":"absolute","optionsVia":"env"}
+PROBE_EXPECT={"label":"plugin default","dimensions":["overworld"]}
+exit code: 0
+
+
+ RUN  v4.1.10 <probe>
+
+stdout | plugin.test.ts
+[shim setup] via=env label=plugin default dimensions=["overworld"] factory=@probe/fake-server
+
+stdout | plugin.test.ts > the alias came from the plugin — the pack’s import resolved to the shim
+[census] {"label":"plugin default","subscriptions":["after.entityHurtx1","after.itemCompleteUsex1","after.itemUsex1","after.playerBreakBlockx1","after.playerSpawnx1"],"subscriptionCount":5,"intervals":2,"queuedRuns":1,"dimensions":["overworld"],"messages":0}
+
+stdout | plugin.test.ts > the plugin’s options reached the server the setup file installed
+[expected] {"label":"plugin default","dimensions":["overworld"]} [installed] label=plugin default
+
+stdout | plugin.test.ts > the pack’s module-scope loops run against the installed server
+[after 40 ticks] {"label":"plugin default","subscriptions":["after.entityHurtx1","after.itemCompleteUsex1","after.itemUsex1","after.playerBreakBlockx1","after.playerSpawnx1"],"subscriptionCount":5,"intervals":2,"queuedRuns":0,"dimensions":["overworld"],"messages":1}
+
+ ✓ plugin.test.ts > the alias came from the plugin — the pack’s import resolved to the shim 1ms
+ ✓ plugin.test.ts > the setup file came from the plugin — the pack subscribed before this file evaluated 1ms
+ ✓ plugin.test.ts > the plugin’s options reached the server the setup file installed 0ms
+ ✓ plugin.test.ts > the pack’s module-scope loops run against the installed server 1ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  05:16:32
+   Duration  270ms (transform 130ms, setup 28ms, import 135ms, tests 4ms, environment 0ms)
+
+
+=== options: setup file named by a bare specifier the package exports (plugin.config.ts) ===
+PROBE_SHIM_PLUGIN_OPTIONS={"setupEntry":"bare"}
+PROBE_EXPECT={"label":"plugin default","dimensions":["overworld"]}
+exit code: 0
+
+
+ RUN  v4.1.10 <probe>
+
+stdout | plugin.test.ts
+[shim setup] via=env label=plugin default dimensions=["overworld"] factory=@probe/fake-server
+
+stdout | plugin.test.ts > the alias came from the plugin — the pack’s import resolved to the shim
+[census] {"label":"plugin default","subscriptions":["after.entityHurtx1","after.itemCompleteUsex1","after.itemUsex1","after.playerBreakBlockx1","after.playerSpawnx1"],"subscriptionCount":5,"intervals":2,"queuedRuns":1,"dimensions":["overworld"],"messages":0}
+
+stdout | plugin.test.ts > the plugin’s options reached the server the setup file installed
+[expected] {"label":"plugin default","dimensions":["overworld"]} [installed] label=plugin default
+
+stdout | plugin.test.ts > the pack’s module-scope loops run against the installed server
+[after 40 ticks] {"label":"plugin default","subscriptions":["after.entityHurtx1","after.itemCompleteUsex1","after.itemUsex1","after.playerBreakBlockx1","after.playerSpawnx1"],"subscriptionCount":5,"intervals":2,"queuedRuns":0,"dimensions":["overworld"],"messages":1}
+
+ ✓ plugin.test.ts > the alias came from the plugin — the pack’s import resolved to the shim 1ms
+ ✓ plugin.test.ts > the setup file came from the plugin — the pack subscribed before this file evaluated 1ms
+ ✓ plugin.test.ts > the plugin’s options reached the server the setup file installed 0ms
+ ✓ plugin.test.ts > the pack’s module-scope loops run against the installed server 1ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  05:16:33
+   Duration  270ms (transform 129ms, setup 27ms, import 135ms, tests 4ms, environment 0ms)
+
+
+=== options: setup file named by a bare specifier the package does not export (plugin.config.ts) ===
+PROBE_SHIM_PLUGIN_OPTIONS={"setupEntry":"bare-unexported"}
+PROBE_EXPECT={"label":"plugin default","dimensions":["overworld"]}
+exit code: 1
+
+
+ RUN  v4.1.10 <probe>
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  05:16:34
+   Duration  111ms (transform 0ms, setup 0ms, import 0ms, tests 0ms, environment 0ms)
+
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  plugin.test.ts [ plugin.test.ts ]
+Error: Cannot find module '<probe>/@probe/shim/setup.js'
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'ERR_MODULE_NOT_FOUND' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+=== options: setup file named by a virtual module id the plugin resolves (plugin.config.ts) ===
+PROBE_SHIM_PLUGIN_OPTIONS={"setupEntry":"virtual"}
+PROBE_EXPECT={"label":"plugin default","dimensions":["overworld"]}
+exit code: 1
+
+
+ RUN  v4.1.10 <probe>
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  05:16:34
+   Duration  113ms (transform 0ms, setup 0ms, import 0ms, tests 0ms, environment 0ms)
+
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  plugin.test.ts [ plugin.test.ts ]
+Error: Cannot find module '<probe>/virtual:probe-shim-setup'
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'ERR_MODULE_NOT_FOUND' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+=== options: options via define instead of test.env (plugin.config.ts) ===
+PROBE_SHIM_PLUGIN_OPTIONS={"optionsVia":"define"}
+PROBE_EXPECT={"label":"plugin default","dimensions":["overworld"]}
+exit code: 0
+
+
+ RUN  v4.1.10 <probe>
+
+stdout | plugin.test.ts
+[shim setup] via=define label=plugin default dimensions=["overworld"] factory=@probe/fake-server
+
+stdout | plugin.test.ts > the alias came from the plugin — the pack’s import resolved to the shim
+[census] {"label":"plugin default","subscriptions":["after.entityHurtx1","after.itemCompleteUsex1","after.itemUsex1","after.playerBreakBlockx1","after.playerSpawnx1"],"subscriptionCount":5,"intervals":2,"queuedRuns":1,"dimensions":["overworld"],"messages":0}
+
+stdout | plugin.test.ts > the plugin’s options reached the server the setup file installed
+[expected] {"label":"plugin default","dimensions":["overworld"]} [installed] label=plugin default
+
+stdout | plugin.test.ts > the pack’s module-scope loops run against the installed server
+[after 40 ticks] {"label":"plugin default","subscriptions":["after.entityHurtx1","after.itemCompleteUsex1","after.itemUsex1","after.playerBreakBlockx1","after.playerSpawnx1"],"subscriptionCount":5,"intervals":2,"queuedRuns":0,"dimensions":["overworld"],"messages":1}
+
+ ✓ plugin.test.ts > the alias came from the plugin — the pack’s import resolved to the shim 2ms
+ ✓ plugin.test.ts > the setup file came from the plugin — the pack subscribed before this file evaluated 1ms
+ ✓ plugin.test.ts > the plugin’s options reached the server the setup file installed 0ms
+ ✓ plugin.test.ts > the pack’s module-scope loops run against the installed server 1ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  05:16:35
+   Duration  263ms (transform 124ms, setup 30ms, import 128ms, tests 4ms, environment 0ms)
+
+
+=== options: a second option set: an empty world (plugin.config.ts) ===
+PROBE_SHIM_PLUGIN_OPTIONS={"dimensions":[],"label":"empty world"}
+PROBE_EXPECT={"label":"empty world","dimensions":[]}
+exit code: 0
+
+
+ RUN  v4.1.10 <probe>
+
+stdout | plugin.test.ts
+[shim setup] via=env label=empty world dimensions=[] factory=@probe/fake-server
+
+stdout | plugin.test.ts > the alias came from the plugin — the pack’s import resolved to the shim
+[census] {"label":"empty world","subscriptions":["after.entityHurtx1","after.itemCompleteUsex1","after.itemUsex1","after.playerBreakBlockx1","after.playerSpawnx1"],"subscriptionCount":5,"intervals":2,"queuedRuns":1,"dimensions":[],"messages":0}
+
+stdout | plugin.test.ts > the plugin’s options reached the server the setup file installed
+[expected] {"label":"empty world","dimensions":[]} [installed] label=empty world
+
+stdout | plugin.test.ts > the pack’s module-scope loops run against the installed server
+[after 40 ticks] {"label":"empty world","subscriptions":["after.entityHurtx1","after.itemCompleteUsex1","after.itemUsex1","after.playerBreakBlockx1","after.playerSpawnx1"],"subscriptionCount":5,"intervals":2,"queuedRuns":0,"dimensions":[],"messages":1}
+
+ ✓ plugin.test.ts > the alias came from the plugin — the pack’s import resolved to the shim 1ms
+ ✓ plugin.test.ts > the setup file came from the plugin — the pack subscribed before this file evaluated 1ms
+ ✓ plugin.test.ts > the plugin’s options reached the server the setup file installed 1ms
+ ✓ plugin.test.ts > the pack’s module-scope loops run against the installed server 1ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  05:16:36
+   Duration  281ms (transform 135ms, setup 29ms, import 144ms, tests 4ms, environment 0ms)
+
+
+=== options: a consumer server factory chosen by option (plugin.config.ts) ===
+PROBE_SHIM_PLUGIN_OPTIONS={"serverModule":"/workspace/plan-opus/.claude/worktrees/minecraft-server-shim/design/minecraft/server-shim/artifacts/plugin-install-probes/alt-server.js","label":"chosen factory"}
+PROBE_EXPECT={"label":"chosen factory (alt factory)","dimensions":["overworld"]}
+exit code: 0
+
+
+ RUN  v4.1.10 <probe>
+
+stdout | plugin.test.ts
+[shim setup] via=env label=chosen factory (alt factory) dimensions=["overworld"] factory=<probe>/alt-server.js
+
+stdout | plugin.test.ts > the alias came from the plugin — the pack’s import resolved to the shim
+[census] {"label":"chosen factory (alt factory)","subscriptions":["after.entityHurtx1","after.itemCompleteUsex1","after.itemUsex1","after.playerBreakBlockx1","after.playerSpawnx1"],"subscriptionCount":5,"intervals":2,"queuedRuns":1,"dimensions":["overworld"],"messages":0}
+
+stdout | plugin.test.ts > the plugin’s options reached the server the setup file installed
+[expected] {"label":"chosen factory (alt factory)","dimensions":["overworld"]} [installed] label=chosen factory (alt factory)
+
+stdout | plugin.test.ts > the pack’s module-scope loops run against the installed server
+[after 40 ticks] {"label":"chosen factory (alt factory)","subscriptions":["after.entityHurtx1","after.itemCompleteUsex1","after.itemUsex1","after.playerBreakBlockx1","after.playerSpawnx1"],"subscriptionCount":5,"intervals":2,"queuedRuns":0,"dimensions":["overworld"],"messages":1}
+
+ ✓ plugin.test.ts > the alias came from the plugin — the pack’s import resolved to the shim 2ms
+ ✓ plugin.test.ts > the setup file came from the plugin — the pack subscribed before this file evaluated 1ms
+ ✓ plugin.test.ts > the plugin’s options reached the server the setup file installed 0ms
+ ✓ plugin.test.ts > the pack’s module-scope loops run against the installed server 1ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  05:16:37
+   Duration  276ms (transform 133ms, setup 29ms, import 141ms, tests 4ms, environment 0ms)
+
+

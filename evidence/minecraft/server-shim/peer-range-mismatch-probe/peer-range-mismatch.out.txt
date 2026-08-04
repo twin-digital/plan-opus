@@ -1,0 +1,319 @@
+node v24.16.0
+npm 11.13.0
+pnpm 11.17.0
+yarn 1.22.22
+
+=== npm 11.13.0 | file: directory | plain peer ===
+shim spec: file:../shim
+shim peerDependenciesMeta: null
+install exit code: 0
+--- install output ---
+
+added 4 packages, and audited 6 packages in 418ms
+
+found 0 vulnerabilities
+
+--- after install ---
+shim-import=true
+installed-minecraft-server=1.19.0
+installed-shim=0.1.0-npm-dir-plain
+
+
+=== npm 11.13.0 | file: directory | peerDependenciesMeta.optional ===
+shim spec: file:../shim
+shim peerDependenciesMeta: {"@minecraft/server":{"optional":true}}
+install exit code: 0
+--- install output ---
+
+added 4 packages, and audited 6 packages in 405ms
+
+found 0 vulnerabilities
+
+--- after install ---
+shim-import=true
+installed-minecraft-server=1.19.0
+installed-shim=0.1.0-npm-dir-optional
+
+
+=== npm 11.13.0 | packed tarball | plain peer ===
+shim spec: file:../twin-digital-peer-probe-shim-0.1.0-npm-tgz-plain.tgz
+shim peerDependenciesMeta: null
+install exit code: 1
+--- install output ---
+npm error code ERESOLVE
+npm error ERESOLVE unable to resolve dependency tree
+npm error
+npm error While resolving: peer-probe-consumer@0.0.0
+npm error Found: @minecraft/server@1.19.0
+npm error node_modules/@minecraft/server
+npm error   @minecraft/server@"^1.17.0" from the root project
+npm error
+npm error Could not resolve dependency:
+npm error peer @minecraft/server@"^2.8.0" from @twin-digital/peer-probe-shim@0.1.0-npm-tgz-plain
+npm error node_modules/@twin-digital/peer-probe-shim
+npm error   @twin-digital/peer-probe-shim@"file:../twin-digital-peer-probe-shim-0.1.0-npm-tgz-plain.tgz" from the root project
+npm error
+npm error Fix the upstream dependency conflict, or retry this command with --force or --legacy-peer-deps to accept an incorrect (and potentially broken) dependency resolution.
+npm error
+npm error
+npm error For a full report see:
+npm error /home/sean/.npm/_logs/2026-07-29T02_55_07_802Z-eresolve-report.txt
+npm error A complete log of this run can be found in: /home/sean/.npm/_logs/2026-07-29T02_55_07_802Z-debug-0.log
+
+--- after install ---
+shim-import=import failed (ERR_MODULE_NOT_FOUND)
+installed-minecraft-server=absent (ENOENT)
+installed-shim=absent (ENOENT)
+
+
+=== npm 11.13.0 | packed tarball | peerDependenciesMeta.optional ===
+shim spec: file:../twin-digital-peer-probe-shim-0.1.0-npm-tgz-optional.tgz
+shim peerDependenciesMeta: {"@minecraft/server":{"optional":true}}
+install exit code: 1
+--- install output ---
+npm error code ERESOLVE
+npm error ERESOLVE could not resolve
+npm error
+npm error While resolving: @twin-digital/peer-probe-shim@0.1.0-npm-tgz-optional
+npm error Found: @minecraft/server@1.19.0
+npm error node_modules/@minecraft/server
+npm error   @minecraft/server@"^1.17.0" from the root project
+npm error
+npm error Could not resolve dependency:
+npm error peerOptional @minecraft/server@"^2.8.0" from @twin-digital/peer-probe-shim@0.1.0-npm-tgz-optional
+npm error node_modules/@twin-digital/peer-probe-shim
+npm error   @twin-digital/peer-probe-shim@"file:../twin-digital-peer-probe-shim-0.1.0-npm-tgz-optional.tgz" from the root project
+npm error
+npm error Conflicting peer dependency: @minecraft/server@2.8.0
+npm error node_modules/@minecraft/server
+npm error   peerOptional @minecraft/server@"^2.8.0" from @twin-digital/peer-probe-shim@0.1.0-npm-tgz-optional
+npm error   node_modules/@twin-digital/peer-probe-shim
+npm error     @twin-digital/peer-probe-shim@"file:../twin-digital-peer-probe-shim-0.1.0-npm-tgz-optional.tgz" from the root project
+npm error
+npm error Fix the upstream dependency conflict, or retry this command with --force or --legacy-peer-deps to accept an incorrect (and potentially broken) dependency resolution.
+npm error
+npm error
+npm error For a full report see:
+npm error /home/sean/.npm/_logs/2026-07-29T02_55_08_488Z-eresolve-report.txt
+npm error A complete log of this run can be found in: /home/sean/.npm/_logs/2026-07-29T02_55_08_488Z-debug-0.log
+
+--- after install ---
+shim-import=import failed (ERR_MODULE_NOT_FOUND)
+installed-minecraft-server=absent (ENOENT)
+installed-shim=absent (ENOENT)
+
+
+=== pnpm 11.17.0 | file: directory | plain peer ===
+shim spec: file:../shim
+shim peerDependenciesMeta: null
+install exit code: 0
+--- install output ---
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +4
+++++
+Progress: resolved 4, reused 4, downloaded 0, added 4, done
+[WARN] Issues with peer dependencies found. Run "pnpm peers check" to list them.
+
+dependencies:
++ @minecraft/server 1.19.0 (2.8.0 is available)
++ @twin-digital/peer-probe-shim 0.1.0-pnpm-dir-plain
+
+Done in 594ms using pnpm v11.17.0
+
+--- pnpm peers check (exit 1) ---
+Issues with peer dependencies found
+
+✕ unmet peer @minecraft/server
+  Installed: 1.19.0
+  Wanted:
+    ^2.8.0:
+      @twin-digital/peer-probe-shim@
+
+--- after install ---
+shim-import=true
+installed-minecraft-server=1.19.0
+installed-shim=0.1.0-pnpm-dir-plain
+
+
+=== pnpm 11.17.0 | file: directory | peerDependenciesMeta.optional ===
+shim spec: file:../shim
+shim peerDependenciesMeta: {"@minecraft/server":{"optional":true}}
+install exit code: 0
+--- install output ---
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +4
+++++
+Progress: resolved 4, reused 4, downloaded 0, added 4, done
+[WARN] Issues with peer dependencies found. Run "pnpm peers check" to list them.
+
+dependencies:
++ @minecraft/server 1.19.0 (2.8.0 is available)
++ @twin-digital/peer-probe-shim 0.1.0-pnpm-dir-optional
+
+Done in 1s using pnpm v11.17.0
+
+--- pnpm peers check (exit 1) ---
+Issues with peer dependencies found
+
+✕ unmet peer @minecraft/server
+  Installed: 1.19.0
+  Wanted:
+    ^2.8.0:
+      @twin-digital/peer-probe-shim@
+
+--- after install ---
+shim-import=true
+installed-minecraft-server=1.19.0
+installed-shim=0.1.0-pnpm-dir-optional
+
+
+=== pnpm 11.17.0 | packed tarball | plain peer ===
+shim spec: file:../twin-digital-peer-probe-shim-0.1.0-pnpm-tgz-plain.tgz
+shim peerDependenciesMeta: null
+install exit code: 0
+--- install output ---
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +4
+++++
+Progress: resolved 4, reused 3, downloaded 1, added 4, done
+[WARN] Issues with peer dependencies found. Run "pnpm peers check" to list them.
+
+dependencies:
++ @minecraft/server 1.19.0 (2.8.0 is available)
++ @twin-digital/peer-probe-shim 0.1.0-pnpm-tgz-plain
+
+Done in 887ms using pnpm v11.17.0
+
+--- pnpm peers check (exit 1) ---
+Issues with peer dependencies found
+
+✕ unmet peer @minecraft/server
+  Installed: 1.19.0
+  Wanted:
+    ^2.8.0:
+      @twin-digital/peer-probe-shim@0.1.0-pnpm-tgz-plain
+
+--- after install ---
+shim-import=true
+installed-minecraft-server=1.19.0
+installed-shim=0.1.0-pnpm-tgz-plain
+
+
+=== pnpm 11.17.0 | packed tarball | peerDependenciesMeta.optional ===
+shim spec: file:../twin-digital-peer-probe-shim-0.1.0-pnpm-tgz-optional.tgz
+shim peerDependenciesMeta: {"@minecraft/server":{"optional":true}}
+install exit code: 0
+--- install output ---
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +4
+++++
+Progress: resolved 4, reused 3, downloaded 1, added 4, done
+[WARN] Issues with peer dependencies found. Run "pnpm peers check" to list them.
+
+dependencies:
++ @minecraft/server 1.19.0 (2.8.0 is available)
++ @twin-digital/peer-probe-shim 0.1.0-pnpm-tgz-optional
+
+Done in 628ms using pnpm v11.17.0
+
+--- pnpm peers check (exit 1) ---
+Issues with peer dependencies found
+
+✕ unmet peer @minecraft/server
+  Installed: 1.19.0
+  Wanted:
+    ^2.8.0:
+      @twin-digital/peer-probe-shim@0.1.0-pnpm-tgz-optional
+
+--- after install ---
+shim-import=true
+installed-minecraft-server=1.19.0
+installed-shim=0.1.0-pnpm-tgz-optional
+
+
+=== yarn 1.22.22 | file: directory | plain peer ===
+shim spec: file:../shim
+shim peerDependenciesMeta: null
+install exit code: 0
+--- install output ---
+yarn install v1.22.22
+info No lockfile found.
+[1/4] Resolving packages...
+[2/4] Fetching packages...
+[3/4] Linking dependencies...
+[4/4] Building fresh packages...
+success Saved lockfile.
+Done in 0.36s.
+warning " > @minecraft/server@1.19.0" has unmet peer dependency "@minecraft/vanilla-data@>=1.20.70".
+warning " > @twin-digital/peer-probe-shim@0.1.0-yarn-dir-plain" has incorrect peer dependency "@minecraft/server@^2.8.0".
+
+--- after install ---
+shim-import=true
+installed-minecraft-server=1.19.0
+installed-shim=0.1.0-yarn-dir-plain
+
+
+=== yarn 1.22.22 | file: directory | peerDependenciesMeta.optional ===
+shim spec: file:../shim
+shim peerDependenciesMeta: {"@minecraft/server":{"optional":true}}
+install exit code: 0
+--- install output ---
+yarn install v1.22.22
+info No lockfile found.
+[1/4] Resolving packages...
+[2/4] Fetching packages...
+[3/4] Linking dependencies...
+[4/4] Building fresh packages...
+success Saved lockfile.
+Done in 0.25s.
+warning " > @minecraft/server@1.19.0" has unmet peer dependency "@minecraft/vanilla-data@>=1.20.70".
+
+--- after install ---
+shim-import=true
+installed-minecraft-server=1.19.0
+installed-shim=0.1.0-yarn-dir-optional
+
+
+=== yarn 1.22.22 | packed tarball | plain peer ===
+shim spec: file:../twin-digital-peer-probe-shim-0.1.0-yarn-tgz-plain.tgz
+shim peerDependenciesMeta: null
+install exit code: 0
+--- install output ---
+yarn install v1.22.22
+info No lockfile found.
+[1/4] Resolving packages...
+[2/4] Fetching packages...
+[3/4] Linking dependencies...
+[4/4] Building fresh packages...
+success Saved lockfile.
+Done in 0.26s.
+warning " > @minecraft/server@1.19.0" has unmet peer dependency "@minecraft/vanilla-data@>=1.20.70".
+warning " > @twin-digital/peer-probe-shim@0.1.0-yarn-tgz-plain" has incorrect peer dependency "@minecraft/server@^2.8.0".
+
+--- after install ---
+shim-import=true
+installed-minecraft-server=1.19.0
+installed-shim=0.1.0-yarn-tgz-plain
+
+
+=== yarn 1.22.22 | packed tarball | peerDependenciesMeta.optional ===
+shim spec: file:../twin-digital-peer-probe-shim-0.1.0-yarn-tgz-optional.tgz
+shim peerDependenciesMeta: {"@minecraft/server":{"optional":true}}
+install exit code: 0
+--- install output ---
+yarn install v1.22.22
+info No lockfile found.
+[1/4] Resolving packages...
+[2/4] Fetching packages...
+[3/4] Linking dependencies...
+[4/4] Building fresh packages...
+success Saved lockfile.
+Done in 0.24s.
+warning " > @minecraft/server@1.19.0" has unmet peer dependency "@minecraft/vanilla-data@>=1.20.70".
+
+--- after install ---
+shim-import=true
+installed-minecraft-server=1.19.0
+installed-shim=0.1.0-yarn-tgz-optional
+
+
