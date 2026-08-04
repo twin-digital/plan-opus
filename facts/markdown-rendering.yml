@@ -1,39 +1,41 @@
-- id: no-inline-styles-in-gfm
-  claim: GitHub strips the style attribute and the <style> element when rendering markdown, so inline CSS cannot change how a document renders
-  backing: documented
-  caveat: the primary source is a community-maintained reference, not GitHub's own docs, and it disagrees with the sanitizer allowlist on a neighbouring claim (it says id is stripped; the allowlist permits id) — corroborating, not authoritative
-  sources:
-    - url: https://github.com/RichLewis007/HTML-Tags-Supported-in-GitHub-Flavored-Markdown-Documents#-whats-not-allowed
-      where: "§❌ What's NOT Allowed"
-      quote: |
-        `<script>`, `<style>`, `<iframe>`, `<embed>`, `<object>` → stripped
-        Inline CSS styles (`style="..."`) and `class`/`id` → stripped
-    - url: https://github.com/gjtorikian/html-pipeline/blob/main/lib/html_pipeline/sanitization_filter.rb
-      where: DEFAULT_CONFIG — the comment above it, plus the attributes map, which lists no style anywhere
-      quote: |
-        The main sanitization allowlist. Only these elements and attributes are
-        allowed through by default.
+version: "1"
+facts:
+  - id: no-inline-styles-in-gfm
+    claim: GitHub strips the style attribute and the <style> element when rendering markdown, so inline CSS cannot change how a document renders
+    backing: documented
+    caveat: the primary source is a community-maintained reference, not GitHub's own docs, and it disagrees with the sanitizer allowlist on a neighbouring claim (it says id is stripped; the allowlist permits id) — corroborating, not authoritative
+    sources:
+      - url: https://github.com/RichLewis007/HTML-Tags-Supported-in-GitHub-Flavored-Markdown-Documents#-whats-not-allowed
+        where: "§❌ What's NOT Allowed"
+        quote: |
+          `<script>`, `<style>`, `<iframe>`, `<embed>`, `<object>` → stripped
+          Inline CSS styles (`style="..."`) and `class`/`id` → stripped
+      - url: https://github.com/gjtorikian/html-pipeline/blob/main/lib/html_pipeline/sanitization_filter.rb
+        where: DEFAULT_CONFIG — the comment above it, plus the attributes map, which lists no style anywhere
+        quote: |
+          The main sanitization allowlist. Only these elements and attributes are
+          allowed through by default.
 
-- id: fence-info-string-is-raw-text
-  claim: a fenced block's info string is literal text on the opening fence line in the raw markdown, so any tool reading the source can identify the block by it regardless of how a renderer displays the block
-  backing: documented
-  sources:
-    - url: https://spec.commonmark.org/0.31.2/
-      where: §4.5 Fenced code blocks — definition of the info string
-      quote: |
-        The line with the opening code fence may optionally contain some text following the
-        code fence; this is trimmed of leading and trailing spaces or tabs and called the
-        info string.
+  - id: fence-info-string-is-raw-text
+    claim: a fenced block's info string is literal text on the opening fence line in the raw markdown, so any tool reading the source can identify the block by it regardless of how a renderer displays the block
+    backing: documented
+    sources:
+      - url: https://spec.commonmark.org/0.31.2/
+        where: §4.5 Fenced code blocks — definition of the info string
+        quote: |
+          The line with the opening code fence may optionally contain some text following the
+          code fence; this is trimmed of leading and trailing spaces or tabs and called the
+          info string.
 
-- id: trailing-spaces-are-a-hard-line-break
-  claim: |
-    a line ending preceded by two or more spaces, other than at the end of a block, is parsed as a
-    hard line break and rendered as a `<br />`, so trailing whitespace changes what a reader sees
-  backing: documented
-  sources:
-    - url: https://spec.commonmark.org/0.31.2/
-      where: §6.7 Hard line breaks — the definition
-      quote: |
-        A line ending (not in a code span or HTML tag) that is preceded by two or more spaces and
-        does not occur at the end of a block is parsed as a hard line break (rendered in HTML as a
-        `<br />` tag)
+  - id: trailing-spaces-are-a-hard-line-break
+    claim: |
+      a line ending preceded by two or more spaces, other than at the end of a block, is parsed as a
+      hard line break and rendered as a `<br />`, so trailing whitespace changes what a reader sees
+    backing: documented
+    sources:
+      - url: https://spec.commonmark.org/0.31.2/
+        where: §6.7 Hard line breaks — the definition
+        quote: |
+          A line ending (not in a code span or HTML tag) that is preceded by two or more spaces and
+          does not occur at the end of a block is parsed as a hard line break (rendered in HTML as a
+          `<br />` tag)

@@ -1,18 +1,20 @@
 # The Node.js runtime's own surface — what a module written for it can rely on.
 
-- id: import-meta-dirname-gives-a-module-its-directory-as-a-path
-  claim: |
-    An ES module running on Node.js reads its own directory as a plain filesystem path from
-    `import.meta.dirname`, a string equal to the `path.dirname()` of `import.meta.filename`. It is
-    present on `file:` modules, and available from Node 20.11.0 and 21.2.0 onward, so a module on
-    an active LTS can name its own location without converting a url.
-  backing: documented
-  sources:
-    - url: https://nodejs.org/api/esm.html
-      where: import.meta.dirname — the property's description and its caveat
-      quote: |
-        The directory name of the current module.
-    - url: https://nodejs.org/api/esm.html
-      where: import.meta.dirname — the version it was added in
-      quote: |
-        Added in: v21.2.0, v20.11.0
+version: "1"
+facts:
+  - id: import-meta-dirname-gives-a-module-its-directory-as-a-path
+    claim: |
+      An ES module running on Node.js reads its own directory as a plain filesystem path from
+      `import.meta.dirname`, a string equal to the `path.dirname()` of `import.meta.filename`. It is
+      present on `file:` modules, and available from Node 20.11.0 and 21.2.0 onward, so a module on
+      an active LTS can name its own location without converting a url.
+    backing: documented
+    sources:
+      - url: https://nodejs.org/api/esm.html
+        where: import.meta.dirname — the property's description and its caveat
+        quote: |
+          The directory name of the current module.
+      - url: https://nodejs.org/api/esm.html
+        where: import.meta.dirname — the version it was added in
+        quote: |
+          Added in: v21.2.0, v20.11.0

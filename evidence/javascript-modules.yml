@@ -3,27 +3,29 @@
 #
 # Both runs live in the same probe directory; `npm install` there reproduces their inputs.
 
-- id: stable-binding-shim-probe-run
-  command: node run.mjs stable-bindings
-  output: evidence/minecraft/server-shim/clean-test-file-probes/stable-bindings.out.txt
-  ran_at: 2026-07-29
-  environment: |
-    Run in evidence/minecraft/server-shim/clean-test-file-probes after `npm install`.
-    vitest 4.1.10 on node 24.16.0. One suite, run twice: once with `@minecraft/server` aliased to
-    `shim-proxy` — `world` and `system` are Proxy objects of fixed identity over a store held at
-    `globalThis[Symbol.for('@twin-digital/minecraft-server-shim.store')]` — and once with it
-    aliased to `shim-let`, which holds the same two names as `export let` bindings a `__useServer`
-    reassigns. Both shims are the probe's own packages, installed `file:`. Absolute paths in the
-    captured output are rewritten to <probe>.
+version: "1"
+runs:
+  - id: stable-binding-shim-probe-run
+    command: node run.mjs stable-bindings
+    output: evidence/minecraft/server-shim/clean-test-file-probes/stable-bindings.out.txt
+    ran_at: 2026-07-29
+    environment: |
+      Run in evidence/minecraft/server-shim/clean-test-file-probes after `npm install`.
+      vitest 4.1.10 on node 24.16.0. One suite, run twice: once with `@minecraft/server` aliased to
+      `shim-proxy` — `world` and `system` are Proxy objects of fixed identity over a store held at
+      `globalThis[Symbol.for('@twin-digital/minecraft-server-shim.store')]` — and once with it
+      aliased to `shim-let`, which holds the same two names as `export let` bindings a `__useServer`
+      reassigns. Both shims are the probe's own packages, installed `file:`. Absolute paths in the
+      captured output are rewritten to <probe>.
 
-- id: als-store-probe-run
-  command: MC_TEST_LIB=<opus>/nodejs/minecraft/test-lib/src/index.ts node run.mjs async-context
-  output: evidence/minecraft/server-shim/clean-test-file-probes/async-context.out.txt
-  ran_at: 2026-07-29
-  environment: |
-    The same probe directory and versions. `@minecraft/server` is aliased to `shim-als`, whose
-    `world` and `system` are the same stable Proxy bindings resolving through a node
-    `AsyncLocalStorage` held on globalThis rather than through a plain slot. The servers are real
-    bundles from `@twin-digital/minecraft-test-lib` at opus `4ea1287` (unpublished, aliased from
-    source via MC_TEST_LIB), so the deferred callback is run by the library's own scheduler through
-    `advanceTicks`.
+  - id: als-store-probe-run
+    command: MC_TEST_LIB=<opus>/nodejs/minecraft/test-lib/src/index.ts node run.mjs async-context
+    output: evidence/minecraft/server-shim/clean-test-file-probes/async-context.out.txt
+    ran_at: 2026-07-29
+    environment: |
+      The same probe directory and versions. `@minecraft/server` is aliased to `shim-als`, whose
+      `world` and `system` are the same stable Proxy bindings resolving through a node
+      `AsyncLocalStorage` held on globalThis rather than through a plain slot. The servers are real
+      bundles from `@twin-digital/minecraft-test-lib` at opus `4ea1287` (unpublished, aliased from
+      source via MC_TEST_LIB), so the deferred callback is run by the library's own scheduler through
+      `advanceTicks`.

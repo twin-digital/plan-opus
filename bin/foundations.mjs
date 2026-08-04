@@ -26,7 +26,10 @@ const query = args.find((a) => !a.startsWith("--"));
 const DEAD = ["retired", "rejected"];  // two-state: a retired fact/req or a rejected decision
 const read = (file) => {
   if (!fs.existsSync(file)) return [];
-  return (YAML.parse(fs.readFileSync(file, "utf8")) ?? []).filter((e) => !DEAD.includes(e.status));
+  const doc = YAML.parse(fs.readFileSync(file, "utf8")) ?? [];
+  // pool files carry a version: wrapper (facts:/runs:); legacy design sources are bare sequences
+  const entries = Array.isArray(doc) ? doc : (doc.facts ?? doc.runs ?? doc.requirements ?? []);
+  return entries.filter((e) => !DEAD.includes(e.status));
 };
 
 const designs = [];

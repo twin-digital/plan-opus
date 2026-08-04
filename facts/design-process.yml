@@ -1,116 +1,118 @@
 # Facts about the design process's own surfaces in this repository.
 
-- id: check-rejects-slug-increment-dirs
-  claim: npm run check fails a slug-named directory under a product's increments/ with the
-    increment-dir-name finding, citing d-kn05wb30's zero-padded-number rule
-  backing: tested
-  sources:
-    - run: validator-shape-probe-slug
-      where: the finding and closing lines
-      quote: |
-        ✖ [increment-dir-name] products/increment-process/increments/some-future-idea/item.md: increment directory "some-future-idea" is not a zero-padded number (d-kn05wb30)
-        design check failed: 1 finding(s)
+version: "1"
+facts:
+  - id: check-rejects-slug-increment-dirs
+    claim: npm run check fails a slug-named directory under a product's increments/ with the
+      increment-dir-name finding, citing d-kn05wb30's zero-padded-number rule
+    backing: tested
+    sources:
+      - run: validator-shape-probe-slug
+        where: the finding and closing lines
+        quote: |
+          ✖ [increment-dir-name] products/increment-process/increments/some-future-idea/item.md: increment directory "some-future-idea" is not a zero-padded number (d-kn05wb30)
+          design check failed: 1 finding(s)
 
-- id: check-ignores-product-backlog-dir
-  claim: npm run check passes unchanged with a backlog/ directory of free markdown beside a
-    product's product.yaml
-  backing: tested
-  caveat: |
-    The baseline tree without the fixture also passes; the probe shows the fixture adds no
-    finding, not that the validator reads the directory.
-  sources:
-    - run: validator-shape-probe-backlog-dir
-      where: the closing lines
-      quote: |
-        design check passed
-        exit: 0
+  - id: check-ignores-product-backlog-dir
+    claim: npm run check passes unchanged with a backlog/ directory of free markdown beside a
+      product's product.yaml
+    backing: tested
+    caveat: |
+      The baseline tree without the fixture also passes; the probe shows the fixture adds no
+      finding, not that the validator reads the directory.
+    sources:
+      - run: validator-shape-probe-backlog-dir
+        where: the closing lines
+        quote: |
+          design check passed
+          exit: 0
 
-- id: check-enforces-dense-increments
-  claim: npm run check fails a product whose increment numbers skip a value, with the
-    increment-sequence-dense finding naming the missing number
-  backing: tested
-  sources:
-    - run: sequence-gap-probe
-      where: the finding line
-      quote: |
-        ✖ [increment-sequence-dense] products/increment-process: increment numbers are not dense: missing 12 (d-6x6l6ws7, d-d6hwdg9d)
+  - id: check-enforces-dense-increments
+    claim: npm run check fails a product whose increment numbers skip a value, with the
+      increment-sequence-dense finding naming the missing number
+    backing: tested
+    sources:
+      - run: sequence-gap-probe
+        where: the finding line
+        quote: |
+          ✖ [increment-sequence-dense] products/increment-process: increment numbers are not dense: missing 12 (d-6x6l6ws7, d-d6hwdg9d)
 
-- id: skill-supporting-files-load-on-demand
-  claim: a file bundled in a skill's directory and linked from SKILL.md is not loaded into
-    context when the skill runs; Claude reads it only when it needs it
-  backing: documented
-  sources:
-    - url: https://code.claude.com/docs/en/skills.md#add-supporting-files
-      where: the section's opening paragraph
-      quote: |
-        Skills can include multiple files in their directory. This keeps `SKILL.md` focused on the essentials while letting Claude access detailed reference material only when needed. Large reference docs, API specifications, or example collections don't need to load into context every time the skill runs.
+  - id: skill-supporting-files-load-on-demand
+    claim: a file bundled in a skill's directory and linked from SKILL.md is not loaded into
+      context when the skill runs; Claude reads it only when it needs it
+    backing: documented
+    sources:
+      - url: https://code.claude.com/docs/en/skills.md#add-supporting-files
+        where: the section's opening paragraph
+        quote: |
+          Skills can include multiple files in their directory. This keeps `SKILL.md` focused on the essentials while letting Claude access detailed reference material only when needed. Large reference docs, API specifications, or example collections don't need to load into context every time the skill runs.
 
-- id: subagent-skill-body-arrives-linked-files-do-not
-  claim: a subagent that invokes a skill receives SKILL.md's rendered body in context and none
-    of the content of files that body links; a linked file's content arrives only when the
-    agent reads it
-  backing: tested
-  sources:
-    - run: bundled-file-probe
-      where: RUN 2, the reported answers
-      quote: |
-        SKILL_LOADED: yes
-        Q1: ALPHA NOT IN CONTEXT
-        Q2: BETA NOT IN CONTEXT
-        Q3: yes
-        Q4: ALPHA-7Q4X2M9K
+  - id: subagent-skill-body-arrives-linked-files-do-not
+    claim: a subagent that invokes a skill receives SKILL.md's rendered body in context and none
+      of the content of files that body links; a linked file's content arrives only when the
+      agent reads it
+    backing: tested
+    sources:
+      - run: bundled-file-probe
+        where: RUN 2, the reported answers
+        quote: |
+          SKILL_LOADED: yes
+          Q1: ALPHA NOT IN CONTEXT
+          Q2: BETA NOT IN CONTEXT
+          Q3: yes
+          Q4: ALPHA-7Q4X2M9K
 
-- id: skill-body-persists-for-the-session
-  claim: an invoked skill's rendered SKILL.md content enters the conversation as one message and
-    stays for the rest of the session, and is not re-read on later turns
-  backing: documented
-  sources:
-    - url: https://code.claude.com/docs/en/skills.md#skill-content-lifecycle
-      where: the section's opening paragraph
-      quote: |
-        When you or Claude invoke a skill, the rendered `SKILL.md` content enters the conversation as a single message and stays there for the rest of the session. This persistence applies to the skill's instructions, not its permissions: an [`allowed-tools`](#pre-approve-tools-for-a-skill) grant clears when you send your next message. Claude Code does not re-read the skill file on later turns, so write guidance that should apply throughout a task as standing instructions rather than one-time steps.
+  - id: skill-body-persists-for-the-session
+    claim: an invoked skill's rendered SKILL.md content enters the conversation as one message and
+      stays for the rest of the session, and is not re-read on later turns
+    backing: documented
+    sources:
+      - url: https://code.claude.com/docs/en/skills.md#skill-content-lifecycle
+        where: the section's opening paragraph
+        quote: |
+          When you or Claude invoke a skill, the rendered `SKILL.md` content enters the conversation as a single message and stays there for the rest of the session. This persistence applies to the skill's instructions, not its permissions: an [`allowed-tools`](#pre-approve-tools-for-a-skill) grant clears when you send your next message. Claude Code does not re-read the skill file on later turns, so write guidance that should apply throughout a task as standing instructions rather than one-time steps.
 
-- id: slug-named-draft-is-invisible-to-the-gate
-  claim: while an increment directory is slug-named, its sources are not schema-validated and
-    its foundations do not project; only the increment-dir-name finding fires, and the rest
-    appear when the landing rename makes the directory a number
-  backing: tested
-  sources:
-    - run: draft-visibility-probe
-      where: both sections, whose content differs only by the directory's name
-      quote: |
-        === A. slug-named, as a draft is worked ===
-        --- check ---
-        ✖ [increment-dir-name] products/increment-process/increments/draft-visibility/requirements.yaml: increment directory "draft-visibility" is not a zero-padded number (d-kn05wb30)
-        design check failed: 1 finding(s)
-        --- show ---
-        draft requirement projected (occurrences): 0
-        144 claims in force: 144 covered, 0 uncovered, 74 on attestation alone; 5 deferred excluded
-        
-        === B. identical content, renamed to 013 ===
-        --- check ---
-        ✖ [source-validates] products/increment-process/increments/013/requirements.yaml: /requirements/0 must NOT have additional properties (r-gq90gngs, d-i47qv6oa)
-        design check failed: 1 finding(s)
-        --- show ---
-        draft requirement projected (occurrences): 3
-        145 claims in force: 144 covered, 1 uncovered, 74 on attestation alone; 5 deferred excluded
+  - id: slug-named-draft-is-invisible-to-the-gate
+    claim: while an increment directory is slug-named, its sources are not schema-validated and
+      its foundations do not project; only the increment-dir-name finding fires, and the rest
+      appear when the landing rename makes the directory a number
+    backing: tested
+    sources:
+      - run: draft-visibility-probe
+        where: both sections, whose content differs only by the directory's name
+        quote: |
+          === A. slug-named, as a draft is worked ===
+          --- check ---
+          ✖ [increment-dir-name] products/increment-process/increments/draft-visibility/requirements.yaml: increment directory "draft-visibility" is not a zero-padded number (d-kn05wb30)
+          design check failed: 1 finding(s)
+          --- show ---
+          draft requirement projected (occurrences): 0
+          144 claims in force: 144 covered, 0 uncovered, 74 on attestation alone; 5 deferred excluded
+          
+          === B. identical content, renamed to 013 ===
+          --- check ---
+          ✖ [source-validates] products/increment-process/increments/013/requirements.yaml: /requirements/0 must NOT have additional properties (r-gq90gngs, d-i47qv6oa)
+          design check failed: 1 finding(s)
+          --- show ---
+          draft requirement projected (occurrences): 3
+          145 claims in force: 144 covered, 1 uncovered, 74 on attestation alone; 5 deferred excluded
 
-- id: skill-references-stay-one-level-deep
-  claim: a file referenced from a file that SKILL.md references may be read only partially;
-    Claude Code's guidance is that every reference link directly from SKILL.md
-  backing: documented
-  sources:
-    - url: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
-      where: Progressive disclosure patterns, "Avoid deeply nested references"
-      quote: |
-        Claude may partially read files when they're referenced from other referenced files. When encountering nested references, Claude might use commands like `head -100` to preview content rather than reading entire files, resulting in incomplete information.
+  - id: skill-references-stay-one-level-deep
+    claim: a file referenced from a file that SKILL.md references may be read only partially;
+      Claude Code's guidance is that every reference link directly from SKILL.md
+    backing: documented
+    sources:
+      - url: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
+        where: Progressive disclosure patterns, "Avoid deeply nested references"
+        quote: |
+          Claude may partially read files when they're referenced from other referenced files. When encountering nested references, Claude might use commands like `head -100` to preview content rather than reading entire files, resulting in incomplete information.
 
-- id: skill-domain-files-keep-irrelevant-context-out
-  claim: organising a skill's material into per-domain files, linked from SKILL.md, is the
-    documented way to keep an agent from loading the domains it was not dispatched for
-  backing: documented
-  sources:
-    - url: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
-      where: Progressive disclosure patterns, the "Pattern 2 — Domain-specific organization" example
-      quote: |
-        For Skills with multiple domains, organize content by domain to avoid loading irrelevant context. When a user asks about sales metrics, Claude only needs to read sales-related schemas, not finance or marketing data. This keeps token usage low and context focused.
+  - id: skill-domain-files-keep-irrelevant-context-out
+    claim: organising a skill's material into per-domain files, linked from SKILL.md, is the
+      documented way to keep an agent from loading the domains it was not dispatched for
+    backing: documented
+    sources:
+      - url: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
+        where: Progressive disclosure patterns, the "Pattern 2 — Domain-specific organization" example
+        quote: |
+          For Skills with multiple domains, organize content by domain to avoid loading irrelevant context. When a user asks about sales metrics, Claude only needs to read sales-related schemas, not finance or marketing data. This keeps token usage low and context focused.
