@@ -90,12 +90,6 @@ The partition is mechanical off existing fields, and the
 overturn count is the empirical feedback for the dial: overturns climbing means over-planning
 is manufacturing churn; companions bloating with unlicensed entries means under-planning.
 
-## Questions gain a closure route
-
-Questions still never publish. A question routed to a decision whose honest answer is "not
-determinable at plan tier" closes by minting the deferral, ruled by the owner; the deferral
-is the closure record.
-
 ## Coverage closes the loop
 
 A deferral is not implementable, so no record entry may cover one directly; it is covered
