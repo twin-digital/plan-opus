@@ -50,6 +50,32 @@ decisions:
       - process-doc
       - prompts
 
+  - id: d-0lkxin7b
+    title: a fold version is an increment number or a git ref
+    statement: |
+      wherever the tooling takes a fold version, a three-digit argument names an increment
+      number and anything else names a git ref; a ref resolves to the product's latest
+      published increment at that ref.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: agents and the shipped documents pass versions in this form
+    because:
+      - r-tne4cdos
+      - r-v6mknsh7
+    facets: tooling
+
+  - id: d-twb4uga9
+    title: the resolver and diff surfaces are the implementer's
+    statement: |
+      the command names, flags, and output layout of the where-a-product-stands resolver
+      and the fold diff are deferred to the implementer.
+    status: deferred
+    because:
+      - r-tne4cdos
+      - r-v6mknsh7
+    facets: tooling
+
   - id: d-yu9hbn3h
     title: the validator is unchanged
     statement: |

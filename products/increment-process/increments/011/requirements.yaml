@@ -39,6 +39,26 @@ requirements:
       - process-doc
       - tooling
 
+  - id: r-tne4cdos
+    title: the tooling answers where a product stands
+    statement: |
+      given a product and a git ref, the tooling names the product's latest published
+      increment at that ref.
+    verification:
+      - do: ask for a product's increment at an older ref, then at head
+      - verify: each answer names the increment published at that ref
+    facets: tooling
+
+  - id: r-v6mknsh7
+    title: the tooling diffs the fold
+    statement: |
+      given two versions of a product's fold, the tooling reports what changed between
+      them — the foundations added, amended, superseded, and retired.
+    verification:
+      - do: diff a product's fold across a landing
+      - verify: the delta names the foundations the landing introduced and the entries it superseded
+    facets: tooling
+
   - id: r-0701ctqx
     title: drafts do not conflict, and landing checks it
     statement: |
