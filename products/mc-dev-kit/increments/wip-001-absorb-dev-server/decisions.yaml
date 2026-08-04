@@ -1,6 +1,11 @@
 version: "1"
 
+# The dev loop's decisions. mc-dev-server's stranded spec cycle (branch design/minecraft-dev-server,
+# tip c43cefe) proposed sixteen of these against a product boundary that no longer exists; they are
+# rewritten here to cite this product's own requirements rather than facts transcribing them.
+# drafts/absorption-map.md accounts for what changed and what is not carried.
 decisions:
+  # ---------------------------------------------------------------- the package
   - id: d-zyo6kku9
     title: the harness is its own package beside the library
     statement: |
@@ -19,3 +24,285 @@ decisions:
       - r-8et233c9
       - r-whacwz1b
       - r-jvb29tpu
+
+  # ---------------------------------------------------------------- the server the harness runs
+  - id: d-wtziwjh5
+    title: server image pinned with console helper
+    statement: |
+      the harness targets the `itzg/minecraft-bedrock-server` image, pinning the tag it generates
+      and exposing only that tag as configuration.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: the one server-side knob a consumer sets, and the tag every log-matching decision below is calibrated against
+    facets: dev-loop
+    because:
+      - f:bedrock-image-exposes-a-noninteractive-console-helper
+
+  - id: d-uqdxo2w6
+    title: deploy transport is cp and console exec
+    statement: |
+      built packs reach the server with `docker compose cp` and reloads are issued with
+      `docker compose exec` of the image's console helper. Compose's own `develop.watch` is not
+      used.
+    status: proposed
+    facets: dev-loop
+    because:
+      - r-whacwz1b
+      - d-wtziwjh5
+      - f:compose-cp-copies-without-bind-mounts
+      - f:bedrock-image-exposes-a-noninteractive-console-helper
+      - f:compose-watch-path-constraints
+
+  - id: d-w8cc8n18
+    title: generated compose file is fully resolved
+    statement: |
+      the harness writes a generated compose file with every value already substituted and invokes
+      it by absolute `-f` path, passing neither `--project-directory` nor an env file.
+    status: proposed
+    facets: dev-loop
+    because:
+      - f:compose-env-file-not-loaded-from-cwd
+
+  - id: d-imdfu09l
+    title: the project identity is derived from the workspace root
+    statement: |
+      the compose project name is derived from the absolute path of the workspace root, so one
+      workspace addresses one server and two workspaces on one daemon do not collide. The world's
+      level name and the generated compose file's location are settings of that project, not of the
+      current directory, and a run started from a subdirectory addresses the same server as one
+      started from the root.
+    status: proposed
+    facets: dev-loop
+    because:
+      - r-7lroj1cg
+      - r-kfu7pcms
+      - d-w8cc8n18
+
+  - id: d-zo2yl18y
+    title: world state lives in a named volume
+    statement: |
+      the server's `/data` is a named Docker volume the harness creates and never removes except
+      under a reset flag on the stop command.
+    status: proposed
+    pinned:
+      reason: data-format
+      notes: the author's world lives here, and a reset flag destroys it
+    facets: dev-loop
+    because:
+      - r-whacwz1b
+      - r-kfu7pcms
+
+  # ---------------------------------------------------------------- what the server should hold
+  - id: d-4iepnry2
+    title: both pack kinds are routed by the kind the pack set reports
+    statement: |
+      the harness deploys behavior and resource packs alike, routing each to its kind's pool and
+      its kind's world activation list by the kind the pack set reports. It reads no pool directory
+      name as a declaration of kind and re-derives kind from nothing: a misrouted pack is not
+      observable from the server's output, so the routing is prevented rather than caught.
+    status: proposed
+    facets: dev-loop
+    because:
+      - r-hpu39brj
+      - r-rlh87pau
+      - r-fghzi5qq
+      - f:pack-kind-mismatch-fails-silently-at-the-server
+
+  - id: d-cw6pder5
+    title: activation entries are written from the pack set
+    statement: |
+      an activation entry's uuid and version are taken from the pack set the kit returns. The
+      harness reads no `manifest.json`, in the built output or anywhere else — the entry is known
+      before a build runs, so reading one back would add a parse and a failure path for a value
+      already in hand.
+    status: proposed
+    facets: dev-loop
+    because:
+      - r-rlh87pau
+      - r-kbgjy2pt
+      - r-imfmv0qc
+      - f:bedrock-activation-entry-is-header-uuid-and-version
+
+  - id: d-oo8256gl
+    title: a pack occupies a pool directory named for its uuid
+    statement: |
+      inside its kind's pool a pack occupies a directory named for its header uuid, lowercased.
+      That name is the whole of what a later read of the pool has to go on.
+    status: proposed
+    facets: dev-loop
+    because:
+      - r-xcz7nzr6
+      - r-iby30nx1
+      - d-0thqo4n0
+
+  # ---------------------------------------------------------------- reconcile
+  - id: d-q8ikxtdk
+    title: reconcile reads live server state
+    statement: |
+      each reconcile reads the pool contents and activation lists off the running container rather
+      than trusting a record of what the last deploy wrote, so a hand-edited container, a crash
+      mid-copy, or a server left running from a previous session all converge on the next save.
+    status: proposed
+    facets: dev-loop
+    because:
+      - r-pcq10f2b
+      - d-uqdxo2w6
+
+  - id: d-a9jaqn8m
+    title: the harness compares presence and identity, never content
+    statement: |
+      the harness compares only pack presence and activation identity against the server; a pack's
+      file content is never read back. A pack whose built output changed is re-deployed in full.
+    status: proposed
+    facets: dev-loop
+    because:
+      - r-pcq10f2b
+      - d-q8ikxtdk
+
+  - id: d-n0dz38ky
+    title: a pool directory is replaced, not merged into
+    statement: |
+      deploying a pack removes its pool directory before copying, so the pool holds what the output
+      tree holds and nothing else. A copy over a directory already in place merges, which would
+      leave a file deleted from the output tree sitting on the server indefinitely.
+    status: proposed
+    facets: dev-loop
+    because:
+      - r-pcq10f2b
+      - r-8xmkne8a
+      - d-a9jaqn8m
+
+  # ---------------------------------------------------------------- what a change costs
+  - id: d-ftlfhac8
+    title: a reload is used only when the pack's file set is unchanged
+    statement: |
+      the harness applies a change with the console reload only when the pack is already in its
+      pool, already listed at the same identity, and the file set of its built output is unchanged
+      — only file contents differ. An added or removed file, an added or removed pack, a version
+      change, and any activation-list edit all restart the server.
+
+      The file set is what the cheap path is drawn around because a reload resolves imports only
+      against the files present when the world last loaded, and a file first deployed after that
+      fails with the same error a genuinely absent one gives — silently, from the harness's side.
+      The harness knows the file set locally, without reading the server back.
+    status: proposed
+    facets: dev-loop
+    because:
+      - r-cekp2mcb
+      - r-8xmkne8a
+      - d-a9jaqn8m
+      - f:a-bedrock-script-reload-resolves-only-the-files-loaded-at-world-load
+      - f:bedrock-reload-updates-scripts-not-pool-or-manifest
+      - f:bedrock-activation-list-read-only-at-world-load
+
+  - id: d-i4oryd9x
+    title: readiness is the world-load pack stack line
+    statement: |
+      the server counts as ready when the container log emits the world-load line reporting the
+      pack stack, and the harness reports that line as what the load actually brought up.
+    status: proposed
+    facets: dev-loop
+    because:
+      - d-wtziwjh5
+      - f:bedrock-activation-list-read-only-at-world-load
+
+  # ---------------------------------------------------------------- builds and watching
+  - id: d-vrq7lc2o
+    title: start builds once before the first reconcile
+    statement: |
+      the start sequence runs each selected package's one-shot build to completion before the first
+      reconcile, and starts the watch builds only after it.
+    status: proposed
+    facets: dev-loop
+    because:
+      - r-8et233c9
+      - r-97fvutt9
+
+  - id: d-j3ayhwv1
+    title: the harness runs a package's own build scripts and watches its output
+    statement: |
+      the harness invokes a selected package's own `build` and `watch` package scripts — the kit
+      ships no command line of its own to call — and itself watches only the built output
+      directories, deploying on a debounced change there.
+    status: proposed
+    facets: dev-loop
+    because:
+      - r-97fvutt9
+      - r-hlnbi41r
+      - r-8h864ke8
+      - r-un786n7v
+      - r-1bvvl9k7
+      - r-v8jjhds5
+
+  # ---------------------------------------------------------------- the command surface
+  - id: d-0yrfifhi
+    title: command surface is start and stop
+    statement: |
+      the package's executable is `mc-dev-server`. It exposes one default start-and-watch command
+      and one explicit `stop` command, the stop command carrying the `--reset` flag that also
+      removes the world volume. Ctrl+C stops the watchers and the log follow and nothing else.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: the verbs, the executable name, and the flag that destroys a world
+    facets: dev-loop
+    because:
+      - r-8et233c9
+      - r-kfu7pcms
+      - d-zo2yl18y
+      - d-zyo6kku9
+
+  - id: d-ifke5eeh
+    title: start is idempotent against a running server
+    statement: |
+      the start command brings the compose project up only when it is not already running; finding
+      it running, it attaches to it — no `up`, no recreate, no restart — and reaches readiness from
+      the world-load line already in the container's log rather than waiting for a new one. A
+      project running under settings the current configuration would not produce is reported to the
+      author and left alone, never silently recreated — recreating the container is what loses the
+      world and disconnects the client, and a regenerated compose file differing from the running
+      project would otherwise do exactly that on every reattach.
+    status: proposed
+    facets: dev-loop
+    because:
+      - r-kfu7pcms
+      - d-w8cc8n18
+      - d-imdfu09l
+      - d-i4oryd9x
+
+  - id: d-c1kvyord
+    title: selection is flags over a workspace config file
+    statement: |
+      a run's selection is a repeatable `--pack` flag naming owning package names, defaulting to
+      every pack the kit discovers, with `--profile <name>` naming a list held in the harness's
+      workspace config file. That file is `mc-dev-server.yaml` at the workspace root, holding the
+      named profiles, the level name, and the image tag; it is optional, and a workspace without
+      one runs every discovered pack under the defaults. A `--pack` value matching no discovered
+      pack is an error, not a narrower run.
+    status: proposed
+    pinned:
+      reason: data-format
+      notes: a checked-in file the author authors by hand, and the flags that read it
+    facets: dev-loop
+    because:
+      - r-u8cg9vi6
+      - r-8et233c9
+      - r-7v7o1jy8
+      - r-co6glnme
+      - d-wtziwjh5
+
+  - id: d-5e00ndwi
+    title: activity and server output share one tagged stream
+    statement: |
+      the harness has one output stream, owned solely by the command line and written to by every
+      other part only through it, and every line on it is prefixed with a short source tag — the
+      emitting package for build output, `deploy` for the harness's own activity, `server` for
+      container logs.
+    status: proposed
+    pinned:
+      reason: data-format
+      notes: the per-line prefix anything consuming the harness's output reads
+    facets: dev-loop
+    because:
+      - r-8et233c9
