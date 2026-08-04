@@ -22,22 +22,27 @@ The fix is a classification that can say it. Every choice a build meets is exact
 
 - **decided** — a foundation determines it;
 - **deferred** — a ruled decision names the choice and hands it to the implementer;
-- **the implementer's own** — no consumer could observe it and no reimplementation must
-  preserve it (d-rx3s2hqo's recording bar), applied identically by the planner classifying
-  and the builder declining to record.
+- **an implementation detail** — no consumer could observe it and no reimplementation must
+  preserve it, the test d-rx3s2hqo already sets, applied identically by the Clarify agent
+  omitting a surveyed choice and the implementer declining to record one.
 
-A choice that is none of the three is the gap. This is also where the over-planning dial and the anti-stall valve
+> d-rx3s2hqo — decisions record the observable: "a decision is recorded when a consumer
+> could observe its outcome or a reimplementation must preserve it; choices below that bar
+> live in the code, and a reimplementation is free to re-make them."
+
+Silence is the only gap. This is also where the over-planning dial and the anti-stall valve
 stop fighting: decide what the evidence determines, defer what it does not, leave the rest to the
 implementer in silence.
 
 ## The survey
 
-The builder's reading is not a persona but a phase: implementer skills expose survey beside
-prepare and implement — read-only, build nothing, return the census of choices your package's
-build would meet, classified, plus the questions the fold cannot answer. Clarify dispatches
-the implement orchestrator in survey mode against the draft increment on its branch and
-triages what returns. Per-kind implementers give sharper readings than a generic reviewer,
-and the run is cheap: no worktrees, no companion.
+The builder's reading is not a persona but a phase: implementers expose survey beside
+prepare and implement — read-only, build nothing, return the choices your package's build
+would meet that the fold neither decides nor defers, with your reading of each. Clarify
+dispatches the implement orchestrator in survey mode against the draft increment on its
+branch and classifies what returns: the implementer enumerates, Clarify rules. Per-kind
+implementers give sharper readings than a generic reviewer, and the run is cheap: no
+worktrees, no companion.
 
 The plan skill offers the survey rather than always running it: it reports what is captured,
 recommends from the delta's shape — packages, contracts, or consumer surfaces touched
@@ -45,14 +50,14 @@ recommends for; a norm-only delta recommends against — and the owner calls it.
 
 ## License and overturn, concretely
 
-The deferral (in the plan increment, ruled by the owner):
+The deferral (in the plan increment, ruled by the owner — deferred is the ruling):
 
 ```yaml
 - id: d-yyyyyyyy
   title: the facts flag layout is the implementer's
   statement: exact flags and output layout of design-process facts are deferred to the
     implementer.
-  status: accepted
+  status: deferred
 ```
 
 The licensed answer (in the companion increment — rubber stamp):
@@ -81,9 +86,7 @@ actually reads):
     - f:streaming-probe    # the discovery that forced it
 ```
 
-`because`, not `supersedes`, for a licensed answer: the deferral is not wrong and not closed —
-it is the standing record that the choice was implementation-tier by ruling, and retiring it
-would retire the license with it. The partition is mechanical off existing fields, and the
+The partition is mechanical off existing fields, and the
 overturn count is the empirical feedback for the dial: overturns climbing means over-planning
 is manufacturing churn; companions bloating with unlicensed entries means under-planning.
 
@@ -93,8 +96,8 @@ Questions still never publish. A question routed to a decision whose honest answ
 determinable at plan tier" closes by minting the deferral, ruled by the owner; the deferral
 is the closure record.
 
-## What this increment deliberately does not add
+## Coverage closes the loop
 
-No cap on companion size — implementations stay free to accumulate, and that freedom is what
-prevents the design restart. No maintained spec — the survey census is transient by
-construction, and any frozen copy is a draft, raw material the fold outranks.
+A deferral is not implementable, so no record entry may cover one directly; it is covered
+when an in-force decision citing it in `because` carries coverage. For coverage to be
+complete, every deferred choice has been made, and the choice made has evidence.

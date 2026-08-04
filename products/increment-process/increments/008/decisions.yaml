@@ -1,11 +1,12 @@
 version: "1"
 decisions:
   - id: d-29fjsjn2
-    title: one recording bar, applied at two moments
+    title: an implementation detail is one test, applied at two moments
     statement: |
-      the recording bar — a consumer could observe the outcome, or a reimplementation must
-      preserve it — is one bar: the planner classifying a choice during the survey and the
-      builder declining to record one at wrap-up apply the same test.
+      whether a choice is an implementation detail — no consumer could observe it, and no
+      reimplementation must preserve it — is one test: the Clarify agent omitting a
+      surveyed choice and the implementer declining to record one at wrap-up apply it
+      identically.
     status: proposed
     because:
       - r-v4z0h7dn
@@ -17,10 +18,11 @@ decisions:
   - id: d-63f18oml
     title: a deferral is an ordinary decision
     statement: |
-      a choice Plan cannot yet determine is deferred by a decision like any other: its
-      statement names what is deferred and to whom, the owner rules it, and it stands in
-      force as the license its answer cites. a question routed to a decision may close by
-      minting a deferral. a deferral is not superseded by its answer.
+      during a Plan phase, a choice that cannot yet be made is recorded as a decision like
+      any other: its statement names what is deferred and to whom, the owner ratifies it,
+      and it stands in force as the license its answer cites. a question routed to a
+      decision may close by minting a deferral. a deferral is not superseded by its
+      answer.
     status: proposed
     because:
       - r-v4z0h7dn
@@ -30,18 +32,39 @@ decisions:
       - schema
 
   - id: d-uz9wis6a
-    title: deferrals carry no marker field
+    title: deferred is a ruling
     statement: |
-      a deferral is identified by its statement alone; the decision schema gains no
-      deferred_to field. everything that must read the partition mechanically reads
-      supersedes.
+      deferred joins the status values: a deferral enters proposed, and the owner's
+      ratification sets its status to deferred. decision@2 carries the widened enum, and a
+      decisions source adopts it by naming version "2".
     status: proposed
+    pinned:
+      reason: data-format
     because:
       - d-63f18oml
-      - d-ub6h6h5u
-    revisit_when:
-      - a tool needs to enumerate deferrals mechanically — the projection listing them, or a count of licenses
-    facets: schema
+      - d-i47qv6oa
+    facets:
+      - schema
+      - tooling
+
+  - id: d-3orwwaze
+    title: coverage reaches deferrals through their answers
+    statement: |
+      once an implementation targets an increment, its record carries a coverage entry for
+      every requirement and decision in force there, adopted preset requirements included —
+      except a deferred decision, which no entry may cover directly. a deferral is covered
+      when an in-force decision citing it in because itself carries coverage; the validator
+      refuses a record with a gap or a direct entry on a deferral.
+    status: proposed
+    supersedes: d-rr1qmw72
+    because:
+      - r-tue7kfgt
+      - d-0nl6sd96
+      - d-63f18oml
+      - d-uz9wis6a
+    facets:
+      - design-validator
+      - schema
 
   - id: d-ub6h6h5u
     title: license by because, overturn by supersedes
@@ -63,18 +86,18 @@ decisions:
   - id: d-cau8oksc
     title: survey is a third implementer phase
     statement: |
-      each kind-specific implementer skill partitions its waves into three phases the
-      dispatcher can call: survey — read-only against a fold or draft fold, returning the
-      census of choices the package's build would meet, each classified decided, deferred,
-      or the implementer's own, plus the questions the fold cannot answer; prepare —
-      standing up what sibling packages compile or check against, a package's public
-      surface or its share of a cross-package allocation; and implement — running prepare
-      where it has not run, then completing the package. a kind with nothing to stand up
-      treats prepare as a no-op; the dispatcher never knows a kind's waves.
-    status: proposed
+      each kind-specific implementer partitions its waves into three phases the dispatcher
+      can call: survey — read-only against a fold or draft fold, returning the choices the
+      package's build would meet that the fold neither decides nor defers, with the
+      implementer's reading of each, for Clarify to classify; prepare — standing up what
+      sibling packages compile or check against, a package's public surface or its share
+      of a cross-package allocation; and implement — running prepare where it has not run,
+      then completing the package. a kind with nothing to stand up treats prepare as a
+      no-op; the dispatcher never knows a kind's waves.
+    status: tolerated
     pinned:
       reason: public-api
-      notes: the contract between the dispatcher and every implementer skill, present and future
+      notes: the contract between the dispatcher and every implementer, present and future
     supersedes: d-sbcncyu2
     because:
       - r-v4z0h7dn
