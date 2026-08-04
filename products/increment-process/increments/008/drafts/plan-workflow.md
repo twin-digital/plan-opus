@@ -22,12 +22,13 @@ The fix is a classification that can say it. Every choice a build meets is exact
 
 - **decided** — a foundation determines it;
 - **deferred** — a ruled decision names the choice and hands it to the implementer;
-- **below the recording bar** — the bar d-rx3s2hqo already sets, applied identically by the
-  planner classifying and the builder declining to record.
+- **the implementer's own** — no consumer could observe it and no reimplementation must
+  preserve it (d-rx3s2hqo's recording bar), applied identically by the planner classifying
+  and the builder declining to record.
 
-Silence is the only gap. This is also where the over-planning dial and the anti-stall valve
-stop fighting: decide what the evidence determines, defer what it does not, stay silent below
-the bar.
+A choice that is none of the three is the gap. This is also where the over-planning dial and the anti-stall valve
+stop fighting: decide what the evidence determines, defer what it does not, leave the rest to the
+implementer in silence.
 
 ## The survey
 
