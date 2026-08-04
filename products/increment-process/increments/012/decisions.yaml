@@ -287,3 +287,37 @@ decisions:
       - d-i1reuf3u
       - r-v4z0h7dn
     facets: prompts
+
+  - id: d-211hgo91
+    title: what the single entry point re-exports
+    statement: |
+      the "." entry point of @twin-digital/design-process re-exports, by name, the operations
+      behind the CLI's subcommands — validateTree, projectProduct, collectIds and generateIds,
+      parseFoldVersion, formatIncrement and resolveFold, diffFolds and renderFoldDiff,
+      findLandingConflicts, and the seven backlog operations with BACKLOG_BRANCH — together
+      with DirTree, GitTree, resolveGitRef, and the types those signatures name. nothing else
+      under src/ is reachable, and no export is a wildcard or an `export *`.
+    status: delegated
+    pinned:
+      reason: public-api
+      notes: the named exports a consumer resolves and can come to depend on
+    because:
+      - d-cueyrbon
+      - d-fiul12e8
+      - d-imz61dd5
+    facets: tooling
+
+  - id: d-y8wvy666
+    title: a losing backlog write retries against the winner
+    statement: |
+      a backlog write whose push is rejected because the branch moved puts the local branch
+      back where it was, refetches the tip, re-applies the change over what the winner left,
+      and pushes again — four attempts by default. exhausting them exits non-zero saying the
+      branch moved, with the local branch unchanged. no item is lost and no manual recovery
+      is needed.
+    status: delegated
+    because:
+      - d-kfy1sexh
+      - d-5pzfayi8
+      - r-9qhjtznd
+    facets: tooling
