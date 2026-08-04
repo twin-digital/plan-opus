@@ -135,6 +135,62 @@ whose every reconcile reads state off the container while the evidence in hand c
 host-to-container direction. q-h34y88go gates d-4iepnry2 and d-cw6pder5, which deploy resource
 packs against a fact scoped to `world_behavior_packs.json`.
 
+## Survey
+
+Dispatched read-only against this draft fold, one implementer per package the fold names:
+`nodejs/minecraft/mc-dev-server` (68 entries) and `nodejs/minecraft/mc-dev-kit` (10). Both censuses
+persist at `drafts/survey-census.yaml`. The draft acted on two entries already — q-npz0np7l records
+the activation version form, and d-ftlfhac8 and d-a9jaqn8m were repaired where the reload rule and
+the reattach path had been written against each other: the file-set comparison now reads the pool
+the reconcile already reads, so it holds on the first change after a reattach.
+
+**Deferred** — an open question already names the choice: the resource activation list's shape
+(q-h34y88go), container-to-host reads against a remote daemon (q-qk2r4e5q), the activation version
+form (q-npz0np7l), a list edit without a restart (q-gsr57mk0), a newly pooled pack (q-12jwzs0h).
+
+**Omitted as implementation details** — no consumer observes them and no reimplementation must
+preserve them: the bundler and whether the CLI ships built or as source, the `bin` target path, the
+debounce interval's value, build parallelism, the pool-read command's spelling, the pool-removal
+mechanism, joining a workspace-relative entry path back to an absolute one, grouping entries by
+owning package before invoking a build, watcher mechanism and scale, and whether the container start
+overlaps the first one-shot builds.
+
+**Gaps** — neither decided nor deferred, routing back into Clarify:
+
+1. **The config file's schema.** d-c1kvyord pins `mc-dev-server.yaml`'s location and what it holds
+   and not its shape — key names, profile form, unknown-key handling, malformed-file behaviour,
+   `--pack` with `--profile`, an unmatched profile name, and the level-name and image-tag defaults.
+   A hand-authored checked-in file is data-format surface; this is the largest single gap.
+2. **The server's on-disk layout.** Each kind's pool path, the world directory under the level name,
+   creating a world directory and activation file the server never creates, and the order entries
+   are written in — which is the pack stack order the server applies on a conflict.
+3. **The compose project's server environment.** EULA acceptance, the published port and what
+   happens when it is occupied, online-mode and allow-list, the stop grace period that decides
+   whether a world save completes, and whether the three-key config admits any extension at all.
+4. **Workspace-root resolution across the two packages.** d-imdfu09l needs the root and the kit's
+   rule (d-xnv5kh7k) is unexported. Exporting a resolver is new pinned surface serving d-ai68xorc
+   too; reimplementing it in the harness leaves two packages able to disagree about which workspace
+   they are in.
+5. **Discovery cadence.** A version comes from `package.json`, which the harness watches nothing of.
+   Discover once at startup and a version bump silently strands the activation entry at the old
+   version — the pack stops loading with no error. Re-running discovery each reconcile fixes it and
+   keeps d-k7py0qqv intact, but the cadence is decided nowhere and cache-once is the natural pick.
+6. **Failure policy.** A selected pack the kit reports invalid, a package declaring no `build` or no
+   `watch` script, a one-shot build that fails at start, a build that fails mid-session, a watch
+   process that dies, an absent output tree, and pool content the harness did not put there.
+7. **The loop's own concurrency.** A change arriving mid-reconcile or mid-restart, how the restart
+   is performed and whether the world is saved first, and whether a second attached run is
+   prevented.
+8. **The rest of the CLI surface.** Exit codes, the signal set beyond Ctrl+C, child-process
+   teardown, `--help`/`--version`, verbosity, whether anything reaches stderr, and how far back the
+   log is read on reattach.
+9. **Sequencing and versioning.** The kit's increments 003-007 are designed and unbuilt, so
+   d-j3ayhwv1's build invocation has nothing to call: either the kit ships them first or r-8et233c9
+   is not demonstrable end to end. With a sibling package pinned to the kit's surface, staying on
+   0.x means every surface addition is a minor that consumers' carets will not follow.
+10. **Platform support**, and whether the Docker connection is the ambient context — the same
+    workspace against two daemons produces one project name and two servers.
+
 ## Left for the Plan loop
 
 - **The `f:dev-kit-*` facts.** Eleven facts in `facts/minecraft/bedrock-server.yml` source

@@ -37,6 +37,21 @@ questions:
     answer: fact
     facets: dev-loop
 
+  - id: q-npz0np7l
+    question: |
+      Does a pack whose pool `manifest.json` carries a SemVer-string `header.version` load at all,
+      and does an activation entry's three-number `version` array match it? r-wi7qf6to completes
+      `header.version` as a SemVer string at every format version, and r-imfmv0qc puts that
+      completed manifest in the output tree — so every pack this harness deploys carries a string
+      version in the pool. f:bedrock-activation-entry-is-header-uuid-and-version records the entry's
+      version as the header's three-number array "which must match the pack in the pool", and the
+      probe behind it used array-versioned manifests throughout; the string case is unobserved. A
+      pre-release version has no array form at all. A mismatch loads nothing and reports only
+      "Pack Stack - None". Gates d-cw6pder5, and d-ftlfhac8's version-change class with it. Closed
+      by a probe deploying a string-versioned pack, pre-release included.
+    answer: fact
+    facets: dev-loop
+
   - id: q-h34y88go
     question: |
       What is a world's resource-pack activation list called, where does it sit, and does an entry

@@ -152,8 +152,9 @@ decisions:
   - id: d-a9jaqn8m
     title: the harness compares presence and identity, never content
     statement: |
-      the harness compares only pack presence and activation identity against the server; a pack's
-      file content is never read back. A pack whose built output changed is re-deployed in full.
+      the harness compares pack presence, activation identity, and the file names a pack's pool
+      directory holds. No file's content is ever read back. A pack whose built output changed is
+      re-deployed in full.
     status: proposed
     facets: dev-loop
     because:
@@ -178,14 +179,16 @@ decisions:
     title: a reload is used only when the pack's file set is unchanged
     statement: |
       the harness applies a change with the console reload only when the pack is already in its
-      pool, already listed at the same identity, and the file set of its built output is unchanged
-      — only file contents differ. An added or removed file, an added or removed pack, a version
-      change, and any activation-list edit all restart the server.
+      pool, already listed at the same identity, and the file names its built output holds are the
+      same ones its pool directory already holds — only file contents differ. An added or removed
+      file, an added or removed pack, a version change, and any activation-list edit all restart
+      the server.
 
       The file set is what the cheap path is drawn around because a reload resolves imports only
       against the files present when the world last loaded, and a file first deployed after that
       fails with the same error a genuinely absent one gives — silently, from the harness's side.
-      The harness knows the file set locally, without reading the server back.
+      The comparison is against the pool the reconcile already reads, not against anything the
+      harness remembers, so it holds on the first change after a reattach as it does on any other.
     status: proposed
     facets: dev-loop
     because:
