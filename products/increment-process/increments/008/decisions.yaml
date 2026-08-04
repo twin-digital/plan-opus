@@ -3,12 +3,9 @@ decisions:
   - id: d-29fjsjn2
     title: one recording bar, applied at two moments
     statement: |
-      "below the recording bar" is the bar d-rx3s2hqo already sets — a consumer could
-      observe the outcome, or a reimplementation must preserve it — applied identically by
-      the planner classifying a choice during the survey and by the builder declining to
-      record one at wrap-up. the two judgements are the same question asked at different
-      times, and a builder recording what the survey classified below the bar is a visible
-      disagreement to review, not two private calls.
+      the recording bar — a consumer could observe the outcome, or a reimplementation must
+      preserve it — is one bar: the planner classifying a choice during the survey and the
+      builder declining to record one at wrap-up apply the same test.
     status: proposed
     because:
       - r-v4z0h7dn
@@ -22,10 +19,8 @@ decisions:
     statement: |
       a choice Plan cannot yet determine is deferred by a decision like any other: its
       statement names what is deferred and to whom, the owner rules it, and it stands in
-      force as the license the answering entry cites. an open question routed to a decision
-      may close by minting a deferral. deferrals are never superseded by their answers —
-      the deferral is the standing record that the choice was implementation-tier by
-      ruling.
+      force as the license its answer cites. a question routed to a decision may close by
+      minting a deferral. a deferral is not superseded by its answer.
     status: proposed
     because:
       - r-v4z0h7dn
@@ -37,10 +32,9 @@ decisions:
   - id: d-uz9wis6a
     title: deferrals are marked in the source
     statement: |
-      decision@2 adds one optional field, deferred_to, today always the implementer; a
-      decision carrying it is a deferral the projection can list and the partition can
-      count. the field is additive — every decision@1 entry is valid at @2 — and an
-      increment adopts it by naming version "2" on its decisions source.
+      decision@2 adds one optional field, deferred_to — today always implementer — marking
+      the decision as a deferral. the field is additive, and a decisions source adopts it
+      by naming version "2".
     status: proposed
     pinned:
       reason: data-format
@@ -54,13 +48,10 @@ decisions:
   - id: d-ub6h6h5u
     title: license by because, overturn by supersedes
     statement: |
-      a companion increment entry is one of three things, read mechanically: licensed — its
-      because cites the deferral it answers; an overturn — it supersedes a plan-ruled
-      decision, legal for unpinned decisions but counted and read at the companion's ratify
-      as the re-litigation failure; or a discovery — neither, standing on information
-      nobody had at Plan. licensed entries and discoveries are the rubber stamp; overturns
-      are the short list the owner actually litigates, and the overturn count is the
-      empirical feedback for the over-planning dial.
+      a companion increment entry is one of three: licensed — its because cites the
+      deferral it answers; an overturn — it supersedes a plan-ruled decision, legal when
+      unpinned and counted at the companion's ratify; or a discovery — neither. licensed
+      entries and discoveries pass; overturns are litigated.
     status: proposed
     because:
       - d-63f18oml
@@ -74,15 +65,14 @@ decisions:
   - id: d-cau8oksc
     title: survey is a third implementer phase
     statement: |
-      each kind-specific implementer skill partitions its waves into three generic phases
-      the dispatcher can call: survey — read-only against a fold or draft fold, returning
-      the census of choices its package's build would meet, each classified decided,
-      deferred, or below the recording bar, plus the questions the fold cannot answer,
-      building nothing — then prepare and implement as before: prepare standing up whatever
-      sibling packages compile or check against, a package's public surface or its share of
-      a cross-package allocation, and implement running prepare first where it has not run
-      and then completing the package. a kind with nothing to stand up treats prepare as a
-      no-op; the dispatcher never needs to know any kind's waves.
+      each kind-specific implementer skill partitions its waves into three phases the
+      dispatcher can call: survey — read-only against a fold or draft fold, returning the
+      census of choices the package's build would meet, each classified decided, deferred,
+      or below the recording bar, plus the questions the fold cannot answer; prepare —
+      standing up what sibling packages compile or check against, a package's public
+      surface or its share of a cross-package allocation; and implement — running prepare
+      where it has not run, then completing the package. a kind with nothing to stand up
+      treats prepare as a no-op; the dispatcher never knows a kind's waves.
     status: proposed
     pinned:
       reason: public-api
@@ -100,14 +90,11 @@ decisions:
   - id: d-xxxo61q9
     title: the plan skill offers the survey and recommends
     statement: |
-      before ratify, the plan skill reports what the increment has captured — the
-      requirement and decision counts, the packages and surfaces its delta touches — asks
-      the owner whether to dispatch the survey, and recommends for or against from the
-      delta's shape: a delta proposing or changing packages, contracts, or consumer
-      surfaces recommends for; a norm-only delta recommends against. the owner's word runs
-      it, any number of times across the loop, and the census's gaps route back into
-      Clarify: undetermined choices decided, deferrable ones minted as deferrals,
-      sub-surface ones confirmed silent, unknowns raised as questions.
+      before ratify, the plan skill reports what the increment has captured, asks the
+      owner whether to dispatch the survey, and recommends from the delta's shape: for,
+      when packages, contracts, or consumer surfaces change; against, when norm-only. the
+      owner's word runs it, any number of times across the loop; the census's gaps route
+      back into Clarify.
     status: proposed
     because:
       - r-v4z0h7dn
