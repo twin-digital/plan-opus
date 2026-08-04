@@ -1,4 +1,28 @@
 version: "1"
+presets:
+  - name: nodejs
+    version: 1
+
+requirements:
+  - id: r-lqfu2ki9
+    title: a library's public surface is minimal
+    statement: |
+      a Node.js library exposes one entry point, and only what a consumer is meant to reach is
+      reachable through it: no subpath wildcard, no re-export of a whole module from the entry
+      point, and nothing under the package's source reachable from outside except by name
+      through that entry.
+    rationale: |
+      every export is surface a reimplementation must preserve and a consumer can come to
+      depend on. keeping the entry narrow is what leaves the structure beneath it free to
+      change.
+    verification:
+      - do: open the packed package.json's exports map
+      - verify: one entry point, and no subpath wildcard
+      - do: import the package by a path other than its entry point
+      - verify: it does not resolve
+      - do: read the entry point's exports
+      - verify: each is named, and none re-exports a whole module
+
 retires:
   - id: r-ds3q3en9
     reason: superseded by the nodejs preset, which states ESM, TypeScript, and Node LTS separately
