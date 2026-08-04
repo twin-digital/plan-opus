@@ -34,3 +34,57 @@
       where: the finding line
       quote: |
         ✖ [increment-sequence-dense] products/increment-process: increment numbers are not dense: missing 12 (d-6x6l6ws7, d-d6hwdg9d)
+
+- id: skill-supporting-files-load-on-demand
+  claim: a file bundled in a skill's directory and linked from SKILL.md is not loaded into
+    context when the skill runs; Claude reads it only when it needs it
+  backing: documented
+  sources:
+    - url: https://code.claude.com/docs/en/skills.md#add-supporting-files
+      where: the section's opening paragraph
+      quote: |
+        Skills can include multiple files in their directory. This keeps `SKILL.md` focused on the essentials while letting Claude access detailed reference material only when needed. Large reference docs, API specifications, or example collections don't need to load into context every time the skill runs.
+
+- id: subagent-skill-body-arrives-linked-files-do-not
+  claim: a subagent that invokes a skill receives SKILL.md's rendered body in context and none
+    of the content of files that body links; a linked file's content arrives only when the
+    agent reads it
+  backing: tested
+  sources:
+    - run: bundled-file-probe
+      where: RUN 2, the reported answers
+      quote: |
+        SKILL_LOADED: yes
+        Q1: ALPHA NOT IN CONTEXT
+        Q2: BETA NOT IN CONTEXT
+        Q3: yes
+        Q4: ALPHA-7Q4X2M9K
+
+- id: skill-body-persists-for-the-session
+  claim: an invoked skill's rendered SKILL.md content enters the conversation as one message and
+    stays for the rest of the session, and is not re-read on later turns
+  backing: documented
+  sources:
+    - url: https://code.claude.com/docs/en/skills.md#skill-content-lifecycle
+      where: the section's opening paragraph
+      quote: |
+        When you or Claude invoke a skill, the rendered `SKILL.md` content enters the conversation as a single message and stays there for the rest of the session. This persistence applies to the skill's instructions, not its permissions: an [`allowed-tools`](#pre-approve-tools-for-a-skill) grant clears when you send your next message. Claude Code does not re-read the skill file on later turns, so write guidance that should apply throughout a task as standing instructions rather than one-time steps.
+
+- id: slug-named-draft-is-invisible-to-the-gate
+  claim: while an increment directory is slug-named, its sources are not schema-validated, its
+    proposed decisions and open questions are not reported, and its foundations do not project;
+    only the increment-dir-name finding fires, and the rest appear when the landing rename makes
+    the directory a number
+  backing: tested
+  sources:
+    - run: draft-visibility-probe
+      where: the two sections, on identical content
+      quote: |
+        === A. slug-named (as a draft is worked) ===
+        design check failed: 3 finding(s)
+        draft entries found: 0
+        === B. same content, renamed into the next number ===
+        ✖ [no-proposed-decision] products/increment-process/increments/013/decisions.yaml: d-63z31u0l is still proposed (r-0axqvtcc)
+        ✖ [no-open-questions] products/increment-process/increments/013/questions.yaml: 2 open question(s) still carried: q-6fsj8zo0, q-pd7w1o2w (r-ygg7q7rh, d-uzygmhfc)
+        design check failed: 10 finding(s)
+        draft entries found: 8

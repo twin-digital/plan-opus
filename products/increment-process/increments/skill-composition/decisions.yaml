@@ -1,0 +1,64 @@
+version: "2"
+decisions:
+  - id: d-63z31u0l
+    title: one implementer skill, its kind-specific waves bundled beside it
+    statement: |
+      the code-kind and document-kind implementer skills become one package,
+      .claude/skills/implement-package. its SKILL.md carries what every implementer does
+      whatever its kind — the three phases and their contract, survey, the
+      implementation-detail test, findings and escalation, the transient working list, the
+      narrow scoping of a decision — and nothing kind-specific. each kind's wave shape is a
+      file beside it under waves/, linked from SKILL.md and read only by an implementer
+      dispatched for that kind.
+
+      a linked file's content does not enter context when the skill runs, so an implementer
+      carries its own kind's waves and not another's while the shared rules are written once.
+      adding a kind is a file under waves/ and its own wave-shape decision, which is what
+      d-qb67fb8s already contemplates — that decision fixes where a shape is ruled, not which
+      file holds it.
+
+      the dispatcher names one skill for every code and tree-consumed kind and passes the
+      kind; the kind no longer selects between skills.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: product.yaml and the orchestrator skill both name this path
+    because:
+      - r-w2m32yl6
+      - r-15psk4yp
+      - d-qb67fb8s
+      - f:skill-supporting-files-load-on-demand
+      - f:subagent-skill-body-arrives-linked-files-do-not
+    facets: prompts
+
+  - id: d-7a6o1qw9
+    title: the code kind's waves are a bundled file
+    statement: |
+      the code wave shape — Define, Stub, Code, Document — lives at
+      .claude/skills/implement-package/waves/code.md and governs the npm-library, npm-cli, and
+      minecraft-addon kinds. prepare is Define and Stub, implement is Code and Document, and
+      prepare may return as soon as the API stubs stand, with test authoring finishing inside
+      implement so dependents unblock at the earliest honest moment.
+
+      only an implementer dispatched for one of these kinds reads it.
+    status: proposed
+    supersedes: d-x2xw2tp2
+    because:
+      - d-63z31u0l
+      - r-w2m32yl6
+    facets: prompts
+
+  - id: d-mq2th41t
+    title: the document kind's waves are a bundled file
+    statement: |
+      the document wave shape — Claims, Compose, Check — lives at
+      .claude/skills/implement-package/waves/document.md and governs the document and
+      agent-skill kinds. prepare is Claims, implement is Compose and Check.
+
+      only an implementer dispatched for one of these kinds reads it.
+    status: proposed
+    supersedes: d-ydcyoa80
+    because:
+      - d-63z31u0l
+      - r-w2m32yl6
+    facets: prompts

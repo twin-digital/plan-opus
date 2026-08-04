@@ -1,0 +1,36 @@
+version: "1"
+questions:
+  - id: q-6fsj8zo0
+    question: |
+      May a shipped agent skill require the agent to read a second skill, and does an agent
+      dispatched with one skill reliably read and follow instructions the skill points it at?
+
+      This decides how much reuse the skills can have. `.claude/skills/implement` §4 and
+      `.claude/skills/plan` §6 now state the same landing procedure word for word, because a
+      companion increment lands exactly as a plan draft does. Stating it once — one skill
+      pointing at the other, or both pointing at a shared file — removes a duplication that
+      increment 011 has already had to update in two places identically.
+
+      During the 011 build an implementer asserted "an orchestrator following this skill reads
+      no other". No foundation carries that, so it is either an unrecorded constraint or a
+      mistaken assumption, and which one it is changes the answer.
+
+      Two parts, both needed: what the harness supports (a skill referencing a sibling file in
+      its own directory, versus a skill referencing a different skill), and whether the
+      reference is reliably followed rather than skipped.
+    answer: fact
+    facets: prompts
+
+  - id: q-pd7w1o2w
+    question: |
+      Is there a foundation, or should there be one, requiring that an agent's instructions
+      carry only what applies to the work it was dispatched for?
+
+      Nothing in the fold states it, but it drove the decomposition: `implement-code` and
+      `implement-document` are separate packages, and the visible reason is that a code
+      implementer should not read the document waves. If that is a real constraint it is a
+      requirement and should be stated; if it is only a preference, the packages can merge on
+      the ordinary decomposition arguments and the wave content can be organised however
+      reads best.
+    answer: requirement
+    facets: prompts

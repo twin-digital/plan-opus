@@ -1,0 +1,40 @@
+version: "1"
+requirements:
+  - id: r-w2m32yl6
+    title: an agent reads only what its dispatch needs
+    statement: |
+      the instruction an agent receives carries what applies to the work it was dispatched
+      for and not what applies to a different role, kind, or phase; guidance that does not
+      bear on this dispatch is neither in the file it reads nor loaded alongside it.
+    verification:
+      - do: dispatch an implementer for a code package
+      - verify: nothing it reads describes the document kind's waves
+      - do: dispatch an implementer for a document package
+      - verify: nothing it reads describes the code kind's waves
+    facets: prompts
+
+  - id: r-15psk4yp
+    title: a rule governing more than one role is stated once
+    statement: |
+      where a rule governs more than one agent role, kind, or phase, it is written in one
+      place and reached from each — not restated per audience. two copies that must be
+      updated together are the failure this forbids.
+    verification:
+      - do: change a rule that governs every implementer, whatever its kind
+      - verify: the change lands in exactly one place
+    facets: prompts
+
+  - id: r-4z3yd1ri
+    title: a draft is checked as it is worked
+    statement: |
+      the gate reads a draft while it is being worked: its sources validate against their
+      schemas, its proposed decisions and open questions are reported, and its foundations
+      project — so an author sees what is wrong before landing, not after.
+    verification:
+      - do: put a schema violation into an in-flight draft's requirements source
+      - verify: the gate reports it while the draft is still in flight
+      - do: ask for the product's projection while the draft is in flight
+      - verify: the draft's own requirements and decisions appear in it
+    facets:
+      - tooling
+      - design-validator
