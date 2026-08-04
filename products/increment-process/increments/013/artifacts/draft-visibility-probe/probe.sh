@@ -1,7 +1,7 @@
 #!/bin/sh
 # Does a slug-named draft's content reach the gate and the projection?
 #
-# Run from the repository root with this draft present at increments/draft-visibility/.
+# Run from the repository root with this draft present at increments/013/.
 # The probe runs check and show with the directory slug-named, renames it to the number
 # `where --next` reports, runs both again, and renames it back. The two sections differ only
 # by the directory's name — the content is identical.
@@ -12,7 +12,7 @@
 set -e
 DP="npx design-process"
 I=products/increment-process/increments
-REQ="$I/draft-visibility/requirements.yaml"
+REQ="$I/013/requirements.yaml"
 # kept outside products/ so the backup does not itself draw a finding
 BACKUP=$(mktemp)
 
@@ -32,10 +32,10 @@ report
 
 echo
 N=$($DP where increment-process --next)
-mv "$I/draft-visibility" "$I/$N"
+mv "$I/013" "$I/$N"
 echo "=== B. identical content, renamed to $N ==="
 report
-mv "$I/$N" "$I/draft-visibility"
+mv "$I/$N" "$I/013"
 
 mv "$BACKUP" "$REQ"
 echo
