@@ -1,0 +1,39 @@
+version: "1"
+
+# Consumer-observable choices the shipped package makes that increment 001 does not record,
+# found while reconstructing coverage for the first implementation record.
+decisions:
+  - id: d-io1gczjj
+    title: a byte-order mark does not make a manifest unreadable
+    statement: |
+      a source `manifest.json` saved with a leading UTF-8 byte-order mark parses like one saved
+      without it; the mark is stripped before parsing rather than reported as
+      `manifest-unreadable`. Both package managers' own readers strip it, so a manifest a Windows
+      editor saved is well-formed everywhere the workspace tooling reads it
+    status: delegated
+    because:
+      - d-vn8mwr1d
+    facets: discovery
+
+  - id: d-6wjeomr5
+    title: completion overwrites a specified field it reports
+    statement: |
+      where a specified `header.name`, `header.version`, or workspace-dependency `version` is
+      reported as its specified-field error, the completed manifest still carries the
+      package-derived value: the error and the completion both happen, and the specified source
+      value never reaches the consumer through the reported manifest
+    status: delegated
+    because:
+      - r-11l92k9x
+    facets: discovery
+
+  - id: d-0thqo4n0
+    title: the entry uuid is the lowercased spelling
+    statement: |
+      an entry's `uuid` field carries the header uuid lowercased, while the reported manifest's
+      `header.uuid` keeps the spelling the source declared — so the identity a consumer joins on
+      is already in comparison form, and the source spelling stays reachable
+    status: delegated
+    because:
+      - r-fmkhgklz
+    facets: discovery
