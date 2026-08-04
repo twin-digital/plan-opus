@@ -58,10 +58,11 @@ it.
 
 The stranded cycle on `design/minecraft-dev-server` (tip c43cefe) proposed sixteen, harvested into
 mc-dev-server's increment 002 draft (PR #168) and never ruled. They are re-entered here against
-this product's own requirements. Five are new, one is reversed, one is dropped, and the rest carry
-with their citations repointed.
+this product's own requirements: five new, one reversed, one rewritten on new evidence, one
+dropped, and the rest carrying with their citations repointed. Thirteen more close the survey's
+gaps and are listed under *Survey* below.
 
-### New
+### New in the harvest
 
 - **d-zyo6kku9 — the harness is its own package beside the library.** Where the package lands;
   `product.yaml` is descriptive, so the implementer declares it when its files exist.
@@ -111,12 +112,17 @@ with their citations repointed.
 
 ### Pinning
 
-Proposed pinned: d-zyo6kku9 and d-0yrfifhi (`public-api` — the published name, the verbs, the
-executable, the reset flag), d-wtziwjh5 (`public-api` — the one server-side knob), d-c1kvyord and
-d-5e00ndwi (`data-format` — a checked-in config file and the per-line output prefix), d-zo2yl18y
-(`data-format` — the volume the author's world lives in). The harvested set pinned two.
+The harvested set pinned two. Ten are proposed pinned here.
 
-## Open questions (4 carried)
+`public-api` — d-zyo6kku9 (the published package name), d-0yrfifhi (the verbs, the executable, the
+reset flag), d-wtziwjh5 (the one server-side knob), d-e956frnx (the key the author accepts the EULA
+with), d-joa4eefg (a new export on the published library), d-62bpn2h2 (exit codes and the flag set).
+
+`data-format` — d-c1kvyord and d-wkcxcv2b (a checked-in file, its semantics and its shape),
+d-5e00ndwi (the per-line output prefix), d-zo2yl18y (the volume the author's world lives in),
+d-jv1zleaj (paths and file contents on the server).
+
+## Open questions (5 carried)
 
 Three of the stranded cycle's five asked what the kit's API does. Inside this product those are the
 kit's own requirements: the built-output location is `r-8h864ke8` and `r-un786n7v`, and how a build
@@ -128,9 +134,10 @@ scripts. What remains:
 | q-rtjmsq1r | q-gsr57mk0 | does an activation-list edit land without a restart |
 | q-h2uaejbd | q-12jwzs0h | does any console command bring a newly pooled pack live |
 | — | q-qk2r4e5q | does `cp`/`exec` read container-to-host against a remote daemon |
-| — | q-h34y88go | the resource-pack activation list's name, location, and entry shape |
+| — | q-h34y88go | the resource-pack pool path, activation list, and entry shape |
+| — | q-npz0np7l | whether a SemVer-string pool version matches an array activation entry |
 
-The last two are gaps the survey of this draft fold found unrecorded. q-qk2r4e5q gates d-q8ikxtdk,
+The last three are gaps the surveys of this draft fold found unrecorded. q-qk2r4e5q gates d-q8ikxtdk,
 whose every reconcile reads state off the container while the evidence in hand covers only the
 host-to-container direction. q-h34y88go gates d-4iepnry2 and d-cw6pder5, which deploy resource
 packs against a fact scoped to `world_behavior_packs.json`.
