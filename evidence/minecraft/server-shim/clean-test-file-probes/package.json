@@ -1,0 +1,17 @@
+{
+  "name": "clean-test-file-probes",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "probe": "node run.mjs"
+  },
+  "dependencies": {
+    "@probe/shim-als": "file:./shim-als",
+    "@probe/shim-let": "file:./shim-let",
+    "@probe/shim-proxy": "file:./shim-proxy"
+  },
+  "devDependencies": {
+    "@minecraft/server": "^2.8.0",
+    "vitest": "^4.1.10"
+  }
+}

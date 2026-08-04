@@ -1,0 +1,46 @@
+=== async-context: AsyncLocalStorage-backed store (async-context.config.ts) ===
+exit code: 0
+
+
+ RUN  v4.1.10 <probe>
+
+stdout | async-context.test.ts > a context established in beforeEach > reaches the test body
+[hook] resolved-in-test-body=none
+
+stdout | async-context.test.ts > a context established in beforeEach > reaches the test body after an await
+[hook] resolved-after-await=none
+
+stdout | async-context.test.ts > concurrent tests, each wrapped in storage.run > case C
+[concurrent] expected=B resolved=B
+
+stdout | async-context.test.ts > concurrent tests, each wrapped in storage.run
+[concurrent] expected=C resolved=C
+
+stdout | async-context.test.ts > concurrent tests, each wrapped in storage.run
+[concurrent] expected=A resolved=A
+
+stdout | async-context.test.ts > a deferred callback > resolves the context it was registered under, while its own scheduler is running
+[deferred] same-context run: world-resolved-as=owner tick=1 (registered under 'owner')
+
+stdout | async-context.test.ts > a deferred callback > resolves the running test’s context, not the one it was registered under
+[deferred] cross-context run: world-resolved-as=other tick=0 (owner's scheduler, advanced under 'other')
+[deferred] callback threw? no — it read a world and carried on
+
+stdout | async-context.test.ts > a deferred callback > and the world it wrote to is not the world its own server holds
+[deferred] observations=["world-resolved-as=owner tick=1","world-resolved-as=other tick=0"]
+
+ ✓ async-context.test.ts > a context established in beforeEach > reaches the test body 2ms
+ ✓ async-context.test.ts > a context established in beforeEach > reaches the test body after an await 2ms
+ ✓ async-context.test.ts > concurrent tests, each wrapped in storage.run > case B 6ms
+ ✓ async-context.test.ts > concurrent tests, each wrapped in storage.run > case C 11ms
+ ✓ async-context.test.ts > concurrent tests, each wrapped in storage.run > case A 20ms
+ ✓ async-context.test.ts > a deferred callback > resolves the context it was registered under, while its own scheduler is running 1ms
+ ✓ async-context.test.ts > a deferred callback > resolves the running test’s context, not the one it was registered under 1ms
+ ✓ async-context.test.ts > a deferred callback > and the world it wrote to is not the world its own server holds 0ms
+
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+   Start at  03:50:46
+   Duration  597ms (transform 374ms, setup 0ms, import 468ms, tests 27ms, environment 0ms)
+
+

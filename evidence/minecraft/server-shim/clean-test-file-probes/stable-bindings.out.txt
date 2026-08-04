@@ -1,0 +1,82 @@
+=== stable-bindings: stable Proxy bindings over a globalThis store (stable-bindings.config.ts) ===
+exit code: 0
+
+
+ RUN  v4.1.10 <probe>
+
+stdout | stable-bindings.test.ts > (a) a static import of world after vi.resetModules()
+[proxy] before-reset static-world.tag=A
+
+stdout | stable-bindings.test.ts > (a) a static import of world after vi.resetModules()
+[proxy] control-module-is-fresh=true
+[proxy] after-reset static-world.tag=B (installed B through the fresh control module)
+
+stdout | stable-bindings.test.ts > (b) the unset sentinel
+[proxy] unset property-read=ShimNotInstalledError
+[proxy] unset method-call=ShimNotInstalledError
+[proxy] unset call-shaped=ShimNotInstalledError
+[proxy] unset construct-shaped=ShimNotInstalledError
+[proxy] unset in-operator=ShimNotInstalledError
+[proxy] unset spread=ShimNotInstalledError
+[proxy] unset typeof=function nullish=false truthy=true
+
+stdout | stable-bindings.test.ts > (c) identity, once a server is installed
+[proxy] server.world===world -> false
+[proxy] server.system===system -> false
+[proxy] installed typeof-world=function
+[proxy] installed Object.keys(world)=["tag","getDimension"]
+[proxy] installed JSON.stringify(world)=undefined
+[proxy] installed world.getDimension('overworld')=C:overworld
+[proxy] installed 'getDimension' in world -> true
+
+ ✓ stable-bindings.test.ts > (a) a static import of world after vi.resetModules() 2ms
+ ✓ stable-bindings.test.ts > (b) the unset sentinel 1ms
+ ✓ stable-bindings.test.ts > (c) identity, once a server is installed 0ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  03:50:40
+   Duration  141ms (transform 25ms, setup 0ms, import 36ms, tests 4ms, environment 0ms)
+
+
+=== stable-bindings: the `export let` bindings the spec ships (let-bindings.config.ts) ===
+exit code: 0
+
+
+ RUN  v4.1.10 <probe>
+
+stdout | stable-bindings.test.ts > (a) a static import of world after vi.resetModules()
+[let] before-reset static-world.tag=A
+
+stdout | stable-bindings.test.ts > (a) a static import of world after vi.resetModules()
+[let] control-module-is-fresh=true
+[let] after-reset static-world.tag=A (installed B through the fresh control module)
+
+stdout | stable-bindings.test.ts > (b) the unset sentinel
+[let] unset property-read=ShimNotInstalledError
+[let] unset method-call=ShimNotInstalledError
+[let] unset call-shaped=ShimNotInstalledError
+[let] unset construct-shaped=ShimNotInstalledError
+[let] unset in-operator=ShimNotInstalledError
+[let] unset spread=ShimNotInstalledError
+[let] unset typeof=function nullish=false truthy=true
+
+stdout | stable-bindings.test.ts > (c) identity, once a server is installed
+[let] server.world===world -> true
+[let] server.system===system -> true
+[let] installed typeof-world=object
+[let] installed Object.keys(world)=["tag","getDimension"]
+[let] installed JSON.stringify(world)={"tag":"C"}
+[let] installed world.getDimension('overworld')=C:overworld
+[let] installed 'getDimension' in world -> true
+
+ ✓ stable-bindings.test.ts > (a) a static import of world after vi.resetModules() 2ms
+ ✓ stable-bindings.test.ts > (b) the unset sentinel 1ms
+ ✓ stable-bindings.test.ts > (c) identity, once a server is installed 0ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  03:50:40
+   Duration  141ms (transform 23ms, setup 0ms, import 33ms, tests 4ms, environment 0ms)
+
+

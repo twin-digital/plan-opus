@@ -1,0 +1,34 @@
+=== beneath: the other layer: the bindings never move, the state under them is replaced (beneath.config.ts) ===
+exit code: 0
+
+
+ RUN  v4.1.10 <probe>
+
+stdout | beneath.test.ts
+[setup] server A installed at module scope; the bindings never move
+
+stdout | beneath.test.ts > test 1
+[test 1: before] subscribers=5 scheduled=3 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+[test 1: after] subscribers=5 scheduled=2 objectives=11 entities=1 tick=40 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+
+stdout | beneath.test.ts > test 2
+[test 2: before] subscribers=5 scheduled=2 objectives=0 entities=0 tick=0 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+[test 2: after] subscribers=5 scheduled=2 objectives=11 entities=1 tick=40 signals=world.afterEvents.entityHurt|world.afterEvents.itemCompleteUse|world.afterEvents.itemUse|world.afterEvents.playerBreakBlock|world.afterEvents.playerSpawn
+
+ ✓ beneath.test.ts > test 1 5ms
+ ✓ beneath.test.ts > test 2 1ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  04:54:47
+   Duration  697ms (transform 471ms, setup 475ms, import 115ms, tests 7ms, environment 0ms)
+
+stderr | beneath.test.ts > test 1
+[MarronTown] init-player: Player.level is declared by @minecraft/server but is not modelled by this library.
+[MarronTown] award-points: Player.level is declared by @minecraft/server but is not modelled by this library.
+
+stderr | beneath.test.ts > test 2
+[MarronTown] init-player: Player.level is declared by @minecraft/server but is not modelled by this library.
+[MarronTown] award-points: Player.level is declared by @minecraft/server but is not modelled by this library.
+
+
