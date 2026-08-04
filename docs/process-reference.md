@@ -283,10 +283,11 @@ slot, and the later of two overlapping drafts recomputes when the head moves.
 The check is its own command:
 
 ```
-design-process conflicts <product> [--against <version>]
+design-process conflicts <product> [--against <increment> | --against-ref <gitref>]
 ```
 
-It exits 1 on findings, and it applies two mechanical rules only: an id the head already
+`--against` names the head to check against and defaults to `origin/main`, then `main`. It
+exits 1 on findings, and it applies two mechanical rules only: an id the head already
 declares, and an `amends`/`supersedes`/`retires` aimed at an entry already closed at head. No
 gate reads in-flight drafts against each other; semantic overlap between open drafts is the
 owner's scan, and that is what covers the window.
@@ -541,17 +542,22 @@ immutable, so the view is derivable on demand and identical forever: nothing is 
 nothing is separately published, the increment number is the version, and the declared delta is
 the changelog.
 
-**A fold version is an increment number or a git ref.** Wherever the tooling takes one, a
-three-digit argument names an increment number and anything else names a git ref; a ref
-resolves to the product's latest published increment at that ref. The resolver answers where a
-product stands, and the diff reports what changed between two folds — the foundations added,
-amended, superseded, and retired:
+**A fold version is an increment number or a git ref, and the parameter says which.** Wherever
+the tooling takes a fold version it takes two parameters rather than one: the bare parameter
+names an increment, its `-ref` counterpart names a git ref — `--at` and `--at-ref`, `--from`
+and `--from-ref`, `--to` and `--to-ref`, `--against` and `--against-ref`. Giving both members
+of a pair is an error. An increment argument is the number with or without padding, `9` and
+`009` alike; a ref resolves to the product's latest published increment at that ref. The
+resolver answers where a product stands, and the diff reports what changed between two folds —
+the foundations added, amended, superseded, and retired:
 
 ```
-design-process where <product> [--at <version>] [--next]
-design-process diff <product> --from <version> [--to <version>] [--json]
+design-process where <product> [--at <increment> | --at-ref <gitref>] [--next]
+design-process diff <product> (--from <increment> | --from-ref <gitref>)
+                              [--to <increment> | --to-ref <gitref>] [--json]
 ```
 
+`--at` and `--to` default to the working tree; `diff` requires one of `--from` or `--from-ref`.
 `where` prints the increment number zero-padded to three digits and nothing else, so it drops
 straight into a path.
 
