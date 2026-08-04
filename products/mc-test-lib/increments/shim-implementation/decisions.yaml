@@ -187,7 +187,7 @@ decisions:
     statement: |
       the exported version string is `SERVER_VERSION`, on the root barrel rather than on the
       aliased surface, whose export set stays exactly the declared one
-    status: proposed
+    status: delegated
     pinned:
       reason: public-api
     because:
@@ -204,7 +204,7 @@ decisions:
       so `@minecraft/server-ui` is not caught by the `@minecraft/server` entry, as a plain string
       key would prefix-match — plus one setupFiles entry, both absolute resolved paths inside the
       package
-    status: proposed
+    status: delegated
     pinned:
       reason: public-api
     because:
@@ -220,7 +220,7 @@ decisions:
     statement: |
       `LoadPackOptions` is `{ server?: FakeServer }` — the case a server that must differ before
       the pack evaluates. Everything else about the load loadPack fixes itself
-    status: proposed
+    status: delegated
     pinned:
       reason: public-api
     because:
@@ -235,7 +235,7 @@ decisions:
       the package declares `vitest` as an optional peer dependency and carries no runtime
       dependency. Nothing outside the `/vitest` entry's own source imports a test framework, so a
       consumer who installs no runner tooling resolves the package without a warning
-    status: proposed
+    status: accepted
     pinned:
       reason: other
       notes: consumer-visible install behaviour
