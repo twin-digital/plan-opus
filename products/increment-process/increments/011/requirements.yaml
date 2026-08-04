@@ -1,0 +1,43 @@
+version: "1"
+requirements:
+  - id: r-c0zi3pv0
+    title: increments plan in parallel, unordered until landing
+    statement: |
+      several increments of a product can run Clarify at once, none committed to a sequence
+      number while drafting; the landing order is chosen when planning is done, and a draft
+      claims its number only as it lands.
+    verification:
+      - do: open two increments of one product and run Clarify on both without picking a landing order
+      - verify: both drafts progress with neither holding a sequence number
+      - do: land one, then the other
+      - verify: each claims the next number at its landing, in the order the owner chose
+    facets:
+      - process-doc
+      - tooling
+
+  - id: r-ca9witxh
+    title: parallel drafts declare their dependencies
+    statement: |
+      an in-flight draft may depend on another by declaring it; landing respects the
+      declared order — a draft lands only after the drafts it names — and independent
+      drafts land in any order.
+    verification:
+      - do: declare one draft dependent on another, then attempt to land the dependent one first
+      - verify: the landing is refused until the named draft has landed
+    facets:
+      - process-doc
+      - tooling
+
+  - id: r-0701ctqx
+    title: parallel drafts stay disjoint, and landing checks it
+    statement: |
+      two in-flight drafts may not rule the same choice or plan the same feature, and
+      landing into the sequence includes a sanity check for duplication or overlap —
+      against the fold and the remaining drafts — before the slot is claimed.
+    verification:
+      - do: land a draft while another is in flight
+      - verify: the landing surfaces any duplicated or overlapping rulings the parallel work introduced, and a clean check claims the slot
+    facets:
+      - process-doc
+      - tooling
+      - prompts
