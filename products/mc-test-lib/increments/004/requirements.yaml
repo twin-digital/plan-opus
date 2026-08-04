@@ -150,3 +150,19 @@ requirements:
       - do: run the one-entry install against an unmodified pack that imports `@minecraft/server-ui`
       - verify: the pack's modules load, the consumer having written no stub and no second config entry
     facets: shim
+
+  # ruled by the owner 2026-08-04, resolving the peer-range contradiction with d-vjeple9k
+  - id: r-6oj56on1
+    title: target server version
+    statement: |
+      the library targets the stable `@minecraft/server` 2.x line, pinned at 2.8.0; every
+      derivation and behaviour reading is taken from the pinned version. The pin is stated
+      inertly — no `@minecraft/server` peer range is declared, and nothing at install,
+      configuration, or run time checks a consumer's engine pin against it.
+    verification:
+      - do: open the published package.json
+      - verify: no `@minecraft/server` peer range is declared
+      - do: sample the library's derivations and behaviour readings
+      - verify: each is taken from the pinned 2.8.0 version
+    amends: r-d141nytz
+    facets: fakes
