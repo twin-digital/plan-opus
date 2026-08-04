@@ -137,7 +137,7 @@ decisions:
       findings print in `check`'s shape — `✖ [<rule>] <path>: <message> (<claims>)` — and the
       command exits 1 when any exist, so landing can gate on it. the check ships as a
       separate command and not as a validator rule, keeping d-yu9hbn3h intact.
-    status: proposed
+    status: accepted
     pinned:
       reason: public-api
       notes: the plan skill's landing step runs it and reads its exit code
@@ -158,7 +158,7 @@ decisions:
       identifiable as such. the file is the item's stored form verbatim, frontmatter included,
       so the tags travel with it. the adopting agent then writes foundations at the ordinary
       bar and the draft freezes with the increment at publish.
-    status: proposed
+    status: accepted
     pinned:
       reason: data-format
       notes: a path written to disk that the plan skill and the process reference both name
@@ -239,4 +239,51 @@ decisions:
       - d-af2v9seu
       - r-05tkrv7r
       - d-f7knzaf9
+    facets: prompts
+
+  - id: d-cueyrbon
+    title: the package exports one entry point
+    statement: |
+      @twin-digital/design-process exports a single "." entry point whose named re-exports
+      are the types and functions a consumer is meant to reach; the subpath wildcard that
+      made every module under src/ importable is gone, and structure below the entry point
+      is implementation the package may reorganise freely. the change is breaking and ships
+      as a minor bump, which is what a 0.x version permits.
+    status: accepted
+    pinned:
+      reason: public-api
+      notes: the export map is what a consumer resolves against
+    because:
+      - d-fiul12e8
+      - d-imz61dd5
+      - d-cfe28w5z
+    facets: tooling
+
+  - id: d-euwmthl9
+    title: a prepare-wave working list is transient
+    statement: |
+      the list a prepare wave builds to drive its own composition — the document kind's claim
+      list, the code kind's test plan — is an input to the work, not a deliverable: it is kept
+      outside the tree and discarded when the phase ends. only a survey census persists, and
+      only where d-blant5zn places it.
+    status: delegated
+    because:
+      - d-o81xclq7
+      - d-rvvijts2
+      - d-blant5zn
+      - d-nt7tach6
+    facets: prompts
+
+  - id: d-i8qe4bmp
+    title: an implementer's decisions are scoped to the work in front of it
+    statement: |
+      a choice the fold left open that an implementer must settle is settled for the case in
+      front of it and recorded at that scope; the implementer does not generalise the ruling
+      past what its package needed.
+    status: delegated
+    because:
+      - d-98df3rlb
+      - d-n23bxend
+      - d-i1reuf3u
+      - r-v4z0h7dn
     facets: prompts
