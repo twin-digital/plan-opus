@@ -128,13 +128,14 @@ Landing claims the number and publishes by merging. On the draft's branch, in or
   claims the slot.
 
   ```
-  npx design-process conflicts <product> [--against <version>]
+  npx design-process conflicts <product> [--against-ref <gitref>]
   ```
 
-  It defaults to `origin/main`, then `main`, and **exits non-zero when it finds anything —
-  treat that as a stop.** Overlapping or duplicated rulings surface here; the later of two
-  overlapping drafts recomputes when the head moves, and `npx design-process diff <product>
-  --from <version> [--to <version>]` shows what moved. No gate reads in-flight drafts against
+  With no flag it defaults to `origin/main`, then `main` — the ordinary case, so reach for the
+  bare command. It **exits non-zero when it finds anything — treat that as a stop.**
+  Overlapping or duplicated rulings surface here; the later of two overlapping drafts
+  recomputes when the head moves, and `npx design-process diff <product> --from-ref <gitref>
+  [--to-ref <gitref>]` shows what moved. No gate reads in-flight drafts against
   each other — the owner's scan of open drafts covers that window. Building on another draft's
   foundations is a dependency, not a conflict.
 
@@ -150,8 +151,9 @@ Landing claims the number and publishes by merging. On the draft's branch, in or
 Every surveyed choice is classified — decided, deferred, or omitted as an implementation
 detail — before the draft publishes.
 
-Wherever a command takes a version, a three-digit argument names an increment number and
-anything else names a git ref.
+Wherever a command takes a fold version it takes a pair of parameters: the bare one names an
+increment — `9` and `009` alike — and its `-ref` counterpart names a git ref. Giving both is an
+error.
 
 ## Bounds
 
