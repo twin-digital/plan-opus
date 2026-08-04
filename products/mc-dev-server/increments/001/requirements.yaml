@@ -1,0 +1,129 @@
+version: "1"
+
+requirements:
+  # the daily loop
+  - id: r-hay27p5n
+    title: one-command dev loop
+    statement: |
+      a single command takes an author from a clean checkout to a running server with every pack
+      deployed and watched — it builds the packs, starts the server, deploys the current build, and
+      begins watching for changes — with the server's output and the build/deploy activity shown in
+      one interleaved stream.
+    verification:
+      - do: from a clean checkout, run the single dev command and nothing else
+      - verify: the packs build, the server starts, the current build is deployed, and watching begins
+      - verify: the server's output and the build/deploy activity appear in one interleaved stream
+
+  - id: r-tdif5vwf
+    title: server lifecycle outlives the foreground
+    statement: |
+      closing the foreground loop (Ctrl+C) leaves the server running so the author can reattach
+      without losing world state or disconnecting a client, and a separate explicit command stops
+      the server and tears it down. Detaching the watchers and stopping the server are distinct
+      acts.
+    rationale: |
+      The world is the expensive, long-lived thing; the watchers are disposable.
+    verification:
+      - do: start the loop with a client connected, then close the foreground with Ctrl+C
+      - verify: the server is still running, the world state intact, the client still connected
+      - do: reattach with the loop command, then run the explicit stop command
+      - verify: reattaching found the running server, and only the stop command tore it down
+
+  # what a run hosts
+  - id: r-ca9w2614
+    title: packs discovered from the workspace
+    statement: |
+      the set of packs available to the loop is discovered from the workspace — every package that
+      declares itself a behavior pack is included — with no hand-maintained list of what exists.
+      Adding, removing, or renaming a pack requires no edit to the harness.
+    verification:
+      - do: add a new behavior-pack package to the workspace, editing nothing outside that package, and start the loop
+      - verify: the new pack is built, deployed, and watched, with no list edited anywhere
+
+  - id: r-739ulzr0
+    title: hosted packs are a selection
+    statement: |
+      which of the discovered packs a run hosts is an argument to that run, defaulting to all of
+      them. A selection may be persisted as a named profile, and a profile is a saved argument: it
+      narrows what a run hosts and never determines what the workspace contains.
+    verification:
+      - do: run the loop with a selection naming a subset of the discovered packs, then again with no selection
+      - verify: the first run hosts exactly the selected packs; the second hosts every discovered pack
+      - do: persist the selection as a named profile and run with the profile
+      - verify: the run hosts the profile's selection, and what the workspace contains is unchanged
+
+  # deploy
+  - id: r-mty3gfy6
+    title: deploy reconciles to built packs
+    statement: |
+      after any deploy the server's pack state equals the built output of the selected packs: every
+      selected pack present and up to date, packs no longer selected removed from the server, and
+      the world's activation list matching the deployed packs. The operation is idempotent —
+      re-running with no change is a no-op — and is the same operation at startup and on file
+      change.
+    verification:
+      - do: deploy a selection, then re-run the deploy with nothing changed
+      - verify: the second run changes nothing on the server
+      - do: narrow the selection and deploy again
+      - verify: the server's pack state equals the built output of the now-selected packs — deselected packs removed, the world's activation list matching what is deployed
+
+  - id: r-gdsm5ykt
+    title: edit to live without disconnect
+    statement: |
+      a saved change to a pack's source is reflected in the running server within a few seconds and
+      without disconnecting a connected client, whenever the change is one the server can apply
+      without a restart.
+    verification:
+      - do: with the loop running and a client connected, save a source change the server can apply without a restart, such as a script edit
+      - verify: the change is observable in-game within a few seconds
+      - verify: the client stayed connected throughout
+
+  - id: r-o1lozc1k
+    title: behavior packs required, other content optional
+    statement: |
+      the harness must deploy and activate behavior packs. Support for other kinds of addon content
+      — resource packs among them — is optional, at the builder's or designer's discretion.
+    verification:
+      - do: run the dev loop over a workspace holding a behavior pack
+      - verify: the pack is deployed to the server and activated in the world
+
+  # the pack/harness boundary
+  - id: r-582htwvl
+    title: deployment is not a pack concern
+    statement: |
+      an individual pack package is responsible only for producing a valid built pack and for
+      watching its own sources; how a built pack reaches the dev server, or a release, is the
+      harness's and the pipeline's concern, not the pack's. A pack carries no deploy or publish
+      scripts.
+    rationale: |
+      Keeps packs interchangeable and the deploy transport free to change in one place.
+    verification:
+      - do: run the dev loop over a workspace pack, then open that pack package's manifest and scripts
+      - verify: the pack reached the server, and the package defines no deploy or publish script
+
+  - id: r-zbrdnvnu
+    title: built-output assembly is the package's concern
+    statement: |
+      the harness deploys a package's built output, not its source, and makes no assumption about
+      how that output was assembled.
+    verification:
+      - do: place a valid built pack at a package's built-output location by hand, without running that package's build tooling, and deploy
+      - verify: what reaches the server is the content of the built-output location, not the package's source
+
+  # scope and environment
+  - id: r-kts1e4fb
+    title: single-world scope
+    statement: |
+      the harness serves one world at a time. Running two dev worlds concurrently is out of scope.
+    verification:
+      - do: start the dev loop and inspect what it stands up
+      - verify: the run serves exactly one world
+
+  - id: r-7fnwuaqz
+    title: remote Docker supported
+    statement: |
+      any component of the solution which requires a Docker service must function even when the Docker
+      engine is running on a remote host (e.g., bind mounts must not be required)
+    verification:
+      - do: point the environment at a Docker engine on a remote host, with no shared filesystem, and run the full loop — build, start, deploy, edit, stop
+      - verify: every step succeeds, with no bind mount configured anywhere
