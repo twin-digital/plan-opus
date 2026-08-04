@@ -121,3 +121,14 @@ together. Propose pinning when the decision fixes a public API surface, fixes a 
 written to disk or sent over a wire, is something another product depends on, or changes
 behaviour a consumer would notice. When in doubt, propose it pinned: an over-pinned decision
 costs one ratification; an under-pinned one is overturned silently by a later wave.
+
+## Pull request titles
+
+Conventional-commit style, the product as scope, the increment number in brackets at the end:
+`plan(increment-process): the backlog and the facts surface [009]`.
+
+- `plan(<product>)` — a design increment.
+- `impl(<product>)` — an implementation's companion increment.
+- `feat(<product>)`, `fix(<product>)`, etc. — changes shipping this repository's packages.
+
+Omit the bracketed number only when no increment is involved.
