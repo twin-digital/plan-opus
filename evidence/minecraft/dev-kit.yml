@@ -4,8 +4,8 @@
 # happened, the fact that cites it says what that means.
 
 - id: pack-detection-probe
-  command: node design/minecraft/dev-kit/artifacts/pack-detection/detect-probe.mjs
-  output: design/minecraft/dev-kit/artifacts/pack-detection/OUTPUT.txt
+  command: node evidence/minecraft/dev-kit/pack-detection/detect-probe.mjs
+  output: evidence/minecraft/dev-kit/pack-detection/OUTPUT.txt
   ran_at: 2026-07-25
   environment: |
     Scored against twin-digital/opus at archive/minecraft-prototype (4e731f5b), a 41-package pnpm
@@ -16,8 +16,8 @@
     committed.
 
 - id: registry-probe
-  command: node design/minecraft/dev-kit/artifacts/registry-probe/probe.mjs
-  output: design/minecraft/dev-kit/artifacts/registry-probe/OUTPUT.txt
+  command: node evidence/minecraft/dev-kit/registry-probe/probe.mjs
+  output: evidence/minecraft/dev-kit/registry-probe/OUTPUT.txt
   ran_at: 2026-07-26
   environment: |
     The public npm registry as it stood on the run date; the observation is of registry state and
@@ -25,8 +25,8 @@
     @npmcli/map-workspaces 6.0.0 and @pnpm/workspace.find-packages 1000.0.65.
 
 - id: workspace-enumeration-probe
-  command: node design/minecraft/dev-kit/artifacts/workspace-enumeration-probe/probe.mjs
-  output: design/minecraft/dev-kit/artifacts/workspace-enumeration-probe/OUTPUT.txt
+  command: node evidence/minecraft/dev-kit/workspace-enumeration-probe/probe.mjs
+  output: evidence/minecraft/dev-kit/workspace-enumeration-probe/OUTPUT.txt
   ran_at: 2026-07-26
   environment: |
     Two committed fixture workspaces beside the script, one npm and one pnpm, neither ever
@@ -35,8 +35,8 @@
     11.17.0 were on PATH, which its own environment section prints.
 
 - id: workspace-member-fault-probe
-  command: node design/minecraft/dev-kit/artifacts/workspace-member-fault-probe/probe.mjs
-  output: design/minecraft/dev-kit/artifacts/workspace-member-fault-probe/OUTPUT.txt
+  command: node evidence/minecraft/dev-kit/workspace-member-fault-probe/probe.mjs
+  output: evidence/minecraft/dev-kit/workspace-member-fault-probe/OUTPUT.txt
   ran_at: 2026-07-26
   environment: |
     Four committed fixture workspaces beside the script, one per (library, fault) pair, each
@@ -46,8 +46,8 @@
     @npmcli/map-workspaces 6.0.0 and @pnpm/workspace.find-packages 1000.0.65 the same week.
 
 - id: workspace-root-candidate-probe
-  command: node design/minecraft/dev-kit/artifacts/workspace-root-candidate-probe/probe.mjs
-  output: design/minecraft/dev-kit/artifacts/workspace-root-candidate-probe/OUTPUT.txt
+  command: node evidence/minecraft/dev-kit/workspace-root-candidate-probe/probe.mjs
+  output: evidence/minecraft/dev-kit/workspace-root-candidate-probe/OUTPUT.txt
   ran_at: 2026-07-27
   environment: |
     Four committed fixture workspaces beside the script: an npm root with no workspaces array, one
@@ -57,8 +57,8 @@
     1000.0.65.
 
 - id: pnpm-default-patterns-probe
-  command: node design/minecraft/dev-kit/artifacts/pnpm-default-patterns-probe/probe.mjs
-  output: design/minecraft/dev-kit/artifacts/pnpm-default-patterns-probe/OUTPUT.txt
+  command: node evidence/minecraft/dev-kit/pnpm-default-patterns-probe/probe.mjs
+  output: evidence/minecraft/dev-kit/pnpm-default-patterns-probe/OUTPUT.txt
   ran_at: 2026-07-27
   environment: |
     Two committed fixture workspaces beside the script: a pnpm root whose pnpm-workspace.yaml
@@ -68,8 +68,8 @@
     carries the deeper tooling/nested/beta sweep.
 
 - id: pnpm-node-modules-probe
-  command: node design/minecraft/dev-kit/artifacts/pnpm-node-modules-probe/probe.mjs
-  output: design/minecraft/dev-kit/artifacts/pnpm-node-modules-probe/OUTPUT.txt
+  command: node evidence/minecraft/dev-kit/pnpm-node-modules-probe/probe.mjs
+  output: evidence/minecraft/dev-kit/pnpm-node-modules-probe/OUTPUT.txt
   ran_at: 2026-07-27
   environment: |
     Three committed fixture workspaces beside the script: a pnpm root with no packages field, a

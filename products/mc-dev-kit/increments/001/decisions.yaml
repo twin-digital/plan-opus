@@ -1,0 +1,322 @@
+version: "1"
+
+decisions:
+  - id: d-s43hmdgr
+    title: pack locations are workspace-relative
+    statement: a pack's source and build-output locations are reported as workspace-relative paths
+    status: accepted
+    revisit_when:
+      - a consumer is found holding a pack entry without the workspace root it came from, so the paths cannot be rejoined
+    facets: discovery
+
+  - id: d-y4kgdkqk
+    title: entries ordered by package path
+    statement: |
+      entries are ordered by candidate-package path, behavior pack before resource pack within a
+      package
+    status: delegated
+    revisit_when:
+      - a consumer needs a different stable order often enough that it re-sorts on every call
+    facets: discovery
+
+  - id: d-xnv5kh7k
+    title: pnpm marker wins, npm is the fallback
+    statement: |
+      a root `pnpm-workspace.yaml` selects pnpm; otherwise the root is an npm workspace
+    status: accepted
+    revisit_when:
+      - a third manager's workspace layout has to be supported and its marker file collides with this order
+      - a root holding a `pnpm-workspace.yaml` is found that must be read as an npm workspace
+    facets: discovery
+
+  - id: d-39486z2s
+    title: a package with no source manifest yields no entry
+    statement: |
+      a candidate package holding neither source pack directory produces no entry at all, not an
+      empty or invalid one
+    status: accepted
+    revisit_when:
+      - a consumer needs to distinguish a package that was examined from one that was never a candidate
+    facets: discovery
+
+  - id: d-vn8mwr1d
+    title: unreadable and unparseable manifests are one problem
+    statement: |
+      any failure to read or to parse a source `manifest.json` is reported as the single
+      `manifest-unreadable` problem carrying the underlying message
+    status: accepted
+    revisit_when:
+      - a consumer has to branch on whether the file was absent, unreadable, or malformed
+    facets: discovery
+
+  - id: d-n2e2njf4
+    title: empty header name reads as unspecified
+    statement: |
+      a `header.name` of `""` in a source manifest is treated as unspecified and completed; any other
+      present value is the specified-field error
+    status: accepted
+    revisit_when:
+      - a pack legitimately ships an empty header name that must survive to the server
+    facets: discovery
+
+  - id: d-r3gbrxre
+    title: only format version 3 restricts version form
+    statement: |
+      only a `format_version` of 3 restricts a source version to string form; a missing or
+      unrecognised `format_version` imposes no restriction
+    status: delegated
+    revisit_when:
+      - a later manifest format version restricts version form and the kit reports its packs as unrestricted
+    facets: discovery
+
+  - id: d-n2kiacta
+    title: productName must be a non-empty string
+    statement: |
+      completion reads `productName` when it is a non-empty string and falls back to the
+      scope-stripped package name otherwise; a `productName` that is absent or unusable raises no
+      problem
+    status: accepted
+    revisit_when:
+      - a package is found whose non-string `productName` carries the name a consumer expects to see
+    facets: discovery
+
+  - id: d-thhboim6
+    title: filtering is a parameter of the discovery call
+    statement: |
+      pack criteria are the `filter` field of `DiscoverOptions`, and `discoverPacks` returns the
+      matching entries directly rather than a pack-set object carrying a `search` method
+    status: accepted
+    revisit_when:
+      - a consumer filters one workspace more than once per read, so the repeated whole-workspace reads dominate its cost
+      - a consumer needs the whole set alongside a filtered subset of it and has to call twice to get both
+      - the pack set grows behaviour past the entry list — a uuid index, a lazily read detail — that has nowhere to live once the call returns a bare array
+    facets: discovery
+
+  - id: d-k7py0qqv
+    title: the pack set is read once per call
+    statement: |
+      each `discoverPacks` call reads the filesystem once and searches run over that in-memory set,
+      with no caching or watching between calls
+    status: accepted
+    revisit_when:
+      - a consumer's watch loop calls `discoverPacks` often enough that repeated whole-workspace reads dominate its cost
+    facets: discovery
+
+  - id: d-ydph1k7d
+    title: enumeration failure rejects the call
+    statement: |
+      a failure to enumerate the workspace — a missing or unparseable workspace definition, or an
+      enumeration library throwing on a member `package.json` — rejects `discoverPacks` with the
+      underlying error unwrapped, rather than being reported as an entry or a set-level problem
+    status: accepted
+    revisit_when:
+      - a consumer needs the packs from the members that did enumerate more than it needs the failure, so a workspace with one broken `package.json` must still return a set
+      - the library errors prove unstable enough across versions that consumers branch on their shape
+    facets: discovery
+
+  - id: d-6g8oo8je
+    title: output locations are computed, not probed
+    statement: |
+      `outputDir` is reported whether or not it exists, and the kit never reads the output tree
+    status: delegated
+    revisit_when:
+      - a consumer has to stat every reported `outputDir` before using it, making the unprobed path useless
+    facets: discovery
+
+  - id: d-ed610d8c
+    title: the problem code set is closed
+    statement: |
+      the `Problem` union is closed: every fault the kit reports carries one of the listed codes, and a
+      new fault class means a new code in a new version rather than a free-form problem
+    status: accepted
+    revisit_when:
+      - a fault arises that no listed code fits and that has to be reported before a release can add one
+      - codes are added often enough that consumers' exhaustive switches break on ordinary upgrades
+    facets: discovery
+
+  - id: d-61fegb3o
+    title: invalid entries omit only manifest-derived details
+    statement: |
+      on an invalid entry only `uuid`, `version`, and `manifest` may be absent; `kind`, `packageName`,
+      `packageDir`, `sourceDir`, and `outputDir` are present on every entry
+    status: accepted
+    revisit_when:
+      - a fault class arises that leaves a pack's kind or one of its locations unknown while still producing an entry
+    facets: discovery
+
+  - id: d-f72ia08n
+    title: entry version is the completed package version
+    statement: |
+      an entry's `version` field carries the completed `header.version`, rather than a version of its
+      own
+    status: delegated
+    revisit_when:
+      - a consumer needs the version the source manifest declared and can no longer reach it
+    facets: discovery
+
+  - id: d-fm9m41kc
+    title: relative paths are POSIX, with the root as a dot
+    statement: |
+      reported paths are normalised POSIX relative paths with no `./` prefix and no trailing slash, and
+      the root package's `packageDir` is the single dot `.`
+    status: accepted
+    revisit_when:
+      - a consumer joining these paths on Windows is broken by the POSIX spelling
+      - the `.` root spelling is found to concatenate or sort wrongly often enough in consumers to be a trap
+    facets: discovery
+
+  - id: d-me8ieqnr
+    title: a nameless package is named by its directory
+    statement: |
+      a package whose `package.json` declares no string `name` is reported under its directory's
+      basename, and its packs are invalid with `package-name-missing`
+    status: delegated
+    revisit_when:
+      - a workspace whose root package legitimately declares no name, whose packs consumers must receive as valid
+      - two nameless packages whose directory basenames collide, making the reported name ambiguous
+    facets: discovery
+
+  - id: d-o0ebrog9
+    title: manifest shape faults are one problem
+    statement: |
+      a manifest that parses as JSON but whose root, `header`, `modules`, or `dependencies` is not the
+      container shape the format documents is the single `manifest-shape-invalid` problem naming the
+      offending field, and the checks that read that part are skipped
+    status: delegated
+    revisit_when:
+      - a consumer has to branch on which part of the manifest was misshapen
+      - a manifest the server loads happily is rejected by the shape check
+    facets: discovery
+
+  - id: d-7ototrq5
+    title: field type faults reuse the shape code
+    statement: |
+      a source value whose type contradicts what `PackManifest` declares is reported as
+      `manifest-shape-invalid`, the code a misshapen container raises, rather than as a new code
+    status: delegated
+    because:
+      - d-o0ebrog9
+    revisit_when:
+      - a consumer has to branch on whether a container or a scalar was misshapen, so the single code forces it to parse `field`
+      - a form fault arises at a position the dotted `field` path cannot name
+    facets: discovery
+
+  - id: d-6w788t2t
+    title: a form fault suppresses the checks that read it
+    statement: |
+      a field whose form is faulted reports that fault alone: every check and completion reading that
+      field is skipped, as with a misshapen container
+    status: delegated
+    because:
+      - d-o0ebrog9
+    revisit_when:
+      - a real manifest is found where the suppressed check named the fault a user had to see and the form fault did not
+      - the suppression table grows past what a builder holds while implementing one check
+    facets: discovery
+
+  - id: d-x0mb3mjg
+    title: an ambiguous dependency entry is a problem
+    statement: |
+      a `dependencies` entry carrying both `uuid` and `module_name`, or neither, is
+      `dependency-entry-malformed` rather than resolved by preferring one field
+    status: delegated
+    revisit_when:
+      - the format is found to give an entry carrying both a defined meaning
+      - real manifests carry such entries often enough that consumers cannot use the kit until it picks a field
+    facets: discovery
+
+  - id: d-dba1hiu7
+    title: an unsatisfied dependency names both readings
+    statement: |
+      a `dependencies` entry whose `uuid` matches no pack and which carries no version is the single
+      `dependency-unsatisfied` problem, whose message names both readings, rather than two codes a
+      consumer picks between
+    status: delegated
+    revisit_when:
+      - a consumer has to branch on which of the two readings holds
+      - evidence appears that lets the kit tell a wrong uuid from a versionless external dependency
+    facets: discovery
+
+  - id: d-dbf88op0
+    title: invalidity propagates to a fixpoint
+    statement: |
+      the set-wide pass repeats until no entry changes status, so `dependency-invalid` is transitive; a
+      dependency cycle among otherwise sound packs stays valid
+    status: delegated
+    revisit_when:
+      - a transitively invalidated pack is usable in practice, so consumers ignore the propagated status
+      - a cycle among packs is found that must be reported as a problem in its own right
+    facets: discovery
+
+  # harvested from the retired spec: constraints a consumer observes that no prior entry recorded
+  - id: d-rl1msrus
+    title: workspace defaults to the current directory
+    statement: |
+      `DiscoverOptions.workspace` is optional: a bare `discoverPacks()` discovers the packs of the
+      workspace the process is running in, and a relative `workspace` resolves against that same
+      directory
+    status: delegated
+    facets: discovery
+
+  - id: d-a8lgrojc
+    title: the exported surface
+    statement: |
+      the library exports one async entry point — `discoverPacks(options?: DiscoverOptions):
+      Promise<readonly PackEntry[]>` — alongside the types the call speaks: `DiscoverOptions`,
+      `PackCriteria`, `Problem`, `PackKind` as `'behavior' | 'resource'`, `PackEntry` as the union
+      of `ValidPackEntry` and `InvalidPackEntry` over a shared base, and `PackManifest` with the
+      header, module, and dependency shapes it uses. Only a valid entry's `manifest` is typed
+      `PackManifest`; an invalid entry's is `unknown`, narrowed by the consumer before reading, and
+      each manifest interface carries an index signature so keys it does not model survive to the
+      consumer unchanged
+    status: delegated
+    because:
+      - r-ziw808ls
+      - r-co6glnme
+    facets: discovery
+
+  - id: d-wytigz6u
+    title: the problem codes
+    statement: |
+      the closed `Problem` union holds exactly these codes, each a `code`, a human-readable
+      `message`, and the extra fields named for it: `manifest-unreadable` (error),
+      `manifest-shape-invalid` (field), `array-version-at-format-version-3` (field),
+      `header-name-specified`, `header-version-specified`, `package-name-missing`,
+      `package-version-missing` (field, packageDir), `package-version-invalid` (field, packageDir,
+      value), `dependency-version-specified` (field, uuid), `dependency-entry-malformed` (field),
+      `external-dependency-version-missing` (field, moduleName), `dependency-unsatisfied` (field,
+      uuid), `manifest-missing-uuid`, `module-missing-type` (field), `kind-not-corroborated`,
+      `foreign-kind-module` (field, type), `duplicate-uuid` (uuid, claimants), and
+      `dependency-invalid` (field, uuid). `field` locates the problem in the source manifest as a
+      dotted path with bracketed array indices, the manifest root itself the empty string
+    status: delegated
+    because:
+      - d-ed610d8c
+    facets: discovery
+
+  - id: d-cdbyhv6x
+    title: which libraries enumerate
+    statement: |
+      under pnpm — a root holding `pnpm-workspace.yaml` — the kit reads the definition with
+      `@pnpm/workspace.read-manifest` and forwards its `packages` field unread to
+      `@pnpm/workspace.find-packages`; under npm it parses the root `package.json` and hands it to
+      `@npmcli/map-workspaces`, adding the root package as a candidate of its own. The candidate
+      set is what the library returned plus, under npm, the root, deduplicated by
+      workspace-relative path so a directory reached twice yields one candidate
+    status: delegated
+    because:
+      - r-r9t69mz7
+      - r-ijeqntrd
+      - d-xnv5kh7k
+      - f:manager-enumeration-libraries-need-no-install
+    facets: discovery
+
+  - id: d-mqdghcuf
+    title: criteria on absent values never match
+    statement: |
+      a filter criterion whose value an entry does not carry never matches: an entry with no
+      manifest matches no `name`, and one with no header uuid matches no `uuid`
+    status: delegated
+    because:
+      - r-7v7o1jy8
+    facets: discovery
