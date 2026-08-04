@@ -196,25 +196,6 @@
         [test 2 start] entities=0 currentTick=0 objectives=0
         [test 2 end] entities=1 currentTick=40 objectives=0
 
-- id: test-lib-ships-no-reset-hook
-  claim: |
-    `@twin-digital/minecraft-test-lib` exposes no reset of any kind: its requirements hold that all
-    fake state belongs to a world instance a test creates, and the verification of that rule
-    expects state isolation between instances with no reset hook called — a test wanting a clean
-    world makes another server. A shim shape that needs one server's state cleared in place is
-    asking the library for a capability it does not have.
-  backing: documented
-  sources:
-    - url: products/mc-test-lib/increments/001/requirements.yaml
-      where: r-892696vk — instance-scoped world
-      quote: |
-        all fake state belongs to a world instance a test creates; the library holds no
-        module-level mutable state.
-    - url: products/mc-test-lib/increments/001/requirements.yaml
-      where: r-892696vk — the verification's expectation
-      quote: |
-        nothing changed in the second, with no reset hook called
-
 - id: pack-isolation-comes-from-under-the-fakes-not-from-the-shim
   claim: |
     For a behavior pack that registers at module scope, per-test isolation cannot come from the
