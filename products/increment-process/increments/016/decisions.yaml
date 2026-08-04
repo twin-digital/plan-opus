@@ -1,0 +1,60 @@
+version: "2"
+decisions:
+  - id: d-wfi9lx00
+    title: the ordering invariant reads both directions
+    statement: |
+      the design an implementation targets is published before that implementation is released,
+      in either discovery order. design-first publishes intent, then builds against it;
+      code-first builds, then publishes the captured design, then releases. the invariant is the
+      one the process already holds — nothing goes live before its design is published — and
+      provisional code is how code-first honours it.
+
+      on the plan side this needs no new control: an implementation record cannot target an
+      unpublished increment, so un-captured code has no record and is not shipped. the code
+      repository keeping an unpublished package unreleased is discipline this process recommends
+      and does not itself reach in to enforce.
+    status: delegated
+    supersedes: d-rputf2bx
+    because:
+      - r-k8hqvl8r
+      - d-6x6l6ws7
+    facets:
+      - process-doc
+
+  - id: d-xf5fl5ce
+    title: capture reuses the increment artifacts unchanged
+    statement: |
+      a captured increment reuses the existing artifacts with nothing added — the same
+      requirements and decisions sources, the same version regime, the same implementation record
+      and coverage — and carries no marker recording that its design was read from code rather
+      than written ahead of it. the merge gate is indifferent to discovery order by design, and
+      that indifference is what lets the two kinds interleave.
+
+      provenance is not recorded because no rule needs it and a field would version the schemas
+      for nothing. should it later earn its keep, it is an additive field decided then.
+    status: delegated
+    because:
+      - r-imt7131t
+    facets:
+      - schema
+      - design-validator
+
+  - id: d-mh42i389
+    title: capture proposes the bound-or-free split for the owner to rule
+    statement: |
+      the capture path has an agent read what was built and propose, for each choice the code
+      embodies, whether it is a requirement, a decision, or an incidental implementation detail —
+      the test being whether an agent later extending the code would have to be bound by the
+      choice or be left free to change it. bound choices become the requirements and decisions the
+      owner rules; free ones are left uncaptured, the code merely happening to embody them.
+
+      the owner's ruling is the fast kind — affirm a requirement, or send a transcribed choice
+      back to incidental — and it is the guard against a code-first increment's characteristic
+      failure, freezing a thousand incidental choices as law and handcuffing the agents meant to
+      extend it. coverage is complete by construction: the captured claims are drawn from code
+      that already meets them, each carried by the owner's attestation and whatever tests exist.
+    status: delegated
+    because:
+      - r-imt7131t
+    facets:
+      - prompts
