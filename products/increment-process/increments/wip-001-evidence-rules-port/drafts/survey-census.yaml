@@ -1,0 +1,70 @@
+# Read-only survey census dispatched during Clarify, against the draft fold on this branch.
+# Two packages surveyed: the design-process CLI (where the port is built) and the
+# tree-consumed docs/skills (which describe the facts/evidence shape). Every choice is
+# classified decided / deferred / implementation-detail. The gaps this census surfaced were
+# acted on: two were closed in d-0e325noj; the rest are implementation scope for the port,
+# recorded here for the implementer.
+
+- package: nodejs/plan/design-process
+  census:
+    - choice: fact/run file shape and entry fields
+      reading: decided — d-yc56w54u + the four pool schemas. Entry-shape validation (required
+        fields, backing enum, ran_at pattern, retired⇒reason and superseded⇒superseded_by
+        conditionals, source oneOf of url/run/description) is the schema's job, not bespoke code.
+    - choice: how the loader discovers fact vs run vs probe-fixture yaml under evidence/
+      reading: decided — d-yc56w54u. The version: wrapper is the discriminator; evidence/ yaml
+        without it (probe fixtures/inputs) is skipped, no finding. Differs from the legacy
+        checker's "every array-shaped evidence yaml is runs".
+    - choice: version-dispatch of non-product-scoped fact/run files to facts@1/runs@1
+      reading: decided-in-principle (they must be schema-validated by the version regime),
+        implementation-detail in mechanism (extend structuredFiles() vs a parallel pool pass).
+    - choice: loadFacts rework for {version, facts:[...]}
+      reading: decided — read doc.facts[] and per-entry status:retired; the FactsPool
+        {ids,retired} contract and checkCitations f:<id> resolution stay unchanged.
+    - choice: placement + finding-rule strings of the bespoke checks
+      reading: implementation-detail — no consumer observes rule strings; findings cite
+        r-xxa1st52 / d-0e325noj per convention. The SET of rules is decided by d-0e325noj.
+    - choice: output-file existence/read for run quote verification
+      reading: implementation-detail with a constraint — must route through the FileTree
+        (repo-relative), not node fs, so validation of a base git ref works. Legacy fs calls
+        are a porting hazard.
+    - choice: in-repo vs off-repo url discrimination
+      reading: CLOSED in d-0e325noj — an in-repo path that resolves to no file is a finding; an
+        off-repo url (carries a scheme) is not read. Mechanism (scheme test vs FileTree.has) is
+        the implementer's; the legacy prefix allowlist is legacy-tree-specific and not to be
+        ported verbatim.
+    - choice: run superseded_by resolution symmetry with facts
+      reading: CLOSED in d-0e325noj — a superseded fact OR run names a superseded_by that
+        resolves within the pool and is not itself.
+    - choice: legacy "default stated explicitly" (status:active written literally) nicety
+      reading: out-of-scope — not in d-0e325noj's enumeration; the schema permits an explicit
+        status:active and no consumer observes its absence.
+
+- package: docs
+  census:
+    - location: docs/process-reference.md — "The foundation entities", Facts bullet (~L47-49)
+      reading: must-change (port) — "governed by the existing evidence rules" now means
+        design-process check validating facts/ and evidence/ against the pool schemas plus the
+        d-0e325noj bar. Reword to "validated by design-process check like every other source".
+    - location: docs/process-reference.md — "Every structured file names its own schema version" (~L459-468)
+      reading: must-change (port) — name facts/ and evidence/ files as version-carrying, and
+        add facts:/runs: to the "mapping not a bare list" top-level-key example.
+    - location: docs/authoring.md — "Facts and evidence" (~L78-87)
+      reading: unaffected — states the content-quality bar; the port may optionally note the
+        checker now enforces it.
+    - location: docs/process-migration.md — "Fact sources" sweep (~L170-171)
+      reading: unaffected — legacy design/ path re-pointing, orthogonal to the version wrapper.
+
+- package: skills
+  census:
+    - location: .claude/skills/plan/SKILL.md — Clarify "facts" bullet (~L60-62)
+      reading: unaffected — the evidence bar is preserved; no on-disk wrapper detail stated.
+    - location: .claude/skills/implement/SKILL.md — coverage evidence (~L119-130,177)
+      reading: unaffected — coverage-record evidence (implementations/ pool), a distinct concept.
+
+- package: CLAUDE.md
+  census:
+    - location: repo-root CLAUDE.md — "Agents may propose facts" (~L8-37)
+      reading: stale but not contradicted — its run:/quote source shape is consistent with
+        fact@1/run@1; only its citation regime references the retired legacy doc-structure spec.
+        Owned by the how-to-plan retirement, not this port. Flagged for the implementer.

@@ -15,7 +15,7 @@ decisions:
       carries none and is artifact material, not a run source. entry shape is the schema pool's
       to check, so the facts pool evolves its shape by the same versioning every other source
       uses.
-    status: proposed
+    status: accepted
     supersedes: d-o99k4ld8
     pinned:
       reason: data-format
@@ -34,13 +34,15 @@ decisions:
       beyond entry shape, design-process check enforces the rules that make the evidence hold —
       the checks a schema cannot express. a documented fact carries at least one url source, a
       tested fact at least one run source, an assumed fact at least one description. a quote at
-      an in-repo source is verified verbatim, whitespace normalised on both sides; an off-repo
-      url is not read. a run: source resolves to a live run entry — a retired one may not be
-      cited — belongs only on a tested fact, and the run's recorded output file exists and holds
-      the quote. a url into an artifacts/ path backs only a tested fact. a retired fact or run
-      carries a reason from its enumeration, and a superseded one names a superseded_by that
-      resolves and is not itself. entry ids are unique across the pool.
-    status: proposed
+      an in-repo source is verified verbatim, whitespace normalised on both sides; an in-repo
+      source path that resolves to no file is itself a finding, and an off-repo url — one
+      carrying a scheme — is not read. a run: source resolves to a live run entry — a retired
+      one may not be cited — belongs only on a tested fact, and the run's recorded output file
+      exists and holds the quote. a url into an artifacts/ path backs only a tested fact. a
+      retired fact or run carries a reason from its enumeration, and a superseded fact or run
+      names a superseded_by that resolves within the pool and is not itself. entry ids are
+      unique across the whole pool, facts and runs sharing one namespace.
+    status: accepted
     because:
       - r-xxa1st52
     facets:
