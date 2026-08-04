@@ -1,0 +1,15 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: /design-process/backlog@1
+title: backlog
+description: a product's items held for future increments; a current-state source edited outside any increment
+type: object
+additionalProperties: false
+required: [version]
+properties:
+  version:
+    const: "1"
+  items:
+    type: array
+    minItems: 1
+    items:
+      $ref: "/design-process/backlog-item@1"

@@ -1,0 +1,64 @@
+version: "1"
+requirements:
+  - id: r-kh7c2i4s
+    title: future items have a home outside any increment
+    statement: |
+      a requirement or decision meant for some future increment — planned at no particular
+      time — can be captured when it arises and held durably as a backlog, without opening
+      an increment; the owner can review what is held, and a later increment adopts an item
+      when its work is planned.
+    verification:
+      - do: with no increment in flight, write an item to a product's backlog.yaml that conforms to /design-process/backlog@1
+      - verify: the file validates against the bound schema and survives on main outside any increment
+      - do: open a later increment that adopts the item
+      - verify: the item's content enters that increment's sources
+    facets:
+      - schema
+      - process-doc
+
+  - id: r-z3ohn6zu
+    title: the tooling surfaces the facts pool
+    statement: |
+      an agent searching or citing facts works through the process tooling: it can list and
+      search the facts pool, and no part of the process — documents, skills, or checks —
+      depends on the legacy foundations script.
+    verification:
+      - do: search the facts pool with design-process facts
+      - verify: the matching facts return with their ids and sources
+      - do: run the reference search the increment recorded as foundations-script-reference-search
+      - verify: no shipped document, skill, or check names the script
+    facets:
+      - tooling
+      - process-doc
+
+  - id: r-klx5c1gp
+    title: an increment publishes clarified
+    statement: |
+      capture alone is not an increment: an increment publishes only after Clarify has done
+      its deciding, and a quick capture — an item for work not yet planned — is held in the
+      backlog rather than merged as an increment.
+    verification:
+      - do: review an increment's proposed set and question list at ratify
+      - verify: the owner judges the deciding done before merging, and routes unclarified capture to the backlog
+    facets: process-doc
+
+  - id: r-md6acpu4
+    title: consumer-visible choices are ruled in Plan
+    statement: |
+      a choice a consumer would notice — a surface, a format, a name, a behaviour — that the
+      evidence in Plan already determines is ruled during Plan: decided in the increment, or
+      deferred to the implementation by an explicit owner ruling.
+    verification:
+      - do: read a published companion increment beside the fold its implementation targeted
+      - verify: the owner can read each entry as a discovery, an answered deferral, or a plan gap to feed the next increment
+    facets:
+      - process-doc
+      - prompts
+
+model:
+  - name: backlog
+    schema: /design-process/backlog@1
+    description: what a product holds for later — the file quick capture writes, adoption drains, and the projection shows after the fold
+  - name: backlog-item
+    schema: /design-process/backlog-item@1
+    description: one held sketch and the foundation kind it becomes when adopted; citable by nothing while it waits

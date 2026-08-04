@@ -1,0 +1,23 @@
+# Runs backing facts about the design process's own surfaces in this repository.
+#
+# A run records one execution and the output it captured. It makes no claim: the output says what
+# happened, the fact that cites it says what that means.
+
+- id: foundations-script-reference-search
+  command: sh products/increment-process/increments/009/artifacts/foundations-script-references/search.sh
+  output: products/increment-process/increments/009/artifacts/foundations-script-references/OUTPUT.txt
+  ran_at: 2026-08-03
+  environment: |
+    git grep over the tracked tree at the increment-009 draft (main at ac68b0d plus the draft
+    increment), run by an agent. The observation is of the tree at that state and shifts as
+    files move; re-run the script for the current answer.
+
+- id: backlog-schema-probe
+  command: node products/increment-process/increments/009/artifacts/backlog-schema-validates/validate.mjs
+  output: products/increment-process/increments/009/artifacts/backlog-schema-validates/OUTPUT.txt
+  ran_at: 2026-08-03
+  environment: |
+    ajv 2020-12 from this repository's node_modules (installed with design-process 0.1.0), Node
+    v24.16.0, against the pool schemas as authored in the increment-009 draft and the one-item
+    fixture committed beside the probe. An earlier probe run rejected a fixture id of nine
+    characters, so the pattern check is live, not vacuous.

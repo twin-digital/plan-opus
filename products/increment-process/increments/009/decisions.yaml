@@ -1,0 +1,119 @@
+version: "1"
+decisions:
+  - id: d-7s2z6a7k
+    title: the backlog is a per-product current-state source
+    statement: |
+      a product's backlog lives at products/<product>/backlog.yaml, beside product.yaml and
+      edited the same way — directly, outside any increment, through ordinary pull-request
+      review. the file binds /design-process/backlog@1; the validator checks that it parses
+      against its schema and that its item ids are unique.
+    status: proposed
+    pinned:
+      reason: data-format
+    because:
+      - r-kh7c2i4s
+      - d-kn05wb30
+      - d-3wjypyx6
+      - f:backlog-schema-validates
+    facets:
+      - schema
+      - design-validator
+
+  - id: d-97yth3q1
+    title: a backlog item is a routed sketch
+    statement: |
+      a backlog item carries an id — b- and eight lowercase base36 characters, from the id
+      generator — the kind of foundation it will become (requirement or decision), a title,
+      and a statement sketch, with optional notes. an item is raw material outside the fold:
+      nothing may cite one, and no gate reads one.
+    status: proposed
+    pinned:
+      reason: data-format
+    because:
+      - r-kh7c2i4s
+      - d-e5ted839
+    facets: schema
+
+  - id: d-k60rlnc6
+    title: adoption moves the item into an increment
+    statement: |
+      a later increment adopts a backlog item by writing the foundation it sketches into its
+      own sources and deleting the item in the same change; the backlog keeps no record of
+      adopted items — the increment's sources are the record.
+    status: proposed
+    pinned:
+      reason: data-format
+    because:
+      - r-kh7c2i4s
+      - d-7s2z6a7k
+    facets:
+      - schema
+      - process-doc
+
+  - id: d-yringwvg
+    title: the projection lists a product's backlog
+    statement: |
+      the projection shows a product's backlog items after its fold, so the owner's one
+      review surface covers what is held for the future as well as what is in force.
+    status: proposed
+    because:
+      - r-kh7c2i4s
+      - r-2gcehlp8
+      - d-7s2z6a7k
+    facets: tooling
+
+  - id: d-skur42r4
+    title: the facts surface is design-process facts
+    statement: |
+      the tooling lists and searches the facts pool as the design-process facts subcommand,
+      reading the pool's existing format and returning each match's id, claim, backing, and
+      sources. exact flags and output layout are deferred to the implementer.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: agents and the shipped documents invoke the command by name
+    because:
+      - r-z3ohn6zu
+      - d-o99k4ld8
+      - d-uwnjk7rn
+      - f:foundations-script-callers
+    facets: tooling
+
+  - id: d-q42bu0s9
+    title: intentional deferral is a ruled decision
+    statement: |
+      a consumer-visible choice deferred to implementation is deferred on purpose: Clarify
+      raises it, and the increment records the deferral as a decision the owner rules on,
+      naming what is deferred and to whom. implementations stay free to accumulate decisions
+      as they build; an entry that answers no recorded deferral and reports no discovery is
+      read at the companion's ratify as a possible plan gap.
+    status: proposed
+    because:
+      - r-md6acpu4
+      - d-auo2680a
+      - d-n23bxend
+      - d-ig8vxolb
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-7c9abh89
+    title: the dial errs toward over-planning
+    statement: |
+      how much deciding Plan does, versus leaves for implementations to accumulate, is a
+      tuning the owner has not fixed. for now the process errs toward over-planning: Clarify
+      decides everything its evidence determines about the consumer-visible, and a companion
+      increment that accumulates decisions is read at its ratify as a possible plan failure
+      or gap. the tier discipline is untouched — structure below the package surface stays
+      the implementer's.
+    status: proposed
+    because:
+      - r-md6acpu4
+      - d-n23bxend
+      - d-ig8vxolb
+      - d-q42bu0s9
+    revisit_when:
+      - the owner observes over-planning manufacturing churn — plan-tier shapes implementers routinely contradict and re-make
+    facets:
+      - process-doc
+      - prompts
