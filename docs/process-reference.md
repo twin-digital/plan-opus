@@ -1,5 +1,5 @@
 ---
-version: "4"
+version: "9"
 ---
 
 # The incremental design process
@@ -38,7 +38,7 @@ has a job, an author, and a lifecycle:
   reimplementation must preserve; choices below that bar live in the code, and a
   reimplementation is free to re-make them. Proposed by whoever does the design work, then
   ruled by the owner. While still proposed and inside its own increment, a decision may be
-  removed outright; once ruled, it persists, closed only by a successor's `supersedes` or a
+  removed outright; once in force, it persists, closed only by a successor's `supersedes` or a
   retirement. `because:` records what a decision rests on; `pinned` marks the ones that cannot
   be freely overturned; `revisit_when` carries the rare, deliberate revisit condition.
 - **Model entries** bind the contracts the design speaks about — entity name to a pooled schema
@@ -75,7 +75,8 @@ Plan:
 Implement:
   prepare → implement, one implementer per package — prepare stands up what siblings
   compile or check against, implement completes the package; each kind maps its own
-  waves onto the two phases. Plan hands Implement the ratified fold.
+  waves onto those two phases. Implementers also expose survey, the read-only phase
+  Clarify dispatches. Plan hands Implement the ratified fold.
 ```
 
 ### Capture
@@ -105,6 +106,22 @@ The design phase produces **no prose specification** for an implementer to follo
 Implementation works strictly from the fold — requirements, decisions, and bound contracts —
 and later converts drafts into shipped documents, checking the drafts' claims against the fold
 as it goes.
+
+### Every choice is accounted for
+
+When an increment is planned, every choice an implementer would meet is decided by a
+foundation, explicitly deferred, or found to be an implementation detail — something no
+consumer could observe and no reimplementation must preserve. A choice that is none of the
+three is a gap: silence is the only gap. Decide what the evidence determines, defer what it
+does not, and leave the rest to the implementer.
+
+Whether a choice is an implementation detail is one test — no consumer could observe it, and
+no reimplementation must preserve it — applied identically at two moments: the Clarify agent
+omitting a surveyed choice, and the implementer declining to record one at wrap-up.
+
+The survey phase is how choices are enumerated (see *Dispatch: kind selects the wave shape*):
+Clarify may dispatch the implementers in survey mode against the draft fold and classify what
+returns — the implementer enumerates, Clarify rules.
 
 ### Open questions
 
@@ -147,7 +164,7 @@ questions.
 the owner responds, agents consume that feedback and raise more. The loop runs until the owner
 declares it settled enough to implement.
 
-The owner's ruling on each decision is one of four values:
+The owner's ruling on each decision put to them is one of four values:
 
 - **accepted** — the owner determined the decision is acceptable without caveats or reservation
 - **tolerated** — the owner judged the decision and left it standing, but found it sub-optimal
@@ -161,6 +178,10 @@ may stand indefinitely; if the owner does want it changed, that becomes a requir
 future increment — a deliberate choice, never an automatic consequence (see *Implement
 forward*). A rejection's reason is the one required reasoning, because it is the input to the
 rework; the replacement's `supersedes` is what closes the rejected entry.
+
+A deferral takes none of these values: it enters as `deferred` directly, ratified by the
+merge like a requirement — a recorded handing-off, not a ruling on a proposal (see
+*Deferrals*).
 
 **`tolerated` and `delegated` are opposite states, not degrees of the same one.** Tolerating is
 a judgement; delegating is an abstention. Keeping them apart is what lets anyone ask,
@@ -219,6 +240,20 @@ may be **pinned** — meaning it cannot be freely overturned.
 **Pinning, not status, is what escalation reads.** No status on its own obliges an
 implementer to stop.
 
+### Deferrals
+
+During a Plan phase, a choice that cannot yet be made is recorded as a decision like any
+other: its statement names what is deferred and to whom, the owner ratifies it, and it
+stands in force as the license its answer cites. A question routed to a decision may close
+by minting a deferral. A deferral is not superseded by its answer — the answer is an
+ordinary decision whose `because:` cites the deferral (see *The companion increment*).
+
+`deferred` joins the status values, and a deferral enters as `deferred` directly — the
+merge ratifies it, like a requirement. `decision@2` carries the widened enum, and a
+decisions source adopts it by naming `version: "2"`.
+
+Coverage skips a deferral (see *Proving a claim is met*).
+
 ### Lifecycle — declare changes, fold for state
 
 Requirements, decisions, model entries, and preset adoptions all work the same way: an
@@ -234,8 +269,8 @@ distinguishing it from an oversight. When one event retires several claims, the 
 keeping every retirement independently greppable and judgeable.
 
 Within the increment that created it, a decision still `proposed` may be removed outright with
-no record. Once ruled on, an entry persists and is closed only through these mechanisms, so the
-owner can follow what became of something they ruled on.
+no record. Once in force, an entry persists and is closed only through these mechanisms, so the
+owner can follow what became of it.
 
 **Recording is required; asking is not.** An unpinned decision may be overturned by an
 implementation wave without escalating. It must still be recorded — a decision silently out of
@@ -500,10 +535,18 @@ packages an implementation has realized.
 ### Dispatch: kind selects the wave shape
 
 An implementation dispatches one implementer per package, and the package's `kind` — already in
-the mapping — selects its wave shape. Every shape partitions its waves into the
-same two phases the dispatcher calls: **prepare** — standing up whatever sibling packages
-compile or check against — and **implement**, which runs prepare first where it has not run and
-then completes the package, so dispatch never depends on a kind's waves.
+the mapping — selects its wave shape. Every kind exposes the same three phases the dispatcher
+calls, so dispatch never depends on a kind's waves:
+
+- **survey** — read-only against a fold or draft fold: return the choices the package's build
+  would meet that the fold neither decides nor defers, with the implementer's reading of each,
+  for Clarify to classify (see *Every choice is accounted for*)
+- **prepare** — standing up what sibling packages compile or check against: a package's public
+  surface, or its share of a cross-package allocation. A kind with nothing to stand up treats
+  prepare as a no-op
+- **implement** — running prepare where it has not run, then completing the package
+
+Survey maps to no wave; a shape partitions its waves across prepare and implement.
 
 The shape for code kinds — `npm-library`, `npm-cli`, `minecraft-addon`:
 
@@ -541,6 +584,11 @@ implementation begins. Everything design-relevant the work produces lands there 
   answer
 - **contracts** — a new external-facing API surface or schema, as a pool version bound through
   the companion increment's model
+
+A companion increment entry is one of three: **licensed** — its `because:` cites the deferral
+it answers; an **overturn** — it supersedes a plan-ruled decision, legal when unpinned and
+counted at the companion's ratify; or a **discovery** — neither. Licensed entries and
+discoveries pass; overturns are litigated.
 
 **A proposed entry is an escalation**: it requires the owner's ratification, and the build
 pauses where — and only where — it is blocked on the answer, progressing everywhere else until
@@ -581,8 +629,8 @@ rare and losing it is cheap.
 ### Proving a claim is met
 
 **Every claim in force
-carries coverage**, and how much of the product rests on an agent's word alone is visible
-without reading the code. A claim is a requirement or a decision: both are assertions about the
+carries coverage** — deferred decisions the one exception — and how much of the product rests
+on an agent's word alone is visible without reading the code. A claim is a requirement or a decision: both are assertions about the
 product, and an assertion nothing checks can quietly become false. What a requirement's
 evidence must demonstrate is its verification procedure — or its statement read literally,
 where it carries none.
@@ -633,13 +681,14 @@ What makes evidence strong is **provenance and coupling** — who vetted the che
 the claim — not automation: a manual conformance case outranks an automated implementer's
 test.
 
-**A manifest names only claims in force at the increment its implementation targeted — and
-names all of them.** Once an implementation targets an increment, every requirement and
-decision in force there carries a coverage entry; the validator refuses a record with gaps.
-"Ratified and unbuilt" describes increments no implementation has targeted, never a hole
-inside a record. A claim still `proposed` never appears — coverage is evidence about something
-the owner has ruled on.
-Requirements adopted from a preset are coverage-tracked exactly like product-local ones.
+**A manifest names only claims in force at the increment its implementation targeted.** Once
+an implementation targets an increment, every requirement and decision in force there carries
+a coverage entry, adopted preset requirements included — except deferred decisions: no entry
+may cover one directly, and a deferral without an answer is not a gap. An answered deferral's
+answer is an ordinary decision and carries ordinary coverage. The validator refuses a record
+with gaps; "ratified and unbuilt" describes increments no implementation has targeted, never
+a hole inside a record. A claim still `proposed` never appears — coverage is evidence about
+something the owner has ruled on.
 
 The implementer records an `attestation` for every claim it implemented — always — alongside
 whatever better evidence exists.
