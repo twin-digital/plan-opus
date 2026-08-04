@@ -1,0 +1,75 @@
+version: "1"
+requirements:
+  - id: r-c0zi3pv0
+    title: increments plan in parallel, unordered until landing
+    statement: |
+      several increments of a product can run Clarify at once, none committed to a sequence
+      number while drafting; the landing order is chosen when planning is done, and a draft
+      claims its number only as it lands.
+    verification:
+      - do: open two increments of one product and run Clarify on both without picking a landing order
+      - verify: both drafts progress with neither holding a sequence number
+      - do: land one, then the other
+      - verify: each claims the next number at its landing, in the order the owner chose
+    facets:
+      - process-doc
+      - tooling
+
+  - id: r-05tkrv7r
+    title: opening an increment does not claim the head
+    statement: |
+      a new increment can open as a parallel draft at any time — opening never requires
+      targeting the product's next head number — and capture flows, the backlog's
+      send-to-capture among them, can target a newly opened draft as easily as one already
+      in flight.
+    facets:
+      - process-doc
+      - tooling
+
+  - id: r-ca9witxh
+    title: dependencies between drafts are implicit
+    statement: |
+      a draft depends on another when it builds on it — branching from it and citing,
+      amending, or retiring its foundations — with nothing declared; a dependent draft
+      lands only after the draft it builds on, and independent drafts land in any order.
+    verification:
+      - do: branch a draft from one still in flight, land the ancestor, then land the dependent
+      - verify: each claims its number in ancestry order, and the dependent's landing diff contains only its own changes
+    facets:
+      - process-doc
+      - tooling
+
+  - id: r-tne4cdos
+    title: the tooling answers where a product stands
+    statement: |
+      given a product and a git ref, the tooling names the product's latest published
+      increment at that ref.
+    verification:
+      - do: ask for a product's increment at an older ref, then at head
+      - verify: each answer names the increment published at that ref
+    facets: tooling
+
+  - id: r-v6mknsh7
+    title: the tooling diffs the fold
+    statement: |
+      given two versions of a product's fold, the tooling reports what changed between
+      them — the foundations added, amended, superseded, and retired.
+    verification:
+      - do: diff a product's fold across a landing
+      - verify: the delta names the foundations the landing introduced and the entries it superseded
+    facets: tooling
+
+  - id: r-0701ctqx
+    title: drafts do not conflict, and landing checks it
+    statement: |
+      no two in-flight drafts rule the same choice or duplicate one another's rulings —
+      building on another draft's foundations is a dependency, not a conflict — and
+      landing into the sequence checks for overlapping or conflicting rulings against the
+      fold at head before the merge claims the slot.
+    verification:
+      - do: land a draft while another is in flight
+      - verify: the landing surfaces any duplicated or conflicting rulings against the head, and the later overlapping draft recomputes when the head moves
+    facets:
+      - process-doc
+      - tooling
+      - prompts

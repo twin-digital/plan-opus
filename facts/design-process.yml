@@ -24,3 +24,13 @@
       quote: |
         design check passed
         exit: 0
+
+- id: check-enforces-dense-increments
+  claim: npm run check fails a product whose increment numbers skip a value, with the
+    increment-sequence-dense finding naming the missing number
+  backing: tested
+  sources:
+    - run: sequence-gap-probe
+      where: the finding line
+      quote: |
+        ✖ [increment-sequence-dense] products/increment-process: increment numbers are not dense: missing 12 (d-6x6l6ws7, d-d6hwdg9d)
