@@ -1,0 +1,61 @@
+version: "1"
+
+presets:
+  - name: minecraft-addon
+    version: 1
+
+requirements:
+  # coverage
+  - id: r-1nxm8bg4
+    title: the whole village is protected
+    statement: |
+      every villager, wandering trader, and iron golem in the world is protected — in every
+      dimension, those present when the pack starts and those that arrive afterwards alike — with no
+      opt-in, no exclusion, and no in-game configuration.
+    verification:
+      - do: install the pack on a world already holding a villager, a wandering trader, and an iron golem, then after it starts spawn one more of each, placing mobs in more than one dimension
+      - do: subject each mob to a harm the pack stops
+      - verify: every one survives — present-at-start and later-arriving alike, in every dimension tried
+      - verify: no opt-in step was performed, and the pack offers no exclusion or in-game configuration
+
+  # what protection is worth
+  - id: r-uyqd39on
+    title: protection survives ordinary play
+    statement: |
+      a protected mob does not die from anything ordinary gameplay produces: mobs, players, fire,
+      falling, drowning, suffocation, and explosions among them. Operator action and the void are
+      outside what the pack must prevent.
+    verification:
+      - do: subject a protected mob, in turn, to lethal doses of each ordinary source — hostile-mob attacks, player attacks, fire, a fall, drowning, suffocation, and an explosion
+      - verify: the mob survives every one
+
+  - id: r-9gw909jf
+    title: protected villagers are not converted
+    statement: |
+      a zombie never converts a protected villager — losing one to conversion counts as losing it.
+    verification:
+      - do: on a difficulty where vanilla conversion is certain, let a zombie attack a protected villager until vanilla play would have converted it
+      - verify: the villager remains a villager, and no zombie villager appears
+
+  # staying out of the way
+  - id: r-g8trct40
+    title: the pack changes nothing else
+    statement: |
+      apart from not dying and not being converted, a protected mob behaves exactly as it does in
+      vanilla: trading, restocking, breeding, gossip, panic, and golem spawning are unchanged. The
+      protection carries no visible tell — no effect particles, no name tag, no chat output.
+    verification:
+      - do: with the pack running, trade with a protected villager, let it restock, breed a pair, provoke panic, and let a village spawn a golem, alongside the same scenario in a world without the pack
+      - verify: each behaviour matches the vanilla world's
+      - verify: nothing on screen tells that a mob is protected — no effect particles, no name tag, no chat output
+
+  # the installable artifact
+  - id: r-cizmztsh
+    title: installable on any vanilla world
+    statement: |
+      the pack is distributed as a release anyone can install into their own Bedrock world, and
+      assumes nothing about that world beyond a vanilla server — no companion pack, and no world
+      state prepared in advance.
+    verification:
+      - do: take a release artifact and install it into a fresh vanilla Bedrock world, adding no companion pack and preparing no world state
+      - verify: the world loads with the pack active and protection in force
