@@ -1,0 +1,23 @@
+[34mℹ[39m entry: [34msrc/main.ts[39m
+[34mℹ[39m Build start
+[34mℹ[39m entry: [34msrc/main.ts[39m
+[34mℹ[39m Build start
+[34mℹ[39m [2mdist/plugin-moves-the-output-directory-from-the-outputOptions-hook/behavior_pack/scripts/[22m[1mmain.js[22m            [2m0.12 kB[22m [2m│ gzip: 0.13 kB[22m
+[34mℹ[39m [2mdist/plugin-moves-the-output-directory-from-the-outputOptions-hook/behavior_pack/scripts/[22mlazy-CAeZz49T.mjs  [2m0.08 kB[22m [2m│ gzip: 0.09 kB[22m
+[34mℹ[39m 2 files, total: 0.20 kB
+[32m✔[39m Build complete in [32m11ms[39m
+
+=== RESULTS ===
+tsdown 0.22.14 on node v24.16.0
+fixture: src/main.ts dynamically imports src/lazy.ts, so the build has a split chunk;
+every build runs with format ['esm'], dts false, clean false, and no outputOptions in the config
+
+--- plugin sets entryFileNames and chunkFileNames from the outputOptions hook
+    outputOptions ran; buildStart had run: false
+    build threw: Cannot read properties of null (reading 'entry')
+    outDir after build: (outDir does not exist)
+--- plugin moves the output directory from the outputOptions hook
+    outputOptions saw dir: dist/plugin-moves-the-output-directory-from-the-outputOptions-hook
+    buildStart ran
+    writeBundle bundle keys: lazy-CAeZz49T.mjs | main.js
+    outDir after build: behavior_pack/scripts/lazy-CAeZz49T.mjs | behavior_pack/scripts/main.js

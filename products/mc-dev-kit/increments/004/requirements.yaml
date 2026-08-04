@@ -1,0 +1,56 @@
+version: "1"
+
+requirements:
+  - id: r-hlnbi41r
+    title: the build half is an exported bundler config
+    statement: |
+      the build half of this design is exported for a consuming package's bundler configuration to
+      use — not a command the package runs. It embeds no bundler and ships no command line of its
+      own. The archive half is not bound by this: it may ship a command line.
+    verification:
+      - do: open the package's exports, dependencies, and declared commands
+      - verify: the build half is an export a consuming package's bundler configuration takes up, and no bundler is a dependency of the package
+      - verify: no declared command line serves the build half; any the package declares belongs to the archive half
+    facets: build
+    amends: r-if6t18ve
+
+  - id: r-phxrb6qn
+    title: a released pack is a single archive of its output tree
+    statement: |
+      an npm package is an addon pack: it releases as a single archive, cut from its built output tree
+      and from nothing else — no separate staging source, and no pack inside it released on its own.
+      This design produces that archive, and the package's release hook is what reaches it.
+    verification:
+      - do: build a pack package, then produce its release archive the way the package's release hook would
+      - verify: a single archive is produced, and its contents are the package's built output tree and nothing else
+      - verify: no pack inside it is released as an archive of its own
+    facets: build
+    amends: r-e5bfrqzx
+
+  - id: r-v8jjhds5
+    title: rebuild triggers are declared, not inferred
+    statement: |
+      a rebuild is triggered by a change to any input a build reads, the pack files and
+      `package.json` included — nothing imports those, so a module graph cannot find them. What a
+      rebuild must bring up to date is the output; whether it gets there by skipping work it does not
+      need is the design's to choose.
+    verification:
+      - do: start a watch build, then change a pack file nothing imports — a texture or a function file
+      - verify: a rebuild runs, without the changed file being reachable from any module graph
+      - do: change a manifest input alone — `package.json`, say
+      - verify: the output's manifests come up to date
+    facets: build
+    amends: r-wsv90bxm
+
+  - id: r-imfmv0qc
+    title: built manifests are the completed ones
+    statement: |
+      the manifest in a pack's output tree is the completed manifest, not the partial source
+      manifest — a build never copies a source `manifest.json` through unchanged.
+    rationale: |
+      A source manifest is required to omit `header.name` and `header.version`, so a pack whose built
+      manifest is the source one does not load.
+    verification:
+      - do: build a pack whose source manifest omits `header.name` and `header.version`, as a source manifest must
+      - verify: the manifest in the output tree carries those fields completed, and is not a byte copy of the source `manifest.json`
+    facets: build

@@ -1,0 +1,30 @@
+=== subpath: no plugin: the consumer’s own alias, with setupFiles naming the shim’s published subpath (subpath.config.ts) ===
+PROBE_EXPECT={"label":"unlabelled","dimensions":[]}
+exit code: 0
+
+
+ RUN  v4.1.10 <probe>
+
+stdout | plugin.test.ts
+[shim setup] via=env label=unlabelled dimensions=[] factory=@probe/fake-server
+
+stdout | plugin.test.ts > the alias came from the plugin — the pack’s import resolved to the shim
+[census] {"label":"unlabelled","subscriptions":["after.entityHurtx1","after.itemCompleteUsex1","after.itemUsex1","after.playerBreakBlockx1","after.playerSpawnx1"],"subscriptionCount":5,"intervals":2,"queuedRuns":1,"dimensions":[],"messages":0}
+
+stdout | plugin.test.ts > the plugin’s options reached the server the setup file installed
+[expected] {"label":"unlabelled","dimensions":[]} [installed] label=unlabelled
+
+stdout | plugin.test.ts > the pack’s module-scope loops run against the installed server
+[after 40 ticks] {"label":"unlabelled","subscriptions":["after.entityHurtx1","after.itemCompleteUsex1","after.itemUsex1","after.playerBreakBlockx1","after.playerSpawnx1"],"subscriptionCount":5,"intervals":2,"queuedRuns":0,"dimensions":[],"messages":1}
+
+ ✓ plugin.test.ts > the alias came from the plugin — the pack’s import resolved to the shim 1ms
+ ✓ plugin.test.ts > the setup file came from the plugin — the pack subscribed before this file evaluated 1ms
+ ✓ plugin.test.ts > the plugin’s options reached the server the setup file installed 1ms
+ ✓ plugin.test.ts > the pack’s module-scope loops run against the installed server 1ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  05:16:39
+   Duration  265ms (transform 128ms, setup 28ms, import 132ms, tests 4ms, environment 0ms)
+
+
