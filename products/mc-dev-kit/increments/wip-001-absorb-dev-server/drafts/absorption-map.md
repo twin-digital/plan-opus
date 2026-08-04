@@ -54,7 +54,7 @@ discovery is this product's own requirement rather than an upstream fact.
 A `dev-loop` facet joins `discovery` and `build` in `product.yaml`. All nine requirements carry
 it.
 
-## Decisions (20 proposed)
+## Decisions (33 proposed)
 
 The stranded cycle on `design/minecraft-dev-server` (tip c43cefe) proposed sixteen, harvested into
 mc-dev-server's increment 002 draft (PR #168) and never ruled. They are re-entered here against
@@ -155,7 +155,23 @@ mechanism, joining a workspace-relative entry path back to an absolute one, grou
 owning package before invoking a build, watcher mechanism and scale, and whether the container start
 overlaps the first one-shot builds.
 
-**Gaps** — neither decided nor deferred, routing back into Clarify:
+**Gaps** — every one worked back into the fold, as follows. Two took an existing decision wider
+rather than a new one, and one closed into an open question.
+
+| gap | closed by |
+|---|---|
+| the config file's schema | d-wkcxcv2b (new), and d-c1kvyord widened to settle `--pack` with `--profile`, an unmatched profile, and an empty one |
+| the server's on-disk layout | d-jv1zleaj, with d-duvygv2f for the fresh world's first deploy; the resource half moves to q-h34y88go |
+| the compose project's server environment | d-e956frnx (EULA, and the posture that is not configurable); the port becomes a config key in d-wkcxcv2b |
+| workspace-root resolution | d-joa4eefg — a new library export, serving d-ai68xorc as well as the harness |
+| discovery cadence | d-1u13wl57 |
+| failure policy | d-n81zkitr, with d-plnvasfo for content the harness did not deploy |
+| the loop's own concurrency | d-0qo3xvev, d-7ayy4btp, d-wgzr4lvx |
+| the rest of the CLI surface | d-62bpn2h2 |
+| platform, and the Docker connection | d-a3fyy34f |
+| sequencing and versioning | not a decision of this increment — see *Left for the Plan loop* |
+
+The gaps as the survey stated them:
 
 1. **The config file's schema.** d-c1kvyord pins `mc-dev-server.yaml`'s location and what it holds
    and not its shape — key names, profile form, unknown-key handling, malformed-file behaviour,
@@ -191,9 +207,39 @@ overlaps the first one-shot builds.
 10. **Platform support**, and whether the Docker connection is the ambient context — the same
     workspace against two daemons produces one project name and two servers.
 
+### Calls in the gap closures worth the owner's eye
+
+- **d-e956frnx makes the author accept the EULA**, in the config file, and fails the start command
+  without it. The harness could set the acceptance itself and never mention it; that would be
+  making a legal acknowledgement on the author's behalf, so it does not.
+- **d-joa4eefg adds a new export to the published library** — the first thing the dev loop asks of
+  the kit's surface. The alternative was the harness reimplementing d-xnv5kh7k's marker precedence,
+  which lets two packages disagree about which workspace they are in, silently. d-ai68xorc's build
+  half needs the same answer, so it is one export with two consumers rather than a favour to the
+  harness.
+- **d-n81zkitr refuses to start a partial run.** An invalid selected pack, a package with no
+  `build` script, or a failed one-shot build fails before anything comes up, on the reading that
+  r-pcq10f2b's "the server's pack state equals the built output of the selected packs" is broken by
+  a silently skipped pack. Once running, the loop never tears down.
+- **d-a3fyy34f puts Windows out of scope.** Nothing in the requirements names a platform; this is
+  the cheapest posture and the one to reverse first if it is wrong.
+- **d-62bpn2h2 sends every line to stdout**, diagnostics included, because d-5e00ndwi says one
+  stream and a stderr split would be two.
+
 ## Left for the Plan loop
 
 - **The `f:dev-kit-*` facts.** Eleven facts in `facts/minecraft/bedrock-server.yml` source
   mc-dev-kit's own requirements. No decision here cites them any longer, so they are retired once
   mc-dev-server's own increments no longer do.
 - **mc-dev-server itself.** Retiring the product is a separate change; this increment only adds.
+- **Build-half sequencing.** The kit's increments 003-007 are designed and unbuilt — the
+  implementation record covers 001-002 only — so d-j3ayhwv1's build invocation has nothing to call
+  yet. Either the kit ships those increments before the harness, or r-8et233c9 is not demonstrable
+  end to end. That is the implementation's ordering to settle, not a decision here.
+- **The kit's version line.** With a sibling package pinned to the library's surface, staying on
+  0.x means every surface addition is a minor that a consumer's caret will not follow. Release
+  policy, and nothing this increment's requirements reach.
+- **The `"./*"` wildcard export.** The library's package manifest maps a wildcard subpath, so
+  `@twin-digital/mc-dev-kit/internal/...` resolves today — and the harness is now placed to reach
+  through it. Narrowing the map to `.` and `./build` is the right answer; whether it is this
+  package's change to make depends on whether the map is generated from a root file.

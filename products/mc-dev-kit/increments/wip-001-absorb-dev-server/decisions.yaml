@@ -279,10 +279,12 @@ decisions:
     statement: |
       a run's selection is a repeatable `--pack` flag naming owning package names, defaulting to
       every pack the kit discovers, with `--profile <name>` naming a list held in the harness's
-      workspace config file. That file is `mc-dev-server.yaml` at the workspace root, holding the
-      named profiles, the level name, and the image tag; it is optional, and a workspace without
-      one runs every discovered pack under the defaults. A `--pack` value matching no discovered
-      pack is an error, not a narrower run.
+      workspace config file at `mc-dev-server.yaml`.
+
+      A `--pack` value matching no discovered pack is an error, and so is a `--profile` naming no
+      profile the file holds — a run hosts what was asked for or it does not start. `--pack` and
+      `--profile` together are an error rather than a union: each is a complete statement of the
+      selection. A profile holding an empty list selects no packs, which is a valid run.
     status: proposed
     pinned:
       reason: data-format
@@ -294,6 +296,234 @@ decisions:
       - r-7v7o1jy8
       - r-co6glnme
       - d-wtziwjh5
+
+  - id: d-wkcxcv2b
+    title: the workspace config file's shape
+    statement: |
+      `mc-dev-server.yaml` is a YAML mapping with four keys, every one of them optional:
+      `level` (the world's level name, default `dev`), `image` (the server image tag, default the
+      tag the harness pins), `port` (the published UDP port, default 19132), and `profiles`, a
+      mapping of profile name to a list of owning package names. A key the harness does not
+      define is an error, not an ignored line; so is a value of the wrong shape.
+
+      The file is optional in full: a workspace without one runs every discovered pack under
+      every default. A file the harness cannot read or cannot parse fails the run naming the file
+      and the parse error — never falls back to defaults, which would silently host the wrong
+      thing.
+    status: proposed
+    pinned:
+      reason: data-format
+      notes: an author writes and commits this file by hand
+    facets: dev-loop
+    because:
+      - r-u8cg9vi6
+      - r-8et233c9
+      - d-c1kvyord
+      - d-wtziwjh5
+      - d-imdfu09l
+
+  - id: d-jv1zleaj
+    title: the server's on-disk layout
+    statement: |
+      the harness fixes one layout for everything it reads and writes on the server: a behavior
+      pack's pool is `/data/development_behavior_packs`, the world is `/data/worlds/<level>`, and
+      its behavior activation list is `world_behavior_packs.json` inside it. A pack occupies a
+      directory named for its uuid in its kind's pool.
+
+      Activation entries are written in the run's selection order, so a reconcile that changed
+      nothing writes the same bytes. The resource-pack pool path and activation list are not fixed
+      here; q-h34y88go settles them.
+    status: proposed
+    pinned:
+      reason: data-format
+      notes: paths and file contents on the author's server, read back by every reconcile
+    facets: dev-loop
+    because:
+      - r-pcq10f2b
+      - d-oo8256gl
+      - d-q8ikxtdk
+      - d-imdfu09l
+      - f:bedrock-activation-entry-is-header-uuid-and-version
+
+  - id: d-duvygv2f
+    title: the first deploy of a fresh world pays a restart
+    statement: |
+      the server creates a world directory on its first load and no activation list in it, so the
+      first run against a fresh volume loads a world with no packs, deploys into it, and restarts
+      to bring them up. The harness reports that restart as part of starting rather than as a
+      change it detected.
+    status: proposed
+    facets: dev-loop
+    because:
+      - r-8et233c9
+      - d-jv1zleaj
+      - d-ftlfhac8
+      - f:bedrock-activation-entry-is-header-uuid-and-version
+      - f:bedrock-activation-list-read-only-at-world-load
+
+  - id: d-e956frnx
+    title: the author accepts the server EULA in the config file
+    statement: |
+      the generated project sets the image's EULA acceptance from an `eula: true` key the author
+      writes in `mc-dev-server.yaml`. Absent or false, the start command fails naming the key and
+      linking the EULA, and brings nothing up. The harness does not accept on the author's behalf.
+
+      Everything else about the server's posture is the harness's and is not configurable: the
+      world is offline-mode with no allow-list, a development server on the author's own machine
+      or daemon.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: a legal acknowledgement the author makes, and the key they make it with
+    facets: dev-loop
+    because:
+      - r-8et233c9
+      - d-wtziwjh5
+      - d-wkcxcv2b
+
+  - id: d-joa4eefg
+    title: the kit exports workspace-root resolution
+    statement: |
+      the library exports the workspace-root rule it already applies internally: given a starting
+      directory it returns the root it would discover packs from, or reports that there is none.
+      The harness resolves the root through that export rather than reimplementing the marker
+      precedence, so both packages always agree which workspace they are in.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: a new export on the published library, depended on by a sibling package
+    facets: discovery
+    because:
+      - r-ziw808ls
+      - d-xnv5kh7k
+      - d-rl1msrus
+      - d-ai68xorc
+      - d-imdfu09l
+
+  - id: d-1u13wl57
+    title: discovery runs at the head of every reconcile
+    statement: |
+      the harness calls the kit's discovery again at the start of each reconcile rather than
+      holding the pack set from startup, so a version raised in a `package.json`, a pack added to
+      the workspace, and a pack removed from it all reach the next deploy.
+    status: proposed
+    facets: dev-loop
+    because:
+      - r-pcq10f2b
+      - r-kbgjy2pt
+      - d-cw6pder5
+      - d-k7py0qqv
+
+  - id: d-n81zkitr
+    title: what fails a run and what is reported and carried
+    statement: |
+      the harness fails the run, before bringing anything up, when a selected pack is one the kit
+      reports invalid, when a selected package declares no `build` script, or when a one-shot
+      build fails. Each failure names the package and the problem. A run hosts what was asked for
+      or it does not start.
+
+      Once the loop is running it does not tear down: a rebuild that fails leaves the last good
+      deploy in place and is reported, and the pack is deployed when a later build succeeds. A
+      selected package declaring no `watch` script is built once and not watched, reported at
+      start. A watch process that exits is reported and not restarted.
+    status: proposed
+    facets: dev-loop
+    because:
+      - r-8et233c9
+      - r-pcq10f2b
+      - r-97fvutt9
+      - d-vrq7lc2o
+      - d-j3ayhwv1
+      - r-iby30nx1
+
+  - id: d-plnvasfo
+    title: pool content the harness did not deploy is removed
+    statement: |
+      a reconcile removes any pool directory and any activation entry the selected packs do not
+      account for, whoever put it there. The server's pack state is the selection's, not a
+      union with whatever a previous run or a hand edit left behind.
+    status: proposed
+    facets: dev-loop
+    because:
+      - r-pcq10f2b
+      - d-q8ikxtdk
+      - d-jv1zleaj
+
+  - id: d-0qo3xvev
+    title: one reconcile at a time, and changes during one coalesce
+    statement: |
+      the harness runs one reconcile at a time. Changes arriving while one is in flight — the
+      restart it may be performing included — accumulate into a single follow-up reconcile that
+      begins when the current one returns. A reconcile is never cancelled part-way and never runs
+      beside another.
+    status: proposed
+    facets: dev-loop
+    because:
+      - r-pcq10f2b
+      - r-cekp2mcb
+      - d-ftlfhac8
+
+  - id: d-7ayy4btp
+    title: a restart lets the world save first
+    statement: |
+      every restart the harness performs is a console `stop` through the image's helper, waited
+      for, then a start — never a container kill. The world is written before the process goes
+      down.
+    status: proposed
+    facets: dev-loop
+    because:
+      - r-kfu7pcms
+      - d-zo2yl18y
+      - d-uqdxo2w6
+      - d-ftlfhac8
+
+  - id: d-wgzr4lvx
+    title: one attached run per workspace
+    statement: |
+      the start command refuses to attach when another harness is already attached to the same
+      compose project, naming the running one. Two loops watching one server would race each
+      other's reconciles and restarts.
+    status: proposed
+    facets: dev-loop
+    because:
+      - r-pcq10f2b
+      - d-ifke5eeh
+      - d-imdfu09l
+
+  - id: d-62bpn2h2
+    title: the command line's exits, signals, and diagnostics
+    statement: |
+      the harness exits `0` when the foreground loop is closed by the author and when `stop`
+      succeeds, and non-zero on every failure. `SIGINT`, `SIGTERM`, and `SIGHUP` all detach: they
+      stop the watchers and the log follow, take the package watch processes down with them, and
+      leave the server running. A second signal during that shutdown exits immediately.
+
+      Every line the harness emits goes to the one tagged stream on stdout, including diagnostics;
+      nothing is written to stderr. `--help` and `--version` are the only flags beside `--pack`,
+      `--profile`, and `--reset`; an unrecognised flag fails the run.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: exit codes and the flag set anything scripting the harness depends on
+    facets: dev-loop
+    because:
+      - r-kfu7pcms
+      - d-0yrfifhi
+      - d-c1kvyord
+      - d-5e00ndwi
+
+  - id: d-a3fyy34f
+    title: POSIX hosts, and the ambient Docker connection
+    statement: |
+      the harness supports Linux and macOS hosts. Windows is out of scope. The Docker connection
+      is whatever the environment already selects — `DOCKER_HOST`, or the active Docker context —
+      and the harness offers no setting of its own for it.
+    status: proposed
+    facets: dev-loop
+    because:
+      - r-whacwz1b
+      - d-uqdxo2w6
+      - d-imdfu09l
 
   - id: d-5e00ndwi
     title: activity and server output share one tagged stream

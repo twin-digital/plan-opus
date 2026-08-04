@@ -54,8 +54,10 @@ questions:
 
   - id: q-h34y88go
     question: |
-      What is a world's resource-pack activation list called, where does it sit, and does an entry
-      carry the same uuid-and-version shape a behavior-pack entry does?
+      Where does a resource pack's pool sit on the server, what is a world's resource-pack
+      activation list called, where does it sit, and does an entry carry the same uuid-and-version
+      shape a behavior-pack entry does? d-jv1zleaj fixes the behavior-pack half of the layout and
+      leaves this half open.
       f:bedrock-activation-entry-is-header-uuid-and-version is scoped to
       `world_behavior_packs.json`; `world_resource_packs.json` appears only inside a probe quote for
       a misrouted pack, and nothing establishes its shape. d-4iepnry2 deploys resource packs and
