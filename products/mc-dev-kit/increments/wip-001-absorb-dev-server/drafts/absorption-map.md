@@ -287,7 +287,14 @@ and the world to host them against — with command-line flags overriding it.
 
 Two capabilities went to the backlog rather than into this increment: **b-jucqjdql**, snapshotting a
 running world so a hand-built scenario survives the stop that destroys its volume, and
-**b-762ansca**, starting a run from a captured world state. Together they are the end this increment
+**b-762ansca**, starting a run from a captured world state.
+
+Both halves of `d-41m3iws5` were probed rather than assumed. `world-seed-and-spawn-probe` generates
+three worlds from scratch and fingerprints the blocks each seed produced — the same seed twice
+holding the same blocks and a different seed different ones — and issues `setworldspawn` against a
+running world, reading the spawn point back after a restart. `f:bedrock-world-generation-takes-a-seed-and-a-spawn-command`
+records both, and the one thing the decision now says that it did not before: the console command
+acknowledges nothing, so the harness issues it and does not wait. Together they are the end this increment
 only points at — set a scenario up once by hand, then run fresh servers against it as often as the
 loop restarts.
 

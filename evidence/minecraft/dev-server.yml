@@ -82,3 +82,19 @@ runs:
       between phases. The OBSERVED lines in the output are the owner's report from the client,
       appended as each phase was observed; everything else is the server's own. NOTES.md beside the
       output records the phase table and what the probe does not cover.
+
+  - id: world-seed-and-spawn-probe
+    command: node evidence/minecraft/dev-server/world-seed-and-spawn-probe/run.mjs
+    output: evidence/minecraft/dev-server/world-seed-and-spawn-probe/OUTPUT.txt
+    ran_at: 2026-08-05
+    environment: |
+      The same image, engine build 1.26.40.8, and remote daemon as dev-loop-probe. Three worlds are
+      generated from scratch — a `down -v` and a new volume each time — under the same seed twice and
+      then a different one, and fingerprinted by the blocks the generator produced at four fixed
+      coordinates. The reader is a behavior pack whose script reports through an uncaught error, the
+      signal that survives a reload, with the read deferred one tick because
+      World::getDefaultSpawnLocation cannot be called during module evaluation. The probe adds a
+      ticking area before sampling: with nobody connected no chunks are resident and every sample
+      reads back unloaded. It then issues `send-command setworldspawn` against a running world and
+      reads the spawn point back after a restart. NOTES.md beside the output records the fingerprint
+      table and what the probe does not cover.

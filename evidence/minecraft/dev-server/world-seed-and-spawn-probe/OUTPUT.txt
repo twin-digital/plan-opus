@@ -1,0 +1,34 @@
+=== environment
+Docker Compose version v5.2.0
+Docker Engine 29.5.3
+DOCKER_HOST=ssh://prod-development-docker
+sampled coordinates: [[8,64,8],[40,70,40],[-24,62,16],[100,68,-100]]
+
+=== fresh world, LEVEL_SEED=424242   (A-first)
+  level-seed in server.properties: level-seed=424242
+  [2026-08-05 17:27:01:507 ERROR] [Scripting] [seed probe] Error: PROBE spawn=0,32767,0 blocks=minecraft:air/minecraft:stone/minecraft:gravel/unloaded    at <anonymous> (main.js:13)
+
+=== fresh world, LEVEL_SEED=424242   (A-again)
+  level-seed in server.properties: level-seed=424242
+  [2026-08-05 17:27:40:240 ERROR] [Scripting] [seed probe] Error: PROBE spawn=0,32767,0 blocks=minecraft:air/minecraft:stone/minecraft:gravel/unloaded    at <anonymous> (main.js:13)
+
+=== fresh world, LEVEL_SEED=999111   (B)
+  level-seed in server.properties: level-seed=999111
+  [2026-08-05 17:28:18:585 ERROR] [Scripting] [seed probe] Error: PROBE spawn=0,32767,0 blocks=minecraft:stone/minecraft:stone/minecraft:stone/unloaded    at <anonymous> (main.js:13)
+
+=== same seed twice
+  A-first  spawn=0,32767,0 blocks=minecraft:air/minecraft:stone/minecraft:gravel/unloaded    at <anonymous> (main.js:13)
+  A-again  spawn=0,32767,0 blocks=minecraft:air/minecraft:stone/minecraft:gravel/unloaded    at <anonymous> (main.js:13)
+  => identical: true
+=== a different seed
+  B        spawn=0,32767,0 blocks=minecraft:stone/minecraft:stone/minecraft:stone/unloaded    at <anonymous> (main.js:13)
+  => differs from A: true
+
+=== setworldspawn against the running world (seed B)
+  send-command returned: (no output)
+  server said: 
+  spawn read back after a restart:
+  [2026-08-05 17:28:32:574 ERROR] [Scripting] [seed probe] Error: PROBE spawn=123,70,-456 blocks=unloaded/unloaded/unloaded/unloaded    at <anonymous> (main.js:13)
+  (a spawn of 123,70,-456 is the console command taking effect)
+
+=== done

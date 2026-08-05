@@ -469,3 +469,36 @@ facts:
       - run: dev-loop-probe
         where: A6 — the world load that followed
         quote: "[2026-08-05 02:21:21:409 INFO] Pack Stack - None"
+
+  - id: bedrock-world-generation-takes-a-seed-and-a-spawn-command
+    claim: |
+      The server's `level-seed` setting fixes world generation: two worlds generated from scratch
+      under the same seed hold the same blocks at the same coordinates, and a different seed holds
+      different ones. The seed is only read when a world is generated, so it decides nothing about a
+      world that already exists.
+
+      A world's spawn point has no server setting. It is set with the console command
+      `setworldspawn <x> <y> <z>` against a running world, and survives a restart. The command
+      returns nothing and the server logs nothing about it, so there is no acknowledgement to wait
+      on — the result can only be read back.
+    backing: tested
+    caveat: |
+      Measured against one engine build, 1.26.40.8, with numeric seeds. Blocks are only readable
+      once a ticking area is loaded: with nobody connected no chunks are resident and every sample
+      reads back unloaded.
+    sources:
+      - run: world-seed-and-spawn-probe
+        where: a fresh world under seed 424242, the blocks the generator produced
+        quote: "  [2026-08-05 17:27:01:507 ERROR] [Scripting] [seed probe] Error: PROBE spawn=0,32767,0 blocks=minecraft:air/minecraft:stone/minecraft:gravel/unloaded    at <anonymous> (main.js:13)"
+      - run: world-seed-and-spawn-probe
+        where: a second fresh world under the same seed, holding the same blocks
+        quote: "  [2026-08-05 17:27:40:240 ERROR] [Scripting] [seed probe] Error: PROBE spawn=0,32767,0 blocks=minecraft:air/minecraft:stone/minecraft:gravel/unloaded    at <anonymous> (main.js:13)"
+      - run: world-seed-and-spawn-probe
+        where: a fresh world under seed 999111, holding different blocks
+        quote: "  [2026-08-05 17:28:18:585 ERROR] [Scripting] [seed probe] Error: PROBE spawn=0,32767,0 blocks=minecraft:stone/minecraft:stone/minecraft:stone/unloaded    at <anonymous> (main.js:13)"
+      - run: world-seed-and-spawn-probe
+        where: the seed as the server recorded it
+        quote: "  level-seed in server.properties: level-seed=999111"
+      - run: world-seed-and-spawn-probe
+        where: the spawn point read back after setworldspawn and a restart
+        quote: "  [2026-08-05 17:28:32:574 ERROR] [Scripting] [seed probe] Error: PROBE spawn=123,70,-456 blocks=unloaded/unloaded/unloaded/unloaded    at <anonymous> (main.js:13)"

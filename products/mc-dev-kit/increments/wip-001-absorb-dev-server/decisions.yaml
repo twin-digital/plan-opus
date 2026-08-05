@@ -717,9 +717,11 @@ decisions:
       Given neither, the server seeds the world as it likes and keeps the spawn point it chose.
 
       The seed reaches the server as the generated project's level seed, since it is read only when
-      a world is generated. The spawn point is set with a console command once the world has loaded,
-      because the server offers no setting for it. Both are only ever meaningful because a world
-      lasts one run: d-zo2yl18y is what makes a seed reproducible rather than a one-time accident.
+      a world is generated. The spawn point is set with `setworldspawn` on the console once the
+      world has loaded, because the server offers no setting for it; the command acknowledges
+      nothing, so the harness issues it and does not wait. Both are only ever meaningful because a
+      world lasts one run: d-zo2yl18y is what makes a seed reproducible rather than a one-time
+      accident.
     status: proposed
     pinned:
       reason: public-api
@@ -731,3 +733,4 @@ decisions:
       - d-wtziwjh5
       - d-uqdxo2w6
       - d-i4oryd9x
+      - f:bedrock-world-generation-takes-a-seed-and-a-spawn-command
