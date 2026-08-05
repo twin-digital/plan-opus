@@ -379,6 +379,37 @@ The vocabulary is standardised on **profile**; "scenario" is gone from the incre
 carries its packs and the world to host them against, and `--level`, `--seed` and `--spawn` override
 it from the command line.
 
+## The re-survey, and what it moved
+
+The implement phase ran in survey mode a second time against the settled fold, one implementer per
+package. `drafts/survey-census.yaml` holds both censuses — the first round's and this one's. Roughly
+forty of the first round's sixty-eight harness entries were gone, absorbed by the fold.
+
+What it found that the fold had wrong, rather than merely unsaid:
+
+- **`d-joa4eefg`'s premise was false.** It claimed the library already applied the workspace-root rule
+  internally. It does not: nothing in it ascends, and the rule it does apply treats any readable
+  `package.json` as a root — correct for a root already chosen, and fatal to an ascent, which would
+  stop at its first step. The rule is now stated outright, and the export returns the root package's
+  name as well as its path so `d-imdfu09l` does not compute it a second time and disagree.
+- **The stub could not be built for the packs it was for.** `d-n81zkitr` sent invalid packs to be
+  stubbed; `d-61fegb3o` makes uuid and version optional on exactly those. So the two split: an invalid
+  pack fails the run, and a pack that is sound but will not build gets a stub script where its bundle
+  goes — which leaves the file set unchanged, so the fix costs a reload rather than a restart.
+- **A rejected discovery ended the loop.** `d-1u13wl57` calls discovery every reconcile and
+  `d-ydph1k7d` rejects on any unparseable `package.json` in the workspace, so one half-saved file
+  stopped everything. A reconcile that throws now changes nothing, is reported, and retries on the
+  next save.
+- **Preset adoptions landed mid-flight that the design contradicts.** Increment 008 adopted
+  `nodejs-cli@1`, whose stream rules are the inverse of `d-62bpn2h2` and `d-5e00ndwi`, and
+  `nodejs-library@2`, whose `r-lqfu2ki9` one-entry-point rule contradicts `d-wss8fker`'s pinned
+  `/build` subpath. Both are reverted here rather than reworked: `nodejs-cli` dropped and
+  `nodejs-library` back to 1.
+
+And what it left, now ruled: an unknown seed matches nothing, activation entries take the profile's
+declared order, the image is `latest`, `stop` goes through the console like every restart, and the
+on-volume names and shapes are `d-j2wfa1pd`'s deferral to the implementer.
+
 ## Left for the Plan loop
 
 - **The `f:dev-kit-*` facts.** Eleven facts in `facts/minecraft/bedrock-server.yml` source
