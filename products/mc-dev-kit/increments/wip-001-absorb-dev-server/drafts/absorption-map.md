@@ -344,10 +344,15 @@ record, which `d-q8ikxtdk` otherwise forbids trusting; the exception is argued o
 does not lose the world, because the volume outlives it. It drops connected clients, which is a
 different debt and one the ladder pays by never recreating silently.
 
-**Worlds are session-scoped.** The volume still goes on `stop`, so several worlds are a thing an
-author moves between *within* a run, not a library that accumulates. A world is reproducible from its
-level name and seed; what is not reproducible is what the author did inside it, which is what
-b-jucqjdql and b-762ansca are for.
+**Worlds outlive a stop.** `d-zo2yl18y` is reversed from its earlier form: the volume is created on
+`start` and only `destroy` removes it, so `stop` takes the container down and leaves every world
+standing. The command surface is three verbs rather than two, and `destroy` is the only one that
+loses an author's work — it names what it is about to remove and asks first. What the volume
+accumulates is a library built up over sessions, which is what makes several worlds worth keeping.
+
+**The harness picks the seed.** Where a run names none, the harness generates one rather than leaving
+the server to, because a seed the server chose is one nobody can read back afterwards. Choosing it is
+what lets `d-5ocyva9w` record a seed against every world, and so what makes every world reproducible.
 
 ## Left for the Plan loop
 

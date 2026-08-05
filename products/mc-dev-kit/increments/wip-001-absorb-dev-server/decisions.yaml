@@ -63,16 +63,14 @@ decisions:
       - f:compose-env-file-not-loaded-from-cwd
   - id: d-imdfu09l
     title: the project identity is derived from the workspace root
-    statement: >
-      the compose project name is derived from the absolute path of the workspace root, so one
+    statement: |
+      the compose project name is derived from the absolute path of the workspace root. One
+      workspace therefore addresses one server, and a run started from a subdirectory addresses the same
+      server as one started from the root; two workspaces on one daemon do not collide.
 
-      workspace addresses one server and two workspaces on one daemon do not collide. The world's
-
-      level name and the generated compose file's location are settings of that project, not of the
-
-      current directory, and a run started from a subdirectory addresses the same server as one
-
-      started from the root.
+      Identity is the workspace and nothing else — not the config, not the profile, and not the world. The
+      world a run serves is a setting it carries (d-41m3iws5), and which of them a running server is
+      serving is what start compares (d-owprl7uy); neither changes which server a workspace is talking to.
     status: tolerated
     facets: dev-loop
     because:
@@ -80,20 +78,15 @@ decisions:
       - r-kfu7pcms
       - d-w8cc8n18
   - id: d-zo2yl18y
-    title: a world lives for one run and no longer
-    statement: >
-      the server's `/data` is a named Docker volume the harness creates on `start` and removes on
-
-      `stop`. A world therefore survives every restart the loop spends and every Ctrl+C and reattach,
-
-      and no `stop` at all: the next `start` generates a fresh world.
-
+    title: the world volume outlives a stop, and only destroy removes it
+    statement: |
+      the server's `/data` is a named Docker volume the harness creates on `start`. `stop` takes the
+      container down and leaves the volume standing, so every world on it survives to the next `start`.
+      Only `destroy` removes it.
 
       A volume rather than the container's own writable layer, so the world is independent of the
-
-      container's lifecycle for as long as the run owns it, and so there is one named thing to
-
-      snapshot when snapshots arrive.
+      container's lifecycle — which is what lets a recreate swap the served world, change the image or
+      change the port without costing an author anything but their connection.
     status: accepted
     pinned:
       reason: data-format
@@ -278,15 +271,18 @@ decisions:
       - r-1bvvl9k7
       - r-v8jjhds5
   - id: d-0yrfifhi
-    title: the command is minecraft-server, with start and stop subcommands
-    statement: >
-      the package's executable is `minecraft-server`. It takes two subcommands, `start` and `stop`,
+    title: the command is minecraft-server, with start, stop and destroy
+    statement: |
+      the package's executable is `minecraft-server`. It takes three subcommands, each named
+      explicitly — there is no bare default invocation.
 
-      each named explicitly — there is no bare default invocation. Ctrl+C stops the watchers and the
+      - `start` brings the server up and watches, or attaches to one already running
+      - `stop` takes the container down and leaves the volume, so the worlds keep
+      - `destroy` removes the volume and every world on it
 
-      log follow and nothing else; `stop` tears the server down and takes the world with it, per
-
-      d-zo2yl18y, and carries no flag to keep one.
+      Ctrl+C stops the watchers and the log follow and nothing else. `destroy` is the only command that
+      loses an author's work: it names what it is about to remove and asks before doing it, and where
+      nothing can be asked it does nothing.
     status: accepted
     pinned:
       reason: public-api
@@ -650,7 +646,12 @@ decisions:
       a run may fix the world it serves: `level` names it, `seed` sets what the server generates it
       from, and `spawn`, an `[x, y, z]` array, sets where a joining player arrives. Either may come from
       the config file, from a profile in it, or from `--seed` and `--spawn` on the command line.
-      Each is optional, and an unspecified one is a wildcard rather than a demand: a run that names no
+      Where a run names no seed the harness picks one itself, across the whole range the server accepts,
+      rather than leaving the server to choose. A seed the server chose is one nobody can read back
+      afterwards; a seed the harness chose is one it can record against the world it generated, so every
+      world it makes has a known seed and can be made again.
+
+      Each setting is optional, and an unspecified one is a wildcard rather than a demand: a run that names no
       seed is content with whatever world is already serving, and a run that names one requires that
       world. This is what lets a profile describe a scenario — its packs and its spawn — without tying
       itself to a single world.
@@ -678,16 +679,15 @@ decisions:
     statement: |
       the server's volume holds a world directory per level name the run has asked for, and the
       server serves the one `level` names. Switching to another world the volume already holds costs a
-      container recreate and nothing else: the volume survives it, so every world in it does.
+      container recreate and nothing else: the volume survives it, so every world on it does.
 
-      A level name the volume does not hold yet is generated, from the run's seed where it names one. So
-      naming a new level is how an author gets a second world, and naming an old one is how they go back
-      to it — neither disturbs the other.
+      A level name the volume does not hold yet is generated, from the run's seed. So naming a new level is
+      how an author gets a second world, and naming an old one is how they go back to it — neither
+      disturbs the other, and both keep across a stop.
 
-      Worlds live as long as the volume does, which is one run (d-zo2yl18y). Within a run an author may
-      keep several and move between them; across a stop they all go, and a world is reproducible from its
-      level name and seed. What is not reproducible is what the author did inside it, which is what
-      snapshots are for and why they are on the backlog rather than here.
+      What accumulates is therefore a library an author builds up over sessions, and the two things that
+      empty it are `destroy` and nothing else. A world is reproducible from its level name and seed;
+      what is not reproducible is what the author did inside it, which is what snapshots are for.
     status: proposed
     facets: dev-loop
     because:
@@ -707,7 +707,7 @@ decisions:
       What cannot be read back is the seed a world was generated from: the server records the seed it was
       asked for, not the one an existing world already had, and the world's own copy is binary. So the
       harness keeps one small file on the volume naming, per world it generated, the seed it generated it
-      from. That file is a record, which a reconcile is otherwise forbidden to trust (d-q8ikxtdk) — the
+      from — which it can always do, because d-41m3iws5 has it choose the seed rather than the server. That file is a record, which a reconcile is otherwise forbidden to trust (d-q8ikxtdk) — the
       exception holds because a world's generation seed is immutable history rather than state that can
       drift, and because nothing else can answer the question.
     status: proposed
@@ -737,10 +737,12 @@ decisions:
         onto it, and say so; the world that was serving is untouched
       - only the image or port differs — recreate the container, and say so; the worlds survive
       - the level matches but a specified seed is not the one that world was generated from — this is the
-        only case that destroys a world. Warn, name the world and both seeds, and ask; regenerate on
+        only rung that destroys a world. Warn, name the world and both seeds, and ask; regenerate on
         agreement and bail out otherwise. Where nothing can be asked, bail out.
 
-      A recreate is never silent, and the destructive case is never taken without an answer.
+      A recreate is never silent, and the destructive rung is never taken without an answer. Worlds are
+      long-lived now (d-zo2yl18y), so the one being regenerated may be weeks of an author's work rather
+      than minutes of it.
     status: proposed
     pinned:
       reason: public-api
