@@ -1,5 +1,5 @@
 ---
-version: "23"
+version: "24"
 ---
 
 # The incremental design process
@@ -355,8 +355,8 @@ increment N+1 changes nothing about increment N. What a tree-consumed deliverabl
 main is always what a published increment built.
 
 The merge is reached rather than performed by hand: the landing sequence pushes the branch,
-approves its pull request as the owner, and sets the merge to complete on its own once the gate
-is green (see *Ratifying and landing a draft*).
+opens its pull request where it has none, approves it as the owner, and sets the merge to
+complete on its own once the gate is green (see *Ratifying and landing a draft*).
 
 ### Ratifying and landing a draft
 
@@ -397,16 +397,22 @@ answer is not a status.
 **Land is one fixed sequence that stops at the first failure**, reporting what to fix and
 leaving the branch as it found it: apply any staged rulings, run the conflict check against the
 head, rename the wip directory into the number the head yields, run the full design check,
-commit, push, approve the pull request as the owner, and set the merge to complete on its own
-once the gate is green. The approval follows the push rather than preceding it, because a push
-after an approval dismisses it. Nothing in the sequence needs judgement, and an increment
-carrying a proposed decision or an open question is refused before any of it runs.
+commit, push, open the pull request where the branch has none, approve it as the owner, and set
+the merge to complete on its own once the gate is green. Nothing in the sequence needs
+judgement, and an increment carrying a proposed decision or an open question is refused before
+any of it runs.
 
-The landing acts on the pull request open for the branch it is on. Where there is none, the
-approve and auto-merge steps report `skipped`, the landing still counts as published and
-awaiting approval, and nothing opens a pull request — opening one is not in the sequence. Where
-the auto-merge call is refused, the landing reports the pull request as approved and awaiting a
-manual merge.
+The order of the last three steps is forced. Opening follows the push because the branch must
+exist on the remote before a pull request can name it; approving follows the open because there
+is nothing to approve before it; and approving follows the push in any case, because a push
+after an approval dismisses it. The landing opens a pull request rather than stopping short of
+one because publishing *is* the merge, and a repository admitting changes to `main` only through
+a pull request cannot merge a branch that has none — a landing that left the branch pushed and
+unproposed would report success over an increment that could not publish. Where the branch
+already has a pull request the open step is a no-op.
+
+Where the API refuses to enable auto-merge, the landing reports the pull request as approved and
+awaiting a manual merge.
 
 The same sequence is also
 
