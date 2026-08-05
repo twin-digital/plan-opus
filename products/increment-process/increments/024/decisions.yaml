@@ -7,7 +7,7 @@ decisions:
       finding, product-id-unique, rather than two rules. the first root in path order — shallowest,
       then lexical — keeps the id, and the loser's increments are skipped rather than reported a
       second time against every source they hold.
-    status: delegated
+    status: accepted
     because:
       - d-34t7y2iq
     pinned: false
@@ -21,7 +21,7 @@ decisions:
       finding, now pathed at the offending source file rather than at the inferred directory, and
       declares no product: it does not appear in the projection's product list. before the scan
       the shape was inferable from the path; now nothing infers a product but a declaration.
-    status: delegated
+    status: accepted
     because:
       - d-34t7y2iq
     pinned: false
@@ -35,7 +35,7 @@ decisions:
       questions untouched — a question needs an answer, which is not a status. a draft carrying
       questions is therefore never fully settled by the bulk path alone, and its landing stays
       closed until each is answered.
-    status: delegated
+    status: accepted
     because:
       - d-9g0poz7v
       - d-ovlyaoht
@@ -64,7 +64,7 @@ decisions:
       only the approving call carries the owner's token, in an authorization header read from
       memory. push and auto-merge use the credentials the environment already holds. the token's
       reach is one request, so what the owner's identity is spent on is exactly the approval.
-    status: delegated
+    status: accepted
     because:
       - d-6fur4w53
       - r-rxb7pn9z
@@ -136,20 +136,26 @@ decisions:
     status: delegated
     because:
       - d-8vsionnz
-      - d-qzpfyc6s
+      - d-h418ljtp
     pinned: false
     facets:
       - tooling
 
   - id: d-k85itgcv
-    title: an answer's placeholder entry enters accepted
+    title: an answer's placeholder entry takes the status its author's role gives it
     statement: |
-      the entry a requirement- or decision-routed answer writes into the draft enters accepted, not
-      proposed. a proposed entry would leave the draft unsettleable by the session that wrote it —
-      the owner would answer a question and be handed a fresh blocker in the same pass.
+      the entry a requirement- or decision-routed answer writes enters accepted where the owner
+      answered the question — the session is the owner in the loop, and the ruling is theirs to
+      have already made. an answer an autonomous agent authored enters delegated: recorded, not
+      ruled, like any decision an agent writes that should not require ratification.
+
+      neither path enters proposed. in the owner's, it would leave the draft unsettleable by the
+      session that wrote it, handing the owner a fresh blocker in the same pass that answered the
+      question; in the agent's, delegated is what an unratified agent-authored decision already is.
     status: delegated
     because:
       - d-octrdz0j
+      - d-n23bxend
       - r-ax84j1s2
     pinned: false
     facets:
@@ -161,9 +167,9 @@ decisions:
       the non-interactive landing takes --root and no other option: no --no-push, no --against.
       the sequence is fixed, so there is nothing to select, and the conflict check's own default
       — origin/main, then main — is the head it runs against.
-    status: delegated
+    status: tolerated
     because:
-      - d-qzpfyc6s
+      - d-h418ljtp
     pinned: false
     facets:
       - tooling
