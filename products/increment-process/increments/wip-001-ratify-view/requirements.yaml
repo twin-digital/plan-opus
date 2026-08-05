@@ -1,10 +1,34 @@
-version: "1"
+version: "2"
 model:
   - name: ratify-screen
-    api: /design-process/ratify-screen@1
+    surface: /design-process/ratify-screen@1
     description: what the session's ratify mode renders — the entry list, the detail pane, and the form of each field
 
 requirements:
+  - id: r-j232vwp4
+    title: authored surfaces are shared and versioned
+    amends: r-lll68661
+    statement: |
+      a product's public surfaces are authored contracts in a repo-wide `surfaces/` pool —
+      commitments the implementation must satisfy, never extracted projections, though the design
+      validator may extract from the built thing and diff against the authored surface. a surface
+      is anything a consumer meets and holds the product to: a code interface, a wire format, a
+      command's arguments, a screen. each version declares its identity root-relative as
+      `/<namespace>/<name>@<version>`; versions are dense integers per name, immutable once an
+      increment binding one publishes, and present as long as anything published binds them;
+      drift is legal — no product is rebound by a new version appearing. only public surfaces
+      enter the pool — internal stubs stay implementation. any organizational or naming
+      convention within the pool is an aid to navigation, non-normative and unenforced.
+    verification:
+      - do: open a pull request introducing two surface files that claim one identity
+      - verify: the merge is blocked
+      - do: open a pull request editing or removing a surface version some published increment binds
+      - verify: the merge is blocked
+      - do: author a surface that is not a code interface and bind it through an increment's model
+      - verify: the merge is not blocked on account of what kind of surface it is
+    facets:
+      - schema
+      - design-validator
   - id: r-jf51jzor
     title: the owner sees every decision the draft carries, and what each is ruled
     statement: |
