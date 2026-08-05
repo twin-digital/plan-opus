@@ -34,6 +34,41 @@ decisions:
     facets:
       - design-validator
       - process-doc
+  - id: d-2q797wc4
+    title: the projection is available as data, and that shape is what --json emits
+    statement: >
+      `show --json` emits the fold as a structured document — the product, the increment it is
+      folded at, the presets, the requirements with an adopted one carrying `adopted_from`, the
+      decisions in `because` order, the model bindings, the per-claim coverage with `covered_by`
+      null where a claim is uncovered, and the open questions. the same shape is exported beside
+      the rendered projection, as the data behind it.
+
+      r-rn6wxdn4 requires the flag and not the shape, and a consumer reading the json depends on
+      the key names, so the keys are a public surface rather than a rendering detail.
+    status: proposed
+    because:
+      - r-rn6wxdn4
+      - d-m7i568id
+    pinned:
+      reason: public-api
+      notes: the keys a consumer of --json reads
+    facets:
+      - tooling
+  - id: d-fi7zsgez
+    title: a note is taken from the list, and it is not a ruling
+    statement: >
+      in the ratify session the owner opens the text-entry field on the selected entry to attach a
+      note, and the note is held beside the staged rulings rather than among them. it settles
+      nothing and gates nothing, and one entry takes a note and a ruling in the same submit.
+      d-f1b5r2f8 says what a submit does with notes and not where the owner enters one, and the
+      bound screen names a note on an entry among the text-entry field's uses.
+    status: delegated
+    because:
+      - d-f1b5r2f8
+      - r-z0wcwwn0
+    pinned: false
+    facets:
+      - tooling
   - id: d-m7i568id
     title: a command's findings are its main output
     statement: >
