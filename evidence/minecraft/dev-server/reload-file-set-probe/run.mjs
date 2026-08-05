@@ -46,9 +46,16 @@ const mainSrc = (tag, extraImport) =>
   `${extraImport ? `import { late } from "./late.js";\n` : ""}import { value } from "./helper.js";\n` +
   `system.run(() => {\n` +
   `  const d = world.getDimension("overworld");\n` +
+  `  try { d.runCommand("scoreboard objectives add probe dummy"); } catch (e) {}\n` +
+  `  try { d.runCommand("scoreboard players set marker probe 0"); } catch (e) {}\n` +
   `  const r = ${JSON.stringify(FNS)}.map((f) => {\n` +
-  `    try { const x = d.runCommand("function " + f); return f + "=ran(" + (x.successCount) + ")"; }\n` +
-  `    catch (e) { return f + "=MISSING"; }\n` +
+  `    let ran = 0, val = "?";\n` +
+  `    try { ran = d.runCommand("function " + f).successCount; } catch (e) { return f + "=MISSING"; }\n` +
+  `    for (const n of [1, 2, 3]) {\n` +
+  `      try { if (d.runCommand("scoreboard players test marker probe " + n + " " + n).successCount) val = n; } catch (e) {}\n` +
+  `    }\n` +
+  `    try { d.runCommand("scoreboard players set marker probe 0"); } catch (e) {}\n` +
+  `    return f + "=ran(" + ran + ")wrote(" + val + ")";\n` +
   `  });\n` +
   `  throw new Error("PROBE-SCRIPT ${tag} " + value${extraImport ? ' + " late=" + late' : ""} + " | " + r.join(" "));\n` +
   `});\n`;
@@ -91,8 +98,8 @@ fs.mkdirSync(path.join(dir, "scripts"));
 fs.mkdirSync(path.join(dir, "functions"));
 fs.writeFileSync(path.join(dir, "scripts/main.js"), mainSrc("v0", false));
 fs.writeFileSync(path.join(dir, "scripts/helper.js"), `export const value = "h0";\n`);
-fs.writeFileSync(path.join(dir, "functions/existing.mcfunction"), `say PROBE-FN existing v1\n`);
-fs.writeFileSync(path.join(dir, "functions/spare.mcfunction"), `say PROBE-FN spare v1\n`);
+fs.writeFileSync(path.join(dir, "functions/existing.mcfunction"), `scoreboard players set marker probe 1\n`);
+fs.writeFileSync(path.join(dir, "functions/spare.mcfunction"), `scoreboard players set marker probe 3\n`);
 fs.writeFileSync(path.join(dir, "manifest.json"), JSON.stringify({
   format_version: 2,
   header: { name: "file set probe", description: "what a reload copes with", uuid: UUID, version: [1, 0, 0], min_engine_version: [1, 26, 0] },
@@ -123,24 +130,24 @@ log("  " + logs().slice(b).filter((l) => l.includes("[Scripting]")).map((l) => l
 
 // ---------------------------------------------------------------- 1. edit a function's content
 log("\n=== case 1: EDIT an existing function's content, then reload (file set unchanged)");
-put("functions/existing.mcfunction", `say PROBE-FN existing v2\n`);
+put("functions/existing.mcfunction", `scoreboard players set marker probe 2\n`);
 log("  files: " + files());
 report(reloadAndRun());
-log("  (v2 means functions reload at all)");
+log("  (existing writing 2 rather than 1 means an edited function's new content is live)");
 
 // ---------------------------------------------------------------- 2. add a function
 log("\n=== case 2: ADD a function file nothing imports, then reload (file set GREW)");
-put("functions/added.mcfunction", `say PROBE-FN added v1\n`);
+put("functions/added.mcfunction", `scoreboard players set marker probe 3\n`);
 log("  files: " + files());
 report(reloadAndRun());
-log("  (an 'added v1' line means a grown file set does not need a restart)");
+log("  (added going to ran(1) would mean a grown file set does not need a restart)");
 
 // ---------------------------------------------------------------- 3. remove a file
 log("\n=== case 3: REMOVE a file nothing imports, then reload (file set SHRANK)");
 rm("functions/spare.mcfunction");
 log("  files: " + files());
 report(reloadAndRun());
-log("  (existing still working means a shrunk file set does not need a restart)");
+log("  (spare going to ran(0) means the removal took effect without a restart)");
 
 // ---------------------------------------------------------------- 4. control: add an imported module
 log("\n=== case 4 (control, must FAIL): ADD a module file the entry imports");

@@ -502,3 +502,36 @@ facts:
       - run: world-seed-and-spawn-probe
         where: the spawn point read back after setworldspawn and a restart
         quote: "  [2026-08-05 17:28:32:574 ERROR] [Scripting] [seed probe] Error: PROBE spawn=123,70,-456 blocks=unloaded/unloaded/unloaded/unloaded    at <anonymous> (main.js:13)"
+
+  - id: bedrock-reload-absorbs-every-change-but-an-added-file
+    claim: |
+      A console reload takes up an edited file's new content and a removed file's absence, and
+      cannot take up a file that was added. A function edited in place runs its new content on the
+      next reload; a function removed stops existing at once; a function added stays absent until
+      the server restarts, exactly as an added script module does.
+
+      So what a reload cannot absorb is a file set that *grew*. A file set that shrank, or that
+      changed only in the contents of the files already in it, needs no restart.
+    backing: tested
+    caveat: |
+      Measured against one engine build, 1.26.40.8, with functions as the non-script content type.
+      Entity, item and block definitions and textures are not covered here, and
+      bedrock-reload-updates-scripts-not-pool-or-manifest records Microsoft documenting those as
+      reloading only partially or not at all — so an unchanged file set is not on its own a promise
+      that every kind of edit is live.
+    sources:
+      - run: reload-file-set-probe
+        where: the world load, before any change — the function writes the value its original content names
+        quote: "  [2026-08-05 17:55:57:796 ERROR] [Scripting] [file set probe] Error: PROBE-SCRIPT v0 h0 | existing=ran(1)wrote(1) added=ran(0)wrote(?) spare=ran(1)wrote(3)    at <anonymous> (main.js:16)"
+      - run: reload-file-set-probe
+        where: case 1 — the function edited in place, then reloaded; it writes the new value
+        quote: "  reload said: [2026-08-05 17:56:11:732 ERROR] [Scripting] [file set probe] Error: PROBE-SCRIPT v0 h0 | existing=ran(1)wrote(2) added=ran(0)wrote(?) spare=ran(1)wrote(3)    at <anonymous> (main.js:16)"
+      - run: reload-file-set-probe
+        where: case 2 — a function added, then reloaded; it is still absent
+        quote: "  reload said: [2026-08-05 17:56:56:545 ERROR] [Scripting] [file set probe] Error: PROBE-SCRIPT v0 h0 | existing=ran(1)wrote(2) added=ran(0)wrote(?) spare=ran(1)wrote(3)    at <anonymous> (main.js:16)"
+      - run: reload-file-set-probe
+        where: case 3 — a function removed, then reloaded; it stops existing
+        quote: "  reload said: [2026-08-05 17:57:41:345 ERROR] [Scripting] [file set probe] Error: PROBE-SCRIPT v0 h0 | existing=ran(1)wrote(2) added=ran(0)wrote(?) spare=ran(0)wrote(?)    at <anonymous> (main.js:16)"
+      - run: reload-file-set-probe
+        where: the restart that follows — the added function exists only now
+        quote: "  [2026-08-05 17:58:02:761 ERROR] [Scripting] [file set probe] Error: PROBE-SCRIPT v4 h0 late=L1 | existing=ran(1)wrote(2) added=ran(1)wrote(3) spare=ran(0)wrote(?)    at <anonymous> (main.js:17)"

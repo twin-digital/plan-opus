@@ -298,6 +298,22 @@ acknowledges nothing, so the harness issues it and does not wait. Together they 
 only points at — set a scenario up once by hand, then run fresh servers against it as often as the
 loop restarts.
 
+## What the file-set probe changed
+
+`d-ftlfhac8` restarted for "an added or removed file", of which only one case was evidenced — an
+imported module file, first deployed after world load. `reload-file-set-probe` tested the rest, and
+the class narrows: a reload takes up an **edited** file's new content and a **removed** file's
+absence, and only a file the pack did not have before forces a restart. Confirmed for functions as
+well as scripts, with an added imported module as the positive control that must fail, and does.
+
+That matters because the build bundles scripts to one entry file, so nearly every file-set change an
+author makes is a non-script asset. Editing any existing file — script, function, definition — now
+reloads; only adding one restarts.
+
+The decision keeps one honest limit: what a reload *refreshes* still varies by content type, and the
+harness does not model that. It reloads where it may and leaves the engine's own limits to show
+themselves.
+
 ## Left for the Plan loop
 
 - **The `f:dev-kit-*` facts.** Eleven facts in `facts/minecraft/bedrock-server.yml` source

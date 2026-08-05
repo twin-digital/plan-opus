@@ -98,3 +98,17 @@ runs:
       reads back unloaded. It then issues `send-command setworldspawn` against a running world and
       reads the spawn point back after a restart. NOTES.md beside the output records the fingerprint
       table and what the probe does not cover.
+
+  - id: reload-file-set-probe
+    command: node evidence/minecraft/dev-server/reload-file-set-probe/run.mjs
+    output: evidence/minecraft/dev-server/reload-file-set-probe/OUTPUT.txt
+    ran_at: 2026-08-05
+    environment: |
+      The same image, engine build 1.26.40.8, and remote daemon as dev-loop-probe. One pack is loaded
+      once and then changed and reloaded four times with no restart between: an existing function
+      edited, a function added, a function removed, and — as a positive control that must fail — a
+      module file the entry imports added. `send-command` replies do not reach the container log, so
+      the pack's own script runs each function through `runCommand` and reports through an uncaught
+      error. The functions write a scoreboard value the script tests back, which is what makes an
+      edited function distinguishable from an unedited one. NOTES.md beside the output records the
+      result table, the two observables that failed first, and what content types are not covered.
