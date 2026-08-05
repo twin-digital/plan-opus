@@ -1,0 +1,1046 @@
+version: "2"
+decisions:
+  - id: d-qwquvf78
+    title: the contract pools are schemas and surfaces
+    statement: >
+      schemas live under `schemas/` and public surfaces under `surfaces/`,
+      identity declared
+
+      in-file: schemas as JSON Schema — draft 2020-12, authored as YAML — with
+      `$id` root-relative,
+
+      `/<namespace>/<entity>@<version>`, the leading slash mandatory and its
+      omission a validator
+
+      failure. a `$ref` is such an identity, resolved from the pool as the
+      registry, and binds
+
+      transitively. any organizational or naming convention within a pool is an
+      aid to navigation
+
+      — non-normative and unenforced, though both pools file by namespace today,
+      and a namespace
+
+      large enough to want it may nest below that.
+
+
+      `surfaces/` rather than `apis/` because the pool holds whatever a consumer
+      meets and holds
+
+      the product to, and "api" names only one kind of that. a terminal screen
+      is the first entry
+
+      the pool ever held, and reading it as an api takes a word that means a
+      code interface and
+
+      asks it to mean something else. the axis between the two pools is a data
+      shape against a
+
+      public surface, which is what the names now say.
+    status: accepted
+    supersedes: d-3wjypyx6
+    because:
+      - r-j232vwp4
+      - r-gq90gngs
+      - r-2fytqadu
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - design-validator
+  - id: d-0qrp80dx
+    title: surface identity is a per-tech header
+    statement: >
+      a surface pool file carries its identity in-file by a per-tech convention
+      — `// surface:
+
+      /<namespace>/<name>@<version>` in typescript, `# surface: ...` in yaml
+      formats,
+
+      `info.x-api-id` where openapi metadata fits, since that key is openapi's
+      and not this
+
+      process's to rename — with the file's extension and content telling the
+      design validator
+
+      which extractor reads it.
+    status: rejected
+    because:
+      - r-j232vwp4
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - design-validator
+    rejection_reason: let's amend this to just state the general "identity in-file
+      by per-tech convention" and the file extension/content being used to
+      select an extractor. then create separate decisions for typescript, yaml,
+      openapi. and add one for markdown using frontmatter key
+      "io.twindigital.id".
+  - id: d-rui9z0lc
+    title: a surface declares its identity in-file, and the file selects the extractor
+    statement: >
+      a surface pool file carries its identity inside itself, in whatever way
+      the file's own
+
+      technology already has for carrying metadata. the file's extension and
+      content tell the
+
+      design validator which extractor reads it; nothing outside the file names
+      it, so a surface
+
+      keeps its identity when it moves and the pool's layout stays
+      non-normative.
+
+
+      which convention each technology uses is a decision per technology, so a
+      technology is added
+
+      by ruling one rather than by amending this.
+    status: accepted
+    supersedes: d-u3u3sbmb
+    because:
+      - r-j232vwp4
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - design-validator
+  - id: d-ds6mco0p
+    title: a typescript surface declares its identity in a comment
+    statement: |
+      a surface authored as typescript declares its identity in a line comment:
+      `// surface: /<namespace>/<name>@<version>`, on a line of its own.
+    status: accepted
+    because:
+      - d-rui9z0lc
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - design-validator
+  - id: d-tjitou0m
+    title: a yaml surface declares its identity in a comment
+    statement: >
+      a surface authored as yaml declares its identity in a comment:
+
+      `# surface: /<namespace>/<name>@<version>`, on a line of its own. this is
+      what the yaml
+
+      file carrying `ratify-screen` uses.
+    status: accepted
+    because:
+      - d-rui9z0lc
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - design-validator
+  - id: d-6ier9trn
+    title: an openapi surface declares its identity in info.x-api-id
+    statement: >
+      a surface authored as an openapi document declares its identity in
+      `info.x-api-id`, the
+
+      extension key openapi already defines for the purpose. the key keeps
+      openapi's spelling
+
+      rather than this process's: it belongs to that format, and a document
+      carrying a renamed key
+
+      would stop being an ordinary openapi document.
+    status: accepted
+    because:
+      - d-rui9z0lc
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - design-validator
+  - id: d-7i1l1kfy
+    title: how the session finds the pull request it works
+    statement: >
+      `design-process increment` is a full-screen terminal application over a
+      draft's pull
+
+      request, and it is the whole flow: the owner rules from it and publishes
+      from it, never
+
+      switching commands. no new package, no service, and no browser — it
+      reaches the fold, the
+
+      projection, and the conflict check as library calls rather than
+      reimplementing them.
+
+
+      `--pr <url>` names the pull request to work and is not required. given
+      one, the session
+
+      resolves it to its head branch and works that: where the current tree is
+      already on that
+
+      branch it works in place, and otherwise it fetches the branch,
+      materialises a temporary git
+
+      worktree from it, runs there, and removes the worktree when the session
+      ends. it needs a
+
+      local clone of the pull request's repository, found from the working
+      directory the command
+
+      ran in.
+
+
+      given no `--pr`, the session takes the branch the working directory is on,
+      looks for the
+
+      pull request whose head is that branch, and works it. where the branch has
+      none, the session
+
+      pushes it — setting its upstream where it has none — and opens one, titled
+      for the draft it
+
+      carries. this is the ordinary case rather than an error: a branch carrying
+      a draft and no
+
+      pull request is a draft nobody has posted yet, and posting it is what the
+      owner came to do.
+
+
+      four things it refuses instead, saying which: the branch is the
+      repository's default branch,
+
+      which never carries a draft and cannot be the head of a pull request into
+      itself; the tree
+
+      holds no draft increment, so there is nothing to rule; the tree has
+      uncommitted changes,
+
+      which the owner would be ruling without having written; and the head
+      branch lives on a fork
+
+      the local clone cannot push to.
+
+
+      the product comes from the draft the branch holds, so the product argument
+      is optional
+
+      throughout. the session has modes, and what is open decides which are
+      offered. ratify is
+
+      where a draft carrying anything proposed or unanswered opens. landing
+      becomes available
+
+      exactly when nothing is proposed and no question is open, and is entered
+      from the same
+
+      session. `increment` takes `--root` as every operation does, and `--pr`.
+    status: accepted
+    because:
+      - r-ycjjl48r
+      - r-ax84j1s2
+      - r-2keswxn8
+      - d-h418ljtp
+    pinned:
+      reason: public-api
+      notes: the command a published cli offers, what it accepts, and when it refuses
+        to open
+    facets:
+      - tooling
+  - id: d-4n77krzi
+    title: a markdown surface declares its identity in frontmatter, keyed on the
+      word the other formats use
+    statement: >
+      a surface authored as markdown declares its identity in the frontmatter
+      key
+
+      `io.twindigital.surface`. markdown has no comment syntax that survives
+      rendering, so the
+
+      identity goes in the frontmatter a markdown file already carries.
+
+
+      the key is namespaced because frontmatter is shared with every other tool
+      that reads the
+
+      file, and a bare `id` is a name many of them already use. it ends in
+      `surface` because that
+
+      is the word the typescript and yaml comments use for the same thing, so
+      one word names the
+
+      identity across every format this process defines — openapi excepted,
+      where the key belongs
+
+      to openapi.
+    status: accepted
+    because:
+      - d-rui9z0lc
+      - d-ds6mco0p
+      - d-tjitou0m
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - design-validator
+  - id: d-yfxziwwg
+    title: text the owner typed is written as a block scalar that round-trips
+    statement: >
+      the draft's sources are yaml. every field the session writes into them
+      from text the owner
+
+      typed — a rejection's reason, the answer a routed question carries, the
+      placeholder
+
+      statement that answer writes — is written as a yaml block scalar, whatever
+      its length. a
+
+      colon, a leading dash, a `#`, or a quote in the owner's prose then cannot
+      break the file,
+
+      and no escaping rule has to be right. the alternative is quoting, which is
+      a rule that must
+
+      hold for every character the owner can type.
+
+
+      the scalar is the folded one, `field: >`, so that the session can wrap
+      what it writes
+
+      without wrapping being part of what it wrote. folding turns a line break
+      between two
+
+      non-empty lines back into the space it replaced, and keeps a blank line as
+      the paragraph
+
+      break the owner typed. a literal `|` cannot do this: every break the
+      wrapper inserted would
+
+      be stored, and the owner's text would come back carrying a shape the tool
+      chose.
+
+
+      where the owner's text does not survive folding — a line they began with
+      whitespace, which
+
+      a folded block would keep literally — the session writes a literal block
+      instead and does
+
+      not wrap. round-tripping the value is the rule; folding is how it is met
+      in the ordinary
+
+      case.
+
+
+      the width and the wrapping algorithm are the implementer's: a target under
+      some width,
+
+      breaking on whitespace, breaking inside a token only where an unbroken run
+      exceeds the width
+
+      on its own.
+
+
+      the write is an edit to the source, not a re-serialisation of it. a submit
+      rewriting the
+
+      file through a yaml serialiser reflows every entry it did not touch: the
+      values survive and
+
+      the diff does not, and the pull request stops showing what the sitting
+      did. so the session
+
+      edits the spans it ruled and leaves every other byte where it found it,
+      the scalar style of
+
+      the surrounding entries included.
+    status: delegated
+    because:
+      - r-xtbhb7gj
+      - r-ospozqv8
+      - d-ovlyaoht
+      - d-octrdz0j
+      - r-6n45h5eb
+    pinned:
+      reason: data-format
+      notes: what a tool writes into sources every reader diffs and every parser reads
+    facets:
+      - tooling
+      - schema
+  - id: d-pe4j25wq
+    title: the model is a block of the requirements source
+    statement: >
+      the model is a top-level `model:` block in the requirements source — the
+      place everything
+
+      the owner ratifies as binding lives. entries carry `name`, one contract
+      reference (`schema:`
+
+      or `surface:`, each as `/<namespace>/<entity>@<version>`), an optional
+      `description`, and a
+
+      `status` of `bound` (the default) or `unbound`, folding by name like
+      presets; an entity's
+
+      name is the design's word for it, free to differ from the pool entry's.
+
+
+      the key is `surface:` because the pool it points into is `surfaces/`.
+      sources already
+
+      written stay readable in the dialect they declare:
+      `/design-process/requirements@1` keeps
+
+      `api:`, and `@2` is what a source opts into to say `surface:`.
+    status: accepted
+    supersedes: d-ke7709uf
+    because:
+      - r-bua9wl1s
+      - r-j232vwp4
+      - d-qwquvf78
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+  - id: d-9zot40jn
+    title: the screen's shape is an authored contract, not prose
+    statement: >
+      what ratify mode renders is an authored surface in the repo-wide
+      `surfaces/` pool, bound
+
+      through this increment's model as `ratify-screen`. the contract carries
+      the layout and the
+
+      form of every field; the decisions carry the choices — which entries the
+      list holds, how a
+
+      cited id is resolved, what a submit writes.
+
+
+      a screen is a public surface in the sense the pool already means: it is
+      what the owner
+
+      interacts with, and it is falsifiable, since a render can be diffed
+      against the authored
+
+      shape. prose cannot be diffed, and a layout written as paragraphs drifts
+      from the build
+
+      without anything catching it.
+    status: tolerated
+    because:
+      - r-ax84j1s2
+      - d-7i1l1kfy
+    pinned:
+      reason: public-api
+      notes: the screen the owner works from, and the first entry the surface pool has
+        held
+    facets:
+      - tooling
+  - id: d-q50z7iq1
+    title: how ratify-screen@1 is read
+    statement: >
+      `/design-process/ratify-screen@1` is read as follows, and this says
+      nothing about how any
+
+      other surface is written.
+
+
+      the file has two halves that say the same thing twice on purpose. `mock:`
+      carries rendered
+
+      frames; the sections beside it carry the same shape as rules. the frames
+      are what a render
+
+      is compared against; the rules are what settles a case no frame happens to
+      show. where the
+
+      two appear to disagree, the rules govern — a frame is one instance and a
+      rule is the
+
+      statement.
+
+
+      what the surface commits to is arrangement, the order of things within a
+      region, and the
+
+      form of each field. what it does not commit to, and what an implementer
+      therefore settles
+
+      as an ordinary implementation detail, is everything the frames
+      incidentally have: column
+
+      widths, separator and rule glyphs, the selection marker, the truncation
+      width, colour, and
+
+      any behaviour no section names — key bindings, scrolling, an empty list, a
+      terminal too
+
+      narrow to hold both panes. silence here is not a gap to escalate; the
+      preamble names the
+
+      surface, and what falls outside it is the implementer's.
+
+
+      a key path addresses the thing it names — `detail-pane.metadata.pinned` —
+      and that is how
+
+      prose cites a region of this surface. the paths are an addressing scheme
+      for this file, not
+
+      a vocabulary any other surface inherits or a structure the pool enforces.
+
+
+      a render conforming is one matching the frames in arrangement, order, and
+      field form, and
+
+      differing from them only in what the paragraph above leaves open.
+    status: delegated
+    because:
+      - r-j232vwp4
+      - d-9zot40jn
+    pinned:
+      reason: public-api
+      notes: what conformance to the screen means, and so what a build is checked
+        against
+    facets:
+      - tooling
+      - schema
+  - id: d-8abusqwe
+    title: the ratify list is the draft's whole decision set, beside the entry's
+      full text
+    statement: >
+      the ratify list holds every decision the draft carries, in whatever
+      status, and every
+
+      question still open. a decision the draft already rules carries that
+      ruling as its staged
+
+      value; a proposed one carries none. a draft is worked over several
+      sittings, and a list
+
+      holding only what is still open hides the rulings the owner is deciding
+      against, and offers
+
+      no way back to one already made.
+
+
+      any of them is re-ruled from the list, a rejection included. `d-9s4d3ww2`
+      closes a ruled
+
+      entry against later change, and that binds a published one: while the
+      draft is unpublished
+
+      a ruling is an edit to a file nobody has read yet, and the owner changing
+      their mind before
+
+      the merge is what ratify is.
+
+
+      one bulk action is offered beside the per-entry ruling and not instead of
+      it: setting every
+
+      decision still unruled to one status. it is the secondary path — a draft
+      is ruled entry by
+
+      entry, and the bulk action is for the tail the owner has already decided
+      as a group.
+
+
+      the arrangement, the entry's form, and the pane's fields are the bound
+      `ratify-screen`
+
+      contract's; this decision says what the list holds, not how it looks.
+    status: accepted
+    supersedes: d-9g0poz7v
+    because:
+      - r-jf51jzor
+      - r-ax84j1s2
+      - d-7i1l1kfy
+    pinned: false
+    facets:
+      - tooling
+  - id: d-mhlya385
+    title: a cited id is shown as the title it resolves to
+    statement: >
+      the entries a shown entry cites — its `because`, what it supersedes, what
+      a question's
+
+      answer routes to — are resolved against the fold the draft sits on and the
+      repo-wide facts
+
+      pool, and each is shown as its title with its id beside it. the kind is
+      read from the id's
+
+      prefix; nothing stores it.
+
+
+      an id that resolves to nothing is shown as the id alone. that is the whole
+      of the handling:
+
+      a dangling citation is already a merge-gate finding, and the session is
+      not where it is
+
+      reported. a citation reaching outside the fold and the facts pool resolves
+      to nothing and
+
+      is shown that way.
+
+
+      a fact carries no title, so a cited fact shows the first line of its
+      claim. a question's
+
+      `answer` names the kind its answer routes to rather than an entry, so it
+      is shown as that
+
+      word and is not resolved.
+    status: accepted
+    because:
+      - r-fipf2016
+    pinned: false
+    facets:
+      - tooling
+  - id: d-4xkyfjzu
+    title: deferring is offered beside the four rulings
+    statement: >
+      the statuses ratify mode offers for a decision are the four rulings and
+      `deferred`. the
+
+      owner writing a deferral is authoring one rather than ratifying it — the
+      process already
+
+      has a deferral enter directly and the merge ratify it — and the session is
+      where the owner
+
+      is, so it is where the deferral is written.
+
+
+      a deferred decision is settled for the purpose of landing: it is not
+      proposed, and it does
+
+      not hold the landing closed.
+    status: accepted
+    because:
+      - r-3l4h8ua1
+      - r-ax84j1s2
+      - d-ovlyaoht
+    pinned: false
+    facets:
+      - tooling
+      - process-doc
+  - id: d-lqmwczg3
+    title: the submit tallies what it ruled and pushes
+    statement: >
+      the commit a submit writes carries a body naming each status the set took
+      and how many
+
+      entries took it — `3 accepted, 1 rejected` — in a fixed status order,
+      omitting any status
+
+      no entry took, and counting answered questions as their own clause since
+      an answer is not a
+
+      status. a sitting that changed nothing writes no commit. after committing,
+      the submit
+
+      pushes the branch to its remote.
+
+
+      pushing on submit is what makes a sitting durable: a draft is ruled over
+      several of them,
+
+      and rulings that live only in a local branch are lost to whichever machine
+      held them. a
+
+      push the remote refuses is reported and the commit left standing — the
+      session does not
+
+      rebase, because rewriting the owner's branch under them is worse than a
+      sitting they are
+
+      told to resolve.
+    status: tolerated
+    because:
+      - r-clty5lqd
+      - d-ovlyaoht
+    pinned: false
+    facets:
+      - tooling
+  - id: d-pm6a29v6
+    title: the pull request's diff names the draft, and the owner picks only where
+      it is ambiguous
+    statement: >
+      the increment directories a pull request's diff touches are the drafts it
+      carries, and the
+
+      `products/<product>/` above each is its product. nothing is declared and
+      nothing is passed:
+
+      a draft is identified by the branch changing it.
+
+
+      the diff rather than a `wip-` name, because a branch at landing has
+      already renamed its
+
+      directory into the number it claims — a session opened on a landing branch
+      would find no
+
+      draft by name, and the one it should work is the one the branch changed.
+
+
+      where the diff carries exactly one, the session opens on it. where it
+      carries several, a
+
+      selection screen comes first, listing each by product and directory, and
+      choosing one opens
+
+      the ordinary view; a tree holds more than one draft only where they are
+      stacked, so this is
+
+      the uncommon path. a product named on the command line narrows the list to
+      that product's
+
+      drafts, and where that leaves one the selection screen is skipped. where
+      the diff carries
+
+      none, the session says the pull request holds no increment and exits.
+    status: accepted
+    because:
+      - r-ycjjl48r
+      - d-7i1l1kfy
+      - d-x0q4xgd8
+    pinned: false
+    facets:
+      - tooling
+  - id: d-f1b5r2f8
+    title: a submit carrying notes posts one review, and approving stays the landing's
+    statement: >
+      a submit that carries notes posts exactly one `COMMENT` review to the
+      draft's pull request,
+
+      after the commit and the push, so the review anchors to the state it
+      describes. each note
+
+      is a comment in that review, against the lines of the entry it concerns in
+      the source file
+
+      that carries it. a note the pull request's diff does not reach goes into
+      the review's body
+
+      naming the entry: github refuses a comment on a line outside the diff, so
+      the test is
+
+      whether the anchored lines fall in a diff hunk, not whether the file was
+      touched.
+
+
+      a submit carrying no note posts nothing. the commit already records the
+      statuses it
+
+      changed, and an empty review repeats it while burying the reviews that say
+      something.
+
+
+      no submit approves. approving stays the landing's own step, where it
+      already is, because an
+
+      approval posted earlier is dismissed by the next push — and a submit
+      pushes, as does the
+
+      landing's rename commit. an approval the owner has to re-make after every
+      push is worse
+
+      than one taken once at the end.
+
+
+      the review is the owner's, so it is what the owner's credential is spent
+      on. a note settles
+
+      nothing and gates nothing: an entry can carry a note and be ruled in the
+      same submit.
+    status: accepted
+    because:
+      - r-jitunafp
+      - r-y9eux47d
+      - r-z0wcwwn0
+      - d-lqmwczg3
+      - d-7i1l1kfy
+      - d-h418ljtp
+    pinned:
+      reason: public-api
+      notes: what a submit writes to the pull request is what the owner and every
+        later reader see there
+    facets:
+      - tooling
+  - id: d-2b23mjrl
+    title: the owner's credential is asked for once and held for the session
+    statement: >
+      the credential that acts as the owner is a github personal access token
+      entered at the
+
+      terminal the first time a session needs one — the first submit that
+      actually posts
+
+      something, never one that does not — with the input not echoed. it lives
+      in the process's
+
+      memory for the rest of that session and nowhere else: not in a file, not
+      in the
+
+      environment, not in an argument. a later session asks again, and so does
+      the next submit
+
+      after an empty answer.
+
+
+      a sitting may post several reviews, so asking at each would put a prompt
+      in the middle of
+
+      the flow the session exists to make continuous. holding it for the run is
+      what
+
+      `d-6fur4w53` already permitted; what changes is that the first use may now
+      be a submit
+
+      rather than the landing.
+
+
+      a session that cannot obtain one still stages, commits, and pushes. it
+      reports the notes it
+
+      could not post and keeps them for the rest of the session, so a token
+      supplied later
+
+      carries them; a session ended without one loses them, and it says so
+      before it ends.
+
+
+      `design-process land`, having no session, asks at its own terminal where
+      it has one and
+
+      reports the pull request as awaiting approval where it has none.
+    status: accepted
+    supersedes: d-6fur4w53
+    because:
+      - r-rxb7pn9z
+      - d-f1b5r2f8
+      - d-7i1l1kfy
+    pinned:
+      reason: other
+      notes: the owner's identity is what it spends; a later relaxation to a stored
+        token would be silent
+    facets:
+      - tooling
+  - id: d-ex0pr4e4
+    title: the token is spent on the reviews and nothing else
+    statement: >
+      the calls that carry the owner's token are the reviews a submit and a
+      landing post, in an
+
+      authorization header read from memory. opening the pull request, pushing,
+      and setting the
+
+      merge to complete on its own use the credentials the environment already
+      holds — the agent
+
+      opened the draft's pull request, and the owner reviewing it is the point.
+
+
+      the token's reach is the reviews, so what the owner's identity is spent on
+      is exactly what
+
+      carries their judgement.
+    status: accepted
+    supersedes: d-uap9qjz9
+    because:
+      - r-rxb7pn9z
+      - d-2b23mjrl
+      - d-f1b5r2f8
+    pinned: false
+    facets:
+      - tooling
+  - id: d-tmyu6t1y
+    title: a comment is an instruction; the sources are the ruling
+    statement: >
+      the owner rules from the session or from a comment on the pull request,
+      and both stand. the
+
+      draft's sources are the only record of a ruling: a comment directs one and
+      does not make
+
+      one, so it takes effect when an agent writes it into the sources. nothing
+      reconciles the
+
+      two surfaces because only one of them writes.
+
+
+      an unresolved review thread is a direction nobody has applied. the agent
+      that applies one
+
+      replies with the commit that did it and resolves the thread, as
+      `CLAUDE.md` already
+
+      requires, and that is the whole of the bookkeeping.
+
+
+      the owner is not always at the machine a session runs on, and a ruling
+      typed into github's
+
+      web ui is the same ruling. what a comment must not become is a second
+      record: a direction
+
+      applied to the sources is settled there, and the thread is closed rather
+      than kept as a
+
+      rival copy of the ruling.
+    status: delegated
+    because:
+      - r-dp8zisqf
+      - d-7i1l1kfy
+      - d-wcnyuwkv
+    pinned: false
+    facets:
+      - tooling
+      - prompts
+      - process-doc
+  - id: d-wtgyvwf3
+    title: the agent opens the pull request, pushes everything, and stands off the
+      branch
+    statement: >
+      the agent working a draft opens its pull request when Clarify closes and
+      it puts the draft
+
+      to the owner — so the ordinary start is the owner pasting a url that
+      already exists, and
+
+      the landing's own open step is the fallback for a draft no agent posted.
+
+
+      before handing the url over, the agent pushes everything: the session runs
+      in a worktree
+
+      made from the fetched head, so an uncommitted entry is not there to rule,
+      an increment
+
+      directory the branch does not touch is not found at all, and an
+      uncommitted fact goes
+
+      uncounted in the header. what is not pushed does not exist for the owner.
+
+
+      while a session is open on a branch the agent does not write to it. every
+      submit commits
+
+      and pushes, nobody force-pushes, and an agent revising text mid-sitting
+      loses the race and
+
+      strands the owner's commit. the owner says when the sitting is done.
+    status: delegated
+    because:
+      - r-ycjjl48r
+      - d-7i1l1kfy
+      - d-lqmwczg3
+      - d-wcnyuwkv
+    pinned: false
+    facets:
+      - prompts
+      - process-doc
+  - id: d-2mvbck4i
+    title: an implementer reads the contracts its model binds, wherever the pool is
+    statement: >
+      an implementer reads the bound contracts as part of reading the fold, and
+      the instruction
+
+      says so: the projection prints a model entry's name, reference, and
+      description and none of
+
+      the contract's content, so an implementer working from the projection
+      alone cannot see the
+
+      shape it is bound to.
+
+
+      a reference resolves by scanning the pool for the file whose identity
+      header matches it.
+
+      pool layout is not normative, so the path is not derivable and a
+      convention would be a
+
+      second, contradictable answer.
+
+
+      the pool is the planning repository's. a package built in another
+      repository reads its
+
+      contracts from the planning repository's checkout, which is where the
+      increment that bound
+
+      them lives; the pool does not travel with the code. this is the ordinary
+      case rather than
+
+      the exception — the tooling this process ships is built outside the
+      repository that plans
+
+      it.
+    status: delegated
+    because:
+      - r-bua9wl1s
+      - r-lll68661
+      - d-9zot40jn
+    pinned: false
+    facets:
+      - prompts
+      - process-doc
+  - id: d-kjwswmro
+    title: the header names the draft and what is not in the list
+    statement: >
+      a header spans the top of every mode, naming the product, the increment
+      directory, the
+
+      branch, and the pull request. the session is now started from a pull
+      request url and runs
+
+      in a worktree the tool made, so nothing else on screen says which draft is
+      open.
+
+
+      the header also names the draft's changed inputs that the ratify list does
+      not hold —
+
+      schema pool versions, authored surfaces, facts, evidence, and drafts —
+      counted from the branch's
+
+      merge-base with the head the conflict check uses, so what the head gained
+      meanwhile is not
+
+      counted as the draft's. the count is of entries where a file holds them
+      and of files where
+
+      it does not: a facts file gaining two facts reads as two, which is what
+      the owner wants to
+
+      know before ruling. it says they are there and does not render them — a
+      draft binding a new
+
+      contract is a thing the owner must know, and a list of decisions alone
+      does not show it.
+
+
+      the header names one thing more: how many review threads on the pull
+      request are unresolved.
+
+      a direction the owner left from a comment is unapplied until an agent
+      writes it into the
+
+      sources, and the count is what keeps a draft from publishing over one.
+    status: tolerated
+    because:
+      - r-ge2xf5nz
+      - r-ax84j1s2
+      - r-dp8zisqf
+      - d-7i1l1kfy
+      - d-9zot40jn
+      - d-tmyu6t1y
+    pinned: false
+    facets:
+      - tooling

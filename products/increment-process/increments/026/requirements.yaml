@@ -1,0 +1,221 @@
+version: "2"
+model:
+  - name: ratify-screen
+    surface: /design-process/ratify-screen@1
+    description: what the session's ratify mode renders — the entry list, the detail pane, and the form of each field
+
+requirements:
+  - id: r-j232vwp4
+    title: authored surfaces are shared and versioned
+    amends: r-lll68661
+    statement: |
+      a product's public surfaces are authored contracts in a repo-wide `surfaces/` pool —
+      commitments the implementation must satisfy, never extracted projections, though the design
+      validator may extract from the built thing and diff against the authored surface. a surface
+      is anything a consumer meets and holds the product to: a code interface, a wire format, a
+      command's arguments, a screen. each version declares its identity root-relative as
+      `/<namespace>/<name>@<version>`; versions are dense integers per name, immutable once an
+      increment binding one publishes, and present as long as anything published binds them;
+      drift is legal — no product is rebound by a new version appearing. only public surfaces
+      enter the pool — internal stubs stay implementation. any organizational or naming
+      convention within the pool is an aid to navigation, non-normative and unenforced.
+    verification:
+      - do: open a pull request introducing two surface files that claim one identity
+      - verify: the merge is blocked
+      - do: open a pull request editing or removing a surface version some published increment binds
+      - verify: the merge is blocked
+      - do: author a surface that is not a code interface and bind it through an increment's model
+      - verify: the merge is not blocked on account of what kind of surface it is
+    facets:
+      - schema
+      - design-validator
+  - id: r-7bwh7ach
+    title: a statement names what it governs
+    statement: |
+      a requirement or decision statement names the thing it binds — the surface, the mode, the
+      phase, the artifact — wherever it does not bind the whole process. a reader who meets the
+      statement alone must not be able to take it wider than the owner ruled, and the authoring
+      rubric tests for it.
+    rationale: |
+      a statement read wider than it was ruled is not caught by any gate: it validates, it folds,
+      and it binds an implementer to something nobody decided. the cost lands one tier down, in a
+      build made to a rule the owner never gave.
+    verification:
+      - do: author a requirement about one screen whose statement names no screen, and put it to the closing checklist
+      - verify: the checklist names the missing scope as a defect
+      - do: put a requirement that genuinely binds the whole process to the same checklist
+      - verify: it passes, naming no scope
+    facets:
+      - process-doc
+
+  - id: r-jf51jzor
+    title: the owner sees every decision the draft carries, and what each is ruled
+    statement: |
+      ratifying a draft in the ratify session, the owner reaches every decision that draft
+      carries, ruled or not, and sees the ruling each one currently holds; a ruling already made
+      is changed where it is read, without leaving for another tool.
+    verification:
+      - do: open a session on a draft carrying decisions in several statuses, at least one still proposed
+      - verify: every decision the draft holds appears in the list, each ruled one showing its status and each proposed one showing none
+      - do: change the ruling on a decision that already carried one, and submit
+      - verify: the draft's source carries the new status
+    facets:
+      - tooling
+
+  - id: r-fipf2016
+    title: an entry is identified by what it says
+    statement: |
+      wherever the ratify session names an entry — in the list, in the heading of the pane, in
+      the entries a shown entry cites — it shows that entry's title, with the id beside it. no
+      place in the session identifies an entry by its id alone.
+    verification:
+      - do: open a session and read the list, then select an entry that cites several others
+      - verify: each list row and the pane's heading show a title, and each cited entry is shown by its title with its id beside it
+    facets:
+      - tooling
+
+  - id: r-clty5lqd
+    title: a submitted set of rulings leaves the remote current and says what it did
+    statement: |
+      a set of rulings the owner submits from the ratify session survives the machine it was
+      made on, waiting on no later action; and the history it writes names what the sitting did —
+      which statuses the set took, and how many entries took each.
+    verification:
+      - do: rule several entries to different statuses and submit
+      - verify: the branch's remote carries the commit, and the commit message names each status taken with its count and names no status that no entry took
+    facets:
+      - tooling
+
+  - id: r-ycjjl48r
+    title: a draft is ratified through its pull request
+    statement: |
+      the owner opens a ratify session by naming a draft's pull request, and ratifies and lands it
+      from there without locating a branch or a working tree themselves. a draft has a pull
+      request by the time it is being ratified, whoever opened it. this governs ratification, not
+      when a draft is created or how it is worked before that.
+    verification:
+      - do: from a working tree on an unrelated branch, open a session naming another draft's pull request
+      - verify: the session opens on that draft's entries
+      - do: rule an entry and submit
+      - verify: the ruling reaches the pull request's branch, and the working tree the owner started from is unchanged
+      - do: open a session on a branch carrying a draft and no pull request
+      - verify: the draft has one, and the session is working it
+    facets:
+      - tooling
+
+  - id: r-y9eux47d
+    title: the pull request carries the owner's notes
+    statement: |
+      the notes the owner attaches during a ratify session appear on the draft's pull request as
+      a review by them, against the text each concerns.
+    verification:
+      - do: attach notes to two entries and submit
+      - verify: the pull request carries one review by the owner, with a comment against each noted entry's text
+      - do: submit again having ruled entries and attached no note
+      - verify: the pull request carries no second review
+    facets:
+      - tooling
+
+  - id: r-dp8zisqf
+    title: the owner directs a ruling without a session
+    statement: |
+      ratifying does not require the session: the owner rules by saying so where they are — a
+      comment on the pull request, made from anywhere — and the draft ends up carrying that
+      ruling. nothing is lost by ruling away from the ratify session, and a draft does not publish
+      over a direction nobody acted on.
+    verification:
+      - do: comment a ruling on an entry from the pull request, with no session open
+      - verify: the draft's source carries that ruling once an agent has worked the comment, and the comment's thread is resolved naming the commit that did it
+      - do: open a session while a comment directing a ruling is unresolved
+      - verify: the session says an unapplied direction is outstanding
+    facets:
+      - tooling
+      - prompts
+
+  - id: r-ge2xf5nz
+    title: the owner knows which draft they are ruling, and what the list does not show
+    statement: |
+      the ratify session says at all times which draft is open and where it lives, and says
+      whether that draft changes anything its ruling list does not hold. the owner does not
+      approve a draft whose contract bindings, facts, or schema versions they were never told
+      about.
+    verification:
+      - do: open a session on a draft that also binds a contract and adds a fact
+      - verify: the product, the increment, the branch, and the pull request are visible without leaving the ruling view, and so is the fact that surfaces and facts changed
+      - do: open a session on a draft that changes decisions only
+      - verify: nothing claims an input changed
+    facets:
+      - tooling
+
+  - id: r-3l4h8ua1
+    title: every status the owner needs is available where they rule
+    statement: |
+      in the ratify session the owner leaves any status a decision may carry from the place they
+      are ruling it, deferring included, without writing the entry by hand or leaving for another
+      tool.
+    verification:
+      - do: rule one decision to each status the process defines, from the ruling view
+      - verify: each is taken there, and the draft's source carries it
+    facets:
+      - tooling
+
+  - id: r-iibk7tw0
+    title: the owner can see where what they type will land
+    statement: |
+      wherever the ratify session takes text from the owner, the position the next character
+      will occupy is visible — including where the text itself is not echoed back.
+    verification:
+      - do: reject a decision and begin typing its reason
+      - verify: the insertion point is visible before the first character and after the last
+      - do: reach a field whose text is not echoed
+      - verify: the insertion point is visible there too, and the text is not
+    facets:
+      - tooling
+
+  - id: r-ospozqv8
+    title: a submit changes only what it ruled
+    statement: |
+      an entry the owner did not rule and did not note comes out of a ratify session's submit
+      exactly as it went in, byte for byte. the pull request's diff shows the sitting and nothing
+      else.
+    verification:
+      - do: rule two entries in a draft carrying twenty, and submit
+      - verify: the commit's diff touches those two entries and no other line of any source
+    facets:
+      - tooling
+
+  - id: r-xtbhb7gj
+    title: what the owner types is stored as they wrote it
+    statement: |
+      text the owner types into the ratify session reaches the draft's sources as written, and no
+      character they can type corrupts the file it lands in or changes what a later reader sees.
+    verification:
+      - do: reject a decision with a reason containing a colon, a leading dash, a "#", and both kinds of quote
+      - verify: the source parses, and the reason reads back exactly as typed
+    facets:
+      - tooling
+      - schema
+
+  - id: r-jitunafp
+    title: an approval the owner gives is not discarded by the process
+    statement: |
+      ratifying and publishing one draft asks the owner to approve it once, and no step taken
+      afterwards throws that approval away and asks again.
+    verification:
+      - do: settle a draft, then carry it through to publication
+      - verify: the owner was asked to approve once, and the merge proceeded on that approval
+    facets:
+      - tooling
+      - process-doc
+
+  - id: r-z0wcwwn0
+    title: the owner asks for a wording change without ruling on it
+    statement: |
+      while reading an entry in the ratify session the owner attaches a note asking for its text
+      to be revised. the note is not a ruling and settles nothing; it reaches whoever revises the
+      text.
+    verification:
+      - do: attach a note to an entry, rule a different entry, and submit
+      - verify: the noted entry's status is unchanged, and the note is legible to whoever revises the entry, naming the entry it concerns
+    facets:
+      - tooling
