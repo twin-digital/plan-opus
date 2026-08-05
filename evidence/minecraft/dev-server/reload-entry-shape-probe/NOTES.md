@@ -1,44 +1,57 @@
-# reload entry-shape probe — what a console reload does not re-evaluate
+# reload entry-shape probe — inconclusive, and why
 
-The dev-loop probe left one case unresolved: a script module that is a single file with no imports
-did not re-evaluate on `send-command reload`, while a module with an import did. Those runs differed
-in more than the import, so this probe varies exactly one thing.
+**This probe establishes nothing about which edits a console reload re-evaluates.** It is kept
+because its failure is informative about the probe, and because an earlier revision of this file
+asserted a conclusion the evidence does not support.
 
-Three module shapes, each deployed under its own pack uuid into an emptied pool, loaded by a
-restart, then edited **only in `scripts/main.js`** and reloaded with a 60-second poll. The set runs
-twice.
+## What it does
 
-| shape | files | round 1 | round 2 |
+One pack, loaded once, then edited and reloaded repeatedly with no restart in between. Cases
+alternate: edit the module's entry file, edit a file the entry imports, and so on. The imported-file
+edits are a **positive control** — an edit of that kind re-evaluated on reload in two earlier runs
+(the dev-loop probe's E2, and a standalone check beside it) and in increment 007's
+`reload-edits-a-loaded-file`, whose edit was to `helper.js`.
+
+Each case reads the file back out of the container after copying it, so no case is scored on an edit
+that did not land. Every expected line is unique, so the content log's suppression of byte-identical
+repeats cannot hide a re-evaluation.
+
+## Result
+
+| | #1 | #2 | #3 |
 |---|---|---|---|
-| flat | `main.js` | NO | NO |
-| noop | `main.js` importing an empty `noop.js` | NO | NO |
-| graph | `main.js` importing `helper.js`, whose value it logs | NO | NO |
+| edit to the entry file | NO | NO | NO |
+| edit to an imported file | NO | NO | NO |
 
-Every one of the six packs loaded — each logged its `LOADED` token at world load — so no case is a
-deploy that silently failed. Every reload returned `Function and script files have been reloaded.`,
-so the command reached the server. None of the six re-evaluated.
+Every copy landed — the read-back shows the new bytes on the server. Every reload was acknowledged
+with `Function and script files have been reloaded.` **The positive control failed.** No reload in
+this session re-evaluated the module, whichever file changed.
 
-**The import graph is not the discriminator.** `graph` here is the same shape as the dev-loop
-probe's E-series and it did not re-evaluate either. What separates the cases that re-evaluate from
-the cases that do not is **which file changed**:
+## What that means
 
-- an edit to a file the entry *imports* re-evaluates on reload — the dev-loop probe's E2, the
-  standalone check beside it, and increment 007's `reload-edits-a-loaded-file`, whose edit was to
-  `helper.js` and not to the entry
-- an edit to the **entry file itself** did not re-evaluate, in 6 of 6 controlled cases here
+A run of negatives with a failing positive control cannot distinguish "this kind of edit does not
+re-evaluate" from "no edit re-evaluates in this setup". So the six negatives here, and the six in the
+previous revision of this probe, say nothing about entry files versus imported files. The claim that
+an entry-file edit does not re-evaluate is **withdrawn**.
 
-The dev-loop probe's E1 is the one observation that points the other way, and it was not controlled:
-the pack had been redeployed and restarted repeatedly in the same server session immediately before,
-and the edit landed close enough to the world load that the load's own evaluation may have read the
-edited file. This probe supersedes it for that claim.
+## What is still unexplained
 
-## Why it matters
+Reload re-evaluation has been observed and not observed on the same engine build, 1.26.40.8:
 
-`r-2alueo3d` and `d-1w5rjhg6` bundle a pack's script module to a single file at the entry location
-with its imports inlined. Every source edit in a pack this kit builds therefore reaches the server
-as an edit to the entry file and nothing else — the one shape that did not re-evaluate here.
+| run | first edit after the world load | re-evaluated |
+|---|---|---|
+| increment 007 `reload-edits-a-loaded-file` | imported file | yes |
+| dev-loop probe E1 | entry file | yes |
+| dev-loop probe E2 | imported file | yes |
+| standalone check beside the dev-loop probe | imported file | yes |
+| standalone check before it | entry file, single-file module | no |
+| this probe, six cases | both kinds | no |
 
-## What this probe does not establish
+The runs that worked were late in long server sessions with many restarts behind them and other
+packs sitting in the pool. The runs that failed were early in a fresh session with a single pack in
+an emptied pool. That is a difference between the runs, not a demonstrated cause, and nothing here
+tests it.
 
-Why the entry file behaves differently, and whether any invocation other than `send-command reload`
-re-evaluates it. The probe tests one command against one engine build, 1.26.40.8.
+Anyone taking this further should hold the positive control in the same session as the question, and
+vary one of: how long the world has been up, how many restarts precede the reload, and whether other
+packs sit in the pool.

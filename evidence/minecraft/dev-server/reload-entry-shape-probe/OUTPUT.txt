@@ -2,55 +2,56 @@
 Docker Compose version v5.2.0
 Docker Engine 29.5.3
 DOCKER_HOST=ssh://prod-development-docker
-[2026-08-05 03:01:50:262 INFO] Version: 1.26.40.8
+[2026-08-05 03:36:57:377 INFO] Version: 1.26.40.8
+host epoch 1785901021, container epoch 1785901021
 
-Each case: deploy, restart to load, edit ONLY scripts/main.js, reload, poll 60s.
+=== loaded at world load
+  [2026-08-05 03:37:05:513 WARN] [Scripting] [probe] main#0 value=helper#0
 
-=== flat (round 1) — uuid 1a000000-0000-4000-8000-000000000001
-  files: main.js
-  at world load: [2026-08-05 03:01:58:201 WARN] [Scripting] [probe] flat-r1-LOADED
-  edited scripts/main.js to log "flat-r1-EDITED", then reload:
+=== case 1: edit the ENTRY file (scripts/main.js), then reload — no restart
+  scripts/main.js on the server is now: "import { value } from \"./helper.js\";\nconsole.warn(\"[probe] main#1 value=\" + value);"
+  expecting the line: [probe] main#1 value=helper#0
+  reload acknowledged: true
   <no [Scripting] line within 60s>
   => re-evaluated: NO
 
-=== noop (round 1) — uuid 2a000000-0000-4000-8000-000000000003
-  files: main.js, noop.js
-  at world load: [2026-08-05 03:03:25:612 WARN] [Scripting] [probe] noop-r1-LOADED
-  edited scripts/main.js to log "noop-r1-EDITED", then reload:
+=== case 2: edit the IMPORTED file (scripts/helper.js), then reload — no restart
+  scripts/helper.js on the server is now: "export const value = \"helper#1\";"
+  expecting the line: [probe] main#1 value=helper#1
+  reload acknowledged: true
   <no [Scripting] line within 60s>
   => re-evaluated: NO
 
-=== graph (round 1) — uuid 3a000000-0000-4000-8000-000000000005
-  files: helper.js, main.js
-  at world load: [2026-08-05 03:04:55:031 WARN] [Scripting] [probe] graph-r1-LOADED value=H
-  edited scripts/main.js to log "graph-r1-EDITED", then reload:
+=== case 3: edit the ENTRY file (scripts/main.js), then reload — no restart
+  scripts/main.js on the server is now: "import { value } from \"./helper.js\";\nconsole.warn(\"[probe] main#2 value=\" + value);"
+  expecting the line: [probe] main#2 value=helper#1
+  reload acknowledged: true
   <no [Scripting] line within 60s>
   => re-evaluated: NO
 
-=== flat (round 2) — uuid 4a000000-0000-4000-8000-000000000007
-  files: main.js
-  at world load: [2026-08-05 03:06:23:643 WARN] [Scripting] [probe] flat-r2-LOADED
-  edited scripts/main.js to log "flat-r2-EDITED", then reload:
+=== case 4: edit the IMPORTED file (scripts/helper.js), then reload — no restart
+  scripts/helper.js on the server is now: "export const value = \"helper#2\";"
+  expecting the line: [probe] main#2 value=helper#2
+  reload acknowledged: true
   <no [Scripting] line within 60s>
   => re-evaluated: NO
 
-=== noop (round 2) — uuid 5a000000-0000-4000-8000-000000000009
-  files: main.js, noop.js
-  at world load: [2026-08-05 03:07:51:564 WARN] [Scripting] [probe] noop-r2-LOADED
-  edited scripts/main.js to log "noop-r2-EDITED", then reload:
+=== case 5: edit the ENTRY file (scripts/main.js), then reload — no restart
+  scripts/main.js on the server is now: "import { value } from \"./helper.js\";\nconsole.warn(\"[probe] main#3 value=\" + value);"
+  expecting the line: [probe] main#3 value=helper#2
+  reload acknowledged: true
   <no [Scripting] line within 60s>
   => re-evaluated: NO
 
-=== graph (round 2) — uuid 6a000000-0000-4000-8000-00000000000b
-  files: helper.js, main.js
-  at world load: [2026-08-05 03:09:19:821 WARN] [Scripting] [probe] graph-r2-LOADED value=H
-  edited scripts/main.js to log "graph-r2-EDITED", then reload:
+=== case 6: edit the IMPORTED file (scripts/helper.js), then reload — no restart
+  scripts/helper.js on the server is now: "export const value = \"helper#3\";"
+  expecting the line: [probe] main#3 value=helper#3
+  reload acknowledged: true
   <no [Scripting] line within 60s>
   => re-evaluated: NO
 
-=== summary — did an edit to scripts/main.js alone re-evaluate on reload?
-  flat   round 1: NO   round 2: NO
-  noop   round 1: NO   round 2: NO
-  graph  round 1: NO   round 2: NO
+=== summary — did the reload re-evaluate the module?
+  edit to the ENTRY file     #1: NO   #2: NO   #3: NO
+  edit to the IMPORTED file  #1: NO   #2: NO   #3: NO
 
 === done

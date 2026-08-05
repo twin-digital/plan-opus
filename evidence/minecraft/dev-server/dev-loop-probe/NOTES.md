@@ -37,20 +37,16 @@ pack2's first-ever evaluation never logged; C2 restarted and it did. The reload 
 
 ## E — what a reload does
 
-E1 and E2 reproduce increment 007's result and sharpen it. With a pack whose entry imports a helper:
-editing **only the entry file** re-evaluates on reload (E1), and editing **the imported file**
-re-evaluates on reload (E2). Both within about two seconds, no restart, no world reload.
+E1 edited only the entry file and E2 edited an imported file; both re-evaluated on reload, within
+about two seconds, with no restart and no world reload.
 
-**The gap this probe leaves open.** A pack whose script module is a *single file with no imports*
-did not re-evaluate on reload — the command acknowledged and nothing ran, twice, once inside this
-probe's earlier shape and once in a standalone check that polled a full 60 seconds. E1 and E2 differ
-from that case only in having an import. Whether the import graph is what matters, or whether
-something else about those runs explains it, is **not established here**, and no case in this
-probe's output isolates it.
-
-That gap is the one worth closing before the dev loop's cheap path is designed around a reload: the
-kit bundles a pack's script module to a single entry file with its imports inlined, which is
-exactly the shape that did not re-evaluate.
+**Do not read a rule about entry files versus imported files out of these two cases.** The companion
+`reload-entry-shape-probe` set out to confirm one and its positive control failed: in a fresh
+session with a single pack in the pool, no reload re-evaluated the module whichever file changed.
+Reload re-evaluation is not reliably reproducible across sessions on this engine build, and that
+probe's NOTES.md carries the table of runs that did and did not show it. What E1 and E2 establish is
+that a reload re-evaluates a loaded pack's script module **sometimes**, here, in this session — not
+what governs it.
 
 ## D — the resource-pack side
 
