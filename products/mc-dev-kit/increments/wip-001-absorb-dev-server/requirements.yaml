@@ -8,10 +8,10 @@ requirements:
   - id: r-8et233c9
     title: one-command dev loop
     statement: |
-      a single command takes an author from a clean checkout to a running server with every pack
-      deployed and watched — it builds the packs, starts the server, deploys the current build, and
-      begins watching for changes — with the server's output and the build/deploy activity shown in
-      one interleaved stream. The part of this product that provides it is the harness.
+      a single command takes an author from a clean checkout to a running server with every pack deployed
+      and watched — it builds the packs, starts the server, deploys the current build, and begins watching
+      for changes — with the server's output and the build/deploy activity shown in one interleaved
+      stream. The part of this product that provides it is the harness.
     facets: dev-loop
     verification:
       - do: from a clean checkout, run the single dev command and nothing else
@@ -21,10 +21,9 @@ requirements:
   - id: r-kfu7pcms
     title: server lifecycle outlives the foreground
     statement: |
-      closing the foreground loop (Ctrl+C) leaves the server running so the author can reattach
-      without losing world state or disconnecting a client, and a separate explicit command stops
-      the server and tears it down. Detaching the watchers and stopping the server are distinct
-      acts.
+      closing the foreground loop (Ctrl+C) leaves the server running so the author can reattach without
+      losing world state or disconnecting a client, and a separate explicit command stops the server and
+      tears it down. Detaching the watchers and stopping the server are distinct acts.
     rationale: |
       The world is the expensive, long-lived thing; the watchers are disposable.
     facets: dev-loop
@@ -38,9 +37,9 @@ requirements:
   - id: r-u8cg9vi6
     title: hosted packs are a selection
     statement: |
-      which of the packs the kit discovers a run hosts is an argument to that run, defaulting to
-      all of them. A selection may be persisted as a named profile, and a profile is a saved
-      argument: it narrows what a run hosts and never determines what the workspace contains.
+      which of the packs the kit discovers a run hosts comes from the profile selected for that run,
+      defaulting to all of them where no profile applies. A profile is a saved selection: it narrows what
+      a run hosts and never determines what the workspace contains.
     facets: dev-loop
     verification:
       - do: run the loop with a selection naming a subset of the discovered packs, then again with no selection
@@ -51,8 +50,8 @@ requirements:
   - id: r-hpu39brj
     title: behavior packs required, other content optional
     statement: |
-      the harness must deploy and activate behavior packs. Support for other kinds of addon content
-      — resource packs among them — is optional, at the builder's or designer's discretion.
+      the harness must deploy and activate behavior packs. Support for other kinds of addon content —
+      resource packs among them — is optional, at the builder's or designer's discretion.
     facets: dev-loop
     verification:
       - do: run the dev loop over a workspace holding a behavior pack
@@ -63,10 +62,9 @@ requirements:
     title: deploy reconciles to built packs
     statement: |
       after any deploy the server's pack state equals the built output of the selected packs: every
-      selected pack present and up to date, packs no longer selected removed from the server, and
-      the world's activation list matching the deployed packs. The operation is idempotent —
-      re-running with no change is a no-op — and is the same operation at startup and on file
-      change.
+      selected pack present and up to date, packs no longer selected removed from the server, and the
+      world's activation list matching the deployed packs. The operation is idempotent — re-running with
+      no change is a no-op — and is the same operation at startup and on file change.
     facets: dev-loop
     verification:
       - do: deploy a selection, then re-run the deploy with nothing changed
@@ -78,8 +76,8 @@ requirements:
     title: edit to live without disconnect
     statement: |
       a saved change to a pack's source is reflected in the running server within a few seconds and
-      without disconnecting a connected client, whenever the change is one the server can apply
-      without a restart.
+      without disconnecting a connected client, whenever the change is one the server can apply without a
+      restart.
     facets: dev-loop
     verification:
       - do: with the loop running and a client connected, save a source change the server can apply without a restart, such as a script edit
@@ -89,10 +87,10 @@ requirements:
   - id: r-97fvutt9
     title: the harness deploys built output and nothing about how it was built
     statement: |
-      the harness deploys a package's built output, not its source, and makes no assumption about
-      how that output was assembled. Getting a built pack to the dev server, or to a release, is
-      the harness's and the pipeline's concern: a pack package produces its built output and
-      watches its own sources, and carries no deploy or publish step.
+      the harness deploys a package's built output, not its source, and makes no assumption about how that
+      output was assembled. Getting a built pack to the dev server, or to a release, is the harness's and
+      the pipeline's concern: a pack package produces its built output and watches its own sources, and
+      carries no deploy or publish step.
     rationale: |
       Keeps packs interchangeable and the deploy transport free to change in one place.
     facets: dev-loop

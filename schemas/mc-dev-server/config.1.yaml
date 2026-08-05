@@ -1,0 +1,68 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: /mc-dev-server/config@1
+title: workspace config
+description: >-
+  the dev loop's workspace configuration, read from .minecraft.yaml or .minecraft.yml beside the run
+  or from the path --config names; every key is optional and a file holding none is the same as no
+  file at all
+type: object
+additionalProperties: false
+properties:
+  version:
+    const: "1"
+    description: absent or "1"; a later version of this schema gives it another value
+  level:
+    $ref: "#/$defs/level"
+  seed:
+    $ref: "#/$defs/seed"
+  spawn:
+    $ref: "#/$defs/spawn"
+  image:
+    type: string
+    description: the server image tag the run pins
+  port:
+    type: integer
+    minimum: 1
+    maximum: 65535
+  eula:
+    type: boolean
+    description: the author's acceptance of the server EULA; --accept-eula does the same
+  profiles:
+    type: object
+    description: named profiles, each narrowing what a run hosts and naming the world to host it against
+    additionalProperties:
+      type: object
+      additionalProperties: false
+      properties:
+        packs:
+          type: array
+          description: owning package names; absent hosts every pack, empty hosts none
+          items:
+            type: string
+        level:
+          $ref: "#/$defs/level"
+        seed:
+          $ref: "#/$defs/seed"
+        spawn:
+          $ref: "#/$defs/spawn"
+  defaultProfile:
+    type: string
+    description: the profile a run takes when the command line names none
+$defs:
+  level:
+    type: string
+    description: the world a run serves; a volume holds one world per level name
+  seed:
+    type: integer
+    minimum: -9223372036854775808
+    maximum: 9223372036854775807
+    description: >-
+      a signed 64-bit integer; the server hashes anything outside that range as text rather than
+      rejecting it, so the bound is the schema's to enforce
+  spawn:
+    type: array
+    description: where a joining player arrives, as [x, y, z]
+    minItems: 3
+    maxItems: 3
+    items:
+      type: integer
