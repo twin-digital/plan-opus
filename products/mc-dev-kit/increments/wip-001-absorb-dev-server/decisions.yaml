@@ -96,22 +96,24 @@ decisions:
       - r-kfu7pcms
       - d-w8cc8n18
   - id: d-zo2yl18y
-    title: world state lives in a named volume
-    statement: >
-      the server's `/data` is a named Docker volume the harness creates and
-      never removes except
+    title: a world lives for one run and no longer
+    statement: |
+      the server's `/data` is a named Docker volume the harness creates on `start` and removes on
+      `stop`. A world therefore survives every restart the loop spends and every Ctrl+C and reattach,
+      and no `stop` at all: the next `start` generates a fresh world.
 
-      under a reset flag on the stop command.
-    status: rejected
+      A volume rather than the container's own writable layer, so the world is independent of the
+      container's lifecycle for as long as the run owns it, and so there is one named thing to
+      snapshot when snapshots arrive.
+    status: proposed
     pinned:
       reason: data-format
-      notes: the author's world lives here, and a reset flag destroys it
+      notes: whether an author's world survives a stop, and what a stop destroys
     facets: dev-loop
     because:
-      - r-whacwz1b
       - r-kfu7pcms
-    rejection_reason: want to consider if we should remove data whenever server
-      stop; bring to chat session
+      - r-whacwz1b
+      - d-imdfu09l
   - id: d-4iepnry2
     title: both pack kinds are routed by the kind the pack set reports
     statement: >
@@ -318,18 +320,19 @@ decisions:
     title: the command is minecraft-server, with start and stop subcommands
     statement: |
       the package's executable is `minecraft-server`. It takes two subcommands, `start` and `stop`,
-      each named explicitly — there is no bare default invocation. `stop` carries the `--reset` flag
-      that also removes the world volume. Ctrl+C stops the watchers and the log follow and nothing
-      else.
+      each named explicitly — there is no bare default invocation. Ctrl+C stops the watchers and the
+      log follow and nothing else; `stop` tears the server down and takes the world with it, per
+      d-zo2yl18y, and carries no flag to keep one.
     status: proposed
     pinned:
       reason: public-api
-      notes: the executable, the two verbs, and the flag that destroys a world
+      notes: the executable, the two verbs, and that stop destroys the world
     facets: dev-loop
     because:
       - r-8et233c9
       - r-kfu7pcms
       - d-zyo6kku9
+      - d-zo2yl18y
   - id: d-ifke5eeh
     title: start is idempotent against a running server
     statement: >
@@ -360,28 +363,33 @@ decisions:
       - d-imdfu09l
       - d-i4oryd9x
   - id: d-c1kvyord
-    title: selection is flags, or a default profile in the config
+    title: a profile is a named scenario, and flags override it
     statement: |
       a run's selection is a repeatable `--pack` flag naming owning package names, or
       `--profile <name>` naming a profile in the file `--config` supplied. Given neither, the run
-      hosts the config's `default_profile` where one is named, and every pack the kit discovers
+      takes the config's `default_profile` where one is named, and every pack the kit discovers
       otherwise.
+
+      A profile names more than a selection: it is a named scenario, carrying the packs to host and
+      the world to host them against. `--seed` and `--spawn` on the command line override whatever
+      the profile or the file's top level says, and a profile's own values override the top level's.
 
       A `--pack` value matching no discovered pack is an error, and so is a `--profile` naming no
       profile the file holds, or a `--profile` given with no `--config` — a run hosts what was asked
       for or it does not start. `--pack` and `--profile` together are an error rather than a union:
-      each is a complete statement of the selection. A profile holding an empty list selects no
-      packs, which is a valid run.
+      each is a complete statement of the selection, and `--pack` takes the world settings from the
+      file's top level. A profile holding an empty pack list selects no packs, which is a valid run.
     status: proposed
     pinned:
       reason: public-api
-      notes: the flags a consumer invokes the harness with, and what each selects
+      notes: the flags a consumer invokes the harness with, what each selects, and how they compose
     facets: dev-loop
     because:
       - r-u8cg9vi6
       - r-co6glnme
       - d-wkcxcv2b
       - d-0yrfifhi
+      - d-41m3iws5
   - id: d-wkcxcv2b
     title: the config file is optional and named on the command line
     statement: |
@@ -389,14 +397,14 @@ decisions:
       only where `--config <path>` names it, and a run without that flag reads none. Every setting
       has a default, so a bare `minecraft-server start` in a workspace is a complete run — every
       pack the kit discovers, the level name `dev`, the image tag the harness pins, the default
-      port, and no profiles.
+      port, a world the server seeds however it likes, and no profiles.
 
-      Where a file is given it is YAML, and every key is optional: `level`, `image`, `port`,
-      `eula`, `profiles` — a mapping of profile name to a list of owning package names — and
-      `default_profile`, naming one of them to use when the command line carries neither `--profile`
-      nor `--pack`. A key the harness does not define is an error, and so is a value of the wrong
-      shape. A file named by `--config` that cannot be read or parsed fails the run naming the file
-      and the parse error, rather than falling back to defaults and hosting the wrong thing.
+      Where a file is given it is YAML, and every key is optional: `level`, `image`, `port`, `eula`,
+      `seed`, `spawn` — a `[x, y, z]` array — `profiles`, and `default_profile` naming one of them.
+      A profile is a mapping that may carry `packs`, a list of owning package names, and its own
+      `seed` and `spawn`. A key the harness does not define is an error, and so is a value of the
+      wrong shape. A file named by `--config` that cannot be read or parsed fails the run naming the
+      file and the parse error, rather than falling back to defaults and hosting the wrong thing.
     status: proposed
     pinned:
       reason: data-format
@@ -407,6 +415,7 @@ decisions:
       - r-8et233c9
       - d-wtziwjh5
       - d-imdfu09l
+      - d-41m3iws5
   - id: d-jv1zleaj
     title: the server's on-disk layout
     statement: >
@@ -655,6 +664,7 @@ decisions:
       - d-0yrfifhi
       - d-c1kvyord
       - d-e956frnx
+      - d-41m3iws5
       - d-5e00ndwi
   - id: d-a3fyy34f
     title: POSIX hosts, and the ambient Docker connection
@@ -697,3 +707,27 @@ decisions:
     because:
       - r-8et233c9
       - f:bedrock-script-console-output-is-not-a-deploy-signal
+
+  - id: d-41m3iws5
+    title: a run chooses its world's seed and spawn
+    statement: |
+      a run may fix the world it generates: `seed` sets the level seed the server generates from,
+      and `spawn`, an `[x, y, z]` array, sets where a joining player arrives. Either may come from
+      the config file, from a profile in it, or from `--seed` and `--spawn` on the command line.
+      Given neither, the server seeds the world as it likes and keeps the spawn point it chose.
+
+      The seed reaches the server as the generated project's level seed, since it is read only when
+      a world is generated. The spawn point is set with a console command once the world has loaded,
+      because the server offers no setting for it. Both are only ever meaningful because a world
+      lasts one run: d-zo2yl18y is what makes a seed reproducible rather than a one-time accident.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: the two settings that decide which world an author is developing against
+    facets: dev-loop
+    because:
+      - r-8et233c9
+      - d-zo2yl18y
+      - d-wtziwjh5
+      - d-uqdxo2w6
+      - d-i4oryd9x

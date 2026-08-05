@@ -277,9 +277,19 @@ inside an unpublished draft, not a published ruling to close.
 `d-62bpn2h2`'s flag set follows: `--config`, `--pack`, `--profile`, `--accept-eula` on `start`,
 `--reset` on `stop`, `--help` and `--version` on both.
 
-**d-zo2yl18y stays rejected.** Its reason asks whether the world volume should be removed on every
-stop and says to bring it to a chat session; that is a conversation, not a rework instruction, and
-the entry waits on it.
+**d-zo2yl18y is revised too, after the conversation its reason asked for.** A world no longer
+persists across a stop: the volume is created on `start` and removed on `stop`, so a world survives
+every restart the loop spends and every Ctrl+C and reattach, and no `stop` at all. `--reset`
+disappears with it — `stop` always destroys, so there is nothing to flag. `d-41m3iws5` follows from
+it: a run may fix its world's `seed` and `spawn`, which is only meaningful because the world is
+generated fresh each time. A profile becomes a named scenario in `d-c1kvyord` — the packs to host
+and the world to host them against — with command-line flags overriding it.
+
+Two capabilities went to the backlog rather than into this increment: **b-jucqjdql**, snapshotting a
+running world so a hand-built scenario survives the stop that destroys its volume, and
+**b-762ansca**, starting a run from a captured world state. Together they are the end this increment
+only points at — set a scenario up once by hand, then run fresh servers against it as often as the
+loop restarts.
 
 ## Left for the Plan loop
 
