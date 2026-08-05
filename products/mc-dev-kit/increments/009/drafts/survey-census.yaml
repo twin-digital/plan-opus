@@ -1,0 +1,696 @@
+# Survey census — mc-dev-kit @ wip-001-absorb-dev-server
+#
+# The Plan phase dispatched the implement phase in survey mode, read-only, against this draft fold
+# on its branch: one implementer per package the fold names — nodejs/minecraft/mc-dev-server
+# (npm-cli, proposed by d-zyo6kku9) and nodejs/minecraft/mc-dev-kit (npm-library, existing). Both
+# censuses are below as returned, every proposed decision assumed in force.
+#
+# The draft acted on this census: q-npz0np7l records the activation version form the library survey
+# surfaced, and d-ftlfhac8 and d-a9jaqn8m were repaired where the CLI survey found the file-set
+# reload rule and the reattach path written against each other. drafts/absorption-map.md carries the
+# classification of every entry.
+
+censuses:
+  - package: nodejs/minecraft/mc-dev-server
+    published_as: "@twin-digital/mc-dev-server"
+    kind: npm-cli
+    note: |
+      Choices already settled by the previous survey round (package identity, mc-dev-server.yaml and
+      its three contents, the executable name, start/stop/--reset, start's idempotence,
+      workspace-root project identity, replaced pool directories, uuid-named pool directories,
+      activation entries from the pack set, the file-set reload rule) are not re-reported; what
+      those decisions leave open is.
+    entries:
+      # packaging and distribution
+      - choice: >-
+          whether the preset r-ds3q3en9 (ESM-only TypeScript, own .d.ts, active Node LTS) binds an npm-cli package, or only the npm-library it was written for
+        arises: >-
+          standing up package.json, tsconfig, and the build for the new package
+        reading: >-
+          the preset's statement says "a Node.js library"; the harness is a command. The genuinely open part is whether the CLI ships type declarations at all when it exports nothing.
+      - choice: >-
+          what `bin` maps `mc-dev-server` to, and whether the CLI also exports a programmatic entry point
+        arises: >-
+          package.json authoring; the code wave's minimal-public-surface rule
+        reading: >-
+          d-0yrfifhi fixes the executable's name, not its target or whether an `exports` surface sits beside it. The bin path is a detail; whether any module is importable is surface.
+      - choice: >-
+          which bundler/build pipeline the package uses and whether it ships built or as source
+        arises: >-
+          the package's own build configuration
+        reading: >-
+          implementation detail.
+      - choice: >-
+          the dependency constraint on @twin-digital/mc-dev-kit, and dependency vs peer dependency
+        arises: >-
+          package.json authoring; d-zyo6kku9 states only that the harness depends on the kit
+        reading: >-
+          the workspace-vs-published spelling is monorepo convention; the range width is observable.
+      - choice: >-
+          the declared Node `engines` range
+        arises: >-
+          package.json authoring
+        reading: >-
+          consumer-observable at install; r-ds3q3en9 says "active Node LTS" without fixing a range.
+      - choice: >-
+          whether the package lands in this planning repository or the opus monorepo, and when product.yaml gains the entry
+        arises: >-
+          the first file written; `nodejs/` does not exist here
+        reading: >-
+          a missing address rather than a design choice — d-zyo6kku9 gives a path but no repository.
+      # prerequisites and preflight
+      - choice: >-
+          what the harness requires of the host toolchain — docker on PATH, Compose v2, a minimum version — and how it checks
+        arises: >-
+          the first thing start and stop do
+        reading: >-
+          the difference between a named prerequisite error and a raw ENOENT. No floor is fixed anywhere in the fold.
+      - choice: >-
+          behaviour when the daemon is unreachable, the context/DOCKER_HOST is wrong, or the image pull fails
+        arises: >-
+          every compose call
+        reading: >-
+          failure paths the fold does not touch. Observable in message, exit code, and whether a half-started project is left behind.
+      - choice: >-
+          how the author learns where to connect a client when the daemon is remote
+        arises: >-
+          reporting readiness after d-i4oryd9x's world-load line
+        reading: >-
+          r-whacwz1b makes remote daemons first-class and nothing says the harness reports the address. A real gap.
+      # the config file's shape
+      - choice: >-
+          the YAML schema of mc-dev-server.yaml — key names, profile shape, version field, unknown-key handling
+        arises: >-
+          reading the config at the top of every command
+        reading: >-
+          d-c1kvyord pins location and contents, not shape. A hand-authored checked-in file is data-format surface — arguably the largest single gap in the fold.
+      - choice: >-
+          behaviour on a malformed config, an unknown top-level key, or non-string profile entries
+        arises: >-
+          config load
+        reading: >-
+          observable failure path; uncovered.
+      - choice: >-
+          interaction of --pack and --profile when both are given, and the meaning of an empty profile
+        arises: >-
+          computing the run's selection
+        reading: >-
+          d-c1kvyord defines each flag alone. Directly observable in what the run hosts.
+      - choice: >-
+          behaviour when --profile names a profile the file lacks, or the file is absent and --profile is given
+        arises: >-
+          selection resolution
+        reading: >-
+          d-c1kvyord makes an unmatched --pack an error and is silent on an unmatched profile.
+      - choice: >-
+          the default level name and image tag when the config is absent, and whether the config's tag replaces the tag or the whole image reference
+        arises: >-
+          generating the compose file
+        reading: >-
+          the tag value selects the server build and is what every log-matching decision is calibrated against.
+      - choice: >-
+          how the workspace root is located from the current directory
+        arises: >-
+          finding the config, deriving project identity (d-imdfu09l), and calling the kit
+        reading: >-
+          the build half has d-ai68xorc for exactly this; the harness has no equivalent. Decides which server a run from a subdirectory addresses.
+      # generated compose file and project identity
+      - choice: >-
+          the function from workspace-root path to compose project name, given Compose's charset restrictions
+        arises: >-
+          every compose invocation
+        reading: >-
+          d-imdfu09l fixes the input and the property, not the mapping. Collision behaviour is substantive; the exact spelling is near-detail.
+      - choice: >-
+          where the generated compose file is written, whether it is gitignored, and whether it is regenerated every invocation
+        arises: >-
+          implementing d-w8cc8n18 / d-imdfu09l
+        reading: >-
+          d-imdfu09l calls the location "a setting of the project" without naming it. A file appearing in the author's workspace is observable.
+      - choice: >-
+          service name, container name, and named-volume name inside the generated project
+        arises: >-
+          compose generation; cp/exec address the service by name
+        reading: >-
+          d-zo2yl18y pins that world state lives in a named volume, not what it is called. The volume name survives across versions and a reset destroys it.
+      - choice: >-
+          the server environment the compose file sets — EULA, gamemode, difficulty, online-mode/allow-list, ops, server name
+        arises: >-
+          compose generation; the image will not boot without EULA acceptance
+        reading: >-
+          wholly untouched by the fold, and EULA is a legal acknowledgement made on the author's behalf.
+      - choice: >-
+          which ports are published, on which interface, whether configurable, and what happens when occupied
+        arises: >-
+          compose generation and up failure handling
+        reading: >-
+          observable and unrecorded — the config holds three settings and a port is not one.
+      - choice: >-
+          whether the author can supply arbitrary server properties or compose overrides at all
+        arises: >-
+          the first author wanting a different difficulty or an extra port
+        reading: >-
+          the config surface is closed at three keys. If the answer is "no extension point", that is a decision someone should make deliberately.
+      - choice: >-
+          restart policy, stop grace period, healthcheck, and resource limits on the service
+        arises: >-
+          compose generation
+        reading: >-
+          mostly detail, except the stop grace period, which decides whether a world save completes before the container dies.
+      # start sequence, readiness, error paths
+      - choice: >-
+          how "settings the current configuration would not produce" is detected on reattach — rendered-config comparison, a stamped hash label, or inspect output
+        arises: >-
+          implementing d-ifke5eeh's guard
+        reading: >-
+          d-ifke5eeh states the rule and supplies no mechanism, and the mechanism decides how often the author is told to stop and restart by hand.
+      - choice: >-
+          what the report of a mismatched running project says, and whether the harness offers to stop it
+        arises: >-
+          the same guard
+        reading: >-
+          observable user-facing behaviour; unrecorded.
+      - choice: >-
+          how far back the container log is scanned for the world-load line on reattach, and what happens if it has scrolled out of retention
+        arises: >-
+          implementing d-ifke5eeh's readiness-from-the-existing-log
+        reading: >-
+          a real failure path — the reattach hangs or falsely fails.
+      - choice: >-
+          the readiness timeout and the behaviour on expiry
+        arises: >-
+          waiting for d-i4oryd9x's line after up
+        reading: >-
+          the fold fixes the signal and not the wait.
+      - choice: >-
+          how the pack-stack line is matched, and whether "Pack Stack - None" counts as ready, a warning, or a failure
+        arises: >-
+          parsing container logs for d-i4oryd9x
+        reading: >-
+          the Pack-Stack-None line is exactly what a misrouted or unlisted pack produces; reporting it as a healthy start would hide the most common failure.
+      - choice: >-
+          whether container start and the initial one-shot builds run concurrently or in sequence
+        arises: >-
+          the start sequence
+        reading: >-
+          d-vrq7lc2o orders the build before the first reconcile, leaving the server start free. Observable only as elapsed time — an implementation detail.
+      - choice: >-
+          what start does when the container exits or crashes during boot, and whether the harness tears down what it brought up
+        arises: >-
+          up and the readiness wait
+        reading: >-
+          observable failure path; unrecorded.
+      # the build-script invocation contract
+      - choice: >-
+          how build and watch scripts are invoked — package manager, npm run vs direct spawn, cwd, environment, shell
+        arises: >-
+          implementing d-j3ayhwv1
+        reading: >-
+          d-j3ayhwv1 names the scripts and nothing else. A pack author observes the contract.
+      - choice: >-
+          behaviour when a selected package declares no build script, no watch script, or neither
+        arises: >-
+          start sequence and watch startup
+        reading: >-
+          the fold assumes both exist. The difference between a named error and a pack that silently never rebuilds.
+      - choice: >-
+          whether one-shot builds run in parallel or serially, and whether one failure aborts the others
+        arises: >-
+          d-vrq7lc2o's build-to-completion
+        reading: >-
+          parallelism is a detail; whether a failure aborts the run is observable and unrecorded.
+      - choice: >-
+          what start does when a one-shot build fails — abort, start with no packs, or deploy what did build
+        arises: >-
+          start sequence
+        reading: >-
+          r-8et233c9's one-command promise says nothing about the failed case.
+      - choice: >-
+          what the watch loop does when a build fails mid-session — keep the previous deploy, retry, or tear down
+        arises: >-
+          watch loop
+        reading: >-
+          the fold's reconcile is defined only over successful builds.
+      - choice: >-
+          what happens when a package's watch process exits or crashes mid-session
+        arises: >-
+          child-process supervision
+        reading: >-
+          observable — edits silently stop reaching the server. Restart-with-backoff versus fail-the-run is a genuine choice.
+      - choice: >-
+          how a completed build is told from a partially written output tree, given d-3kcr1672 forbids any build report
+        arises: >-
+          the debounced watch on output directories
+        reading: >-
+          the fold leaves the output tree as the only signal, so debounce alone is the whole guarantee. The specific guard is a detail; that fact is worth Clarify seeing.
+      # watch, reconcile, concurrency
+      - choice: >-
+          the debounce window's duration, and whether it is fixed or configurable
+        arises: >-
+          d-j3ayhwv1's debounced change
+        reading: >-
+          r-cekp2mcb's "within a few seconds" bounds it loosely. The number is a detail; configurability is surface.
+      - choice: >-
+          what happens to a change arriving while a reconcile is in flight — queue and coalesce, cancel and restart, or run concurrently
+        arises: >-
+          the watch loop against r-pcq10f2b's reconcile
+        reading: >-
+          untouched by the fold and directly observable as a lost edit. Same question again during the restart d-ftlfhac8 forces.
+      - choice: >-
+          whether the harness re-runs kit discovery per reconcile or once per run, and whether a pack added or removed mid-session is picked up
+        arises: >-
+          every reconcile needs the pack set; d-k7py0qqv gives the kit no cache
+        reading: >-
+          decides whether an author who adds a pack must restart the harness.
+      - choice: >-
+          whether the harness watches mc-dev-server.yaml and reacts to a profile or level-name change mid-session
+        arises: >-
+          config load versus the running loop
+        reading: >-
+          observable; unrecorded.
+      - choice: >-
+          where the built file set d-ftlfhac8 keys on is held, and what a freshly reattached harness does on its first reconcile with no prior file set
+        arises: >-
+          implementing d-ftlfhac8 across the detach/reattach cycle r-kfu7pcms requires
+        reading: >-
+          the rule is stated locally-evaluable but the local state does not survive the process. Falling back to a restart disconnects the client r-kfu7pcms exists to protect. The sharpest interaction gap in the draft.
+      - choice: >-
+          how the restart d-ftlfhac8 prices is performed — compose restart, stop-then-start, or an in-server reload — and whether the world is saved first
+        arises: >-
+          every non-reload change
+        reading: >-
+          observable as world-data loss and as how long the client is disconnected.
+      - choice: >-
+          the exact console command issued for a reload, whether its success line is awaited, and the timeout if it never appears
+        arises: >-
+          implementing d-uqdxo2w6's reload path
+        reading: >-
+          d-uqdxo2w6 names the transport and not the command string. Observable as a silently un-applied edit.
+      # reconcile mechanics
+      - choice: >-
+          the in-container pool paths for each kind, and the world directory path under the level name
+        arises: >-
+          every copy, read-back, and activation write
+        reading: >-
+          the facts name the behavior pool and world path in probe output; nothing in the fold records them, and the resource pool's name is nowhere. q-h34y88go covers the resource activation list, not the resource pool.
+      - choice: >-
+          creating the world directory and the activation file when the server has created neither
+        arises: >-
+          first deploy against a fresh volume
+        reading: >-
+          observable; unrecorded, and a first run hits it every time.
+      - choice: >-
+          the mechanism for reading pool contents and activation lists off the container, and the parse-failure path for a malformed list
+        arises: >-
+          implementing d-q8ikxtdk
+        reading: >-
+          q-qk2r4e5q defers whether these work against a remote daemon, not which the harness uses or what it does with a corrupt list.
+      - choice: >-
+          the mechanism for removing a pool directory before copying, and what a failure mid-removal leaves behind
+        arises: >-
+          implementing d-n0dz38ky
+        reading: >-
+          mechanism is a detail; the atomicity guarantee it does or does not offer is not.
+      - choice: >-
+          what the harness does with packs or activation entries it did not deploy — hand-placed content, or leftovers from an older version
+        arises: >-
+          reconciling live state against r-pcq10f2b's "equals the built output"
+        reading: >-
+          r-pcq10f2b reads as delete-foreign, which also deletes an author's hand-placed test pack. Observable and consequential.
+      - choice: >-
+          the order of entries written into an activation list, which is the pack stack order the server applies
+        arises: >-
+          writing activation lists per d-cw6pder5
+        reading: >-
+          pack stack order decides which pack wins on a conflict — observable in-game. Nothing fixes it.
+      - choice: >-
+          converting the kit's SemVer-string version into the three-number array an activation entry requires, and what a pre-release becomes
+        arises: >-
+          writing an activation entry from a pack set whose versions are SemVer strings
+        reading: >-
+          r-wi7qf6to allows pre-release versions through completion, and the entry's version must match the pool pack or it loads nothing, silently.
+      - choice: >-
+          what the harness does with a selected package whose pack the kit reports invalid, or whose entry carries no uuid
+        arises: >-
+          selection resolution and pool-directory naming, which d-oo8256gl needs a uuid for
+        reading: >-
+          d-no9a9s0x fails the build on an invalid pack; the harness's own behaviour is unrecorded.
+      - choice: >-
+          what the harness does with a selected pack whose built-output directory does not exist after its build ran
+        arises: >-
+          the reconcile's copy step
+        reading: >-
+          observable failure path; unrecorded.
+      - choice: >-
+          whether resource packs are deployed at all while q-h34y88go is open
+        arises: >-
+          d-4iepnry2 routes both kinds; the resource activation list's shape is deferred
+        reading: >-
+          r-hpu39brj makes resource support optional, so behavior-only is available — but that is a choice someone must make, and it changes what the first release does.
+      # signals, shutdown, exit codes
+      - choice: >-
+          which signals the foreground loop handles beyond Ctrl+C, and whether they behave as d-0yrfifhi's Ctrl+C does
+        arises: >-
+          signal wiring in the CLI
+        reading: >-
+          r-kfu7pcms's guarantee is only as good as the signal set it covers.
+      - choice: >-
+          whether child watch processes are killed as a process group, and what happens if one ignores the signal
+        arises: >-
+          shutdown after Ctrl+C
+        reading: >-
+          observable as orphaned watchers holding file handles after the harness exits.
+      - choice: >-
+          whether a second Ctrl+C forces exit, and whether the first waits for an in-flight reconcile or pending restart
+        arises: >-
+          shutdown
+        reading: >-
+          exiting mid-copy leaves the pool in the state d-q8ikxtdk exists to repair, which is tolerable — but tolerating it should be chosen, not fallen into.
+      - choice: >-
+          the exit codes for every outcome — clean detach, readiness timeout, build failure, missing prerequisite, mismatched project, stop with nothing running
+        arises: >-
+          every command's return path
+        reading: >-
+          a CLI's exit codes are consumer surface the moment anyone scripts it. Wholly unrecorded.
+      - choice: >-
+          stop against a project that is not running, and --reset when the volume does not exist
+        arises: >-
+          the stop command
+        reading: >-
+          observable — error versus silent success; unrecorded.
+      - choice: >-
+          whether stop removes the generated compose file, and whether down carries a stop timeout that lets the world save
+        arises: >-
+          the stop command
+        reading: >-
+          the save-before-kill half is observable as world-data loss.
+      - choice: >-
+          whether two concurrent runs against the same project are prevented by a lock, given d-ifke5eeh makes a second run attach rather than fail
+        arises: >-
+          start, when one is already attached
+        reading: >-
+          two attached harnesses would both watch, both reconcile, and race each other's restarts.
+      # the output stream
+      - choice: >-
+          the exact prefix syntax d-5e00ndwi's tags take — separator, padding, colour, TTY suppression
+        arises: >-
+          the single output stream
+        reading: >-
+          d-5e00ndwi is pinned as a data format on the strength of the per-line prefix, and the prefix's spelling is what a consumer would parse.
+      - choice: >-
+          whether anything reaches stderr, and how a build script's stderr is tagged and interleaved with its stdout
+        arises: >-
+          routing child output through the one stream
+        reading: >-
+          d-5e00ndwi says one stream; whether that stream is stdout, and what stderr carries, is observable to anything redirecting the harness.
+      - choice: >-
+          whether container logs are replayed from container start on reattach or followed from the attach point, and whether duplicates are suppressed
+        arises: >-
+          the server-tagged half of the stream, and the log scan d-ifke5eeh needs
+        reading: >-
+          observable; unrecorded.
+      - choice: >-
+          verbosity control — a --quiet/--verbose/log-level flag, and whether the harness's own deploy chatter is suppressible
+        arises: >-
+          CLI flag surface
+        reading: >-
+          consumer-observable CLI surface; d-0yrfifhi fixes only the verbs and --reset.
+      - choice: >-
+          --help and --version behaviour, unknown-flag handling, and whether the default command may also be named explicitly
+        arises: >-
+          argument parsing
+        reading: >-
+          d-0yrfifhi says "one default start-and-watch command", leaving open whether `start` is also accepted as a word.
+      # platform
+      - choice: >-
+          which host platforms are supported — Windows in particular, where process-group signals and path handling differ
+        arises: >-
+          spawning compose and build scripts; signal handling
+        reading: >-
+          nothing in the fold names a platform, and it bounds how much of the shutdown and path work needs a second code path.
+      - choice: >-
+          how the Docker connection is selected — inherited DOCKER_HOST/context versus an explicit harness setting
+        arises: >-
+          every compose invocation under r-whacwz1b
+        reading: >-
+          inheriting is the obvious answer and probably a detail, but it interacts with d-imdfu09l — the same workspace against two daemons produces one project name and two servers.
+      # verification
+      - choice: >-
+          which claims can carry a code-test at all, given most behaviour needs a live daemon and a Bedrock image, and which fall back to manual-check
+        arises: >-
+          the Define wave's test plan
+        reading: >-
+          coverage kind is the implementer's to record, but whether a Docker-requiring integration suite exists and runs in CI is a choice with cost.
+
+  - package: nodejs/minecraft/mc-dev-kit
+    published_as: "@twin-digital/mc-dev-kit"
+    kind: npm-library
+    note: |
+      implementations/mc-dev-kit/002-1.yaml covers increments 001-002 only (v0.2.0, the discovery
+      half). Increments 003-007 — the whole build facet, and increment 005's scriptOutput on the
+      entry — are designed and unbuilt. Every entry is read against that gap.
+    entries:
+      - choice: >-
+          whether the library exports workspace-root resolution, or the harness reimplements the kit's root rule in a second package
+        arises: >-
+          d-imdfu09l derives project identity from the workspace root's absolute path and says a run from a subdirectory addresses the same server. The library's only root input is DiscoverOptions.workspace defaulting to process.cwd() (d-rl1msrus); the root rule (d-xnv5kh7k) lives unexported, and discoverPacks reports no root. d-ai68xorc already answered this in prose for the build half without saying whether the rule is reachable from outside.
+        reading: >-
+          the strongest cross-package allocation problem the draft creates, and the only one plausibly needing new public surface. Three ways out — export a resolver (new pinned surface, so an escalation); reimplement the marker precedence in the harness (two packages silently disagreeing about which workspace they are in); or require running from the root (contradicts d-imdfu09l). The first is correct and the second is the failure to avoid. d-ai68xorc needs the same answer, so it is one export serving two consumers.
+      - choice: >-
+          whether a pack entry can be joined back to an absolute path without the consumer separately tracking the root it passed in
+        arises: >-
+          every reported path is workspace-relative POSIX (d-s43hmdgr, d-fm9m41kc); the harness needs absolute paths for cp sources, build cwds, and watched output directories
+        reading: >-
+          mechanically a one-liner harness-side — an implementation detail. Recorded because d-s43hmdgr's revisit_when names exactly this consumer, and is now satisfied only by the harness never letting entries out of the scope that resolved the root. That is a discipline, not a guarantee. Merges with the entry above.
+      - choice: >-
+          what version form an activation entry carries, and whether a pool pack whose completed manifest declares a SemVer string matches an entry's three-number array
+        arises: >-
+          d-cw6pder5 takes uuid and version from the pack set; the pack set's version is the completed header.version (d-f72ia08n), which r-wi7qf6to writes as a SemVer string, while the fact records the entry as the header's three-number array which must match the pool pack
+        reading: >-
+          two residuals. The small one is a parse the harness performs — a detail. The large one is that the probe matched an array-versioned pool pack against an array entry; nothing establishes that a pool pack carrying a string version matches at all, and pre-release versions have no array form. Must be probed before the harness ships; if the string form does not match, the fact contradicts r-wi7qf6to for every pack the harness deploys, which is the owner's call.
+      - choice: >-
+          how the harness learns a selected package declares the build and watch scripts d-j3ayhwv1 invokes, and what happens when it declares neither
+        arises: >-
+          the pack set reports packageName and packageDir and nothing of the package manifest; the kit parses every candidate package.json already and keeps it internal
+        reading: >-
+          this should not become library surface — exporting a parsed package.json widens the entry type for one consumer and re-opens d-a8lgrojc's minimal surface. Re-reading one package.json per selected package belongs to the harness. What is genuinely undecided is the missing-script behaviour, and the discovery-only case is real: this very library declares build but no watch.
+      - choice: >-
+          how often the harness re-reads the pack set, and therefore whether discoverPacks stays a cold whole-workspace read per call
+        arises: >-
+          d-k7py0qqv fixes one read per call and its revisit_when names this consumer. d-ftlfhac8 restarts on a version change, but a version comes from package.json (r-kbgjy2pt), which the harness watches nothing of
+        reading: >-
+          the sharpest correctness interaction with an existing decision. Discover once at startup and a version bump changes the built manifest, the harness redeploys, and its activation entry keeps the stale version — the pack silently stops loading, exactly the failure f:bedrock-activation-entry-is-header-uuid-and-version describes. The fix is harness-side and cheap — re-run discoverPacks at the head of every reconcile — which keeps d-k7py0qqv intact. But the cadence is decided nowhere, and cache-once is the natural pick.
+      - choice: >-
+          who stats a reported outputDir, and what a deploy does when a selected pack's output tree is absent
+        arises: >-
+          d-6g8oo8je reports outputDir whether or not it exists and the kit never reads the output tree (r-iavfb8qj, r-1bvvl9k7); d-ftlfhac8 needs the built file set
+        reading: >-
+          allocation is settled and should not be disturbed — d-3kcr1672 says a watching consumer reads the output tree, and r-iavfb8qj keeps the library out of it, so no built-output reader belongs on this package. The residual is absent-tree behaviour, harness-side. d-6g8oo8je's revisit_when is now met by a real consumer but does not read as triggered.
+      - choice: >-
+          what a run does with a selected pack the kit reports invalid
+        arises: >-
+          d-c1kvyord selects by owning package name and errors on an unmatched --pack. PackCriteria has a status field; nothing says the harness filters. uuid and version are optional on InvalidPackEntry (d-61fegb3o), and d-oo8256gl names a pool directory for the uuid
+        reading: >-
+          the library needs nothing — the filter and the optional typing force a consumer to confront this rather than crash, which is d-61fegb3o working as intended. The undecided part is policy, harness-side. Leaning toward failing loudly: r-pcq10f2b says the server's pack state equals the built output of the selected packs, and a silently-skipped selected pack breaks that.
+      - choice: >-
+          the dependency range the harness declares on the kit, and whether the kit's version moves out of 0.x now that a second published package pins to its surface
+        arises: >-
+          d-zyo6kku9 makes the harness a separate published package. The kit is at 0.2.0 with discovery only; d-j3ayhwv1's build invocation is meaningless until 003-007 ship packBuild (d-wss8fker), and increment 005's scriptOutput (d-jewbwtye) widens PackEntry besides
+        reading: >-
+          a detail inside the monorepo, a real choice outside it. Two things for the owner. Sequencing — the harness cannot be built against a fold whose build half is unimplemented, so either this package ships 003-007 first or the build-invocation path is stubbed and r-8et233c9 is not demonstrable end-to-end. And 0.x — with a sibling package and a pinned export map, every surface addition is a minor that consumers' carets will not follow.
+      - choice: >-
+          whether the package's "./*" wildcard export stays, now that a sibling package can reach through it
+        arises: >-
+          package.json exports "." plus a "./*" wildcard mapping to ./dist/*.js, so @twin-digital/mc-dev-kit/internal/paths.js resolves today. The code wave calls for one entry point and unreachable internals; d-wss8fker adds exactly one further named subpath
+        reading: >-
+          an implementation detail with a sharp edge — until the harness existed nothing was placed to reach through the wildcard, and now something is, one import away from depending on internal/workspace-enumerator.js and making the first entry's problem disappear in the worst way. The right answer is an explicit map of "." and "./build" only. Caveats — the wave calls these working defaults, so a departure is recordable; and if the map is generated from a root file, narrowing it is a change outside this package's path.
+      - choice: >-
+          whether a package holding two packs is built once or twice
+        arises: >-
+          d-c1kvyord selects by owning package name while the pack set is a flat list of packs (r-co6glnme), r-un786n7v allows one package to hold both kinds, and d-s1haiu19 makes one build produce every pack of the package
+        reading: >-
+          implementation detail, harness-side — the harness must group entries by packageDir before invoking builds and watches, or it runs the same build twice. The library is right as it stands; the flat list is r-co6glnme's whole point.
+    closing_note: |
+      Nothing in the draft contradicts a requirement or decision this package already carries. The
+      pressures are on three revisit_whens — d-k7py0qqv, d-6g8oo8je, d-s43hmdgr — none of which read
+      as triggered. The one genuine stop-and-ask candidate is the activation version form, where a
+      fact may not survive contact with r-wi7qf6to.
+
+# ---------------------------------------------------------------------------------------------
+# Second round, run against the settled fold — every decision ruled, no open questions. Roughly
+# forty of the first round's sixty-eight harness entries were gone by then, absorbed by the fold.
+# Readings are condensed to their substance; the classification and what the draft did about each
+# is in drafts/absorption-map.md.
+second_round:
+  - package: nodejs/minecraft/mc-dev-server
+    kind: npm-cli
+    entries:
+      - choice: how the harness satisfies nodejs-cli's r-tbmrw430, r-d474vggq and r-rn6wxdn4
+        arises: the first line the CLI prints, and the flag parser
+        reading: d-62bpn2h2 puts diagnostics on stdout and d-5e00ndwi puts logs there too, which is the inverse of the first and incompatible with the second; nothing mentions --json, and start is a streaming loop with no result to render. Requirement against pinned decision — the owner's.
+      - choice: whether this package can be built before the kit's 003-008 ship
+        arises: the first compile; d-j3ayhwv1 needs packBuild and d-joa4eefg's export does not exist at 0.2.0
+        reading: decides whether r-8et233c9 is demonstrable end to end at this increment. The fold names it the implementation's ordering.
+      - choice: whether the CLI exposes any importable module beside its bin
+        arises: package.json exports authoring
+        reading: bin-only with no exports is my reading; whether anything is importable is surface.
+      - choice: the dependency range on the kit, and dependency vs peer
+        arises: package.json; d-zyo6kku9 says only that it depends
+        reading: workspace spelling is convention; the published range is observable against a 0.x kit.
+      - choice: the declared Node engines range and TypeScript target
+        arises: package.json and tsconfig
+        reading: observable at install; the fold names no version.
+      - choice: what the harness requires of the host toolchain and how it detects it
+        arises: the first thing start, stop and destroy do
+        reading: d-n81zkitr decides the outcome; no version floor is fixed and detection separates a named error from a raw ENOENT.
+      - choice: behaviour when the image pull fails, or the daemon goes away mid-loop
+        arises: up, and every later cp/exec
+        reading: d-n81zkitr reads as a start-time check; a daemon lost mid-session is uncovered.
+      - choice: how the author learns the address to point a client at
+        arises: reporting readiness after d-i4oryd9x's line
+        reading: r-whacwz1b makes remote daemons first-class and nothing says the harness prints host:port. A real gap.
+      - choice: the image tag value and the default port value
+        arises: compose generation with no config present
+        reading: both named as existing, neither given a value. Since ruled — the image is latest.
+      - choice: how one port key maps onto UDP and the IPv6 port beside it
+        arises: compose generation
+        reading: observable to a connecting client; the schema gives one integer.
+      - choice: what happens when the published port is occupied
+        arises: up, and the readiness wait
+        reading: observable failure path, not obviously covered by d-n81zkitr.
+      - choice: the server settings d-e956frnx does not name — difficulty, gamemode, allow-cheats, op status
+        arises: compose generation
+        reading: d-e956frnx closes the extension point and leaves these unstated; allow-cheats and op status are in-game observable and matter for a dev server.
+      - choice: the sluggify function from package name to Compose project name
+        arises: every compose invocation, per d-imdfu09l
+        reading: scoped names and names that slug to empty are unhandled; it names the volume holding the worlds.
+      - choice: the service, container and volume names
+        arises: compose generation; destroy removes the volume
+        reading: long-lived data. Since deferred to the implementer as d-j2wfa1pd.
+      - choice: where the generated compose file is written and whether it is gitignored
+        arises: implementing d-w8cc8n18
+        reading: a file appearing in the checkout is observable and would need an ignore entry outside this package.
+      - choice: how a second attached harness is detected, and recovery from a stale marker
+        arises: implementing d-wgzr4lvx
+        reading: a stale marker after a crash turns "refuses to attach" into "cannot ever attach", with no escape in the fold.
+      - choice: the readiness timeout and what expiry does
+        arises: waiting for d-i4oryd9x's line
+        reading: the fold fixes the signal and not the wait.
+      - choice: how far back the log is read when attaching, and what if the line has scrolled away
+        arises: d-ifke5eeh's readiness-from-the-existing-log
+        reading: servers are long-lived by design now, so this gets more likely rather than less.
+      - choice: how the pack-stack line is recognised, and whether "Pack Stack - None" reads as healthy
+        arises: parsing container logs
+        reading: None is the signature of every silent misroute; the match itself is unanchored against a format pinned only by tag.
+      - choice: what the destructive rung does when the running world has no seed record
+        arises: d-owprl7uy's fifth rung against d-5ocyva9w's record
+        reading: since ruled — an unknown seed matches nothing.
+      - choice: whether the destructive prompt and destroy's confirmation can be answered by a flag
+        arises: d-0yrfifhi and d-owprl7uy, both of which ask
+        reading: without one neither operation is scriptable, which may be the intent but is a choice.
+      - choice: whether destroy stops a running container first, and what stop and destroy do when nothing runs
+        arises: the two lifecycle commands
+        reading: a volume in use cannot be removed; stop-with-nothing-running is observable and unrecorded.
+      - choice: whether stop goes through the console stop d-7ayy4btp requires of a restart
+        arises: the stop command
+        reading: since ruled — it does.
+      - choice: how build and watch scripts are invoked — manager, cwd, environment, shell
+        arises: implementing d-j3ayhwv1
+        reading: a pack author observes the contract, and the kit supports both npm and pnpm.
+      - choice: what the stub contains, and what happens when the entry carries no uuid or version
+        arises: the start sequence for a failed or invalid pack
+        reading: since ruled — invalid fails the run, unbuildable gets a stub script.
+      - choice: the debounce window, and telling a finished build from a half-written tree
+        arises: d-j3ayhwv1 feeding d-3ya31m19
+        reading: d-3kcr1672 forbids a build report, so debounce is the whole guarantee.
+      - choice: whether the config is re-read mid-session
+        arises: d-3ya31m19 step 1 re-resolving the selection
+        reading: from a config read once or the file as it stands — the decisions read either way.
+      - choice: what the reconcile does with an unparseable activation list
+        arises: step 2, reading live state
+        reading: overwrite is implied by d-q8ikxtdk and d-plnvasfo; crashing on one is a different outcome.
+      - choice: what the run's selection order is, concretely
+        arises: writing activation lists
+        reading: since ruled — the order the profile declares, else the kit's.
+      - choice: the path, name and shape of the seed record, and when it is written
+        arises: generating a world and every later start
+        reading: since deferred as d-j2wfa1pd.
+      - choice: which file the level name is read from
+        arises: d-5ocyva9w feeding d-owprl7uy
+        reading: since deferred as d-j2wfa1pd.
+      - choice: the console command string a reload is issued as
+        arises: d-uqdxo2w6's reload path
+        reading: not waiting is entailed; the string fails silently when wrong.
+      - choice: whether spawn is issued every start, only at generation, or after every restart
+        arises: d-41m3iws5's setworldspawn
+        reading: observable to a joining player; d-owprl7uy implies on attach but nothing says it.
+      - choice: the exact spelling of d-5e00ndwi's per-line tag
+        arises: the single output stream
+        reading: pinned as a data format on the strength of that prefix; the package-name half has a real choice in it.
+      - choice: whether container logs are replayed on reattach or followed from the attach point
+        arises: the server-tagged stream and the readiness scan
+        reading: one read serves both and they want opposite depths.
+      - choice: whether watch children are taken down as a process group, and the stubborn case
+        arises: shutdown per d-62bpn2h2
+        reading: orphaned watchers are observable; a second signal exiting immediately makes it reachable by design.
+      - choice: what a first signal does about an in-flight reconcile
+        arises: shutdown against d-0qo3xvev
+        reading: the two decisions together imply waiting; neither says it.
+      - choice: which claims can carry a code-test, given nearly all behaviour needs a live daemon
+        arises: the Define wave's test plan
+        reading: whether a Docker-requiring suite runs in CI is a cost and a workspace-level choice.
+
+  - package: nodejs/minecraft/mc-dev-kit
+    kind: npm-library
+    entries:
+      - choice: whether the ascent d-joa4eefg calls for exists in this library at all
+        arises: standing up the export
+        reading: it does not — nothing ascends, and the rule it applies treats any readable package.json as a root, so a faithful implementation returns its own argument. Since fixed — the rule is stated outright.
+      - choice: the export's signature — name, sync or async, what it returns
+        arises: the new entry in index.ts, pinned public-api
+        reading: async matches the house style and the pnpm reader; a result object rather than a bare string.
+      - choice: the failure mode when there is no workspace, versus a marker that cannot be read
+        arises: d-joa4eefg's "reports that there is none" against d-y08itp8j
+        reading: since fixed — absence returns, unreadability throws naming the file.
+      - choice: whether the export returns the root package's name alongside its path
+        arises: d-imdfu09l keys the project on that name and cites d-me8ieqnr
+        reading: since fixed — it does, so two implementations cannot disagree about what a workspace is called.
+      - choice: whether d-ai68xorc routes through the public export or a shared internal
+        arises: both halves ship in one package
+        reading: one implementation, internal for the build half; d-ai68xorc should stop independently specifying the rule.
+      - choice: where the ascent stops
+        arises: implementing the climb
+        reading: climbing to / will find a stray package.json above a checkout and resolve a root outside the repo. Undecided; observable as which root a run resolves.
+      - choice: whether discoverPacks's cwd default changes, and what it does with a root the resolver would refuse
+        arises: d-rl1msrus against d-joa4eefg's description
+        reading: the two sentences are not both true today; purely additive is the only reading that changes no shipped behaviour.
+      - choice: whether the identity a stub needs is always available
+        arises: d-n81zkitr sending invalid packs to d-vrq7lc2o's stub
+        reading: since fixed — invalid packs fail the run, because there is nothing to stub.
+      - choice: what a reconcile does when discovery rejects mid-session
+        arises: d-1u13wl57 against d-ydph1k7d
+        reading: since fixed — caught, reported, nothing changed, retried on the next save.
+      - choice: whether a profile's selection can be expressed through the library's search surface
+        arises: d-c1kvyord's packs list against PackCriteria's single-valued fields
+        reading: the harness discovers unfiltered and narrows in memory; d-thhboim6's filter does nothing for this consumer. Whether a profile entry names a package or a pack is unsaid.
+      - choice: what an entry's paths are joined against, and whether the export's return is stated to be that
+        arises: workspace-relative POSIX paths against the harness's need for absolute ones
+        reading: symlinks decide it — a root that disagrees with itself gives d-imdfu09l two project names.
+      - choice: whether a cold discovery per reconcile is affordable
+        arises: d-1u13wl57's cadence against d-k7py0qqv's no-caching
+        reading: report, not alarm — tens of milliseconds against a few-second budget. The decision to leave alone.
+      - choice: whether d-5ocyva9w and d-cw6pder5 need anything of this library
+        arises: the dispatch named both
+        reading: neither does, and the 0.2.0 surface is sufficient for both.
+      - choice: whether d-a8lgrojc is amended, given it enumerates the exported surface exhaustively
+        arises: this increment adds an export without touching it
+        reading: a stale enumeration rather than a live conflict, but it is what a builder consults.
+      - choice: whether the generated ./* wildcard export survives
+        arises: the shipped package.json maps it, so internals resolve today
+        reading: it offers the harness a shorter path to the failure d-joa4eefg exists to prevent. Narrowing it is a repo-kit change outside this package.
+      - choice: the order the two packages are built and released in
+        arises: only increment 002 is recorded as built
+        reading: this package first; r-8et233c9 is not demonstrable end to end until 003-008 ship.
+      - choice: whether a pack package declares the watch script d-j3ayhwv1 invokes
+        arises: r-82ck2fax makes package scripts repo-kit-generated
+        reading: d-n81zkitr makes the missing script survivable, but the edit-to-live loop needs one somewhere; adding it is a repo-kit change.

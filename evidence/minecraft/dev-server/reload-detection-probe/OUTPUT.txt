@@ -1,0 +1,98 @@
+=== environment
+Docker Compose version v5.2.0
+Docker Engine 29.5.3
+DOCKER_HOST=ssh://prod-development-docker
+ Network reload-detection-probe_default Creating 
+ Network reload-detection-probe_default Created 
+ Volume reload-detection-probe_data Creating 
+ Volume reload-detection-probe_data Created 
+ Container reload-detection-probe-listener-1 Creating 
+ Container reload-detection-probe-bedrock-1 Creating 
+ Container reload-detection-probe-listener-1 Created 
+ Container reload-detection-probe-bedrock-1 Created 
+ Container reload-detection-probe-bedrock-1 Starting 
+ Container reload-detection-probe-listener-1 Starting 
+ Container reload-detection-probe-bedrock-1 Started 
+ Container reload-detection-probe-listener-1 Started 
+[2026-08-05 11:18:30:326 INFO] Version: 1.26.40.8
+ reload-detection-probe-bedrock-1 Copying /tmp/tp-Qwvfxq/. to reload-detection-probe-bedrock-1:/data/development_behavior_packs/7a5c1e90-0000-4000-8000-00000000beef
+ reload-detection-probe-bedrock-1 Copied /tmp/tp-Qwvfxq/. to reload-detection-probe-bedrock-1:/data/development_behavior_packs/7a5c1e90-0000-4000-8000-00000000beef
+ reload-detection-probe-bedrock-1 Copying /tmp/tp-Qwvfxq/l.json to reload-detection-probe-bedrock-1:/data/worlds/dev/world_behavior_packs.json
+ reload-detection-probe-bedrock-1 Copied /tmp/tp-Qwvfxq/l.json to reload-detection-probe-bedrock-1:/data/worlds/dev/world_behavior_packs.json
+ Container reload-detection-probe-bedrock-1 Restarting 
+ Container reload-detection-probe-bedrock-1 Started 
+=== at world load:
+   [2026-08-05 11:18:37:074 WARN] [Scripting] [probe] warn gen0-h0
+   [2026-08-05 11:18:37:075 ERROR] [Scripting] [throw probe] Error: PROBE-THROW gen0-h0    at <anonymous> (main.js:3)
+   [2026-08-05 11:18:37:075 ERROR] [Scripting] Plugin [throw probe - 1.0.0] - [main.js] ran with error: [Error: PROBE-THROW gen0-h0    at <anonymous> (main.js:3)
+ reload-detection-probe-bedrock-1 Copying /tmp/.s to reload-detection-probe-bedrock-1:/data/development_behavior_packs/7a5c1e90-0000-4000-8000-00000000beef/scripts/main.js
+ reload-detection-probe-bedrock-1 Copied /tmp/.s to reload-detection-probe-bedrock-1:/data/development_behavior_packs/7a5c1e90-0000-4000-8000-00000000beef/scripts/main.js
+
+=== edit ENTRY file, expect token containing "gen1-h0"
+   [2026-08-05 11:18:50:851 ERROR] [Scripting] [throw probe] Error: PROBE-THROW gen1-h0    at <anonymous> (main.js:3)
+   [2026-08-05 11:18:50:851 ERROR] [Scripting] Plugin [throw probe - 1.0.0] - [main.js] ran with error: [Error: PROBE-THROW gen1-h0    at <anonymous> (main.js:3)
+   => re-evaluated with the NEW content: YES
+ reload-detection-probe-bedrock-1 Copying /tmp/.s to reload-detection-probe-bedrock-1:/data/development_behavior_packs/7a5c1e90-0000-4000-8000-00000000beef/scripts/helper.js
+ reload-detection-probe-bedrock-1 Copied /tmp/.s to reload-detection-probe-bedrock-1:/data/development_behavior_packs/7a5c1e90-0000-4000-8000-00000000beef/scripts/helper.js
+
+=== edit IMPORT file, expect token containing "-h1"
+   [2026-08-05 11:18:58:847 ERROR] [Scripting] [throw probe] Error: PROBE-THROW gen1-h1    at <anonymous> (main.js:3)
+   [2026-08-05 11:18:58:847 ERROR] [Scripting] Plugin [throw probe - 1.0.0] - [main.js] ran with error: [Error: PROBE-THROW gen1-h1    at <anonymous> (main.js:3)
+   => re-evaluated with the NEW content: YES
+ reload-detection-probe-bedrock-1 Copying /tmp/.s to reload-detection-probe-bedrock-1:/data/development_behavior_packs/7a5c1e90-0000-4000-8000-00000000beef/scripts/main.js
+ reload-detection-probe-bedrock-1 Copied /tmp/.s to reload-detection-probe-bedrock-1:/data/development_behavior_packs/7a5c1e90-0000-4000-8000-00000000beef/scripts/main.js
+
+=== edit ENTRY file, expect token containing "gen3-h1"
+   [2026-08-05 11:19:07:110 ERROR] [Scripting] [throw probe] Error: PROBE-THROW gen3-h1    at <anonymous> (main.js:3)
+   [2026-08-05 11:19:07:110 ERROR] [Scripting] Plugin [throw probe - 1.0.0] - [main.js] ran with error: [Error: PROBE-THROW gen3-h1    at <anonymous> (main.js:3)
+   => re-evaluated with the NEW content: YES
+ reload-detection-probe-bedrock-1 Copying /tmp/.s to reload-detection-probe-bedrock-1:/data/development_behavior_packs/7a5c1e90-0000-4000-8000-00000000beef/scripts/helper.js
+ reload-detection-probe-bedrock-1 Copied /tmp/.s to reload-detection-probe-bedrock-1:/data/development_behavior_packs/7a5c1e90-0000-4000-8000-00000000beef/scripts/helper.js
+
+=== edit IMPORT file, expect token containing "-h2"
+   [2026-08-05 11:19:15:117 ERROR] [Scripting] [throw probe] Error: PROBE-THROW gen3-h2    at <anonymous> (main.js:3)
+   [2026-08-05 11:19:15:117 ERROR] [Scripting] Plugin [throw probe - 1.0.0] - [main.js] ran with error: [Error: PROBE-THROW gen3-h2    at <anonymous> (main.js:3)
+   => re-evaluated with the NEW content: YES
+
+=== B: remove the pack from the activation list, edit its script, reload — no restart
+ reload-detection-probe-bedrock-1 Copying /tmp/.l to reload-detection-probe-bedrock-1:/data/worlds/dev/world_behavior_packs.json
+ reload-detection-probe-bedrock-1 Copied /tmp/.l to reload-detection-probe-bedrock-1:/data/worlds/dev/world_behavior_packs.json
+  wrote world_behavior_packs.json = []
+ reload-detection-probe-bedrock-1 Copying /tmp/.s to reload-detection-probe-bedrock-1:/data/development_behavior_packs/7a5c1e90-0000-4000-8000-00000000beef/scripts/main.js
+ reload-detection-probe-bedrock-1 Copied /tmp/.s to reload-detection-probe-bedrock-1:/data/development_behavior_packs/7a5c1e90-0000-4000-8000-00000000beef/scripts/main.js
+   [2026-08-05 11:19:23:376 ERROR] [Scripting] [throw probe] Error: PROBE-THROW gen5-h2    at <anonymous> (main.js:3)
+   [2026-08-05 11:19:23:376 ERROR] [Scripting] Plugin [throw probe - 1.0.0] - [main.js] ran with error: [Error: PROBE-THROW gen5-h2    at <anonymous> (main.js:3)
+   => the delisted pack was still live: YES — a list edit does not take effect without a restart
+
+=== B2: restart, so the emptied list is read at world load
+ Container reload-detection-probe-bedrock-1 Restarting 
+ Container reload-detection-probe-bedrock-1 Started 
+   [2026-08-05 11:19:31:826 INFO] Pack Stack - None
+
+=== C: pool a second pack and list it, reload — no restart
+ reload-detection-probe-bedrock-1 Copying /tmp/tp2-IrHpV2/. to reload-detection-probe-bedrock-1:/data/development_behavior_packs/8a5c1e90-0000-4000-8000-00000000beef
+ reload-detection-probe-bedrock-1 Copied /tmp/tp2-IrHpV2/. to reload-detection-probe-bedrock-1:/data/development_behavior_packs/8a5c1e90-0000-4000-8000-00000000beef
+ reload-detection-probe-bedrock-1 Copying /tmp/.l to reload-detection-probe-bedrock-1:/data/worlds/dev/world_behavior_packs.json
+ reload-detection-probe-bedrock-1 Copied /tmp/.l to reload-detection-probe-bedrock-1:/data/worlds/dev/world_behavior_packs.json
+  wrote world_behavior_packs.json = [{"pack_id":"8a5c1e90-0000-4000-8000-00000000beef","version":[1,0,0]}]
+   <no [Scripting] lines>
+   => the newly pooled pack came live on reload: NO — a restart is needed
+
+=== C2: restart, so the newly pooled pack is read at world load
+ Container reload-detection-probe-bedrock-1 Restarting 
+ Container reload-detection-probe-bedrock-1 Started 
+   [2026-08-05 11:20:46:873 INFO] Pack Stack - [00] throw probe 2 (id: 8a5c1e90-0000-4000-8000-00000000beef, version: 1.0.0) @ development_behavior_packs/8a5c1e90-0000-4000-8000-00000000beef
+   [2026-08-05 11:20:46:894 ERROR] [Scripting] [throw probe 2] Error: PROBE-THROW PACK2-FIRST-RUN    at <anonymous> (main.js:1)
+   [2026-08-05 11:20:46:894 ERROR] [Scripting] Plugin [throw probe 2 - 1.0.0] - [main.js] ran with error: [Error: PROBE-THROW PACK2-FIRST-RUN    at <anonymous> (main.js:1)
+ Container reload-detection-probe-bedrock-1 Stopping 
+ Container reload-detection-probe-listener-1 Stopping 
+ Container reload-detection-probe-listener-1 Stopped 
+ Container reload-detection-probe-listener-1 Removing 
+ Container reload-detection-probe-listener-1 Removed 
+ Container reload-detection-probe-bedrock-1 Stopped 
+ Container reload-detection-probe-bedrock-1 Removing 
+ Container reload-detection-probe-bedrock-1 Removed 
+ Network reload-detection-probe_default Removing 
+ Volume reload-detection-probe_data Removing 
+ Network reload-detection-probe_default Removed 
+ Volume reload-detection-probe_data Removed 
