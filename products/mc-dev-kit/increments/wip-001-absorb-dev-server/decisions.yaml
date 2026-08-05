@@ -333,8 +333,8 @@ decisions:
       the profile or the file's top level says, and a profile's own values override the top level's.
 
       A `--pack` value matching no discovered pack is an error, and so is a `--profile` naming no
-      profile the loaded file holds, or a `--profile` given when no config file was loaded at all — a
-      run hosts what was asked for or it does not start. `--pack` and `--profile` together are an error rather than a union:
+      profile the config holds — an absent or empty config holds none — a run hosts what was asked for
+      or it does not start. `--pack` and `--profile` together are an error rather than a union:
       each is a complete statement of the selection, and `--pack` takes the world settings from the
       file's top level. A profile holding an empty pack list selects no packs, which is a valid run.
     status: accepted
@@ -354,6 +354,7 @@ decisions:
       the harness looks for `.minecraft.yaml` or `.minecraft.yml` in the current directory, and
       `--config <path>` points it at one somewhere else instead. A path given that way and not found is
       an error; the default location simply not being there is not, and reads the same as an empty file.
+      Both default names present at once is an error rather than a precedence rule.
 
       Every setting has a default, so a workspace with no config file at all is a complete run — every
       pack the kit discovers, the level name `dev`, the image tag the harness pins, the default port, a
