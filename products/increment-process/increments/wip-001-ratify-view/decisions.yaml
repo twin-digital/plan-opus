@@ -182,6 +182,120 @@ decisions:
       namespaced to avoid collidign with a common 'id' that many frontmatters
       may have. but also want to align with our other comments/id field
       names/etc
+  - id: d-7i1l1kfy
+    title: how the session finds the pull request it works
+    statement: |
+      `design-process increment` is a full-screen terminal application over a draft's pull
+      request, and it is the whole flow: the owner rules from it and publishes from it, never
+      switching commands. no new package, no service, and no browser — it reaches the fold, the
+      projection, and the conflict check as library calls rather than reimplementing them.
+
+      `--pr <url>` names the pull request to work and is not required. given one, the session
+      resolves it to its head branch and works that: where the current tree is already on that
+      branch it works in place, and otherwise it fetches the branch, materialises a temporary git
+      worktree from it, runs there, and removes the worktree when the session ends. it needs a
+      local clone of the pull request's repository, found from the working directory the command
+      ran in.
+
+      given no `--pr`, the session takes the branch the working directory is on, looks for the
+      pull request whose head is that branch, and works it. where the branch has none, the session
+      pushes it — setting its upstream where it has none — and opens one, titled for the draft it
+      carries. this is the ordinary case rather than an error: a branch carrying a draft and no
+      pull request is a draft nobody has posted yet, and posting it is what the owner came to do.
+
+      four things it refuses instead, saying which: the branch is the repository's default branch,
+      which never carries a draft and cannot be the head of a pull request into itself; the tree
+      holds no draft increment, so there is nothing to rule; the tree has uncommitted changes,
+      which the owner would be ruling without having written; and the head branch lives on a fork
+      the local clone cannot push to.
+
+      the product comes from the draft the branch holds, so the product argument is optional
+      throughout. the session has modes, and what is open decides which are offered. ratify is
+      where a draft carrying anything proposed or unanswered opens. landing becomes available
+      exactly when nothing is proposed and no question is open, and is entered from the same
+      session. `increment` takes `--root` as every operation does, and `--pr`.
+    status: proposed
+    supersedes: d-mhv8av8w
+    because:
+      - r-ycjjl48r
+      - r-ax84j1s2
+      - r-2keswxn8
+      - d-h418ljtp
+    pinned:
+      reason: public-api
+      notes: the command a published cli offers, what it accepts, and when it refuses to open
+    facets:
+      - tooling
+
+  - id: d-4n77krzi
+    title: a markdown surface declares its identity in frontmatter, keyed on the word the other formats use
+    statement: |
+      a surface authored as markdown declares its identity in the frontmatter key
+      `io.twindigital.surface`. markdown has no comment syntax that survives rendering, so the
+      identity goes in the frontmatter a markdown file already carries.
+
+      the key is namespaced because frontmatter is shared with every other tool that reads the
+      file, and a bare `id` is a name many of them already use. it ends in `surface` because that
+      is the word the typescript and yaml comments use for the same thing, so one word names the
+      identity across every format this process defines — openapi excepted, where the key belongs
+      to openapi.
+    status: proposed
+    supersedes: d-70rnco74
+    because:
+      - d-rui9z0lc
+      - d-ds6mco0p
+      - d-tjitou0m
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - design-validator
+
+  - id: d-yfxziwwg
+    title: text the owner typed is written as a block scalar that round-trips
+    statement: |
+      the draft's sources are yaml. every field the session writes into them from text the owner
+      typed — a rejection's reason, the answer a routed question carries, the placeholder
+      statement that answer writes — is written as a yaml block scalar, whatever its length. a
+      colon, a leading dash, a `#`, or a quote in the owner's prose then cannot break the file,
+      and no escaping rule has to be right. the alternative is quoting, which is a rule that must
+      hold for every character the owner can type.
+
+      the scalar is the folded one, `field: >`, so that the session can wrap what it writes
+      without wrapping being part of what it wrote. folding turns a line break between two
+      non-empty lines back into the space it replaced, and keeps a blank line as the paragraph
+      break the owner typed. a literal `|` cannot do this: every break the wrapper inserted would
+      be stored, and the owner's text would come back carrying a shape the tool chose.
+
+      where the owner's text does not survive folding — a line they began with whitespace, which
+      a folded block would keep literally — the session writes a literal block instead and does
+      not wrap. round-tripping the value is the rule; folding is how it is met in the ordinary
+      case.
+
+      the width and the wrapping algorithm are the implementer's: a target under some width,
+      breaking on whitespace, breaking inside a token only where an unbroken run exceeds the width
+      on its own.
+
+      the write is an edit to the source, not a re-serialisation of it. a submit rewriting the
+      file through a yaml serialiser reflows every entry it did not touch: the values survive and
+      the diff does not, and the pull request stops showing what the sitting did. so the session
+      edits the spans it ruled and leaves every other byte where it found it, the scalar style of
+      the surrounding entries included.
+    status: proposed
+    supersedes: d-wfk23gw8
+    because:
+      - r-xtbhb7gj
+      - r-ospozqv8
+      - d-ovlyaoht
+      - d-octrdz0j
+      - r-6n45h5eb
+    pinned:
+      reason: data-format
+      notes: what a tool writes into sources every reader diffs and every parser reads
+    facets:
+      - tooling
+      - schema
+
   - id: d-pe4j25wq
     title: the model is a block of the requirements source
     statement: >
@@ -245,7 +359,7 @@ decisions:
     status: tolerated
     because:
       - r-ax84j1s2
-      - d-mhv8av8w
+      - d-7i1l1kfy
     pinned:
       reason: public-api
       notes: the screen the owner works from, and the first entry the surface pool has
@@ -371,7 +485,7 @@ decisions:
     because:
       - r-jf51jzor
       - r-ax84j1s2
-      - d-mhv8av8w
+      - d-7i1l1kfy
     pinned: false
     facets:
       - tooling
@@ -602,7 +716,7 @@ decisions:
     status: accepted
     because:
       - r-ycjjl48r
-      - d-mhv8av8w
+      - d-7i1l1kfy
       - d-x0q4xgd8
     pinned: false
     facets:
@@ -659,7 +773,7 @@ decisions:
       - r-y9eux47d
       - r-z0wcwwn0
       - d-lqmwczg3
-      - d-mhv8av8w
+      - d-7i1l1kfy
       - d-h418ljtp
     pinned:
       reason: public-api
@@ -719,7 +833,7 @@ decisions:
     because:
       - r-rxb7pn9z
       - d-f1b5r2f8
-      - d-mhv8av8w
+      - d-7i1l1kfy
     pinned:
       reason: other
       notes: the owner's identity is what it spends; a later relaxation to a stored
@@ -890,7 +1004,7 @@ decisions:
     status: delegated
     because:
       - r-dp8zisqf
-      - d-mhv8av8w
+      - d-7i1l1kfy
       - d-wcnyuwkv
     pinned: false
     facets:
@@ -932,7 +1046,7 @@ decisions:
     status: delegated
     because:
       - r-ycjjl48r
-      - d-mhv8av8w
+      - d-7i1l1kfy
       - d-lqmwczg3
       - d-wcnyuwkv
     pinned: false
@@ -1032,7 +1146,7 @@ decisions:
       - r-ge2xf5nz
       - r-ax84j1s2
       - r-dp8zisqf
-      - d-mhv8av8w
+      - d-7i1l1kfy
       - d-9zot40jn
       - d-tmyu6t1y
     pinned: false
