@@ -1,0 +1,353 @@
+version: "2"
+decisions:
+  - id: d-eh8y8a37
+    title: a source-specified module entry is its own problem code
+    statement: |
+      the problem code set gains `module-entry-specified`, carrying the dotted path of the offending
+      field, reported once per module whose source manifest specifies an `entry`. The completed
+      manifest carries the kit's own value in its place, or no `entry` at all on a module that gets
+      none, so a source-specified value never reaches a consumer.
+    status: delegated
+    pinned:
+      reason: public-api
+      notes: extends the closed union a consumer switches on exhaustively
+    facets: discovery
+    because:
+      - r-wi7qf6to
+      - d-9se0yv0h
+      - d-ed610d8c
+      - d-wytigz6u
+      - d-6wjeomr5
+
+  - id: d-4tmzz8dc
+    title: a completed script module's entry is scripts/main.js
+    statement: |
+      completion writes each script module's `entry` as `scripts/main.js`, relative to the pack root,
+      on every behavior pack that declares one, and writes it always rather than optionally. A
+      resource pack gets no entry even where it declares a script module, since it has no script
+      location.
+
+      The engine fixes the shape: the path is pack-root-relative, must sit under `scripts/`, must end
+      `.js`, and a script module is required to name one.
+    status: delegated
+    pinned:
+      reason: data-format
+      notes: the path a built pack's manifest names, which the engine reads to find the bundle
+    facets: discovery
+    because:
+      - r-5qo6fzs4
+      - r-wi7qf6to
+      - d-9se0yv0h
+      - d-jewbwtye
+      - f:a-script-modules-entry-must-be-a-js-file-under-scripts
+      - f:a-script-module-names-its-entry-point-path
+
+  - id: d-pj8788qi
+    title: the workspace-root resolver's signature
+    statement: |
+      `resolveWorkspaceRoot(options?: { from?: string }): Promise<{ root: string; packageName: string } | undefined>`.
+      `root` is absolute; `from` defaults to the current directory and a relative path resolves
+      against it, as the discovery call's `workspace` does. No workspace root above `from` is
+      `undefined`.
+    status: delegated
+    pinned:
+      reason: public-api
+      notes: a new export on the published library, which a sibling package compiles against
+    facets: discovery
+    because:
+      - d-joa4eefg
+      - d-rl1msrus
+
+  - id: d-218lu6sx
+    title: the build fragment is a tsdown UserConfig, and the virtual entry is a plugin-resolved id
+    statement: |
+      `packBuild` returns tsdown's `UserConfig`, so a consuming package's configuration fragment
+      default-exports it directly. Where the package's `behavior_pack/scripts/main.ts` is absent when
+      the configuration is evaluated, the entry is the id `mc-dev-kit:pack-entry`, which the plugin
+      resolves and loads as an empty module.
+    status: delegated
+    pinned: false
+    facets: build
+    because:
+      - d-5ej8yfki
+      - d-qtq0ccy6
+      - d-64tw58t0
+      - d-wzmofsc8
+      - d-s1haiu19
+
+  - id: d-e9q1tkmj
+    title: the fragment sets resolve.conditionNames under inputOptions
+    statement: |
+      the `resolve.conditionNames` the fragment is required to set is set as
+      `inputOptions.resolve.conditionNames`, which is where tsdown's configuration takes that
+      setting. The same setting, in the shape the tool has for it.
+    status: delegated
+    pinned: false
+    facets: build
+    because:
+      - d-1w5rjhg6
+
+  - id: d-0o67zhpe
+    title: the plugin resolves an undeclared game-module import and fails when nothing does
+    statement: |
+      an `@minecraft/`-scoped import the completed manifest does not declare is put through the
+      bundler's own resolution, and fails the build when that resolves to nothing. The bundler's own
+      behaviour is to warn and leave such an import external, which would ship a bare specifier the
+      game cannot load, so the check is the plugin's to make.
+    status: delegated
+    pinned: false
+    facets: build
+    because:
+      - d-3sb0vrc2
+      - r-2alueo3d
+
+  - id: d-6qjbel7g
+    title: the world volume is the compose volume world-data
+    statement: |
+      the generated compose project declares one named volume, keyed `world-data`, mounted at
+      `/data`; Docker therefore names it `<project>_world-data`. `stop` leaves it standing and
+      `destroy` removes it with the volume flag.
+    status: delegated
+    pinned:
+      reason: data-format
+      notes: an author's world library lives under this name across harness versions
+    facets: dev-loop
+    because:
+      - d-j2wfa1pd
+      - d-zo2yl18y
+      - d-imdfu09l
+
+  - id: d-iietr3ai
+    title: the seed record is worlds.json under the harness's own directory
+    statement: |
+      the harness keeps one file on the volume, `/data/.mc-dev-server/worlds.json`, shaped
+      `{"version": 1, "worlds": {"<level>": {"seed": "<decimal>"}}}`. The seed is a string so a
+      64-bit value survives a JSON round trip in any reader. A file that will not parse, or that
+      declares another version, reads as no record at all.
+    status: delegated
+    pinned:
+      reason: data-format
+      notes: read back by every start, across harness versions
+    facets: dev-loop
+    because:
+      - d-j2wfa1pd
+      - d-5ocyva9w
+      - d-41m3iws5
+
+  - id: d-72uops8f
+    title: a seed is recorded before its world exists and never rewritten
+    statement: |
+      the harness writes a level's seed onto the volume before the container that will generate that
+      world comes up, and writes it only for a level the record does not already name. The one
+      exception is the rung that regenerates a world, where the world really is made again.
+
+      Both halves protect the same thing. A world with no record can never be reproduced, so the
+      record goes down first — and a record naming a world that does not exist yet is harmless and
+      self-correcting, since a later run finding that level absent generates it from the recorded
+      seed. A start onto a world that already exists, meanwhile, hands the server a level seed it
+      ignores; rewriting the record there would replace a world's real generation history with a
+      seed that generated nothing.
+    status: delegated
+    pinned:
+      reason: data-format
+      notes: whether a world on the volume can still be reproduced from what the record says
+    facets: dev-loop
+    because:
+      - d-j2wfa1pd
+      - d-5ocyva9w
+      - d-41m3iws5
+      - d-5vjxmr4u
+      - d-owprl7uy
+
+  - id: d-1cvurr1z
+    title: the level a server is serving is read from server.properties
+    statement: |
+      the world a running server is serving is read from the `level-name` key of
+      `/data/server.properties` on the volume. Not from the container's environment, which is not
+      configuration on the volume, and not from a world's own name file, which says what a world
+      calls itself rather than which one is served.
+    status: delegated
+    pinned: false
+    facets: dev-loop
+    because:
+      - d-j2wfa1pd
+      - d-5ocyva9w
+      - d-owprl7uy
+
+  - id: d-ur29y32y
+    title: the compose service is bedrock, and the run's port publishes over 19132
+    statement: |
+      the generated project holds one service named `bedrock`, listening on 19132/udp inside the
+      container, with the run's `port` as the published host port. The copy and console commands
+      address the service by that name.
+    status: delegated
+    pinned:
+      reason: data-format
+      notes: what anything reading the generated project, or scripting compose against it, sees
+    facets: dev-loop
+    because:
+      - d-w8cc8n18
+      - d-uqdxo2w6
+      - r-7lroj1cg
+
+  - id: d-u5c77500
+    title: the generated compose file sits outside the workspace and is rewritten every run
+    statement: |
+      the file is written under the system temporary directory, keyed by the compose project name,
+      and regenerated on every invocation. Nothing appears in the author's checkout and nothing needs
+      ignoring there.
+    status: delegated
+    pinned: false
+    facets: dev-loop
+    because:
+      - d-w8cc8n18
+      - d-imdfu09l
+
+  - id: d-ma6te2xu
+    title: the project name slug
+    statement: |
+      the root package's name is lowercased, anything outside `[a-z0-9_-]` becomes a hyphen, runs of
+      hyphens collapse, and separators are trimmed from both ends. A name with nothing left becomes
+      `mc-workspace`, since compose requires a leading alphanumeric.
+    status: delegated
+    pinned:
+      reason: other
+      notes: it decides which server a workspace addresses, so it must not drift between versions
+    facets: dev-loop
+    because:
+      - d-imdfu09l
+      - d-joa4eefg
+
+  - id: d-4rq4v5jq
+    title: level, seed and spawn carry no harness default
+    statement: |
+      the harness's own defaults layer supplies the image, the port and nothing else. `level`, `seed`
+      and `spawn` stay unspecified where nothing sets them — a wildcard when matching a running
+      server, and taking their fallback only where a world must actually be generated.
+
+      Without this the wildcard half of the settings rule could never hold, since every setting would
+      arrive specified and every second start would find a mismatch.
+    status: delegated
+    pinned:
+      reason: public-api
+      notes: it decides what an author's second start does to the first one's server
+    facets: dev-loop
+    because:
+      - d-41m3iws5
+      - d-owprl7uy
+      - d-wkcxcv2b
+
+  - id: d-aq4qq95v
+    title: what makes a reconcile re-copy a pack
+    statement: |
+      a pack is copied when it is absent from its pool, when the file names differ, or when a watcher
+      observed that pack rebuild since the last reconcile. At start nothing has been observed, which
+      is what makes a reconcile against an already-matching server a genuine no-op while still
+      letting an edited script deploy. Content is never read back, so nothing else could tell the two
+      cases apart.
+    status: delegated
+    pinned: false
+    facets: dev-loop
+    because:
+      - r-pcq10f2b
+      - r-cekp2mcb
+      - d-a9jaqn8m
+      - d-3ya31m19
+
+  - id: d-69wqm1r3
+    title: a package's own scripts are run through its workspace's package manager
+    statement: |
+      the harness runs a selected package's `build` and `watch` as `<pnpm|npm> run <script>` in that
+      package's own directory — pnpm where the workspace root holds a pnpm workspace file, npm
+      otherwise, which is the kit's own rule. A package declaring neither script is not an error.
+    status: delegated
+    pinned:
+      reason: other
+      notes: the contract a pack package's own scripts are invoked under
+    facets: dev-loop
+    because:
+      - d-j3ayhwv1
+      - d-n81zkitr
+      - d-xnv5kh7k
+
+  - id: d-2nfk6s4m
+    title: the seed's exact range is enforced by the harness, not the config schema
+    statement: |
+      the 64-bit bounds the config contract states are not exactly representable as JSON numbers, so
+      a seed one past either end validates against the schema. The harness re-parses the file keeping
+      integers exact and rejects anything outside the range, naming the key. The contract is
+      unchanged; the check is where the arithmetic is exact.
+    status: delegated
+    pinned: false
+    facets: dev-loop
+    because:
+      - d-41m3iws5
+      - d-wkcxcv2b
+      - f:bedrock-level-seed-is-64-bit-and-hashes-anything-else
+
+  - id: d-uwj809wm
+    title: a world that loaded with no packs is ready, and said so
+    statement: |
+      a world load reporting an empty pack stack is a ready server, and the harness says on the
+      stream that the world loaded with no packs active. It is exactly what an unlisted or misrouted
+      pack produces, so reporting it as an ordinary healthy start would hide the commonest failure
+      this loop has.
+    status: delegated
+    pinned:
+      reason: other
+      notes: what an author sees on a start that brought nothing up
+    facets: dev-loop
+    because:
+      - d-i4oryd9x
+      - r-hpu39brj
+      - r-8et233c9
+
+  - id: d-tl5qq1u6
+    title: the run reports where to connect once the world has loaded
+    statement: |
+      once the world has loaded the run reports the endpoint an author points a client at: the
+      published port, and the host taken from the Docker connection the environment selected — the
+      host `DOCKER_HOST` names where it names one, and localhost otherwise. A remote daemon publishes
+      the port on the remote host, so the port alone is not an answer.
+    status: delegated
+    pinned: false
+    facets: dev-loop
+    because:
+      - r-whacwz1b
+      - d-a3fyy34f
+      - r-8et233c9
+
+  - id: d-3qlzf7l8
+    title: readiness is a bounded poll against a mark, not a follow
+    statement: |
+      the harness marks the container log before whatever will cause a world load — how many
+      world-load lines it holds and how long it is — then polls a bounded tail until a load appears
+      the mark says is new: more loads than before, or a shorter log, which is what a recreated
+      container's fresh log looks like.
+
+      A follow cannot be attached before the container exists, which is the case a start is in, and
+      attaching after the operation would miss a load that already happened. The mark consults no
+      clock, which matters when the daemon is on another host. Where a running server's log no longer
+      holds a world-load line at all, the run treats the server as ready and says on the stream that
+      readiness could not be confirmed from the log.
+    status: delegated
+    pinned: false
+    facets: dev-loop
+    because:
+      - d-i4oryd9x
+      - d-ifke5eeh
+      - r-whacwz1b
+
+  - id: d-fw7jkpvp
+    title: detaching takes a package's whole watch down with it
+    statement: |
+      watch scripts are spawned in their own process group, and the group is signalled on detach. A
+      package manager's `run` is a parent of the process actually watching, so signalling the parent
+      alone orphans the watcher — which both leaves it running after the author has detached and
+      keeps the harness alive on the pipes the orphan holds open.
+    status: delegated
+    pinned: false
+    facets: dev-loop
+    because:
+      - d-62bpn2h2
+      - d-j3ayhwv1
