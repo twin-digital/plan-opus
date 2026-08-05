@@ -1,4 +1,4 @@
-version: "1"
+version: "2"
 decisions:
   - id: d-zyo6kku9
     title: the harness is its own package beside the library
@@ -84,8 +84,7 @@ decisions:
       container down and leaves the volume standing, so every world on it survives to the next `start`.
       Only `destroy` removes it.
 
-      What the volume is called is the implementer's to choose, and stable once chosen: an author's world
-      library lives under that name and a later version renaming it would strand the lot.
+      What the volume is called is d-j2wfa1pd.
 
       A volume rather than the container's own writable layer, so the world is independent of the
       container's lifecycle — which is what lets a recreate swap the served world, change the image or
@@ -654,11 +653,9 @@ decisions:
       from — which it can always do, because d-41m3iws5 has it choose the seed rather than the server.
       That file is a record, which a reconcile is otherwise forbidden to trust (d-q8ikxtdk) — the
       exception holds because a world's generation seed is immutable history rather than state that can
-      drift, and because nothing else can answer the question.
+      drift, and because nothing else can answer the question. What it is called and how it is shaped is
+      d-j2wfa1pd.
     status: delegated
-    pinned:
-      reason: data-format
-      notes: a file the harness writes on the volume and reads back on a later run
     facets: dev-loop
     because:
       - d-q8ikxtdk
@@ -727,3 +724,22 @@ decisions:
       - d-1u13wl57
       - d-ftlfhac8
       - d-j3ayhwv1
+  - id: d-j2wfa1pd
+    title: the harness's own artefacts on the volume are the implementer's to name and shape
+    statement: |
+      the harness writes things on the volume that are its own rather than the server's, and what
+      they are called and how they are shaped is handed to the implementer: the volume's own name, the
+      record of which seed generated which world (d-5ocyva9w), when that record is written relative to the
+      world it describes, and which file the level name is read back from.
+
+      They are deferred together because they are one problem — an author's world library lives under
+      these names across sessions and harness versions, so each must be stable once chosen, and choosing
+      them wants the shape of the code that reads them. The implementer records them in the companion
+      increment, where a format worth pinning can be pinned.
+    status: deferred
+    facets: dev-loop
+    because:
+      - d-zo2yl18y
+      - d-5ocyva9w
+      - d-5vjxmr4u
+      - d-owprl7uy
