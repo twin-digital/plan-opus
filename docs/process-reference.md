@@ -483,13 +483,15 @@ version in its `version` field. The model is for the shapes a design defines and
 ### Every structured file names its own schema version
 
 Every structured file this process defines — `product.yaml`, the increment sources, the
-implementation records, and any source a later increment adds — carries `version`: the pool
-version of the file's own schema. A requirements source with `version: "2"` is interpreted by
-the pool schema `/design-process/requirements@2` — one lookup, no fold. The field is what makes
-schema evolution compatible with immutability: a published file stays readable forever in the
-dialect it was written in, and a format change is an ordinary new pool version that later files
-opt into. Carrying the field means a foundation file is a mapping, not a bare list: `version`
-sits beside the top-level keys — `requirements:`, `decisions:` — that name what the file holds.
+implementation records, the repo-wide `facts/` and `evidence/` pool files, and any source a
+later increment adds — carries `version`: the pool version of the file's own schema. A
+requirements source with `version: "2"` is interpreted by the pool schema
+`/design-process/requirements@2` — one lookup, no fold. The field is what makes schema evolution
+compatible with immutability: a published file stays readable forever in the dialect it was
+written in, and a format change is an ordinary new pool version that later files opt into.
+Carrying the field means a foundation file is a mapping, not a bare list: `version` sits beside
+the top-level keys — `requirements:`, `decisions:`, `facts:`, `runs:` — that name what the file
+holds.
 
 ### Identifiers
 

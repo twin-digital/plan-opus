@@ -4,9 +4,13 @@
 version: "1"
 facts:
   - id: falsifiers-are-writable-for-boundaries
-    claim: a useful falsifier can be stated for a boundary decision, not only for capacity and performance ones
+    claim: a useful falsifier can be stated for a boundary decision, not only for
+      capacity and performance ones
     backing: assumed
-    caveat: one design's worth of evidence, written by the same person who wrote the rule requiring it — the decisions here mostly did yield conditions, but "components are routinely split or merged mid-implementation" is a weaker instrument than "sustained writes exceed 10k/s"
+    caveat: one design's worth of evidence, written by the same person who wrote the
+      rule requiring it — the decisions here mostly did yield conditions, but
+      "components are routinely split or merged mid-implementation" is a weaker
+      instrument than "sustained writes exceed 10k/s"
     sources:
       - description: |
           observed while writing the how-to-plan designs — every decision carries a
@@ -77,79 +81,3 @@ facts:
         where: Abstract (Akli et al., 2026)
         quote: |
           structurally rich task descriptions can substantially mitigate the negative effects of under-specification and, in some cases, even enhance correctness
-
-  # Cross-design dependencies on doc-structure, recorded as facts per
-  # r:cross-design-dependency-is-cited-as-a-fact. Each quote is verbatim from the upstream
-  # doc-structure design — preferring its requirements.yaml (stable) over its spec.md
-  # (regenerable), and falling back to spec.md only where no requirement pins the claim.
-
-  - id: summary-carries-no-citation
-    claim: all citations live in the specification and explicitly NOT the Summary
-    backing: documented
-    sources:
-      - url: design/how-to-plan/doc-structure/spec.md
-        where: The spec.md document
-        quote: |
-          A `spec.md` opens with a Summary and then the specification — its remaining prose sections, where every citation lives.
-
-  - id: foundations-extracted-into-lists
-    claim: a design's facts, requirements, and decisions live as entries in their own list files, not in the spec.md prose
-    backing: documented
-    sources:
-      - url: design/how-to-plan/doc-structure/requirements.yaml
-        where: citable-entries-are-foundations
-        quote: |
-          each lives in a YAML file: facts and requirements in a design's own dir or a
-          wider scope, decisions in a decisions.yaml beside the spec.md
-
-  - id: fact-source-is-quote-or-mechanism
-    claim: a fact's evidence takes exactly one locator form — a url with a verbatim quote, or a description of the mechanism
-    backing: documented
-    status: retired
-    reason: superseded
-    superseded_by: fact-source-takes-one-of-three-locators
-    sources:
-      - url: design/how-to-plan/doc-structure/requirements.yaml
-        where: facts-require-a-source
-        quote: |
-          every fact carries at least one source, and each source uses exactly one
-          locator form — a mechanism description, or a URL with section and quote
-
-  - id: in-repo-source-url-is-repo-relative
-    claim: a fact source url pointing inside the repository is written relative to the repo root
-    backing: documented
-    sources:
-      - url: design/how-to-plan/doc-structure/requirements.yaml
-        where: repo-relative-source-paths
-        quote: |
-          a source URL that points inside this repository is written relative to the
-          repo root, not relative to the file that holds it
-
-  - id: component-interface-fields
-    claim: a component requires an id and a one-line responsibility, and may additionally name the nearby responsibility it does not hold and the components that must land before it — and nothing else
-    backing: documented
-    caveat: |
-      The quote establishes the required and optional fields; it does not say the set is exhaustive.
-      The "and nothing else" rests on doc-structure's separate `entry-schemas-are-closed`, which
-      records unknown-field rejection as enforcement not yet implemented — so a component carrying a
-      further field is out of format but draws no diagnostic today.
-    sources:
-      - url: design/how-to-plan/doc-structure/requirements.yaml
-        where: component-structure
-        quote: |
-          Components MUST have the following data at a minimum:
-
-            - stable id to reference
-            - one line naming the responsibility it holds
-
-          and MAY additionally carry the nearby responsibility it deliberately does not hold, and
-          the components that must land before it
-
-  - id: decision-carries-a-falsifier
-    claim: doc-structure requires each decision to state at least one falsifier, leaving whether it is a real one to authoring
-    backing: documented
-    sources:
-      - url: design/how-to-plan/doc-structure/requirements.yaml
-        where: decisions-require-a-falsifier
-        quote: |
-          a decision must list at least one falsifier
