@@ -574,6 +574,38 @@ decisions:
     pinned: false
     facets:
       - tooling
+  - id: d-wfk23gw8
+    title: text the owner typed is written as a wrapped literal block
+    statement: |
+      every field the session writes from text the owner typed — a rejection's reason, the answer
+      a routed question carries, the placeholder statement that answer writes — is written as a
+      literal block scalar, `field: |`, whatever its length. a colon, a leading dash, a `#`, or a
+      quote in the owner's prose then cannot break the file, and no escaping rule has to be right.
+      the alternative is quoting, which is a rule that must hold for every character the owner can
+      type.
+
+      the session wraps what it writes rather than emitting one long line, so the sources stay
+      diffable and a review comment can anchor to a line that means something. the width and the
+      algorithm are the implementer's: a target under some width, breaking on whitespace, breaking
+      inside a token only where an unbroken run exceeds the width on its own. paragraph breaks the
+      owner typed are kept as they were typed.
+
+      wrapping a literal block adds newlines to the value, since `|` keeps them — which is what
+      every hand-authored statement in this repository already does, so a session-written entry
+      reads like one a person wrote. that consistency is worth more here than a value that
+      round-trips character for character, because these fields are prose for a reader.
+    status: proposed
+    because:
+      - d-ovlyaoht
+      - d-octrdz0j
+      - r-6n45h5eb
+    pinned:
+      reason: data-format
+      notes: what a tool writes into sources every reader diffs and every parser reads
+    facets:
+      - tooling
+      - schema
+
   - id: d-tmyu6t1y
     title: a comment is an instruction; the sources are the ruling
     statement: >
