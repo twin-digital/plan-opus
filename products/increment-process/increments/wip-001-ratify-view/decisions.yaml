@@ -139,8 +139,34 @@ decisions:
     facets:
       - tooling
 
+  - id: d-pm6a29v6
+    title: the pull request's diff names the draft, and the owner picks only where it is ambiguous
+    statement: |
+      the increment directories a pull request's diff touches are the drafts it carries, and the
+      `products/<product>/` above each is its product. nothing is declared and nothing is passed:
+      a draft is identified by the branch changing it.
+
+      the diff rather than a `wip-` name, because a branch at landing has already renamed its
+      directory into the number it claims — a session opened on a landing branch would find no
+      draft by name, and the one it should work is the one the branch changed.
+
+      where the diff carries exactly one, the session opens on it. where it carries several, a
+      selection screen comes first, listing each by product and directory, and choosing one opens
+      the ordinary view; a tree holds more than one draft only where they are stacked, so this is
+      the uncommon path. a product named on the command line narrows the list to that product's
+      drafts, and where that leaves one the selection screen is skipped. where the diff carries
+      none, the session says the pull request holds no increment and exits.
+    status: proposed
+    because:
+      - r-ycjjl48r
+      - d-mhv8av8w
+      - d-x0q4xgd8
+    pinned: false
+    facets:
+      - tooling
+
   - id: d-f1b5r2f8
-    title: every submit posts one pull-request review
+    title: a submit posts one review where it has something to say
     statement: |
       a submit posts exactly one review to the draft's pull request, after the commit and the
       push, so the review anchors to the state it describes. each note the owner attached is a
@@ -151,9 +177,10 @@ decisions:
       the review's event is `APPROVE` where the submit leaves the draft with nothing proposed,
       nothing rejected, and no question open, and `COMMENT` otherwise. approving is the same
       judgement the landing gate makes, taken at the moment the owner makes it, so the pull
-      request shows a settled draft as settled without a second action. a submit with no notes
-      and an unsettled draft posts a review with an empty body rather than none, so the sitting
-      is on the record.
+      request shows a settled draft as settled without a second action. a submit that neither
+      approves nor carries a note posts nothing: the commit already records the statuses it
+      changed, and an empty review on the pull request repeats it while burying the reviews that
+      say something.
 
       the review is the owner's, so it is what the owner's credential is spent on. a note settles
       nothing and gates nothing: an entry can carry a note and be accepted in the same submit.

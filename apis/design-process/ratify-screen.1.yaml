@@ -7,6 +7,13 @@ screen:
   layout: the header across the top; below it, the entry list on the left and the detail pane on the right
   selection: moving through the list moves the pane
 
+select-draft:
+  shown-when: the pull request's diff carries more than one draft
+  entry:
+    lines: 1
+    form: "<product> · <increment-directory>"
+  on-choice: the ordinary view, on the chosen draft
+
 header:
   present-in: every mode
   identity:
