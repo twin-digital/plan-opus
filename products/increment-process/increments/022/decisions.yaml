@@ -1,0 +1,33 @@
+version: "2"
+decisions:
+  - id: d-34t7y2iq
+    title: a product is declared wherever its product.yaml sits under products/
+    statement: |
+      a product is declared by a product.yaml or product.yml at any depth under products/. the
+      declaring file's directory is the product root, and that directory's name is the product
+      id; two products declaring the same id are a validator failure, whatever their paths. the
+      scan stops at a product root and does not descend into it, so a declaration nested inside
+      a product's own tree — a probe fixture under increments/, say — declares nothing, and
+      products do not nest. products/ stays the one directory scanned, configured nowhere.
+
+      a product's increments live at <product root>/increments/<NNN>/ — requirements.yaml,
+      decisions.yaml, a drafts/ folder, and the sources later process increments define, with
+      .yaml and .yml both accepted wherever a source is named; the increment is its directory,
+      with no manifest file of its own. wherever the process writes products/<product>/, read
+      the product root.
+
+      the id names a product wherever it sits, and nothing records a product's path: cli
+      arguments, applies_to, preset adoptions, and cross-product citations all survive a move
+      untouched.
+    status: accepted
+    supersedes: d-kn05wb30
+    because:
+      - r-jx6uk0bs
+      - d-g5cs9o4i
+    pinned:
+      reason: data-format
+      notes: a directory layout products write and the tooling parses
+    facets:
+      - schema
+      - design-validator
+      - tooling

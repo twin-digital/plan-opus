@@ -1,0 +1,16 @@
+version: "1"
+requirements:
+  - id: r-jx6uk0bs
+    title: products may be grouped into subfolders
+    statement: |
+      products may be grouped into subfolders, and the tooling finds a product wherever it is
+      placed.
+    verification:
+      - do: move a product's directory into a subfolder beside the other products
+      - verify: the projection rendered for that product id is identical to the one before the move
+      - do: run the merge gate over the moved tree
+      - verify: it reports nothing about the product's location
+    facets:
+      - schema
+      - design-validator
+      - tooling
