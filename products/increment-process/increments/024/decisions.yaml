@@ -72,17 +72,50 @@ decisions:
     facets:
       - tooling
 
-  - id: d-8vsionnz
-    title: landing discovers the pull request and opens none
+  - id: d-h418ljtp
+    title: the landing opens the pull request it needs
     statement: |
-      the landing finds the pull request for the current branch. finding none, approve and
-      auto-merge report skipped, the landing still counts as published and awaiting approval, and
-      nothing opens a pull request — opening one is not among the steps d-qzpfyc6s fixes. where
-      the api refuses to enable auto-merge, the landing reports the pull request as approved and
-      awaiting a manual merge.
+      land runs the published steps in order and stops at the first that fails, reporting what to
+      fix and leaving the branch as it found it: apply any staged rulings, run the conflict check
+      against the head, rename the wip directory into the number the head yields, run the full
+      design check, commit, push, open the pull request where the branch has none, approve it as
+      the owner, and set the merge to complete on its own once the gate is green.
+
+      opening is part of the sequence because publishing is the merge, and a repository that
+      admits changes only through a pull request cannot merge a branch that has none. a landing
+      that stopped short of opening one would leave the increment pushed and unmergeable while
+      reporting success, and would put back the browser trip the session exists to remove.
+
+      the push precedes both the opening and the approval, and the approval follows the push
+      because a push after an approval dismisses it. nothing in the sequence needs judgement, and
+      an increment carrying a proposed decision or an open question is refused before any of it
+      runs.
+
+      the same sequence is also `design-process land <product>`, non-interactive, for an agent or
+      a script that has no session to land from. it is the secondary surface: the interactive
+      command runs the sequence itself rather than shelling out to it.
+    status: accepted
+    supersedes: d-qzpfyc6s
+    because:
+      - r-2keswxn8
+      - d-6x6l6ws7
+      - d-gf6x5jzy
+    pinned:
+      reason: public-api
+      notes: the order is what the owner relies on; a step moving changes what a landing does
+    facets:
+      - tooling
+      - process-doc
+
+  - id: d-8vsionnz
+    title: a merge the landing cannot complete is reported, not forced
+    statement: |
+      where the api refuses to enable auto-merge, the landing reports the pull request as approved
+      and awaiting a manual merge. the increment is pushed, opened, and approved; what is left is
+      a merge the landing could not ask for, and saying so is the whole of the response.
     status: delegated
     because:
-      - d-qzpfyc6s
+      - d-h418ljtp
       - d-6fur4w53
     pinned: false
     facets:
