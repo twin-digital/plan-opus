@@ -433,7 +433,7 @@ decisions:
     because:
       - r-u8cg9vi6
       - r-8et233c9
-      - d-c1kvyord
+      - d-xtx1aaea
       - d-wtziwjh5
       - d-imdfu09l
     rejection_reason: "no conventional name for config--by default, use all packs,
@@ -716,8 +716,9 @@ decisions:
     facets: dev-loop
     because:
       - r-kfu7pcms
-      - d-0yrfifhi
-      - d-c1kvyord
+      - d-9tqv2a9u
+      - d-de28tvgx
+      - d-lyacq8wh
       - d-5e00ndwi
   - id: d-a3fyy34f
     title: POSIX hosts, and the ambient Docker connection
@@ -760,3 +761,137 @@ decisions:
     because:
       - r-8et233c9
       - f:bedrock-script-console-output-is-not-a-deploy-signal
+
+  # ---------------------------------------------------------------- replacements for the rejected
+  - id: d-9tqv2a9u
+    title: the command is minecraft-server, with start and stop subcommands
+    statement: |
+      the package's executable is `minecraft-server`. It takes two subcommands, `start` and `stop`,
+      each named explicitly — there is no bare default invocation. `stop` carries the `--reset` flag
+      that also removes the world volume. Ctrl+C stops the watchers and the log follow and nothing
+      else.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: the executable, the two verbs, and the flag that destroys a world
+    facets: dev-loop
+    because:
+      - r-8et233c9
+      - r-kfu7pcms
+      - d-zyo6kku9
+
+  - id: d-xtx1aaea
+    title: the config file is optional and named on the command line
+    statement: |
+      there is no conventional name or location for a workspace config file: the harness reads one
+      only where `--config <path>` names it, and a run without that flag reads none. Every setting
+      has a default, so a bare `minecraft-server start` in a workspace is a complete run — every
+      pack the kit discovers, the level name `dev`, the image tag the harness pins, the default
+      port, and no profiles.
+
+      Where a file is given it is YAML, and every key is optional: `level`, `image`, `port`,
+      `eula`, `profiles` — a mapping of profile name to a list of owning package names — and
+      `default_profile`, naming one of them to use when the command line carries neither `--profile`
+      nor `--pack`. A key the harness does not define is an error, and so is a value of the wrong
+      shape. A file named by `--config` that cannot be read or parsed fails the run naming the file
+      and the parse error, rather than falling back to defaults and hosting the wrong thing.
+    status: proposed
+    pinned:
+      reason: data-format
+      notes: an author writes and commits this file by hand, and the flag that reaches it
+    facets: dev-loop
+    because:
+      - r-u8cg9vi6
+      - r-8et233c9
+      - d-wtziwjh5
+      - d-imdfu09l
+
+  - id: d-de28tvgx
+    title: selection is flags, or a default profile in the config
+    statement: |
+      a run's selection is a repeatable `--pack` flag naming owning package names, or
+      `--profile <name>` naming a profile in the file `--config` supplied. Given neither, the run
+      hosts the config's `default_profile` where one is named, and every pack the kit discovers
+      otherwise.
+
+      A `--pack` value matching no discovered pack is an error, and so is a `--profile` naming no
+      profile the file holds, or a `--profile` given with no `--config` — a run hosts what was asked
+      for or it does not start. `--pack` and `--profile` together are an error rather than a union:
+      each is a complete statement of the selection. A profile holding an empty list selects no
+      packs, which is a valid run.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: the flags a consumer invokes the harness with, and what each selects
+    facets: dev-loop
+    because:
+      - r-u8cg9vi6
+      - r-co6glnme
+      - d-xtx1aaea
+      - d-9tqv2a9u
+
+  - id: d-lyacq8wh
+    title: the author accepts the server EULA on the command line or in the config
+    statement: |
+      the generated project sets the image's EULA acceptance from either an `--accept-eula` flag on
+      the command line or an `eula: true` key in a config file `--config` named. Given neither, the
+      start command fails naming both routes and linking the EULA, and brings nothing up. The
+      harness does not accept on the author's behalf.
+
+      Everything else about the server's posture is the harness's and is not configurable: the world
+      is offline-mode with no allow-list, a development server on the author's own machine or
+      daemon, and the image's content log is enabled to the console — without it a pack's script
+      output never reaches the harness's stream at all.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: a legal acknowledgement the author makes, and the two ways they make it
+    facets: dev-loop
+    because:
+      - r-8et233c9
+      - d-wtziwjh5
+      - d-xtx1aaea
+      - f:bedrock-script-console-output-is-not-a-deploy-signal
+
+  - id: d-zun639xo
+    title: a pack that will not build is deployed as a stub
+    statement: |
+      the start sequence runs each selected package's one-shot build, and a build that fails does
+      not stop it. A pack whose build failed is deployed as a stub — a valid pack carrying the
+      pack's own identity and version and no content — so the world loads with every selected pack
+      present and its activation list complete, and the failure is reported on the stream. The watch
+      builds start either way.
+
+      A stub is replaced by the real pack on the first build that succeeds, through the ordinary
+      reconcile. That replacement changes the pack's file set, so it costs the restart d-ftlfhac8
+      prices rather than a reload: what an author gets is a server that came up and a loop that
+      carries the fix, not a live patch.
+    status: proposed
+    facets: dev-loop
+    because:
+      - r-8et233c9
+      - r-97fvutt9
+      - d-ftlfhac8
+      - d-j3ayhwv1
+
+  - id: d-np5vhy80
+    title: a run launches best-effort and reports what it could not build
+    statement: |
+      nothing about an individual pack stops a run. A selected pack the kit reports invalid, a
+      selected package declaring no `build` script, a build that fails at start or mid-session, and
+      a build that leaves no output tree are each reported on the stream, naming the package and the
+      problem, and the run continues — deploying a stub where the pack has nothing to deploy, per
+      d-zun639xo, and leaving the last good deploy in place where it already had one. A selected
+      package declaring no `watch` script is built once and not watched, reported at start. A watch
+      process that exits is reported and not restarted.
+
+      A run fails only where it cannot be a run at all: no Docker, no reachable daemon, a `--config`
+      file that will not parse, or a selection naming something the workspace does not hold.
+    status: proposed
+    facets: dev-loop
+    because:
+      - r-8et233c9
+      - r-pcq10f2b
+      - d-zun639xo
+      - d-de28tvgx
+      - r-iby30nx1
