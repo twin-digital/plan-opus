@@ -192,7 +192,7 @@ rather than a new one, and one closed into an open question.
 
 | gap | closed by |
 |---|---|
-| the config file's schema | d-wkcxcv2b (new), and d-c1kvyord widened to settle `--pack` with `--profile`, an unmatched profile, and an empty one |
+| the config file's schema | d-wkcxcv2b (new), and d-c1kvyord widened to settle an unmatched profile name and the meaning of an empty one |
 | the server's on-disk layout | d-jv1zleaj, with d-duvygv2f for the fresh world's first deploy; the resource half moves to q-h34y88go |
 | the compose project's server environment | d-e956frnx (EULA, and the posture that is not configurable); the port becomes a config key in d-wkcxcv2b |
 | workspace-root resolution | d-joa4eefg — a new library export, serving d-ai68xorc as well as the harness |
@@ -207,7 +207,7 @@ The gaps as the survey stated them:
 
 1. **The config file's schema.** d-c1kvyord pins `mc-dev-server.yaml`'s location and what it holds
    and not its shape — key names, profile form, unknown-key handling, malformed-file behaviour,
-   `--pack` with `--profile`, an unmatched profile name, and the level-name and image-tag defaults.
+   an unmatched profile name, and the level-name and image-tag defaults.
    A hand-authored checked-in file is data-format surface; this is the largest single gap.
 2. **The server's on-disk layout.** Each kind's pool path, the world directory under the level name,
    creating a world directory and activation file the server never creates, and the order entries
