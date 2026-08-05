@@ -1,5 +1,5 @@
 ---
-version: "18"
+version: "24"
 name: increment
 description: Run one phase of a product's increment in this repository. Plan — open a draft increment on its own branch, work Clarify in the foundation sources, loop Ratify through its pull request, and land it into the next number; use when asked to plan an increment, capture or adopt a backlog item, run the Plan phase, or drive a product's design to a mergeable state. Implement — build the fold at a published increment, dispatch one implementer per package, accumulate design consequences in a companion increment, and file the implementation record; use when asked to implement a product, an increment, or the fold of a design. Invoked as `/increment plan` or `/increment implement`.
 ---
@@ -63,48 +63,67 @@ supersessions close what they name and the coverage summary counts its claims.
 So expect findings from `npm run check` in flight — one `increment-dir-name` finding per wip
 directory the tree holds, plus the proposed-decision and open-question findings, plus a
 `draft-ordinal-unique` finding if two drafts share an ordinal. All of them are expected, and all
-of them clear before the merge. **The `increment-dir-name` finding is cleared by the landing
-rename and by nothing else**, so the check never exits 0 while a draft is in flight.
+of them clear before the merge — `land` runs the full check itself, after the rename, and stops if
+anything survives. **The `increment-dir-name` finding is cleared by the landing rename and by
+nothing else**, so the check never exits 0 while a draft is in flight.
 
 The density gate reads published numbers only. A wip ordinal is not one, so a draft neither
 fills a gap nor makes one.
 
 ## Land
 
-Landing claims the number and publishes by merging. On the draft's branch, in order:
+Landing claims the number and publishes by merging, and it is one command, run on the draft's
+branch:
 
-1. **Land after any draft this one builds on.** Ancestry is the ordering: a dependent lands after
-   its ancestor, and independent drafts land in any order. Once the ancestor merges, this
-   landing's diff shrinks to the draft's own changes.
-2. **Run the conflict check against the fold at head.** No two in-flight drafts rule the same
-   choice or duplicate one another's rulings; landing is where that is checked, before the merge
-   claims the slot.
+```
+npx design-process land <product> [--root <dir>]
+```
 
-   ```
-   npx design-process conflicts <product>
-   ```
+That is the whole landing. Nobody performs a step of it by hand — the owner lands a settled draft
+with no agent in the loop at all, from the interactive session
+(`npx design-process increment <product>`, where ruling and landing happen in one sitting and
+landing unlocks exactly when nothing is proposed and no question is open), and `land` is the
+non-interactive surface for an agent or a script with no session to land from. It takes `--root`
+and nothing else — no head to name and no push to suppress, since no step of the sequence needs
+judgement and the conflict check inside it uses its own default head.
 
-   It reads every increment directory in the working tree carrying no published number, plus any
-   numbered above the head — what this branch would add to the sequence. `--against` names the
-   head to check against and defaults to `origin/main`, then `main`, so reach for the bare
-   command. It **exits non-zero when it finds anything — treat that as a stop.**
+One thing to settle before running it: **land after any draft this one builds on.** Ancestry is the
+ordering — a dependent lands after its ancestor, and independent drafts land in any order. Once the
+ancestor merges, this landing's diff shrinks to the draft's own changes.
 
-   Two overlaps are findings: a foundation id the draft declares that the head already declares
-   (`landing-duplicate-id`), and an `amends:`, `supersedes:`, or `retires:` aimed at an entry not
-   in force at the head (`landing-already-closed`). Semantic overlap — two drafts ruling the same
-   choice under different ids — is the owner's scan of the open drafts. No gate reads in-flight
-   drafts against each other, and the later of two overlapping drafts recomputes when the head
-   moves; `npx design-process diff <product> --from-ref <gitref>` shows what moved. Building on
-   another draft's foundations is a dependency, not a conflict. If the head moves before you
-   merge, run it again.
-3. **Rename the directory into the number.** `npx design-process where <product> --next` prints
-   the number the landing claims, zero-padded to three digits, as one token for shell
-   substitution. Rename `increments/wip-<NNN>-<slug>/` to it on the branch, before the merge —
-   `main` never holds a wip directory. The published number must be dense; landing out of
-   ancestry order shows up here, as a tree that skips or repeats a number is refused by the
-   density gate.
-4. **`npm run check` clean**, with no decision still `proposed` and no open question still
-   carried.
+`land` runs a fixed sequence in order, **stops at the first step that fails**, reports what to fix,
+and leaves the branch as it found it: apply any staged rulings, run the conflict check against the
+head, rename the wip directory into the number the head yields, run the full design check, commit,
+push, open the pull request where the branch has none, approve it as the owner, and set the merge to
+complete on its own once the gate is green. The approval follows the push, because a push after an
+approval dismisses it. A draft still carrying a proposed decision or an open question is **refused
+before any of it runs**, naming what is unsettled — settle those first.
+
+You need not open the pull request yourself. Where one already exists for the branch the open step
+is a no-op, so a pull request opened earlier to run Ratify through is the one the landing approves.
+
+Three steps of that sequence are worth knowing from the outside:
+
+- **The conflict check.** No two in-flight drafts rule the same choice or duplicate one another's
+  rulings, and landing is where that is checked, before the merge claims the slot. It covers every
+  increment directory in the working tree carrying no published number, plus any numbered above the
+  head — what this branch would add to the sequence — against `origin/main`, then `main`. Two
+  overlaps are findings: a foundation id the draft declares that the head already declares
+  (`landing-duplicate-id`), and an `amends:`, `supersedes:`, or `retires:` aimed at an entry not in
+  force at the head (`landing-already-closed`). Semantic overlap — two drafts ruling the same choice
+  under different ids — is the owner's scan of the open drafts. No gate reads in-flight drafts
+  against each other, and the later of two overlapping drafts recomputes when the head moves;
+  `npx design-process diff <product> --from-ref <gitref>` shows what moved. Building on another
+  draft's foundations is a dependency, not a conflict.
+- **The rename.** `increments/wip-<NNN>-<slug>/` becomes the number the head yields, on the branch
+  and before the merge — `main` never holds a wip directory. Published numbers must be dense, so
+  landing out of ancestry order surfaces here, as a tree that skips or repeats a number is refused
+  by the density gate.
+- **The approval.** The approving credential is the owner's own, typed at the terminal for that one
+  run and held nowhere else — not in a file, not in the environment, not in an argument. **Never
+  supply one.** The credentials an agent holds never approve; a landing that obtains none publishes
+  everything up to the approval and reports the pull request as awaiting it, which is what an
+  agent's landing looks like. Pushing uses the credentials the environment already holds.
 
 Wherever a command takes a fold version it takes a pair of parameters: the bare one names an
 increment — `9` and `009` alike — and its `-ref` counterpart names a git ref. `--at`/`--at-ref`,

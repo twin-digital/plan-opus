@@ -1,0 +1,175 @@
+version: "2"
+decisions:
+  - id: d-n4g97j7g
+    title: one rule reports both product id collisions
+    statement: |
+      two product roots claiming one id and two declaration files in one root are one validator
+      finding, product-id-unique, rather than two rules. the first root in path order — shallowest,
+      then lexical — keeps the id, and the loser's increments are skipped rather than reported a
+      second time against every source they hold.
+    status: accepted
+    because:
+      - d-34t7y2iq
+    pinned: false
+    facets:
+      - design-validator
+
+  - id: d-ixg3gith
+    title: an increments tree with no declaration above it declares no product
+    statement: |
+      a directory holding increments/ with no product.yaml above it keeps the product-declaration
+      finding, now pathed at the offending source file rather than at the inferred directory, and
+      declares no product: it does not appear in the projection's product list. before the scan
+      the shape was inferable from the path; now nothing infers a product but a declaration.
+    status: accepted
+    because:
+      - d-34t7y2iq
+    pinned: false
+    facets:
+      - design-validator
+
+  - id: d-ol4v00nl
+    title: bulk set-remaining acts on unruled decisions only
+    statement: |
+      the session's bulk action sets every still-unruled decision to one status and leaves open
+      questions untouched — a question needs an answer, which is not a status. a draft carrying
+      questions is therefore never fully settled by the bulk path alone, and its landing stays
+      closed until each is answered.
+    status: accepted
+    because:
+      - d-9g0poz7v
+      - d-ovlyaoht
+    pinned: false
+    facets:
+      - tooling
+
+  - id: d-octrdz0j
+    title: what an answered question writes depends on where it routes
+    statement: |
+      a fact-routed answer closes the question and writes no entry. a requirement- or
+      decision-routed answer closes it and writes a placeholder entry into the draft carrying the
+      generated id and the owner's answer text, for the owner to state. staging requires an entry
+      for those two routes and not for the first.
+    status: delegated
+    because:
+      - d-ovlyaoht
+      - r-d181l3s2
+    pinned: false
+    facets:
+      - tooling
+
+  - id: d-uap9qjz9
+    title: the typed token is spent on the approval and nothing else
+    statement: |
+      only the approving call carries the owner's token, in an authorization header read from
+      memory. push and auto-merge use the credentials the environment already holds. the token's
+      reach is one request, so what the owner's identity is spent on is exactly the approval.
+    status: accepted
+    because:
+      - d-6fur4w53
+      - r-rxb7pn9z
+    pinned: false
+    facets:
+      - tooling
+
+  - id: d-h418ljtp
+    title: the landing opens the pull request it needs
+    statement: |
+      land runs the published steps in order and stops at the first that fails, reporting what to
+      fix and leaving the branch as it found it: apply any staged rulings, run the conflict check
+      against the head, rename the wip directory into the number the head yields, run the full
+      design check, commit, push, open the pull request where the branch has none, approve it as
+      the owner, and set the merge to complete on its own once the gate is green.
+
+      opening is part of the sequence because publishing is the merge, and a repository that
+      admits changes only through a pull request cannot merge a branch that has none. a landing
+      that stopped short of opening one would leave the increment pushed and unmergeable while
+      reporting success, and would put back the browser trip the session exists to remove.
+
+      the push precedes both the opening and the approval, and the approval follows the push
+      because a push after an approval dismisses it. nothing in the sequence needs judgement, and
+      an increment carrying a proposed decision or an open question is refused before any of it
+      runs.
+
+      the same sequence is also `design-process land <product>`, non-interactive, for an agent or
+      a script that has no session to land from. it is the secondary surface: the interactive
+      command runs the sequence itself rather than shelling out to it.
+    status: accepted
+    supersedes: d-qzpfyc6s
+    because:
+      - r-2keswxn8
+      - d-6x6l6ws7
+      - d-gf6x5jzy
+    pinned:
+      reason: public-api
+      notes: the order is what the owner relies on; a step moving changes what a landing does
+    facets:
+      - tooling
+      - process-doc
+
+  - id: d-8vsionnz
+    title: a merge the landing cannot complete is reported, not forced
+    statement: |
+      where the api refuses to enable auto-merge, the landing reports the pull request as approved
+      and awaiting a manual merge. the increment is pushed, opened, and approved; what is left is
+      a merge the landing could not ask for, and saying so is the whole of the response.
+    status: delegated
+    because:
+      - d-h418ljtp
+      - d-6fur4w53
+    pinned: false
+    facets:
+      - tooling
+
+  - id: d-xn1jibg3
+    title: the merge method comes from the repository, not from the landing
+    statement: |
+      the auto-merge step reads the repository's own allow_merge_commit, allow_squash_merge, and
+      allow_rebase_merge and sets the method enabled there. where more than one is enabled it
+      prefers a merge commit, then a squash, then a rebase — a fixed order, so two landings against
+      one repository set the same method. where the repository enables none, or cannot be asked,
+      the landing reports the pull request approved and awaiting a manual merge rather than sending
+      a method the repository would refuse.
+
+      the landing serves repositories that differ: plan-opus permits merge commits alone and opus
+      squashes alone, so any built-in default is wrong for one of them.
+    status: delegated
+    because:
+      - d-8vsionnz
+      - d-h418ljtp
+    pinned: false
+    facets:
+      - tooling
+
+  - id: d-k85itgcv
+    title: an answer's placeholder entry takes the status its author's role gives it
+    statement: |
+      the entry a requirement- or decision-routed answer writes enters accepted where the owner
+      answered the question — the session is the owner in the loop, and the ruling is theirs to
+      have already made. an answer an autonomous agent authored enters delegated: recorded, not
+      ruled, like any decision an agent writes that should not require ratification.
+
+      neither path enters proposed. in the owner's, it would leave the draft unsettleable by the
+      session that wrote it, handing the owner a fresh blocker in the same pass that answered the
+      question; in the agent's, delegated is what an unratified agent-authored decision already is.
+    status: accepted
+    because:
+      - d-octrdz0j
+      - d-n23bxend
+      - r-ax84j1s2
+    pinned: false
+    facets:
+      - tooling
+
+  - id: d-d76q0tpa
+    title: land takes --root and nothing else
+    statement: |
+      the non-interactive landing takes --root and no other option: no --no-push, no --against.
+      the sequence is fixed, so there is nothing to select, and the conflict check's own default
+      — origin/main, then main — is the head it runs against.
+    status: tolerated
+    because:
+      - d-h418ljtp
+    pinned: false
+    facets:
+      - tooling

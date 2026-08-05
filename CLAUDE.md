@@ -1,20 +1,19 @@
 # plan-opus
 
-Planning repository. Designs live under `design/<area>/<design>/` and facts in the `facts/` pool;
-the artifact format is
-specified by `design/how-to-plan/doc-structure/spec.md` and the content rules by
-`design/how-to-plan/authoring/spec.md`. Validate every change with `npm run check`.
+Planning repository. Products live under `products/<product>/increments/`, and facts in the
+repo-wide `facts/` pool; the process and the artifact formats are specified by
+`docs/process-reference.md`, and the content rules by `docs/authoring.md`. Validate every change
+with `npm run check`.
 
 ## Agents may propose facts
 
-An agent writing or revising a spec may add entries to a fact file under `facts/`, provided
+An agent working an increment may add entries to a fact file under `facts/`, provided
 each new fact meets one of:
 
-a. **Documented elsewhere** — its sources cite the evidence as `doc-structure` requires: a
+a. **Documented elsewhere** — its sources cite the evidence as the evidence bar requires: a
    `url` with `where` and a verbatim `quote`, or a `description` of the mechanism for an
-   assumed fact. The url is the upstream original, and the quote states the claim, per
-   `r:documented-source-is-primary` and `r:quote-carries-the-claim` in
-   `design/how-to-plan/authoring/requirements.yaml`. A file you wrote in this repository is
+   assumed fact. The url is the upstream original, and the quote states the claim (see
+   `docs/authoring.md`). A file you wrote in this repository is
    never the source, however faithfully it transcribes the original.
 b. **Tested directly** — the agent ran the test itself, and an `artifacts/` directory holds the
    actual scripts and inputs used, plus their outputs when the test produces any. Record the
@@ -38,8 +37,8 @@ each one out.
 
 ## Requirements are the owner's
 
-A requirement is something the owner would reverse a spec decision over. Anything else — however
-true — is a decision the spec makes and defends. Requirements are stated in a sentence or two; one
+A requirement is something the owner would reverse a design decision over. Anything else — however
+true — is a decision the design makes and defends. Requirements are stated in a sentence or two; one
 needing paragraphs of carve-outs is a decision wearing the wrong hat.
 
 Building to the requirements as written is the default. An agent may flag a requirement it cannot
@@ -63,9 +62,9 @@ owner ruled on the choice once, not that the choice has since become expensive t
 artifact is disposable by design and acceptance does not make part of it permanent.
 
 So the only entries in a comparison between two designs are actual impacts on the product: what a
-user, a consumer, or a sibling design would experience differently. Decisions to re-open, spec
+user, a consumer, or a sibling design would experience differently. Decisions to re-open, design
 churn, and review rounds spent are not costs and do not go in the ledger. An agent arguing for what
-the spec already says because changing it would reverse an accepted decision has charged the owner
+the design already says because changing it would reverse an accepted decision has charged the owner
 for its own rework.
 
 Name the accepted decisions an alternative would reverse — the owner wants to see them, and
