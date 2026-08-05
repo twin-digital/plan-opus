@@ -1,0 +1,36 @@
+version: "1"
+presets:
+  - name: monorepo-package
+    version: 1
+
+requirements:
+  - id: r-brdf1c2g
+    title: node packages ship as ESM
+    statement: |
+      a Node.js package ships ESM only. no exports path resolves to a CommonJS file, and
+      require() of the package from a CommonJS context fails.
+    verification:
+      - do: open the packed package.json
+      - verify: '"type" is "module", and no exports path resolves to a CommonJS file'
+      - do: require() the package from a CommonJS context
+      - verify: it fails — no CJS entry exists
+
+  - id: r-paoy41od
+    title: node packages are TypeScript
+    statement: |
+      a Node.js package is written in TypeScript and ships its own type declarations.
+    verification:
+      - do: pack the package with npm pack --dry-run
+      - verify: .d.ts declarations are in the file list
+      - do: open the package's sources
+      - verify: they are TypeScript
+
+  - id: r-6r489hbd
+    title: node packages support the current LTS
+    statement: |
+      a Node.js package supports the latest Node LTS release available when its implementation
+      is created: its build target and its declared engine range both admit that release.
+    verification:
+      - do: look up the latest Node LTS release as of the implementation
+      - do: open the package's build target and its declared engine range
+      - verify: both admit that release

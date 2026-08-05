@@ -1,0 +1,34 @@
+version: "1"
+presets:
+  - name: nodejs
+    version: 1
+
+requirements:
+  - id: r-tbmrw430
+    title: diagnostics go to stderr
+    statement: |
+      warnings, errors, progress, and debug output are written to stderr, never to stdout.
+    verification:
+      - do: run a command that warns, errors, and emits debug output, capturing stdout and stderr separately
+      - verify: every warning, error, progress line, and debug line is on stderr, and none on stdout
+
+  - id: r-d474vggq
+    title: main output goes to stdout
+    statement: |
+      a command's main output — the data it exists to produce — is written to stdout, and
+      stdout carries nothing else.
+    verification:
+      - do: run a command with stdout redirected to a file
+      - verify: the file holds the command's main output and nothing else
+
+  - id: r-rn6wxdn4
+    title: every command takes --json
+    statement: |
+      every command accepts a --json flag that renders its main output as JSON. where the main
+      output is already JSON, the flag is silently ignored — no error, no warning, and the same
+      output.
+    verification:
+      - do: run each command with --json, capturing stdout
+      - verify: stdout parses as JSON
+      - do: run a command whose main output is already JSON, with and without --json
+      - verify: the two runs produce the same stdout, and the --json run emits no error or warning
