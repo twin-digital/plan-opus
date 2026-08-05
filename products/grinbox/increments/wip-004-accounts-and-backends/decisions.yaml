@@ -1,0 +1,186 @@
+version: "2"
+
+decisions:
+  # the seam
+  - id: d-yp3tt9zd
+    title: the provider is the whole of what a mail backend must implement
+    statement: |
+      a mail backend reaches grinbox through one seam, the provider, implementing four operations:
+      enumerating the messages that might be new, fetching a message's metadata, applying a
+      category to a message, and reporting a message's place in its thread. Nothing else in
+      grinbox talks to a backend, and the mail resource operations an operator declares are routed
+      to the provider of the account the message arrived on.
+    status: proposed
+    because:
+      - r-etj0gluz
+      - d-v5zamgjn
+    pinned:
+      reason: public-api
+      notes: |
+        the surface a second backend is written against, and the only place backend knowledge is
+        allowed to live
+
+  - id: d-z5opt8rp
+    title: a backend implements what it can, and the gap is visible
+    statement: |
+      a provider need not implement every mail operation — a backend that can read a mailbox but
+      not send is an ordinary case — and which operations a backend supports is declared rather
+      than discovered when an operation fails.
+    status: proposed
+    because:
+      - d-yp3tt9zd
+      - r-etj0gluz
+    pinned: false
+
+  - id: d-hv2uue12
+    title: a category is the backend-neutral name for durable metadata
+    statement: |
+      what grinbox puts on a message so the user sees it in their own mail client is a category:
+      the backend's own mechanism for durable metadata, whatever that is. Grinbox owns the
+      categories it applies and owns nothing else on the message; it never takes over the lifecycle
+      of metadata it did not put there.
+    status: proposed
+    because:
+      - r-ziitim35
+      - r-etj0gluz
+      - d-yp3tt9zd
+    pinned:
+      reason: public-api
+      notes: |
+        the word the user configures against and the one thing grinbox writes into their mailbox
+
+  # noticing mail
+  - id: d-8fvu0g4z
+    title: polling is incremental against a per-account cursor
+    statement: |
+      grinbox notices new mail by polling each account from a cursor it stores per account, asking
+      the backend only what changed since. An account's first poll takes a bounded recent window
+      rather than the whole mailbox, and where the backend can no longer answer from the stored
+      cursor, grinbox falls back to listing by time and reconciles against what it already holds.
+    status: proposed
+    because:
+      - r-ls4dvyj7
+      - d-yp3tt9zd
+    pinned: false
+
+  - id: d-sj4u6eyj
+    title: the cursor advances last
+    statement: |
+      within a poll, every message record and every triage it enqueues is committed before the
+      cursor moves, and the cursor's advance is the last write of the cycle. A crash anywhere
+      before it leaves the cursor where it was, so the next poll sees the same candidates again and
+      recognizes them as already held. The guarantee comes from the ordering and from writes that
+      can be repeated, not from one transaction spanning the cycle.
+    status: proposed
+    because:
+      - r-ls4dvyj7
+      - d-8fvu0g4z
+    pinned:
+      reason: other
+      notes: |
+        the ordering is the whole of the no-missed-arrival guarantee, and it is invisible in the
+        code to anyone who does not know it is a commitment
+
+  - id: d-yz5n7wmu
+    title: an account is polled only while a pipeline is active on it
+    statement: |
+      grinbox polls an account only while the user has a pipeline active on it. An account with
+      none is left alone entirely — not polled, and no mail of its taken in.
+    status: proposed
+    because:
+      - r-63vrxr22
+      - d-8fvu0g4z
+    pinned: false
+
+  # credentials
+  - id: d-9hyzpk7j
+    title: encryption is a seam over a key grinbox is handed
+    statement: |
+      the credentials grinbox stores are encrypted in its state, and grinbox treats encryption as
+      an opaque pair of operations over a key handed to it when it starts. It neither generates
+      that key nor stores it, and it asks only two things of whoever does: that the key is kept out
+      of any backup of the state, and that it is bound to the host as tightly as the platform
+      allows.
+    status: proposed
+    because:
+      - r-p2djwgjn
+    pinned:
+      reason: other
+      notes: |
+        what grinbox requires of its deployment, which no reading of grinbox's own code would
+        reveal
+
+  - id: d-xe41okh9
+    title: deployer-managed secrets are configuration; runtime-managed ones are state
+    statement: |
+      grinbox's secrets divide by who obtains them. Those identifying the application itself — the
+      key above, the mail provider's client secret, the model service's credential — reach grinbox
+      as deployment configuration and are never written into its state. Those the user obtains
+      through grinbox — a mailbox's tokens, a notification service's key — live in the state,
+      encrypted, and never reach the deployment.
+    status: proposed
+    because:
+      - d-9hyzpk7j
+      - r-p2djwgjn
+    pinned:
+      reason: other
+      notes: |
+        the split determines what a deployment has to supply and what a state backup contains
+
+  # authorization
+  - id: d-a1pf497w
+    title: authorization is started inside and completed at one public path
+    statement: |
+      authorizing a mailbox begins at grinbox's internal interface, which mints a single-use,
+      short-lived correlation token, and completes at one path grinbox exposes publicly. That path
+      refuses any request not carrying a correlation token it is still waiting on, so a flow can
+      be started only from inside even though it finishes from outside.
+    status: proposed
+    because:
+      - r-ieyj1wkn
+      - r-ovi02v1m
+    pinned:
+      reason: public-api
+      notes: |
+        the one publicly reachable path grinbox has, and the deployment is configured around it
+
+  - id: d-cdwao54j
+    title: what grinbox asks of the deployment is one reachable redirect
+    statement: |
+      grinbox requires exactly one thing of its deployment for authorization: a registered
+      TLS-bearing address that routes to its callback path and is reachable from the browser the
+      user onboards with. Whether that address resolves publicly or only on the deployment's own
+      network is the deployment's choice, and grinbox behaves the same either way.
+    status: proposed
+    because:
+      - d-a1pf497w
+      - d-mq7vdduz
+    pinned:
+      reason: other
+      notes: |
+        the contract between the application and the infrastructure repository that deploys it
+
+  - id: d-v5fyd7xd
+    title: a refusal to renew retires the account until the user returns
+    statement: |
+      grinbox renews a mailbox's authorization as it goes, storing whatever the provider hands
+      back — including a replacement for the durable credential where one arrives, since keeping
+      the superseded one would fail at the next renewal. Where the provider refuses to renew at
+      all, the account is marked as needing the user's attention and is skipped by polling until
+      they authorize it again.
+    status: proposed
+    because:
+      - r-ieyj1wkn
+      - r-fzuyjkts
+    pinned: false
+
+  - id: d-ty6fhiss
+    title: every permission is asked for at first consent
+    statement: |
+      grinbox asks for the whole set of permissions it will ever need when the user first
+      authorizes a mailbox, including those no configured operator uses yet. It does not ask for
+      more later.
+    status: proposed
+    because:
+      - r-ieyj1wkn
+    pinned: false
