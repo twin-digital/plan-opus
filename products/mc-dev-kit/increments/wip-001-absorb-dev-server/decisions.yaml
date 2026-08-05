@@ -385,7 +385,7 @@ decisions:
 
       selection. A profile holding an empty list selects no packs, which is a
       valid run.
-    status: proposed
+    status: rejected
     pinned:
       reason: data-format
       notes: a checked-in file the author authors by hand, and the flags that read it
@@ -396,6 +396,7 @@ decisions:
       - r-7v7o1jy8
       - r-co6glnme
       - d-wtziwjh5
+    rejection_reason: requires update after changes to d-wkcxcv2b
   - id: d-wkcxcv2b
     title: the workspace config file's shape
     statement: >
@@ -424,7 +425,7 @@ decisions:
       host the wrong
 
       thing.
-    status: proposed
+    status: rejected
     pinned:
       reason: data-format
       notes: an author writes and commits this file by hand
@@ -435,6 +436,14 @@ decisions:
       - d-c1kvyord
       - d-wtziwjh5
       - d-imdfu09l
+    rejection_reason: "no conventional name for config--by default, use all packs,
+      server name 'dev', default tag/port, and no
+      profiles.\e[D\e[D\e[D\e[D\e[D\e[D\e[D\e[D\e[D\e[D\e[D\e[D\e[D\e[D\e[D\e[D\
+      \e[D\e[D\e[C\e[C\e[C\e[C\e[C\e[C\e[C\e[C\e[C\e[C\e[C\e[C\e[C\e[C\e[C\e[C\
+      \e[C\e[C\e[C\ekadd a '--config' option, which is the path to a config file
+      in the format described by this decision. let's include a way to specify a
+      defualt profile, which is used if the command line has no '--profile' or
+      '--pack' options"
   - id: d-jv1zleaj
     title: the server's on-disk layout
     statement: >
@@ -461,7 +470,7 @@ decisions:
       reconcile that changed
 
       nothing writes the same bytes.
-    status: proposed
+    status: delegated
     pinned:
       reason: data-format
       notes: paths and file contents on the author's server, read back by every
@@ -487,7 +496,7 @@ decisions:
       rather than as a
 
       change it detected.
-    status: proposed
+    status: delegated
     facets: dev-loop
     because:
       - r-8et233c9
@@ -518,7 +527,7 @@ decisions:
       a pack's script
 
       output never reaches the harness's stream at all.
-    status: proposed
+    status: rejected
     pinned:
       reason: public-api
       notes: a legal acknowledgement the author makes, and the key they make it with
@@ -528,6 +537,9 @@ decisions:
       - d-wtziwjh5
       - d-wkcxcv2b
       - f:bedrock-script-console-output-is-not-a-deploy-signal
+    rejection_reason: need to amend this to allow eula acceptance from the CLI,
+      since as written a config file is basically required. add an
+      '--accept-eula' flag for the explicit acceptance
   - id: d-joa4eefg
     title: the kit exports workspace-root resolution
     statement: >
@@ -541,7 +553,7 @@ decisions:
       reimplementing the marker
 
       precedence, so both packages always agree which workspace they are in.
-    status: proposed
+    status: accepted
     pinned:
       reason: public-api
       notes: a new export on the published library, depended on by a sibling package
@@ -562,7 +574,7 @@ decisions:
       `package.json`, a pack added to
 
       the workspace, and a pack removed from it all reach the next deploy.
-    status: proposed
+    status: accepted
     facets: dev-loop
     because:
       - r-pcq10f2b
@@ -594,7 +606,7 @@ decisions:
       watched, reported at
 
       start. A watch process that exits is reported and not restarted.
-    status: proposed
+    status: rejected
     facets: dev-loop
     because:
       - r-8et233c9
@@ -603,6 +615,9 @@ decisions:
       - d-vrq7lc2o
       - d-j3ayhwv1
       - r-iby30nx1
+    rejection_reason: similar to the decision rejected to abort if initial build
+      fails, let's try to do a best-effort launch of the server and report
+      errors via console
   - id: d-plnvasfo
     title: pool content the harness did not deploy is removed
     statement: >
@@ -648,7 +663,7 @@ decisions:
       the process goes
 
       down.
-    status: proposed
+    status: accepted
     facets: dev-loop
     because:
       - r-kfu7pcms
@@ -665,7 +680,7 @@ decisions:
       would race each
 
       other's reconciles and restarts.
-    status: proposed
+    status: accepted
     facets: dev-loop
     because:
       - r-pcq10f2b
@@ -714,7 +729,7 @@ decisions:
       Docker context —
 
       and the harness offers no setting of its own for it.
-    status: proposed
+    status: tolerated
     facets: dev-loop
     because:
       - r-whacwz1b
@@ -737,7 +752,7 @@ decisions:
 
       never read as a signal: a reload that took effect emits nothing the
       harness can match.
-    status: proposed
+    status: delegated
     pinned:
       reason: data-format
       notes: the per-line prefix anything consuming the harness's output reads
