@@ -112,13 +112,22 @@ loop.
 
 ## 5. Ratify — the loop
 
-Present the owner the projection (`npx design-process show <product>`) and the question list
-through the draft's pull request. The owner rules each decision **accepted**, **tolerated**,
-**delegated**, or **rejected** — a rejection carries the owner's reason and is closed by a
-replacement whose `supersedes` names it. A deferral is not among these rulings: it enters as
-`deferred` directly, and the merge ratifies it. Apply the rulings, consume the feedback, and
-raise what it surfaces; Clarify and Ratify iterate until the owner declares the draft settled
-enough.
+The owner rules each decision **accepted**, **tolerated**, **delegated**, or **rejected** — a
+rejection carries the owner's reason and is closed by a replacement whose `supersedes` names it. A
+deferral is not among these rulings: it enters as `deferred` directly, and the merge ratifies it.
+Clarify and Ratify iterate until the owner declares the draft settled enough.
+
+Two surfaces carry those rulings, and both stand:
+
+- **The draft's pull request**, the loop you drive. Present the owner the projection
+  (`npx design-process show <product>`) and the question list there, then apply the rulings, consume
+  the feedback, and raise what it surfaces.
+- **The owner's own session**, `npx design-process increment <product>`, which reaches every open
+  entry the draft carries and lands it from the same place, so a whole draft can be ruled in one
+  sitting without leaving for another tool. Rulings taken there apply to the draft's own sources and
+  commit on the draft's branch in one write. **Do not re-apply them by hand** — fetch the branch and
+  read the sources before touching a draft the owner has ruled from a session, or you will
+  duplicate what is already recorded.
 
 Every surveyed choice is classified — decided, deferred, or omitted as an implementation
-detail — before the draft publishes. Then land it: SKILL.md carries the steps.
+detail — before the draft publishes. Then land it: SKILL.md carries the command.
