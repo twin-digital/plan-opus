@@ -1,0 +1,46 @@
+version: "1"
+
+requirements:
+  - id: r-ziitim35
+    title: nothing grinbox does to a mailbox loses mail
+    statement: |
+      no effect grinbox has on the user's mailbox deletes a message, hides it from search, or
+      removes metadata the user or anyone else put there. Taking a message out of the inbox leaves
+      it findable and leaves everything else about it intact.
+    rationale: |
+      Grinbox acts on mail unattended and at volume, so a mistake it makes is discovered late; the
+      only tolerable mistakes are the ones the user can still undo by hand.
+    verification:
+      - do: let grinbox take a message out of the inbox and categorize another
+      - verify: both messages are still findable by search, and neither has lost metadata it had before
+
+  - id: r-xy0yd2nh
+    title: routing mail never requires a model
+    statement: |
+      a user can route their mail on rules alone: whatever grinbox can decide about a message with
+      a model, it can also be configured to decide deterministically from the message and from
+      what earlier steps concluded.
+    rationale: |
+      A model call costs money on every message and answers differently on two identical runs.
+      Deterministic routing is what makes a class of mail reproducibly handled, and what a user
+      falls back to when a model's judgement proves unreliable.
+
+  - id: r-sfvm6ib3
+    title: the whole message is available without asking for it
+    statement: |
+      every step of a triage can read any part of the message it is triaging, without having
+      declared which parts it wanted.
+    rationale: |
+      Declaring fields would be a second contract to keep in step with the first, and it buys
+      nothing: the message is grinbox's own data, already loaded, and reading it reaches nothing
+      outside.
+
+  - id: r-5ezt7j0v
+    title: a stored configuration keeps working
+    statement: |
+      a configuration grinbox accepted keeps triaging mail. A later tightening of what grinbox
+      accepts applies to what the user next saves, and does not stop mail being triaged under a
+      configuration already stored.
+    rationale: |
+      Triage runs unattended, so a configuration that begins failing after a deployment fails
+      silently and stays failing until the user happens to look.
