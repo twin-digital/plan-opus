@@ -1,5 +1,5 @@
 ---
-version: "18"
+version: "24"
 ---
 
 # The incremental design process
@@ -58,13 +58,23 @@ pull-request diff, and the owner reads every claim in full. Because the spec is 
 decision set is the owner's only window on what was built — so decisions are not minimised;
 they are rich enough to comprehend a product from, read as a set.
 
-Increment artifacts live at `products/<product>/increments/<NNN>/` — `requirements.yaml`,
+A product is declared by a `product.yaml` or `product.yml` at any depth under `products/`. The
+declaring file's directory is the **product root**, and that directory's name is the product id;
+two products declaring the same id are a validator failure, whatever their paths. Products may
+be grouped into subfolders, and the tooling finds a product wherever it is placed: the id names
+a product wherever it sits and nothing records its path, so CLI arguments, `applies_to`, preset
+adoptions, and cross-product citations all survive a move untouched. The scan stops at a product
+root and does not descend into it, so a declaration nested inside a product's own tree — a probe
+fixture under `increments/`, say — declares nothing, and products do not nest. `products/` is
+the one directory scanned, configured nowhere.
+
+Increment artifacts live at `<product root>/increments/<NNN>/` — `requirements.yaml`,
 `decisions.yaml`, a `drafts/` folder, and the sources later process increments define, with
 `.yaml` and `.yml` both accepted wherever a source is named. The increment is its directory,
 with no manifest file of its own. While an increment is an in-flight draft it holds no number,
 and its directory is `wip-<NNN>-<slug>` on its own branch (see *Drafts run in parallel*); a
-plain number is what main holds. The product is declared by the presence of
-`products/<product>/product.yaml`, whose directory name is the product id.
+plain number is what main holds. Wherever this reference writes `products/<product>/`, read the
+product root.
 
 Lifecycle is uniform: **an increment declares changes, and state is the fold** — and nothing
 is ever edited once its increment publishes.
@@ -142,10 +152,10 @@ the ordinary bar. The send operation is what moves the raw material into reach:
 design-process backlog send <increment-dir> [--item <id>]... [--product <id>] [--tag <tag>]...
 ```
 
-`<increment-dir>` is a repo-relative `products/<product>/increments/<name>` — a draft's `wip-`
+`<increment-dir>` is a repo-relative `<product root>/increments/<name>` — a draft's `wip-`
 directory as readily as a numbered increment. Send takes one item, all of a product's, or those
 matching a tag filter. Each sent item lands at
-`products/<product>/increments/<name>/drafts/backlog/<id>.md` and is deleted from the backlog
+`<product root>/increments/<name>/drafts/backlog/<id>.md` and is deleted from the backlog
 branch in the same action: it arrives as raw material in `drafts/`, not in the increment's
 foundation sources. The increment's sources are the record, and the backlog keeps none.
 
@@ -247,6 +257,9 @@ A deferral takes none of these values: it enters as `deferred` directly, ratifie
 merge like a requirement — a recorded handing-off, not a ruling on a proposal (see
 *Deferrals*).
 
+Where the owner takes those rulings, and how a settled draft reaches main from there, is
+*Ratifying and landing a draft*.
+
 **`tolerated` and `delegated` are opposite states, not degrees of the same one.** Tolerating is
 a judgement; delegating is an abstention. Keeping them apart is what lets anyone ask,
 product-wide, how much the owner engaged and judged versus passed over — the projection labels
@@ -259,7 +272,7 @@ Several increments of one product run Clarify at once, none committed to a seque
 while drafting. The landing order is chosen when planning is done, and a draft claims its
 number only as it lands.
 
-An unnumbered draft is `products/<product>/increments/wip-<NNN>-<slug>/` on its own
+An unnumbered draft is `<product root>/increments/wip-<NNN>-<slug>/` on its own
 pull-request branch, which agents name `plan/<product>/<slug>` — no check requires that name;
 it is the default agents reach for rather than deliberate over. `<NNN>` is a three-digit
 ordinal and `<slug>` names what the draft is about. Landing renames the directory into the next
@@ -340,6 +353,86 @@ Main therefore holds only published increments, dense and immutable, and the val
 any edit to one: **a published increment is never unsettled by later work** — drafting
 increment N+1 changes nothing about increment N. What a tree-consumed deliverable shows on
 main is always what a published increment built.
+
+The merge is reached rather than performed by hand: the landing sequence pushes the branch,
+opens its pull request where it has none, approves it as the owner, and sets the merge to
+complete on its own once the gate is green (see *Ratifying and landing a draft*).
+
+### Ratifying and landing a draft
+
+**Ruling a draft is one sitting in one place.** The owner reaches every open entry the draft
+carries, reads each in full, and rules it without leaving for another tool — and takes the draft
+from its first ruling to published in that same sitting. **Publishing a settled draft takes no
+agent**: a draft whose rulings are complete publishes mechanically, the owner landing it without
+an agent performing any step of the landing.
+
+One interactive command carries the draft from ruling to published:
+
+```
+design-process increment <product> [--root <dir>]
+```
+
+It is a full-screen terminal application over the draft the working tree holds, and it is the
+whole flow — the owner rules from it and publishes from it, never switching commands. No new
+package, no service, and no browser: it reaches the fold, the projection, and the conflict check
+as library calls rather than reimplementing them. The session has modes, and what is open
+decides which are offered. **Ratify** is where a draft carrying anything proposed or unanswered
+opens. **Landing** becomes available exactly when nothing is proposed and no question is open,
+and is entered from the same session.
+
+**Rulings stage in the session and apply in one write.** Ruling an entry stages it and writes
+nothing; the staged set applies to the draft's own sources and commits on its branch in one
+write, when the owner submits it or when landing takes it. A session abandoned before that
+leaves the tree untouched.
+
+A decision takes one of the four rulings, and a rejection carries the owner's reason. A question
+is answered in the same pass, and where the answer routes decides what is written: a `fact`
+route closes the question and writes no entry, while a `decision` or `requirement` route writes
+the entry into the draft with its id already generated and the owner's answer text as a
+placeholder, for the owner to state. Staging refuses what the sources could not carry — a
+rejection with no reason, a routed answer with no entry — so a submitted set validates. A bulk
+ruling over everything still unruled reaches decisions only: a question needs an answer, and an
+answer is not a status.
+
+**Land is one fixed sequence that stops at the first failure**, reporting what to fix and
+leaving the branch as it found it: apply any staged rulings, run the conflict check against the
+head, rename the wip directory into the number the head yields, run the full design check,
+commit, push, open the pull request where the branch has none, approve it as the owner, and set
+the merge to complete on its own once the gate is green. Nothing in the sequence needs
+judgement, and an increment carrying a proposed decision or an open question is refused before
+any of it runs.
+
+The order of the last three steps is forced. Opening follows the push because the branch must
+exist on the remote before a pull request can name it; approving follows the open because there
+is nothing to approve before it; and approving follows the push in any case, because a push
+after an approval dismisses it. The landing opens a pull request rather than stopping short of
+one because publishing *is* the merge, and a repository admitting changes to `main` only through
+a pull request cannot merge a branch that has none — a landing that left the branch pushed and
+unproposed would report success over an increment that could not publish. Where the branch
+already has a pull request the open step is a no-op.
+
+Where the API refuses to enable auto-merge, the landing reports the pull request as approved and
+awaiting a manual merge.
+
+The same sequence is also
+
+```
+design-process land <product> [--root <dir>]
+```
+
+non-interactive, for an agent or a script that has no session to land from. It takes `--root`
+and nothing else, running the conflict check against that check's own default head —
+`origin/main`, then `main`. It is the secondary surface: the interactive command runs the
+sequence itself rather than shelling out to it.
+
+**A credential acting as the owner is never written down.** The credential that approves as the
+owner is a GitHub personal access token entered at the terminal when the landing reaches the
+approval, with the input not echoed. It lives in the process's memory for that run and nowhere
+else — not in a file, not in the environment, not in an argument — and a second landing asks
+again. The token is the owner's own, and the credentials the agents hold are never used to
+approve; only the approving call carries it, while the push and the auto-merge use the
+credentials the environment already holds. A landing that cannot obtain a token still publishes
+everything up to the approval and reports the pull request as awaiting it.
 
 ### Design and implementation keep their own schedules
 
@@ -663,8 +756,8 @@ Facets do not draw component boundaries: where packages meet is decision content
 
 ### A product maps to its packages
 
-A product spans one or more packages. A product exists exactly when
-`products/<id>/product.yaml` does; the mapping carries `path` and `kind` per package, plus an
+A product spans one or more packages. A product exists exactly when a `product.yaml` sits at its
+root (see *The foundations*); the mapping carries `path` and `kind` per package, plus an
 optional `repo` — GitHub `owner/repo` form, `twin-digital/opus` when unstated:
 
 ```yaml
