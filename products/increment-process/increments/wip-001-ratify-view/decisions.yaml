@@ -65,7 +65,6 @@ decisions:
 
       which extractor reads it.
     status: rejected
-    supersedes: d-u3u3sbmb
     because:
       - r-j232vwp4
     pinned:
@@ -78,6 +77,84 @@ decisions:
       select an extractor. then create separate decisions for typescript, yaml,
       openapi. and add one for markdown using frontmatter key
       "io.twindigital.id".
+  - id: d-rui9z0lc
+    title: a surface declares its identity in-file, and the file selects the extractor
+    statement: |
+      a surface pool file carries its identity inside itself, in whatever way the file's own
+      technology already has for carrying metadata. the file's extension and content tell the
+      design validator which extractor reads it; nothing outside the file names it, so a surface
+      keeps its identity when it moves and the pool's layout stays non-normative.
+
+      which convention each technology uses is a decision per technology, so a technology is added
+      by ruling one rather than by amending this.
+    status: proposed
+    supersedes: d-u3u3sbmb
+    because:
+      - r-j232vwp4
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - design-validator
+
+  - id: d-ds6mco0p
+    title: a typescript surface declares its identity in a comment
+    statement: |
+      `// surface: /<namespace>/<name>@<version>`, on a line of its own.
+    status: proposed
+    because:
+      - d-rui9z0lc
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - design-validator
+
+  - id: d-tjitou0m
+    title: a yaml surface declares its identity in a comment
+    statement: |
+      `# surface: /<namespace>/<name>@<version>`, on a line of its own. this is what the
+      `ratify-screen` contract uses.
+    status: proposed
+    because:
+      - d-rui9z0lc
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - design-validator
+
+  - id: d-6ier9trn
+    title: an openapi surface declares its identity in info.x-api-id
+    statement: |
+      `info.x-api-id`, the extension key openapi already defines for the purpose. the key keeps
+      openapi's spelling rather than this process's: it belongs to that format, and a document
+      carrying a renamed key would stop being an ordinary openapi document.
+    status: proposed
+    because:
+      - d-rui9z0lc
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - design-validator
+
+  - id: d-70rnco74
+    title: a markdown surface declares its identity in frontmatter
+    statement: |
+      the frontmatter key `io.twindigital.id`. markdown has no comment syntax that survives
+      rendering, so the identity goes in the frontmatter a document-kind file already carries; the
+      key is reverse-dns because frontmatter is a namespace shared with every other tool that
+      reads it.
+    status: proposed
+    because:
+      - d-rui9z0lc
+    pinned:
+      reason: data-format
+    facets:
+      - schema
+      - design-validator
+
   - id: d-pe4j25wq
     title: the model is a block of the requirements source
     statement: >
