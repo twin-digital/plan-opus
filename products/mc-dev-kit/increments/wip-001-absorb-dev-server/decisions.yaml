@@ -55,10 +55,11 @@ decisions:
   - id: d-imdfu09l
     title: the project identity is derived from the workspace root
     statement: |
-      the compose project name is the workspace root package's name, sluggified. One workspace therefore
-      addresses one server, a run started from a subdirectory addresses the same server as one started
-      from the root, and moving or renaming the checkout keeps the worlds — which an absolute path would
-      orphan, invisibly, now that worlds outlive a stop.
+      the compose project name is the sluggified name of the package at the workspace root
+      d-joa4eefg resolves, and the name comes from that resolver rather than being computed a second time.
+      One workspace therefore addresses one server, a run started from a subdirectory addresses the same
+      server as one started from the root, and moving or renaming the checkout keeps the worlds — which a
+      path-keyed name would orphan, invisibly, now that worlds outlive a stop.
 
       The cost is that two clones of one repository on a single daemon share a server rather than getting
       one each. That is the rarer case, and it fails visibly — the second run attaches to the first's
@@ -211,15 +212,16 @@ decisions:
   - id: d-vrq7lc2o
     title: a pack that will not build is deployed as a stub
     statement: |
-      the start sequence runs each selected package's one-shot build, and a build that fails does not stop
-      it. A pack whose build failed is deployed as a stub — a valid pack carrying the pack's own identity
-      and version and no content — so the world loads with every selected pack present and its activation
-      list complete, and the failure is reported on the stream. The watch builds start either way.
+      the start sequence runs each selected package's one-shot build, and a build that fails
+      does not stop it. A pack whose sources the kit reports sound but whose code will not build — or whose
+      package declares no `build` script — is deployed with a stub script in place of its bundle: the
+      pack's own identity, version and content, and a script that does nothing. The world loads with every
+      selected pack present and its activation list complete, and the failure is reported on the stream.
+      The watch builds start either way.
 
-      A stub is replaced by the real pack on the first build that succeeds, through the ordinary
-      reconcile. That replacement changes the pack's file set, so it costs the restart d-ftlfhac8 prices
-      rather than a reload: what an author gets is a server that came up and a loop that carries the fix,
-      not a live patch.
+      The first build that succeeds replaces the stub through the ordinary reconcile. The bundle sits where
+      the stub sat, so the pack's file set does not change in the swap and the fix costs a reload rather
+      than the restart d-ftlfhac8 prices for a grown file set.
     status: accepted
     facets: dev-loop
     because:
@@ -411,10 +413,18 @@ decisions:
   - id: d-joa4eefg
     title: the kit exports workspace-root resolution
     statement: |
-      the library exports the workspace-root rule it already applies internally: given a starting
-      directory it returns the root it would discover packs from, or reports that there is none. The
-      harness resolves the root through that export rather than reimplementing the marker precedence, so
-      both packages always agree which workspace they are in.
+      the library exports workspace-root resolution: given a starting directory it climbs
+      ancestors until one is a workspace root, and reports the root it found and the name of the package
+      there — the name through d-me8ieqnr, so a root package declaring none is named by its directory.
+
+      A directory is a workspace root when it holds a `pnpm-workspace.yaml` or `pnpm-workspace.yml`, or a
+      `package.json` declaring `workspaces`. That is the whole rule, and it is not the rule discovery
+      applies to a root it is handed: that one treats any readable `package.json` as a root, which is
+      correct for a root already chosen and would end an ascent at its first step.
+
+      No ancestor being a workspace root is an answer the caller rules on. A marker that cannot be read or
+      parsed is not that answer and does not return one — it throws, naming the file, as d-ydph1k7d has
+      enumeration faults reject the call rather than degrade into data.
     status: accepted
     pinned:
       reason: public-api
@@ -442,16 +452,20 @@ decisions:
   - id: d-n81zkitr
     title: a run launches best-effort and reports what it could not build
     statement: |
-      nothing about an individual pack stops a run. A selected pack the kit reports invalid, a selected
-      package declaring no `build` script, a build that fails at start or mid-session, and a build that
-      leaves no output tree are each reported on the stream, naming the package and the problem, and the
-      run continues — deploying a stub where the pack has nothing to deploy, per d-vrq7lc2o, and leaving
-      the last good deploy in place where it already had one. A selected package declaring no `watch`
-      script is built once and not watched, reported at start. A watch process that exits is reported and
-      not restarted.
+      a run fails before bringing anything up when a selected pack is one the kit reports
+      invalid. Such a pack may carry no identity and no version at all (d-61fegb3o), which leaves no pool
+      directory to name (d-oo8256gl) and no activation entry to write (d-cw6pder5) — there is nothing to
+      stub and nothing to host, and a run hosts what was asked for or it does not start.
 
-      A run fails only where it cannot be a run at all: no Docker, no reachable daemon, a `--config` file
-      that will not parse, or a selection naming something the workspace does not hold.
+      Everything short of that is reported and carried. A build that fails, at start or mid-session, leaves
+      the pack deployed with a stub script (d-vrq7lc2o) or leaves its last good deploy standing, named on
+      the stream with its problem. A selected package declaring no `watch` script is built once and not
+      watched, reported at start. A watch process that exits is reported and not restarted. A reconcile
+      that throws — discovery rejecting an unparseable `package.json` anywhere in the workspace among them
+      — changes nothing on the server, is reported, and is retried on the next save.
+
+      A run otherwise fails only where it cannot be a run at all: no Docker, no reachable daemon, a
+      `--config` file that will not parse, or a selection naming something the workspace does not hold.
     status: accepted
     facets: dev-loop
     because:

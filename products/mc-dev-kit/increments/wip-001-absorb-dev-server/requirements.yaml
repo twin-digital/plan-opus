@@ -1,5 +1,15 @@
 version: "1"
 
+# Increment 008 adopted nodejs-library@2 and nodejs-cli@1. Both are reverted here: nodejs-cli's
+# stream rules contradict d-62bpn2h2 and d-5e00ndwi, and nodejs-library@2 brought r-lqfu2ki9, whose
+# one-entry-point rule contradicts d-wss8fker's pinned /build subpath. The presets need rework
+# before this product adopts them.
+presets:
+  - name: nodejs-cli
+    status: dropped
+  - name: nodejs-library
+    version: 1
+
 # The dev loop joins the kit. mc-dev-server's published requirements re-enter here under the
 # `dev-loop` facet, consolidated; drafts/absorption-map.md holds the old id -> new id table and
 # accounts for what is not carried.
