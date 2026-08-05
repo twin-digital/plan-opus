@@ -1,15 +1,16 @@
 version: "1"
 requirements:
   - id: r-ax84j1s2
-    title: the owner rules a draft's open set as one set
+    title: ruling a draft is one sitting in one place
     statement: |
-      the owner rules every proposed decision and open question a draft carries as one set, and
-      a single action applies all of it to the draft.
+      the owner reaches every open entry a draft carries, reads each in full, and rules it
+      without leaving for another tool — and takes the draft from its first ruling to published
+      in that same sitting.
     verification:
       - do: open a draft carrying several proposed decisions and at least one open question
-      - verify: every one of them is presented together, with the statement the owner is ruling on legible in full
-      - do: rule them all, then submit once
-      - verify: the draft's sources carry every ruling, written by that one action
+      - verify: every one is reachable from the entry the session opens on, and each entry's whole text is legible without leaving
+      - do: rule them one at a time, then publish
+      - verify: the draft published, and nothing outside the session was used to rule or to land it
     facets:
       - tooling
       - process-doc
