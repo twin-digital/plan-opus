@@ -1,0 +1,44 @@
+version: "1"
+requirements:
+  - id: r-ax84j1s2
+    title: ruling a draft is one sitting in one place
+    statement: |
+      the owner reaches every open entry a draft carries, reads each in full, and rules it
+      without leaving for another tool — and takes the draft from its first ruling to published
+      in that same sitting.
+    verification:
+      - do: open a draft carrying several proposed decisions and at least one open question
+      - verify: every one is reachable from the entry the session opens on, and each entry's whole text is legible without leaving
+      - do: rule them one at a time, then publish
+      - verify: the draft published, and nothing outside the session was used to rule or to land it
+    facets:
+      - tooling
+      - process-doc
+
+  - id: r-2keswxn8
+    title: publishing a settled draft takes no agent
+    statement: |
+      a draft whose rulings are complete publishes mechanically — the owner lands it without an
+      agent performing any step of the landing.
+    verification:
+      - do: settle a draft's rulings, then land it as the owner, with no agent in the loop
+      - verify: the increment is published under its number, and the merge gate passed on what landed
+      - do: land a draft that is not settled
+      - verify: it refuses, naming what is unsettled, and publishes nothing
+    facets:
+      - tooling
+      - process-doc
+
+  - id: r-rxb7pn9z
+    title: a credential acting as the owner is never written down
+    statement: |
+      a credential that acts as the owner is supplied at the moment it is used and held only
+      for as long as that use lasts; nothing writes it to disk, to the environment, or to a
+      command line.
+    verification:
+      - do: run a landing that authenticates as the owner, supplying the credential when asked
+      - verify: the credential appears in no file, no environment variable, and no process argument list during or after the run
+      - do: run the same landing again
+      - verify: it asks for the credential again, having retained nothing
+    facets:
+      - tooling
