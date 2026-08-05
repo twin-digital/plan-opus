@@ -1,5 +1,5 @@
 ---
-version: "23"
+version: "24"
 name: increment
 description: Run one phase of a product's increment in this repository. Plan — open a draft increment on its own branch, work Clarify in the foundation sources, loop Ratify through its pull request, and land it into the next number; use when asked to plan an increment, capture or adopt a backlog item, run the Plan phase, or drive a product's design to a mergeable state. Implement — build the fold at a published increment, dispatch one implementer per package, accumulate design consequences in a companion increment, and file the implementation record; use when asked to implement a product, an increment, or the fold of a design. Invoked as `/increment plan` or `/increment implement`.
 ---
@@ -87,21 +87,20 @@ non-interactive surface for an agent or a script with no session to land from. I
 and nothing else — no head to name and no push to suppress, since no step of the sequence needs
 judgement and the conflict check inside it uses its own default head.
 
-Two things to settle before running it:
-
-- **Land after any draft this one builds on.** Ancestry is the ordering: a dependent lands after
-  its ancestor, and independent drafts land in any order. Once the ancestor merges, this landing's
-  diff shrinks to the draft's own changes.
-- **Open the draft's pull request first.** `land` discovers the pull request for the current
-  branch and opens none; with none found, the approval and the auto-merge report `skipped`.
+One thing to settle before running it: **land after any draft this one builds on.** Ancestry is the
+ordering — a dependent lands after its ancestor, and independent drafts land in any order. Once the
+ancestor merges, this landing's diff shrinks to the draft's own changes.
 
 `land` runs a fixed sequence in order, **stops at the first step that fails**, reports what to fix,
 and leaves the branch as it found it: apply any staged rulings, run the conflict check against the
 head, rename the wip directory into the number the head yields, run the full design check, commit,
-push, approve the pull request as the owner, and set the merge to complete on its own once the gate
-is green. The approval follows the push, because a push after an approval dismisses it. A draft
-still carrying a proposed decision or an open question is **refused before any of it runs**, naming
-what is unsettled — settle those first.
+push, open the pull request where the branch has none, approve it as the owner, and set the merge to
+complete on its own once the gate is green. The approval follows the push, because a push after an
+approval dismisses it. A draft still carrying a proposed decision or an open question is **refused
+before any of it runs**, naming what is unsettled — settle those first.
+
+You need not open the pull request yourself. Where one already exists for the branch the open step
+is a no-op, so a pull request opened earlier to run Ratify through is the one the landing approves.
 
 Three steps of that sequence are worth knowing from the outside:
 
