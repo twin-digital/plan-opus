@@ -157,31 +157,6 @@ decisions:
     facets:
       - schema
       - design-validator
-  - id: d-70rnco74
-    title: a markdown surface declares its identity in frontmatter
-    statement: >
-      a surface authored as markdown declares its identity in the frontmatter
-      key
-
-      `io.twindigital.id`. markdown has no comment syntax that survives
-      rendering, so the identity
-
-      goes in the frontmatter a markdown file already carries; the key is
-      reverse-dns because
-
-      frontmatter is a namespace shared with every other tool that reads it.
-    status: rejected
-    because:
-      - d-rui9z0lc
-    pinned:
-      reason: data-format
-    facets:
-      - schema
-      - design-validator
-    rejection_reason: consider changing the key name here... i'd like to keep it
-      namespaced to avoid collidign with a common 'id' that many frontmatters
-      may have. but also want to align with our other comments/id field
-      names/etc
   - id: d-7i1l1kfy
     title: how the session finds the pull request it works
     statement: >
@@ -261,7 +236,6 @@ decisions:
 
       session. `increment` takes `--root` as every operation does, and `--pr`.
     status: accepted
-    supersedes: d-mhv8av8w
     because:
       - r-ycjjl48r
       - r-ax84j1s2
@@ -300,7 +274,6 @@ decisions:
 
       to openapi.
     status: accepted
-    supersedes: d-70rnco74
     because:
       - d-rui9z0lc
       - d-ds6mco0p
@@ -382,7 +355,6 @@ decisions:
 
       the surrounding entries included.
     status: delegated
-    supersedes: d-wfk23gw8
     because:
       - r-xtbhb7gj
       - r-ospozqv8
@@ -694,86 +666,6 @@ decisions:
     pinned: false
     facets:
       - tooling
-  - id: d-mhv8av8w
-    title: one interactive command carries the draft, and it works a pull request
-    statement: >
-      `design-process increment` is a full-screen terminal application over a
-      draft's pull
-
-      request, and it is the whole flow: the owner rules from it and publishes
-      from it, never
-
-      switching commands. no new package, no service, and no browser — it
-      reaches the fold, the
-
-      projection, and the conflict check as library calls rather than
-      reimplementing them.
-
-
-      the pull request is what the session works, because by the time a draft is
-      being ruled an
-
-      agent has already opened one and posted it for review. `--pr <url>` names
-      it, and is the
-
-      ordinary way to start: the session resolves it to its head branch, fetches
-      that branch,
-
-      materialises a temporary git worktree from it, runs there, and removes the
-      worktree when
-
-      the session ends. the product comes from the draft the branch holds, so
-      the product
-
-      argument is optional. it needs a local clone of the pull request's
-      repository, found from
-
-      the working directory the command ran in; where there is none it says so
-      and does nothing.
-
-
-      without `--pr` the session works the draft the current tree holds, and
-      opens a pull request
-
-      for the branch before anything else where the branch has none — titling it
-      for the draft it
-
-      carries, not for a landing that has not happened. every session therefore
-      has one, which is
-
-      what lets a submit post a review. a branch with no upstream, a tree with
-      uncommitted
-
-      changes, or a head branch on a fork the local clone cannot push to is
-      refused with what is
-
-      wrong; the session opens nothing and pushes nothing to fix it.
-
-
-      `increment` takes `--root` as every operation does, and `--pr`.
-
-
-      the session has modes, and what is open decides which are offered. ratify
-      is where a draft
-
-      carrying anything proposed or unanswered opens. landing becomes available
-      exactly when
-
-      nothing is proposed and no question is open, and is entered from the same
-      session.
-    status: delegated
-    supersedes: d-gf6x5jzy
-    because:
-      - r-ycjjl48r
-      - r-ax84j1s2
-      - r-2keswxn8
-      - d-h418ljtp
-    pinned:
-      reason: public-api
-      notes: the command a published cli offers, what it accepts, and the gate on when
-        landing appears
-    facets:
-      - tooling
   - id: d-pm6a29v6
     title: the pull request's diff names the draft, and the owner picks only where
       it is ambiguous
@@ -967,105 +859,6 @@ decisions:
     pinned: false
     facets:
       - tooling
-  - id: d-wfk23gw8
-    title: text the owner typed is written as a block scalar that round-trips
-    statement: >
-      the draft's sources are yaml. every field the session writes into them
-      from text the owner typed — a rejection's reason, the answer
-
-      a routed question carries, the placeholder statement that answer writes —
-      is written as a yaml
-
-      block scalar, whatever its length. a colon, a leading dash, a `#`, or a
-      quote in the owner's
-
-      prose then cannot break the file, and no escaping rule has to be right.
-      the alternative is
-
-      quoting, which is a rule that must hold for every character the owner can
-      type.
-
-
-      the scalar is the folded one, `field: >`, so that the session can wrap
-      what it writes
-
-      without wrapping being part of what it wrote. folding turns a line break
-      between two
-
-      non-empty lines back into the space it replaced, and keeps a blank line as
-      the paragraph
-
-      break the owner typed. a literal `|` cannot do this: every break the
-      wrapper inserted would
-
-      be stored, and the owner's text would come back carrying a shape the tool
-      chose.
-
-
-      where the owner's text does not survive folding — a line they began with
-      whitespace, which
-
-      a folded block would keep literally — the session writes a literal block
-      instead and does
-
-      not wrap. round-tripping the value is the rule; folding is how it is met
-      in the ordinary
-
-      case.
-
-
-      the width and the wrapping algorithm are the implementer's: a target under
-      some width,
-
-      breaking on whitespace, breaking inside a token only where an unbroken run
-      exceeds the width
-
-      on its own.
-
-
-      the write is an edit to the source, not a re-serialisation of it. a submit
-      rewriting the
-
-      file through a yaml serialiser reflows every entry it did not touch: the
-      values survive and
-
-      the diff does not, and the pull request stops showing what the sitting
-      did. so the session
-
-      edits the spans it ruled and leaves every other byte where it found it,
-      the scalar style of
-
-      the surrounding entries included.
-
-
-      the write is an edit to the source, not a re-serialisation of it. a submit
-      rewriting the
-
-      file through a yaml serialiser reflows every entry it did not touch: the
-      values survive and
-
-      the diff does not, and the pull request stops showing what the sitting
-      did. so the session
-
-      edits the spans it ruled and leaves every other byte where it found it,
-      block scalars in the
-
-      surrounding entries included.
-    status: rejected
-    because:
-      - r-ospozqv8
-      - r-xtbhb7gj
-      - d-ovlyaoht
-      - d-octrdz0j
-      - r-6n45h5eb
-    pinned:
-      reason: data-format
-      notes: what a tool writes into sources every reader diffs and every parser reads
-    facets:
-      - tooling
-      - schema
-    rejection_reason: last two paragraphs mostly redundant. need to keep correct
-      content and delete the dupe
   - id: d-tmyu6t1y
     title: a comment is an instruction; the sources are the ruling
     statement: >
