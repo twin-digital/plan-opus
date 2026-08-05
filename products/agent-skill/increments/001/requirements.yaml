@@ -1,0 +1,27 @@
+version: "1"
+requirements:
+  - id: r-w2m32yl6
+    title: an agent reads only what its dispatch needs
+    statement: |
+      the instruction an agent receives carries what applies to the work it was dispatched
+      for and not what applies to a different role, kind, or phase; guidance that does not
+      bear on this dispatch is neither in the file it reads nor loaded alongside it.
+    verification:
+      - do: dispatch an implementer for a code package
+      - verify: nothing it reads describes the document kind's waves
+      - do: dispatch an implementer for a document package
+      - verify: nothing it reads describes the code kind's waves
+
+  - id: r-15psk4yp
+    title: a rule governing more than one role is stated once
+    statement: |
+      within the instruction agents read, where one rule governs more than one role, kind, or
+      phase, it is written in one place and reached from each — not restated per audience. two
+      copies that must be updated together are the failure this forbids. where two roles each
+      perform part of one exchange, each states its own part, and that is not a copy; and the
+      normative documents restating what the instruction operationalizes is not one either.
+    verification:
+      - do: change a rule that governs every implementer, whatever its kind
+      - verify: the change lands in exactly one place
+      - do: read what each of two roles is told about an exchange they share
+      - verify: each states its own part and neither restates the other's
