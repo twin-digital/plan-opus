@@ -1,0 +1,102 @@
+version: "2"
+decisions:
+  - id: d-n4g97j7g
+    title: one rule reports both product id collisions
+    statement: |
+      two product roots claiming one id and two declaration files in one root are one validator
+      finding, product-id-unique, rather than two rules. the first root in path order — shallowest,
+      then lexical — keeps the id, and the loser's increments are skipped rather than reported a
+      second time against every source they hold.
+    status: delegated
+    because:
+      - d-34t7y2iq
+    pinned: false
+    facets:
+      - design-validator
+
+  - id: d-ixg3gith
+    title: an increments tree with no declaration above it declares no product
+    statement: |
+      a directory holding increments/ with no product.yaml above it keeps the product-declaration
+      finding, now pathed at the offending source file rather than at the inferred directory, and
+      declares no product: it does not appear in the projection's product list. before the scan
+      the shape was inferable from the path; now nothing infers a product but a declaration.
+    status: delegated
+    because:
+      - d-34t7y2iq
+    pinned: false
+    facets:
+      - design-validator
+
+  - id: d-ol4v00nl
+    title: bulk set-remaining acts on unruled decisions only
+    statement: |
+      the session's bulk action sets every still-unruled decision to one status and leaves open
+      questions untouched — a question needs an answer, which is not a status. a draft carrying
+      questions is therefore never fully settled by the bulk path alone, and its landing stays
+      closed until each is answered.
+    status: delegated
+    because:
+      - d-9g0poz7v
+      - d-ovlyaoht
+    pinned: false
+    facets:
+      - tooling
+
+  - id: d-octrdz0j
+    title: what an answered question writes depends on where it routes
+    statement: |
+      a fact-routed answer closes the question and writes no entry. a requirement- or
+      decision-routed answer closes it and writes a placeholder entry into the draft carrying the
+      generated id and the owner's answer text, for the owner to state. staging requires an entry
+      for those two routes and not for the first.
+    status: delegated
+    because:
+      - d-ovlyaoht
+      - r-d181l3s2
+    pinned: false
+    facets:
+      - tooling
+
+  - id: d-uap9qjz9
+    title: the typed token is spent on the approval and nothing else
+    statement: |
+      only the approving call carries the owner's token, in an authorization header read from
+      memory. push and auto-merge use the credentials the environment already holds. the token's
+      reach is one request, so what the owner's identity is spent on is exactly the approval.
+    status: delegated
+    because:
+      - d-6fur4w53
+      - r-rxb7pn9z
+    pinned: false
+    facets:
+      - tooling
+
+  - id: d-8vsionnz
+    title: landing discovers the pull request and opens none
+    statement: |
+      the landing finds the pull request for the current branch. finding none, approve and
+      auto-merge report skipped, the landing still counts as published and awaiting approval, and
+      nothing opens a pull request — opening one is not among the steps d-qzpfyc6s fixes. where
+      the api refuses to enable auto-merge, the landing reports the pull request as approved and
+      awaiting a manual merge.
+    status: delegated
+    because:
+      - d-qzpfyc6s
+      - d-6fur4w53
+    pinned: false
+    facets:
+      - tooling
+
+  - id: d-d76q0tpa
+    title: land takes --root and nothing else
+    statement: |
+      the non-interactive landing takes --root and no other option: no --no-push, no --against.
+      the sequence is fixed, so there is nothing to select, and the conflict check's own default
+      — origin/main, then main — is the head it runs against.
+    status: delegated
+    because:
+      - d-qzpfyc6s
+    pinned: false
+    facets:
+      - tooling
