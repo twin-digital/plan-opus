@@ -7,6 +7,19 @@ screen:
   layout: the header across the top; below it, the entry list on the left and the detail pane on the right
   selection: moving through the list moves the pane
 
+text-entry:
+  applies-to:
+    - a rejection's reason
+    - a note on an entry
+    - the owner's token
+  cursor:
+    present: whenever the field has focus
+    form: a block at the insertion point, distinguishable from the surrounding text
+    notes: the field shows where the next character lands, empty or not
+  secret:
+    cursor: present
+    text: not echoed
+
 select-draft:
   shown-when: the pull request's diff carries more than one draft
   entry:
