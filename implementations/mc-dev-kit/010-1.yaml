@@ -1,6 +1,6 @@
 version: "1"
 product: mc-dev-kit
-target: 9
+target: 10
 built_at: 2026-08-05
 packages:
   - path: nodejs/minecraft/mc-dev-kit
@@ -1564,14 +1564,232 @@ coverage:
         ref: src/types.ts
         note: the Problem union is closed and no constructor takes a free-form code
 
-  - claim: d-wytigz6u # the problem codes
+  - claim: d-eh8y8a37 # the problem codes, module-entry-specified among them
     covered_by:
       - kind: code-test
         ref: src/discover-packs.test.ts
-        note: the exhaustive workspace raises each of the nineteen codes, module-entry-specified among them
+        note: >
+          one workspace raises all nineteen codes the union holds and nothing outside it, the
+          asserted set compared for equality so a stray code fails as loudly as a missing one
       - kind: attestation
         ref: src/types.ts
+        note: the union carries the nineteen codes with exactly the extra fields named for each
+
+  - claim: d-4tmzz8dc # a completed script module's entry is scripts/main.js
+    covered_by:
+      - kind: code-test
+        ref: src/internal/manifest-completion.test.ts
         note: >
-          the union carries nineteen codes with exactly the extra fields named for each — the
-          eighteen this decision listed, plus module-entry-specified with its field, which the
-          companion increment's overturn restates the closed set to include
+          completion writes scripts/main.js on a behavior pack's script module, writes it on nothing
+          else, and overwrites a source-specified value after reporting it
+      - kind: attestation
+        ref: src/internal/manifest-completion.ts
+
+  - claim: d-pj8788qi # the workspace-root resolver's signature
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/workspace-root.test.ts
+          - src/consumer.test.ts
+        note: >
+          the options object, the default starting directory, a relative path resolved against it,
+          an absolute root, the package name, and undefined above the topmost root
+      - kind: attestation
+        ref: src/workspace-root.ts
+
+  - claim: d-218lu6sx # the build fragment is a tsdown UserConfig, and the virtual entry is a plugin-resolved id
+    covered_by:
+      - kind: code-test
+        ref: src/build.test.ts
+        note: the fragment types as a tsdown config and names the virtual entry id where the package holds no script sources
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+        note: the plugin resolves and loads that id as an empty module, and fails at buildStart when sources turn up under it
+      - kind: attestation
+        ref: src/build.ts
+
+  - claim: d-e9q1tkmj # the fragment sets resolve.conditionNames under inputOptions
+    covered_by:
+      - kind: code-test
+        ref: src/build.test.ts
+        note: the condition names are asserted at the key tsdown reads them from
+      - kind: attestation
+        ref: src/build.ts
+
+  - claim: d-0o67zhpe # the plugin resolves an undeclared game-module import and fails when nothing does
+    covered_by:
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+        note: a resolvable undeclared scoped import is inlined; an unresolvable one fails the build
+      - kind: attestation
+        ref: src/internal/pack-build-plugin.ts
+
+  - claim: d-6qjbel7g # the world volume is the compose volume world-data
+    covered_by:
+      - kind: code-test
+        ref: src/docker/compose-file.test.ts
+        note: the generated project declares the one named volume at the mount point the layout fixes
+      - kind: manual-check
+        ref: src/docker/compose-file.ts
+        note: the live volume was listed under the project-prefixed name, survived a stop, and was removed only by destroy
+      - kind: attestation
+        ref: src/docker/compose-file.ts
+
+  - claim: d-iietr3ai # the seed record is worlds.json under the harness's own directory
+    covered_by:
+      - kind: code-test
+        ref: src/server/volume-io.test.ts
+        note: the record round-trips a full-range 64-bit seed as a decimal string, and an absent or unparseable record reads as empty
+      - kind: manual-check
+        ref: src/server/layout.ts
+        note: the live record read back at that path in that shape, naming both worlds and their seeds
+      - kind: attestation
+        ref: src/server/layout.ts
+
+  - claim: d-72uops8f # a seed is recorded before its world exists and never rewritten
+    covered_by:
+      - kind: code-test
+        ref: src/start/start.test.ts
+        note: a start onto a world already on record leaves the recorded seed untouched
+      - kind: manual-check
+        ref: src/server/state.ts
+        note: >
+          a live start onto an already-recorded world left the record byte-identical; before the fix
+          this run overwrote that world's generation seed, which is the defect the live check found
+      - kind: attestation
+        ref: src/server/state.ts
+
+  - claim: d-1cvurr1z # the level a server is serving is read from server.properties
+    covered_by:
+      - kind: code-test
+        ref: src/server/volume-io.test.ts
+        note: the served world is read from the level-name key of the server's own configuration on the volume
+      - kind: manual-check
+        ref: src/server/state.ts
+        note: the live level name read back from that file matched what the run had asked for, across a switch between two worlds
+      - kind: attestation
+        ref: src/server/state.ts
+
+  - claim: d-ur29y32y # the compose service is bedrock, and the run's port publishes over 19132
+    covered_by:
+      - kind: code-test
+        ref: src/docker/compose-file.test.ts
+        note: one service under that name, listening on the container port, with the run's port published over it
+      - kind: manual-check
+        ref: src/docker/compose-file.ts
+        note: the generated project carried the service and the published port, and the copy and console commands addressed it by name
+      - kind: attestation
+        ref: src/docker/compose-file.ts
+
+  - claim: d-u5c77500 # the generated compose file sits outside the workspace and is rewritten every run
+    covered_by:
+      - kind: code-test
+        ref: src/docker/compose.test.ts
+        note: the file is named by absolute path under the temporary directory, keyed by project name
+      - kind: manual-check
+        ref: src/docker/compose-file.ts
+        note: nothing appeared in the live workspace checkout, and the file was regenerated on each command
+      - kind: attestation
+        ref: src/docker/compose-file.ts
+
+  - claim: d-ma6te2xu # the project name slug
+    covered_by:
+      - kind: code-test
+        ref: src/workspace.test.ts
+        note: lowercasing, substitution, run collapsing, edge trimming, and the fallback for a name with nothing left
+      - kind: attestation
+        ref: src/workspace.ts
+
+  - claim: d-4rq4v5jq # level, seed and spawn carry no harness default
+    covered_by:
+      - kind: code-test
+        ref: src/settings/resolve.test.ts
+        note: the defaults layer supplies the image and the port only, leaving the three unspecified for matching
+      - kind: code-test
+        ref: src/start/ladder.test.ts
+        note: an unspecified setting matches a running server whatever it holds
+      - kind: attestation
+        ref: src/settings/resolve.ts
+
+  - claim: d-aq4qq95v # what makes a reconcile re-copy a pack
+    covered_by:
+      - kind: code-test
+        ref: src/deploy/plan.test.ts
+        note: absence, differing file names, and an observed rebuild each copy; nothing else does
+      - kind: code-test
+        ref: src/deploy/reconcile.test.ts
+        note: a reconcile at start against a matching server copies nothing
+      - kind: attestation
+        ref: src/deploy/plan.ts
+
+  - claim: d-69wqm1r3 # a package's own scripts are run through its workspace's package manager
+    covered_by:
+      - kind: code-test
+        ref: src/package-scripts/scripts.test.ts
+        note: the argv for each manager, the manager chosen from the workspace root's own marker, and a package declaring neither script
+      - kind: manual-check
+        ref: src/package-scripts/scripts.ts
+        note: the live run invoked each package's own build and watch through the workspace's manager, in the package's own directory
+      - kind: attestation
+        ref: src/package-scripts/scripts.ts
+
+  - claim: d-2nfk6s4m # the seed's exact range is enforced by the harness, not the config schema
+    covered_by:
+      - kind: code-test
+        ref: src/config/load.test.ts
+        note: a seed one past either end of the range is rejected naming the key, though it validates against the contract
+      - kind: code-test
+        ref: src/seed.test.ts
+        note: the range's exact edges parse and the values beyond them do not
+      - kind: attestation
+        ref: src/config/load.ts
+
+  - claim: d-uwj809wm # a world that loaded with no packs is ready, and said so
+    covered_by:
+      - kind: code-test
+        ref: src/server/readiness.test.ts
+        note: an empty pack stack is matched and reported distinctly from a stack holding packs
+      - kind: manual-check
+        ref: src/server/readiness.ts
+        note: the live first load against a fresh volume said the world had loaded with no packs active, then deployed and restarted
+      - kind: attestation
+        ref: src/server/readiness.ts
+
+  - claim: d-tl5qq1u6 # the run reports where to connect once the world has loaded
+    covered_by:
+      - kind: code-test
+        ref: src/server/endpoint.test.ts
+        note: the host taken out of each Docker connection form, and the reported line asserted for each
+      - kind: manual-check
+        ref: src/start/start.ts
+        note: the live run against a remote daemon reported the remote host and the published port, naming where it took the host from
+      - kind: attestation
+        ref: src/server/endpoint.ts
+
+  - claim: d-3qlzf7l8 # readiness is a bounded poll against a mark, not a follow
+    covered_by:
+      - kind: code-test
+        ref: src/server/readiness.test.ts
+        note: >
+          a load already in the log is taken on attach, a new load is waited for where the mark says
+          the log grew, and a shorter log is read as a recreated container's fresh one
+      - kind: manual-check
+        ref: src/server/readiness.ts
+        note: >
+          readiness resolved on the live server across a cold start, a recreate, and a reattach whose
+          world-load line was minutes old
+      - kind: attestation
+        ref: src/server/readiness.ts
+
+  - claim: d-fw7jkpvp # detaching takes a package's whole watch down with it
+    covered_by:
+      - kind: code-test
+        ref: src/start/start.test.ts
+        note: the watch processes are down once the run returns on a detaching signal
+      - kind: manual-check
+        ref: src/package-scripts/scripts.ts
+        note: >
+          after a live detach no watch process survived and the harness exited; before the fix the
+          package manager's child was orphaned and the run never returned
+      - kind: attestation
+        ref: src/package-scripts/scripts.ts
