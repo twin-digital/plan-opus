@@ -577,23 +577,34 @@ decisions:
     facets:
       - tooling
   - id: d-wfk23gw8
-    title: text the owner typed is written as a wrapped literal block
+    title: text the owner typed is written as a block scalar that round-trips
     statement: |
       every field the session writes from text the owner typed — a rejection's reason, the answer
       a routed question carries, the placeholder statement that answer writes — is written as a
-      literal block scalar, `field: |`, whatever its length. a colon, a leading dash, a `#`, or a
-      quote in the owner's prose then cannot break the file, and no escaping rule has to be right.
-      the alternative is quoting, which is a rule that must hold for every character the owner can
-      type.
+      block scalar, whatever its length. a colon, a leading dash, a `#`, or a quote in the owner's
+      prose then cannot break the file, and no escaping rule has to be right. the alternative is
+      quoting, which is a rule that must hold for every character the owner can type.
 
-      the session wraps what it writes rather than emitting one long line, so the sources stay
-      diffable and a review comment can anchor to a line that means something. the width and the
-      algorithm are the implementer's: a target under some width, breaking on whitespace, breaking
-      inside a token only where an unbroken run exceeds the width on its own. paragraph breaks the
-      owner typed are kept as they were typed, and the wrapper only adds breaks.
+      the scalar is the folded one, `field: >`, so that the session can wrap what it writes
+      without wrapping being part of what it wrote. folding turns a line break between two
+      non-empty lines back into the space it replaced, and keeps a blank line as the paragraph
+      break the owner typed. a literal `|` cannot do this: every break the wrapper inserted would
+      be stored, and the owner's text would come back carrying a shape the tool chose.
 
-      a literal block keeps the newlines wrapping adds, so the stored value carries them — as
-      every hand-authored statement in this repository already does.
+      where the owner's text does not survive folding — a line they began with whitespace, which
+      a folded block would keep literally — the session writes a literal block instead and does
+      not wrap. round-tripping the value is the rule; folding is how it is met in the ordinary
+      case.
+
+      the width and the wrapping algorithm are the implementer's: a target under some width,
+      breaking on whitespace, breaking inside a token only where an unbroken run exceeds the width
+      on its own.
+
+      the write is an edit to the source, not a re-serialisation of it. a submit rewriting the
+      file through a yaml serialiser reflows every entry it did not touch: the values survive and
+      the diff does not, and the pull request stops showing what the sitting did. so the session
+      edits the spans it ruled and leaves every other byte where it found it, the scalar style of
+      the surrounding entries included.
 
       the write is an edit to the source, not a re-serialisation of it. a submit rewriting the
       file through a yaml serialiser reflows every entry it did not touch: the values survive and
