@@ -1,0 +1,49 @@
+version: "2"
+decisions:
+  - id: d-udx0fefp
+    title: the session works a pull request, and the working tree it holds is no longer the subject
+    statement: >
+      `design-process increment` opens on a draft's pull request, as d-7i1l1kfy states: `--pr`
+      names one, the product argument is optional because the draft the diff names carries it,
+      and where the command is given neither it works the pull request whose head is the current
+      branch. the draft the working tree holds is what the session falls back to reaching, not
+      what identifies the sitting.
+    status: proposed
+    supersedes: d-gf6x5jzy
+    because:
+      - r-ycjjl48r
+      - d-7i1l1kfy
+    pinned:
+      reason: public-api
+      notes: the command a published cli offers and what identifies the draft it opens on
+    facets:
+      - tooling
+      - process-doc
+  - id: d-7qs2g0sp
+    title: the check runs over one tree, and the pools it reads are schemas and surfaces
+    statement: >
+      `npm run check` is `design-process check` over `products/`, `schemas/`, `surfaces/`, and
+      `implementations/`. the legacy `design/` tree and the checker that read it are gone, and
+      the contract pool d-qwquvf78 renamed is `surfaces/`.
+    status: delegated
+    supersedes: d-t03xkfj7
+    because:
+      - d-qwquvf78
+      - r-zcvxh2ty
+    pinned: false
+    facets:
+      - design-validator
+      - process-doc
+  - id: d-m7i568id
+    title: a command's findings are its main output
+    statement: >
+      the findings `check` and `conflicts` print are the data those commands exist to produce and
+      go to stdout. the progress and warning lines around them — an unresolvable base ref, an
+      empty result's note — are diagnostics and go to stderr.
+    status: delegated
+    because:
+      - r-d474vggq
+      - r-tbmrw430
+    pinned: false
+    facets:
+      - tooling
