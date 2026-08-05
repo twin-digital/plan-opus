@@ -1,0 +1,205 @@
+version: "2"
+
+decisions:
+  # the primitive
+  - id: d-eme4ratv
+    title: the operator is the only pipeline primitive
+    statement: |
+      a pipeline is a set of operators and nothing else. An operator takes declared inputs,
+      produces zero or more tags, and invokes zero or more declared resource operations; the
+      familiar shapes — a tagger that only produces tags, an action that only reaches outside —
+      are patterns over that one primitive rather than kinds the system distinguishes.
+    status: proposed
+    because:
+      - r-p5jm5559
+    pinned:
+      reason: other
+      notes: |
+        the vocabulary everything else in grinbox is described in, and the shape every built-in
+        type and every stored configuration takes
+
+  - id: d-52lhql7t
+    title: a contract belongs to the type and code version, derived from configuration
+    statement: |
+      what an operator declares — its input tag keys, its output tags, and its resource operations
+      — is a property of its type and code version, computed from the user's configuration by the
+      code, and is not stored alongside that configuration. A resource declaration is fixed by the
+      type; inputs and outputs follow from what the configuration names, including the tags a gate
+      or a template reads.
+    status: proposed
+    because:
+      - d-eme4ratv
+      - r-qu9y7wgg
+    pinned:
+      reason: other
+      notes: |
+        a stored contract and the code that runs it can disagree, and everything downstream —
+        ordering, validation, the injected clients — reads the contract
+
+  - id: d-04s2n18o
+    title: an output is a closed enum or a typed extraction
+    statement: |
+      an operator declares each output tag one of two ways: with a closed set of permitted values,
+      in which case the tag is produced whenever the operator runs; or as an extraction of a typed
+      value — text, money, or a date — normalized by grinbox rather than by the producer, in which
+      case a value that fails normalization drops the tag. An extracted output may be absent, so it
+      cannot be what another step gates on.
+    status: proposed
+    because:
+      - d-eme4ratv
+    pinned:
+      reason: data-format
+      notes: |
+        the normalized forms are what is stored on every triage and read back by everything that
+        renders or compares a tag
+
+  # ordering
+  - id: d-2gyfmt8m
+    title: order falls out of the contracts, and is not the user's to state
+    statement: |
+      execution order is derived: an operator runs once every input tag key it declares is present
+      on the current triage. The user never states an order, and the graph that results — producers
+      to consumers, by tag key — is what the runtime follows.
+    status: proposed
+    because:
+      - d-52lhql7t
+      - r-qu9y7wgg
+    pinned:
+      reason: other
+      notes: |
+        the user configures a set and gets an order they did not write, so the derivation is a
+        behaviour they would notice changing
+
+  - id: d-2dqylf0q
+    title: one tag key, one producer
+    statement: |
+      within a pipeline, at most one enabled operator may declare a given output tag key. Two
+      claiming the same key is rejected at save.
+    status: proposed
+    because:
+      - d-2gyfmt8m
+      - r-qu9y7wgg
+    pinned: false
+
+  - id: d-8y8i45y2
+    title: the graph is checked when it is saved, not when mail arrives
+    statement: |
+      the whole pipeline is validated as a unit whenever an operator in it is created, edited, or
+      deleted: dangling inputs, cycles, duplicate outputs, unknown types, and undeclared resource
+      operations all fail the save. What runs when mail arrives is a light recheck that the
+      configuration is still runnable at all, and a triage whose pipeline no longer is is recorded
+      as failed rather than run partway.
+    status: proposed
+    because:
+      - r-qu9y7wgg
+      - d-2gyfmt8m
+    pinned: false
+
+  # what a triage is
+  - id: d-urdglhb6
+    title: tags belong to the triage that produced them
+    statement: |
+      a tag is a key and a value scoped to one triage, and no triage reads another's tags. A
+      re-triage starts from an empty tag set and every operator evaluates afresh. What the user is
+      shown as the message's current tags is the output of its latest settled triage in full,
+      never a mixture of two.
+    status: proposed
+    because:
+      - d-eme4ratv
+      - r-zagpfz75
+    pinned:
+      reason: data-format
+      notes: |
+        the scoping is what makes a historical triage readable years later, and what the user sees
+        as a message's tags depends on it
+
+  - id: d-nr71oscu
+    title: a run snapshots the configuration it was enqueued with
+    statement: |
+      when a triage is enqueued it captures, per operator, the type, the code version, and the
+      configuration in force at that moment; the run executes against that snapshot. Editing an
+      operator therefore never changes a triage already in flight, and a historical outcome
+      resolves to the exact configuration that produced it.
+    status: proposed
+    because:
+      - r-zagpfz75
+      - d-52lhql7t
+    pinned:
+      reason: data-format
+      notes: |
+        the snapshot is what every historical triage is read against, and dropping it would make
+        old outcomes unreadable rather than merely differently computed
+
+  - id: d-16geyxco
+    title: a failure cascades to dependents and settles the triage partial
+    statement: |
+      an operator that fails does not fail the triage. Operators that declared one of its outputs
+      as an input are skipped — the input will never arrive — and operators independent of it run
+      normally. A triage in which anything failed or was skipped settles as partial; the whole
+      triage is recorded as failed only where the runtime itself could not settle it.
+    status: proposed
+    because:
+      - r-1698i3qa
+      - d-2gyfmt8m
+    pinned: false
+
+  - id: d-0tebpjex
+    title: there is no operator retry; the retry is a re-triage
+    statement: |
+      a failed operator is not retried within its triage. The next triage of that message — the
+      user's replay, or the next arrival — is the fresh attempt, and it is safe to take because
+      re-triage cannot repeat an outside effect.
+    status: proposed
+    because:
+      - r-zagpfz75
+      - d-16geyxco
+    pinned: false
+
+  # reaching outside
+  - id: d-v5zamgjn
+    title: resources are a closed set, and a client exposes only what was declared
+    statement: |
+      everything grinbox does outside its own process is an operation on one of an enumerated set
+      of resources. An operator is handed, per declared resource, a client exposing exactly the
+      operations it declared: an undeclared operation is not a method on what it holds, so
+      confinement is by construction rather than by check.
+    status: proposed
+    because:
+      - r-p5jm5559
+      - d-52lhql7t
+    pinned:
+      reason: public-api
+      notes: |
+        the seam every built-in operator type is written against
+
+  - id: d-isyan49o
+    title: limits are per user, per operation, and scoped by window or by message
+    statement: |
+      a limit caps a resource operation for a user, scoped either to a rolling window or to a
+      single message. Limits are checked before the operation reaches the outside service and are
+      not configurable per operator; the per-message scope is what makes re-triage safe, since the
+      counter is already spent.
+    status: proposed
+    because:
+      - r-zagpfz75
+      - d-v5zamgjn
+    pinned:
+      reason: other
+      notes: |
+        the one backstop the user is promised, and its per-message scope is what another
+        requirement rests on
+
+  - id: d-coeyvi2n
+    title: a capped operation is an outcome, not an error
+    statement: |
+      an operation that a limit denies returns a distinguishable outcome — capped, as against
+      succeeded or failed — and the operator chooses what to make of it, most treating it as a
+      clean no-op. Every attempt, whichever way it went, is recorded against the run that made it.
+    status: proposed
+    because:
+      - d-isyan49o
+      - r-1698i3qa
+    pinned:
+      reason: public-api
+      notes: |
+        the shape every operator implementation branches on
