@@ -269,24 +269,24 @@ inside an unpublished draft, not a published ruling to close.
 |---|---|
 | d-0yrfifhi | the executable is `minecraft-server`, with `start` and `stop` named explicitly — no bare default invocation |
 | d-wkcxcv2b | no conventional config-file name; one is read only where `--config <path>` names it. Every setting defaults, so a bare `start` is a complete run. The file gains `default_profile` |
-| d-c1kvyord | selection follows the config's `default_profile` when the command line names neither `--pack` nor `--profile`; `--profile` without `--config` is an error |
+| d-c1kvyord | selection follows the config's `default_profile` when the command line names no `--profile` |
 | d-e956frnx | EULA acceptance comes from `--accept-eula` as well as the config key, so no config file is required to start |
 | d-vrq7lc2o | a build failure no longer aborts the start: the pack deploys as a stub carrying its identity and no content, so the world loads and the loop carries the fix |
 | d-n81zkitr | best-effort launch throughout — nothing about one pack stops a run, and a run fails only where it cannot be a run at all |
 
-`d-62bpn2h2`'s flag set follows: `--config`, `--pack`, `--profile`, `--accept-eula` on `start`,
-`--reset` on `stop`, `--help` and `--version` on both.
+`d-62bpn2h2` stops enumerating flags at all: each is fixed by the decision that introduces it, and
+the second list had already drifted twice.
 
 **d-zo2yl18y is revised too, after the conversation its reason asked for.** A world no longer
 persists across a stop: the volume is created on `start` and removed on `stop`, so a world survives
 every restart the loop spends and every Ctrl+C and reattach, and no `stop` at all. `--reset`
 disappears with it — `stop` always destroys, so there is nothing to flag. `d-41m3iws5` follows from
 it: a run may fix its world's `seed` and `spawn`, which is only meaningful because the world is
-generated fresh each time. A profile becomes a named scenario in `d-c1kvyord` — the packs to host
-and the world to host them against — with command-line flags overriding it.
+generated fresh each time. A profile in `d-c1kvyord` carries the packs to host and the world to host
+them against, with command-line flags overriding it.
 
 Two capabilities went to the backlog rather than into this increment: **b-jucqjdql**, snapshotting a
-running world so a hand-built scenario survives the stop that destroys its volume, and
+running world so a hand-built one survives beyond the volume that holds it, and
 **b-762ansca**, starting a run from a captured world state.
 
 Both halves of `d-41m3iws5` were probed rather than assumed. `world-seed-and-spawn-probe` generates
@@ -295,8 +295,8 @@ holding the same blocks and a different seed different ones — and issues `setw
 running world, reading the spawn point back after a restart. `f:bedrock-world-generation-takes-a-seed-and-a-spawn-command`
 records both, and the one thing the decision now says that it did not before: the console command
 acknowledges nothing, so the harness issues it and does not wait. Together they are the end this increment
-only points at — set a scenario up once by hand, then run fresh servers against it as often as the
-loop restarts.
+only points at — set a world up once by hand, then run fresh servers against it as often as the loop
+restarts.
 
 ## What the file-set probe changed
 
@@ -367,6 +367,17 @@ including one past either end, is silently hashed as text to a 32-bit value rath
 low-entropy world and no error, which is why `d-41m3iws5` names the range rather than gesturing at
 it. The same eleven values were measured independently against a natively-run server of the same
 build while researching this, and every result agreed.
+
+## Selection is a profile or nothing
+
+`--pack` is gone. A run hosts every pack the kit discovers unless a profile narrows it, and there are
+three ways it ends up narrowed: `--profile <name>`, the config's `default_profile` where no
+`--profile` is given, or neither, which hosts everything. A selection worth making is worth writing
+down, and a profile is where it goes.
+
+The vocabulary is standardised on **profile**; "scenario" is gone from the increment. A profile
+carries its packs and the world to host them against, and `--level`, `--seed` and `--spawn` override
+it from the command line.
 
 ## Left for the Plan loop
 

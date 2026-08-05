@@ -322,22 +322,22 @@ decisions:
       - d-i4oryd9x
       - d-owprl7uy
   - id: d-c1kvyord
-    title: a profile is a named scenario, and flags override it
+    title: selection is a profile, or every pack there is
     statement: |
-      a run's selection is a repeatable `--pack` flag naming owning package names, or
-      `--profile <name>` naming a profile in whatever config file the run loaded. Given neither, the run
-      takes the config's `default_profile` where one is named, and every pack the kit discovers
-      otherwise.
+      a run hosts every pack the kit discovers unless a profile narrows it. There are three ways a run
+      ends up with its packs and no others: `--profile <name>` names one in the config the run loaded; with
+      no `--profile`, the config's `default_profile` applies where it names one; and with neither, the run
+      hosts everything. There is no flag for naming packs one at a time — a selection worth making is worth
+      writing down, and a profile is where it goes.
 
-      A profile names more than a selection: it is a named scenario, carrying the packs to host and
-      the world to host them against. `--seed` and `--spawn` on the command line override whatever
-      the profile or the file's top level says, and a profile's own values override the top level's.
+      A profile carries more than its packs: it names the world to host them against as well, and
+      `--seed`, `--spawn` and `--level` on the command line override whatever it says, as a profile's own
+      values override the config's top level.
 
-      A `--pack` value matching no discovered pack is an error, and so is a `--profile` naming no
-      profile the config holds — an absent or empty config holds none — a run hosts what was asked for
-      or it does not start. `--pack` and `--profile` together are an error rather than a union:
-      each is a complete statement of the selection, and `--pack` takes the world settings from the
-      file's top level. A profile holding an empty pack list selects no packs, which is a valid run.
+      A `--profile` naming no profile the config holds is an error — an absent or empty config holds none
+      — and a run hosts what was asked for or it does not start. A profile whose pack list is empty selects
+      no packs, which is a valid run; a profile that names no packs at all leaves the run hosting
+      everything, as though no profile applied.
     status: accepted
     pinned:
       reason: public-api
@@ -651,27 +651,27 @@ decisions:
   - id: d-41m3iws5
     title: a run chooses its world's seed and spawn
     statement: |
-      a run may fix the world it serves: `level` names it, `seed` sets what the server generates it
-      from, and `spawn`, an `[x, y, z]` array, sets where a joining player arrives. Either may come from
-      the config file, from a profile in it, or from `--seed` and `--spawn` on the command line.
-      Where a run names no seed the harness picks one itself — a uniformly random signed 64-bit integer,
-      emitted as plain decimal — rather than leaving the server to choose. The range is exact and its
-      edges matter: one past either end is neither rejected nor clamped but hashed as text, so a generator
-      that overshoots by one quietly produces a low-entropy world instead of failing. A seed the server chose is one nobody can read back
-      afterwards; a seed the harness chose is one it can record against the world it generated, so every
-      world it makes has a known seed and can be made again.
+      a run fixes the world it serves with three settings: `level` names it, `seed` sets what the
+      server generates it from, and `spawn`, an `[x, y, z]` array, sets where a joining player arrives.
+      Each may come from a profile, from the config file's top level, or from `--level`, `--seed` and
+      `--spawn` on the command line, in that order of precedence.
 
-      Each setting is optional, and an unspecified one is a wildcard rather than a demand: a run that names no
-      seed is content with whatever world is already serving, and a run that names one requires that
-      world. This is what lets a profile describe a scenario — its packs and its spawn — without tying
-      itself to a single world.
+      Each is optional, and an unspecified one is a wildcard rather than a demand: a run that names no seed
+      is content with whatever world is already serving, and one that names a seed requires that world.
+      That is what lets a profile describe its packs and its spawn without tying itself to a single world.
 
-      The seed reaches the server as the generated project's level seed, since it is read only when
-      a world is generated. The spawn point is set with `setworldspawn` on the console once the
-      world has loaded, because the server offers no setting for it; the command acknowledges
-      nothing, so the harness issues it and does not wait. Both are only ever meaningful because a
-      world lasts one run: d-zo2yl18y is what makes a seed reproducible rather than a one-time
-      accident.
+      Where a run names no seed and a world has to be generated, the harness picks the seed itself — a
+      uniformly random signed 64-bit integer, emitted as plain decimal — rather than leaving the server to.
+      A seed the server chose is one nobody can read back afterwards; a seed the harness chose is one it
+      records against the world it generated (d-5ocyva9w), so every world it makes can be made again. The
+      range is exact and its edges matter: one past either end is neither rejected nor clamped but hashed
+      as text, so a generator that overshoots by one quietly produces a low-entropy world instead of
+      failing.
+
+      The seed reaches the server as the generated project's level seed, since it is read only when a world
+      is generated — which is also why it says nothing about a world that already exists. The spawn point
+      has no server setting and is issued with `setworldspawn` on the console once the world has loaded;
+      the command acknowledges nothing, so the harness sends it and does not wait.
     status: proposed
     pinned:
       reason: public-api
@@ -685,6 +685,8 @@ decisions:
       - d-i4oryd9x
       - f:bedrock-world-generation-takes-a-seed-and-a-spawn-command
       - f:bedrock-level-seed-is-64-bit-and-hashes-anything-else
+      - d-5ocyva9w
+      - d-5vjxmr4u
   - id: d-5vjxmr4u
     title: a volume holds many worlds and serves one
     statement: |
