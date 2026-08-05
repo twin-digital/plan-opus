@@ -8,7 +8,7 @@ decisions:
       and where the command is given neither it works the pull request whose head is the current
       branch. the draft the working tree holds is what the session falls back to reaching, not
       what identifies the sitting.
-    status: proposed
+    status: accepted
     supersedes: d-gf6x5jzy
     because:
       - r-ycjjl48r
@@ -34,24 +34,54 @@ decisions:
     facets:
       - design-validator
       - process-doc
+  - id: d-iuwoumr1
+    title: a json serialised form is not a stable api
+    statement: >
+      the json a command emits under `--json` is not a published shape. it may change in any
+      release, no contract in the pools describes it, and nothing the package exports carries it.
+      a consumer reading it is reading a convenience, not an interface the product holds itself to.
+
+      r-rn6wxdn4 requires the flag so a person at a terminal can pipe a command's output
+      somewhere. reading that as a commitment to key names would make every rendering choice a
+      pinned surface, which is a cost the requirement never asked for.
+    status: accepted
+    because:
+      - r-rn6wxdn4
+    pinned: false
+    facets:
+      - tooling
   - id: d-2q797wc4
-    title: the projection is available as data, and that shape is what --json emits
+    title: what show --json emits
     statement: >
       `show --json` emits the fold as a structured document — the product, the increment it is
       folded at, the presets, the requirements with an adopted one carrying `adopted_from`, the
       decisions in `because` order, the model bindings, the per-claim coverage with `covered_by`
-      null where a claim is uncovered, and the open questions. the same shape is exported beside
-      the rendered projection, as the data behind it.
+      null where a claim is uncovered, and the open questions.
 
-      r-rn6wxdn4 requires the flag and not the shape, and a consumer reading the json depends on
-      the key names, so the keys are a public surface rather than a rendering detail.
-    status: proposed
+      the shape is recorded rather than pinned, and d-iuwoumr1 governs what that means for a
+      consumer: it is what the command emits today, not what it will emit.
+    status: delegated
     because:
       - r-rn6wxdn4
+      - d-iuwoumr1
       - d-m7i568id
-    pinned:
-      reason: public-api
-      notes: the keys a consumer of --json reads
+    pinned: false
+    facets:
+      - tooling
+  - id: d-msmyyvzn
+    title: how an interactive command answers --json is the implementer's
+    statement: >
+      `increment` and `land` have no machine-readable main output — one renders a full-screen
+      session and the other a step sequence written for a person. how each answers `--json` is the
+      implementer's choice: refusing the flag, or accepting it and emitting something vacuous or
+      status-shaped. whatever it emits is covered by d-iuwoumr1 and is not pinned.
+
+      the seven data commands render their main output as json, which is what r-rn6wxdn4 is for.
+    status: delegated
+    because:
+      - r-rn6wxdn4
+      - d-iuwoumr1
+    pinned: false
     facets:
       - tooling
   - id: d-fi7zsgez
