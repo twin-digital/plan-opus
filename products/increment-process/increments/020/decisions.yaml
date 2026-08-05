@@ -1,0 +1,55 @@
+version: "2"
+decisions:
+  - id: d-padbxbv1
+    title: a captured target opens no companion increment
+    statement: |
+      where the increment an implementation targets was captured from code, the Implement phase
+      opens no companion increment. the build already happened, so there are no design
+      consequences arising during it for a companion to catch — one opened here could only close
+      unmerged, having declared nothing.
+
+      the run is: bind to the fold, assemble coverage from the built artifact, file the record.
+      nothing dispatches.
+    status: delegated
+    because:
+      - d-qoks4n67
+      - r-imt7131t
+      - d-mh42i389
+    facets: prompts
+
+  - id: d-bmhxzpx2
+    title: the projection attributes a requirement to the preset that declares it
+    statement: |
+      a requirement reaching a product through a preset closure is attributed to the preset that
+      declares it, at the version every path pinned — "adopted from monorepo-package@1" — not to
+      the preset the product adopted.
+
+      the closure listing carries the route beside it, and only where the preset was not adopted
+      directly: "monorepo-package@1 (1 requirements, via nodejs-library → nodejs)". the declaring
+      preset is the attribution because it is what the requirement id resolves to and what a
+      cycle or version-conflict finding names; the adopting path is context, never a substitute.
+    status: delegated
+    because:
+      - d-wis1whfn
+      - r-2gcehlp8
+    facets: tooling
+
+  - id: d-4nm0io8o
+    title: a run's recorded output must exist, cited or not
+    statement: |
+      design-process check verifies that every run entry's recorded output exists in the tree,
+      whether or not a fact cites the run — the answer to the choice d-te89mei4 hands the
+      implementer.
+
+      a run's output is the entry's own claim about the tree, so a dangling one is broken where
+      it is written rather than where it is later cited, and the finding lands in the commit that
+      breaks the file. quote verification stays with the citing source, where the quote is
+      written, and a cited run with a missing output reports once rather than twice. artifact
+      material never loads as a run, so the rule cannot fire on a probe's fixtures.
+    status: delegated
+    because:
+      - d-te89mei4
+      - d-0e325noj
+    facets:
+      - design-validator
+      - tooling

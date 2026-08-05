@@ -1,0 +1,214 @@
+# What the Bedrock script engine accepts — the runtime that loads a behavior pack's script module.
+# Distinct from facts/minecraft/script-api.yml, which is about the @minecraft/server API those
+# scripts call. Every tested claim here was measured against Bedrock 1.26.40.8 and names that
+# version; the engine's identity is not established by any of them.
+#
+# Each source quotes one line of the probe's captured log, since the log interleaves timestamps
+# between them.
+
+version: "1"
+facts:
+  - id: bedrock-script-engine-accepts-es2022-and-rejects-the-regexp-v-flag
+    claim: |
+      Bedrock 1.26.40.8's script engine parses and runs ES2022 syntax in full — private fields,
+      static private fields, static initialisation blocks, private methods, the `#x in obj` brand
+      check, error `cause`, and top-level await — and it rejects the ES2024 RegExp `v` flag with a
+      SyntaxError that aborts the whole module before any of it runs. Library intrinsics well past
+      ES2022 are present (`Object.groupBy`, `Promise.withResolvers`), so the ceiling on intrinsics
+      sits above the ceiling on syntax.
+    backing: tested
+    caveat: |
+      Where between ES2022 and the `v` flag the syntax ceiling actually sits is untested — no
+      `using` declaration, decorator, or import attribute was probed. Measured against one engine
+      build; the engine makes no conformance guarantee across builds.
+    sources:
+      - run: script-engine-bundle-target-probe
+        where: the es2022-syntax variant, whose module exercises each feature and reports what it read back
+        quote: |
+          es2022-syntax: OK value=1 brand=true static=static-block-ran kind=counter at=3 cause=why
+      - run: script-engine-bundle-target-probe
+        where: the top-level-await variant
+        quote: |
+          top-level-await: OK v=resolved-at-top-level
+      - run: script-engine-bundle-target-probe
+        where: the regexp-v-flag variant, whose module is a single regex literal
+        quote: |
+          SyntaxError: invalid regular expression flags    at main.js:2
+      - run: script-engine-bundle-target-probe
+        where: the es2023-2024 variant
+        quote: |
+          es2023-2024: groupBy={"odd":[1,3],"even":[2]}
+      - run: script-engine-bundle-target-probe
+        where: the es2023-2024 variant
+        quote: |
+          es2023-2024: withResolvers=function
+
+  - id: bedrock-script-engine-kills-a-module-that-carries-node-shims
+    claim: |
+      A bundle carrying Node compatibility output does not degrade in Bedrock 1.26.40.8's script
+      engine, it dies. A `node:` import fails module resolution outright; a CommonJS wrapper fails on
+      `module`; and a bare `process`, `Buffer`, `__dirname`, or `require` reference throws a
+      ReferenceError where it is evaluated, so an unguarded one at module top level aborts the
+      module. `eval` is absent and `new Function` from a string is unsupported, and `import.meta`
+      carries no `url`. A bundler emitting a `node:url` import to synthesise `__dirname` — what
+      tsdown and Rolldown do under `shims: true` — therefore produces a pack that never runs.
+    backing: tested
+    caveat: measured against one engine build, 1.26.40.8.
+    sources:
+      - run: script-engine-bundle-target-probe
+        where: the node-builtin-import variant, whose module imports `fileURLToPath` from `node:url`
+        quote: |
+          ReferenceError: Import [node:url.js] not found.
+      - run: script-engine-bundle-target-probe
+        where: the cjs-module variant, whose module assigns `module.exports`
+        quote: |
+          ReferenceError: 'module' is not defined    at <anonymous> (main.js:2)
+      - run: script-engine-bundle-target-probe
+        where: the node-globals-bare variant, which reads each identifier inside its own try block
+        quote: |
+          node-globals-bare: process THREW ReferenceError: 'process' is not defined
+      - run: script-engine-bundle-target-probe
+        where: the node-globals-bare variant
+        quote: |
+          node-globals-bare: Buffer THREW ReferenceError: 'Buffer' is not defined
+      - run: script-engine-bundle-target-probe
+        where: the node-globals-bare variant
+        quote: |
+          node-globals-bare: __dirname THREW ReferenceError: '__dirname' is not defined
+      - run: script-engine-bundle-target-probe
+        where: the node-globals-bare variant
+        quote: |
+          node-globals-bare: require THREW ReferenceError: 'require' is not defined
+      - run: script-engine-bundle-target-probe
+        where: the globals variant
+        quote: |
+          globals: eval works = THREW ReferenceError: 'eval' is not defined
+      - run: script-engine-bundle-target-probe
+        where: the globals variant
+        quote: |
+          globals: new Function works = THREW TypeError: Function from string is not supported
+      - run: script-engine-bundle-target-probe
+        where: the import-meta variant, which reports `import.meta.url`
+        quote: |
+          import-meta: url = undefined
+
+  - id: bedrock-script-engine-loads-multiple-modules-and-appends-js-to-every-specifier
+    claim: |
+      Bedrock 1.26.40.8's script engine loads a real multi-file ES module graph: a sibling import, an
+      extensionless specifier, a subdirectory, a `../` traversal, and a dynamic `await import()` all
+      resolve, and a dynamically imported module is deferred past the importing module's body.
+      Resolution is relative to the importing file's directory, not the pack root, and the engine
+      appends `.js` to any specifier that does not already end in it — so a `.mjs` file is
+      unreachable, its specifier resolving to `<name>.mjs.js`. A `.js` file nothing imports is never
+      evaluated.
+    backing: tested
+    caveat: measured against one engine build, 1.26.40.8.
+    sources:
+      - run: script-engine-bundle-target-probe
+        where: the import-sibling-js variant
+        quote: |
+          import-sibling-js: OK value=from-sibling-helper-js
+      - run: script-engine-bundle-target-probe
+        where: the import-noext variant, whose specifier is `./helper`
+        quote: |
+          import-noext: OK value=from-extensionless-specifier
+      - run: script-engine-bundle-target-probe
+        where: the import-subdir variant, whose specifier is `./lib/deep.js`
+        quote: |
+          import-subdir: OK value=from-subdir-lib-deep-js
+      - run: script-engine-bundle-target-probe
+        where: the import-parent-dir variant, whose entry is `scripts/nested/leaf.js` importing `../shared.js`
+        quote: |
+          import-parent-dir: OK leaf=leaf+from-parent-dir-shared
+      - run: script-engine-bundle-target-probe
+        where: the dynamic-import variant, on the line after "main body finished" — the dynamic module evaluates only once the importing body has run to completion
+        quote: |
+          dynamic-import: lazy.js evaluated
+      - run: script-engine-bundle-target-probe
+        where: the dynamic-import variant
+        quote: |
+          dynamic-import: OK lazy=from-dynamically-imported-chunk
+      - run: script-engine-bundle-target-probe
+        where: the import-mjs variant, whose specifier is `./helper.mjs` and whose helper.mjs is on disk
+        quote: |
+          ReferenceError: Import [helper.mjs.js] not found.
+      - run: script-engine-bundle-target-probe
+        where: the import-from-pack-root variant, whose entry at scripts/main.js imports `./helper.js` while helper.js sits at the pack root
+        quote: |
+          ReferenceError: Import [helper.js] not found.
+      - run: script-engine-bundle-target-probe
+        where: the orphan-file variant
+        quote: |
+          orphan-file: entry evaluated; an orphan.js sits beside it, unimported
+
+  - id: a-script-modules-entry-must-be-a-js-file-under-scripts
+    claim: |
+      Bedrock 1.26.40.8 validates a script module's manifest `entry` before running anything: the
+      path is pack-root-relative, may sit at any depth under `scripts/`, and must end `.js`. A
+      `.mjs` entry is refused as unsupported for the JavaScript runtime, and an entry outside
+      `scripts/` — at the pack root or under another directory — is refused as a main file the pack
+      does not contain.
+    backing: tested
+    caveat: measured against one engine build, 1.26.40.8.
+    sources:
+      - run: script-engine-bundle-target-probe
+        where: the entry-nested variant, entry `scripts/deep/inner/start.js`
+        quote: |
+          entry-nested: OK a nested entry path was evaluated
+      - run: script-engine-bundle-target-probe
+        where: the entry-mjs variant, entry `scripts/main.mjs`
+        quote: |
+          entry [scripts/main.mjs] not supported for runtime [JavaScript].
+      - run: script-engine-bundle-target-probe
+        where: the entry-pack-root variant, entry `bootstrap.js`
+        quote: |
+          does not contain main file [bootstrap.js].
+      - run: script-engine-bundle-target-probe
+        where: the entry-other-dir variant, entry `assets/main.js`
+        quote: |
+          does not contain main file [assets/main.js].
+
+  - id: mojangs-own-bundler-emits-a-single-esm-bundle-with-game-modules-external
+    claim: |
+      Mojang's own build tooling bundles a pack's scripts into a single ESM file with esbuild, and
+      the official samples leave the `@minecraft/*` modules external rather than bundling them,
+      emitting the bundle at the path the manifest's `entry` names.
+    backing: documented
+    sources:
+      - url: https://raw.githubusercontent.com/Mojang/minecraft-scripting-libraries/main/tools/core-build-tasks/src/tasks/bundle.ts
+        where: the esbuild.buildSync options in bundleTask()
+        quote: |
+          bundle: true,
+          format: 'esm',
+      - url: https://raw.githubusercontent.com/microsoft/minecraft-scripting-samples/main/ts-starter/just.config.ts
+        where: bundleTaskOptions
+        quote: |
+          external: ["@minecraft/server", "@minecraft/server-ui"],
+          outfile: path.resolve(__dirname, "./dist/scripts/main.js"),
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/scripting/libraries?view=minecraft-bedrock-stable
+        where: Development tools, Core build tasks, Available tasks
+        quote: |
+          bundle: runs esbuild with the --bundle option in the working directory.
+
+  - id: a-bedrock-script-reload-resolves-only-the-files-loaded-at-world-load
+    claim: |
+      `send-command reload` re-evaluates a behavior pack's scripts in place, but resolves imports
+      only against the file set present when the world last loaded. An edit to an already-loaded
+      module takes effect on reload; a module file first deployed after world load fails to resolve
+      until the server restarts, with the same missing-import error a genuinely absent file gives. A
+      hot-deploy loop that adds a module file therefore breaks silently until a restart.
+    backing: tested
+    caveat: measured against one engine build, 1.26.40.8.
+    sources:
+      - run: script-engine-reload-semantics-probe
+        where: the reload-adds-a-new-file variant, applied by reload
+        quote: |
+          ReferenceError: Import [late-helper.js] not found.
+      - run: script-engine-reload-semantics-probe
+        where: the reload-adds-a-new-file-then-restart variant, the same payload applied by restart
+        quote: |
+          reload-adds-a-new-file-then-restart: OK value=late-helper.js, first deployed after the world had loaded
+      - run: script-engine-reload-semantics-probe
+        where: the reload-edits-a-loaded-file variant, applied by reload
+        quote: |
+          reload-edits-a-loaded-file: OK value=EDITED-then-reloaded-without-a-restart

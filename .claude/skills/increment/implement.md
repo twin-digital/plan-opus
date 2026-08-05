@@ -22,6 +22,23 @@ below. Both are the same mechanism, both target an increment, and both write the
   Its answer lands in the companion increment as an ordinary decision citing the deferral in
   `because`.
 
+## 1b. Where the target was captured from code
+
+An increment may be captured after its code exists — the owner builds by hand, an agent reads the
+design back out, and the increment lands like any draft. Downstream of that landing the increment
+is ordinary: it folds, agents extend it, and it gets an implementation record covering its claims
+exactly as a design-first increment's would. What is not ordinary is the build, because the build
+already happened.
+
+Where the target increment was captured from code, dispatch nothing and open no companion: there
+is no build to run, so there are no design consequences of building to catch. Assemble coverage
+from the built artifact instead — the captured claims are drawn from code that already meets them,
+so coverage is complete by construction, each claim carried by the owner's attestation and
+whatever tests exist. Then go to the record steps in §4.
+
+The built code stays provisional until its capturing increment publishes. That ordering is the
+same one §4 states, seen from the other direction.
+
 ## 2. Open the companion increment
 
 **The companion opens before any implementation work begins**, so design consequences land as
@@ -96,30 +113,38 @@ companion increment.
 
 - **The dispatch covers every package the draft fold names**: those `product.yaml` holds and those
   the increment's decisions propose.
-- Each package's survey returns one census — structured YAML whose entries each carry the choice
-  met, where in the build it arises, and the implementer's reading.
-- **Concatenate the per-package censuses and return the result to Clarify.** Persistence is the
-  Plan phase's, not yours.
+- Each package's survey returns one census. **Concatenate the per-package censuses and return the
+  result to Clarify.** Persistence is the Plan phase's, not yours.
 
 ## 4. Land
 
-The companion increment lands by SKILL.md's steps. What a companion's landing adds:
+**The one pull request from the integration branch to main merges only once the companion
+increment is settled** — merged, or closed unmerged because it declared nothing — and never
+before. The companion is where this build's design consequences publish, and nothing goes live
+before the design it targets is published. That invariant reads both directions: design-first
+publishes intent and then builds against it; code-first builds, publishes the captured design,
+then releases. Package releases follow the same ordering — a code repository holding an
+unpublished package back from release is discipline this process recommends and does not itself
+reach in to enforce.
+
+The companion lands by SKILL.md's steps. What a companion's landing adds:
 
 1. **It is ratified as a whole** at its own pull request, rather than entry by entry as a plan
    draft's Ratify loop rules them.
 2. **Count its overturns** — entries whose `supersedes` names a plan-ruled decision — and state
    the count in the companion increment's pull request description, where the owner rules at
    ratify.
-3. If it stayed empty, **close it unmerged** and skip to the record.
-4. Only after it merges do implementation changes merge and packages release: no release and no
-   in-tree deliverable goes live before the design it targets is published. The owner approves
-   **one pull request, integration branch to main**.
-5. **Reconcile coverage before filing the record.** Assemble the record from every implementer's
+3. If it stayed empty, **close it unmerged** — an increment that declares nothing is not
+   published.
+
+Then, on the integration branch and before its pull request merges:
+
+4. **Reconcile coverage before filing the record.** Assemble the record from every implementer's
    coverage entries, then run `npx design-process show <product>`: the record must cover every
    claim in force at the target, deferred decisions excepted — the validator refuses a record with
    gaps — so the uncovered count reads zero before you file. A claim may be carried by any
    package's evidence, not only a document's.
-6. **File the record** at `implementations/<product>/<NNN>-<k>.yaml` (`NNN` the target, `k` dense
+5. **File the record** at `implementations/<product>/<NNN>-<k>.yaml` (`NNN` the target, `k` dense
    from 1), conforming to `/design-process/implementation@1`: `product`, `target`, `built_at`,
    `packages` (path + version; tree-consumed kinds carry their file's frontmatter `version`), and
    `coverage`. Coverage names every requirement and decision in force at the target except
@@ -127,5 +152,8 @@ The companion increment lands by SKILL.md's steps. What a companion's landing ad
    not a gap. An `attestation` from you on every claim you implemented — always — plus
    `code-test`, `manual-check`, or `conformance-case` entries where those artifacts exist. A `ref`
    is package-relative and names what carries the claim: if deleting the file, or the section the
-   breadcrumb narrows to, would not touch whether the claim holds, it does not belong.
-7. Verify the merged result passes `npm run check` with zero findings.
+   breadcrumb narrows to, would not touch whether the claim holds, it does not belong. The record
+   is a shared file and rides in the integration branch's pull request with the implementation
+   changes it describes.
+6. **Merge.** The owner approves **one pull request, integration branch to main**. Verify the
+   merged result passes `npm run check` with zero findings.
