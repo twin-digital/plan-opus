@@ -1,0 +1,81 @@
+version: "1"
+
+presets:
+  - name: nodejs
+    version: 1
+
+requirements:
+  # what grinbox is for
+  - id: r-0lg2c2e4
+    title: mail is triaged unasked
+    statement: |
+      every message arriving on an account the user has configured is processed by grinbox on its
+      own, within minutes of its arrival and with no user action.
+    verification:
+      - do: configure an account, send a message to it, and wait without using grinbox at all
+      - verify: grinbox holds a record of that message and of what it did with it, timed within minutes of the message's arrival
+
+  - id: r-k6gh82fx
+    title: an outcome is inspectable afterwards
+    statement: |
+      for any message it has processed, grinbox can show the user afterwards what it concluded
+      about the message, what it did on the user's behalf, and which configuration produced that
+      outcome — including where the configuration has changed since.
+    verification:
+      - do: let a message be processed, then change the configuration that produced its outcome
+      - verify: the record of that message still shows the configuration that ran, not the current one
+
+  - id: r-llrpzkd1
+    title: outside effects are capped, and the cap cannot be waived
+    statement: |
+      every effect grinbox has outside its own process is subject to a cap on how often it may
+      happen, and nothing the user configures can exempt an effect from its cap.
+    rationale: |
+      Triage that misfires spends real money and floods the user within minutes of the mistake, so
+      the cap is the only thing between a bug and that outcome — which is why it is not a setting.
+    verification:
+      - do: set a cap low and drive grinbox past it
+      - verify: the further attempts do not reach the outside service, and grinbox's record of the message says they were capped
+      - do: read every surface the user configures for a way to exempt an effect from its cap
+      - verify: none exists
+
+  - id: r-jp85k5ma
+    title: state survives the machine
+    statement: |
+      the user's configuration and everything grinbox has recorded about the messages it processed
+      survive a restart of the application and a destroy-and-rebuild of the machine it runs on.
+    rationale: |
+      The configuration is hand-built and reconstructible from nothing — no mail provider holds a
+      copy of it.
+
+  - id: r-etj0gluz
+    title: triage owes nothing to a mail backend
+    statement: |
+      what the user configures about triage, the triage a message receives, and the record kept of
+      it are expressed in terms no mail backend owns; naming a backend is confined to the account
+      the message arrived on.
+    verification:
+      - do: read what the user configures about triage and the record grinbox keeps of a processed message
+      - verify: neither names a mail backend or a concept only one backend has
+
+  # how the user meets it
+  - id: r-zpdecb2z
+    title: grinbox serves its own interface
+    statement: |
+      the user configures and inspects grinbox through a web interface grinbox itself serves;
+      running grinbox requires no second service to deploy and no separate hosting.
+
+  - id: r-ovi02v1m
+    title: one user, and nothing public
+    statement: |
+      grinbox serves a single user, and nothing it exposes is reachable from outside the network it
+      is deployed on, save the one callback path a mail provider's authorization requires.
+    rationale: |
+      Grinbox authenticates nobody, so where it is reachable from is the only thing between the
+      user's mail and the internet.
+
+  # where it is built
+  - id: r-y8wc6ldk
+    title: the code lives in opus
+    statement: |
+      grinbox's application code is developed in the opus monorepo, as packages of that workspace.
