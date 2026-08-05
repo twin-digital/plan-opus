@@ -1,22 +1,37 @@
 version: "2"
 decisions:
   - id: d-eh8y8a37
-    title: a source-specified module entry is its own problem code
+    title: the problem codes, with a source-specified module entry among them
     statement: |
-      the problem code set gains `module-entry-specified`, carrying the dotted path of the offending
-      field, reported once per module whose source manifest specifies an `entry`. The completed
-      manifest carries the kit's own value in its place, or no `entry` at all on a module that gets
-      none, so a source-specified value never reaches a consumer.
+      the closed `Problem` union holds exactly these codes, each a `code`, a human-readable
+      `message`, and the extra fields named for it: `manifest-unreadable` (error),
+      `manifest-shape-invalid` (field), `array-version-at-format-version-3` (field),
+      `header-name-specified`, `header-version-specified`, `module-entry-specified` (field),
+      `package-name-missing`, `package-version-missing` (field, packageDir),
+      `package-version-invalid` (field, packageDir, value), `dependency-version-specified` (field,
+      uuid), `dependency-entry-malformed` (field), `external-dependency-version-missing` (field,
+      moduleName), `dependency-unsatisfied` (field, uuid), `manifest-missing-uuid`,
+      `module-missing-type` (field), `kind-not-corroborated`, `foreign-kind-module` (field, type),
+      `duplicate-uuid` (uuid, claimants), and `dependency-invalid` (field, uuid). `field` locates the
+      problem in the source manifest as a dotted path with bracketed array indices, the manifest root
+      itself the empty string.
+
+      `module-entry-specified` is the addition, and the reason this restates the set rather than
+      extending it: the union is closed, so a nineteenth code is a change to what the set is.
+      It is reported once per module whose source manifest specifies an `entry` — the error the
+      completion requirement calls for and the code set never held. The completed manifest carries
+      the kit's own value in its place, or no `entry` at all on a module that gets none, so a
+      source-specified value never reaches a consumer.
     status: delegated
     pinned:
       reason: public-api
-      notes: extends the closed union a consumer switches on exhaustively
+      notes: the closed union a consumer switches on exhaustively
+    supersedes: d-wytigz6u
     facets: discovery
     because:
       - r-wi7qf6to
       - d-9se0yv0h
       - d-ed610d8c
-      - d-wytigz6u
       - d-6wjeomr5
 
   - id: d-4tmzz8dc
