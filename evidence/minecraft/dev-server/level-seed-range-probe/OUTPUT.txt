@@ -1,0 +1,52 @@
+=== environment
+Docker Compose version v5.2.0
+Docker Engine 29.5.3
+DOCKER_HOST=ssh://prod-development-docker
+
+Each case: a world generated from scratch, then the RandomSeed its level.dat kept.
+
+level-seed="12345"
+  server.properties: level-seed=12345
+  world kept RandomSeed: 12345
+
+level-seed="-12345"
+  server.properties: level-seed=-12345
+  world kept RandomSeed: -12345
+
+level-seed="0"
+  server.properties: level-seed=0
+  world kept RandomSeed: 0
+
+level-seed="2147483647"
+  server.properties: level-seed=2147483647
+  world kept RandomSeed: 2147483647
+
+level-seed="9223372036854775807"
+  server.properties: level-seed=9223372036854775807
+  world kept RandomSeed: 9223372036854775807
+
+level-seed="-9223372036854775808"
+  server.properties: level-seed=-9223372036854775808
+  world kept RandomSeed: -9223372036854775808
+
+level-seed="9223372036854775808"
+  server.properties: level-seed=9223372036854775808
+  world kept RandomSeed: -1773151197
+
+level-seed="-9223372036854775809"
+  server.properties: level-seed=-9223372036854775809
+  world kept RandomSeed: 1304595159
+
+level-seed="hello"
+  server.properties: level-seed=hello
+  world kept RandomSeed: 99162322
+
+level-seed="007"
+  server.properties: level-seed=007
+  world kept RandomSeed: 7
+
+level-seed=""
+  server.properties: level-seed=
+  world kept RandomSeed: -592427922456575272
+
+=== done

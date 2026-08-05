@@ -1,0 +1,38 @@
+=== environment
+Docker Compose version v5.2.0
+DOCKER_HOST=ssh://prod-development-docker
+
+=== phase: setup — the pack is in the pool and NOT in the activation list
+  world_resource_packs.json = []
+  pool now holds: c0ffee00-0000-4000-8000-000000000001
+  pack contents: /data/development_resource_packs/c0ffee00-0000-4000-8000-000000000001/texts/en_US.lang, /data/development_resource_packs/c0ffee00-0000-4000-8000-000000000001/manifest.json
+  [2026-08-05 16:42:00:374 INFO] Pack Stack - None
+
+  OBSERVE: join the server, open the creative inventory, and find the diamond sword.
+  Expect the STOCK name ("Diamond Sword"), not "RESOURCE PACK IS ACTIVE".
+  A pooled-but-unlisted pack should do nothing — this is the control.
+
+  OBSERVED (client attached, phase setup): the diamond sword is named "Diamond Sword" — the stock name. A pooled but unlisted resource pack does nothing.
+
+=== phase: activate — the same pack, now named in the activation list
+  world_resource_packs.json = [{"pack_id":"c0ffee00-0000-4000-8000-000000000001","version":[1,0,0]}]
+  [2026-08-05 16:47:46:295 INFO] Pack Stack - None
+  list as the server left it: [   {     "pack_id": "c0ffee00-0000-4000-8000-000000000001",     "version": [       1,       0,       0     ]   } ]
+
+  OBSERVE: rejoin and look at the diamond sword again.
+  A name of "RESOURCE PACK IS ACTIVE" means listing the pack activated it.
+  The stock name means it did not, whatever the list says.
+  Note any download prompt the client shows on joining, and report it either way.
+
+  OBSERVED (client attached, phase activate): the client showed a prompt to download the resource pack before joining, and the diamond sword is named "RESOURCE PACK IS ACTIVE" — the pack activated.
+
+=== phase: deactivate — emptied again, to show the observation tracks the list
+  world_resource_packs.json = []
+  [2026-08-05 16:48:49:895 INFO] Pack Stack - None
+
+  OBSERVE: rejoin once more. The stock name should be back.
+
+  OBSERVED (client attached, phase deactivate): the diamond sword is named "Diamond Sword" again — the observation tracks the activation list in both directions.
+
+=== phase: teardown
+  down, volume removed
