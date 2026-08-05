@@ -97,15 +97,24 @@ decisions:
       - d-w8cc8n18
   - id: d-zo2yl18y
     title: a world lives for one run and no longer
-    statement: |
-      the server's `/data` is a named Docker volume the harness creates on `start` and removes on
-      `stop`. A world therefore survives every restart the loop spends and every Ctrl+C and reattach,
+    statement: >
+      the server's `/data` is a named Docker volume the harness creates on
+      `start` and removes on
+
+      `stop`. A world therefore survives every restart the loop spends and every
+      Ctrl+C and reattach,
+
       and no `stop` at all: the next `start` generates a fresh world.
 
-      A volume rather than the container's own writable layer, so the world is independent of the
-      container's lifecycle for as long as the run owns it, and so there is one named thing to
+
+      A volume rather than the container's own writable layer, so the world is
+      independent of the
+
+      container's lifecycle for as long as the run owns it, and so there is one
+      named thing to
+
       snapshot when snapshots arrive.
-    status: proposed
+    status: accepted
     pinned:
       reason: data-format
       notes: whether an author's world survives a stop, and what a stop destroys
@@ -279,16 +288,31 @@ decisions:
       - f:bedrock-activation-list-read-only-at-world-load
   - id: d-vrq7lc2o
     title: a pack that will not build is deployed as a stub
-    statement: |
-      the start sequence runs each selected package's one-shot build, and a build that fails does
-      not stop it. A pack whose build failed is deployed as a stub — a valid pack carrying the
-      pack's own identity and version and no content — so the world loads with every selected pack
-      present and its activation list complete, and the failure is reported on the stream. The watch
+    statement: >
+      the start sequence runs each selected package's one-shot build, and a
+      build that fails does
+
+      not stop it. A pack whose build failed is deployed as a stub — a valid
+      pack carrying the
+
+      pack's own identity and version and no content — so the world loads with
+      every selected pack
+
+      present and its activation list complete, and the failure is reported on
+      the stream. The watch
+
       builds start either way.
 
-      A stub is replaced by the real pack on the first build that succeeds, through the ordinary
-      reconcile. That replacement changes the pack's file set, so it costs the restart d-ftlfhac8
-      prices rather than a reload: what an author gets is a server that came up and a loop that
+
+      A stub is replaced by the real pack on the first build that succeeds,
+      through the ordinary
+
+      reconcile. That replacement changes the pack's file set, so it costs the
+      restart d-ftlfhac8
+
+      prices rather than a reload: what an author gets is a server that came up
+      and a loop that
+
       carries the fix, not a live patch.
     status: proposed
     facets: dev-loop
@@ -318,12 +342,18 @@ decisions:
       - r-v8jjhds5
   - id: d-0yrfifhi
     title: the command is minecraft-server, with start and stop subcommands
-    statement: |
-      the package's executable is `minecraft-server`. It takes two subcommands, `start` and `stop`,
-      each named explicitly — there is no bare default invocation. Ctrl+C stops the watchers and the
-      log follow and nothing else; `stop` tears the server down and takes the world with it, per
+    statement: >
+      the package's executable is `minecraft-server`. It takes two subcommands,
+      `start` and `stop`,
+
+      each named explicitly — there is no bare default invocation. Ctrl+C stops
+      the watchers and the
+
+      log follow and nothing else; `stop` tears the server down and takes the
+      world with it, per
+
       d-zo2yl18y, and carries no flag to keep one.
-    status: proposed
+    status: accepted
     pinned:
       reason: public-api
       notes: the executable, the two verbs, and that stop destroys the world
@@ -355,7 +385,7 @@ decisions:
       from the running
 
       project would otherwise do exactly that on every reattach.
-    status: proposed
+    status: accepted
     facets: dev-loop
     because:
       - r-kfu7pcms
@@ -364,25 +394,48 @@ decisions:
       - d-i4oryd9x
   - id: d-c1kvyord
     title: a profile is a named scenario, and flags override it
-    statement: |
-      a run's selection is a repeatable `--pack` flag naming owning package names, or
-      `--profile <name>` naming a profile in the file `--config` supplied. Given neither, the run
-      takes the config's `default_profile` where one is named, and every pack the kit discovers
+    statement: >
+      a run's selection is a repeatable `--pack` flag naming owning package
+      names, or
+
+      `--profile <name>` naming a profile in the file `--config` supplied. Given
+      neither, the run
+
+      takes the config's `default_profile` where one is named, and every pack
+      the kit discovers
+
       otherwise.
 
-      A profile names more than a selection: it is a named scenario, carrying the packs to host and
-      the world to host them against. `--seed` and `--spawn` on the command line override whatever
-      the profile or the file's top level says, and a profile's own values override the top level's.
 
-      A `--pack` value matching no discovered pack is an error, and so is a `--profile` naming no
-      profile the file holds, or a `--profile` given with no `--config` — a run hosts what was asked
-      for or it does not start. `--pack` and `--profile` together are an error rather than a union:
-      each is a complete statement of the selection, and `--pack` takes the world settings from the
-      file's top level. A profile holding an empty pack list selects no packs, which is a valid run.
-    status: proposed
+      A profile names more than a selection: it is a named scenario, carrying
+      the packs to host and
+
+      the world to host them against. `--seed` and `--spawn` on the command line
+      override whatever
+
+      the profile or the file's top level says, and a profile's own values
+      override the top level's.
+
+
+      A `--pack` value matching no discovered pack is an error, and so is a
+      `--profile` naming no
+
+      profile the file holds, or a `--profile` given with no `--config` — a run
+      hosts what was asked
+
+      for or it does not start. `--pack` and `--profile` together are an error
+      rather than a union:
+
+      each is a complete statement of the selection, and `--pack` takes the
+      world settings from the
+
+      file's top level. A profile holding an empty pack list selects no packs,
+      which is a valid run.
+    status: accepted
     pinned:
       reason: public-api
-      notes: the flags a consumer invokes the harness with, what each selects, and how they compose
+      notes: the flags a consumer invokes the harness with, what each selects, and how
+        they compose
     facets: dev-loop
     because:
       - r-u8cg9vi6
@@ -392,23 +445,44 @@ decisions:
       - d-41m3iws5
   - id: d-wkcxcv2b
     title: the config file is optional and named on the command line
-    statement: |
-      there is no conventional name or location for a workspace config file: the harness reads one
-      only where `--config <path>` names it, and a run without that flag reads none. Every setting
-      has a default, so a bare `minecraft-server start` in a workspace is a complete run — every
-      pack the kit discovers, the level name `dev`, the image tag the harness pins, the default
+    statement: >
+      there is no conventional name or location for a workspace config file: the
+      harness reads one
+
+      only where `--config <path>` names it, and a run without that flag reads
+      none. Every setting
+
+      has a default, so a bare `minecraft-server start` in a workspace is a
+      complete run — every
+
+      pack the kit discovers, the level name `dev`, the image tag the harness
+      pins, the default
+
       port, a world the server seeds however it likes, and no profiles.
 
-      Where a file is given it is YAML, and every key is optional: `level`, `image`, `port`, `eula`,
-      `seed`, `spawn` — a `[x, y, z]` array — `profiles`, and `default_profile` naming one of them.
-      A profile is a mapping that may carry `packs`, a list of owning package names, and its own
-      `seed` and `spawn`. A key the harness does not define is an error, and so is a value of the
-      wrong shape. A file named by `--config` that cannot be read or parsed fails the run naming the
-      file and the parse error, rather than falling back to defaults and hosting the wrong thing.
-    status: proposed
+
+      Where a file is given it is YAML, and every key is optional: `level`,
+      `image`, `port`, `eula`,
+
+      `seed`, `spawn` — a `[x, y, z]` array — `profiles`, and `default_profile`
+      naming one of them.
+
+      A profile is a mapping that may carry `packs`, a list of owning package
+      names, and its own
+
+      `seed` and `spawn`. A key the harness does not define is an error, and so
+      is a value of the
+
+      wrong shape. A file named by `--config` that cannot be read or parsed
+      fails the run naming the
+
+      file and the parse error, rather than falling back to defaults and hosting
+      the wrong thing.
+    status: rejected
     pinned:
       reason: data-format
-      notes: an author writes and commits this file by hand, and the flag that reaches it
+      notes: an author writes and commits this file by hand, and the flag that reaches
+        it
     facets: dev-loop
     because:
       - r-u8cg9vi6
@@ -416,6 +490,10 @@ decisions:
       - d-wtziwjh5
       - d-imdfu09l
       - d-41m3iws5
+    rejection_reason: let's make ".minecraft.ya?ml", in the cwd, a default location
+      for workspace config file. if that does not exist, use defaults (same as
+      empty file). --config <path> overrides the default path, and it is an
+      error if the given path does not exist
   - id: d-jv1zleaj
     title: the server's on-disk layout
     statement: >
@@ -478,17 +556,34 @@ decisions:
       - f:bedrock-activation-list-read-only-at-world-load
   - id: d-e956frnx
     title: the author accepts the server EULA on the command line or in the config
-    statement: |
-      the generated project sets the image's EULA acceptance from either an `--accept-eula` flag on
-      the command line or an `eula: true` key in a config file `--config` named. Given neither, the
-      start command fails naming both routes and linking the EULA, and brings nothing up. The
+    statement: >
+      the generated project sets the image's EULA acceptance from either an
+      `--accept-eula` flag on
+
+      the command line or an `eula: true` key in a config file `--config` named.
+      Given neither, the
+
+      start command fails naming both routes and linking the EULA, and brings
+      nothing up. The
+
       harness does not accept on the author's behalf.
 
-      Everything else about the server's posture is the harness's and is not configurable: the world
-      is offline-mode with no allow-list, a development server on the author's own machine or
-      daemon; the image's content log is enabled to the console — without it a pack's script output
-      never reaches the harness's stream at all; and resource packs are offered rather than
-      required, so a client is prompted to download them and may decline, which is the author's
+
+      Everything else about the server's posture is the harness's and is not
+      configurable: the world
+
+      is offline-mode with no allow-list, a development server on the author's
+      own machine or
+
+      daemon; the image's content log is enabled to the console — without it a
+      pack's script output
+
+      never reaches the harness's stream at all; and resource packs are offered
+      rather than
+
+      required, so a client is prompted to download them and may decline, which
+      is the author's
+
       call to make per join rather than the harness's to force.
     status: proposed
     pinned:
@@ -544,17 +639,33 @@ decisions:
       - d-k7py0qqv
   - id: d-n81zkitr
     title: a run launches best-effort and reports what it could not build
-    statement: |
-      nothing about an individual pack stops a run. A selected pack the kit reports invalid, a
-      selected package declaring no `build` script, a build that fails at start or mid-session, and
-      a build that leaves no output tree are each reported on the stream, naming the package and the
-      problem, and the run continues — deploying a stub where the pack has nothing to deploy, per
-      d-vrq7lc2o, and leaving the last good deploy in place where it already had one. A selected
-      package declaring no `watch` script is built once and not watched, reported at start. A watch
+    statement: >
+      nothing about an individual pack stops a run. A selected pack the kit
+      reports invalid, a
+
+      selected package declaring no `build` script, a build that fails at start
+      or mid-session, and
+
+      a build that leaves no output tree are each reported on the stream, naming
+      the package and the
+
+      problem, and the run continues — deploying a stub where the pack has
+      nothing to deploy, per
+
+      d-vrq7lc2o, and leaving the last good deploy in place where it already had
+      one. A selected
+
+      package declaring no `watch` script is built once and not watched,
+      reported at start. A watch
+
       process that exits is reported and not restarted.
 
-      A run fails only where it cannot be a run at all: no Docker, no reachable daemon, a `--config`
-      file that will not parse, or a selection naming something the workspace does not hold.
+
+      A run fails only where it cannot be a run at all: no Docker, no reachable
+      daemon, a `--config`
+
+      file that will not parse, or a selection naming something the workspace
+      does not hold.
     status: proposed
     facets: dev-loop
     because:
@@ -573,7 +684,7 @@ decisions:
       selection's, not a
 
       union with whatever a previous run or a hand edit left behind.
-    status: proposed
+    status: delegated
     facets: dev-loop
     because:
       - r-pcq10f2b
@@ -654,7 +765,7 @@ decisions:
       beside `--pack`,
 
       `--profile`, and `--reset`; an unrecognised flag fails the run.
-    status: proposed
+    status: rejected
     pinned:
       reason: public-api
       notes: exit codes and the flag set anything scripting the harness depends on
@@ -666,6 +777,8 @@ decisions:
       - d-e956frnx
       - d-41m3iws5
       - d-5e00ndwi
+    rejection_reason: list of known flags is out of date. need to update, or mabye
+      ideally just omit if its not needed here?
   - id: d-a3fyy34f
     title: POSIX hosts, and the ambient Docker connection
     statement: >
@@ -707,20 +820,37 @@ decisions:
     because:
       - r-8et233c9
       - f:bedrock-script-console-output-is-not-a-deploy-signal
-
   - id: d-41m3iws5
     title: a run chooses its world's seed and spawn
-    statement: |
-      a run may fix the world it generates: `seed` sets the level seed the server generates from,
-      and `spawn`, an `[x, y, z]` array, sets where a joining player arrives. Either may come from
-      the config file, from a profile in it, or from `--seed` and `--spawn` on the command line.
-      Given neither, the server seeds the world as it likes and keeps the spawn point it chose.
+    statement: >
+      a run may fix the world it generates: `seed` sets the level seed the
+      server generates from,
 
-      The seed reaches the server as the generated project's level seed, since it is read only when
-      a world is generated. The spawn point is set with `setworldspawn` on the console once the
-      world has loaded, because the server offers no setting for it; the command acknowledges
-      nothing, so the harness issues it and does not wait. Both are only ever meaningful because a
-      world lasts one run: d-zo2yl18y is what makes a seed reproducible rather than a one-time
+      and `spawn`, an `[x, y, z]` array, sets where a joining player arrives.
+      Either may come from
+
+      the config file, from a profile in it, or from `--seed` and `--spawn` on
+      the command line.
+
+      Given neither, the server seeds the world as it likes and keeps the spawn
+      point it chose.
+
+
+      The seed reaches the server as the generated project's level seed, since
+      it is read only when
+
+      a world is generated. The spawn point is set with `setworldspawn` on the
+      console once the
+
+      world has loaded, because the server offers no setting for it; the command
+      acknowledges
+
+      nothing, so the harness issues it and does not wait. Both are only ever
+      meaningful because a
+
+      world lasts one run: d-zo2yl18y is what makes a seed reproducible rather
+      than a one-time
+
       accident.
     status: proposed
     pinned:
