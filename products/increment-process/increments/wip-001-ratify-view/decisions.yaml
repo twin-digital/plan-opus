@@ -225,6 +225,43 @@ decisions:
         held
     facets:
       - tooling
+  - id: d-q50z7iq1
+    title: how ratify-screen@1 is read
+    statement: |
+      `/design-process/ratify-screen@1` is read as follows, and this says nothing about how any
+      other surface is written.
+
+      the file has two halves that say the same thing twice on purpose. `mock:` carries rendered
+      frames; the sections beside it carry the same shape as rules. the frames are what a render
+      is compared against; the rules are what settles a case no frame happens to show. where the
+      two appear to disagree, the rules govern — a frame is one instance and a rule is the
+      statement.
+
+      what the surface commits to is arrangement, the order of things within a region, and the
+      form of each field. what it does not commit to, and what an implementer therefore settles
+      as an ordinary implementation detail, is everything the frames incidentally have: column
+      widths, separator and rule glyphs, the selection marker, the truncation width, colour, and
+      any behaviour no section names — key bindings, scrolling, an empty list, a terminal too
+      narrow to hold both panes. silence here is not a gap to escalate; the preamble names the
+      surface, and what falls outside it is the implementer's.
+
+      a key path addresses the thing it names — `detail-pane.metadata.pinned` — and that is how
+      prose cites a region of this surface. the paths are an addressing scheme for this file, not
+      a vocabulary any other surface inherits or a structure the pool enforces.
+
+      a render conforming is one matching the frames in arrangement, order, and field form, and
+      differing from them only in what the paragraph above leaves open.
+    status: proposed
+    because:
+      - r-j232vwp4
+      - d-9zot40jn
+    pinned:
+      reason: public-api
+      notes: what conformance to the screen means, and so what a build is checked against
+    facets:
+      - tooling
+      - schema
+
   - id: d-8abusqwe
     title: the ratify list is the draft's whole decision set, beside the entry's
       full text
