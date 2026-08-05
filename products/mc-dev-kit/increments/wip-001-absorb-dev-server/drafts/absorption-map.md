@@ -350,9 +350,23 @@ standing. The command surface is three verbs rather than two, and `destroy` is t
 loses an author's work — it names what it is about to remove and asks first. What the volume
 accumulates is a library built up over sessions, which is what makes several worlds worth keeping.
 
+**Project identity is the workspace root package's name, sluggified** rather than the absolute path
+it sits at. Now that worlds outlive a stop, a path-keyed name orphans a volume the moment a checkout
+moves or is renamed, invisibly. The cost is that two clones of one repository on a daemon share a
+server; that case is rarer and fails visibly.
+
 **The harness picks the seed.** Where a run names none, the harness generates one rather than leaving
 the server to, because a seed the server chose is one nobody can read back afterwards. Choosing it is
 what lets `d-5ocyva9w` record a seed against every world, and so what makes every world reproducible.
+
+The range is now evidenced and its edges matter. No official source states one — Microsoft, the
+how-to shipped with the server, and the shipped `server.properties` all say only "any string" — so
+`level-seed-range-probe` measured it: a signed 64-bit decimal is kept exactly, and anything else,
+including one past either end, is silently hashed as text to a 32-bit value rather than rejected.
+`9223372036854775808` becomes `-1773151197`. A generator that overshoots by one produces a
+low-entropy world and no error, which is why `d-41m3iws5` names the range rather than gesturing at
+it. The same eleven values were measured independently against a natively-run server of the same
+build while researching this, and every result agreed.
 
 ## Left for the Plan loop
 

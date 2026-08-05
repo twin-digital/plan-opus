@@ -64,9 +64,15 @@ decisions:
   - id: d-imdfu09l
     title: the project identity is derived from the workspace root
     statement: |
-      the compose project name is derived from the absolute path of the workspace root. One
-      workspace therefore addresses one server, and a run started from a subdirectory addresses the same
-      server as one started from the root; two workspaces on one daemon do not collide.
+      the compose project name is the workspace root package's name, sluggified. One workspace therefore
+      addresses one server, a run started from a subdirectory addresses the same server as one started
+      from the root, and moving or renaming the checkout keeps the worlds — which an absolute path would
+      orphan, invisibly, now that worlds outlive a stop.
+
+      The cost is that two clones of one repository on a single daemon share a server rather than getting
+      one each. That is the rarer case, and it fails visibly — the second run attaches to the first's
+      server and says so — where a path-keyed name fails silently, leaving a volume nobody will look at
+      again.
 
       Identity is the workspace and nothing else — not the config, not the profile, and not the world. The
       world a run serves is a setting it carries (d-41m3iws5), and which of them a running server is
@@ -77,6 +83,8 @@ decisions:
       - r-7lroj1cg
       - r-kfu7pcms
       - d-w8cc8n18
+      - d-me8ieqnr
+      - r-ijeqntrd
   - id: d-zo2yl18y
     title: the world volume outlives a stop, and only destroy removes it
     statement: |
@@ -646,8 +654,10 @@ decisions:
       a run may fix the world it serves: `level` names it, `seed` sets what the server generates it
       from, and `spawn`, an `[x, y, z]` array, sets where a joining player arrives. Either may come from
       the config file, from a profile in it, or from `--seed` and `--spawn` on the command line.
-      Where a run names no seed the harness picks one itself, across the whole range the server accepts,
-      rather than leaving the server to choose. A seed the server chose is one nobody can read back
+      Where a run names no seed the harness picks one itself — a uniformly random signed 64-bit integer,
+      emitted as plain decimal — rather than leaving the server to choose. The range is exact and its
+      edges matter: one past either end is neither rejected nor clamped but hashed as text, so a generator
+      that overshoots by one quietly produces a low-entropy world instead of failing. A seed the server chose is one nobody can read back
       afterwards; a seed the harness chose is one it can record against the world it generated, so every
       world it makes has a known seed and can be made again.
 
@@ -674,6 +684,7 @@ decisions:
       - d-uqdxo2w6
       - d-i4oryd9x
       - f:bedrock-world-generation-takes-a-seed-and-a-spawn-command
+      - f:bedrock-level-seed-is-64-bit-and-hashes-anything-else
   - id: d-5vjxmr4u
     title: a volume holds many worlds and serves one
     statement: |

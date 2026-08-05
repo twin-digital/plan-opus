@@ -535,3 +535,43 @@ facts:
       - run: reload-file-set-probe
         where: the restart that follows — the added function exists only now
         quote: "  [2026-08-05 17:58:02:761 ERROR] [Scripting] [file set probe] Error: PROBE-SCRIPT v4 h0 late=L1 | existing=ran(1)wrote(2) added=ran(1)wrote(3) spare=ran(0)wrote(?)    at <anonymous> (main.js:17)"
+
+  - id: bedrock-level-seed-is-64-bit-and-hashes-anything-else
+    claim: |
+      A Bedrock server's `level-seed` is documented as taking any string, and as choosing a seed at
+      random when empty. What it does with that string is not documented, and is this: a decimal
+      integer in the signed 64-bit range, `-9223372036854775808` to `9223372036854775807`, is kept
+      exactly as the world's seed. Anything else — a value past either end of that range, or a word —
+      is not rejected and not clamped. It falls back to the Java `String.hashCode()` of the literal
+      text, which yields a 32-bit value.
+
+      So a generator that overshoots the range by one produces a low-entropy world rather than an
+      error: `9223372036854775808` becomes `-1773151197`. Leading zeros parse as decimal, and an
+      empty value gives a fresh full-width random seed per world.
+    backing: tested
+    caveat: |
+      Measured against engine build 1.26.40.8. Bedrock has only taken 64-bit seeds since 1.18.30;
+      guidance describing them as 32-bit predates that.
+    sources:
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/bedrockserver/server-properties
+        where: the server properties list, the level-seed entry
+        quote: |
+          The seed to be used for randomizing the world. If left empty, a seed will be generated at random.
+      - run: level-seed-range-probe
+        where: the top of the signed 64-bit range, kept exactly
+        quote: "  world kept RandomSeed: 9223372036854775807"
+      - run: level-seed-range-probe
+        where: the bottom of the signed 64-bit range, kept exactly
+        quote: "  world kept RandomSeed: -9223372036854775808"
+      - run: level-seed-range-probe
+        where: one past the top of the range — not rejected, not clamped, hashed
+        quote: "level-seed=\"9223372036854775808\""
+      - run: level-seed-range-probe
+        where: the seed that value produced instead
+        quote: "  world kept RandomSeed: -1773151197"
+      - run: level-seed-range-probe
+        where: a word, hashed the same way
+        quote: "  world kept RandomSeed: 99162322"
+      - run: level-seed-range-probe
+        where: leading zeros parsed as decimal
+        quote: "  world kept RandomSeed: 7"

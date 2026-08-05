@@ -112,3 +112,16 @@ runs:
       error. The functions write a scoreboard value the script tests back, which is what makes an
       edited function distinguishable from an unedited one. NOTES.md beside the output records the
       result table, the two observables that failed first, and what content types are not covered.
+
+  - id: level-seed-range-probe
+    command: node evidence/minecraft/dev-server/level-seed-range-probe/run.mjs
+    output: evidence/minecraft/dev-server/level-seed-range-probe/OUTPUT.txt
+    ran_at: 2026-08-05
+    environment: |
+      An itzg/minecraft-bedrock-server container (engine 1.26.40.8) under Compose v5.2.0 against a
+      remote daemon. Eleven values are put through `level-seed` in turn, each generating a world from
+      scratch — the volume is removed between cases — and the seed the world actually kept is read
+      out of its level.dat as `RandomSeed`, a little-endian TAG_Long located by its tag name rather
+      than by parsing the NBT document. The same eleven values were measured independently against a
+      natively-run Bedrock Dedicated Server of the same build while researching this, and every
+      result agreed.
