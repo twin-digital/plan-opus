@@ -60,18 +60,32 @@ requirements:
       - tooling
 
   - id: r-y9eux47d
-    title: the pull request carries the owner's review
+    title: the pull request carries the owner's notes
     statement: |
       a sitting's notes appear on the draft's pull request as a review by the owner, against the
-      text each concerns; and a draft the owner has left with nothing proposed, nothing rejected,
-      and no question open shows there as approved by them.
+      text each concerns.
     verification:
-      - do: attach notes to two entries and submit, leaving something proposed
-      - verify: the pull request carries one review by the owner, not approving, with a comment against each noted entry's text
-      - do: rule everything remaining and submit again
-      - verify: the pull request carries an approving review by the owner
+      - do: attach notes to two entries and submit
+      - verify: the pull request carries one review by the owner, with a comment against each noted entry's text
+      - do: submit again having ruled entries and attached no note
+      - verify: the pull request carries no second review
     facets:
       - tooling
+
+  - id: r-dp8zisqf
+    title: the owner directs a ruling without a session
+    statement: |
+      the owner rules by saying so where they are — a comment on the pull request, made from
+      anywhere — and the draft ends up carrying that ruling. nothing is lost by ruling away from
+      a session, and a draft does not publish over a direction nobody acted on.
+    verification:
+      - do: comment a ruling on an entry from the pull request, with no session open
+      - verify: the draft's source carries that ruling once an agent has worked the comment, and the comment's thread is resolved naming the commit that did it
+      - do: open a session while a comment directing a ruling is unresolved
+      - verify: the session says an unapplied direction is outstanding
+    facets:
+      - tooling
+      - prompts
 
   - id: r-z0wcwwn0
     title: the owner asks for a wording change without ruling on it

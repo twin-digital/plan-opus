@@ -1,0 +1,342 @@
+# Survey run against the draft fold on plan/increment-process/ratify-view, 2026-08-05.
+# One surveyor per package the fold names, read-only. `classification` is Clarify's, added
+# after the censuses returned: decided | deferred | implementation-detail | gap.
+
+surveyed:
+  fold: increment-process, published 001-024 plus wip-001-ratify-view
+  packages:
+    - {path: nodejs/plan/design-process, kind: npm-cli, repo: twin-digital/opus}
+    - {path: docs/process-reference.md, kind: document}
+    - {path: docs/authoring.md, kind: document}
+    - {path: docs/process-migration.md, kind: document}
+    - {path: .claude/skills/increment, kind: agent-skill}
+    - {path: .claude/skills/implement-package, kind: agent-skill}
+
+# ---------------------------------------------------------------------------
+# Defects the survey found in this draft. Design work; repaired in the draft.
+# ---------------------------------------------------------------------------
+
+defects:
+  - choice: d-f1b5r2f8 asserts the approve condition is "the same judgement the landing gate makes"
+    found_by: [docs/process-reference.md, nodejs/plan/design-process]
+    detail: >
+      landing opens when nothing is proposed and no question is open; the review approves only
+      when nothing is rejected either. a draft carrying a closed rejection lands, and the
+      landing's own unconditional approve step approves it, while an identical submit posts
+      COMMENT. two predicates, not one.
+    classification: gap
+    resolution: the approve condition stands as the owner stated it; the false equivalence goes.
+
+  - choice: d-8abusqwe restates the pane-and-list arrangement the contract already fixes
+    found_by: docs/authoring.md
+    detail: >
+      shape in two places, free to drift — the failure the contract exists to prevent. the
+      general test the surveyor derived: shape in the contract, choice in the decision, neither
+      restating the other.
+    classification: gap
+    resolution: trim the restatement to the choices.
+
+  - choice: d-mhv8av8w drops --root by omission
+    found_by: docs/process-reference.md
+    detail: >
+      it supersedes d-gf6x5jzy and restates the command without naming --root, while d-d76q0tpa
+      explicitly keeps it on land. a pinned public surface lost an option silently.
+    classification: gap
+    resolution: state the option set.
+
+  - choice: a note-only submit has nothing to commit, but the review is specified "after the commit and the push"
+    found_by: [docs/process-reference.md, nodejs/plan/design-process]
+    classification: gap
+    resolution: state what a submit writes when no ruling changed.
+
+  - choice: an approval posted at submit is dismissed by any later push
+    found_by: [.claude/skills/increment, nodejs/plan/design-process]
+    detail: >
+      d-f1b5r2f8 approves before any landing; d-h418ljtp records that a push after an approval
+      dismisses it. an agent pushing a typo fix, a rebase, or a persisted census silently costs
+      the owner their approval with nothing on the pull request saying why. the landing's own
+      rename-commit push does the same, which is why its approve step is not redundant.
+    classification: gap
+    resolution: state the consequence and what an agent must not do.
+
+# ---------------------------------------------------------------------------
+# Gaps in the draft's own subject — the session. Route back into Clarify.
+# ---------------------------------------------------------------------------
+
+gaps_the_draft_should_close:
+  - choice: who opens the draft's pull request, and when
+    found_by: .claude/skills/increment
+    detail: >
+      r-ycjjl48r requires one "by the time it is being ruled, whoever opened it"; the only
+      normative open step in the fold is inside the landing sequence, which runs after ruling.
+      the agent-opens-it claim exists only as a rationale clause in d-mhv8av8w — a world the
+      decision assumes, not a rule assigning the action.
+    classification: gap
+
+  - choice: whether the pull-request comment remains a ruling surface beside the session
+    found_by: .claude/skills/increment
+    detail: >
+      d-wcnyuwkv (delegated, unpinned, untouched) still has the plan skill run Ratify through
+      the pull request, presenting the projection and the question list. the session renders
+      both. if both surfaces stand, the skill must say how an agent reconciles a comment-ruling
+      against a session that already wrote the entry.
+    classification: gap
+    routed_to: owner — it changes what the owner may do
+
+  - choice: what design-process land does for a token, having no session and no terminal
+    found_by: [docs/process-reference.md, .claude/skills/increment]
+    detail: >
+      d-2b23mjrl scopes the credential to a session and supersedes the sentence that covered the
+      non-interactive case. land's approval step is now unaccounted for.
+    classification: gap
+
+  - choice: whether a tokenless sitting discards the owner's notes
+    found_by: nodejs/plan/design-process
+    detail: >
+      notes live only in memory and reach only the review; d-2b23mjrl has a tokenless session
+      still stage, commit, and push. the notes are silently lost.
+    classification: gap
+
+  - choice: whether the token is asked for at every submit or only at one that posts
+    found_by: nodejs/plan/design-process
+    detail: >
+      a submit that neither approves nor carries notes posts nothing and needs no token. asking
+      anyway is the prompt-in-the-flow that d-2b23mjrl exists to avoid.
+    classification: gap
+
+  - choice: what an agent must leave in place for a session to open on its draft
+    found_by: .claude/skills/increment
+    detail: >
+      the session runs in a worktree made from the fetched head, so anything uncommitted or
+      unpushed is invisible and rulings are taken against a stale draft; the draft is identified
+      from the diff, so an untouched increment directory is not there to rule; the header counts
+      from the diff, so an uncommitted fact is uncounted. one composed rule: push everything,
+      then hand over the url.
+    classification: gap
+
+  - choice: whether an agent may write the branch while a session is open on it
+    found_by: .claude/skills/increment
+    detail: >
+      every submit now pushes, over several sittings, from a worktree the tool made. an agent
+      revising noted text while the owner submits loses a race on a branch nobody force-pushes.
+    classification: gap
+
+  - choice: a fork head branch
+    found_by: nodejs/plan/design-process
+    detail: d-mhv8av8w assumes the head is fetchable and pushable; a fork is neither.
+    classification: gap
+    reading: this product's drafts are same-repo branches; refusing with a message is the cheap answer
+
+  - choice: what a session without --pr does on a branch with no upstream, or a dirty tree
+    found_by: nodejs/plan/design-process
+    detail: >
+      "opens a pull request for the branch before anything else" presumes a pushed branch;
+      pushing an unrelated dirty tree at session start is not licensed.
+    classification: gap
+
+  - choice: the title and body of a pull request the session opens
+    found_by: nodejs/plan/design-process
+    detail: land.ts's existing title reads "land increment <NNN>", claiming a landing that has not happened.
+    classification: gap
+
+  - choice: what a fact citation shows, facts carrying no title field
+    found_by: nodejs/plan/design-process
+    detail: >
+      d-mhlya385 assumes every cited kind has a title. fact@1 has id, claim, backing, sources.
+      the first line of claim is the only candidate. observable for every fact citation.
+    classification: gap
+
+  - choice: what a question's `answers` renders as, holding a kind word rather than an id
+    found_by: nodejs/plan/design-process
+    detail: the one place the contract's citation form does not fit its own field.
+    classification: gap
+
+  - choice: whether a rejected decision is re-rulable from the list
+    found_by: nodejs/plan/design-process
+    detail: d-9s4d3ww2 says a ruled entry is closed only by supersession or retirement.
+    classification: gap
+
+  - choice: how an answered question appears in the commit tally
+    found_by: nodejs/plan/design-process
+    detail: an answer is not a status; a sitting that only answered questions has an empty tally.
+    classification: gap
+
+  - choice: what a rejected push does — retry after rebase, report and leave local, or fail
+    found_by: nodejs/plan/design-process
+    detail: >
+      d-lqmwczg3's rationale is durability; leaving the commit local defeats it, and rebasing
+      rewrites the owner's branch. both observable.
+    classification: gap
+
+  - choice: how "not in the pull request's diff" is tested for a note's anchor
+    found_by: nodejs/plan/design-process
+    detail: >
+      github refuses a review comment on a line outside the diff, which is stricter than
+      file-level. reading it as file-level produces api rejections on untouched entries inside a
+      touched file.
+    classification: gap
+
+  - choice: the diff base for the header's counts, and whether it counts files or entries
+    found_by: nodejs/plan/design-process
+    detail: >
+      two-dot against a moved origin/main counts other people's changes as this draft's;
+      three-dot matches "the draft's changed inputs". files is cheap, entries is what the owner
+      wants before approving.
+    classification: gap
+
+  - choice: whether an empty token entry means never-ask-again or ask-next-submit
+    found_by: nodejs/plan/design-process
+    classification: gap
+    reading: small, but an owner who fat-fingers an empty line has no way back inside the session
+
+# ---------------------------------------------------------------------------
+# Gaps belonging to the api pool's first use, not to the session. These are one
+# seam, opened by binding the pool's first contract; they are a separate increment.
+# ---------------------------------------------------------------------------
+
+gaps_the_pool_seam_opens:
+  - choice: whether docs/authoring.md gains content-quality tests for an authored contract
+    found_by: docs/authoring.md
+    detail: >
+      d-af2v9seu fixes the document's subjects as statements, verification, decisions, and model
+      entries. contracts are not among them, and no foundation states any quality test for a
+      pool file. writing the section unruled would be a shadow claim; the rubric is what the
+      review gate loads, so its subject list is consumer-visible.
+    classification: gap
+
+  - choice: the test itself — falsifiability, and how much shape belongs in the contract versus the decision
+    found_by: docs/authoring.md
+    detail: >
+      r-lll68661 rests falsifiability on the validator extracting from code and diffing —
+      machinery that exists for TypeScript and OpenAPI and not for a terminal screen. d-9zot40jn
+      asserts a render can be diffed, which is an argument inside one decision, not a rule.
+    classification: gap
+
+  - choice: whether a contract may defer shape inside itself
+    found_by: [docs/authoring.md, .claude/skills/implement-package]
+    detail: >
+      ratify-screen carries `truncated-to: the implementer's choice of width`. under r-lll68661 a
+      pool version is a commitment the implementation must satisfy, and a field naming no
+      commitment is unfalsifiable — or it is the honest way to say the surface does not fix that
+      dimension.
+    classification: gap
+
+  - choice: nothing tells an implementer to read bound contracts, or how to locate one
+    found_by: .claude/skills/implement-package
+    detail: >
+      r-bua9wl1s makes model bindings binding on implementers, but neither the skill nor either
+      wave file names the model or apis/. `show` prints a model entry's name and description and
+      nothing of the contract's content, so the fold an implementer is handed does not contain
+      the shape it must build to. pool layout is non-normative and identity is an in-file header,
+      so the resolution rule is "scan the pool for the header", which nothing states.
+    classification: gap
+
+  - choice: which coverage kind a screen's conformance carries
+    found_by: .claude/skills/implement-package
+    detail: >
+      the implementation schema constrains claim to ^[rd]-, so a model binding cannot be a
+      coverage claim; conformance is evidenced under the entries citing the contract. whether a
+      render diffed against the authored shape is conformance-case or code-test is unruled, and
+      unstated it will be filed as code-test.
+    classification: gap
+
+  - choice: how far an implementer may decide into a contract's silence before escalating
+    found_by: .claude/skills/implement-package
+    detail: >
+      "add or change an external-facing contract surface" was written for schemas, where silence
+      is small and closed by additionalProperties. a screen's silence is large — key bindings,
+      scroll, colour, the empty-list state, a terminal too narrow for both panes. read strictly
+      the implementer escalates on each and pauses the build.
+    classification: gap
+    reading: the contract's preamble settles it — what it does not describe is not the surface
+
+  - choice: whether a pool surface carries a `version:` field
+    found_by: docs/process-reference.md
+    detail: >
+      the reference says every structured file this process defines carries one; the screen
+      contract does not. pool surfaces are excepted, or the rule was always about foundation
+      sources. stated nowhere.
+    classification: gap
+
+  - choice: whether the api pool admits a surface no extractor reads
+    found_by: docs/process-reference.md
+    detail: >
+      the section says the file's extension and content tell the validator which extractor reads
+      it. none reads a rendered terminal screen.
+    classification: gap
+
+  - choice: which repository's pool binds a package built in another
+    found_by: [docs/process-reference.md, nodejs/plan/design-process]
+    detail: >
+      the contract is authored in plan-opus; the cli that must satisfy it ships from opus and
+      cannot read the file. d-9zot40jn's whole rationale is that a render can be diffed against
+      the authored shape, and nothing says how a cross-repo package does that.
+    classification: gap
+
+# ---------------------------------------------------------------------------
+# Standing findings the survey surfaced. Neither this draft's nor the seam's.
+# ---------------------------------------------------------------------------
+
+standing:
+  - choice: docs/process-migration.md's conversion half is a finished plan still written as instruction
+    found_by: docs/process-migration.md
+    detail: >
+      design/ is gone and every product in the conversion table exists under products/, while the
+      section still reads "Wider scopes convert first" and carries a five-step Order. the file's
+      own opening paragraph contradicts it three lines above.
+    classification: gap
+    routed_to: backlog
+
+  - choice: d-t03xkfj7 describes an expired regime
+    found_by: docs/process-migration.md
+    detail: >
+      it has both trees checked until the migration empties design/. it has. the decision was
+      never superseded.
+    classification: gap
+    routed_to: backlog
+
+  - choice: a session may find an accepted, under-stated placeholder entry it did not write
+    found_by: .claude/skills/increment
+    detail: >
+      d-octrdz0j writes a placeholder for a routed answer and d-k85itgcv gives it accepted where
+      the owner authored it. whether finishing the statement is the agent's job, and whether
+      rewriting an accepted entry needs the owner back, is unstated. predates this draft.
+    classification: gap
+    routed_to: backlog
+
+# ---------------------------------------------------------------------------
+# Classified and closed.
+# ---------------------------------------------------------------------------
+
+decided_by_a_foundation:
+  - {choice: the detail pane's order and the dropped kind-and-increment line, by: ratify-screen@1}
+  - {choice: the list holds every decision in any status plus open questions, by: d-8abusqwe}
+  - {choice: an untitled entry shows its id, by: ratify-screen@1}
+  - {choice: the truncation width is the implementer's, by: ratify-screen@1}
+  - {choice: deferred does not hold the landing closed, by: d-4xkyfjzu}
+  - {choice: canLand becomes "no decision proposed, no question open", by: d-mhv8av8w + d-8abusqwe}
+  - {choice: the bulk action's scope stays unruled decisions only, by: d-ol4v00nl}
+  - {choice: the reviews go by fetch with an authorization header, not gh, by: r-rxb7pn9z + d-ex0pr4e4}
+  - {choice: no new public exports from the package entry point, by: d-cueyrbon + d-211hgo91}
+  - {choice: the screen needs no new wave file or package kind, by: d-mhv8av8w}
+  - {choice: deferred reaching the session changes nothing for implementers, by: d-4xkyfjzu}
+  - {choice: the model-entry rubric holds as written for a ui binding, by: d-gewznny6}
+  - {choice: the decision bar needs no gloss for a screen, by: d-29fjsjn2}
+  - {choice: contract-surface escalation is already allocated, by: d-98df3rlb}
+
+implementation_detail:
+  - the url spellings --pr accepts beyond the browser form
+  - the worktree's location, name, and fetch depth
+  - the selection screen's ordering and choose key
+  - the list's order, selection marker, and staged-ruling placement
+  - the heading's case, the footer's survival, and identity-line overflow
+  - the commit subject, and singular/plural in the tally
+  - the deferred ruling's key, and whether a deferral prompts for anything
+  - the id prefix table, and cross-product citations showing as bare ids
+  - the review comment api shape, and the wording of a refused-review report
+  - the header's treatment of deletions and renames
+  - the token injection seam for tests, and how the pr mode is tested without a network
+  - the version bump, 0.7.0 to 0.8.0
+  - the anchor slug a new authoring.md section would carry
+  - whether an answered question leaves the list within a sitting
+  - whether implement.md says the integration merge is not a session action
