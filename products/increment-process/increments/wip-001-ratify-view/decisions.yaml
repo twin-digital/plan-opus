@@ -79,15 +79,25 @@ decisions:
       "io.twindigital.id".
   - id: d-rui9z0lc
     title: a surface declares its identity in-file, and the file selects the extractor
-    statement: |
-      a surface pool file carries its identity inside itself, in whatever way the file's own
-      technology already has for carrying metadata. the file's extension and content tell the
-      design validator which extractor reads it; nothing outside the file names it, so a surface
-      keeps its identity when it moves and the pool's layout stays non-normative.
+    statement: >
+      a surface pool file carries its identity inside itself, in whatever way
+      the file's own
 
-      which convention each technology uses is a decision per technology, so a technology is added
+      technology already has for carrying metadata. the file's extension and
+      content tell the
+
+      design validator which extractor reads it; nothing outside the file names
+      it, so a surface
+
+      keeps its identity when it moves and the pool's layout stays
+      non-normative.
+
+
+      which convention each technology uses is a decision per technology, so a
+      technology is added
+
       by ruling one rather than by amending this.
-    status: proposed
+    status: accepted
     supersedes: d-u3u3sbmb
     because:
       - r-j232vwp4
@@ -96,7 +106,6 @@ decisions:
     facets:
       - schema
       - design-validator
-
   - id: d-ds6mco0p
     title: a typescript surface declares its identity in a comment
     statement: |
@@ -109,11 +118,12 @@ decisions:
     facets:
       - schema
       - design-validator
-
   - id: d-tjitou0m
     title: a yaml surface declares its identity in a comment
-    statement: |
-      `# surface: /<namespace>/<name>@<version>`, on a line of its own. this is what the
+    statement: >
+      `# surface: /<namespace>/<name>@<version>`, on a line of its own. this is
+      what the
+
       `ratify-screen` contract uses.
     status: proposed
     because:
@@ -123,12 +133,15 @@ decisions:
     facets:
       - schema
       - design-validator
-
   - id: d-6ier9trn
     title: an openapi surface declares its identity in info.x-api-id
-    statement: |
-      `info.x-api-id`, the extension key openapi already defines for the purpose. the key keeps
-      openapi's spelling rather than this process's: it belongs to that format, and a document
+    statement: >
+      `info.x-api-id`, the extension key openapi already defines for the
+      purpose. the key keeps
+
+      openapi's spelling rather than this process's: it belongs to that format,
+      and a document
+
       carrying a renamed key would stop being an ordinary openapi document.
     status: proposed
     because:
@@ -138,13 +151,18 @@ decisions:
     facets:
       - schema
       - design-validator
-
   - id: d-70rnco74
     title: a markdown surface declares its identity in frontmatter
-    statement: |
-      the frontmatter key `io.twindigital.id`. markdown has no comment syntax that survives
-      rendering, so the identity goes in the frontmatter a document-kind file already carries; the
-      key is reverse-dns because frontmatter is a namespace shared with every other tool that
+    statement: >
+      the frontmatter key `io.twindigital.id`. markdown has no comment syntax
+      that survives
+
+      rendering, so the identity goes in the frontmatter a document-kind file
+      already carries; the
+
+      key is reverse-dns because frontmatter is a namespace shared with every
+      other tool that
+
       reads it.
     status: proposed
     because:
@@ -154,7 +172,6 @@ decisions:
     facets:
       - schema
       - design-validator
-
   - id: d-pe4j25wq
     title: the model is a block of the requirements source
     statement: >
@@ -227,29 +244,61 @@ decisions:
       - tooling
   - id: d-q50z7iq1
     title: how ratify-screen@1 is read
-    statement: |
-      `/design-process/ratify-screen@1` is read as follows, and this says nothing about how any
+    statement: >
+      `/design-process/ratify-screen@1` is read as follows, and this says
+      nothing about how any
+
       other surface is written.
 
-      the file has two halves that say the same thing twice on purpose. `mock:` carries rendered
-      frames; the sections beside it carry the same shape as rules. the frames are what a render
-      is compared against; the rules are what settles a case no frame happens to show. where the
-      two appear to disagree, the rules govern — a frame is one instance and a rule is the
+
+      the file has two halves that say the same thing twice on purpose. `mock:`
+      carries rendered
+
+      frames; the sections beside it carry the same shape as rules. the frames
+      are what a render
+
+      is compared against; the rules are what settles a case no frame happens to
+      show. where the
+
+      two appear to disagree, the rules govern — a frame is one instance and a
+      rule is the
+
       statement.
 
-      what the surface commits to is arrangement, the order of things within a region, and the
-      form of each field. what it does not commit to, and what an implementer therefore settles
-      as an ordinary implementation detail, is everything the frames incidentally have: column
-      widths, separator and rule glyphs, the selection marker, the truncation width, colour, and
-      any behaviour no section names — key bindings, scrolling, an empty list, a terminal too
-      narrow to hold both panes. silence here is not a gap to escalate; the preamble names the
+
+      what the surface commits to is arrangement, the order of things within a
+      region, and the
+
+      form of each field. what it does not commit to, and what an implementer
+      therefore settles
+
+      as an ordinary implementation detail, is everything the frames
+      incidentally have: column
+
+      widths, separator and rule glyphs, the selection marker, the truncation
+      width, colour, and
+
+      any behaviour no section names — key bindings, scrolling, an empty list, a
+      terminal too
+
+      narrow to hold both panes. silence here is not a gap to escalate; the
+      preamble names the
+
       surface, and what falls outside it is the implementer's.
 
-      a key path addresses the thing it names — `detail-pane.metadata.pinned` — and that is how
-      prose cites a region of this surface. the paths are an addressing scheme for this file, not
+
+      a key path addresses the thing it names — `detail-pane.metadata.pinned` —
+      and that is how
+
+      prose cites a region of this surface. the paths are an addressing scheme
+      for this file, not
+
       a vocabulary any other surface inherits or a structure the pool enforces.
 
-      a render conforming is one matching the frames in arrangement, order, and field form, and
+
+      a render conforming is one matching the frames in arrangement, order, and
+      field form, and
+
       differing from them only in what the paragraph above leaves open.
     status: proposed
     because:
@@ -257,11 +306,11 @@ decisions:
       - d-9zot40jn
     pinned:
       reason: public-api
-      notes: what conformance to the screen means, and so what a build is checked against
+      notes: what conformance to the screen means, and so what a build is checked
+        against
     facets:
       - tooling
       - schema
-
   - id: d-8abusqwe
     title: the ratify list is the draft's whole decision set, beside the entry's
       full text
