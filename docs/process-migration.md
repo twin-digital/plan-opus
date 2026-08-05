@@ -1,5 +1,5 @@
 ---
-version: "14"
+version: "23"
 ---
 
 # What the incremental process replaces
@@ -107,10 +107,10 @@ at a pace where retargeting starves implementations.
 
 ## Converting what exists
 
-The old `design/` tree converts product by product, each conversion its own reviewed change,
-and the two trees coexist until the last design moves: `npm run check` runs the legacy checker
-over `design/` and `design-process check` over `products/`, `schemas/`, `apis/`, and
-`implementations/`, and the legacy checker retires with the last design out.
+The old `design/` tree converted product by product, each conversion its own reviewed change,
+with the two trees coexisting until the last design moved. `design/` is gone, and
+`npm run check` is `design-process check` over `products/`, `schemas/`, `apis/`, and
+`implementations/`; the legacy checker retired with the last design out.
 
 Converting a design removes it from the legacy tree in the same change: the change that
 publishes a converted increment deletes the `design/<area>/<design>/` directory it came from. So
