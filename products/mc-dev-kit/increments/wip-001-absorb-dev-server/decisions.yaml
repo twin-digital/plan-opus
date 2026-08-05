@@ -149,7 +149,7 @@ decisions:
       two sides need not
 
       agree on the spelling.
-    status: proposed
+    status: accepted
     facets: dev-loop
     because:
       - r-rlh87pau
@@ -163,7 +163,7 @@ decisions:
       uuid, lowercased.
 
       That name is the whole of what a later read of the pool has to go on.
-    status: proposed
+    status: accepted
     facets: dev-loop
     because:
       - r-xcz7nzr6
@@ -180,7 +180,7 @@ decisions:
 
       mid-copy, or a server left running from a previous session all converge on
       the next save.
-    status: proposed
+    status: delegated
     facets: dev-loop
     because:
       - r-pcq10f2b
@@ -196,7 +196,7 @@ decisions:
       output changed is
 
       re-deployed in full.
-    status: proposed
+    status: delegated
     facets: dev-loop
     because:
       - r-pcq10f2b
@@ -212,7 +212,7 @@ decisions:
 
       leave a file deleted from the output tree sitting on the server
       indefinitely.
-    status: proposed
+    status: accepted
     facets: dev-loop
     because:
       - r-pcq10f2b
@@ -252,7 +252,7 @@ decisions:
       holds on the first
 
       change after a reattach as it does on any other.
-    status: proposed
+    status: delegated
     facets: dev-loop
     because:
       - r-cekp2mcb
@@ -270,7 +270,7 @@ decisions:
 
       pack stack, and the harness reports that line as what the load actually
       brought up.
-    status: proposed
+    status: delegated
     facets: dev-loop
     because:
       - d-wtziwjh5
@@ -282,11 +282,15 @@ decisions:
       completion before the first
 
       reconcile, and starts the watch builds only after it.
-    status: proposed
+    status: rejected
     facets: dev-loop
     because:
       - r-8et233c9
       - r-97fvutt9
+    rejection_reason: could we inject a stub/noop pack that way the serer can start
+      if there are build errors? that way the 'erorrs during start' behavior is
+      basically the same as 'errors after running' -- fix, and the fixes are
+      hot-deployed
   - id: d-j3ayhwv1
     title: the harness runs a package's own build scripts and watches its output
     statement: >
@@ -297,7 +301,7 @@ decisions:
       built output
 
       directories, deploying on a debounced change there.
-    status: proposed
+    status: accepted
     facets: dev-loop
     because:
       - r-97fvutt9
@@ -317,7 +321,7 @@ decisions:
 
       removes the world volume. Ctrl+C stops the watchers and the log follow and
       nothing else.
-    status: proposed
+    status: rejected
     pinned:
       reason: public-api
       notes: the verbs, the executable name, and the flag that destroys a world
@@ -327,6 +331,8 @@ decisions:
       - r-kfu7pcms
       - d-zo2yl18y
       - d-zyo6kku9
+    rejection_reason: let's name the command "minecraft-server". sub-command names
+      "start" and "stop" (not start-and-watch)
   - id: d-ifke5eeh
     title: start is idempotent against a running server
     statement: >
