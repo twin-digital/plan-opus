@@ -1,0 +1,30 @@
+version: "1"
+requirements:
+  - id: r-cyd08e6q
+    title: packs are built by the dev kit
+    statement: |
+      a pack's bundle is built by `@twin-digital/mc-dev-kit`: its build configuration merges the
+      fragment the kit exports, and it implements no build logic of its own. every route to a
+      built pack — a build script, a watch rebuild, a continuous-integration run — goes through
+      it.
+    rationale: |
+      a second path to a built pack is a path around manifest completion.
+    verification:
+      - do: open the pack's build configuration
+      - verify: it merges the kit's exported fragment and defines no bundling of its own
+      - do: trace each build script, watch rebuild, and continuous-integration route
+      - verify: each invokes the kit
+    facets: build
+    amends: r-odoqiqo3
+
+  - id: r-w2vh7olv
+    title: a pack does not deliver itself
+    statement: |
+      a pack implements no delivery of its own: whatever release or deploy hook the monorepo's
+      conventions require of it delegates to `@twin-digital/mc-dev-kit`, and the pack itself
+      publishes and deploys nothing.
+    verification:
+      - do: open the pack's release and deploy hooks
+      - verify: each delegates to the kit, and the pack publishes and deploys nothing directly
+    facets: build
+    amends: r-r316qhk6
