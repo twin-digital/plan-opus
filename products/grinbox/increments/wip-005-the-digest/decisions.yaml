@@ -1,0 +1,191 @@
+version: "2"
+
+decisions:
+  # what an edition is
+  - id: d-r8iz7u3q
+    title: judgement happens at triage, collation at digest
+    statement: |
+      every judgement about a message — which digest it belongs in, what is worth pulling out of
+      it — is made when that message is triaged, by ordinary operators. The scheduled run that
+      builds a digest makes none: it selects, groups, renders, and sends. This is what makes
+      accounting for every covered message a property of the code rather than an instruction
+      something is trusted to follow.
+    status: proposed
+    because:
+      - r-i55lgsq8
+      - r-vd9mu8od
+    pinned:
+      reason: other
+      notes: |
+        the division everything about the digest follows from, and reversing it would move the
+        product's central guarantee out of reach
+
+  - id: d-ocqvnmfm
+    title: an edition is an instance, and its schedule is its cadence
+    statement: |
+      a digest is an ordinary operator instance — an edition — whose configuration carries the
+      schedule it fires on. A pipeline may carry several, differing only in configuration, and
+      nothing about a second edition is a second mechanism.
+    status: proposed
+    because:
+      - d-5n8oyi8c
+      - d-r8iz7u3q
+    pinned: false
+
+  - id: d-wf49d4jb
+    title: a digest fires per edition and account, and is sent to that account's owner
+    statement: |
+      an edition fires once per account its pipeline is active on, covering that account's mail
+      and sending through it to the address the account belongs to. A pipeline active on several
+      accounts digests each mailbox separately.
+    status: proposed
+    because:
+      - d-ocqvnmfm
+      - d-yz5n7wmu
+    pinned: false
+
+  - id: d-fg96l5uu
+    title: which digest a message belongs in is a tag
+    statement: |
+      a message is slotted into a digest by an ordinary tag with a closed set of values, produced
+      by an ordinary rule-based tagger. Editions claim values of that tag with their sections, and
+      the tag's fallback value means the message is never digested. Adding a category is editing a
+      configuration, not shipping code.
+    status: proposed
+    because:
+      - d-r8iz7u3q
+      - d-f5hy6ptl
+    pinned:
+      reason: public-api
+      notes: |
+        the mechanism a user reshapes their digests through, and what section definitions are
+        validated against
+
+  # coverage
+  - id: d-jsnfvo0m
+    title: coverage is a half-open window over when mail was taken in
+    statement: |
+      a delivery covers the messages grinbox took in after the last delivery that completed and up
+      to the moment this one was claimed. The window is over when grinbox took the message in
+      rather than when the mail was sent, so mail that reached grinbox late is digested in the
+      window it actually arrived in rather than missed.
+    status: proposed
+    because:
+      - r-yq13riob
+      - r-g6n22sn9
+    pinned:
+      reason: data-format
+      notes: |
+        the stored watermark is what every later window is computed from, and a change to what it
+        measures re-cuts windows already delivered
+
+  - id: d-jbqvsnox
+    title: only a completed delivery moves the watermark
+    statement: |
+      the watermark advances when a delivery completes and at no other time, so a failed or
+      abandoned delivery's window is absorbed into the next one — the next delivery covers the
+      union rather than resuming after the gap.
+    status: proposed
+    because:
+      - r-g6n22sn9
+      - d-jsnfvo0m
+    pinned: false
+
+  - id: d-prxzi4zt
+    title: missed occurrences collapse into one
+    statement: |
+      where grinbox was down across several of an edition's occurrences, it fires once on return,
+      for the most recent occurrence due, and the older ones never fire. Their coverage is not
+      lost: the unadvanced watermark folds it into the one that does fire.
+    status: proposed
+    because:
+      - d-jbqvsnox
+      - r-g6n22sn9
+    pinned: false
+
+  - id: d-svanshcm
+    title: claiming the occurrence is what prevents a second send
+    statement: |
+      an occurrence is claimed by recording it before any work is done, and the record is unique
+      per edition, account, and occurrence. Nothing can claim an occurrence twice, so nothing can
+      send it twice.
+    status: proposed
+    because:
+      - r-yq13riob
+    pinned: false
+
+  - id: d-nfsr4h6f
+    title: editions of one pipeline claim disjoint categories
+    statement: |
+      no two editions of a pipeline may claim the same category, checked when an edition is saved.
+      With coverage windows disjoint by construction and categories disjoint by validation, a
+      message cannot reach two digests.
+    status: proposed
+    because:
+      - r-yq13riob
+      - d-fg96l5uu
+      - d-506swwel
+    pinned: false
+
+  # composition
+  - id: d-hl6z38i6
+    title: three render shapes, and a message that renders to nothing still appears
+    statement: |
+      a section renders its messages one of three ways — a list of items, a table of independently
+      rendered cells, or a count alone. Every rendering goes through the same per-message template
+      grammar the rest of grinbox uses, an absent tag renders empty, and a message whose rendering
+      comes out entirely empty falls back to naming its sender and subject rather than vanishing.
+      A section with nothing in it is left out of the email.
+    status: proposed
+    because:
+      - d-cnjkypbb
+      - r-vd9mu8od
+    pinned:
+      reason: public-api
+      notes: |
+        the shapes an edition's stored configuration is written in
+
+  - id: d-tm2dbemu
+    title: the accounting is asserted, and what no section claims is counted
+    statement: |
+      a delivery asserts, in code, that the items it rendered number exactly the messages it
+      selected, and fails rather than sending a digest that lost one. Messages in the window whose
+      category no enabled section claims are counted per category and reported in the digest
+      itself; only the slotting tag's fallback value — which means never digested — is left out of
+      that count.
+    status: proposed
+    because:
+      - r-vd9mu8od
+      - d-fg96l5uu
+    pinned:
+      reason: other
+      notes: |
+        the assertion is the product's accounting guarantee, and removing it would leave the
+        guarantee stated and unenforced
+
+  - id: d-c3dofuyf
+    title: prose is the only model involvement, and it cannot touch the items
+    statement: |
+      a section may carry prose before or after its items — either fixed text, or a short passage
+      a model writes from the already-rendered items. Prose is the whole of a model's part in a
+      delivery: it cannot add, remove, or alter an item, and a prose passage that fails or is
+      capped is dropped from the email rather than failing the delivery.
+    status: proposed
+    because:
+      - r-i55lgsq8
+      - d-r8iz7u3q
+    pinned: false
+
+  - id: d-dmylyoqs
+    title: a capped send fails the delivery, and an empty window sends nothing
+    statement: |
+      a delivery has no subject message, so per-message caps neither apply to it nor count against
+      it, while windowed caps bind as they do anywhere. Where a cap denies the send itself the
+      delivery fails — an undelivered digest is a failure, not the clean no-op a denied per-message
+      action is. A window holding nothing to report completes without sending at all.
+    status: proposed
+    because:
+      - d-isyan49o
+      - d-coeyvi2n
+      - r-g6n22sn9
+    pinned: false

@@ -1,0 +1,47 @@
+version: "1"
+
+requirements:
+  - id: r-vd9mu8od
+    title: a digest accounts for everything it covers
+    statement: |
+      every message a digest's coverage includes is accounted for in what the user receives —
+      shown in a section, or counted and named as uncovered. Nothing a digest covered goes
+      unmentioned.
+    rationale: |
+      The digest is what makes archiving mail out of sight safe to do, and it is worth that only
+      if the user can trust that what it does not mention did not exist.
+    verification:
+      - do: cover a window holding messages in a category the digest has a section for and messages in a category it does not
+      - verify: the first are shown, the second are reported as a count, and the two together are the whole of the window
+
+  - id: r-yq13riob
+    title: a message is digested once
+    statement: |
+      a message appears in at most one digest, whatever a user has configured and however
+      deliveries have failed or been delayed.
+    rationale: |
+      A digest read twice is a digest stopped being read.
+
+  - id: r-i55lgsq8
+    title: what a digest says is derived, not composed
+    statement: |
+      what a digest says about a message comes from what that message's triage recorded. No model
+      chooses which messages appear, what is said about them, or how they are grouped.
+    rationale: |
+      A model composing the digest could drop or invent a line and nothing would notice — which
+      is the one failure the digest exists to rule out.
+
+  - id: r-g6n22sn9
+    title: an undelivered digest costs no coverage
+    statement: |
+      mail that a digest would have covered had it been delivered is covered by the next delivery
+      instead. A failed or missed delivery narrows nothing.
+
+  - id: r-jje7gb9a
+    title: a digest reports mail that has left the inbox
+    statement: |
+      whether a message is still in the user's inbox has no bearing on whether it appears in a
+      digest.
+    rationale: |
+      Aggressive archiving and the digest are one arrangement: the digest is the backstop that
+      makes the archiving safe, and it cannot be a backstop for mail it stops seeing.
