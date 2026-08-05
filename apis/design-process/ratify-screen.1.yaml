@@ -1,0 +1,52 @@
+# api: /design-process/ratify-screen@1
+#
+# What ratify mode renders. The pane layouts and the form of each field are this surface.
+# Which entries the list holds, and how a cited id is resolved, are decisions.
+
+screen:
+  layout: the entry list on the left, the detail pane on the right
+  selection: moving through the list moves the pane
+
+entry-list:
+  entry:
+    lines: 2
+    line-1:
+      form: "<title>"
+      truncated-to: the implementer's choice of width
+      no-title: the id, where the entry carries none
+    line-2:
+      form: "<id>"
+      emphasis: dim
+  staged-ruling:
+    form: shown beside the entry
+    absent: nothing is shown where the entry holds no ruling
+
+detail-pane:
+  order:
+    - heading
+    - blank line
+    - statement
+    - horizontal rule
+    - metadata
+  heading:
+    form: "<TITLE> [<id>]"
+    notes: no kind-and-increment line follows the heading
+  statement:
+    form: the entry's statement, verbatim
+  horizontal-rule:
+    form: a rule spanning the pane, present only where metadata follows
+  metadata:
+    pinned:
+      form: "pinned(<reason>): <notes>"
+      no-notes: "pinned(<reason>)"
+      absent: the line is omitted where the entry is not pinned
+    citations:
+      applies-to:
+        - because
+        - supersedes
+        - answers
+      form: |
+        <label>:
+          - <title> [<id>]
+      notes: one cited entry per line; an id resolving to nothing appears as "  - <id>"
+      absent: a label with no entries is omitted

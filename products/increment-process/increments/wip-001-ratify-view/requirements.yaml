@@ -1,0 +1,68 @@
+version: "1"
+model:
+  - name: ratify-screen
+    api: /design-process/ratify-screen@1
+    description: what the session's ratify mode renders — the entry list, the detail pane, and the form of each field
+
+requirements:
+  - id: r-jf51jzor
+    title: the owner sees every decision the draft carries, and what each is ruled
+    statement: |
+      the owner reaches every decision the draft carries, ruled or not, and sees the ruling each
+      one currently holds; a ruling already made is changed where it is read, without leaving
+      for another tool.
+    verification:
+      - do: open a session on a draft carrying decisions in several statuses, at least one still proposed
+      - verify: every decision the draft holds appears in the list, each ruled one showing its status and each proposed one showing none
+      - do: change the ruling on a decision that already carried one, and submit
+      - verify: the draft's source carries the new status
+    facets:
+      - tooling
+
+  - id: r-fipf2016
+    title: an entry is identified by what it says
+    statement: |
+      wherever the session names an entry — in the list, in the heading of the pane, in the
+      entries a shown entry cites — it shows that entry's title, with the id beside it. no place
+      in the session identifies an entry by its id alone.
+    verification:
+      - do: open a session and read the list, then select an entry that cites several others
+      - verify: each list row and the pane's heading show a title, and each cited entry is shown by its title with its id beside it
+    facets:
+      - tooling
+
+  - id: r-clty5lqd
+    title: a submitted set of rulings leaves the remote current and says what it did
+    statement: |
+      a set of rulings the owner submits survives the machine it was made on, waiting on no
+      later action; and the history it writes names what the sitting did — which statuses the
+      set took, and how many entries took each.
+    verification:
+      - do: rule several entries to different statuses and submit
+      - verify: the branch's remote carries the commit, and the commit message names each status taken with its count and names no status that no entry took
+    facets:
+      - tooling
+
+  - id: r-ycjjl48r
+    title: a draft is reached by its pull request
+    statement: |
+      the owner opens the session on a draft by naming its pull request, and works and lands it
+      from there without locating a branch or a working tree themselves.
+    verification:
+      - do: from a working tree on an unrelated branch, open a session naming another draft's pull request
+      - verify: the session opens on that draft's entries
+      - do: rule an entry and submit
+      - verify: the ruling reaches the pull request's branch, and the working tree the owner started from is unchanged
+    facets:
+      - tooling
+
+  - id: r-z0wcwwn0
+    title: the owner asks for a wording change without ruling on it
+    statement: |
+      while reading an entry the owner attaches a note asking for its text to be revised. the
+      note is not a ruling and settles nothing; it reaches whoever revises the text.
+    verification:
+      - do: attach a note to an entry, rule a different entry, and submit
+      - verify: the noted entry's status is unchanged, and the note is readable by an agent working the draft, naming the entry it concerns
+    facets:
+      - tooling
