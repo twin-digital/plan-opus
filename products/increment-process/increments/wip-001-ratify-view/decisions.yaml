@@ -588,12 +588,10 @@ decisions:
       diffable and a review comment can anchor to a line that means something. the width and the
       algorithm are the implementer's: a target under some width, breaking on whitespace, breaking
       inside a token only where an unbroken run exceeds the width on its own. paragraph breaks the
-      owner typed are kept as they were typed.
+      owner typed are kept as they were typed, and the wrapper only adds breaks.
 
-      wrapping a literal block adds newlines to the value, since `|` keeps them — which is what
-      every hand-authored statement in this repository already does, so a session-written entry
-      reads like one a person wrote. that consistency is worth more here than a value that
-      round-trips character for character, because these fields are prose for a reader.
+      a literal block keeps the newlines wrapping adds, so the stored value carries them — as
+      every hand-authored statement in this repository already does.
     status: proposed
     because:
       - d-ovlyaoht
