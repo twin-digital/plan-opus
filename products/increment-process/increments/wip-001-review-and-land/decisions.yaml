@@ -1,0 +1,93 @@
+version: "2"
+decisions:
+  - id: d-gf6x5jzy
+    title: ruling and landing are design-process commands
+    statement: |
+      the owner rules and lands from two commands of the existing design-process cli —
+      `review <product>`, a full-screen terminal application over the draft the working tree
+      holds, and `land <product>`, which review can invoke when its set is settled. no new
+      package, no service, and no browser: the commands reach the fold, the projection, and the
+      conflict check as library calls rather than reimplementing them.
+
+      review presents every proposed decision and every open question the draft carries in one
+      list, each with its statement, its pinning proposal, and what it supersedes or amends,
+      and the owner rules from the list. a draft that carries nothing open is reported as such
+      and offers the landing.
+    status: proposed
+    because:
+      - r-ax84j1s2
+      - r-2keswxn8
+    pinned:
+      reason: public-api
+      notes: two commands of a published cli
+    facets:
+      - tooling
+
+  - id: d-ovlyaoht
+    title: rulings stage in the session and apply in one write
+    statement: |
+      ruling an entry in review stages it and writes nothing; submitting applies the staged set
+      to the draft's own sources and commits it on the draft's branch, as one action the owner
+      takes once. a session abandoned before submitting leaves the tree untouched.
+
+      a decision takes one of the four rulings, and a rejection carries the owner's reason. a
+      question is answered in the same pass: the answer closes it, and where the answer routes
+      to a decision or a requirement the tool writes the entry into the draft with its id
+      already generated, for the owner to state. staging refuses what the sources could not
+      carry — a rejection with no reason, a routed answer with no entry — so a submitted set
+      validates.
+    status: proposed
+    because:
+      - r-ax84j1s2
+      - d-gf6x5jzy
+      - d-9s4d3ww2
+    pinned: false
+    facets:
+      - tooling
+      - process-doc
+
+  - id: d-qzpfyc6s
+    title: land is one fixed sequence that stops at the first failure
+    statement: |
+      land runs the published steps in order and stops at the first that fails, reporting what
+      to fix and leaving the branch as it found it: apply any staged rulings, run the conflict
+      check against the head, rename the wip directory into the number the head yields, run the
+      full design check, commit, push, approve the pull request as the owner, and set the merge
+      to complete on its own once the gate is green.
+
+      the approval follows the push rather than preceding it, because a push after an approval
+      dismisses it. nothing in the sequence needs judgement, and an increment carrying a
+      proposed decision or an open question is refused before any of it runs.
+    status: proposed
+    because:
+      - r-2keswxn8
+      - d-gf6x5jzy
+      - d-1qn5jzgd
+      - d-6x6l6ws7
+    pinned:
+      reason: public-api
+      notes: the order is what the owner relies on; a step moving changes what a landing does
+    facets:
+      - tooling
+      - process-doc
+
+  - id: d-6fur4w53
+    title: the approving credential is typed in and held only in memory
+    statement: |
+      the credential that approves as the owner is a github personal access token entered at
+      the terminal when the landing reaches the approval, with the input not echoed. it lives
+      in the process's memory for that run and nowhere else — not in a file, not in the
+      environment, not in an argument — and a second landing asks again.
+
+      the token is the owner's own, and the credentials the agents hold are never used to
+      approve. a landing that cannot obtain one still publishes everything up to the approval
+      and reports the pull request as awaiting it.
+    status: proposed
+    because:
+      - r-rxb7pn9z
+      - d-qzpfyc6s
+    pinned:
+      reason: other
+      notes: the owner's identity is what it spends; a later relaxation to a stored token would be silent
+    facets:
+      - tooling

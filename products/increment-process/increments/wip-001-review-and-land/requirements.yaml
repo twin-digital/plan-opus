@@ -1,0 +1,43 @@
+version: "1"
+requirements:
+  - id: r-ax84j1s2
+    title: the owner rules a draft's open set as one set
+    statement: |
+      the owner rules every proposed decision and open question a draft carries as one set, and
+      a single action applies all of it to the draft.
+    verification:
+      - do: open a draft carrying several proposed decisions and at least one open question
+      - verify: every one of them is presented together, with the statement the owner is ruling on legible in full
+      - do: rule them all, then submit once
+      - verify: the draft's sources carry every ruling, written by that one action
+    facets:
+      - tooling
+      - process-doc
+
+  - id: r-2keswxn8
+    title: publishing a settled draft takes no agent
+    statement: |
+      a draft whose rulings are complete publishes mechanically — the owner lands it without an
+      agent performing any step of the landing.
+    verification:
+      - do: settle a draft's rulings, then land it as the owner, with no agent in the loop
+      - verify: the increment is published under its number, and the merge gate passed on what landed
+      - do: land a draft that is not settled
+      - verify: it refuses, naming what is unsettled, and publishes nothing
+    facets:
+      - tooling
+      - process-doc
+
+  - id: r-rxb7pn9z
+    title: a credential acting as the owner is never written down
+    statement: |
+      a credential that acts as the owner is supplied at the moment it is used and held only
+      for as long as that use lasts; nothing writes it to disk, to the environment, or to a
+      command line.
+    verification:
+      - do: run a landing that authenticates as the owner, supplying the credential when asked
+      - verify: the credential appears in no file, no environment variable, and no process argument list during or after the run
+      - do: run the same landing again
+      - verify: it asks for the credential again, having retained nothing
+    facets:
+      - tooling
