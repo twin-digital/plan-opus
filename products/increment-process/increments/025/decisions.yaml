@@ -1,0 +1,27 @@
+version: "2"
+decisions:
+  - id: d-ayylbmel
+    title: a preset requirement names the subject it binds
+    statement: |
+      a requirement written in a preset names in its statement the kind of thing it binds — "a
+      Node.js package", "a pack", "a Node.js library" — rather than saying "a package"
+      generically.
+
+      a preset is adopted by a product, not by a package, and a product may hold packages of
+      several kinds: increment-process alone holds an npm-cli, three documents and two
+      agent-skills. nothing declares which of them a preset governs, so the statement's subject
+      is the only thing an implementer reads to know whether a requirement reaches the package
+      in front of it, and it is what a coverage note names when one package carries a claim its
+      siblings do not.
+
+      the test is the sibling: read the statement against the product's other packages, and if
+      it is unclear whether it reaches them, the subject is missing.
+    status: accepted
+    because:
+      - d-af2v9seu
+      - d-t6dutbjw
+      - d-wis1whfn
+      - r-bwtud1e5
+    facets:
+      - process-doc
+      - prompts
