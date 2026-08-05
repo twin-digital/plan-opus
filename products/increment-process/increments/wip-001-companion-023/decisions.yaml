@@ -88,6 +88,40 @@ decisions:
     facets:
       - tooling
 
+  - id: d-xn1jibg3
+    title: the merge method comes from the repository, not from the landing
+    statement: |
+      the auto-merge step reads the repository's own allow_merge_commit, allow_squash_merge, and
+      allow_rebase_merge and sets the method enabled there. where more than one is enabled it
+      prefers a merge commit, then a squash, then a rebase — a fixed order, so two landings against
+      one repository set the same method. where the repository enables none, or cannot be asked,
+      the landing reports the pull request approved and awaiting a manual merge rather than sending
+      a method the repository would refuse.
+
+      the landing serves repositories that differ: plan-opus permits merge commits alone and opus
+      squashes alone, so any built-in default is wrong for one of them.
+    status: delegated
+    because:
+      - d-8vsionnz
+      - d-qzpfyc6s
+    pinned: false
+    facets:
+      - tooling
+
+  - id: d-k85itgcv
+    title: an answer's placeholder entry enters accepted
+    statement: |
+      the entry a requirement- or decision-routed answer writes into the draft enters accepted, not
+      proposed. a proposed entry would leave the draft unsettleable by the session that wrote it —
+      the owner would answer a question and be handed a fresh blocker in the same pass.
+    status: delegated
+    because:
+      - d-octrdz0j
+      - r-ax84j1s2
+    pinned: false
+    facets:
+      - tooling
+
   - id: d-d76q0tpa
     title: land takes --root and nothing else
     statement: |
