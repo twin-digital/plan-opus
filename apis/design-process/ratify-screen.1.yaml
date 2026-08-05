@@ -4,8 +4,22 @@
 # Which entries the list holds, and how a cited id is resolved, are decisions.
 
 screen:
-  layout: the entry list on the left, the detail pane on the right
+  layout: the header across the top; below it, the entry list on the left and the detail pane on the right
   selection: moving through the list moves the pane
+
+header:
+  present-in: every mode
+  identity:
+    form: "<product> · <increment-directory> · <branch> · #<pr-number>"
+  other-inputs:
+    form: "also changed: <kind> (<count>), <kind> (<count>)"
+    kinds:
+      - schemas
+      - apis
+      - facts
+      - evidence
+      - drafts
+    absent: the line is omitted where the draft changes none of them
 
 entry-list:
   entry:

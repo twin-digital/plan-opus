@@ -15,7 +15,7 @@ decisions:
     status: proposed
     because:
       - r-ax84j1s2
-      - d-gf6x5jzy
+      - d-mhv8av8w
     pinned:
       reason: public-api
       notes: the screen the owner works from, and the first surface to enter the api pool
@@ -44,7 +44,7 @@ decisions:
     because:
       - r-jf51jzor
       - r-ax84j1s2
-      - d-gf6x5jzy
+      - d-mhv8av8w
     pinned: false
     facets:
       - tooling
@@ -104,47 +104,135 @@ decisions:
       - tooling
 
   - id: d-mhv8av8w
-    title: the session opens on the draft a pull request names
+    title: one interactive command carries the draft, and it works a pull request
     statement: |
-      `--pr <url>` names the pull request to work. the session resolves it to its head branch,
-      fetches that branch, materialises a temporary git worktree from it, runs there, and removes
-      the worktree when the session ends. the product comes from the draft the branch holds, so
-      the product argument is optional where `--pr` is given.
+      `design-process increment` is a full-screen terminal application over a draft's pull
+      request, and it is the whole flow: the owner rules from it and publishes from it, never
+      switching commands. no new package, no service, and no browser — it reaches the fold, the
+      projection, and the conflict check as library calls rather than reimplementing them.
 
-      the session still works a working tree, as it always has; what changes is that the tool
-      makes the tree rather than the owner. it needs a local clone of the pull request's
-      repository, found from the working directory the command ran in; where there is none it
-      says so and does nothing. a landing run from such a session lands that branch.
+      the pull request is what the session works, because by the time a draft is being ruled an
+      agent has already opened one and posted it for review. `--pr <url>` names it, and is the
+      ordinary way to start: the session resolves it to its head branch, fetches that branch,
+      materialises a temporary git worktree from it, runs there, and removes the worktree when
+      the session ends. the product comes from the draft the branch holds, so the product
+      argument is optional. it needs a local clone of the pull request's repository, found from
+      the working directory the command ran in; where there is none it says so and does nothing.
+
+      without `--pr` the session works the draft the current tree holds, and opens a pull request
+      for the branch before anything else where the branch has none. every session therefore has
+      one, which is what lets a submit post a review.
+
+      the session has modes, and what is open decides which are offered. ratify is where a draft
+      carrying anything proposed or unanswered opens. landing becomes available exactly when
+      nothing is proposed and no question is open, and is entered from the same session.
     status: proposed
+    supersedes: d-gf6x5jzy
     because:
       - r-ycjjl48r
-      - d-gf6x5jzy
+      - r-ax84j1s2
+      - r-2keswxn8
       - d-h418ljtp
     pinned:
       reason: public-api
-      notes: the option and what it accepts are what the owner types
+      notes: the command a published cli offers, what it accepts, and the gate on when landing appears
     facets:
       - tooling
 
   - id: d-f1b5r2f8
-    title: a note on an entry is written into the draft, not onto the pull request
+    title: every submit posts one pull-request review
     statement: |
-      a note the owner attaches to an entry is written by the submit into
-      `drafts/entry-notes.md` in the draft's own directory, each note naming the entry's id and
-      title and carrying the owner's text. the file is raw material the fold outranks: the agent
-      revising the text reads it and removes what it has consumed.
+      a submit posts exactly one review to the draft's pull request, after the commit and the
+      push, so the review anchors to the state it describes. each note the owner attached is a
+      comment in that review, against the lines of the entry it concerns in the source file that
+      carries it; a note whose entry is not in the pull request's diff goes into the review's
+      body naming the entry, rather than being dropped.
 
-      the draft carries the note rather than the pull request, because a session runs before a
-      pull request may exist — the landing is what opens one — and a note that cannot be taken
-      until then is a note the owner could not leave.
+      the review's event is `APPROVE` where the submit leaves the draft with nothing proposed,
+      nothing rejected, and no question open, and `COMMENT` otherwise. approving is the same
+      judgement the landing gate makes, taken at the moment the owner makes it, so the pull
+      request shows a settled draft as settled without a second action. a submit with no notes
+      and an unsettled draft posts a review with an empty body rather than none, so the sitting
+      is on the record.
 
-      a note settles nothing and gates nothing. an entry can carry a note and be accepted in the
-      same submit, and unconsumed notes do not hold a landing closed.
+      the review is the owner's, so it is what the owner's credential is spent on. a note settles
+      nothing and gates nothing: an entry can carry a note and be accepted in the same submit.
     status: proposed
     because:
+      - r-y9eux47d
       - r-z0wcwwn0
-      - d-ovlyaoht
-      - d-h418ljtp
+      - d-lqmwczg3
+      - d-mhv8av8w
+    pinned:
+      reason: public-api
+      notes: what a submit writes to the pull request is what the owner and every later reader see there
+    facets:
+      - tooling
+
+  - id: d-2b23mjrl
+    title: the owner's credential is asked for once and held for the session
+    statement: |
+      the credential that acts as the owner is a github personal access token entered at the
+      terminal the first time a session needs one, with the input not echoed. it lives in the
+      process's memory for the rest of that session and nowhere else — not in a file, not in the
+      environment, not in an argument — and a later session asks again.
+
+      a session posts a review on every submit, so asking at each one would put a prompt in the
+      middle of the flow the session exists to make continuous. holding it for the run is what
+      `d-6fur4w53` already permitted; what changes is that the first use is now a submit rather
+      than the landing.
+
+      a session that cannot obtain one still stages, commits, and pushes; it reports what it
+      could not post, and a landing run that way publishes everything up to the approval.
+    status: proposed
+    supersedes: d-6fur4w53
+    because:
+      - r-rxb7pn9z
+      - d-f1b5r2f8
+      - d-mhv8av8w
+    pinned:
+      reason: other
+      notes: the owner's identity is what it spends; a later relaxation to a stored token would be silent
+    facets:
+      - tooling
+
+  - id: d-ex0pr4e4
+    title: the token is spent on the reviews and nothing else
+    statement: |
+      the calls that carry the owner's token are the reviews a submit and a landing post, in an
+      authorization header read from memory. opening the pull request, pushing, and setting the
+      merge to complete on its own use the credentials the environment already holds — the agent
+      opened the draft's pull request, and the owner reviewing it is the point.
+
+      the token's reach is the reviews, so what the owner's identity is spent on is exactly what
+      carries their judgement.
+    status: proposed
+    supersedes: d-uap9qjz9
+    because:
+      - r-rxb7pn9z
+      - d-2b23mjrl
+      - d-f1b5r2f8
+    pinned: false
+    facets:
+      - tooling
+
+  - id: d-kjwswmro
+    title: the header names the draft and what is not in the list
+    statement: |
+      a header spans the top of every mode, naming the product, the increment directory, the
+      branch, and the pull request. the session is now started from a pull request url and runs
+      in a worktree the tool made, so nothing else on screen says which draft is open.
+
+      the header also names the draft's changed inputs that the ratify list does not hold —
+      schema pool versions, api surfaces, facts, evidence, and drafts — counted from the branch's
+      diff against the head the conflict check uses. it says they are there and does not render
+      them: a draft binding a new contract is a thing the owner must know before approving, and
+      a list of decisions alone does not show it.
+    status: proposed
+    because:
+      - r-ax84j1s2
+      - d-mhv8av8w
+      - d-9zot40jn
     pinned: false
     facets:
       - tooling
