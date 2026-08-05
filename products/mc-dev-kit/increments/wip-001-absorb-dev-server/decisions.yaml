@@ -21,8 +21,8 @@ decisions:
   - id: d-wtziwjh5
     title: server image pinned with console helper
     statement: |
-      the harness targets the `itzg/minecraft-bedrock-server` image, pinning the tag it generates and
-      exposing only that tag as configuration.
+      the harness targets the `itzg/minecraft-bedrock-server` image at `latest`, and
+      the tag is the only part of it a run may change.
     status: accepted
     pinned:
       reason: public-api
@@ -83,6 +83,9 @@ decisions:
       the server's `/data` is a named Docker volume the harness creates on `start`. `stop` takes the
       container down and leaves the volume standing, so every world on it survives to the next `start`.
       Only `destroy` removes it.
+
+      What the volume is called is the implementer's to choose, and stable once chosen: an author's world
+      library lives under that name and a later version renaming it would strand the lot.
 
       A volume rather than the container's own writable layer, so the world is independent of the
       container's lifecycle — which is what lets a recreate swap the served world, change the image or
@@ -501,8 +504,9 @@ decisions:
   - id: d-7ayy4btp
     title: a restart lets the world save first
     statement: |
-      every restart the harness performs is a console `stop` through the image's helper, waited for, then
-      a start — never a container kill. The world is written before the process goes down.
+      the harness takes a server down through the image's console `stop`, waited for,
+      and never through a container kill — every restart the loop performs, and the `stop` command too.
+      The world is written before the process goes down.
     status: accepted
     facets: dev-loop
     because:
@@ -677,8 +681,8 @@ decisions:
       - the level differs and the volume does not hold that world — generate it and recreate the container
         onto it, and say so; the world that was serving is untouched
       - only the image or port differs — recreate the container, and say so; the worlds survive
-      - the level matches but a specified seed is not the one that world was generated from — this is the
-        only rung that destroys a world. Warn, name the world and both seeds, and ask; regenerate on
+      - the level matches but a specified seed is not the one that world was generated from, a world with
+        no seed on record matching nothing — this is the only rung that destroys a world. Warn, name the world and both seeds, and ask; regenerate on
         agreement and bail out otherwise. Where nothing can be asked, bail out.
 
       A recreate is never silent, and the destructive rung is never taken without an answer. Worlds are
