@@ -87,9 +87,17 @@ facts:
       `docker compose cp` transfers files between host and container over the Docker API, so it
       works against a remote daemon with no bind mount. This makes a direct push (cp the built
       pack into the container, then issue a reload) a viable deploy transport independent of
-      `develop.watch`.
-    backing: assumed
+      `develop.watch`. It copies in both directions: a file copied out of a running container
+      against a remote daemon arrives on the host, and `exec` reads pool contents and activation
+      lists back the same way.
+    backing: tested
     sources:
+      - run: dev-loop-probe
+        where: D2 — copying the activation list out of the container to the host
+        quote: "  file arrived on the host: true"
+      - run: dev-loop-probe
+        where: D2 — exec listing the behavior-pack pool
+        quote: "  exec ls of the pool: a1111111-1111-4111-8111-111111111111, a2222222-2222-4222-8222-222222222222"
       - description: |
           Observed in the prototype by the author of minecraft/dev-server, not by this fact's
           author, and outside this repository — there are no artifacts to promote. Built pack
@@ -158,15 +166,23 @@ facts:
       A behavior pack copied into a Bedrock server's `development_behavior_packs` pool is not
       applied until it is listed in the world's `world_behavior_packs.json`, and that list is read
       only when the world loads. Changing the activation list therefore requires a server restart to
-      take effect; the list must be installed into the specific world directory
-      (`/data/worlds/<level-name>`).
+      take effect — a pack removed from the list keeps running until the world reloads, and a pack
+      newly copied into the pool and added to the list does not start on a console reload — and the
+      list must be installed into the specific world directory (`/data/worlds/<level-name>`).
     backing: tested
     sources:
-      - description: |
-          The half the probe does not cover — that editing the list without a restart has no in-game
-          effect — was observed in a prototype outside this repository, where packs synced into the
-          pool but absent from the world list logged "Pack Stack - None" at load and only appeared
-          after the list was written and the container restarted. There is no captured output.
+      - run: reload-detection-probe
+        where: B — the pack removed from the activation list and its script edited, then reloaded with no restart; the new token proves the delisted pack was still live
+        quote: "   [2026-08-05 11:19:23:376 ERROR] [Scripting] [throw probe] Error: PROBE-THROW gen5-h2    at <anonymous> (main.js:3)"
+      - run: reload-detection-probe
+        where: B2 — the same emptied list read at the next world load
+        quote: "   [2026-08-05 11:19:31:826 INFO] Pack Stack - None"
+      - run: reload-detection-probe
+        where: C — a second pack pooled and listed, then reloaded with no restart, emitting nothing
+        quote: "  wrote world_behavior_packs.json = [{\"pack_id\":\"8a5c1e90-0000-4000-8000-00000000beef\",\"version\":[1,0,0]}]"
+      - run: reload-detection-probe
+        where: C2 — the same pack after a restart, its first evaluation reporting itself
+        quote: "   [2026-08-05 11:20:46:894 ERROR] [Scripting] [throw probe 2] Error: PROBE-THROW PACK2-FIRST-RUN    at <anonymous> (main.js:1)"
       - run: activation-list-probe
         where: pool-only versus listed — the same pack, before and after the world list names it
         quote: |
@@ -180,6 +196,9 @@ facts:
           [2026-07-24 21:30:08:734 INFO] Pack Stack - [00] activation probe pack (id: b1a7d0c2-3f4e-4a5b-8c9d-0e1f2a3b4c5d, version: 1.0.0) @ development_behavior_packs/probe-pack
 
   - id: bedrock-activation-entry-is-header-uuid-and-version
+    status: retired
+    reason: superseded
+    superseded_by: bedrock-activation-entry-is-header-uuid-and-a-matching-version
     claim: |
       A world's activation list, `<world>/world_behavior_packs.json`, is a JSON array of entries
       with exactly two fields: `pack_id`, the uuid from the pack manifest's *header* — a module
@@ -316,3 +335,124 @@ facts:
             world_behavior_packs.json = []
             world_resource_packs.json = [{"pack_id":"f5ebc4c3-7d8a-4e9f-0a1b-2c3d4e5f6a7b","version":[1,0,0]},{"pack_id":"d3c9f2a1-5b6e-4c7d-8e9f-0a1b2c3d4e5f","version":[1,0,0]}]
           [2026-07-24 23:49:15:522 INFO] Pack Stack - None
+
+  - id: bedrock-activation-entry-is-header-uuid-and-a-matching-version
+    claim: |
+      A world's activation list, `<world>/world_behavior_packs.json`, is a JSON array of entries
+      with exactly two fields: `pack_id`, the uuid from the pack manifest's *header* — a module uuid
+      does not work — and `version`, which must name the version of the pack sitting in the pool. A
+      wrong uuid or a version the pooled pack does not have loads nothing and reports no error
+      beyond "Pack Stack - None". The server does not create the file for a new world and does not
+      rewrite one it is given.
+
+      Either side may spell the version as a `[major, minor, revision]` array or as a SemVer string,
+      and the two sides need not agree on the spelling: a pool manifest carrying `"1.0.0"` loads
+      against an entry carrying `[1,0,0]`, and a pre-release version loads against both its own
+      string and the array of its release components. The Pack Stack line reports back whatever the
+      pool manifest declared.
+    backing: tested
+    caveat: measured against one engine build, 1.26.40.8.
+    sources:
+      - run: dev-loop-probe
+        where: A2 — a pool manifest declaring a SemVer string, against an array activation entry
+        quote: "  pool manifest header.version = \"1.0.0\" (format_version 2)"
+      - run: dev-loop-probe
+        where: A2 — the pack stack that load reported
+        quote: "[2026-08-05 02:19:55:389 INFO] Pack Stack - [00] probe pack1 (id: a1111111-1111-4111-8111-111111111111, version: 1.0.0) @ development_behavior_packs/a1111111-1111-4111-8111-111111111111"
+      - run: dev-loop-probe
+        where: A4 — a pre-release string in the pool, against an entry carrying [1,2,0]
+        quote: "  pool manifest header.version = \"1.2.0-beta.1\" (format_version 2)"
+      - run: dev-loop-probe
+        where: A4 — the pack stack reporting the pre-release spelling back
+        quote: "[2026-08-05 02:20:38:462 INFO] Pack Stack - [00] probe pack1 (id: a1111111-1111-4111-8111-111111111111, version: 1.2.0-beta.1) @ development_behavior_packs/a1111111-1111-4111-8111-111111111111"
+      - run: activation-list-probe
+        where: the module uuid in place of the header uuid
+        quote: "[2026-07-24 21:30:13:721 INFO] Pack Stack - None"
+      - run: dev-loop-probe
+        where: D0 — the world directory before any deploy, holding no activation list
+        quote: "levelname.txt"
+
+  - id: bedrock-reload-re-evaluates-an-edited-script-module
+    claim: |
+      `send-command reload` re-evaluates a loaded behavior pack's script module against the current
+      contents of its files, with no restart and no world reload, within a few seconds. It does so
+      whether the edit landed in the module's entry file or in a file the entry imports, so a pack
+      whose script is bundled to a single entry file reloads exactly as one split across files does.
+    backing: tested
+    caveat: |
+      Measured against one engine build, 1.26.40.8, editing files the pack already held. Adding a
+      file the world did not load is a different case, covered by
+      a-bedrock-script-reload-resolves-only-the-files-loaded-at-world-load.
+    sources:
+      - run: reload-detection-probe
+        where: the world load, before any edit
+        quote: "   [2026-08-05 11:18:37:075 ERROR] [Scripting] [throw probe] Error: PROBE-THROW gen0-h0    at <anonymous> (main.js:3)"
+      - run: reload-detection-probe
+        where: case 1 — the entry file edited, then reloaded
+        quote: "   [2026-08-05 11:18:50:851 ERROR] [Scripting] [throw probe] Error: PROBE-THROW gen1-h0    at <anonymous> (main.js:3)"
+      - run: reload-detection-probe
+        where: case 2 — an imported file edited, then reloaded
+        quote: "   [2026-08-05 11:18:58:847 ERROR] [Scripting] [throw probe] Error: PROBE-THROW gen1-h1    at <anonymous> (main.js:3)"
+      - run: reload-detection-probe
+        where: case 3 — the entry file edited again, then reloaded
+        quote: "   [2026-08-05 11:19:07:110 ERROR] [Scripting] [throw probe] Error: PROBE-THROW gen3-h1    at <anonymous> (main.js:3)"
+
+  - id: bedrock-script-console-output-is-not-a-deploy-signal
+    claim: |
+      A script's own console output reaches the container's console only when the image is run with
+      `CONTENT_LOG_CONSOLE_OUTPUT_ENABLED` — without it the console carries no `[Scripting]` line at
+      all — and even then a `console.warn` emitted at module evaluation appears at world load and
+      not on a subsequent reload. An uncaught error from the same evaluation appears on both.
+      Nothing may treat a pack's log output as the acknowledgement that a reload took effect.
+    backing: tested
+    caveat: measured against one engine build, 1.26.40.8.
+    sources:
+      - run: reload-detection-probe
+        where: the world load — the warn line and the error line both reach the console
+        quote: "   [2026-08-05 11:18:37:074 WARN] [Scripting] [probe] warn gen0-h0"
+      - run: reload-detection-probe
+        where: case 1 — after the reload only the error line appears, though the module re-evaluated with the edited file
+        quote: "   [2026-08-05 11:18:50:851 ERROR] [Scripting] Plugin [throw probe - 1.0.0] - [main.js] ran with error: [Error: PROBE-THROW gen1-h0    at <anonymous> (main.js:3)"
+
+  - id: bedrock-resource-packs-mirror-the-behavior-pack-layout
+    claim: |
+      The dedicated server creates `/data/development_behavior_packs`,
+      `/data/development_resource_packs`, and `/data/development_skin_packs` before any deploy. A
+      resource pack deployed into the resource pool and named in `<world>/world_resource_packs.json`
+      takes the same two-field entry shape a behavior pack's does, and the server leaves that file
+      byte-identical across a world load exactly as it leaves the behavior-pack one.
+    backing: tested
+    caveat: |
+      Whether the resource pack activated is not established: the load output's Pack Stack line
+      names behavior packs only, per pack-kind-mismatch-fails-silently-at-the-server, and a resource
+      pack runs no script that could report itself. What is established is the pool path, the
+      activation list's name and location, its entry shape, and that the server does not rewrite it.
+    sources:
+      - run: dev-loop-probe
+        where: D0 — the pools the image creates under /data before any deploy
+        quote: "development_resource_packs"
+      - run: dev-loop-probe
+        where: D1 — the resource activation list written into the world directory
+        quote: "  wrote /data/worlds/dev/world_resource_packs.json = [{\"pack_id\":\"a3333333-3333-4333-8333-333333333333\",\"version\":[1,0,0]}]"
+      - run: dev-loop-probe
+        where: D1 — the world directory after the deploy
+        quote: "  world_resource_packs.json"
+
+  - id: bedrock-rejects-a-format-version-3-manifest
+    claim: |
+      A behavior pack manifest declaring `format_version` 3, otherwise identical to a
+      `format_version` 2 manifest that loads, does not load: the world comes up reporting
+      "Pack Stack - None" with no other diagnostic, under either spelling of the activation entry's
+      version.
+    backing: tested
+    caveat: |
+      This is evidence about one manifest, not about the format. The probe wrote a format_version 3
+      manifest with the same shape as its format_version 2 one; a manifest the format actually wants
+      may differ, and nothing here establishes what that shape is.
+    sources:
+      - run: dev-loop-probe
+        where: A6 — the pool manifest declaring format_version 3
+        quote: "  pool manifest header.version = \"1.0.0\" (format_version 3)"
+      - run: dev-loop-probe
+        where: A6 — the world load that followed
+        quote: "[2026-08-05 02:21:21:409 INFO] Pack Stack - None"

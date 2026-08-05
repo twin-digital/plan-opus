@@ -1,66 +1,20 @@
 version: "1"
 
-# What the dev loop still rests on and cannot answer from the fold. Three of the stranded cycle's
-# five questions asked what the kit's API does; inside this product those are the kit's own
-# requirements and the decisions cite them directly. These four are what remains, plus two the
-# survey of the draft fold found unrecorded.
+# What the dev loop still rests on and cannot answer from the fold. The stranded cycle's five have
+# all closed: three asked what the kit's API does, which inside this product is the kit's own
+# requirements, and the two server questions closed against evidence/minecraft/dev-server —
+# dev-loop-probe and reload-detection-probe, run 2026-08-05.
 questions:
-  - id: q-gsr57mk0
-    question: |
-      Does an edit to a world's activation list take effect without a server restart, and is the
-      world directory the only place the list is read from? The probe behind
-      f:bedrock-activation-list-read-only-at-world-load restarts between every list change, so no
-      observation in hand separates a list edit from the restart beside it; the world directory is
-      likewise only where the list was observed to work, not a place shown to be the only one.
-      Closed by a probe that edits a list without restarting, or by a documented source. If a list
-      edit lands live, d-ftlfhac8 prices a restart for a change that does not need one.
-    answer: fact
-    facets: dev-loop
-
-  - id: q-12jwzs0h
-    question: |
-      Does any console command — `/reload all` among them — bring a pack newly copied into the pool
-      into the running world, or is a restart the only path? The reload probe behind
-      f:a-bedrock-script-reload-resolves-only-the-files-loaded-at-world-load measured files inside a
-      pack already loaded, never a pack newly pooled, so the newly-pooled case is untested. If a
-      console command does pool a pack live, d-ftlfhac8's boundary is drawn one case too tight.
-    answer: fact
-    facets: dev-loop
-
-  - id: q-qk2r4e5q
-    question: |
-      Does `docker compose cp` read from a container to the host against a remote daemon, and can
-      the image's console helper — or `exec` more generally — list a pool directory and return a
-      file's contents? d-q8ikxtdk reads pool contents and activation lists off the running
-      container every reconcile, and the evidence in hand covers only the host-to-container
-      direction and only `send-command`. Closed by a probe against a remote daemon.
-    answer: fact
-    facets: dev-loop
-
-  - id: q-npz0np7l
-    question: |
-      Does a pack whose pool `manifest.json` carries a SemVer-string `header.version` load at all,
-      and does an activation entry's three-number `version` array match it? r-wi7qf6to completes
-      `header.version` as a SemVer string at every format version, and r-imfmv0qc puts that
-      completed manifest in the output tree — so every pack this harness deploys carries a string
-      version in the pool. f:bedrock-activation-entry-is-header-uuid-and-version records the entry's
-      version as the header's three-number array "which must match the pack in the pool", and the
-      probe behind it used array-versioned manifests throughout; the string case is unobserved. A
-      pre-release version has no array form at all. A mismatch loads nothing and reports only
-      "Pack Stack - None". Gates d-cw6pder5, and d-ftlfhac8's version-change class with it. Closed
-      by a probe deploying a string-versioned pack, pre-release included.
-    answer: fact
-    facets: dev-loop
-
   - id: q-h34y88go
     question: |
-      Where does a resource pack's pool sit on the server, what is a world's resource-pack
-      activation list called, where does it sit, and does an entry carry the same uuid-and-version
-      shape a behavior-pack entry does? d-jv1zleaj fixes the behavior-pack half of the layout and
-      leaves this half open.
-      f:bedrock-activation-entry-is-header-uuid-and-version is scoped to
-      `world_behavior_packs.json`; `world_resource_packs.json` appears only inside a probe quote for
-      a misrouted pack, and nothing establishes its shape. d-4iepnry2 deploys resource packs and
-      d-cw6pder5 writes their entries. Closed by a probe or a documented source.
+      Does a resource pack deployed into `/data/development_resource_packs` and named in the world's
+      `world_resource_packs.json` actually activate? f:bedrock-resource-packs-mirror-the-behavior-pack-layout
+      establishes the pool path, the list's name and location, its entry shape, and that the server
+      leaves the file byte-identical across a world load — but not that the pack loads. The Pack
+      Stack line names behavior packs only, per f:pack-kind-mismatch-fails-silently-at-the-server,
+      and a resource pack runs no script that could report itself. Closed by a probe with a client
+      attached, or by a documented source. Gates d-4iepnry2 and the resource half of d-jv1zleaj;
+      r-hpu39brj makes resource support optional, so a behavior-only first release does not wait on
+      it.
     answer: fact
     facets: dev-loop

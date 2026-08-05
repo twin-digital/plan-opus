@@ -20,6 +20,15 @@ const logs=()=>compose("logs","--no-log-prefix","bedrock").split("\n");
 const sleep=(ms)=>Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,ms);
 const U="7a5c1e90-0000-4000-8000-00000000beef", M="7b5c1e90-0000-4000-8000-00000000cafe";
 const POOL="/data/development_behavior_packs";
+console.log("=== environment");
+console.log(execFileSync("docker",["compose","version"],{encoding:"utf8"}).trim());
+console.log(execFileSync("docker",["version","--format","Docker Engine {{.Server.Version}}"],{encoding:"utf8"}).trim());
+console.log(`DOCKER_HOST=${process.env.DOCKER_HOST ?? "(local socket)"}`);
+compose("down","-v");
+compose("up","-d");
+for(let i=0;i<90;i++){ if(logs().some(l=>l.includes("Server started"))) break; sleep(2000); }
+console.log(logs().filter(l=>l.includes("Version")).slice(0,1).join("").trim());
+
 const main=(t)=>`import { value } from "./helper.js";\nconsole.warn("[probe] warn ${t}-" + value);\nthrow new Error("PROBE-THROW ${t}-" + value);\n`;
 const helper=(n)=>`export const value = "h${n}";\n`;
 const put=(rel,body)=>{const t="/tmp/.s";fs.writeFileSync(t,body);compose("cp",t,`bedrock:${POOL}/${U}/${rel}`);};
@@ -52,4 +61,45 @@ for(const kind of ["entry","import","entry","import"]){
   console.log(lines.map(l=>"   "+l.trim()).join("\n")||"   <no [Scripting] lines>");
   console.log(`   => re-evaluated with the NEW content: ${hit?"YES":"NO"}`);
 }
+
+// ---------------------------------------------------------------- B. an activation-list edit
+// Same detector: the pack keeps throwing, so a token that appears after a reload proves the pack
+// was still live at that moment.
+const putList=(entries)=>{const t="/tmp/.l";fs.writeFileSync(t,JSON.stringify(entries));compose("cp",t,`bedrock:/data/worlds/dev/world_behavior_packs.json`);console.log(`  wrote world_behavior_packs.json = ${JSON.stringify(entries)}`);};
+const reloadFor=(needle)=>{const bb=logs().length;compose("exec","-T","bedrock","send-command","reload");
+  for(let i=0;i<25;i++){sleep(2000); if(logs().slice(bb).some(l=>l.includes("PROBE-THROW"))){sleep(4000);break;}}
+  const ls=logs().slice(bb).filter(l=>l.includes("[Scripting]"));
+  return {hit:ls.some(l=>l.includes(needle)), lines:ls};};
+
+console.log("\n=== B: remove the pack from the activation list, edit its script, reload — no restart");
+putList([]);
+gen++; put("scripts/main.js",main(`gen${gen}`));
+let r=reloadFor(`gen${gen}-h${hN}`);
+console.log(r.lines.map(l=>"   "+l.trim()).join("\n")||"   <no [Scripting] lines>");
+console.log(`   => the delisted pack was still live: ${r.hit?"YES — a list edit does not take effect without a restart":"NO"}`);
+
+console.log("\n=== B2: restart, so the emptied list is read at world load");
+b=logs().length; compose("restart","bedrock");
+for(let i=0;i<45;i++){sleep(2000);const L=logs().slice(b);if(L.some(x=>x.includes("Server started"))&&L.some(x=>x.includes("Pack Stack"))){sleep(10000);break;}}
+console.log(logs().slice(b).filter(l=>l.includes("Pack Stack")||l.includes("[Scripting]")).map(l=>"   "+l.trim()).join("\n"));
+
+// ---------------------------------------------------------------- C. a newly pooled pack
+const U2="8a5c1e90-0000-4000-8000-00000000beef", M2="8b5c1e90-0000-4000-8000-00000000cafe";
+console.log("\n=== C: pool a second pack and list it, reload — no restart");
+const d2=fs.mkdtempSync(path.join(os.tmpdir(),"tp2-")); fs.mkdirSync(path.join(d2,"scripts"));
+fs.writeFileSync(path.join(d2,"scripts/main.js"),`throw new Error("PROBE-THROW PACK2-FIRST-RUN");\n`);
+fs.writeFileSync(path.join(d2,"manifest.json"),JSON.stringify({format_version:2,header:{name:"throw probe 2",description:"t2",uuid:U2,version:[1,0,0],min_engine_version:[1,26,0]},modules:[{type:"script",language:"javascript",entry:"scripts/main.js",uuid:M2,version:[1,0,0]}],dependencies:[{module_name:"@minecraft/server",version:"2.0.0"}]},null,2));
+compose("exec","-T","bedrock","mkdir","-p",`${POOL}/${U2}`);
+compose("cp",d2+"/.",`bedrock:${POOL}/${U2}`);
+putList([{pack_id:U2,version:[1,0,0]}]);
+r=reloadFor("PACK2-FIRST-RUN");
+console.log(r.lines.map(l=>"   "+l.trim()).join("\n")||"   <no [Scripting] lines>");
+console.log(`   => the newly pooled pack came live on reload: ${r.hit?"YES":"NO — a restart is needed"}`);
+
+console.log("\n=== C2: restart, so the newly pooled pack is read at world load");
+b=logs().length; compose("restart","bedrock");
+for(let i=0;i<45;i++){sleep(2000);const L=logs().slice(b);if(L.some(x=>x.includes("Server started"))&&L.some(x=>x.includes("Pack Stack"))){sleep(10000);break;}}
+console.log(logs().slice(b).filter(l=>l.includes("Pack Stack")||l.includes("[Scripting]")).map(l=>"   "+l.trim()).join("\n"));
+fs.rmSync(d2,{recursive:true});
 fs.rmSync(d,{recursive:true});
+compose("down","-v");

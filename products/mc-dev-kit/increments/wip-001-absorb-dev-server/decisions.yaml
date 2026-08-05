@@ -112,17 +112,18 @@ decisions:
   - id: d-cw6pder5
     title: activation entries are written from the pack set
     statement: |
-      an activation entry's uuid and version are taken from the pack set the kit returns. The
-      harness reads no `manifest.json`, in the built output or anywhere else — the entry is known
-      before a build runs, so reading one back would add a parse and a failure path for a value
-      already in hand.
+      an activation entry's uuid and version are taken from the pack set the kit returns, and its
+      version is written in whatever form the kit reports it. The harness reads no `manifest.json`,
+      in the built output or anywhere else, and converts nothing — the entry is known before a build
+      runs, the server accepts a SemVer string as readily as an array, and the two sides need not
+      agree on the spelling.
     status: proposed
     facets: dev-loop
     because:
       - r-rlh87pau
       - r-kbgjy2pt
       - r-imfmv0qc
-      - f:bedrock-activation-entry-is-header-uuid-and-version
+      - f:bedrock-activation-entry-is-header-uuid-and-a-matching-version
 
   - id: d-oo8256gl
     title: a pack occupies a pool directory named for its uuid
@@ -148,6 +149,7 @@ decisions:
     because:
       - r-pcq10f2b
       - d-uqdxo2w6
+      - f:compose-cp-copies-without-bind-mounts
 
   - id: d-a9jaqn8m
     title: the harness compares presence and identity, never content
@@ -184,11 +186,12 @@ decisions:
       file, an added or removed pack, a version change, and any activation-list edit all restart
       the server.
 
-      The file set is what the cheap path is drawn around because a reload resolves imports only
-      against the files present when the world last loaded, and a file first deployed after that
-      fails with the same error a genuinely absent one gives — silently, from the harness's side.
-      The comparison is against the pool the reconcile already reads, not against anything the
-      harness remembers, so it holds on the first change after a reattach as it does on any other.
+      The file set is what the cheap path is drawn around because a reload re-evaluates a loaded
+      module against the current contents of its files, whichever of them changed, while a file
+      first deployed after the world load fails to resolve with the same error a genuinely absent
+      one gives — silently, from the harness's side. The comparison is against the pool the
+      reconcile already reads, not against anything the harness remembers, so it holds on the first
+      change after a reattach as it does on any other.
     status: proposed
     facets: dev-loop
     because:
@@ -196,6 +199,7 @@ decisions:
       - r-8xmkne8a
       - d-a9jaqn8m
       - f:a-bedrock-script-reload-resolves-only-the-files-loaded-at-world-load
+      - f:bedrock-reload-re-evaluates-an-edited-script-module
       - f:bedrock-reload-updates-scripts-not-pool-or-manifest
       - f:bedrock-activation-list-read-only-at-world-load
 
@@ -330,9 +334,11 @@ decisions:
       its behavior activation list is `world_behavior_packs.json` inside it. A pack occupies a
       directory named for its uuid in its kind's pool.
 
+      A resource pack's pool is `/data/development_resource_packs` and its world activation list is
+      `world_resource_packs.json` beside the behavior one, entries taking the same shape.
+
       Activation entries are written in the run's selection order, so a reconcile that changed
-      nothing writes the same bytes. The resource-pack pool path and activation list are not fixed
-      here; q-h34y88go settles them.
+      nothing writes the same bytes.
     status: proposed
     pinned:
       reason: data-format
@@ -343,7 +349,8 @@ decisions:
       - d-oo8256gl
       - d-q8ikxtdk
       - d-imdfu09l
-      - f:bedrock-activation-entry-is-header-uuid-and-version
+      - f:bedrock-activation-entry-is-header-uuid-and-a-matching-version
+      - f:bedrock-resource-packs-mirror-the-behavior-pack-layout
 
   - id: d-duvygv2f
     title: the first deploy of a fresh world pays a restart
@@ -358,7 +365,7 @@ decisions:
       - r-8et233c9
       - d-jv1zleaj
       - d-ftlfhac8
-      - f:bedrock-activation-entry-is-header-uuid-and-version
+      - f:bedrock-activation-entry-is-header-uuid-and-a-matching-version
       - f:bedrock-activation-list-read-only-at-world-load
 
   - id: d-e956frnx
@@ -369,8 +376,9 @@ decisions:
       linking the EULA, and brings nothing up. The harness does not accept on the author's behalf.
 
       Everything else about the server's posture is the harness's and is not configurable: the
-      world is offline-mode with no allow-list, a development server on the author's own machine
-      or daemon.
+      world is offline-mode with no allow-list, a development server on the author's own machine or
+      daemon, and the image's content log is enabled to the console — without it a pack's script
+      output never reaches the harness's stream at all.
     status: proposed
     pinned:
       reason: public-api
@@ -380,6 +388,7 @@ decisions:
       - r-8et233c9
       - d-wtziwjh5
       - d-wkcxcv2b
+      - f:bedrock-script-console-output-is-not-a-deploy-signal
 
   - id: d-joa4eefg
     title: the kit exports workspace-root resolution
@@ -531,7 +540,8 @@ decisions:
       the harness has one output stream, owned solely by the command line and written to by every
       other part only through it, and every line on it is prefixed with a short source tag — the
       emitting package for build output, `deploy` for the harness's own activity, `server` for
-      container logs.
+      container logs. A pack's own script output arrives on that stream as `server` lines and is
+      never read as a signal: a reload that took effect emits nothing the harness can match.
     status: proposed
     pinned:
       reason: data-format
@@ -539,3 +549,4 @@ decisions:
     facets: dev-loop
     because:
       - r-8et233c9
+      - f:bedrock-script-console-output-is-not-a-deploy-signal

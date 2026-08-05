@@ -122,25 +122,49 @@ with), d-joa4eefg (a new export on the published library), d-62bpn2h2 (exit code
 d-5e00ndwi (the per-line output prefix), d-zo2yl18y (the volume the author's world lives in),
 d-jv1zleaj (paths and file contents on the server).
 
-## Open questions (5 carried)
+## Open questions (1 carried, from 5)
 
-Three of the stranded cycle's five asked what the kit's API does. Inside this product those are the
-kit's own requirements: the built-output location is `r-8h864ke8` and `r-un786n7v`, and how a build
-is invoked is `r-hlnbi41r` — the kit ships no command line, so d-j3ayhwv1 runs the package's own
-scripts. What remains:
+The stranded cycle's five have all closed. Three asked what the kit's API does, which inside this
+product is the kit's own requirements: the built-output location is `r-8h864ke8` and `r-un786n7v`,
+and how a build is invoked is `r-hlnbi41r`. The two server questions, and the two the survey added,
+closed against two probes run 2026-08-05 — `dev-loop-probe` and `reload-detection-probe`, both under
+`evidence/minecraft/dev-server/`.
 
-| carried from | new id | subject |
-|---|---|---|
-| q-rtjmsq1r | q-gsr57mk0 | does an activation-list edit land without a restart |
-| q-h2uaejbd | q-12jwzs0h | does any console command bring a newly pooled pack live |
-| — | q-qk2r4e5q | does `cp`/`exec` read container-to-host against a remote daemon |
-| — | q-h34y88go | the resource-pack pool path, activation list, and entry shape |
-| — | q-npz0np7l | whether a SemVer-string pool version matches an array activation entry |
+| question | closed by |
+|---|---|
+| q-gsr57mk0 — does a list edit land without a restart | no. `f:bedrock-activation-list-read-only-at-world-load` gains four sources: a pack removed from the list kept running until the world reloaded |
+| q-12jwzs0h — does a console command pool a pack live | no. Same fact — a pack newly pooled and listed emitted nothing on reload and reported itself only after a restart |
+| q-npz0np7l — the activation version form | no collision. `f:bedrock-activation-entry-is-header-uuid-and-a-matching-version` — a SemVer string loads, a pre-release loads, and the two sides need not agree on the spelling |
+| q-qk2r4e5q — container-to-host reads | yes. `f:compose-cp-copies-without-bind-mounts` moves from `assumed` to `tested` with both directions covered |
+| q-h34y88go — the resource-pack side | **partly.** The pool path, list name, entry shape, and that the server does not rewrite it are now `f:bedrock-resource-packs-mirror-the-behavior-pack-layout`. Whether the pack *activates* is not observable headlessly, so the question narrows to that and stays open |
 
-The last three are gaps the surveys of this draft fold found unrecorded. q-qk2r4e5q gates d-q8ikxtdk,
-whose every reconcile reads state off the container while the evidence in hand covers only the
-host-to-container direction. q-h34y88go gates d-4iepnry2 and d-cw6pder5, which deploy resource
-packs against a fact scoped to `world_behavior_packs.json`.
+## Facts
+
+Proposed, all from the two runs above:
+
+- **`bedrock-activation-entry-is-header-uuid-and-a-matching-version`** — replaces
+  `bedrock-activation-entry-is-header-uuid-and-version`, which is **retired as disproven on one
+  clause**: it called the entry's version "the header's three-number version array", and the probe
+  loads a pack from a SemVer string, a pre-release, and either spelling on either side. Everything
+  else it claimed carries over. Its three citations move to the replacement.
+- **`bedrock-reload-re-evaluates-an-edited-script-module`** — a console reload re-evaluates a loaded
+  module against the current contents of its files, entry file and imported file alike, so a
+  single-file bundle reloads as a split module does. This is what `d-ftlfhac8`'s cheap path rests
+  on.
+- **`bedrock-script-console-output-is-not-a-deploy-signal`** — a script's `console.warn` reaches the
+  console only with `CONTENT_LOG_CONSOLE_OUTPUT_ENABLED`, and even then appears at world load and
+  not on a reload; an uncaught error appears on both. Nothing may read a pack's log output as an
+  acknowledgement.
+- **`bedrock-resource-packs-mirror-the-behavior-pack-layout`** — the resource pool path, activation
+  list, and entry shape.
+- **`bedrock-rejects-a-format-version-3-manifest`** — scoped narrowly: one manifest, otherwise
+  identical to a loading `format_version` 2 one, did not load. Evidence about that manifest, not
+  about the format. It bears on the build half rather than the dev loop, since `r-dj86ixj8` passes
+  format versions through unnormalised.
+
+`compose-cp-copies-without-bind-mounts` moves from `assumed` to `tested`, and
+`bedrock-activation-list-read-only-at-world-load` gains four sources that cover the half its own
+first source admitted it had never captured.
 
 ## Survey
 
