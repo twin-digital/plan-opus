@@ -37,16 +37,17 @@ pack2's first-ever evaluation never logged; C2 restarted and it did. The reload 
 
 ## E — what a reload does
 
-E1 edited only the entry file and E2 edited an imported file; both re-evaluated on reload, within
-about two seconds, with no restart and no world reload.
+E1 and E2 edited the entry file and an imported file and both re-evaluated on reload. The companion
+`reload-detection-probe` settles this properly with a detector that survives a reload: a console
+reload re-evaluates a loaded pack's script module against the current contents of its files,
+whichever file changed.
 
-**Do not read a rule about entry files versus imported files out of these two cases.** The companion
-`reload-entry-shape-probe` set out to confirm one and its positive control failed: in a fresh
-session with a single pack in the pool, no reload re-evaluated the module whichever file changed.
-Reload re-evaluation is not reliably reproducible across sessions on this engine build, and that
-probe's NOTES.md carries the table of runs that did and did not show it. What E1 and E2 establish is
-that a reload re-evaluates a loaded pack's script module **sometimes**, here, in this session — not
-what governs it.
+Do not read this probe's B and C steps as bearing on that. They scored a reload by whether a
+`console.warn` line reappeared, and that signal does not survive a reload — B1's silence says
+nothing. What B and C do establish stands on the Pack Stack line instead: B2 and B3 show an
+activation-list edit taking effect only at the next world load, and C1 and C2 show a newly pooled
+pack needing a restart, because pack2's first-ever evaluation would have thrown its own lines and
+did not.
 
 ## D — the resource-pack side
 

@@ -1,15 +1,17 @@
-name: reload-entry-shape-probe
+name: reload-detection-probe
 services:
   bedrock:
     image: itzg/minecraft-bedrock-server
     environment:
       EULA: "TRUE"
       LEVEL_NAME: dev
-      SERVER_NAME: reload-entry-shape-probe
+      SERVER_NAME: reload-detection-probe
       GAMEMODE: creative
       CONTENT_LOG_FILE_ENABLED: "true"
       CONTENT_LOG_CONSOLE_OUTPUT_ENABLED: "true"
     volumes:
       - data:/data
+  listener:
+    image: nginx:alpine
 volumes:
   data:
