@@ -1,0 +1,19 @@
+name: resource-pack-activation-probe
+services:
+  bedrock:
+    image: itzg/minecraft-bedrock-server
+    environment:
+      EULA: "TRUE"
+      LEVEL_NAME: dev
+      SERVER_NAME: rp-activation-probe
+      GAMEMODE: creative
+      ONLINE_MODE: "false"
+      ALLOW_LIST: "false"
+      CONTENT_LOG_FILE_ENABLED: "true"
+      CONTENT_LOG_CONSOLE_OUTPUT_ENABLED: "true"
+    ports:
+      - "19132:19132/udp"
+    volumes:
+      - data:/data
+volumes:
+  data:

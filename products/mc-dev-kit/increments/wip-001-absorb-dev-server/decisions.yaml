@@ -477,8 +477,10 @@ decisions:
 
       Everything else about the server's posture is the harness's and is not configurable: the world
       is offline-mode with no allow-list, a development server on the author's own machine or
-      daemon, and the image's content log is enabled to the console — without it a pack's script
-      output never reaches the harness's stream at all.
+      daemon; the image's content log is enabled to the console — without it a pack's script output
+      never reaches the harness's stream at all; and resource packs are offered rather than
+      required, so a client is prompted to download them and may decline, which is the author's
+      call to make per join rather than the harness's to force.
     status: proposed
     pinned:
       reason: public-api
@@ -489,6 +491,7 @@ decisions:
       - d-wtziwjh5
       - d-wkcxcv2b
       - f:bedrock-script-console-output-is-not-a-deploy-signal
+      - f:bedrock-resource-packs-mirror-the-behavior-pack-layout
   - id: d-joa4eefg
     title: the kit exports workspace-root resolution
     statement: >

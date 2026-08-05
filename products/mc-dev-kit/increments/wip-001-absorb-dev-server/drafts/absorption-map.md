@@ -122,21 +122,20 @@ with), d-joa4eefg (a new export on the published library), d-62bpn2h2 (exit code
 d-5e00ndwi (the per-line output prefix), d-zo2yl18y (the volume the author's world lives in),
 d-jv1zleaj (paths and file contents on the server).
 
-## Open questions (1 carried, from 5)
+## Open questions — none
 
-The stranded cycle's five have all closed. Three asked what the kit's API does, which inside this
-product is the kit's own requirements: the built-output location is `r-8h864ke8` and `r-un786n7v`,
-and how a build is invoked is `r-hlnbi41r`. The two server questions, and the two the survey added,
-closed against two probes run 2026-08-05 — `dev-loop-probe` and `reload-detection-probe`, both under
-`evidence/minecraft/dev-server/`.
+All five the increment carried have closed, and `questions.yaml` is gone: the schema says the file
+is never present on a published increment. Three asked what the kit's API does, which inside this
+product is `r-8h864ke8`, `r-un786n7v`, and `r-hlnbi41r`. The rest closed against probes under
+`evidence/minecraft/dev-server/`, all run 2026-08-05.
 
 | question | closed by |
 |---|---|
-| q-gsr57mk0 — does a list edit land without a restart | no. `f:bedrock-activation-list-read-only-at-world-load` gains four sources: a pack removed from the list kept running until the world reloaded |
-| q-12jwzs0h — does a console command pool a pack live | no. Same fact — a pack newly pooled and listed emitted nothing on reload and reported itself only after a restart |
-| q-npz0np7l — the activation version form | no collision. `f:bedrock-activation-entry-is-header-uuid-and-a-matching-version` — a SemVer string loads, a pre-release loads, and the two sides need not agree on the spelling |
-| q-qk2r4e5q — container-to-host reads | yes. `f:compose-cp-copies-without-bind-mounts` moves from `assumed` to `tested` with both directions covered |
-| q-h34y88go — the resource-pack side | **partly.** The pool path, list name, entry shape, and that the server does not rewrite it are now `f:bedrock-resource-packs-mirror-the-behavior-pack-layout`. Whether the pack *activates* is not observable headlessly, so the question narrows to that and stays open |
+| q-gsr57mk0 — does a list edit land without a restart | no. A pack removed from the list kept running until the world reloaded |
+| q-12jwzs0h — does a console command pool a pack live | no. A newly pooled and listed pack emitted nothing on reload and reported itself only after a restart |
+| q-npz0np7l — the activation version form | no collision. A SemVer string loads, a pre-release loads, and the two sides need not agree on the spelling |
+| q-qk2r4e5q — container-to-host reads | yes, both directions |
+| q-h34y88go — does a resource pack activate | **yes**, and the client is prompted to download it. `resource-pack-activation-probe` — a person with a client attached is the instrument, because the server carries no signal for it |
 
 ## Facts
 
@@ -156,7 +155,9 @@ Proposed, all from the two runs above:
   not on a reload; an uncaught error appears on both. Nothing may read a pack's log output as an
   acknowledgement.
 - **`bedrock-resource-packs-mirror-the-behavior-pack-layout`** — the resource pool path, activation
-  list, and entry shape.
+  list, and entry shape, and that naming a pack there **activates** it. The activation half was
+  observed at an attached client rather than in the server's output, which carries no signal for
+  it; the probe's control and its reversal are what make the observation mean the list.
 - **`bedrock-rejects-a-format-version-3-manifest`** — scoped narrowly: one manifest, otherwise
   identical to a loading `format_version` 2 one, did not load. Evidence about that manifest, not
   about the format. It bears on the build half rather than the dev loop, since `r-dj86ixj8` passes

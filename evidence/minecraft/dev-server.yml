@@ -67,3 +67,18 @@ runs:
       console at world load and not on a reload — the output shows both at load and only the error
       afterwards. A case counts only when the new token appears, so no stale or suppressed line can
       fake one.
+
+  - id: resource-pack-activation-probe
+    command: node evidence/minecraft/dev-server/resource-pack-activation-probe/run.mjs setup|activate|deactivate|teardown
+    output: evidence/minecraft/dev-server/resource-pack-activation-probe/OUTPUT.txt
+    ran_at: 2026-08-05
+    environment: |
+      The same image, engine build 1.26.40.8, and remote daemon as dev-loop-probe, with the port
+      published to the daemon's host, ONLINE_MODE off and no allow list. Whether a resource pack
+      activates is not readable from the server — the Pack Stack line names behavior packs only and
+      a resource pack runs no script — so the observer is a person with a Bedrock client attached
+      and the probe runs in phases they drive between observations. The pack's only content is a
+      texts/en_US.lang line renaming the diamond sword, so nothing but the activation list differs
+      between phases. The OBSERVED lines in the output are the owner's report from the client,
+      appended as each phase was observed; everything else is the server's own. NOTES.md beside the
+      output records the phase table and what the probe does not cover.

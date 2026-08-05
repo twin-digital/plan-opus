@@ -421,12 +421,16 @@ facts:
       resource pack deployed into the resource pool and named in `<world>/world_resource_packs.json`
       takes the same two-field entry shape a behavior pack's does, and the server leaves that file
       byte-identical across a world load exactly as it leaves the behavior-pack one.
+
+      Naming it there activates it: its content reaches a joining client, and a pooled pack the list
+      does not name does nothing. The server offers the pack to the client, which prompts to
+      download it before joining.
     backing: tested
     caveat: |
-      Whether the resource pack activated is not established: the load output's Pack Stack line
-      names behavior packs only, per pack-kind-mismatch-fails-silently-at-the-server, and a resource
-      pack runs no script that could report itself. What is established is the pool path, the
-      activation list's name and location, its entry shape, and that the server does not rewrite it.
+      Activation was observed at an attached client rather than in the server's output, which
+      carries no signal for it: the Pack Stack line names behavior packs only, per
+      pack-kind-mismatch-fails-silently-at-the-server, and a resource pack runs no script that could
+      report itself. Measured against one engine build, 1.26.40.8.
     sources:
       - run: dev-loop-probe
         where: D0 — the pools the image creates under /data before any deploy
@@ -437,6 +441,15 @@ facts:
       - run: dev-loop-probe
         where: D1 — the world directory after the deploy
         quote: "  world_resource_packs.json"
+      - run: resource-pack-activation-probe
+        where: setup — the pack pooled but not named in the activation list, observed at the client
+        quote: "  OBSERVED (client attached, phase setup): the diamond sword is named \"Diamond Sword\" — the stock name. A pooled but unlisted resource pack does nothing."
+      - run: resource-pack-activation-probe
+        where: activate — the same pack named in the activation list, observed at the client
+        quote: "  OBSERVED (client attached, phase activate): the client showed a prompt to download the resource pack before joining, and the diamond sword is named \"RESOURCE PACK IS ACTIVE\" — the pack activated."
+      - run: resource-pack-activation-probe
+        where: deactivate — the list emptied again, observed at the client
+        quote: "  OBSERVED (client attached, phase deactivate): the diamond sword is named \"Diamond Sword\" again — the observation tracks the activation list in both directions."
 
   - id: bedrock-rejects-a-format-version-3-manifest
     claim: |
