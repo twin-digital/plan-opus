@@ -314,6 +314,41 @@ The decision keeps one honest limit: what a reload *refreshes* still varies by c
 harness does not model that. It reloads where it may and leaves the engine's own limits to show
 themselves.
 
+## Worlds, and what start does about them
+
+A volume can hold many world directories and the server serves the one `level` names, so **d-5vjxmr4u**
+keeps several and swaps between them. That turns most "wrong world" situations into a container
+recreate onto the right one — the volume survives a recreate, so every world on it does — and leaves
+exactly one destructive case: a level name whose world was generated from a different seed than the
+run asks for.
+
+**d-41m3iws5** gains the wildcard rule that makes this work. `level`, `seed` and `spawn` are each
+optional, and an unspecified one is a wildcard rather than a demand: a profile that names no seed
+attaches to whatever world is serving, and one that names a seed requires that world. All three
+cascade — profile, then the file's top level, then the harness's defaults (`default` for the level, a
+seed the server picks).
+
+**d-owprl7uy** is the ladder start walks when a server is already running. It compares only what a
+reconcile cannot fix: pack selection and spawn point are never in the comparison, since the first is
+what the reconcile is for and the second is set on a live world. Every rung says out loud what it
+did, and the one rung that destroys a world asks first.
+
+**d-5ocyva9w** answers how the harness knows what is running, in place of stamping labels on the
+project. Container settings are read by inspecting the container; the world being served is read from
+the level name on the volume. Only one thing cannot be read back — the seed a world was generated
+from, because the server records the seed it was *asked for* and the world's own copy is binary — so
+the harness keeps one small file on the volume naming, per world, the seed that made it. It is a
+record, which `d-q8ikxtdk` otherwise forbids trusting; the exception is argued on the entry.
+
+`d-ifke5eeh` is reconciled with the ladder, and one clause of it corrected: recreating a container
+does not lose the world, because the volume outlives it. It drops connected clients, which is a
+different debt and one the ladder pays by never recreating silently.
+
+**Worlds are session-scoped.** The volume still goes on `stop`, so several worlds are a thing an
+author moves between *within* a run, not a library that accumulates. A world is reproducible from its
+level name and seed; what is not reproducible is what the author did inside it, which is what
+b-jucqjdql and b-762ansca are for.
+
 ## Left for the Plan loop
 
 - **The `f:dev-kit-*` facts.** Eleven facts in `facts/minecraft/bedrock-server.yml` source

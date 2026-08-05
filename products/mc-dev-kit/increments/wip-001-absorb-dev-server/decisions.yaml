@@ -299,20 +299,16 @@ decisions:
       - d-zo2yl18y
   - id: d-ifke5eeh
     title: start is idempotent against a running server
-    statement: >
-      the start command brings the compose project up only when it is not already running; finding
+    statement: |
+      the start command brings the compose project up only when it is not already running. Finding it
+      running and matching, it attaches — no `up`, no recreate, no restart — and reaches readiness from the
+      world-load line already in the container's log rather than waiting for a new one. Reattaching after a
+      Ctrl+C therefore costs nothing and disturbs nobody, which is the whole of what r-kfu7pcms asks for.
 
-      it running, it attaches to it — no `up`, no recreate, no restart — and reaches readiness from
-
-      the world-load line already in the container's log rather than waiting for a new one. A
-
-      project running under settings the current configuration would not produce is reported to the
-
-      author and left alone, never silently recreated — recreating the container is what loses the
-
-      world and disconnects the client, and a regenerated compose file differing from the running
-
-      project would otherwise do exactly that on every reattach.
+      Finding it running and not matching is d-owprl7uy's ladder, and every rung of that ladder says so out
+      loud. What start never does is recreate a container without saying it did: a recreate keeps the
+      volume and so keeps every world on it, but it drops the connected clients, and an author who was
+      standing in a world is owed the reason.
     status: accepted
     facets: dev-loop
     because:
@@ -320,6 +316,7 @@ decisions:
       - d-w8cc8n18
       - d-imdfu09l
       - d-i4oryd9x
+      - d-owprl7uy
   - id: d-c1kvyord
     title: a profile is a named scenario, and flags override it
     statement: |
@@ -357,12 +354,16 @@ decisions:
       Both default names present at once is an error rather than a precedence rule.
 
       Every setting has a default, so a workspace with no config file at all is a complete run — every
-      pack the kit discovers, the level name `dev`, the image tag the harness pins, the default port, a
+      pack the kit discovers, the level name `default`, the image tag the harness pins, the default port, a
       world the server seeds however it likes, and no profiles.
 
       The file is YAML and every key is optional: `level`, `image`, `port`, `eula`, `seed`, `spawn` — an
       `[x, y, z]` array — `profiles`, and `default_profile` naming one of them. A profile is a mapping
-      that may carry `packs`, a list of owning package names, and its own `seed` and `spawn`. A key the
+      that may carry `packs`, a list of owning package names, and its own `level`, `seed` and `spawn`.
+
+      Those three cascade: a profile's value wins, the file's top level answers where the profile is
+      silent, and the harness's own defaults answer where both are — `default` for the level, and a seed
+      the server picks. A key the
       harness does not define is an error, and so is a value of the wrong shape. A file that cannot be read
       or parsed fails the run naming the file and the parse error, rather than falling back to defaults and
       hosting the wrong thing.
@@ -645,26 +646,20 @@ decisions:
       - f:bedrock-script-console-output-is-not-a-deploy-signal
   - id: d-41m3iws5
     title: a run chooses its world's seed and spawn
-    statement: >
-      a run may fix the world it generates: `seed` sets the level seed the server generates from,
-
-      and `spawn`, an `[x, y, z]` array, sets where a joining player arrives. Either may come from
-
+    statement: |
+      a run may fix the world it serves: `level` names it, `seed` sets what the server generates it
+      from, and `spawn`, an `[x, y, z]` array, sets where a joining player arrives. Either may come from
       the config file, from a profile in it, or from `--seed` and `--spawn` on the command line.
-
-      Given neither, the server seeds the world as it likes and keeps the spawn point it chose.
-
+      Each is optional, and an unspecified one is a wildcard rather than a demand: a run that names no
+      seed is content with whatever world is already serving, and a run that names one requires that
+      world. This is what lets a profile describe a scenario — its packs and its spawn — without tying
+      itself to a single world.
 
       The seed reaches the server as the generated project's level seed, since it is read only when
-
       a world is generated. The spawn point is set with `setworldspawn` on the console once the
-
       world has loaded, because the server offers no setting for it; the command acknowledges
-
       nothing, so the harness issues it and does not wait. Both are only ever meaningful because a
-
       world lasts one run: d-zo2yl18y is what makes a seed reproducible rather than a one-time
-
       accident.
     status: proposed
     pinned:
@@ -678,3 +673,83 @@ decisions:
       - d-uqdxo2w6
       - d-i4oryd9x
       - f:bedrock-world-generation-takes-a-seed-and-a-spawn-command
+  - id: d-5vjxmr4u
+    title: a volume holds many worlds and serves one
+    statement: |
+      the server's volume holds a world directory per level name the run has asked for, and the
+      server serves the one `level` names. Switching to another world the volume already holds costs a
+      container recreate and nothing else: the volume survives it, so every world in it does.
+
+      A level name the volume does not hold yet is generated, from the run's seed where it names one. So
+      naming a new level is how an author gets a second world, and naming an old one is how they go back
+      to it — neither disturbs the other.
+
+      Worlds live as long as the volume does, which is one run (d-zo2yl18y). Within a run an author may
+      keep several and move between them; across a stop they all go, and a world is reproducible from its
+      level name and seed. What is not reproducible is what the author did inside it, which is what
+      snapshots are for and why they are on the backlog rather than here.
+    status: proposed
+    facets: dev-loop
+    because:
+      - r-7lroj1cg
+      - r-8et233c9
+      - d-zo2yl18y
+      - d-41m3iws5
+      - d-jv1zleaj
+  - id: d-5ocyva9w
+    title: the harness reads a running server rather than a record of it
+    statement: |
+      the harness learns what a running server is from the server, not from anything it stamped
+      there. Container-level settings — the image and the published port — are read by inspecting the
+      running container. The world a server is serving is read from the level name in its configuration on
+      the volume.
+
+      What cannot be read back is the seed a world was generated from: the server records the seed it was
+      asked for, not the one an existing world already had, and the world's own copy is binary. So the
+      harness keeps one small file on the volume naming, per world it generated, the seed it generated it
+      from. That file is a record, which a reconcile is otherwise forbidden to trust (d-q8ikxtdk) — the
+      exception holds because a world's generation seed is immutable history rather than state that can
+      drift, and because nothing else can answer the question.
+    status: proposed
+    pinned:
+      reason: data-format
+      notes: a file the harness writes on the volume and reads back on a later run
+    facets: dev-loop
+    because:
+      - d-q8ikxtdk
+      - d-41m3iws5
+      - d-5vjxmr4u
+      - d-imdfu09l
+  - id: d-owprl7uy
+    title: what start does when a server is already running
+    statement: |
+      start compares only what a reconcile cannot fix. Pack selection and spawn point are never
+      part of that comparison: the first is what the reconcile is for, and the second is set on a live
+      world with a console command. What remains is the level name, the seed, the image and the port, and
+      an unspecified one matches anything.
+
+      Given a running server, start takes the first of these that applies:
+
+      - every specified setting matches — attach, and reconcile as usual
+      - the level differs, and the volume holds that world — recreate the container onto it, and say so;
+        worlds survive, connected clients do not
+      - the level differs and the volume does not hold that world — generate it and recreate the container
+        onto it, and say so; the world that was serving is untouched
+      - only the image or port differs — recreate the container, and say so; the worlds survive
+      - the level matches but a specified seed is not the one that world was generated from — this is the
+        only case that destroys a world. Warn, name the world and both seeds, and ask; regenerate on
+        agreement and bail out otherwise. Where nothing can be asked, bail out.
+
+      A recreate is never silent, and the destructive case is never taken without an answer.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: what an author's second start does to the first one's server
+    facets: dev-loop
+    because:
+      - r-kfu7pcms
+      - r-pcq10f2b
+      - d-5vjxmr4u
+      - d-5ocyva9w
+      - d-wgzr4lvx
+      - d-7ayy4btp
