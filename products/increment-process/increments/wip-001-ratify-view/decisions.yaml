@@ -258,6 +258,7 @@ decisions:
       not hold the landing closed.
     status: proposed
     because:
+      - r-3l4h8ua1
       - r-ax84j1s2
       - d-ovlyaoht
     pinned: false
@@ -476,6 +477,7 @@ decisions:
       same submit.
     status: proposed
     because:
+      - r-jitunafp
       - r-y9eux47d
       - r-z0wcwwn0
       - d-lqmwczg3
@@ -592,8 +594,16 @@ decisions:
 
       a literal block keeps the newlines wrapping adds, so the stored value carries them — as
       every hand-authored statement in this repository already does.
+
+      the write is an edit to the source, not a re-serialisation of it. a submit rewriting the
+      file through a yaml serialiser reflows every entry it did not touch: the values survive and
+      the diff does not, and the pull request stops showing what the sitting did. so the session
+      edits the spans it ruled and leaves every other byte where it found it, block scalars in the
+      surrounding entries included.
     status: proposed
     because:
+      - r-ospozqv8
+      - r-xtbhb7gj
       - d-ovlyaoht
       - d-octrdz0j
       - r-6n45h5eb
@@ -780,6 +790,7 @@ decisions:
       sources, and the count is what keeps a draft from publishing over one.
     status: proposed
     because:
+      - r-ge2xf5nz
       - r-ax84j1s2
       - r-dp8zisqf
       - d-mhv8av8w

@@ -111,6 +111,79 @@ requirements:
       - tooling
       - prompts
 
+  - id: r-ge2xf5nz
+    title: the owner knows which draft they are ruling, and what the list does not show
+    statement: |
+      the session says at all times which draft is open and where it lives, and says whether the
+      draft changes anything the ruling list does not hold. the owner does not approve a draft
+      whose contract bindings, facts, or schema versions they were never told about.
+    verification:
+      - do: open a session on a draft that also binds a contract and adds a fact
+      - verify: the product, the increment, the branch, and the pull request are visible without leaving the ruling view, and so is the fact that surfaces and facts changed
+      - do: open a session on a draft that changes decisions only
+      - verify: nothing claims an input changed
+    facets:
+      - tooling
+
+  - id: r-3l4h8ua1
+    title: every status the owner needs is available where they rule
+    statement: |
+      the owner leaves any status a decision may carry from the place they are ruling it,
+      deferring included, without writing the entry by hand or leaving for another tool.
+    verification:
+      - do: rule one decision to each status the process defines, from the ruling view
+      - verify: each is taken there, and the draft's source carries it
+    facets:
+      - tooling
+
+  - id: r-iibk7tw0
+    title: the owner can see where what they type will land
+    statement: |
+      wherever the session takes text from the owner, the position the next character will occupy
+      is visible — including where the text itself is not echoed back.
+    verification:
+      - do: reject a decision and begin typing its reason
+      - verify: the insertion point is visible before the first character and after the last
+      - do: reach a field whose text is not echoed
+      - verify: the insertion point is visible there too, and the text is not
+    facets:
+      - tooling
+
+  - id: r-ospozqv8
+    title: a submit changes only what it ruled
+    statement: |
+      an entry the owner did not rule and did not note comes out of a submit exactly as it went
+      in, byte for byte. the pull request's diff shows the sitting and nothing else.
+    verification:
+      - do: rule two entries in a draft carrying twenty, and submit
+      - verify: the commit's diff touches those two entries and no other line of any source
+    facets:
+      - tooling
+
+  - id: r-xtbhb7gj
+    title: what the owner types is stored as they wrote it
+    statement: |
+      text the owner types reaches the draft's sources as written, and no character they can type
+      corrupts the file it lands in or changes what a later reader sees.
+    verification:
+      - do: reject a decision with a reason containing a colon, a leading dash, a "#", and both kinds of quote
+      - verify: the source parses, and the reason reads back exactly as typed
+    facets:
+      - tooling
+      - schema
+
+  - id: r-jitunafp
+    title: an approval the owner gives is not discarded by the process
+    statement: |
+      the owner approves a draft once, and no step the process takes afterwards throws that
+      approval away and asks again.
+    verification:
+      - do: settle a draft, then carry it through to publication
+      - verify: the owner was asked to approve once, and the merge proceeded on that approval
+    facets:
+      - tooling
+      - process-doc
+
   - id: r-z0wcwwn0
     title: the owner asks for a wording change without ruling on it
     statement: |
