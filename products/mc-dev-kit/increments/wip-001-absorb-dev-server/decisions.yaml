@@ -276,21 +276,25 @@ decisions:
       - d-wtziwjh5
       - f:bedrock-activation-list-read-only-at-world-load
   - id: d-vrq7lc2o
-    title: start builds once before the first reconcile
-    statement: >
-      the start sequence runs each selected package's one-shot build to
-      completion before the first
+    title: a pack that will not build is deployed as a stub
+    statement: |
+      the start sequence runs each selected package's one-shot build, and a build that fails does
+      not stop it. A pack whose build failed is deployed as a stub — a valid pack carrying the
+      pack's own identity and version and no content — so the world loads with every selected pack
+      present and its activation list complete, and the failure is reported on the stream. The watch
+      builds start either way.
 
-      reconcile, and starts the watch builds only after it.
-    status: rejected
+      A stub is replaced by the real pack on the first build that succeeds, through the ordinary
+      reconcile. That replacement changes the pack's file set, so it costs the restart d-ftlfhac8
+      prices rather than a reload: what an author gets is a server that came up and a loop that
+      carries the fix, not a live patch.
+    status: proposed
     facets: dev-loop
     because:
       - r-8et233c9
       - r-97fvutt9
-    rejection_reason: could we inject a stub/noop pack that way the serer can start
-      if there are build errors? that way the 'erorrs during start' behavior is
-      basically the same as 'errors after running' -- fix, and the fixes are
-      hot-deployed
+      - d-ftlfhac8
+      - d-j3ayhwv1
   - id: d-j3ayhwv1
     title: the harness runs a package's own build scripts and watches its output
     statement: >
@@ -311,28 +315,21 @@ decisions:
       - r-1bvvl9k7
       - r-v8jjhds5
   - id: d-0yrfifhi
-    title: command surface is start and stop
-    statement: >
-      the package's executable is `mc-dev-server`. It exposes one default
-      start-and-watch command
-
-      and one explicit `stop` command, the stop command carrying the `--reset`
-      flag that also
-
-      removes the world volume. Ctrl+C stops the watchers and the log follow and
-      nothing else.
-    status: rejected
+    title: the command is minecraft-server, with start and stop subcommands
+    statement: |
+      the package's executable is `minecraft-server`. It takes two subcommands, `start` and `stop`,
+      each named explicitly — there is no bare default invocation. `stop` carries the `--reset` flag
+      that also removes the world volume. Ctrl+C stops the watchers and the log follow and nothing
+      else.
+    status: proposed
     pinned:
       reason: public-api
-      notes: the verbs, the executable name, and the flag that destroys a world
+      notes: the executable, the two verbs, and the flag that destroys a world
     facets: dev-loop
     because:
       - r-8et233c9
       - r-kfu7pcms
-      - d-zo2yl18y
       - d-zyo6kku9
-    rejection_reason: let's name the command "minecraft-server". sub-command names
-      "start" and "stop" (not start-and-watch)
   - id: d-ifke5eeh
     title: start is idempotent against a running server
     statement: >
@@ -363,87 +360,53 @@ decisions:
       - d-imdfu09l
       - d-i4oryd9x
   - id: d-c1kvyord
-    title: selection is flags over a workspace config file
-    statement: >
-      a run's selection is a repeatable `--pack` flag naming owning package
-      names, defaulting to
+    title: selection is flags, or a default profile in the config
+    statement: |
+      a run's selection is a repeatable `--pack` flag naming owning package names, or
+      `--profile <name>` naming a profile in the file `--config` supplied. Given neither, the run
+      hosts the config's `default_profile` where one is named, and every pack the kit discovers
+      otherwise.
 
-      every pack the kit discovers, with `--profile <name>` naming a list held
-      in the harness's
-
-      workspace config file at `mc-dev-server.yaml`.
-
-
-      A `--pack` value matching no discovered pack is an error, and so is a
-      `--profile` naming no
-
-      profile the file holds — a run hosts what was asked for or it does not
-      start. `--pack` and
-
-      `--profile` together are an error rather than a union: each is a complete
-      statement of the
-
-      selection. A profile holding an empty list selects no packs, which is a
-      valid run.
-    status: rejected
+      A `--pack` value matching no discovered pack is an error, and so is a `--profile` naming no
+      profile the file holds, or a `--profile` given with no `--config` — a run hosts what was asked
+      for or it does not start. `--pack` and `--profile` together are an error rather than a union:
+      each is a complete statement of the selection. A profile holding an empty list selects no
+      packs, which is a valid run.
+    status: proposed
     pinned:
-      reason: data-format
-      notes: a checked-in file the author authors by hand, and the flags that read it
+      reason: public-api
+      notes: the flags a consumer invokes the harness with, and what each selects
     facets: dev-loop
     because:
       - r-u8cg9vi6
-      - r-8et233c9
-      - r-7v7o1jy8
       - r-co6glnme
-      - d-wtziwjh5
-    rejection_reason: requires update after changes to d-wkcxcv2b
+      - d-wkcxcv2b
+      - d-0yrfifhi
   - id: d-wkcxcv2b
-    title: the workspace config file's shape
-    statement: >
-      `mc-dev-server.yaml` is a YAML mapping with four keys, every one of them
-      optional:
+    title: the config file is optional and named on the command line
+    statement: |
+      there is no conventional name or location for a workspace config file: the harness reads one
+      only where `--config <path>` names it, and a run without that flag reads none. Every setting
+      has a default, so a bare `minecraft-server start` in a workspace is a complete run — every
+      pack the kit discovers, the level name `dev`, the image tag the harness pins, the default
+      port, and no profiles.
 
-      `level` (the world's level name, default `dev`), `image` (the server image
-      tag, default the
-
-      tag the harness pins), `port` (the published UDP port, default 19132), and
-      `profiles`, a
-
-      mapping of profile name to a list of owning package names. A key the
-      harness does not
-
-      define is an error, not an ignored line; so is a value of the wrong shape.
-
-
-      The file is optional in full: a workspace without one runs every
-      discovered pack under
-
-      every default. A file the harness cannot read or cannot parse fails the
-      run naming the file
-
-      and the parse error — never falls back to defaults, which would silently
-      host the wrong
-
-      thing.
-    status: rejected
+      Where a file is given it is YAML, and every key is optional: `level`, `image`, `port`,
+      `eula`, `profiles` — a mapping of profile name to a list of owning package names — and
+      `default_profile`, naming one of them to use when the command line carries neither `--profile`
+      nor `--pack`. A key the harness does not define is an error, and so is a value of the wrong
+      shape. A file named by `--config` that cannot be read or parsed fails the run naming the file
+      and the parse error, rather than falling back to defaults and hosting the wrong thing.
+    status: proposed
     pinned:
       reason: data-format
-      notes: an author writes and commits this file by hand
+      notes: an author writes and commits this file by hand, and the flag that reaches it
     facets: dev-loop
     because:
       - r-u8cg9vi6
       - r-8et233c9
-      - d-xtx1aaea
       - d-wtziwjh5
       - d-imdfu09l
-    rejection_reason: "no conventional name for config--by default, use all packs,
-      server name 'dev', default tag/port, and no
-      profiles.\e[D\e[D\e[D\e[D\e[D\e[D\e[D\e[D\e[D\e[D\e[D\e[D\e[D\e[D\e[D\e[D\
-      \e[D\e[D\e[C\e[C\e[C\e[C\e[C\e[C\e[C\e[C\e[C\e[C\e[C\e[C\e[C\e[C\e[C\e[C\
-      \e[C\e[C\e[C\ekadd a '--config' option, which is the path to a config file
-      in the format described by this decision. let's include a way to specify a
-      defualt profile, which is used if the command line has no '--profile' or
-      '--pack' options"
   - id: d-jv1zleaj
     title: the server's on-disk layout
     statement: >
@@ -505,41 +468,27 @@ decisions:
       - f:bedrock-activation-entry-is-header-uuid-and-a-matching-version
       - f:bedrock-activation-list-read-only-at-world-load
   - id: d-e956frnx
-    title: the author accepts the server EULA in the config file
-    statement: >
-      the generated project sets the image's EULA acceptance from an `eula:
-      true` key the author
+    title: the author accepts the server EULA on the command line or in the config
+    statement: |
+      the generated project sets the image's EULA acceptance from either an `--accept-eula` flag on
+      the command line or an `eula: true` key in a config file `--config` named. Given neither, the
+      start command fails naming both routes and linking the EULA, and brings nothing up. The
+      harness does not accept on the author's behalf.
 
-      writes in `mc-dev-server.yaml`. Absent or false, the start command fails
-      naming the key and
-
-      linking the EULA, and brings nothing up. The harness does not accept on
-      the author's behalf.
-
-
-      Everything else about the server's posture is the harness's and is not
-      configurable: the
-
-      world is offline-mode with no allow-list, a development server on the
-      author's own machine or
-
-      daemon, and the image's content log is enabled to the console — without it
-      a pack's script
-
+      Everything else about the server's posture is the harness's and is not configurable: the world
+      is offline-mode with no allow-list, a development server on the author's own machine or
+      daemon, and the image's content log is enabled to the console — without it a pack's script
       output never reaches the harness's stream at all.
-    status: rejected
+    status: proposed
     pinned:
       reason: public-api
-      notes: a legal acknowledgement the author makes, and the key they make it with
+      notes: a legal acknowledgement the author makes, and the two ways they make it
     facets: dev-loop
     because:
       - r-8et233c9
       - d-wtziwjh5
       - d-wkcxcv2b
       - f:bedrock-script-console-output-is-not-a-deploy-signal
-    rejection_reason: need to amend this to allow eula acceptance from the CLI,
-      since as written a config file is basically required. add an
-      '--accept-eula' flag for the explicit acceptance
   - id: d-joa4eefg
     title: the kit exports workspace-root resolution
     statement: >
@@ -582,42 +531,26 @@ decisions:
       - d-cw6pder5
       - d-k7py0qqv
   - id: d-n81zkitr
-    title: what fails a run and what is reported and carried
-    statement: >
-      the harness fails the run, before bringing anything up, when a selected
-      pack is one the kit
+    title: a run launches best-effort and reports what it could not build
+    statement: |
+      nothing about an individual pack stops a run. A selected pack the kit reports invalid, a
+      selected package declaring no `build` script, a build that fails at start or mid-session, and
+      a build that leaves no output tree are each reported on the stream, naming the package and the
+      problem, and the run continues — deploying a stub where the pack has nothing to deploy, per
+      d-vrq7lc2o, and leaving the last good deploy in place where it already had one. A selected
+      package declaring no `watch` script is built once and not watched, reported at start. A watch
+      process that exits is reported and not restarted.
 
-      reports invalid, when a selected package declares no `build` script, or
-      when a one-shot
-
-      build fails. Each failure names the package and the problem. A run hosts
-      what was asked for
-
-      or it does not start.
-
-
-      Once the loop is running it does not tear down: a rebuild that fails
-      leaves the last good
-
-      deploy in place and is reported, and the pack is deployed when a later
-      build succeeds. A
-
-      selected package declaring no `watch` script is built once and not
-      watched, reported at
-
-      start. A watch process that exits is reported and not restarted.
-    status: rejected
+      A run fails only where it cannot be a run at all: no Docker, no reachable daemon, a `--config`
+      file that will not parse, or a selection naming something the workspace does not hold.
+    status: proposed
     facets: dev-loop
     because:
       - r-8et233c9
       - r-pcq10f2b
-      - r-97fvutt9
       - d-vrq7lc2o
-      - d-j3ayhwv1
+      - d-c1kvyord
       - r-iby30nx1
-    rejection_reason: similar to the decision rejected to abort if initial build
-      fails, let's try to do a best-effort launch of the server and report
-      errors via console
   - id: d-plnvasfo
     title: pool content the harness did not deploy is removed
     statement: >
@@ -716,9 +649,9 @@ decisions:
     facets: dev-loop
     because:
       - r-kfu7pcms
-      - d-9tqv2a9u
-      - d-de28tvgx
-      - d-lyacq8wh
+      - d-0yrfifhi
+      - d-c1kvyord
+      - d-e956frnx
       - d-5e00ndwi
   - id: d-a3fyy34f
     title: POSIX hosts, and the ambient Docker connection
@@ -761,137 +694,3 @@ decisions:
     because:
       - r-8et233c9
       - f:bedrock-script-console-output-is-not-a-deploy-signal
-
-  # ---------------------------------------------------------------- replacements for the rejected
-  - id: d-9tqv2a9u
-    title: the command is minecraft-server, with start and stop subcommands
-    statement: |
-      the package's executable is `minecraft-server`. It takes two subcommands, `start` and `stop`,
-      each named explicitly — there is no bare default invocation. `stop` carries the `--reset` flag
-      that also removes the world volume. Ctrl+C stops the watchers and the log follow and nothing
-      else.
-    status: proposed
-    pinned:
-      reason: public-api
-      notes: the executable, the two verbs, and the flag that destroys a world
-    facets: dev-loop
-    because:
-      - r-8et233c9
-      - r-kfu7pcms
-      - d-zyo6kku9
-
-  - id: d-xtx1aaea
-    title: the config file is optional and named on the command line
-    statement: |
-      there is no conventional name or location for a workspace config file: the harness reads one
-      only where `--config <path>` names it, and a run without that flag reads none. Every setting
-      has a default, so a bare `minecraft-server start` in a workspace is a complete run — every
-      pack the kit discovers, the level name `dev`, the image tag the harness pins, the default
-      port, and no profiles.
-
-      Where a file is given it is YAML, and every key is optional: `level`, `image`, `port`,
-      `eula`, `profiles` — a mapping of profile name to a list of owning package names — and
-      `default_profile`, naming one of them to use when the command line carries neither `--profile`
-      nor `--pack`. A key the harness does not define is an error, and so is a value of the wrong
-      shape. A file named by `--config` that cannot be read or parsed fails the run naming the file
-      and the parse error, rather than falling back to defaults and hosting the wrong thing.
-    status: proposed
-    pinned:
-      reason: data-format
-      notes: an author writes and commits this file by hand, and the flag that reaches it
-    facets: dev-loop
-    because:
-      - r-u8cg9vi6
-      - r-8et233c9
-      - d-wtziwjh5
-      - d-imdfu09l
-
-  - id: d-de28tvgx
-    title: selection is flags, or a default profile in the config
-    statement: |
-      a run's selection is a repeatable `--pack` flag naming owning package names, or
-      `--profile <name>` naming a profile in the file `--config` supplied. Given neither, the run
-      hosts the config's `default_profile` where one is named, and every pack the kit discovers
-      otherwise.
-
-      A `--pack` value matching no discovered pack is an error, and so is a `--profile` naming no
-      profile the file holds, or a `--profile` given with no `--config` — a run hosts what was asked
-      for or it does not start. `--pack` and `--profile` together are an error rather than a union:
-      each is a complete statement of the selection. A profile holding an empty list selects no
-      packs, which is a valid run.
-    status: proposed
-    pinned:
-      reason: public-api
-      notes: the flags a consumer invokes the harness with, and what each selects
-    facets: dev-loop
-    because:
-      - r-u8cg9vi6
-      - r-co6glnme
-      - d-xtx1aaea
-      - d-9tqv2a9u
-
-  - id: d-lyacq8wh
-    title: the author accepts the server EULA on the command line or in the config
-    statement: |
-      the generated project sets the image's EULA acceptance from either an `--accept-eula` flag on
-      the command line or an `eula: true` key in a config file `--config` named. Given neither, the
-      start command fails naming both routes and linking the EULA, and brings nothing up. The
-      harness does not accept on the author's behalf.
-
-      Everything else about the server's posture is the harness's and is not configurable: the world
-      is offline-mode with no allow-list, a development server on the author's own machine or
-      daemon, and the image's content log is enabled to the console — without it a pack's script
-      output never reaches the harness's stream at all.
-    status: proposed
-    pinned:
-      reason: public-api
-      notes: a legal acknowledgement the author makes, and the two ways they make it
-    facets: dev-loop
-    because:
-      - r-8et233c9
-      - d-wtziwjh5
-      - d-xtx1aaea
-      - f:bedrock-script-console-output-is-not-a-deploy-signal
-
-  - id: d-zun639xo
-    title: a pack that will not build is deployed as a stub
-    statement: |
-      the start sequence runs each selected package's one-shot build, and a build that fails does
-      not stop it. A pack whose build failed is deployed as a stub — a valid pack carrying the
-      pack's own identity and version and no content — so the world loads with every selected pack
-      present and its activation list complete, and the failure is reported on the stream. The watch
-      builds start either way.
-
-      A stub is replaced by the real pack on the first build that succeeds, through the ordinary
-      reconcile. That replacement changes the pack's file set, so it costs the restart d-ftlfhac8
-      prices rather than a reload: what an author gets is a server that came up and a loop that
-      carries the fix, not a live patch.
-    status: proposed
-    facets: dev-loop
-    because:
-      - r-8et233c9
-      - r-97fvutt9
-      - d-ftlfhac8
-      - d-j3ayhwv1
-
-  - id: d-np5vhy80
-    title: a run launches best-effort and reports what it could not build
-    statement: |
-      nothing about an individual pack stops a run. A selected pack the kit reports invalid, a
-      selected package declaring no `build` script, a build that fails at start or mid-session, and
-      a build that leaves no output tree are each reported on the stream, naming the package and the
-      problem, and the run continues — deploying a stub where the pack has nothing to deploy, per
-      d-zun639xo, and leaving the last good deploy in place where it already had one. A selected
-      package declaring no `watch` script is built once and not watched, reported at start. A watch
-      process that exits is reported and not restarted.
-
-      A run fails only where it cannot be a run at all: no Docker, no reachable daemon, a `--config`
-      file that will not parse, or a selection naming something the workspace does not hold.
-    status: proposed
-    facets: dev-loop
-    because:
-      - r-8et233c9
-      - r-pcq10f2b
-      - d-zun639xo
-      - d-de28tvgx
-      - r-iby30nx1

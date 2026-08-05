@@ -257,29 +257,28 @@ The gaps as the survey stated them:
 - **d-62bpn2h2 sends every line to stdout**, diagnostics included, because d-5e00ndwi says one
   stream and a stderr split would be two.
 
-## Rulings, and the six replacements
+## Rulings, and the six revisions
 
-The owner ruled the set: 10 accepted, 3 tolerated, 9 delegated, 7 rejected. Each rejection carries
-the reason on its own entry, and six of the seven are answered by a replacement below. The rejected
-entries stay in the increment as the record of what was ruled out and why.
+The owner ruled the set: 10 accepted, 3 tolerated, 9 delegated, 7 rejected. Six rejections carried
+rework instructions and are revised in place — the entry keeps its id, takes the revised statement,
+returns to `proposed`, and drops its reason. Nothing supersedes anything: the rejection was feedback
+inside an unpublished draft, not a published ruling to close.
 
-| rejected | replaced by | what changed |
-|---|---|---|
-| d-0yrfifhi | **d-9tqv2a9u** | the executable is `minecraft-server`, with `start` and `stop` named explicitly — no bare default invocation |
-| d-wkcxcv2b | **d-xtx1aaea** | no conventional config-file name; one is read only where `--config <path>` names it. Every setting defaults, so a bare `start` is a complete run. The file gains `default_profile` |
-| d-c1kvyord | **d-de28tvgx** | selection follows the config's `default_profile` when the command line names neither `--pack` nor `--profile`; `--profile` without `--config` is an error |
-| d-e956frnx | **d-lyacq8wh** | EULA acceptance comes from `--accept-eula` as well as the config key, so no config file is required to start |
-| d-vrq7lc2o | **d-zun639xo** | a build failure no longer aborts the start: the pack deploys as a stub carrying its identity and no content, so the world loads and the loop carries the fix |
-| d-n81zkitr | **d-np5vhy80** | best-effort launch throughout — nothing about one pack stops a run, and a run fails only where it cannot be a run at all |
+| id | what the revision changed |
+|---|---|
+| d-0yrfifhi | the executable is `minecraft-server`, with `start` and `stop` named explicitly — no bare default invocation |
+| d-wkcxcv2b | no conventional config-file name; one is read only where `--config <path>` names it. Every setting defaults, so a bare `start` is a complete run. The file gains `default_profile` |
+| d-c1kvyord | selection follows the config's `default_profile` when the command line names neither `--pack` nor `--profile`; `--profile` without `--config` is an error |
+| d-e956frnx | EULA acceptance comes from `--accept-eula` as well as the config key, so no config file is required to start |
+| d-vrq7lc2o | a build failure no longer aborts the start: the pack deploys as a stub carrying its identity and no content, so the world loads and the loop carries the fix |
+| d-n81zkitr | best-effort launch throughout — nothing about one pack stops a run, and a run fails only where it cannot be a run at all |
 
-**d-zo2yl18y is not replaced.** Its reason asks whether the world volume should be removed on every
-stop, and says to bring it to a chat session; that is a conversation, not a rework instruction.
+`d-62bpn2h2`'s flag set follows: `--config`, `--pack`, `--profile`, `--accept-eula` on `start`,
+`--reset` on `stop`, `--help` and `--version` on both.
 
-**A note on `supersedes`.** `docs/process-reference.md` says "the replacement's `supersedes` is what
-closes the rejected entry", but `design-process conflicts` refuses a `supersedes` naming an entry
-that is not in force at head — and a rejected entry never is, least of all one in the same
-unpublished increment. The replacements therefore carry no `supersedes`, and the pairing is recorded
-here. Worth raising against increment-process rather than working around each time.
+**d-zo2yl18y stays rejected.** Its reason asks whether the world volume should be removed on every
+stop and says to bring it to a chat session; that is a conversation, not a rework instruction, and
+the entry waits on it.
 
 ## Left for the Plan loop
 
