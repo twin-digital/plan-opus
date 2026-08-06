@@ -56,5 +56,21 @@ It also found something the comparison had not: a clamp with no restore is a slo
 protection. Under sustained attack the 0.5 losses accumulate, and one subject died after 78 hits
 (`f:a-damage-clamp-without-a-restore-still-kills`). The same-tick restore holds the whole design up.
 
-What stays open is `q-fc5bw0k0`, narrowed to what a dedicated server cannot see: the flinch, the
-hurt sound, and panic.
+The rest was settled at a client: the clamped lane flashed, recoiled, grunted and panicked exactly
+as the vanilla one did, the cancelled lane did none of it, and nothing appeared on the clamped
+villager that the vanilla one lacked (`f:a-clamped-hit-is-indistinguishable-from-a-vanilla-one-at-a-client`).
+
+## What the owner added afterwards
+
+Seeing the cancelled lane sit inert, the owner asked for that behaviour to be the rule for a
+player's own hits: an accidental swing should do nothing at all, while a monster's attack still
+looks and feels right. `r-ef113dxi` states it, and `d-jp67dexu` splits the handler on
+`damageSource.damagingEntity`, since no damage cause distinguishes a player's swing from a mob's
+(`f:no-damage-cause-names-the-attacker-and-none-names-reputation`).
+
+Whether cancelling also spares the player the villager's negative gossip could not be measured. An
+attack did not move a cured villager's prices in any configuration tried, including one with
+nothing of the pack on the damage path, so there was no effect for a cancellation to be seen
+preventing (`f:attacking-a-cured-villager-does-not-cost-it-its-discount`). The design proceeds on
+`f:cancelling-a-players-hit-prevents-the-reputation-change`, which is recorded as assumed and says
+so.

@@ -267,3 +267,17 @@ runs:
       landed on each; the flinch, the sound and the panic are rendered on the client and were
       observed there by the design's owner, whose report is cited as its own source.
 
+  - id: protection-probe-gossip
+    command: send-command scriptevent vgprobe:control  # then vgprobe:vanilla
+    output: evidence/minecraft/script-api/protection-probe/GOSSIP-OUTPUT.txt
+    ran_at: 2026-08-06
+    environment: |
+      Same server, module version and pack as protection-probe-sources, with the compose.client.yaml
+      overlay and a Bedrock client attached. The subject is a villager the design's owner cured from
+      a zombie villager, carrying the cure discount, penned alone on the probe's platform with a
+      composter as its job site and no village structures anywhere. Two attachments in sequence
+      against the same standing subject, nothing cleared between them: `vgprobe:control` rewrites
+      each player hit up to 15 damage and restores health every tick, and `vgprobe:vanilla` writes
+      nothing and cancels nothing, reading the hits only and healing solely as a rescue below 7
+      health. Prices were read at the client by the owner, before and after each attachment.
+

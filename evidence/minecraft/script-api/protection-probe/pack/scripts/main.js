@@ -567,6 +567,310 @@ const x0 = (lane) => arena().x + lane.dx;
 const y0 = () => arena().y;
 const z0 = () => arena().z;
 
+
+// ------------------------------------------------ set F: the discount an attack takes
+
+// q-12hs93gc, with an instrument big enough to read. An attack in Bedrock cannot raise a price, it
+// can only cancel a discount, so the test needs a large discount to put at risk. Curing a zombie
+// villager is the biggest one the game gives, so each lane starts as a zombie villager the observer
+// cures. Lane membership is by position, because curing replaces the entity.
+async function setCure() {
+  const probe = "cure-discount";
+  await buildArena();
+  clear();
+  // an undead subject burns in daylight, so this set runs at night and lights the arena itself;
+  // the keeper loop also holds fire resistance on them, because one exposed tick is a dead subject
+  cmd("time set midnight");
+  cmd("weather clear 999999");
+  cmd("difficulty hard");
+  await wait(10);
+
+  const LANES = [
+    { name: "CURED-CONTROL", dx: -4, cancel: false },
+    { name: "CURED-CANCELLED", dx: 4, cancel: true },
+  ];
+  const nearestLane = (loc) => {
+    if (!loc) return null;
+    let best = null, bestD = 12;
+    for (const l of LANES) {
+      const d = Math.abs(loc.x - (arena().x + l.dx + 0.5)) + Math.abs(loc.z - (arena().z + 0.5));
+      if (d < bestD) { best = l; bestD = d; }
+    }
+    return best;
+  };
+  const laneOf = (loc) => {
+    if (!loc) return null;
+    for (const l of LANES) if (Math.abs(loc.x - (arena().x + l.dx + 0.5)) <= 3 && Math.abs(loc.z - (arena().z + 0.5)) <= 3) return l;
+    return null;
+  };
+
+  for (const lane of LANES) {
+    const bx = arena().x + lane.dx, by = arena().y, bz = arena().z;
+    cmd(`fill ${bx - 2} ${by} ${bz - 2} ${bx + 2} ${by + 3} ${bz + 2} stone hollow`);
+    cmd(`fill ${bx - 1} ${by + 3} ${bz - 1} ${bx + 1} ${by + 3} ${bz + 1} air`);
+    cmd(`fill ${bx - 1} ${by + 1} ${bz + 2} ${bx + 1} ${by + 2} ${bz + 2} iron_bars`);
+    cmd(`setblock ${bx - 1} ${by + 1} ${bz - 1} composter`);
+    cmd(`setblock ${bx + 1} ${by + 1} ${bz - 1} glowstone`);
+    cmd(`setblock ${bx} ${by + 3} ${bz - 2} glowstone`);
+    cmd(`setblock ${bx} ${by + 3} ${bz + 2} glowstone`);
+    const z = spawn("minecraft:zombie_villager_v2", lane.dx, 1);
+    say(probe, `[${lane.name}] zombie villager ${z ? "spawned" : "SPAWN-FAILED"}`);
+  }
+
+  // the observer only has to feed the golden apple; the weakness is kept on from here, so no potion
+  // id has to be right for the test to run
+  const seen = new Set();
+  const curedIn = new Set();
+  // A subject that gets out of its pen stops belonging to a lane, which voids that lane's reading
+  // and leaves it wandering the arena. The keeper removes anything loose and refills an empty lane,
+  // so the set repairs itself instead of needing a re-stage.
+  const keeper = system.runInterval(() => {
+    const d = arena().d;
+    const held = new Map();
+    for (const type of ["minecraft:zombie_villager_v2", "minecraft:villager_v2"]) {
+      for (const e of read(() => [...d.getEntities({ type })]).v ?? []) {
+        let lane = laneOf(read(() => e.location).v);
+        if (!lane) {
+          // put a drifting subject back rather than deleting it: a cured villager carries the
+          // discount the whole set exists to measure, and removing it destroys that lane's reading
+          lane = nearestLane(read(() => e.location).v);
+          if (!lane) { read(() => e.remove()); continue; }
+          read(() => e.teleport({ x: arena().x + lane.dx + 0.5, y: arena().y + 1, z: arena().z + 0.5 }));
+          say(probe, `[${lane.name}] subject drifted out of its pen and was put back`);
+        }
+        held.set(lane.name, (held.get(lane.name) ?? 0) + 1);
+        if (type === "minecraft:zombie_villager_v2") {
+          read(() => e.addEffect("minecraft:weakness", 400, { amplifier: 0, showParticles: false }));
+          read(() => e.addEffect("minecraft:fire_resistance", 400, { amplifier: 0, showParticles: false }));
+          read(() => e.extinguishFire(false));
+        } else {
+          read(() => e.getComponent("minecraft:health")?.resetToMaxValue());
+          curedIn.add(lane.name);
+          if (!seen.has(e.id)) {
+            seen.add(e.id);
+            say(probe, `[${lane.name}] CURED — a villager is now in this lane, trade it and read the price`);
+          }
+        }
+      }
+    }
+    for (const lane of LANES) {
+      if ((held.get(lane.name) ?? 0) === 0 && !curedIn.has(lane.name)) {
+        spawn("minecraft:zombie_villager_v2", lane.dx, 1);
+        say(probe, `[${lane.name}] lane was empty — a fresh zombie villager was put in it`);
+      }
+    }
+  }, 20);
+
+  const before = world.beforeEvents.entityHurt.subscribe((ev) => {
+    try {
+      const e = ev.hurtEntity;
+      if (e?.typeId !== "minecraft:villager_v2") return;
+      if (ev.damageSource?.damagingEntity?.typeId !== "minecraft:player") return;
+      const lane = laneOf(e.location);
+      if (lane?.cancel) ev.cancel = true;
+    } catch (e) { /* the run's own readings report it */ }
+  });
+  const landed = new Map();
+  const after = world.afterEvents.entityHurt.subscribe((ev) => {
+    if (ev.hurtEntity?.typeId !== "minecraft:villager_v2") return;
+    const lane = laneOf(read(() => ev.hurtEntity.location).v);
+    if (!lane) return;
+    landed.set(lane.name, (landed.get(lane.name) ?? 0) + 1);
+  });
+
+  for (const pl of read(() => world.getAllPlayers()).v ?? []) {
+    read(() => pl.teleport({ x: arena().x + 0.5, y: arena().y + 1, z: arena().z + 6.5 }));
+    cmd(`gamemode survival "${pl.name}"`);
+    cmd(`give "${pl.name}" golden_apple 8`);
+    cmd(`give "${pl.name}" diamond_sword`);
+    cmd(`give "${pl.name}" emerald 64`);
+    cmd(`give "${pl.name}" wheat 64`);
+    cmd(`effect "${pl.name}" resistance 99999 4 true`);
+    cmd(`effect "${pl.name}" saturation 99999 255 true`);
+  }
+
+  world.sendMessage("§e[village-guard] Two zombie villagers: CURED-CONTROL (west), CURED-CANCELLED (east).");
+  world.sendMessage("§e They are kept weakened for you — just feed each one a golden apple from the pen rim.");
+  world.sendMessage("§e When a lane reports CURED, trade it and note the discounted price.");
+  world.sendMessage("§e Then hit each about a dozen times, and trade again. CONTROL should lose its discount.");
+  world.sendMessage("§e You have Resistance V, so the zombie villagers cannot hurt you.");
+  say(probe, `staged lanes=${LANES.length} centre=(${arena().x},${arena().y},${arena().z})`);
+
+  for (let i = 0; i < 180; i++) await wait(100);
+
+  world.beforeEvents.entityHurt.unsubscribe(before);
+  world.afterEvents.entityHurt.unsubscribe(after);
+  system.clearRun(keeper);
+  say(probe, `session-ended cured=${seen.size} player-damage-landed=[${[...landed].map(([k, n]) => k + "=" + n).join(", ") || "none"}] note=a cancelled hit lands no after-event, so CURED-CANCELLED reading zero is the mechanism working`);
+}
+
+
+// -------------------------------------------- set G: adopt the standing subjects and amplify
+
+// Attaches to whatever villagers are already penned, building nothing and clearing nothing, so a
+// cure that took five minutes is not thrown away to change one number. West takes amplified player
+// damage, east still has its player hits cancelled, and every hit is logged with what landed.
+async function setAmp() {
+  const probe = "amplified-hit";
+  const LANES = [
+    { name: "AMP-CONTROL", dx: -4, cancel: false },
+    { name: "AMP-CANCELLED", dx: 4, cancel: true },
+  ];
+  const laneOf = (loc) => {
+    if (!loc) return null;
+    for (const l of LANES) if (Math.abs(loc.x - (arena().x + l.dx + 0.5)) <= 3 && Math.abs(loc.z - (arena().z + 0.5)) <= 3) return l;
+    return null;
+  };
+  const AMP = 15;
+
+  const found = [];
+  for (const v of read(() => [...arena().d.getEntities({ type: "minecraft:villager_v2" })]).v ?? []) {
+    const lane = laneOf(read(() => v.location).v);
+    if (lane) found.push(`${lane.name}@${Math.round(read(() => v.location).v.x)}`);
+  }
+  say(probe, `adopted standing subjects=[${found.join(", ")}] — nothing was cleared or rebuilt`);
+
+  const before = world.beforeEvents.entityHurt.subscribe((ev) => {
+    try {
+      const e = ev.hurtEntity;
+      if (e?.typeId !== "minecraft:villager_v2") return;
+      if (ev.damageSource?.damagingEntity?.typeId !== "minecraft:player") return;
+      const lane = laneOf(e.location);
+      if (!lane) return;
+      if (lane.cancel) ev.cancel = true;
+      else ev.damage = AMP;
+    } catch (e) { /* the run's own readings report it */ }
+  });
+  const after = world.afterEvents.entityHurt.subscribe((ev) => {
+    const e = ev.hurtEntity;
+    if (e?.typeId !== "minecraft:villager_v2") return;
+    const lane = laneOf(read(() => e.location).v);
+    if (!lane) return;
+    const by = read(() => ev.damageSource.damagingEntity?.typeId).v ?? "none";
+    say(probe, `[${lane.name}] hit landed damage=${ev.damage} by=${by} health-now=${val(hp(e))}`);
+  });
+  // fast top-up, because an amplified hit leaves little margin
+  const keeper = system.runInterval(() => {
+    for (const v of read(() => [...arena().d.getEntities({ type: "minecraft:villager_v2" })]).v ?? []) {
+      const lane = laneOf(read(() => v.location).v);
+      if (lane) read(() => v.getComponent("minecraft:health")?.resetToMaxValue());
+    }
+  }, 2);
+
+  world.sendMessage("§e[village-guard] Amplified: the WEST villager now takes 15 damage per player hit.");
+  world.sendMessage("§e Same villagers, same cures — nothing was reset. Hit west again and re-read its price.");
+  say(probe, `staged amp=${AMP} on the west lane, east still cancelled`);
+
+  for (let i = 0; i < 120; i++) await wait(100);
+  world.beforeEvents.entityHurt.unsubscribe(before);
+  world.afterEvents.entityHurt.unsubscribe(after);
+  system.clearRun(keeper);
+  say(probe, "session-ended");
+}
+
+
+// ------------------------------- set H: spend the last cured villager on the control question
+
+// Only one cured subject survived, so the paired comparison is gone and the question worth its
+// discount is the control's: does hitting a cured villager cost it the discount at all? If it does
+// not, there is nothing for a cancelled hit to protect and q-12hs93gc answers that way. Player hits
+// LAND here, amplified, with health restored every tick so the subject cannot be killed.
+async function setControl() {
+  const probe = "discount-under-attack";
+  const inArena = (loc) => loc && Math.abs(loc.x - arena().x) <= 10 && Math.abs(loc.z - arena().z) <= 10;
+  const AMP = 15;
+
+  // the heal goes on first and every tick, because the last one died in the gap
+  const keeper = system.runInterval(() => {
+    for (const v of read(() => [...arena().d.getEntities({ type: "minecraft:villager_v2" })]).v ?? []) {
+      if (inArena(read(() => v.location).v)) read(() => v.getComponent("minecraft:health")?.resetToMaxValue());
+    }
+  }, 1);
+
+  const subjects = [];
+  for (const v of read(() => [...arena().d.getEntities({ type: "minecraft:villager_v2" })]).v ?? []) {
+    const loc = read(() => v.location).v;
+    if (inArena(loc)) { subjects.push(Math.round(loc.x)); read(() => { v.nameTag = "HIT-ME"; }); }
+  }
+  say(probe, `adopted subjects-at-x=[${subjects.join(", ")}] heal=every-tick amp=${AMP} nothing cleared`);
+
+  let landed = 0;
+  const before = world.beforeEvents.entityHurt.subscribe((ev) => {
+    try {
+      const e = ev.hurtEntity;
+      if (e?.typeId !== "minecraft:villager_v2") return;
+      if (ev.damageSource?.damagingEntity?.typeId !== "minecraft:player") return;
+      if (inArena(e.location)) ev.damage = AMP;
+    } catch (e) { /* the run's own readings report it */ }
+  });
+  const after = world.afterEvents.entityHurt.subscribe((ev) => {
+    const e = ev.hurtEntity;
+    if (e?.typeId !== "minecraft:villager_v2") return;
+    const by = read(() => ev.damageSource.damagingEntity?.typeId).v ?? "none";
+    if (by !== "minecraft:player") return;
+    landed++;
+    if (landed % 5 === 0 || landed < 4) say(probe, `player hit ${landed} landed damage=${ev.damage} health-now=${val(hp(e))} alive=${alive(e)}`);
+  });
+
+  world.sendMessage("§e[village-guard] The surviving villager is now the CONTROL: your hits land, amplified, and it cannot die.");
+  world.sendMessage("§e Hit it a dozen times, then trade and see whether 16 per emerald has moved.");
+  say(probe, "staged");
+
+  for (let i = 0; i < 120; i++) await wait(100);
+  world.beforeEvents.entityHurt.unsubscribe(before);
+  world.afterEvents.entityHurt.unsubscribe(after);
+  system.clearRun(keeper);
+  say(probe, `session-ended player-hits-landed=${landed}`);
+}
+
+
+// -------------------------------- set I: a hit with nothing of ours on the damage path
+
+// Rules out the rig. Every reading so far was taken with a before-event handler rewriting `damage`,
+// so the engine never processed an untouched player hit on these subjects. This set writes nothing
+// and cancels nothing: it only reads. The one script action is an emergency heal below a third of
+// health, which touches health and never the damage, and fires after any gossip would already be
+// booked. If the price still does not move under a genuinely vanilla hit, the rig is not the cause.
+async function setVanilla() {
+  const probe = "vanilla-hit";
+  const inArena = (loc) => loc && Math.abs(loc.x - arena().x) <= 10 && Math.abs(loc.z - arena().z) <= 10;
+
+  let landed = 0;
+  const after = world.afterEvents.entityHurt.subscribe((ev) => {
+    const e = ev.hurtEntity;
+    if (e?.typeId !== "minecraft:villager_v2") return;
+    const by = read(() => ev.damageSource.damagingEntity?.typeId).v ?? "none";
+    if (by !== "minecraft:player") return;
+    landed++;
+    say(probe, `player hit ${landed} damage=${ev.damage} cause=${read(() => ev.damageSource.cause).v} health-now=${val(hp(e))} alive=${alive(e)} — nothing of ours touched this hit`);
+  });
+  const rescue = system.runInterval(() => {
+    for (const v of read(() => [...arena().d.getEntities({ type: "minecraft:villager_v2" })]).v ?? []) {
+      if (!inArena(read(() => v.location).v)) continue;
+      const h = read(() => v.getComponent("minecraft:health")).v;
+      const cur = read(() => h?.currentValue).v;
+      if (typeof cur === "number" && cur < 7) {
+        read(() => h.resetToMaxValue());
+        say(probe, `rescue heal fired at health=${cur} — the subject was about to die, the hit itself was untouched`);
+      }
+    }
+  }, 1);
+
+  const subjects = [];
+  for (const v of read(() => [...arena().d.getEntities({ type: "minecraft:villager_v2" })]).v ?? []) {
+    const loc = read(() => v.location).v;
+    if (inArena(loc)) { subjects.push(`x=${Math.round(loc.x)} health=${val(hp(v))}`); read(() => { v.nameTag = "VANILLA-HIT"; }); }
+  }
+  say(probe, `adopted subjects=[${subjects.join(", ")}] no damage write, no cancel, rescue-heal below 7`);
+  world.sendMessage("§e[village-guard] Nothing is touching the damage now — these are ordinary hits.");
+  world.sendMessage("§e Hit it several times, then trade and read the price again.");
+
+  for (let i = 0; i < 120; i++) await wait(100);
+  world.afterEvents.entityHurt.unsubscribe(after);
+  system.clearRun(rescue);
+  say(probe, `session-ended vanilla-player-hits-landed=${landed}`);
+}
+
 // ------------------------------------------------------------------ dispatch
 
 const SETS = {
@@ -575,6 +879,10 @@ const SETS = {
   reaction: { fn: setReaction, n: 3 },
   client: { fn: setClient, n: 3 },
   gossip: { fn: setGossip, n: 2 },
+  cure: { fn: setCure, n: 2 },
+  amp: { fn: setAmp, n: 2 },
+  control: { fn: setControl, n: 1 },
+  vanilla: { fn: setVanilla, n: 1 },
 };
 
 system.run(() => {
