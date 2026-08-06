@@ -1,0 +1,95 @@
+version: "1"
+facts:
+  - id: bedrock-negative-reputation-only-cancels-discounts
+    claim: |
+      Bedrock Edition does not implement Java Edition's gossip effect on prices. A villager's
+      negative reputation there cannot raise a price at all — it only cancels positive reputation
+      and other discounts. So attacking a villager in Bedrock costs a player whatever discount they
+      had built up with that villager and nothing beyond it, and a villager the player has never
+      traded with has nothing for the attack to take.
+    caveat: |
+      The Minecraft Wiki is the reference work for this mechanic rather than a first-party
+      specification; Mojang publishes no document stating it. The observation below is consistent
+      with the wiki but does not on its own establish it, because it was made against villagers
+      carrying almost no positive reputation.
+    backing: documented
+    sources:
+      - url: https://minecraft.wiki/w/Villager
+        where: the Gossiping section, on how reputation changes prices
+        quote: "In Bedrock Edition negative reputation can only cancel out positive reputation and other price discounts but not increase the price."
+      - description: |
+          Observed against Bedrock dedicated 1.26.40.8 on 2026-08-06, in the staged session
+          `protection-probe-client` extended with its gossip set: two penned farmers, each traded
+          with once and then struck — one of them until a stone sword broke — and traded with again.
+          No price rose on either. The reading is consistent with the claim and is not decisive for
+          it: a single trade earns little positive reputation, so there was next to no discount for
+          the attack to cancel, which is exactly the case the wiki says produces no visible change.
+
+  - id: attacking-a-cured-villager-does-not-cost-it-its-discount
+    claim: |
+      A player attacking a cured villager in Bedrock 1.26.40.8 did not move its prices at all. The
+      subject was cured from a zombie villager and its discount read at the client first — 16
+      carrots per emerald, against the 22 a second uncured farmer asked, and 1 emerald per paper on
+      a second cured subject — then struck repeatedly and re-read, with no change either time. It
+      held across 165 hits amplified to 15 damage each and again across a run where nothing at all
+      touched the damage path. So whatever the documented gossip table says a `minor_negative`
+      should do, an attack did not cancel this discount here.
+    caveat: |
+      Scoped to the configuration measured, which leaves one candidate untested: the subject was
+      penned alone with a composter and no village structures — no beds, no bell, no boundary — and
+      Bedrock's village mechanics require those. Whether an attack costs reputation inside a real
+      village is not answered, and that is the ordinary case for an installed pack rather than an
+      exotic one. What the second attachment does rule out is the measuring rig: the first reading
+      was taken with a before-event handler rewriting `damage`, which could plausibly have displaced
+      the engine's own bookkeeping, and the second took the same reading with nothing on the damage
+      path and got the same answer.
+    backing: tested
+    sources:
+      - run: protection-probe-gossip
+        where: "the vanilla attachment — an untouched player hit landing on the cured subject"
+        quote: "[2026-08-06 17:02:01:094 WARN] [Scripting] [vgprobe] vanilla-hit :: player hit 1 damage=8 cause=entityAttack health-now=number:12 alive=true — nothing of ours touched this hit"
+      - run: protection-probe-gossip
+        where: "the amplified attachment — 165 hits at 15 damage, the subject never dying"
+        quote: "[2026-08-06 17:00:02:944 WARN] [Scripting] [vgprobe] discount-under-attack :: player hit 165 landed damage=15 health-now=number:20 alive=true"
+      - description: |
+          The prices are the owner's readings at a Bedrock client on 2026-08-06, taken against the
+          staged sessions above: 22 carrots per emerald uncured against 16 cured, and 7 emeralds
+          down to 1 per paper on the other cured subject, with no movement in either after the
+          attacks. Trade prices are not on the script API's surface
+          [[f:no-damage-cause-names-the-attacker-and-none-names-reputation]], so no run captures
+          them and the owner's report is the evidence.
+
+  - id: cancelling-a-players-hit-prevents-the-reputation-change
+    claim: |
+      A player's hit that is cancelled in `beforeEvents.entityHurt` costs the player nothing in
+      standing with the villager, because the reputation change rides on the damage the cancellation
+      prevents rather than on the swing that was attempted.
+    caveat: |
+      Assumed, not measured. The direct test could not be made to discriminate: an attack did not
+      move a cured villager's prices even with nothing of the pack on the damage path
+      [[f:attacking-a-cured-villager-does-not-cost-it-its-discount]], so there was no observable
+      reputation change for a cancellation to be seen preventing. The subject also had no village
+      around it, and that case is untested. If Bedrock books the reputation off the swing rather
+      than off the damage, this is false — and the failure would be silent, since trade prices are
+      not on the script API's surface
+      [[f:no-damage-cause-names-the-attacker-and-none-names-reputation]] and no pack can read back
+      what it did. What bounds the risk is that the whole exposure is a discount already earned:
+      negative reputation in Bedrock cannot raise a price, only cancel a discount
+      [[f:bedrock-negative-reputation-only-cancels-discounts]].
+    backing: assumed
+    sources:
+      - description: |
+          The mechanism is the before-event gate. A cancelled call lands nothing at all — no health
+          moves and the whole after-event cascade is empty
+          [[f:cancelled-call-return-values-observed]] — so the engine does not process the hit, and
+          the bookkeeping the wiki hangs off an attack has no attack to hang off.
+      - description: |
+          The visible corroboration is the cancelled lane in the staged client comparison
+          [[f:a-clamped-hit-is-indistinguishable-from-a-vanilla-one-at-a-client]]. Struck with the
+          same weapon as the two lanes beside it, it showed none of what they showed: no red damage
+          particles, no flinch, no hurt grunt, no agitation. The particles are vanilla's own damage
+          feedback rather than anything the pack adds, since the unmodified lane shows them too, and
+          their absence is the observable that the hit was never processed as a hit. That the
+          villager registered nothing visible is the ground for assuming it registered nothing
+          invisible either.
+
