@@ -1,0 +1,31 @@
+version: "1"
+
+questions:
+  - id: q-y65kdr8a
+    question: |
+      does `world.beforeEvents.entityHurt` fire for every source `r-pe87rfqq` names — a hostile
+      mob, a player, fire, a fall, drowning, suffocation, an explosion — or only for damage a
+      script asked for? every fact in the pool that exercises the event drove it with
+      `applyDamage`, so engine-dealt damage is unobserved, and a clamp the engine never consults
+      protects nothing.
+    answer: fact
+    facets: pack-runtime
+
+  - id: q-a9knxqiu
+    question: |
+      does a villager a zombie can never kill also never convert? `d-jp67dexu` prevents conversion
+      only if conversion hangs off the killing blow. if the engine converts on some other trigger,
+      a villager that survives every hit still turns, and `r-9gw909jf` needs a mechanism of its
+      own.
+    answer: fact
+    facets: pack-runtime
+
+  - id: q-fc5bw0k0
+    question: |
+      does a hit whose damage is written down, and whose health loss is restored in the same tick,
+      still produce the vanilla reaction `r-eh0aac98` requires — flinch, knockback, hurt sound,
+      panic? a dedicated server can report knockback as a velocity change and panic as movement,
+      and cannot report the flinch or the sound at all, so part of this needs a person watching a
+      client.
+    answer: fact
+    facets: pack-runtime
