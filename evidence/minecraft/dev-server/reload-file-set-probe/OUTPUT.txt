@@ -1,0 +1,33 @@
+=== environment
+Docker Compose version v5.2.0
+Docker Engine 29.5.3
+DOCKER_HOST=ssh://prod-development-docker
+
+=== at world load
+  files: functions/existing.mcfunction functions/spare.mcfunction manifest.json scripts/helper.js scripts/main.js
+  [2026-08-05 17:55:57:796 ERROR] [Scripting] [file set probe] Error: PROBE-SCRIPT v0 h0 | existing=ran(1)wrote(1) added=ran(0)wrote(?) spare=ran(1)wrote(3)    at <anonymous> (main.js:16)
+
+=== case 1: EDIT an existing function's content, then reload (file set unchanged)
+  files: functions/existing.mcfunction functions/spare.mcfunction manifest.json scripts/helper.js scripts/main.js
+  reload said: [2026-08-05 17:56:11:732 ERROR] [Scripting] [file set probe] Error: PROBE-SCRIPT v0 h0 | existing=ran(1)wrote(2) added=ran(0)wrote(?) spare=ran(1)wrote(3)    at <anonymous> (main.js:16)
+  (existing writing 2 rather than 1 means an edited function's new content is live)
+
+=== case 2: ADD a function file nothing imports, then reload (file set GREW)
+  files: functions/added.mcfunction functions/existing.mcfunction functions/spare.mcfunction manifest.json scripts/helper.js scripts/main.js
+  reload said: [2026-08-05 17:56:56:545 ERROR] [Scripting] [file set probe] Error: PROBE-SCRIPT v0 h0 | existing=ran(1)wrote(2) added=ran(0)wrote(?) spare=ran(1)wrote(3)    at <anonymous> (main.js:16)
+  (added going to ran(1) would mean a grown file set does not need a restart)
+
+=== case 3: REMOVE a file nothing imports, then reload (file set SHRANK)
+  files: functions/added.mcfunction functions/existing.mcfunction manifest.json scripts/helper.js scripts/main.js
+  reload said: [2026-08-05 17:57:41:345 ERROR] [Scripting] [file set probe] Error: PROBE-SCRIPT v0 h0 | existing=ran(1)wrote(2) added=ran(0)wrote(?) spare=ran(0)wrote(?)    at <anonymous> (main.js:16)
+  (spare going to ran(0) means the removal took effect without a restart)
+
+=== case 4 (control, must FAIL): ADD a module file the entry imports
+  files: functions/added.mcfunction functions/existing.mcfunction manifest.json scripts/helper.js scripts/late.js scripts/main.js
+  reload said: [2026-08-05 17:57:51:843 ERROR] [Scripting] Plugin [file set probe - 1.0.0] - [main.js] ran with error: [ReferenceError: Import [late.js] not found.]
+  (a missing-import error is the rig proving it can still detect a genuine failure)
+
+=== after a restart, for comparison
+  [2026-08-05 17:58:02:761 ERROR] [Scripting] [file set probe] Error: PROBE-SCRIPT v4 h0 late=L1 | existing=ran(1)wrote(2) added=ran(1)wrote(3) spare=ran(0)wrote(?)    at <anonymous> (main.js:17)
+
+=== done
