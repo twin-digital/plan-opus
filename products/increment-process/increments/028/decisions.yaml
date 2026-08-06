@@ -1,0 +1,21 @@
+version: "2"
+decisions:
+  - id: d-ozagogc7
+    title: the header holds two rows whatever it carries
+    statement: |
+      the ratify header occupies two rows always. where the draft changes no other input and no
+      review thread is unresolved, the second row is blank rather than omitted, so the rule and the
+      body below it sit at the same offset in every draft and on every entry.
+
+      the row is spent whether or not anything fills it, which is what makes this tolerated rather
+      than accepted: a short terminal gives up a row of the list to a line that is often empty. the
+      alternative — a header that omits its second line — moves the whole body up one row between
+      one draft and the next, and the render has no way to tell a shifted body from a repaint fault.
+    status: tolerated
+    because:
+      - r-gzyfme0f
+    pinned:
+      reason: other
+      notes: |
+        the header's height is what the body's offset is measured from, so a renderer, a snapshot
+        test, and the surface's mock all encode it

@@ -207,3 +207,77 @@ runs:
       are normalised. The arity set's 18 controls all read CONTROL-RETURNED, the handlerwrite set's
       11 cases all read handler-ran=true, and both filter RUN-VALIDITY gates pass, so no reading is
       vacuous. Every observation is that engine build's behaviour and would differ against another.
+
+  # Runs backing the village-guard protection design's facts. Headless: the pack reports through
+  # console.warn and the driver reads the container log, so no client attaches.
+
+  - id: protection-probe-sources
+    command: node evidence/minecraft/script-api/protection-probe/run.mjs 3
+    output: evidence/minecraft/script-api/protection-probe/OUTPUT.txt
+    ran_at: 2026-08-06
+    environment: |
+      itzg/minecraft-bedrock-server, Bedrock dedicated 1.26.40.8, @minecraft/server 2.8.0 as a pack
+      manifest dependency with no experiments enabled, difficulty hard. protection-probe-pack 0.1.0,
+      uuid 7a3d1c40-5e21-4b88-9f0e-2c6a4d81b503, triggered as `scriptevent vgprobe:sources` from the
+      server console with no source entity, against a walled stone platform the pack builds at
+      (163, 100, 170) inside its own ticking area. The driver brings the stack up on a fresh volume
+      and runs the set three times. 3/3 runs, no PROBE CRASHED lines, every complete line present.
+      The results document is evidence/minecraft/script-api/protection-probe/RESULTS.md. Every
+      observation is that engine build's behaviour and would differ against another.
+
+  - id: protection-probe-conversion
+    command: node evidence/minecraft/script-api/protection-probe/run.mjs 3
+    output: evidence/minecraft/script-api/protection-probe/OUTPUT.txt
+    ran_at: 2026-08-06
+    environment: |
+      Same server, module version, pack and driver as protection-probe-sources, triggered as
+      `scriptevent vgprobe:conversion`. Difficulty hard, where vanilla zombie-to-villager conversion
+      is certain. Each run pairs a guarded villager against an unguarded control, three zombies
+      each, over a 1200-tick window. 3/3 runs, no PROBE CRASHED lines.
+
+  - id: protection-probe-reaction
+    command: node evidence/minecraft/script-api/protection-probe/run.mjs 3
+    output: evidence/minecraft/script-api/protection-probe/OUTPUT.txt
+    ran_at: 2026-08-06
+    environment: |
+      Same server, module version, pack and driver as protection-probe-sources, triggered as
+      `scriptevent vgprobe:reaction`. A zombie deals every hit, so the knockback is the engine's
+      own; one sampler reads the subject's velocity each tick and the before-event records the tick
+      each hit landed on. 3/3 runs, no PROBE CRASHED lines. Hit counts differ per run because they
+      depend on zombie pathing; the peak-speed readings they turn on do not.
+
+  - id: damage-source-type-probe
+    command: node evidence/minecraft/script-api/damage-source-probe/probe.mjs
+    output: evidence/minecraft/script-api/damage-source-probe/probe.out.txt
+    ran_at: 2026-08-06
+    environment: |
+      Reads @minecraft/server 2.8.0's index.d.ts, copied beside the script so the run is repeatable
+      against the exact declarations it was taken from. The counts are that version's and would
+      differ against another.
+
+  - id: protection-probe-client
+    command: send-command scriptevent vgprobe:client
+    output: evidence/minecraft/script-api/protection-probe/CLIENT-OUTPUT.txt
+    ran_at: 2026-08-06
+    environment: |
+      Same server, module version and pack as protection-probe-sources, brought up with the
+      compose.client.yaml overlay so a Bedrock client can join. The set pens three villagers side by
+      side — one hit vanilla, one through a 0.5 clamp, one whose entityHurt event is cancelled — and
+      runs a five-minute window. The log records only that the lanes were staged and how many hits
+      landed on each; the flinch, the sound and the panic are rendered on the client and were
+      observed there by the design's owner, whose report is cited as its own source.
+
+  - id: protection-probe-gossip
+    command: send-command scriptevent vgprobe:control  # then vgprobe:vanilla
+    output: evidence/minecraft/script-api/protection-probe/GOSSIP-OUTPUT.txt
+    ran_at: 2026-08-06
+    environment: |
+      Same server, module version and pack as protection-probe-sources, with the compose.client.yaml
+      overlay and a Bedrock client attached. The subject is a villager the design's owner cured from
+      a zombie villager, carrying the cure discount, penned alone on the probe's platform with a
+      composter as its job site and no village structures anywhere. Two attachments in sequence
+      against the same standing subject, nothing cleared between them: `vgprobe:control` rewrites
+      each player hit up to 15 damage and restores health every tick, and `vgprobe:vanilla` writes
+      nothing and cancels nothing, reading the hits only and healing solely as a rescue below 7
+      health. Prices were read at the client by the owner, before and after each attachment.
+

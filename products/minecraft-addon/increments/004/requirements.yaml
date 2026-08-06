@@ -1,0 +1,19 @@
+version: "1"
+
+requirements:
+  - id: r-992moral
+    title: packs run against the dev server
+    statement: |
+      a pack can be brought up on a live Bedrock server, with the pack installed and active, by
+      running one script the pack already carries. that script delegates to
+      `@twin-digital/mc-dev-server`, and the pack implements no server, container, world, or
+      activation plumbing of its own.
+    rationale: |
+      a pack that ships its own server harness is a second Bedrock setup to keep working, and the
+      one people reach for when the shared one drifts.
+    verification:
+      - do: from a clean checkout of the monorepo, run the pack's dev-server script and nothing else
+      - verify: a Bedrock server comes up with this pack installed and active in its world
+      - do: look through the pack for server, container, world, or activation files of its own
+      - verify: there are none, and the script it ran delegates to `@twin-digital/mc-dev-server`
+    facets: build
