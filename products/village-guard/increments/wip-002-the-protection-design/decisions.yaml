@@ -8,7 +8,7 @@ decisions:
       village-guard's consumer-visible package set is a single behavior-pack package,
       `@twin-digital/village-guard`, in the opus monorepo at `nodejs/minecraft/village-guard`. it
       exposes no library surface, and its release artifact is the installable pack itself.
-    status: proposed
+    status: accepted
     pinned:
       reason: public-api
     because:
@@ -79,7 +79,7 @@ decisions:
       the pack protects `minecraft:villager_v2`, `minecraft:wandering_trader` and
       `minecraft:iron_golem`, and no other entity type. the set is fixed in the pack and is not
       configurable.
-    status: proposed
+    status: accepted
     pinned:
       reason: other
       notes: >-
@@ -98,7 +98,7 @@ decisions:
       the pack's manifest depends on `@minecraft/server` 2.8.0 and declares a `min_engine_version`
       no lower than the Bedrock 1.26 line, and neither moves without re-reading the behaviour the
       protection rests on.
-    status: proposed
+    status: accepted
     pinned:
       reason: other
       notes: >-
