@@ -1,5 +1,5 @@
 ---
-version: "24"
+version: "26"
 name: increment
 description: Run one phase of a product's increment in this repository. Plan — open a draft increment on its own branch, work Clarify in the foundation sources, loop Ratify through its pull request, and land it into the next number; use when asked to plan an increment, capture or adopt a backlog item, run the Plan phase, or drive a product's design to a mergeable state. Implement — build the fold at a published increment, dispatch one implementer per package, accumulate design consequences in a companion increment, and file the implementation record; use when asked to implement a product, an increment, or the fold of a design. Invoked as `/increment plan` or `/increment implement`.
 ---
@@ -81,9 +81,10 @@ npx design-process land <product> [--root <dir>]
 
 That is the whole landing. Nobody performs a step of it by hand — the owner lands a settled draft
 with no agent in the loop at all, from the interactive session
-(`npx design-process increment <product>`, where ruling and landing happen in one sitting and
-landing unlocks exactly when nothing is proposed and no question is open), and `land` is the
-non-interactive surface for an agent or a script with no session to land from. It takes `--root`
+(`npx design-process increment [<product>] [--pr <url>]`, where ruling and landing happen in one
+sitting and landing unlocks exactly when nothing is proposed and no question is open), and `land`
+is the non-interactive surface for an agent or a script with no session to land from. It takes
+`--root`
 and nothing else — no head to name and no push to suppress, since no step of the sequence needs
 judgement and the conflict check inside it uses its own default head.
 
@@ -119,11 +120,13 @@ Three steps of that sequence are worth knowing from the outside:
   and before the merge — `main` never holds a wip directory. Published numbers must be dense, so
   landing out of ancestry order surfaces here, as a tree that skips or repeats a number is refused
   by the density gate.
-- **The approval.** The approving credential is the owner's own, typed at the terminal for that one
-  run and held nowhere else — not in a file, not in the environment, not in an argument. **Never
-  supply one.** The credentials an agent holds never approve; a landing that obtains none publishes
-  everything up to the approval and reports the pull request as awaiting it, which is what an
-  agent's landing looks like. Pushing uses the credentials the environment already holds.
+- **The approval.** The approving credential is the owner's own. Run from a session it is the token
+  that session already holds; `land`, having no session, asks at its own terminal where it has one.
+  Either way it is held nowhere else — not in a file, not in the environment, not in an argument —
+  and it is spent on the review and nothing else. **Never supply one.** The credentials an agent
+  holds never approve: a landing that obtains none publishes everything up to the approval and
+  reports the pull request as awaiting it, which is what an agent's landing looks like. Pushing
+  uses the credentials the environment already holds.
 
 Wherever a command takes a fold version it takes a pair of parameters: the bare one names an
 increment — `9` and `009` alike — and its `-ref` counterpart names a git ref. `--at`/`--at-ref`,

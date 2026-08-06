@@ -114,20 +114,63 @@ loop.
 
 The owner rules each decision **accepted**, **tolerated**, **delegated**, or **rejected** — a
 rejection carries the owner's reason and is closed by a replacement whose `supersedes` names it. A
-deferral is not among these rulings: it enters as `deferred` directly, and the merge ratifies it.
-Clarify and Ratify iterate until the owner declares the draft settled enough.
+deferral is not among those four: a decision enters as `deferred` directly and the merge ratifies
+it. The session offers `deferred` beside the four rulings all the same, because writing one is
+authoring a decision and the session is where the owner already is. A deferred decision is settled
+for the purpose of landing — not proposed, and not holding the landing closed.
 
-Two surfaces carry those rulings, and both stand:
+Clarify and Ratify iterate until the owner declares the draft settled enough. Present the owner
+the projection (`npx design-process show <product>`) and the question list at the pull request,
+then consume the feedback and raise what it surfaces.
 
-- **The draft's pull request**, the loop you drive. Present the owner the projection
-  (`npx design-process show <product>`) and the question list there, then apply the rulings, consume
-  the feedback, and raise what it surfaces.
-- **The owner's own session**, `npx design-process increment <product>`, which reaches every open
-  entry the draft carries and lands it from the same place, so a whole draft can be ruled in one
-  sitting without leaving for another tool. Rulings taken there apply to the draft's own sources and
-  commit on the draft's branch in one write. **Do not re-apply them by hand** — fetch the branch and
-  read the sources before touching a draft the owner has ruled from a session, or you will
-  duplicate what is already recorded.
+### The pull request is where a draft is ratified
+
+A draft is ratified through its pull request, so **open it when Clarify closes** and you put the
+draft to the owner — the ordinary start is the owner pasting a url that already exists, and the
+landing's own open step is the fallback for a draft nobody posted. The owner opens their session
+on it:
+
+```
+npx design-process increment [<product>] [--pr <url>]
+```
+
+`--pr` names the pull request to work; without it the session takes the branch the working
+directory is on and finds — or opens — the pull request whose head that branch is. The product
+argument is optional either way, since it comes from the draft the branch holds. The owner ratifies
+and lands from there without locating a branch or a working tree themselves: **one interactive
+command carries the draft from ruling to published**, landing entered from the same session and
+unlocking exactly when nothing is proposed and no question is open.
+
+**Push everything before handing the url over.** The session runs against the fetched head, so an
+uncommitted entry is not there to rule, an increment directory the branch does not touch is not
+found at all, and an uncommitted fact goes uncounted in the header. What is not pushed does not
+exist for the owner.
+
+**Stand off the branch while a session is open.** Every submit commits and pushes; nobody
+force-pushes; an agent revising text mid-sitting loses the race and strands the owner's commit. The
+owner says when the sitting is done. Rulings taken in a session stage there and apply to the
+draft's own sources in one write, committed on the draft's branch, so **do not re-apply them by
+hand** — fetch the branch and read the sources before touching a draft the owner has ruled from a
+session, or you will duplicate what is already recorded.
+
+**The owner's credential is theirs alone.** A GitHub personal access token entered at the terminal,
+the first time a submit actually posts something, held in the session's memory for the rest of that
+sitting and nowhere else — not a file, not the environment, not an argument; a later session asks
+again. **Never supply one.** It is spent on the reviews a submit and the landing post and on
+nothing else: opening the pull request, pushing, and setting the merge to complete on its own use
+the credentials the environment already holds. Ratifying and publishing one draft asks the owner to
+approve once, and no step afterwards discards that approval and asks again.
+
+### A comment directs a ruling; the sources are the ruling
+
+Ratifying does not require the session. The owner rules by saying so where they are — a comment on
+the pull request, made from anywhere — and both surfaces stand. **A comment directs a ruling and
+does not make one:** the draft's sources are the only record of one, so it takes effect when an
+agent writes it into them. Nothing reconciles the two surfaces because only one of them writes.
+
+An unresolved review thread is a direction nobody has applied, and a draft does not publish over
+one. Applying it means replying with the commit that did it and resolving the thread — CLAUDE.md
+already requires that, and it is the whole of the bookkeeping.
 
 Every surveyed choice is classified — decided, deferred, or omitted as an implementation
 detail — before the draft publishes. Then land it: SKILL.md carries the command.

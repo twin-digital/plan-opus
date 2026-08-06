@@ -1,0 +1,1791 @@
+version: "1"
+product: mc-dev-kit
+target: 10
+built_at: 2026-08-05
+packages:
+  - path: nodejs/minecraft/mc-dev-kit
+    version: 0.3.0
+  - path: nodejs/minecraft/mc-dev-server
+    version: 0.2.0
+coverage:
+  # ============================================================================
+  # discovery — nodejs/minecraft/mc-dev-kit
+  # ============================================================================
+
+  - claim: r-ziw808ls # the kit is a typed library
+    covered_by:
+      - kind: code-test
+        ref: src/consumer.test.ts
+        note: imports the package by name from a TypeScript consumer suite and reads the typed entry array without a cast
+      - kind: attestation
+        ref:
+          - src/index.ts
+          - src/types.ts
+        note: the two exported calls return typed data — Promise<readonly PackEntry[]> and Promise<WorkspaceRoot | undefined>; nothing prints
+
+  - claim: r-jvb29tpu # the library name
+    covered_by:
+      - kind: code-test
+        ref: src/discover-packs.test.ts
+        note: asserts the package.json name is @twin-digital/mc-dev-kit
+      - kind: attestation
+        ref: package.json
+
+  - claim: r-co6glnme # pack discovery
+    covered_by:
+      - kind: code-test
+        ref: src/discover-packs.test.ts
+        note: sound and broken packs land in one flat list; valid entries carry every detail, invalid entries their problems plus every non-manifest detail
+      - kind: attestation
+        ref: src/discover-packs.ts
+
+  - claim: r-0l79om74 # packs enumerable without a build
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/workspace-enumerator.test.ts
+          - test/fixture.ts
+        note: enumerates a workspace asserted to hold no node_modules and no lockfile; every fixture is an uninstalled, unbuilt temp tree
+      - kind: attestation
+        ref: src/internal/workspace-enumerator.ts
+
+  - claim: r-zcdmh9p6 # membership from source manifest presence
+    covered_by:
+      - kind: code-test
+        ref: src/internal/pack-locator.test.ts
+        note: both kinds found from the two fixed manifest paths, nothing else probed, a package holding neither contributes nothing
+      - kind: attestation
+        ref: src/internal/pack-locator.ts
+
+  - claim: r-4f1obncy # packages come from the workspace definition
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/workspace-enumerator.test.ts
+          - src/discover-packs.test.ts
+        note: npm and pnpm workspaces both enumerate; a pack-shaped directory the definition does not include yields no entry
+      - kind: attestation
+        ref: src/internal/workspace-enumerator.ts
+
+  - claim: r-ijeqntrd # the root package is a candidate
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/workspace-enumerator.test.ts
+          - src/discover-packs.test.ts
+        note: root packs are discovered under both managers; under npm the root is added since mapWorkspaces never returns it
+      - kind: attestation
+        ref: src/internal/workspace-enumerator.ts
+
+  - claim: r-r9t69mz7 # enumeration uses the managers' own libraries
+    covered_by:
+      - kind: attestation
+        ref:
+          - package.json
+          - src/internal/workspace-enumerator.ts
+        note: >
+          dependencies hold @pnpm/workspace.read-manifest, @pnpm/workspace.find-packages and
+          @npmcli/map-workspaces, all called in-process; the enumeration path forwards patterns
+          unread and expands none of its own. The two dependencies added at 009, yaml and adm-zip,
+          serve the workspace-root resolver and the archive command and take no part in enumeration
+      - kind: code-test
+        ref: src/internal/workspace-enumerator.test.ts
+        note: exclusion patterns and absent-pattern defaults behave as the libraries define, showing the patterns reach them unread
+
+  - claim: r-7v7o1jy8 # pack search
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/filter.test.ts
+          - src/discover-packs.test.ts
+        note: each criterion alone matches exactly, combined criteria conjoin, no filter and empty filter return everything, no match returns an empty array
+      - kind: attestation
+        ref: src/internal/filter.ts
+
+  - claim: r-8h864ke8 # built output defaults to dist
+    covered_by:
+      - kind: code-test
+        ref: src/internal/pack-locator.test.ts
+      - kind: attestation
+        ref: src/internal/pack-locator.ts
+
+  - claim: r-un786n7v # built output mirrors the source layout
+    covered_by:
+      - kind: code-test
+        ref: src/internal/pack-locator.test.ts
+        note: every outputDir ends in its kind-named subdirectory, the single-pack package included
+      - kind: attestation
+        ref: src/internal/pack-locator.ts
+
+  - claim: r-dj86ixj8 # manifest format version passes through
+    covered_by:
+      - kind: code-test
+        ref: src/internal/manifest-completion.test.ts
+        note: format_version 1, 2, an unrecognised string, and absence all pass through untouched; completion succeeds at 1, 2, and 3
+      - kind: attestation
+        ref: src/internal/manifest-completion.ts
+
+  - claim: r-jl42pzah # manifest fields are validated by form
+    covered_by:
+      - kind: code-test
+        ref: src/internal/manifest-shape.test.ts
+        note: >
+          every declared field faults in the wrong form, modules[].entry now among them;
+          unheard-of format versions, non-uuid strings, and non-SemVer version strings raise nothing
+      - kind: attestation
+        ref: src/internal/manifest-shape.ts
+        note: every field PackManifest declares is form-checked — entry joined the module pass when the kit began declaring it — and no check tests a value against a list
+
+  - claim: r-xcz7nzr6 # uuids are claimed once in a workspace
+    covered_by:
+      - kind: code-test
+        ref: src/internal/pack-validation.test.ts
+        note: every claimant reported with the uuid and all claimant locations, none preferred; module uuids never checked
+      - kind: attestation
+        ref: src/internal/pack-validation.ts
+
+  - claim: r-fmkhgklz # uuids compare case-insensitively
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/manifest-completion.test.ts
+          - src/internal/pack-validation.test.ts
+          - src/internal/filter.test.ts
+        note: dependency resolution, duplicate detection, and search each lowercase both sides
+      - kind: attestation
+        ref: src/internal/manifest-completion.ts
+
+  - claim: r-fghzi5qq # manifest corroborates the directory kind
+    covered_by:
+      - kind: code-test
+        ref: src/internal/pack-validation.test.ts
+        note: uncorroborated kinds, foreign-kind modules, and typeless modules each a problem; unrecognised types ignored
+      - kind: attestation
+        ref: src/internal/pack-validation.ts
+
+  - claim: r-iby30nx1 # unresolvable packs fail loudly
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/pack-validation.test.ts
+          - src/discover-packs.test.ts
+        note: >
+          unparseable, identity-less, and dependent-on-invalid packs all return as invalid entries;
+          invalidity propagates along edges; a scripting-module dependency is never a missing pack
+      - kind: attestation
+        ref: src/discover-packs.ts
+
+  - claim: r-rlh87pau # pack record details
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/discover-packs.test.ts
+          - src/internal/pack-locator.test.ts
+          - src/consumer.test.ts
+        note: >
+          a valid unbuilt behavior pack's entry is asserted whole — identity, version, owning
+          package, kind, source location, output location, built script location, and the completed
+          manifest; an invalid entry lacks only the manifest-derived three
+      - kind: attestation
+        ref:
+          - src/types.ts
+          - src/internal/pack-locator.ts
+        note: PackEntryBase declares the six details every entry carries, scriptOutput among them, and ValidPackEntry the three a fault can take away
+
+  - claim: r-5qo6fzs4 # built script defaults to scripts/main.js
+    covered_by:
+      - kind: code-test
+        ref: src/internal/pack-locator.test.ts
+        note: >
+          an unbuilt pack, one holding no script sources at all, and one whose source module names a
+          different entry each report scripts/main.js within the build output location
+      - kind: attestation
+        ref: src/internal/pack-locator.ts
+        note: the built script path is joined onto outputDir from the pack's kind alone; nothing is stat'd and no source entry is read
+
+  - claim: r-wi7qf6to # kit completes partial source manifests
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/manifest-completion.test.ts
+          - src/discover-packs.test.ts
+        note: >
+          name from productName or the scope-stripped name, versions from package.json as SemVer
+          strings, workspace dependencies completed cross-package, specified header name, header
+          version, dependency version and module entry each an error, array version at
+          format_version 3 an error, external dependencies passed through uncompleted
+      - kind: attestation
+        ref: src/internal/manifest-completion.ts
+
+  - claim: d-jewbwtye # an absent script location is null, not a missing field
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/pack-locator.test.ts
+          - src/consumer.test.ts
+        note: a resource pack's entry has the scriptOutput key and it is null; the consumer sees the field typed string | null rather than optional
+      - kind: attestation
+        ref: src/types.ts
+
+  - claim: d-9se0yv0h # the script module's entry is declared, kit-written, and an error to source-specify
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/manifest-shape.test.ts
+          - src/internal/manifest-completion.test.ts
+        note: >
+          a non-string modules[].entry is manifest-shape-invalid; completion writes scripts/main.js
+          on a behavior pack's script module, reports and overwrites a source-specified one, drops
+          it from a module that gets none, and a form fault there suppresses only its own report
+      - kind: attestation
+        ref:
+          - src/types.ts
+          - src/internal/manifest-completion.ts
+        note: >
+          ManifestModule declares an optional entry, and completion writes it on script modules of a
+          behavior pack and on nothing else
+
+  - claim: d-joa4eefg # the kit exports workspace-root resolution
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/workspace-root.test.ts
+          - src/consumer.test.ts
+        note: >
+          both pnpm marker spellings, an npm workspaces declaration, an ascent climbing past a
+          package.json that declares none, the starting directory as its own candidate, a nameless
+          and a package.json-less root named by directory, undefined at the top, and a throw naming
+          an unparseable marker of either kind; the consumer imports the call and its two types
+      - kind: attestation
+        ref:
+          - src/internal/workspace-root-finder.ts
+          - src/workspace-root.ts
+          - src/index.ts
+
+  - claim: d-s43hmdgr # pack locations are workspace-relative
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/pack-locator.test.ts
+          - src/discover-packs.test.ts
+      - kind: attestation
+        ref: src/internal/paths.ts
+        note: scriptOutput joins onto outputDir through the same helper, so the location added at 009 is workspace-relative like the rest
+
+  - claim: d-y4kgdkqk # entries ordered by package path
+    covered_by:
+      - kind: code-test
+        ref: src/discover-packs.test.ts
+      - kind: attestation
+        ref: src/internal/paths.ts
+
+  - claim: d-xnv5kh7k # pnpm marker wins, npm is the fallback
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/workspace-enumerator.test.ts
+          - src/workspace-root.test.ts
+        note: >
+          a root holding both definitions is read as pnpm and one without the marker as npm; the
+          root resolver applies the same precedence on its ascent, and accepts the .yml spelling
+          the enumerator's library does not
+      - kind: attestation
+        ref:
+          - src/internal/workspace-enumerator.ts
+          - src/internal/workspace-root-finder.ts
+
+  - claim: d-39486z2s # a package with no source manifest yields no entry
+    covered_by:
+      - kind: code-test
+        ref: src/internal/pack-locator.test.ts
+      - kind: attestation
+        ref: src/internal/pack-locator.ts
+
+  - claim: d-vn8mwr1d # unreadable and unparseable manifests are one problem
+    covered_by:
+      - kind: code-test
+        ref: src/internal/pack-locator.test.ts
+        note: an unreadable file and an unparseable one each report the single manifest-unreadable carrying the underlying message
+      - kind: attestation
+        ref: src/internal/pack-locator.ts
+
+  - claim: d-n2e2njf4 # empty header name reads as unspecified
+    covered_by:
+      - kind: code-test
+        ref: src/internal/manifest-completion.test.ts
+      - kind: attestation
+        ref: src/internal/manifest-completion.ts
+
+  - claim: d-r3gbrxre # only format version 3 restricts version form
+    covered_by:
+      - kind: code-test
+        ref: src/internal/manifest-completion.test.ts
+        note: array versions accepted at 1, 2, and absence; a format_version the form pass faulted restricts nothing
+      - kind: attestation
+        ref: src/internal/manifest-completion.ts
+
+  - claim: d-n2kiacta # productName must be a non-empty string
+    covered_by:
+      - kind: code-test
+        ref: src/internal/manifest-completion.test.ts
+        note: absent, empty, and non-string productName each fall back with no problem
+      - kind: attestation
+        ref: src/internal/manifest-completion.ts
+
+  - claim: d-thhboim6 # filtering is a parameter of the discovery call
+    covered_by:
+      - kind: code-test
+        ref: src/discover-packs.test.ts
+      - kind: attestation
+        ref:
+          - src/types.ts
+          - src/discover-packs.ts
+        note: criteria are DiscoverOptions.filter, and the call returns a bare entry array with no search method anywhere
+
+  - claim: d-k7py0qqv # the pack set is read once per call
+    covered_by:
+      - kind: code-test
+        ref: src/discover-packs.test.ts
+        note: a pack added between calls appears on the next call, so nothing is cached or watched
+      - kind: attestation
+        ref: src/discover-packs.ts
+
+  - claim: d-ydph1k7d # enumeration failure rejects the call
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/discover-packs.test.ts
+          - src/internal/workspace-enumerator.test.ts
+        note: a missing definition and a broken member package.json each reject with the library's own error unwrapped
+      - kind: attestation
+        ref: src/internal/workspace-enumerator.ts
+
+  - claim: d-6g8oo8je # output locations are computed, not probed
+    covered_by:
+      - kind: code-test
+        ref: src/internal/pack-locator.test.ts
+      - kind: attestation
+        ref: src/internal/pack-locator.ts
+        note: the locator computes outputDir and scriptOutput and reads neither; the output tree the build half reads and writes is reached only from src/build.ts
+
+  - claim: d-61fegb3o # invalid entries omit only manifest-derived details
+    covered_by:
+      - kind: code-test
+        ref: src/discover-packs.test.ts
+      - kind: attestation
+        ref: src/types.ts
+        note: uuid, version and manifest are the only optional fields on InvalidPackEntry; scriptOutput joined the required base at 009 rather than the optional three
+
+  - claim: d-f72ia08n # entry version is the completed package version
+    covered_by:
+      - kind: code-test
+        ref: src/discover-packs.test.ts
+      - kind: attestation
+        ref: src/discover-packs.ts
+
+  - claim: d-fm9m41kc # relative paths are POSIX, with the root as a dot
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/pack-locator.test.ts
+          - src/internal/workspace-enumerator.test.ts
+      - kind: attestation
+        ref: src/internal/paths.ts
+
+  - claim: d-me8ieqnr # a nameless package is named by its directory
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/pack-locator.test.ts
+          - src/internal/manifest-completion.test.ts
+          - src/workspace-root.test.ts
+        note: >
+          the basename stands in as packageName and package-name-missing invalidates the pack; the
+          root resolver applies the same rule, naming a root that declares no name — and one holding
+          no package.json at all — by its directory
+      - kind: attestation
+        ref:
+          - src/internal/pack-locator.ts
+          - src/internal/workspace-root-finder.ts
+
+  - claim: d-o0ebrog9 # manifest shape faults are one problem
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/manifest-shape.test.ts
+          - src/internal/pack-locator.test.ts
+      - kind: attestation
+        ref: src/internal/manifest-shape.ts
+
+  - claim: d-7ototrq5 # field type faults reuse the shape code
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/manifest-shape.test.ts
+          - src/discover-packs.test.ts
+      - kind: attestation
+        ref: src/internal/manifest-shape.ts
+
+  - claim: d-6w788t2t # a form fault suppresses the checks that read it
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/manifest-completion.test.ts
+          - src/internal/pack-validation.test.ts
+        note: >
+          a faulted field reports its shape fault alone and every completion and check reading it is
+          skipped; a faulted modules[].entry suppresses only its own specified-field report, since
+          nothing downstream reads it
+      - kind: attestation
+        ref: src/internal/candidate.ts
+
+  - claim: d-x0mb3mjg # an ambiguous dependency entry is a problem
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/manifest-completion.test.ts
+          - src/internal/manifest-shape.test.ts
+      - kind: attestation
+        ref: src/internal/manifest-shape.ts
+
+  - claim: d-dba1hiu7 # an unsatisfied dependency names both readings
+    covered_by:
+      - kind: code-test
+        ref: src/internal/manifest-completion.test.ts
+      - kind: attestation
+        ref: src/internal/manifest-completion.ts
+
+  - claim: d-dbf88op0 # invalidity propagates to a fixpoint
+    covered_by:
+      - kind: code-test
+        ref: src/internal/pack-validation.test.ts
+        note: a two-edge chain invalidates transitively, and a cycle among sound packs stays valid
+      - kind: attestation
+        ref: src/internal/pack-validation.ts
+
+  - claim: d-rl1msrus # workspace defaults to the current directory
+    covered_by:
+      - kind: code-test
+        ref: src/discover-packs.test.ts
+      - kind: attestation
+        ref: src/discover-packs.ts
+
+  - claim: d-a8lgrojc # the exported surface
+    covered_by:
+      - kind: code-test
+        ref: src/consumer.test.ts
+        note: >
+          the entry point and every named type import and typecheck; a valid manifest reads uncast,
+          an invalid one is unknown. The surface grew at 009 by scriptOutput on the entry base, entry
+          on ManifestModule, and resolveWorkspaceRoot with its two types, each asserted there
+      - kind: attestation
+        ref:
+          - src/index.ts
+          - src/types.ts
+
+  - claim: d-cdbyhv6x # which libraries enumerate
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/workspace-enumerator.test.ts
+          - src/discover-packs.test.ts
+        note: pnpm patterns forwarded unread, npm root added as its own candidate, a directory reached twice yields one candidate
+      - kind: attestation
+        ref:
+          - src/internal/workspace-enumerator.ts
+          - package.json
+
+  - claim: d-mqdghcuf # criteria on absent values never match
+    covered_by:
+      - kind: code-test
+        ref: src/internal/filter.test.ts
+      - kind: attestation
+        ref: src/internal/filter.ts
+
+  - claim: d-io1gczjj # a byte-order mark does not make a manifest unreadable
+    covered_by:
+      - kind: code-test
+        ref: src/internal/pack-locator.test.ts
+        note: a manifest saved with a byte-order mark parses with no problem
+      - kind: attestation
+        ref: src/internal/json.ts
+
+  - claim: d-6wjeomr5 # completion overwrites a specified field it reports
+    covered_by:
+      - kind: code-test
+        ref: src/internal/manifest-completion.test.ts
+        note: >
+          a specified header name, header version, matched dependency version, and module entry each
+          report their error and carry the kit's value anyway — or, where completion writes none,
+          drop the source value rather than leave it standing
+      - kind: attestation
+        ref: src/internal/manifest-completion.ts
+
+  - claim: d-0thqo4n0 # the entry uuid is the lowercased spelling
+    covered_by:
+      - kind: code-test
+        ref: src/discover-packs.test.ts
+        note: a mixed-case header uuid reports a lowercased entry uuid while the manifest keeps the source spelling
+      - kind: attestation
+        ref: src/discover-packs.ts
+
+  - claim: r-ds3q3en9 # node libraries are ESM TypeScript
+    covered_by:
+      - kind: manual-check
+        ref:
+          - package.json
+          - tsconfig.build.json
+        note: >
+          performed the requirement's own procedure against this tree: npm pack --dry-run lists the
+          dist ESM with its .d.ts declarations beside it, plus README.md and bin/mc-pack-archive.js,
+          both new at 009 and both ESM; "type" is "module" and every exports path, the ./build
+          subpath included, resolves under the import condition to dist ESM; require() from a
+          CommonJS consumer fails; the build target is ES2024 with engines node 24.x, the active
+          Node LTS
+      - kind: attestation
+        ref: package.json
+        note: the package ships ESM only, written in TypeScript, with its declarations beside the emit
+  # ============================================================================
+  # build — nodejs/minecraft/mc-dev-kit
+  # ============================================================================
+
+  - claim: r-gyrsw1mq # build ships in the kit package
+    covered_by:
+      - kind: attestation
+        note: the build half ships from the kit's own package; no other package publishes or installs it
+      - kind: code-test
+        ref: src/build.test.ts
+        note: the ./build subpath export, tsdown in devDependencies only, and the single bin
+
+  - claim: r-ifvxhl2p # the exported config is documented
+    covered_by:
+      - kind: attestation
+        note: TSDoc on packBuild and PackBuildOptions plus a README Build section stating uptake and output
+      - kind: code-test
+        ref: src/build.test.ts
+        note: the README names the import and the packageDir option and lists what a build produces, and build.ts carries @param/@returns TSDoc
+
+  - claim: r-2alueo3d # script module bundled, game modules external
+    covered_by:
+      - kind: attestation
+        note: the bundle is written at dist/behavior_pack/scripts/main.js with the manifest's module_name dependencies left external
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+        note: a real build leaves the import of @minecraft/server in the emitted chunk
+      - kind: manual-check
+        ref: src/internal/pack-build-plugin.ts
+        note: end-to-end build of a two-pack package outside the repo — bundle at the expected path, @minecraft/server still an import
+
+  - claim: r-umoo5i1i # every pack file reaches the output tree
+    covered_by:
+      - kind: attestation
+        note: every source file but the manifest and everything under scripts/ is copied into the output tree
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+        note: functions, textures, a .lang file, a dotfile, and an unknown extension all reach the output
+
+  - claim: r-8xmkne8a # assembly is authoritative over the output tree
+    covered_by:
+      - kind: attestation
+        note: the end-of-build prune deletes output the build did not write, with clean false
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+        note: seeded stale files are gone after one build, with no clean step first
+
+  - claim: r-kbgjy2pt # the package version is the pack version
+    covered_by:
+      - kind: attestation
+        note: header.version and the archive name both come from the package.json version alone
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+        note: the written manifest carries the owning package's version
+      - kind: code-test
+        ref: src/internal/archive.test.ts
+        note: the archive is named from the package.json name and version
+
+  - claim: r-phxrb6qn # a released pack is a single archive of its output tree
+    covered_by:
+      - kind: attestation
+        note: archivePackage cuts one archive from the built output tree and nothing else
+      - kind: code-test
+        ref: src/internal/archive.test.ts
+        note: one .mcaddon per package, read from the output tree with the kit called for nothing
+      - kind: manual-check
+        ref: bin/mc-pack-archive.js
+        note: ran the published bin in a built package; python's zipfile read the .mcaddon and both nested .mcpack members
+
+  - claim: r-v8jjhds5 # rebuild triggers are declared, not inferred
+    covered_by:
+      - kind: attestation
+        note: the plugin declares its watch inputs at buildStart; nothing is inferred from a module graph
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+        note: buildStart driven against a recording context registers the pack source directories, source manifests, package.json, and each depended-on package.json
+
+  - claim: r-imfmv0qc # built manifests are the completed ones
+    covered_by:
+      - kind: attestation
+        note: the plugin writes the completed manifest; the source manifest is never copied through
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+        note: the written manifest is two-space JSON with a trailing newline and differs from the source bytes
+
+  - claim: r-yg1djnta # the build half is an exported bundler config
+    covered_by:
+      - kind: attestation
+        note: the build half is an export; the only declared command is the archive half's
+      - kind: code-test
+        ref: src/build.test.ts
+        note: the package embeds no bundler at runtime and declares one command, which is the archive half's
+
+  - claim: d-5ej8yfki # the export is a fragment carrying a Rolldown plugin
+    covered_by:
+      - kind: attestation
+        note: packBuild returns a UserConfig whose plugins array holds one Rolldown plugin
+      - kind: code-test
+        ref: src/build.test.ts
+
+  - claim: d-qtq0ccy6 # the consumer hands over its package directory
+    covered_by:
+      - kind: attestation
+        note: >
+          PackBuildOptions is exactly { packageDir: string }
+      - kind: code-test
+        ref: src/consumer.test.ts
+        note: >
+          the options type is asserted equal to { packageDir: string }
+
+  - claim: d-wss8fker # the build export is a subpath, packBuild
+    covered_by:
+      - kind: attestation
+        note: exported as packBuild from @twin-digital/mc-dev-kit/build
+      - kind: code-test
+        ref: src/consumer.test.ts
+        note: imported from the subpath and typed, with the discovery entry point naming no bundler type
+
+  - claim: d-s1haiu19 # a pack package's build produces its packs and nothing else
+    covered_by:
+      - kind: attestation
+        ref: src/build.ts
+        note: >
+          the fragment is the whole of what a consuming package's bundler configuration builds — it
+          names its own entry, outDir and output filename — and dist/ is the build's to own: the
+          prune sweeps the whole of dist/, not only the bundler's outDir, so nothing else may share
+          that tree
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+        note: after a build dist/ holds exactly the packs' files and nothing else, and no report is written
+      - kind: manual-check
+        ref: src/build.ts
+        note: an out-of-repo package took the fragment up through a config module and built both its packs; a seeded dist/behavior_pack/stale.txt was gone afterwards
+
+  - claim: d-vpwz0dps # the build reads the kit pack set
+    covered_by:
+      - kind: attestation
+        note: buildStart calls discoverPacks and filters the set to this package
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+        note: a sibling package's pack in the same workspace is untouched
+
+  - claim: d-ai68xorc # the workspace root is the nearest one the kit recognises
+    covered_by:
+      - kind: attestation
+        note: resolveWorkspaceRoot ascends from packageDir; undefined fails the build
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+        note: every build case resolves its root by ascent from a pnpm-workspace.yaml above the package
+
+  - claim: d-d727qv5z # script sources live in the pack's scripts directory
+    covered_by:
+      - kind: attestation
+        note: behavior_pack/scripts/main.ts is the entry, and nothing under scripts/ is copied
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+        note: dist/behavior_pack/scripts holds only main.js, beside untouched sources in the source tree
+
+  - claim: d-oln00v7s # the script output path is set in config and checked against the kit
+    covered_by:
+      - kind: attestation
+        note: outDir and entryFileNames name the path, and buildStart compares the pack set's report against it
+      - kind: code-test
+        ref: src/internal/script-location.test.ts
+        note: a pack set reporting a different script location fails buildStart; one reporting the configured path passes
+      - kind: code-test
+        ref: src/build.test.ts
+        note: the fragment points the output at the script location the pack set reports
+
+  - claim: d-3sb0vrc2 # externals come from the manifest's module dependencies
+    covered_by:
+      - kind: attestation
+        ref: src/internal/pack-build-plugin.ts
+        note: >
+          resolveId returns external for exactly the completed manifests' module_name dependencies,
+          and puts an undeclared scoped import through the bundler's own resolution so that one
+          resolving to nothing fails the build rather than shipping as a bare specifier
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+        note: >
+          each declared module_name dependency is external; a resolvable undeclared @minecraft/
+          import is inlined and an unresolvable one fails the build
+
+  - claim: d-llnhw1k1 # the bundler writes its chunks and the plugin writes the rest
+    covered_by:
+      - kind: attestation
+        note: the plugin writes manifests and copied assets only; the chunk is the bundler's
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+        note: main.js is present and is the bundler's emit, not a copy
+
+  - claim: d-p06hnnc0 # stale output is pruned, not wiped
+    covered_by:
+      - kind: attestation
+        note: clean is false and the tree is pruned at writeBundle
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+
+  - claim: d-5meg5uy7 # a chunk no pack claims is pruned like any other stale output
+    covered_by:
+      - kind: attestation
+        note: the chunk is claimed only where a pack declares a script module; otherwise the prune takes it
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+        note: sources on disk with no script module declared leaves dist/ holding only the manifest
+
+  - claim: d-64tw58t0 # a script-less package builds through a virtual entry
+    covered_by:
+      - kind: attestation
+        note: the virtual entry id is resolved and loaded to an empty module by the plugin
+      - kind: code-test
+        ref: src/build.test.ts
+        note: the fragment names the virtual entry where the package holds no script sources
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+        note: a resource-pack-only package builds through the virtual entry
+
+  - claim: d-wzmofsc8 # a stale virtual entry fails the build
+    covered_by:
+      - kind: attestation
+        note: buildStart fails when the virtual entry was configured and the sources are on disk
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+        note: the fragment is read first, then the sources are written, and the build fails at buildStart
+
+  - claim: d-e7a7psq6 # a declared script module with no sources fails the build
+    covered_by:
+      - kind: attestation
+        note: a declared script module with no main.ts fails at buildStart
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+
+  - claim: d-876m8rnf # a resource-pack-only package builds
+    covered_by:
+      - kind: attestation
+        note: a resource-only package builds, its virtual chunk pruned, no script location check applied
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+        note: dist/ holds the manifest and the texture only
+
+  - claim: d-nclb1c8l # output files are written only when their bytes change
+    covered_by:
+      - kind: attestation
+        note: every write the plugin makes compares bytes with what already sits at the path
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+        note: mtimes are unchanged across a second build, and the new bytes land after an edit
+
+  - claim: d-3kcr1672 # a rebuild emits no report
+    covered_by:
+      - kind: attestation
+        note: nothing but pack files is written
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+        note: the dist/ listing after a build is exactly the packs' files
+
+  - claim: d-095jgny3 # the watch set is declared from what the build reads
+    covered_by:
+      - kind: attestation
+        note: source directories registered as directories, plus manifests, package.json, and each depended-on package.json
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+        note: the exact registered set is asserted, a workspace dependency's package.json included
+
+  - claim: d-6ewrh1g3 # the archive is a single mcaddon per package
+    covered_by:
+      - kind: attestation
+        note: one .mcaddon per package, one .mcpack per pack
+      - kind: code-test
+        ref: src/internal/archive.test.ts
+        note: two-pack and one-pack cases
+
+  - claim: d-r6vxh2qu # an mcpack holds the pack directory's contents at its root
+    covered_by:
+      - kind: attestation
+        note: member entry names are relative to the pack output directory, so manifest.json sits at the member root
+      - kind: code-test
+        ref: src/internal/archive.test.ts
+
+  - claim: d-j9qge6s1 # the archive ships as a bin command
+    covered_by:
+      - kind: attestation
+        ref: package.json
+        note: bin declares mc-pack-archive
+      - kind: code-test
+        ref: src/build.test.ts
+      - kind: manual-check
+        ref: bin/mc-pack-archive.js
+        note: ran the launcher against the compiled dist in a built package; it printed the archive path
+
+  - claim: d-s5ymp8ai # the archive command takes no arguments
+    covered_by:
+      - kind: attestation
+        ref: bin/mc-pack-archive.js
+        note: the command reads the current directory and takes no argv
+      - kind: code-test
+        ref: src/internal/archive.test.ts
+        note: archivePackage takes only the package directory and writes into .release-assets/
+
+  - claim: d-eb6tfefk # the archive command clears its output directory
+    covered_by:
+      - kind: attestation
+        note: .release-assets is removed and recreated before the write
+      - kind: code-test
+        ref: src/internal/archive.test.ts
+        note: a seeded previous-version archive is gone
+
+  - claim: d-mle1zwtz # a missing output tree fails the archive
+    covered_by:
+      - kind: attestation
+        note: an absent output tree throws naming dist, before anything is cleared, and no build is run
+      - kind: code-test
+        ref: src/internal/archive.test.ts
+
+  - claim: d-gbh83fap # the archive reads the output tree and consults nothing else
+    covered_by:
+      - kind: attestation
+        ref: src/internal/archive.ts
+        note: the module imports nothing from the discovery half
+      - kind: code-test
+        ref: src/internal/archive.test.ts
+        note: a built manifest completion would never write is archived unchanged
+
+  - claim: d-9hbe6ixx # archive names come from the package name and version
+    covered_by:
+      - kind: attestation
+        note: scope stripped from the package name, version appended, members named for the kinds
+      - kind: code-test
+        ref: src/internal/archive.test.ts
+
+  - claim: d-h91x9nxz # assets copy verbatim except the manifest and scripts
+    covered_by:
+      - kind: attestation
+        note: the manifest and everything under scripts/ are skipped; the rest is copied byte for byte
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+
+  - claim: d-xnnslpns # empty source directories produce no output directory
+    covered_by:
+      - kind: attestation
+        note: directories are created per file written, so an empty source directory yields none
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+        note: a stat of the would-be output directory rejects
+
+  - claim: d-exzp1618 # the completed manifest is two-space JSON
+    covered_by:
+      - kind: attestation
+        note: two-space JSON with a trailing newline
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+
+  - claim: d-mr3z6vy9 # an unchanged chunk is dropped before the bundler writes it
+    covered_by:
+      - kind: attestation
+        note: generateBundle deletes a chunk whose bytes already sit at its output path
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+        note: main.js keeps its mtime across an unchanged rebuild and updates after an edit
+
+  - claim: d-jxv1x5ht # the bundle is one unminified ESM chunk
+    covered_by:
+      - kind: attestation
+        note: one ESM chunk, unminified, declarations and sourcemap off, no splitting configured
+      - kind: code-test
+        ref: src/build.test.ts
+
+  - claim: d-no9a9s0x # an invalid pack fails the build
+    covered_by:
+      - kind: attestation
+        note: any invalid pack of the package fails buildStart with the kit's problems printed
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+        note: dist/ is empty though the sibling resource pack was valid
+
+  - claim: d-y08itp8j # an unreadable workspace fails the build, naming the file
+    covered_by:
+      - kind: attestation
+        note: a rejected enumeration is rethrown naming the workspace and carrying the underlying error as cause
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+        note: an unrelated package's malformed package.json fails the build, and its path is in the message
+
+  - claim: d-4e0kt69q # a package with no pack fails the build
+    covered_by:
+      - kind: attestation
+        note: an empty pack set for this package fails naming the directory searched
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+
+  - claim: d-9s4tdc8z # documentation ships as TSDoc and a README section
+    covered_by:
+      - kind: attestation
+        note: TSDoc on packBuild and PackBuildOptions plus a README usage section; no separate document
+      - kind: code-test
+        ref: src/build.test.ts
+        note: the README section and the function's TSDoc are both asserted
+
+  - claim: d-1w5rjhg6 # the fragment states the settings the build depends on
+    covered_by:
+      - kind: attestation
+        ref: src/build.ts
+        note: >
+          all thirteen keys are set by the fragment rather than inherited; resolve.conditionNames is
+          set as inputOptions.resolve.conditionNames, which is where tsdown takes that setting
+      - kind: code-test
+        ref: src/build.test.ts
+        note: every setting asserted, the engine-forced values among them, with the output directory left standing and workspace dependencies inlined from source
+  # ============================================================================
+  # dev-loop — nodejs/minecraft/mc-dev-server
+  #
+  # every manual-check below was run against a genuinely remote Docker daemon
+  # (DOCKER_HOST=ssh://prod-development-docker, proven to share no filesystem) and a real
+  # itzg/minecraft-bedrock-server:latest container, from a two-pack scratch pnpm workspace.
+  # ============================================================================
+
+  - claim: r-8et233c9 # one-command dev loop
+    covered_by:
+      - kind: attestation
+        ref: src/start/start.ts
+        note: >
+          start resolves the workspace, folds the settings, runs each selected package's own build,
+          brings the container up, deploys through the reconcile, starts the watch scripts and the
+          built-output watcher, and follows the container log — all through one tagged stream
+      - kind: code-test
+        ref: src/start/start.test.ts
+        note: the whole loop driven against the fake server from a scratch workspace with no built output
+      - kind: manual-check
+        ref: src/start/start.ts
+        note: >
+          one start from a clean two-pack workspace carried, in order, the bring-up, the package's
+          own build, the deploy, the activation write, the world-load pack stack line, "watching for
+          changes", and then the pack's own script output as server lines — build, deploy and server
+          lines interleaved on the one stream
+
+  - claim: r-kfu7pcms # server lifecycle outlives the foreground
+    covered_by:
+      - kind: attestation
+        ref: src/start/start.ts
+        note: a detaching signal stops the log follow, the output watcher and the package watch processes and returns; nothing takes the container down
+      - kind: code-test
+        ref: src/start/start.test.ts
+        note: the fake server is still running after the run returns, on each of the three signals
+      - kind: manual-check
+        ref: src/start/start.ts
+        note: >
+          SIGINT to a live run printed "detached; the server is still running" and exited 0; docker ps
+          still showed the container up and healthy and no watch process survived. Reattaching found
+          the running server; only stop took it down, leaving the volume and its two worlds. Not
+          exercised: a connected Minecraft client, which this environment cannot run — the container
+          was never restarted on this path, which is the mechanism that would disconnect one
+
+  - claim: r-u8cg9vi6 # hosted packs are a selection
+    covered_by:
+      - kind: attestation
+        ref: src/settings/resolve.ts
+        note: the selection narrows the discovered set to the profile's packs; no profile hosts everything
+      - kind: code-test
+        ref: src/settings/resolve.test.ts
+      - kind: manual-check
+        ref: src/settings/resolve.ts
+        note: >
+          a profile naming one of two packs removed the other from the pool, and the container's pool
+          listing held the selected uuid alone; a profile naming a package the workspace does not
+          hold failed the run and brought nothing up
+
+  - claim: r-hpu39brj # behavior packs required, other content optional
+    covered_by:
+      - kind: attestation
+        ref: src/deploy/reconcile.ts
+        note: behavior packs are copied to their pool and written into the world's behavior activation list
+      - kind: code-test
+        ref: src/deploy/reconcile.test.ts
+        note: the pool contents and the activation list the fake server holds are asserted
+      - kind: manual-check
+        ref: src/deploy/reconcile.ts
+        note: >
+          the real server's world load reported the deployed pack in its pack stack and the pack's own
+          script ran in-game — deployed and activated, not merely copied
+
+  - claim: r-pcq10f2b # deploy reconciles to built packs
+    covered_by:
+      - kind: attestation
+        ref: src/deploy/plan.ts
+        note: the plan compares the selection against the pool and activation lists read off the container; an already-matching server yields an empty plan
+      - kind: code-test
+        ref: src/deploy/reconcile.test.ts
+        note: a second run with no change applies nothing; a deselected pack's pool directory is removed; the server's state is read rather than remembered
+      - kind: manual-check
+        ref: src/deploy/reconcile.ts
+        note: >
+          a second start against the same server emitted no deploy, removal or activation line at all
+          — a genuine no-op. Narrowing the selection then removed the deselected pack and rewrote the
+          activation list, which read back holding the remaining pack alone
+
+  - claim: r-cekp2mcb # edit to live without disconnect
+    covered_by:
+      - kind: attestation
+        ref: src/deploy/reconcile.ts
+        note: a debounced output change reconciles, and a change no pack's file set grew from applies with the console reload
+      - kind: code-test
+        ref: src/commands/lifecycle.test.ts
+        note: real file watching over a real directory produces one debounced report naming the pack rather than one per file
+      - kind: manual-check
+        ref: src/deploy/reconcile.ts
+        note: >
+          a script edit with the loop running reached the world within seconds — build, deploy,
+          reload, the server acknowledging the reload, and the new script output — with no restart
+          line and unbroken container uptime. The sibling pack kept its old output, so only the
+          edited module was re-evaluated. Not exercised: a client staying connected, since none can
+          run here
+
+  - claim: r-97fvutt9 # the harness deploys built output and nothing about how it was built
+    covered_by:
+      - kind: attestation
+        ref: src/deploy/built-output.ts
+        note: the built-output read lists the contents of the entry's output location and nothing else; identity and version come from the pack set, and no manifest in the output tree is read
+      - kind: code-test
+        ref: src/deploy/built-output.test.ts
+      - kind: manual-check
+        ref: src/deploy/built-output.ts
+        note: the live packages' build scripts wrote their output by hand, with no kit build involved; the harness deployed exactly that tree and the server loaded it
+
+  - claim: r-7lroj1cg # single-world scope
+    covered_by:
+      - kind: attestation
+        ref: src/docker/compose-file.ts
+        note: the generated project runs one service on one volume, serving the one world the level name names
+      - kind: code-test
+        ref: src/docker/compose-file.test.ts
+      - kind: manual-check
+        ref: src/docker/compose-file.ts
+        note: the generated project held one service and one volume; two worlds accumulated on that volume and exactly one was ever served
+
+  - claim: r-whacwz1b # remote Docker supported
+    covered_by:
+      - kind: attestation
+        ref: src/docker/compose-file.ts
+        note: the generated project mounts only the named volume; no host path is bound anywhere, and every byte reaches the server through compose cp and compose exec
+      - kind: code-test
+        ref: src/start/start.test.ts
+        note: the rendered project is asserted to carry the named volume mount and no host-path mount
+      - kind: manual-check
+        ref: src/start/start.ts
+        note: >
+          the daemon used for every check was genuinely remote, and proven to share no filesystem
+          first — a bind mount of a non-empty local directory arrived empty. Against it the full loop
+          ran: build, start, deploy, edit-and-reload, narrow, recreate, stop and destroy, with no bind
+          mount configured anywhere
+
+  - claim: d-zyo6kku9 # the harness is its own package beside the library
+    covered_by:
+      - kind: attestation
+        ref: package.json
+        note: published as @twin-digital/mc-dev-server with the minecraft-server bin, depending on the kit; the kit depends on nothing here
+
+  - claim: d-wtziwjh5 # server image pinned with console helper
+    covered_by:
+      - kind: attestation
+        ref: src/settings/resolve.ts
+        note: the default image pins itzg/minecraft-bedrock-server:latest; only the image setting changes it
+      - kind: code-test
+        ref: src/settings/resolve.test.ts
+      - kind: manual-check
+        ref: src/settings/resolve.ts
+        note: the generated project carried the pinned image, and the container ran from it
+
+  - claim: d-uqdxo2w6 # deploy transport is cp and console exec
+    covered_by:
+      - kind: attestation
+        ref: src/docker/compose.ts
+        note: copies are compose cp, commands are compose exec, reloads are the image's console helper; no develop.watch anywhere
+      - kind: code-test
+        ref: src/docker/compose.test.ts
+      - kind: manual-check
+        ref: src/docker/compose.ts
+        note: every live deploy moved packs by compose cp and issued the reload by compose exec, which the server acknowledged
+
+  - claim: d-w8cc8n18 # generated compose file is fully resolved
+    covered_by:
+      - kind: attestation
+        ref: src/docker/compose-file.ts
+        note: every value is substituted before the file is written, and the invocation passes only an absolute -f path
+      - kind: code-test
+        ref: src/docker/compose.test.ts
+      - kind: manual-check
+        ref: src/docker/compose-file.ts
+        note: the written file carried literal values throughout — the seed and the published port among them — with no interpolation and no env file
+
+  - claim: d-imdfu09l # the project identity is derived from the workspace root
+    covered_by:
+      - kind: attestation
+        ref: src/workspace.ts
+        note: the workspace resolution goes through the kit's resolver and sluggifies the root package's name; nothing path-keyed enters the project name
+      - kind: code-test
+        ref: src/workspace.test.ts
+      - kind: manual-check
+        ref: src/workspace.ts
+        note: every live run addressed the one compose project named for the root package, across start, stop and destroy
+
+  - claim: d-zo2yl18y # the world volume outlives a stop, and only destroy removes it
+    covered_by:
+      - kind: attestation
+        ref: src/commands/stop.ts
+        note: stop brings the project down without the volume flag; only destroy passes it
+      - kind: code-test
+        ref: src/commands/lifecycle.test.ts
+      - kind: manual-check
+        ref: src/commands/stop.ts
+        note: >
+          after stop the volume was still listed and a container mounting it found both worlds and the
+          intact seed record; a later start onto the second world found and served it. After destroy
+          no volume remained
+
+  - claim: d-4iepnry2 # both pack kinds are routed by the kind the pack set reports
+    covered_by:
+      - kind: attestation
+        ref: src/server/layout.ts
+        note: the pool and activation file are chosen by the kind the pack set reports; no pool directory name is ever read back as a declaration of kind
+      - kind: code-test
+        ref: src/server/state-read.test.ts
+        note: both pools, their file names, and both activation lists are read and rebuilt under their own kind
+
+  - claim: d-cw6pder5 # activation entries are written from the pack set
+    covered_by:
+      - kind: attestation
+        ref: src/deploy/plan.ts
+        note: an entry is the pack id and version taken straight from the pack entry; nothing converts the version and no output manifest is read
+      - kind: code-test
+        ref: src/deploy/built-output.test.ts
+      - kind: manual-check
+        ref: src/deploy/plan.ts
+        note: the live activation list read back carrying the SemVer string the package declared, and the server accepted it and listed the pack
+
+  - claim: d-oo8256gl # a pack occupies a pool directory named for its uuid
+    covered_by:
+      - kind: attestation
+        ref: src/server/layout.ts
+      - kind: code-test
+        ref: src/server/layout.test.ts
+      - kind: manual-check
+        ref: src/server/layout.ts
+        note: the live container's behavior pool listing held the pack's lowercased header uuid as its one directory
+
+  - claim: d-q8ikxtdk # reconcile reads live server state
+    covered_by:
+      - kind: attestation
+        ref: src/server/state.ts
+        note: one read against the container each reconcile; nothing is remembered between them
+      - kind: code-test
+        ref: src/deploy/reconcile.test.ts
+        note: a pool directory deleted by hand is re-copied on the next reconcile
+      - kind: manual-check
+        ref: src/server/state.ts
+        note: a run started against a server left up by an earlier session converged on it with no state carried over
+
+  - claim: d-a9jaqn8m # the harness compares presence and identity, never content
+    covered_by:
+      - kind: attestation
+        ref: src/deploy/plan.ts
+        note: the comparison is over presence, activation entries and file names; no file's content is read back from the server
+      - kind: code-test
+        ref: src/deploy/plan.test.ts
+
+  - claim: d-n0dz38ky # a pool directory is replaced, not merged into
+    covered_by:
+      - kind: attestation
+        ref: src/deploy/reconcile.ts
+        note: every copy is preceded by a removal of the pool directory
+      - kind: code-test
+        ref: src/deploy/reconcile.test.ts
+        note: a file planted in the pool is gone after the next deploy
+
+  - claim: d-ftlfhac8 # a reload is used unless the pack gained a file
+    covered_by:
+      - kind: attestation
+        ref: src/deploy/plan.ts
+        note: a grown file set, an added or removed pack, a version change, or an activation edit prices a restart; anything else applies with the reload
+      - kind: code-test
+        ref: src/deploy/plan.test.ts
+        note: the reload and restart matrix — grown, shrunk, changed, version, and list edit
+      - kind: manual-check
+        ref: src/deploy/plan.ts
+        note: live, an edit to an already-deployed script took the reload path while the first deploy into a fresh world took the restart path
+
+  - claim: d-i4oryd9x # readiness is the world-load pack stack line
+    covered_by:
+      - kind: attestation
+        ref: src/server/readiness.ts
+      - kind: code-test
+        ref: src/server/readiness.test.ts
+        note: the matching cases, an empty pack stack among them, plus a load appearing after a restart
+      - kind: manual-check
+        ref: src/server/readiness.ts
+        note: every live rung reported its readiness from the real world-load line, quoting what the load brought up
+
+  - claim: d-vrq7lc2o # a pack that will not build is deployed as a stub
+    covered_by:
+      - kind: attestation
+        ref: src/deploy/stub-pack.ts
+        note: a pack whose output tree holds no manifest is staged as its own manifest plus a script that does nothing, at the path the bundle will occupy, so the fix costs a reload
+      - kind: code-test
+        ref: src/start/start.test.ts
+        note: the build exits non-zero, the run continues, and the pool holds the stub script
+
+  - claim: d-j3ayhwv1 # the harness runs a package's own build scripts and watches its output
+    covered_by:
+      - kind: attestation
+        ref: src/package-scripts/scripts.ts
+        note: the package's own build and watch are run through its workspace's package manager; only output directories are watched
+      - kind: code-test
+        ref: src/commands/lifecycle.test.ts
+        note: a debounced change to a selected pack's built output deploys, plus the script argv cases
+      - kind: manual-check
+        ref: src/package-scripts/scripts.ts
+        note: live, the harness ran each package's own build and watch scripts, and an edit under a package's sources was picked up only once that package's own watch had written its output
+
+  - claim: d-0yrfifhi # the command is minecraft-server, with start, stop and destroy
+    covered_by:
+      - kind: attestation
+        ref: src/cli/program.ts
+        note: three explicit subcommands with no bare invocation; destroy names the worlds and asks
+      - kind: code-test
+        ref: src/commands/lifecycle.test.ts
+        note: destroy names what it will remove and asks, and does nothing where nothing can be asked
+      - kind: manual-check
+        ref: src/commands/destroy.ts
+        note: >
+          live destroy under a pty named both worlds, marked the one serving, and asked; answering no
+          left the volume standing and answering yes removed it. With stdin not a terminal it removed
+          nothing and said so
+
+  - claim: d-5ocyva9w # the harness reads a running server rather than a record of it
+    covered_by:
+      - kind: attestation
+        ref: src/server/state.ts
+        note: the image and port come from inspecting the running container, the level from the server's configuration on the volume, and the generation seed from the harness's own record
+      - kind: code-test
+        ref: src/server/volume-io.test.ts
+        note: the container settings, the served world, the worlds held, and the seeds are each read back
+      - kind: manual-check
+        ref: src/server/state.ts
+        note: >
+          the live record read back naming both worlds and their seeds; a start onto an
+          already-recorded world left it byte-identical. Before the fix that run overwrote the
+          world's seed — the defect this live check found
+
+  - claim: d-41m3iws5 # a run chooses its world's seed and spawn
+    covered_by:
+      - kind: attestation
+        ref: src/settings/resolve.ts
+        note: level, seed and spawn fold across four layers, stay optional, and reach the server as the generated project's level seed and a console spawn command
+      - kind: code-test
+        ref: src/settings/resolve.test.ts
+        note: the four-layer fold, plus the exact 64-bit range cases
+      - kind: manual-check
+        ref: src/settings/resolve.ts
+        note: a named seed reached the generated project and the record; a harness-picked seed came out a full-range negative value the server accepted
+
+  - claim: d-jv1zleaj # the server's on-disk layout
+    covered_by:
+      - kind: attestation
+        ref: src/server/layout.ts
+        note: the pool, world and activation paths, with activation entries written in selection order
+      - kind: code-test
+        ref: src/server/layout.test.ts
+      - kind: manual-check
+        ref: src/server/layout.ts
+        note: each path was read back off the live container holding what the harness wrote
+
+  - claim: d-5vjxmr4u # a volume holds many worlds and serves one
+    covered_by:
+      - kind: attestation
+        ref: src/start/ladder.ts
+        note: a level the volume holds is switched to by recreate; a level it does not hold is generated
+      - kind: code-test
+        ref: src/start/ladder.test.ts
+      - kind: manual-check
+        ref: src/start/ladder.ts
+        note: naming a new level generated it, naming the old one switched back, both worlds survived, and both survived a stop
+
+  - claim: d-wgzr4lvx # one attached run per workspace
+    covered_by:
+      - kind: attestation
+        ref: src/start/attach-lock.ts
+        note: an exclusive lock per compose project; a record whose holder is no longer alive does not block
+      - kind: code-test
+        ref: src/start/attach-lock.test.ts
+        note: a second attach is refused and names the run holding the lock; a stale record is taken over
+      - kind: code-test
+        ref: src/start/start.test.ts
+
+  - claim: d-7ayy4btp # a restart lets the world save first
+    covered_by:
+      - kind: attestation
+        ref: src/server/console.ts
+        note: the server is taken down through the image's console stop, waited for; nothing anywhere kills a container
+      - kind: code-test
+        ref: src/server/volume-io.test.ts
+        note: the console stop is issued and waited for, and a server that will not go down fails rather than being killed
+      - kind: manual-check
+        ref: src/server/console.ts
+        note: live stop went through the console and reported the world written first; the worlds and the seed record read back intact afterwards
+
+  - claim: d-owprl7uy # what start does when a server is already running
+    covered_by:
+      - kind: attestation
+        ref: src/start/ladder.ts
+        note: the five rungs, comparing only the level, the seed, the image and the port
+      - kind: code-test
+        ref: src/start/ladder.test.ts
+      - kind: manual-check
+        ref: src/start/start.ts
+        note: >
+          all five rungs walked against the live server — attach with no compose operation, generating
+          an absent world, switching to one the volume held, recreating for a changed port, and the
+          seed-mismatch rung naming the world and both seeds and bailing out where nothing could be
+          asked, leaving the world untouched. Not exercised: agreeing to the regenerate
+
+  - claim: d-ifke5eeh # start is idempotent against a running server
+    covered_by:
+      - kind: attestation
+        ref: src/start/start.ts
+        note: the attach rung takes readiness from the last world-load line already in the log and issues no compose operation
+      - kind: code-test
+        ref: src/start/start.test.ts
+      - kind: manual-check
+        ref: src/start/start.ts
+        note: reattaching after a detach reported the world-load line already in the log, minutes old, and the deploy that followed was a no-op
+
+  - claim: d-wkcxcv2b # the config file has a default location and may be pointed elsewhere
+    covered_by:
+      - kind: attestation
+        ref: src/config/load.ts
+        note: the two default names, the --config flag, the both-present error, and validation against the bound config contract
+      - kind: code-test
+        ref: src/config/load.test.ts
+      - kind: manual-check
+        ref: src/config/load.ts
+        note: the live config file was found at its default name in the run's directory and applied
+
+  - claim: d-c1kvyord # selection is a profile, or every pack there is
+    covered_by:
+      - kind: attestation
+        ref: src/settings/resolve.ts
+        note: the named profile, the config's default profile, or everything; a profile naming nothing the workspace holds fails the run
+      - kind: code-test
+        ref: src/settings/resolve.test.ts
+      - kind: manual-check
+        ref: src/settings/resolve.ts
+        note: the named profile hosted its single pack; a misnamed one failed the run and brought nothing up
+
+  - claim: d-duvygv2f # the first deploy of a fresh world pays a restart
+    covered_by:
+      - kind: attestation
+        ref: src/deploy/reconcile.ts
+        note: the first deploy into a fresh world writes an activation list where there was none, which prices a restart
+      - kind: code-test
+        ref: src/start/start.test.ts
+        note: one restart against a fresh volume, reported as part of starting
+      - kind: manual-check
+        ref: src/deploy/reconcile.ts
+        note: >
+          against a freshly created volume the world first loaded with an empty pack stack, the
+          harness said so, deployed, restarted once, and the second load reported the pack active
+
+  - claim: d-e956frnx # the author accepts the server EULA on the command line or in the config
+    covered_by:
+      - kind: attestation
+        ref: src/docker/compose-file.ts
+        note: >
+          acceptance comes from the flag or the config key; without either the run fails before
+          touching Docker. Offline mode, no allow list, the content log to console, and optional
+          resource packs are fixed in the generated project
+      - kind: code-test
+        ref: src/start/start.test.ts
+        note: with neither, the run fails linking the EULA and nothing reaches the compose client
+      - kind: manual-check
+        ref: src/docker/compose-file.ts
+        note: >
+          the generated project carried the acceptance and the four posture settings; the server
+          confirmed content logging to console, which is what carried the packs' script output onto
+          the stream
+
+  - claim: d-1u13wl57 # discovery runs at the head of every reconcile
+    covered_by:
+      - kind: attestation
+        ref: src/deploy/reconcile.ts
+      - kind: code-test
+        ref: src/deploy/reconcile.test.ts
+        note: a package version raised between reconciles reaches the next activation list
+
+  - claim: d-n81zkitr # a run launches best-effort and reports what it could not build
+    covered_by:
+      - kind: attestation
+        ref: src/start/start.ts
+        note: >
+          an invalid selected pack fails the run before Docker; a failed build, a missing watch
+          script, a watch that exits, and a reconcile that throws are each reported and carried
+      - kind: code-test
+        ref: src/start/start.test.ts
+        note: an invalid selected pack fails before anything is brought up, with no compose operation recorded
+      - kind: code-test
+        ref: src/commands/lifecycle.test.ts
+        note: a watch process that exits is reported and not restarted
+      - kind: code-test
+        ref: src/deploy/reconcile.test.ts
+        note: a reconcile that throws is reported and leaves the server untouched
+
+  - claim: d-plnvasfo # pool content the harness did not deploy is removed
+    covered_by:
+      - kind: attestation
+        ref: src/deploy/plan.ts
+      - kind: code-test
+        ref: src/deploy/reconcile.test.ts
+      - kind: manual-check
+        ref: src/deploy/plan.ts
+        note: narrowing the selection removed the deselected pack's pool directory from the live container
+
+  - claim: d-0qo3xvev # one reconcile at a time, and changes during one coalesce
+    covered_by:
+      - kind: attestation
+        ref: src/deploy/reconcile.ts
+      - kind: code-test
+        ref: src/deploy/reconcile.test.ts
+        note: three requests arriving during one reconcile produce two reconciles in all
+
+  - claim: d-5e00ndwi # activity and server output share one tagged stream
+    covered_by:
+      - kind: attestation
+        ref: src/stream.ts
+        note: one stream on stdout; the emitting package tags build output, deploy the harness's own activity, server the container log
+      - kind: code-test
+        ref: src/start/start.test.ts
+        note: all three tags present, with a build line arriving verbatim under its package's tag
+      - kind: manual-check
+        ref: src/stream.ts
+        note: the live transcript interleaved build, deploy and server lines in one stdout stream
+
+  - claim: d-62bpn2h2 # the command line's exits and signals
+    covered_by:
+      - kind: attestation
+        ref: src/cli/entry-point.ts
+        note: zero on a closed loop and a successful stop, non-zero on every failure; the three signals all detach and a second exits immediately; nothing is written to stderr
+      - kind: code-test
+        ref: src/start/start.test.ts
+        note: the foreground closes on each of the three signals
+      - kind: code-test
+        ref: src/commands/lifecycle.test.ts
+        note: stop exits zero whether or not a server was running
+      - kind: manual-check
+        ref: src/cli/entry-point.ts
+        note: >
+          live exit codes came out as the decision states across six paths, and every line — the
+          diagnostics included — arrived on stdout
+
+  - claim: d-a3fyy34f # POSIX hosts, and the ambient Docker connection
+    covered_by:
+      - kind: attestation
+        ref: src/docker/compose.ts
+        note: the runner sets no connection variable of its own and takes whatever the environment selected
+      - kind: code-test
+        ref: src/server/endpoint.test.ts
+        note: the host is taken out of each connection form, and the reported line asserted for each
+      - kind: manual-check
+        ref: src/docker/compose.ts
+        note: >
+          every live check ran over an ssh Docker connection the environment set, with no setting of
+          the harness's own. Linux host; macOS not exercised, Windows out of scope
+
+  - claim: d-3ya31m19 # the reconcile is the deploy, and it has one shape
+    covered_by:
+      - kind: attestation
+        ref: src/deploy/reconcile.ts
+        note: one operation of five ordered steps, run at start and on every debounced change; a run with nothing to apply applies nothing
+      - kind: code-test
+        ref: src/deploy/reconcile.test.ts
+        note: the step order is asserted, and a second run with no change is a genuine no-op
+
+  # ============================================================================
+  # discovery — evidence restored after the first coverage pass found it weakened
+  # ============================================================================
+
+  - claim: r-iavfb8qj # discovery produces no built output
+    covered_by:
+      - kind: code-test
+        ref: src/discover-packs.test.ts
+        note: >
+          one case snapshots an unbuilt workspace by size, mtime and bytes, runs discovery, and
+          finds the tree unchanged with no directory standing at any reported output or script
+          location; the other places a built manifest and bundle at the output location and finds
+          the reported entry still source-derived, the tree again unchanged
+      - kind: manual-check
+        ref: src/discover-packs.ts
+        note: >
+          performed the requirement's procedure under strace against this tree: a four-pack pnpm
+          workspace with no built output present, hashed and stat'd, discovery run, re-hashed. The
+          tree is identical by sha256 and by size, mtime and inode with directories included; every
+          open into the workspace is read-only and names a source manifest, a package.json, the
+          workspace definition, or a directory listing; no syscall names any output path, and there
+          is no write-intent open, mkdir, unlink, rename or truncate anywhere in the workspace.
+          Repeated with a decoy built manifest and bundle in place: the reported identity and name
+          are the source's, the tree is unchanged, and no syscall names an output path
+      - kind: attestation
+        ref:
+          - src/internal/pack-locator.ts
+          - src/internal/workspace-enumerator.ts
+        note: >
+          the discovery path's only filesystem access is reading source manifests and package.json;
+          no module on the path imports a write, and no output path is ever an argument. The build
+          half, which does read and write that tree, is reached only from src/build.ts
+
+  - claim: d-ed610d8c # the problem code set is closed
+    covered_by:
+      - kind: code-test
+        ref: src/discover-packs.test.ts
+        note: >
+          one workspace raises all nineteen codes the union holds and nothing outside it — the
+          asserted set is compared for equality, so a stray code fails as loudly as a missing one
+      - kind: attestation
+        ref: src/types.ts
+        note: the Problem union is closed and no constructor takes a free-form code
+
+  - claim: d-eh8y8a37 # the problem codes, module-entry-specified among them
+    covered_by:
+      - kind: code-test
+        ref: src/discover-packs.test.ts
+        note: >
+          one workspace raises all nineteen codes the union holds and nothing outside it, the
+          asserted set compared for equality so a stray code fails as loudly as a missing one
+      - kind: attestation
+        ref: src/types.ts
+        note: the union carries the nineteen codes with exactly the extra fields named for each
+
+  - claim: d-4tmzz8dc # a completed script module's entry is scripts/main.js
+    covered_by:
+      - kind: code-test
+        ref: src/internal/manifest-completion.test.ts
+        note: >
+          completion writes scripts/main.js on a behavior pack's script module, writes it on nothing
+          else, and overwrites a source-specified value after reporting it
+      - kind: attestation
+        ref: src/internal/manifest-completion.ts
+
+  - claim: d-pj8788qi # the workspace-root resolver's signature
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/workspace-root.test.ts
+          - src/consumer.test.ts
+        note: >
+          the options object, the default starting directory, a relative path resolved against it,
+          an absolute root, the package name, and undefined above the topmost root
+      - kind: attestation
+        ref: src/workspace-root.ts
+
+  - claim: d-218lu6sx # the build fragment is a tsdown UserConfig, and the virtual entry is a plugin-resolved id
+    covered_by:
+      - kind: code-test
+        ref: src/build.test.ts
+        note: the fragment types as a tsdown config and names the virtual entry id where the package holds no script sources
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+        note: the plugin resolves and loads that id as an empty module, and fails at buildStart when sources turn up under it
+      - kind: attestation
+        ref: src/build.ts
+
+  - claim: d-e9q1tkmj # the fragment sets resolve.conditionNames under inputOptions
+    covered_by:
+      - kind: code-test
+        ref: src/build.test.ts
+        note: the condition names are asserted at the key tsdown reads them from
+      - kind: attestation
+        ref: src/build.ts
+
+  - claim: d-6qjbel7g # the world volume is the compose volume world-data
+    covered_by:
+      - kind: code-test
+        ref: src/docker/compose-file.test.ts
+        note: the generated project declares the one named volume at the mount point the layout fixes
+      - kind: manual-check
+        ref: src/docker/compose-file.ts
+        note: the live volume was listed under the project-prefixed name, survived a stop, and was removed only by destroy
+      - kind: attestation
+        ref: src/docker/compose-file.ts
+
+  - claim: d-iietr3ai # the seed record is worlds.json under the harness's own directory
+    covered_by:
+      - kind: code-test
+        ref: src/server/volume-io.test.ts
+        note: the record round-trips a full-range 64-bit seed as a decimal string, and an absent or unparseable record reads as empty
+      - kind: manual-check
+        ref: src/server/layout.ts
+        note: the live record read back at that path in that shape, naming both worlds and their seeds
+      - kind: attestation
+        ref: src/server/layout.ts
+
+  - claim: d-72uops8f # a seed is recorded before its world exists and never rewritten
+    covered_by:
+      - kind: code-test
+        ref: src/start/start.test.ts
+        note: a start onto a world already on record leaves the recorded seed untouched
+      - kind: manual-check
+        ref: src/server/state.ts
+        note: >
+          a live start onto an already-recorded world left the record byte-identical; before the fix
+          this run overwrote that world's generation seed, which is the defect the live check found
+      - kind: attestation
+        ref: src/server/state.ts
+
+  - claim: d-1cvurr1z # the level a server is serving is read from server.properties
+    covered_by:
+      - kind: code-test
+        ref: src/server/volume-io.test.ts
+        note: the served world is read from the level-name key of the server's own configuration on the volume
+      - kind: manual-check
+        ref: src/server/state.ts
+        note: the live level name read back from that file matched what the run had asked for, across a switch between two worlds
+      - kind: attestation
+        ref: src/server/state.ts
+
+  - claim: d-ur29y32y # the compose service is bedrock, and the run's port publishes over 19132
+    covered_by:
+      - kind: code-test
+        ref: src/docker/compose-file.test.ts
+        note: one service under that name, listening on the container port, with the run's port published over it
+      - kind: manual-check
+        ref: src/docker/compose-file.ts
+        note: the generated project carried the service and the published port, and the copy and console commands addressed it by name
+      - kind: attestation
+        ref: src/docker/compose-file.ts
+
+  - claim: d-u5c77500 # the generated compose file sits outside the workspace and is rewritten every run
+    covered_by:
+      - kind: code-test
+        ref: src/docker/compose.test.ts
+        note: the file is named by absolute path under the temporary directory, keyed by project name
+      - kind: manual-check
+        ref: src/docker/compose-file.ts
+        note: nothing appeared in the live workspace checkout, and the file was regenerated on each command
+      - kind: attestation
+        ref: src/docker/compose-file.ts
+
+  - claim: d-ma6te2xu # the project name slug
+    covered_by:
+      - kind: code-test
+        ref: src/workspace.test.ts
+        note: lowercasing, substitution, run collapsing, edge trimming, and the fallback for a name with nothing left
+      - kind: attestation
+        ref: src/workspace.ts
+
+  - claim: d-4rq4v5jq # level, seed and spawn carry no harness default
+    covered_by:
+      - kind: code-test
+        ref: src/settings/resolve.test.ts
+        note: the defaults layer supplies the image and the port only, leaving the three unspecified for matching
+      - kind: code-test
+        ref: src/start/ladder.test.ts
+        note: an unspecified setting matches a running server whatever it holds
+      - kind: attestation
+        ref: src/settings/resolve.ts
+
+  - claim: d-aq4qq95v # what makes a reconcile re-copy a pack
+    covered_by:
+      - kind: code-test
+        ref: src/deploy/plan.test.ts
+        note: absence, differing file names, and an observed rebuild each copy; nothing else does
+      - kind: code-test
+        ref: src/deploy/reconcile.test.ts
+        note: a reconcile at start against a matching server copies nothing
+      - kind: attestation
+        ref: src/deploy/plan.ts
+
+  - claim: d-69wqm1r3 # a package's own scripts are run through its workspace's package manager
+    covered_by:
+      - kind: code-test
+        ref: src/package-scripts/scripts.test.ts
+        note: the argv for each manager, the manager chosen from the workspace root's own marker, and a package declaring neither script
+      - kind: manual-check
+        ref: src/package-scripts/scripts.ts
+        note: the live run invoked each package's own build and watch through the workspace's manager, in the package's own directory
+      - kind: attestation
+        ref: src/package-scripts/scripts.ts
+
+  - claim: d-2nfk6s4m # the seed's exact range is enforced by the harness, not the config schema
+    covered_by:
+      - kind: code-test
+        ref: src/config/load.test.ts
+        note: a seed one past either end of the range is rejected naming the key, though it validates against the contract
+      - kind: code-test
+        ref: src/seed.test.ts
+        note: the range's exact edges parse and the values beyond them do not
+      - kind: attestation
+        ref: src/config/load.ts
+
+  - claim: d-uwj809wm # a world that loaded with no packs is ready, and said so
+    covered_by:
+      - kind: code-test
+        ref: src/server/readiness.test.ts
+        note: an empty pack stack is matched and reported distinctly from a stack holding packs
+      - kind: manual-check
+        ref: src/server/readiness.ts
+        note: the live first load against a fresh volume said the world had loaded with no packs active, then deployed and restarted
+      - kind: attestation
+        ref: src/server/readiness.ts
+
+  - claim: d-tl5qq1u6 # the run reports where to connect once the world has loaded
+    covered_by:
+      - kind: code-test
+        ref: src/server/endpoint.test.ts
+        note: the host taken out of each Docker connection form, and the reported line asserted for each
+      - kind: manual-check
+        ref: src/start/start.ts
+        note: the live run against a remote daemon reported the remote host and the published port, naming where it took the host from
+      - kind: attestation
+        ref: src/server/endpoint.ts
+
+  - claim: d-3qlzf7l8 # readiness is a bounded poll against a mark, not a follow
+    covered_by:
+      - kind: code-test
+        ref: src/server/readiness.test.ts
+        note: >
+          a load already in the log is taken on attach, a new load is waited for where the mark says
+          the log grew, and a shorter log is read as a recreated container's fresh one
+      - kind: manual-check
+        ref: src/server/readiness.ts
+        note: >
+          readiness resolved on the live server across a cold start, a recreate, and a reattach whose
+          world-load line was minutes old
+      - kind: attestation
+        ref: src/server/readiness.ts
+
+  - claim: d-fw7jkpvp # detaching takes a package's whole watch down with it
+    covered_by:
+      - kind: code-test
+        ref: src/start/start.test.ts
+        note: the watch processes are down once the run returns on a detaching signal
+      - kind: manual-check
+        ref: src/package-scripts/scripts.ts
+        note: >
+          after a live detach no watch process survived and the harness exited; before the fix the
+          package manager's child was orphaned and the run never returned
+      - kind: attestation
+        ref: src/package-scripts/scripts.ts
