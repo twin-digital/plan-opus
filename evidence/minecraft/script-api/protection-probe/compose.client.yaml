@@ -1,0 +1,10 @@
+# Overlay for the client half of q-fc5bw0k0: publishes the port and drops the checks that would
+# keep a Bedrock client out. Throwaway probe world on a local network — do not leave it up.
+services:
+  bedrock:
+    environment:
+      ONLINE_MODE: "false"
+      ALLOW_LIST: "false"
+      GAMEMODE: survival
+    ports:
+      - "19132:19132/udp"

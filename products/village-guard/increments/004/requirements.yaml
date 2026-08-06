@@ -1,0 +1,35 @@
+version: "1"
+
+presets:
+  - name: minecraft-addon
+    version: 4
+
+requirements:
+  # staying out of the way
+  - id: r-ef113dxi
+    title: the pack changes nothing else, and a player's own hit does nothing
+    statement: |
+      apart from not dying, not being converted, and being restored to full health when it is
+      harmed, a protected mob behaves exactly as it does in vanilla: trading, restocking, breeding, gossip, panic, and golem spawning are unchanged, and a
+      mob that is hit still visibly takes the hit — flinch, knockback, sound, and panic as vanilla
+      would. The protection adds no tell of its own — no effect particles, no name tag, no chat
+      output.
+
+      A hit a player dealt is the exception: it does nothing at all. The mob takes no harm and shows
+      no reaction, and the player's standing with it is unchanged, so an accidental swing costs the
+      player nothing and leaves the mob as it was.
+    rationale: |
+      the exception is the player's alone. a siege still has to look like a siege.
+    verification:
+      - do: with the pack running, harm a protected mob that is already below full health
+      - verify: it ends at full health, and nothing else about it has changed
+      - do: with the pack running, trade with a protected villager, let it restock, breed a pair, provoke panic, and let a village spawn a golem, alongside the same scenario in a world without the pack
+      - verify: each behaviour matches the vanilla world's
+      - do: let a hostile mob strike a protected mob and watch the same strike land in the vanilla world
+      - verify: the hit visibly lands as vanilla's does — flinch, knockback, sound, and panic alike
+      - verify: nothing on screen is added by the protection — no effect particles, no name tag, no chat output
+      - do: as a player, strike a protected villager in melee and again with an arrow, alongside the same strikes in the vanilla world
+      - verify: the pack's villager shows none of the four reactions the vanilla one shows — no flash, no sound, no recoil, no agitation
+      - do: trade with a protected villager, strike it several times as a player, and trade again
+      - verify: its prices after the strikes are the prices it offered before them
+    amends: r-eh0aac98
