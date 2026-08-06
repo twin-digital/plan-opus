@@ -1,5 +1,5 @@
 ---
-version: "14"
+version: "26"
 name: implement-package
 description: Implement one package of a product inside a running implementation — survey, prepare, and implement, reading the wave shape bundled for the package's kind. Invoked by an implementation's dispatcher; use directly when asked to build one package against a product's fold.
 ---
@@ -9,6 +9,20 @@ description: Implement one package of a product inside a running implementation 
 You are the implementer for one package of `<product>`, dispatched with the package's `kind`.
 This file is what every implementer does whatever its kind; the wave shape for your kind is a
 file under `waves/`, and you read the one your kind names and no other.
+
+## Reading the fold includes the contracts it binds
+
+Read every contract the fold's model binds. The projection prints a model entry's name, its
+reference, and its description — none of the contract's content — so an implementer working
+from the projection alone cannot see the shape it is bound to.
+
+A reference — `/<namespace>/<entity>@<version>` — resolves by scanning the pool for the file
+whose in-file identity header matches it. Pool layout is not normative, so the path is not
+derivable from the reference.
+
+The pools are the planning repository's `schemas/` and `surfaces/`. A package built in another
+repository reads its contracts from the planning repository's checkout, where the increment
+that bound them lives; the pool does not travel with the code.
 
 ## The three phases
 

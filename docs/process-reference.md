@@ -1,5 +1,5 @@
 ---
-version: "24"
+version: "26"
 ---
 
 # The incremental design process
@@ -42,8 +42,9 @@ has a job, an author, and a lifecycle:
   retirement. `because:` records what a decision rests on; `pinned` marks the ones that cannot
   be freely overturned; `revisit_when` carries the rare, deliberate revisit condition.
 - **Model entries** bind the contracts the design speaks about — entity name to a pooled schema
-  or API surface at a pinned version, in the `model:` block of the requirements source. Written
-  as the shapes settle, ratified with the increment's requirements, folded by entity name.
+  or authored surface at a pinned version, in the `model:` block of the requirements source.
+  Written as the shapes settle, ratified with the increment's requirements, folded by entity
+  name.
 - **Facts** live in the repo-wide `facts/` pool, with the runs and artifacts that establish
   them under `evidence/`: findings about the world, citable from anywhere and validated by
   `design-process check` — the one merge gate — against their pool schemas and the evidence bar,
@@ -298,7 +299,9 @@ gate reads published numbers only, so a wip ordinal neither fills a gap nor make
 published increment, ordered by their wip ordinals — the order their landings would claim. Each
 one's foundations appear in the fold, its supersessions close what they name, and the coverage
 summary counts its claims. A draft shows as its directory name, since it holds no published
-number until it lands.
+number until it lands. That is the default projection only — asked for a named increment or a
+git ref, the projection shows published state and excludes drafts, since a draft holds no number
+to name; `diff`, `where`, and the head side of `conflicts` stay published-only.
 
 ### Dependencies between drafts
 
@@ -366,33 +369,240 @@ from its first ruling to published in that same sitting. **Publishing a settled 
 agent**: a draft whose rulings are complete publishes mechanically, the owner landing it without
 an agent performing any step of the landing.
 
+**A draft is ratified through its pull request.** The owner opens a session by naming one, and
+ratifies and lands from there without locating a branch or a working tree themselves; a draft
+being ratified has a pull request, whoever opened it. This governs ratification, not when a
+draft is created or how it is worked before that.
+
 One interactive command carries the draft from ruling to published:
 
 ```
-design-process increment <product> [--root <dir>]
+design-process increment [<product>] [--pr <url>] [--root <dir>]
 ```
 
-It is a full-screen terminal application over the draft the working tree holds, and it is the
-whole flow — the owner rules from it and publishes from it, never switching commands. No new
-package, no service, and no browser: it reaches the fold, the projection, and the conflict check
-as library calls rather than reimplementing them. The session has modes, and what is open
-decides which are offered. **Ratify** is where a draft carrying anything proposed or unanswered
-opens. **Landing** becomes available exactly when nothing is proposed and no question is open,
-and is entered from the same session.
+It is a full-screen terminal application over a draft's pull request, and it is the whole flow
+— the owner rules from it and publishes from it, never switching commands. No new package, no
+service, and no browser: it reaches the fold, the projection, and the conflict check as library
+calls rather than reimplementing them.
+
+`--pr` names the pull request to work and is not required. Given one, the session resolves it to
+its head branch and works that: where the current tree is already on that branch it works in
+place, and otherwise it fetches the branch, materialises a temporary git worktree from it, runs
+there, and removes the worktree when the session ends. It needs a local clone of the pull
+request's repository, found from the working directory the command ran in. Given no `--pr`, the
+session takes the branch the working directory is on and works the pull request whose head is
+that branch; where the branch has none, the session pushes it — setting its upstream where it
+has none — and opens one, titled for the draft it carries. That is the ordinary case rather than
+an error: a branch carrying a draft and no pull request is a draft nobody has posted yet, and
+posting it is what the owner came to do.
+
+Four things it refuses instead, saying which: the branch is the repository's default branch,
+which never carries a draft and cannot be the head of a pull request into itself; the tree holds
+no draft increment, so there is nothing to rule; the tree has uncommitted changes, which the
+owner would be ruling without having written; and the head branch lives on a fork the local
+clone cannot push to.
+
+**The pull request's diff names the draft.** The increment directories the diff touches are the
+drafts it carries, and the `products/<product>/` above each is its product — nothing is declared
+and nothing is passed. The diff rather than a `wip-` name, because a branch at landing has
+already renamed its directory into the number it claims, and a session opened on a landing
+branch would find no draft by name. Where the diff carries exactly one draft the session opens
+on it; where it carries several, a selection screen comes first, listing each by product and
+directory, and choosing one opens the ordinary view — a tree holds more than one draft only
+where they are stacked, so this is the uncommon path. A product named on the command line
+narrows the list to that product's drafts, and where that leaves one the selection screen is
+skipped; the product argument is optional throughout, since the draft the diff names carries it.
+Where the diff carries no increment, the session says so and exits.
+
+The session has modes, and what is open decides which are offered. **Ratify** is where a draft
+carrying anything proposed or unanswered opens. **Landing** becomes available exactly when
+nothing is proposed and no question is open, and is entered from the same session.
+
+#### The screen is an authored contract
+
+What ratify mode renders is an authored surface in the `surfaces/` pool, bound through the
+increment's model as `ratify-screen`. The contract carries the layout and the form of every
+field; the decisions carry the choices — which entries the list holds, how a cited id is
+resolved, what a submit writes. A screen is a public surface in the sense the pool already
+means: it is what the owner interacts with, and it is falsifiable, since a render can be diffed
+against the authored shape where a layout written as paragraphs would drift from the build with
+nothing catching it.
+
+`/design-process/ratify-screen@1` is read as follows, and this says nothing about how any other
+surface is written. The file has two halves that say the same thing twice on purpose: `mock:`
+carries rendered frames, and the sections beside it carry the same shape as rules. The frames
+are what a render is compared against; the rules settle a case no frame happens to show, and
+where the two appear to disagree the rules govern — a frame is one instance and a rule is the
+statement. What the surface commits to is arrangement, the order of things within a region, and
+the form of each field. What it does not commit to — and what an implementer therefore settles
+as an ordinary implementation detail — is everything the frames incidentally have: column
+widths, separator and rule glyphs, the selection marker, the truncation width, colour, and any
+behaviour no section names, among them key bindings, scrolling, an empty list, and a terminal
+too narrow to hold both panes. Silence there is not a gap to escalate. A key path addresses the
+thing it names — `detail-pane.metadata.pinned` — and that is how prose cites a region of this
+surface; the paths are an addressing scheme for this file, not a vocabulary another surface
+inherits or a structure the pool enforces. A render conforms when it matches the frames in
+arrangement, order, and field form, differing only in what the surface leaves open.
+
+#### The header, and the list
+
+**A header spans the top of every mode**, naming the product, the increment directory, the
+branch, and the pull request: the session is started from a pull request url and runs in a
+worktree the tool made, so nothing else on screen says which draft is open. The header also
+names the draft's changed inputs that the ruling list does not hold — schema pool versions,
+authored surfaces, facts, evidence, and drafts — counted from the branch's merge-base with the
+head the conflict check uses, so what the head gained meanwhile is not counted as the draft's.
+The count is of entries where a file holds them and of files where it does not: a facts file
+gaining two facts reads as two. The header says they are there and does not render them, because
+the owner does not approve a draft whose contract bindings, facts, or schema versions they were
+never told about, and a list of decisions alone does not show them. It names one thing more —
+how many review threads on the pull request are unresolved.
+
+**The ratify list holds every decision the draft carries**, in whatever status, and every
+question still open. A decision the draft already rules carries that ruling as its staged value;
+a proposed one carries none. A draft is worked over several sittings, and a list holding only
+what is still open hides the rulings the owner is deciding against and offers no way back to one
+already made — so any of them is re-ruled from the list, a rejection included. That a ruled
+entry is closed against later change binds a *published* increment: while the draft is
+unpublished a ruling is an edit to a file nobody has read yet, and the owner changing their mind
+before the merge is what ratify is.
+
+**An entry is identified by what it says.** Wherever the session names an entry — in the list,
+in the heading of the pane, in the entries a shown entry cites — it shows that entry's title
+with the id beside it, and no place in the session identifies an entry by its id alone. The
+entries a shown entry cites — its `because`, what it supersedes, what a question's answer routes
+to — are resolved against the fold the draft sits on and the repo-wide facts pool, the kind read
+from the id's prefix. An id that resolves to nothing is shown as the id alone, and that is the
+whole of the handling: a dangling citation is already a merge-gate finding, and the session is
+not where it is reported. A fact carries no title, so a cited fact shows the first line of its
+claim; a question's `answer` names the kind its answer routes to rather than an entry, so it is
+shown as that word and is not resolved.
+
+#### Ruling, noting, and submitting
 
 **Rulings stage in the session and apply in one write.** Ruling an entry stages it and writes
 nothing; the staged set applies to the draft's own sources and commits on its branch in one
 write, when the owner submits it or when landing takes it. A session abandoned before that
 leaves the tree untouched.
 
-A decision takes one of the four rulings, and a rejection carries the owner's reason. A question
-is answered in the same pass, and where the answer routes decides what is written: a `fact`
-route closes the question and writes no entry, while a `decision` or `requirement` route writes
-the entry into the draft with its id already generated and the owner's answer text as a
-placeholder, for the owner to state. Staging refuses what the sources could not carry — a
-rejection with no reason, a routed answer with no entry — so a submitted set validates. A bulk
-ruling over everything still unruled reaches decisions only: a question needs an answer, and an
-answer is not a status.
+The statuses ratify mode offers for a decision are the four rulings and `deferred` — every
+status a decision may carry is reachable from the place the owner is ruling it, without writing
+the entry by hand or leaving for another tool. The owner writing a deferral is authoring one
+rather than ratifying it, since the process already has a deferral enter directly and the merge
+ratify it; a deferred decision is settled for the purpose of landing, being neither proposed nor
+a hold on it. A rejection carries the owner's reason.
+
+A question is answered in the same pass, and where the answer routes decides what is written: a
+`fact` route closes the question and writes no entry, while a `decision` or `requirement` route
+writes the entry into the draft with its id already generated and the owner's answer text as a
+placeholder, for the owner to state. That placeholder enters `accepted` where the owner answered
+the question — the session is the owner in the loop, and the ruling is theirs to have already
+made — and `delegated` where an autonomous agent authored the answer. Neither path enters
+`proposed`, which in the owner's would leave the draft unsettleable by the session that wrote it.
+Staging refuses what the sources could not carry — a rejection with no reason, a routed answer
+with no entry — so a submitted set validates.
+
+One bulk action sits beside the per-entry ruling and not instead of it: setting every decision
+still unruled to one status. It reaches decisions only and leaves open questions untouched — a
+question needs an answer, and an answer is not a status — so a draft carrying questions is never
+fully settled by the bulk path alone. It is the secondary path; a draft is ruled entry by entry,
+and the bulk action is for the tail the owner has already decided as a group.
+
+**A note asks for a wording change without ruling on it.** While reading an entry the owner
+attaches a note asking for its text to be revised; it settles nothing and gates nothing, and an
+entry can carry a note and be ruled in the same submit.
+
+**Wherever the session takes text from the owner, the position the next character will occupy is
+visible** — including in a field whose text is not echoed back.
+
+**A submit changes only what it ruled.** An entry the owner did not rule and did not note comes
+out of a submit exactly as it went in, byte for byte, so the pull request's diff shows the
+sitting and nothing else. The write is an edit to the source, not a re-serialisation of it: a
+submit rewriting the file through a YAML serialiser would reflow every entry it did not touch,
+the values surviving and the diff not, and the pull request would stop showing what the sitting
+did. So the session edits the spans it ruled and leaves every other byte where it found it, the
+scalar style of the surrounding entries included.
+
+**What the owner types is stored as they wrote it.** Every field the session writes from text
+the owner typed — a rejection's reason, the answer a routed question carries, the placeholder
+statement that answer writes — is written as a YAML block scalar, whatever its length, so a
+colon, a leading dash, a `#`, or a quote in the owner's prose cannot break the file and no
+escaping rule has to be right. The scalar is the folded one, `field: >`, so the session can wrap
+what it writes without the wrapping becoming part of what it wrote: folding turns a line break
+between two non-empty lines back into the space it replaced and keeps a blank line as the
+paragraph break the owner typed, where a literal `|` would store every break the wrapper
+inserted and hand the owner's text back in a shape the tool chose. Where the owner's text does
+not survive folding — a line begun with whitespace, which a folded block would keep literally —
+the session writes a literal block instead and does not wrap. Round-tripping the value is the
+rule; folding is how it is met in the ordinary case, and the width and the wrapping algorithm
+are the implementer's.
+
+**The commit a submit writes tallies what it ruled, and the submit pushes.** The body names each
+status the set took and how many entries took it — `3 accepted, 1 rejected` — in a fixed status
+order, omitting any status no entry took and counting answered questions as their own clause,
+since an answer is not a status. A sitting that changed nothing writes no commit. Pushing is
+what makes a sitting durable: a draft is ruled over several of them, and rulings that live only
+in a local branch are lost to whichever machine held them. A push the remote refuses is reported
+and the commit left standing — the session does not rebase, because rewriting the owner's branch
+under them is worse than a sitting they are told to resolve.
+
+**A submit that carries notes posts exactly one `COMMENT` review** to the draft's pull request,
+after the commit and the push, so the review anchors to the state it describes. Each note is a
+comment in that review, against the lines of the entry it concerns in the source file that
+carries it; a note whose anchored lines fall in no diff hunk goes into the review's body naming
+the entry, because GitHub refuses a comment on a line outside the diff. A submit carrying no
+note posts nothing — the commit already records the statuses it changed, and an empty review
+repeats it while burying the reviews that say something.
+
+**No submit approves.** Approving stays the landing's own step, because an approval posted
+earlier is dismissed by the next push — and a submit pushes, as does the landing's rename
+commit. Ratifying and publishing one draft asks the owner to approve it once, and no step taken
+afterwards throws that approval away and asks again.
+
+**A credential acting as the owner is never written down.** The credential that acts as the
+owner is a GitHub personal access token entered at the terminal the first time a session needs
+one — the first submit that actually posts something, never one that does not — with the input
+not echoed. It lives in the process's memory for the rest of that session and nowhere else: not
+in a file, not in the environment, not in an argument. A later session asks again, and so does
+the next submit after an empty answer. A session that cannot obtain one still stages, commits,
+and pushes; it reports the notes it could not post and keeps them for the rest of the session,
+so a token supplied later carries them, and it says so before ending a session that loses them.
+`design-process land`, having no session, asks at its own terminal where it has one and reports
+the pull request as awaiting approval where it has none.
+
+**The token is spent on the reviews and nothing else.** The calls that carry it are the reviews
+a submit and a landing post, in an authorization header read from memory. Opening the pull
+request, pushing, and setting the merge to complete on its own use the credentials the
+environment already holds — the agent opened the draft's pull request, and the owner reviewing
+it is the point. The token's reach is the reviews, so what the owner's identity is spent on is
+exactly what carries their judgement.
+
+#### Ruling from the pull request
+
+**Ratifying does not require the session.** The owner rules by saying so where they are — a
+comment on the pull request, made from anywhere — and both surfaces stand. The draft's sources
+are the only record of a ruling: a comment directs one and does not make one, so it takes effect
+when an agent writes it into the sources, and nothing reconciles the two surfaces because only
+one of them writes. An unresolved review thread is a direction nobody has applied; the agent
+that applies one replies with the commit that did it and resolves the thread, as `CLAUDE.md`
+already requires, and that is the whole of the bookkeeping. What a comment must not become is a
+second record — a direction applied to the sources is settled there, and the thread is closed
+rather than kept as a rival copy. A draft does not publish over a direction nobody acted on, and
+the header's unresolved count is what holds it.
+
+#### What the agent does around the session
+
+The agent working a draft opens its pull request when Clarify closes and it puts the draft to
+the owner, so the ordinary start is the owner pasting a url that already exists and the
+landing's own open step is the fallback for a draft no agent posted. Before handing the url
+over, the agent pushes everything: the session runs in a worktree made from the fetched head, so
+an uncommitted entry is not there to rule, an increment directory the branch does not touch is
+not found at all, and an uncommitted fact goes uncounted in the header. What is not pushed does
+not exist for the owner. While a session is open on a branch the agent does not write to it —
+every submit commits and pushes, nobody force-pushes, and an agent revising text mid-sitting
+loses the race and strands the owner's commit. The owner says when the sitting is done.
+
+#### Landing
 
 **Land is one fixed sequence that stops at the first failure**, reporting what to fix and
 leaving the branch as it found it: apply any staged rulings, run the conflict check against the
@@ -411,8 +621,14 @@ a pull request cannot merge a branch that has none — a landing that left the b
 unproposed would report success over an increment that could not publish. Where the branch
 already has a pull request the open step is a no-op.
 
-Where the API refuses to enable auto-merge, the landing reports the pull request as approved and
-awaiting a manual merge.
+The auto-merge step reads the repository's own `allow_merge_commit`, `allow_squash_merge`, and
+`allow_rebase_merge` and sets the method enabled there, preferring a merge commit, then a
+squash, then a rebase where more than one is — a fixed order, so two landings against one
+repository set the same method. The landing serves repositories that differ, so any built-in
+default would be wrong for one of them. Where the repository enables none, or cannot be asked,
+or the API refuses to enable auto-merge, the landing reports the pull request as approved and
+awaiting a manual merge: the increment is pushed, opened, and approved, and what is left is a
+merge the landing could not ask for.
 
 The same sequence is also
 
@@ -421,18 +637,10 @@ design-process land <product> [--root <dir>]
 ```
 
 non-interactive, for an agent or a script that has no session to land from. It takes `--root`
-and nothing else, running the conflict check against that check's own default head —
+and no other option — no `--no-push`, no `--against` — because the sequence is fixed and there
+is nothing to select; it runs the conflict check against that check's own default head,
 `origin/main`, then `main`. It is the secondary surface: the interactive command runs the
 sequence itself rather than shelling out to it.
-
-**A credential acting as the owner is never written down.** The credential that approves as the
-owner is a GitHub personal access token entered at the terminal when the landing reaches the
-approval, with the input not echoed. It lives in the process's memory for that run and nowhere
-else — not in a file, not in the environment, not in an argument — and a second landing asks
-again. The token is the owner's own, and the credentials the agents hold are never used to
-approve; only the approving call carries it, while the push and the auto-merge use the
-credentials the environment already holds. A landing that cannot obtain a token still publishes
-everything up to the approval and reports the pull request as awaiting it.
 
 ### Design and implementation keep their own schedules
 
@@ -534,15 +742,19 @@ its verification would be a restatement.
 
 ### Schemas pool by identity, and the model binds them
 
-Schemas live in one repo-wide pool under `schemas/` — any file at any depth. Identity lives in
-the file: each schema declares `$id: /<namespace>/<entity>@<version>` beside `$schema` — JSON
-Schema draft 2020-12, authored as YAML — names unique across the repository, versions dense
-integers per entity, the leading slash mandatory and its omission a validator failure.
-Root-relative identities resolve to themselves regardless of base, which is what lets a schema
-depend on schemas: a `$ref` is such an identity, resolved from the pool as the registry, and
-binds transitively. References resolve by identity and never by path, so the tree may be
-reorganised freely; any organisational or naming convention within a pool is an aid to
-navigation — non-normative and unenforced.
+**There are two contract pools, and the axis between them is a data shape against a public
+surface**: schemas live under `schemas/` and public surfaces under `surfaces/` (see *Authored
+surfaces*). Both file by namespace today, and a namespace large enough to want it may nest
+below that — any organisational or naming convention within a pool is an aid to navigation,
+non-normative and unenforced. Identity is declared in-file in both.
+
+Schemas are any file at any depth under `schemas/`. Each declares
+`$id: /<namespace>/<entity>@<version>` beside `$schema` — JSON Schema draft 2020-12, authored
+as YAML — names unique across the repository, versions dense integers per entity, the leading
+slash mandatory and its omission a validator failure. Root-relative identities resolve to
+themselves regardless of base, which is what lets a schema depend on schemas: a `$ref` is such
+an identity, resolved from the pool as the registry, and binds transitively. References resolve
+by identity and never by path, so the tree may be reorganised freely.
 
 A version is immutable once an increment binding it publishes, directly or transitively, and
 stays present as long as anything published relies on it. The validator refuses to edit or
@@ -565,13 +777,28 @@ model:
 
 The entity name is the design's word for the thing, free to differ from the pool entry's name,
 and the description anchors what the entity is in the design. An entry carries one contract
-reference — `schema:` or `api:` — and a `status` of `bound` (the default) or `unbound`. Model
-entries are part of the increment's requirements: ratified with it, binding on implementers,
-folded by entity name, with no duplicate entity names in force; wherever prose references an
-entity, its bound contract is the authoritative shape.
+reference — `schema:` or `surface:`, each written `/<namespace>/<entity>@<version>` — an
+optional `description`, and a `status` of `bound` (the default) or `unbound`, folding by name
+like presets. Model entries are part of the increment's requirements: ratified with it, binding
+on implementers, folded by entity name, with no duplicate entity names in force; wherever prose
+references an entity, its bound contract is the authoritative shape.
+
+The key is `surface:` because the pool it points into is `surfaces/`. Sources already written
+stay readable in the dialect they declare: `/design-process/requirements@1` keeps `api:`, and
+`@2` is what a source opts into to say `surface:`.
 
 Foundation files need no model entry to be interpretable: each names its own schema's pool
 version in its `version` field. The model is for the shapes a design defines and speaks about.
+
+**An implementer reads the bound contracts as part of reading the fold.** The projection prints
+a model entry's name, reference, and description and none of the contract's content, so an
+implementer working from the projection alone cannot see the shape it is bound to. A reference
+resolves by scanning the pool for the file whose identity declaration matches it: pool layout is
+not normative, so the path is not derivable and a convention would be a second, contradictable
+answer. The pool is the planning repository's — a package built in another repository reads its
+contracts from the planning repository's checkout, where the increment that bound them lives,
+and the pool does not travel with the code. That is the ordinary case rather than the exception:
+the tooling this process ships is built outside the repository that plans it.
 
 ### Every structured file names its own schema version
 
@@ -663,8 +890,9 @@ A projected view of a product shows, for one product at one increment:
   version
 - the effective decision set, with status and pinning, ordered by `because:` topology where
   cited rather than by file order — and each decision labelled by ruling, with the abstentions
-  counted
-- for each claim, its coverage and what provides it
+  counted and the deferrals counted beside them
+- for each claim, its coverage and what provides it — deferred decisions omitted from the claim
+  list, with the summary naming how many were excluded
 - open questions blocking the increment from settling
 - what this increment changed against the fold before it
 
@@ -726,7 +954,10 @@ schema cannot express:
   in-repo source path that resolves to no file is itself a finding, and an off-repo url — one
   carrying a scheme — is not read
 - a `run:` source resolves to a live run entry — a retired one may not be cited — belongs only on
-  a tested fact, and the run's recorded output file exists and holds the quote
+  a tested fact, and the run's recorded output file holds the quote
+- every run entry's recorded output exists in the tree, whether or not a fact cites the run: the
+  output is the entry's own claim about the tree, so a dangling one is a finding where it is
+  written rather than where it is later cited
 - a url into an `artifacts/` path backs only a tested fact
 - a retired fact or run carries a `reason` from its enumeration, and a superseded fact or run
   names a `superseded_by` that resolves within the pool and is not itself
@@ -801,6 +1032,12 @@ ride an implementation's pull request, drawing on the increments' frozen drafts,
 only when it lands. Shipped document packages live at permanent homes under `docs/<domain>/` —
 the process's own documents are the one carve-out, sitting at the `docs/` root — entering
 `product.yaml` at the merge that ships them.
+
+**A tree-consumed package declares its own version in frontmatter.** The `document` and
+`agent-skill` kinds carry a `version` field in their file's YAML frontmatter: the string form of
+the design increment number the content reflects, set by the implementation that changes the
+file, with no semantic versioning process. An implementation record carries that declared
+version.
 
 ### Implement forward
 
@@ -882,7 +1119,7 @@ implementation begins. Everything design-relevant the work produces lands there 
   requirement, a pinned decision, or a decision that would be pinned is at stake
 - **open questions** — a requirement change to ask for, an unknown the implementer cannot
   answer
-- **contracts** — a new external-facing API surface or schema, as a pool version bound through
+- **contracts** — a new external-facing surface or schema, as a pool version bound through
   the companion increment's model
 
 A companion increment entry is one of three: **licensed** — its `because:` cites the deferral
@@ -919,6 +1156,21 @@ owner builds by hand, an agent then captures the design the code embodies into a
 only once that capture publishes does the code release. Code built ahead of its capture is
 **provisional** — unreleased, depended on by no one, a foundation for no one; publishing the
 capture is the act that makes it extensible.
+
+Capture reads what was built and proposes, for each choice the code embodies, whether it is a
+requirement, a decision, or an incidental implementation detail — the test being whether an
+agent later extending the code would have to be bound by the choice or be left free to change
+it. Bound choices become the requirements and decisions the owner rules; free ones are left
+uncaptured, the code merely happening to embody them. The owner's ruling is the fast kind —
+affirm a requirement, or send a transcribed choice back to incidental — and it is the guard
+against a code-first increment's characteristic failure, freezing a thousand incidental choices
+as law and handcuffing the agents meant to extend it. Coverage is complete by construction: the
+captured claims are drawn from code that already meets them.
+
+**An implementation targeting a captured increment opens no companion increment.** The build
+already happened, so there are no design consequences arising during it for a companion to
+catch, and one opened here could only close unmerged. The run is: bind to the fold, assemble
+coverage from the built artifact, file the record — nothing dispatches.
 
 The plan side needs no new control for this. An implementation record cannot target an
 unpublished increment, so uncaptured code has no record and is not shipped; a code repository
@@ -1001,27 +1253,55 @@ test.
 an implementation targets an increment, every requirement and decision in force there carries
 a coverage entry, adopted preset requirements included — except deferred decisions: no entry
 may cover one directly, and a deferral without an answer is not a gap. An answered deferral's
-answer is an ordinary decision and carries ordinary coverage. The validator refuses a record
-with gaps; "ratified and unbuilt" describes increments no implementation has targeted, never
-a hole inside a record. A claim still `proposed` never appears — coverage is evidence about
+answer is an ordinary decision and carries ordinary coverage. Completeness is checked against
+the fold at the record's numeric target with draft increments excluded, so a record lands
+cleanly in a tree that holds one; the projection's coverage summary still counts a draft's
+claims and shows them uncovered, and the two readers are separate. The validator refuses a
+record with gaps; "ratified and unbuilt" describes increments no implementation has targeted,
+never a hole inside a record. A claim still `proposed` never appears — coverage is evidence about
 something the owner has ruled on.
 
 The implementer records an `attestation` for every claim it implemented — always — alongside
 whatever better evidence exists.
 
-### API surfaces
+### Authored surfaces
 
-Public API surfaces are authored contracts in a repo-wide `apis/` pool — commitments the
-implementation must satisfy, never extracted projections, though the validator may extract from
-the code and diff against the authored surface, which is what makes an authored one
-falsifiable. Identity is in-file by a per-tech header — `// api: /<namespace>/<name>@<version>`
-in TypeScript, `# api: ...` in YAML formats, `info.x-api-id` where OpenAPI metadata fits — with
-the file's extension and content telling the validator which extractor reads it. Versions are
-dense integers per name, immutable once an increment binding one publishes, present as long as
-anything published binds them; drift is legal. Only public surfaces enter the pool — the
-internal stubs the Stub wave produces stay implementation.
+A product's public surfaces are authored contracts in the repo-wide `surfaces/` pool —
+commitments the implementation must satisfy, never extracted projections, though the validator
+may extract from the built thing and diff against the authored surface, which is what makes an
+authored one falsifiable. **A surface is anything a consumer meets and holds the product to**: a
+code interface, a wire format, a command's arguments, a screen. The pool is named for that
+breadth rather than `apis/`, because "api" names one kind of surface, and reading a terminal
+screen as an api takes a word that means a code interface and asks it to mean something else.
 
-The model binds an API surface the way it binds a schema — an entry carries `api:` instead of
+Each version declares its identity root-relative as `/<namespace>/<name>@<version>`. Versions
+are dense integers per name, immutable once an increment binding one publishes, and present as
+long as anything published binds them; drift is legal — no product is rebound by a new version
+appearing. Only public surfaces enter the pool: the internal stubs the Stub wave produces stay
+implementation.
+
+**A surface declares its identity inside itself**, in whatever way the file's own technology
+already has for carrying metadata, and the file's extension and content tell the validator which
+extractor reads it. Nothing outside the file names it, so a surface keeps its identity when it
+moves and the pool's layout stays non-normative. Which convention each technology uses is a
+decision per technology, so a technology is added by ruling one:
+
+| authored as | identity |
+|---|---|
+| TypeScript | `// surface: /<namespace>/<name>@<version>`, on a line of its own |
+| YAML | `# surface: /<namespace>/<name>@<version>`, on a line of its own |
+| Markdown | the frontmatter key `io.twindigital.surface` |
+| OpenAPI | `info.x-api-id` |
+
+Markdown has no comment syntax that survives rendering, so its identity goes in the frontmatter
+the file already carries; the key is namespaced because frontmatter is shared with every other
+tool that reads the file and a bare `id` is a name many of them already use, and it ends in
+`surface` because that is the word the other formats use for the same thing. OpenAPI is the one
+exception to that word: `info.x-api-id` is the extension key OpenAPI already defines for the
+purpose, it belongs to that format rather than to this process, and a document carrying a
+renamed key would stop being an ordinary OpenAPI document.
+
+The model binds a surface the way it binds a schema — an entry carries `surface:` instead of
 `schema:` — so bindings ratify as requirements, and an implementer needing a surface change
 proposes a new pool version and a rebinding as an ordinary design increment,
 abort-and-retarget applying.
@@ -1038,8 +1318,9 @@ packages, each scoped so an agent loads only the context its task needs, at
 permanent homes under `docs/` in this repository — this reference and the migration record —
 with instruction to agents shipping as agent-skill packages and `CLAUDE.md` rather than as a
 document. The content-quality tests for foundations — what makes a statement, a
-verification procedure, a decision, or a model entry good — are their own document package: one body of tests binding the writer of what each governs,
-reviewer-applied and never a validator rule.
+verification procedure, a decision, or a model entry good — are their own document package at
+`docs/authoring.md`, beside the reference and the migration record: one body of tests binding
+the writer of what each governs, reviewer-applied and never a validator rule.
 
 ### Instruction is scoped to the dispatch
 
@@ -1059,4 +1340,16 @@ instruction operationalizes.
 
 The Plan and Implement phases ship as one agent-skill package, `.claude/skills/increment`: its
 `SKILL.md` carries the draft-increment lifecycle both phases perform, and each phase is a file
-beside it, read only by an agent running that phase.
+beside it, read only by an agent running that phase. `implement.md` is the dispatcher every
+implementation of every product runs through, and a kind with no wave file is an open question
+for the implementation that meets it.
+
+Every implementer is one package, `.claude/skills/implement-package`, whatever the kind
+dispatched: its `SKILL.md` carries what every implementer does — the three phases and their
+contract, survey, the implementation-detail test, findings and escalation, the transient working
+list, the narrow scoping of a decision — and nothing kind-specific. Each kind's wave shape is a
+file beside it under `waves/`, linked from `SKILL.md` and read only by an implementer dispatched
+for that kind: `waves/code.md` carries the Define–Stub–Code–Document shape and governs
+`npm-library`, `npm-cli`, and `minecraft-addon`; `waves/document.md` carries the
+Claims–Compose–Check shape and governs `document` and `agent-skill`. Adding a kind is a file
+under `waves/` and its own wave-shape decision.
