@@ -1,0 +1,114 @@
+version: "2"
+decisions:
+  - id: d-udx0fefp
+    title: the session works a pull request, and the working tree it holds is no longer the subject
+    statement: >
+      `design-process increment` opens on a draft's pull request, as d-7i1l1kfy states: `--pr`
+      names one, the product argument is optional because the draft the diff names carries it,
+      and where the command is given neither it works the pull request whose head is the current
+      branch. the draft the working tree holds is what the session falls back to reaching, not
+      what identifies the sitting.
+    status: accepted
+    supersedes: d-gf6x5jzy
+    because:
+      - r-ycjjl48r
+      - d-7i1l1kfy
+    pinned:
+      reason: public-api
+      notes: the command a published cli offers and what identifies the draft it opens on
+    facets:
+      - tooling
+      - process-doc
+  - id: d-7qs2g0sp
+    title: the check runs over one tree, and the pools it reads are schemas and surfaces
+    statement: >
+      `npm run check` is `design-process check` over `products/`, `schemas/`, `surfaces/`, and
+      `implementations/`. the legacy `design/` tree and the checker that read it are gone, and
+      the contract pool d-qwquvf78 renamed is `surfaces/`.
+    status: delegated
+    supersedes: d-t03xkfj7
+    because:
+      - d-qwquvf78
+      - r-zcvxh2ty
+    pinned: false
+    facets:
+      - design-validator
+      - process-doc
+  - id: d-iuwoumr1
+    title: a json serialised form is not a stable api
+    statement: >
+      the json a command emits under `--json` is not a published shape. it may change in any
+      release, no contract in the pools describes it, and nothing the package exports carries it.
+      a consumer reading it is reading a convenience, not an interface the product holds itself to.
+
+      r-rn6wxdn4 requires the flag so a person at a terminal can pipe a command's output
+      somewhere. reading that as a commitment to key names would make every rendering choice a
+      pinned surface, which is a cost the requirement never asked for.
+    status: accepted
+    because:
+      - r-rn6wxdn4
+    pinned: false
+    facets:
+      - tooling
+  - id: d-2q797wc4
+    title: what show --json emits
+    statement: >
+      `show --json` emits the fold as a structured document — the product, the increment it is
+      folded at, the presets, the requirements with an adopted one carrying `adopted_from`, the
+      decisions in `because` order, the model bindings, the per-claim coverage with `covered_by`
+      null where a claim is uncovered, and the open questions.
+
+      the shape is recorded rather than pinned, and d-iuwoumr1 governs what that means for a
+      consumer: it is what the command emits today, not what it will emit.
+    status: delegated
+    because:
+      - r-rn6wxdn4
+      - d-iuwoumr1
+      - d-m7i568id
+    pinned: false
+    facets:
+      - tooling
+  - id: d-msmyyvzn
+    title: how an interactive command answers --json is the implementer's
+    statement: >
+      `increment` and `land` have no machine-readable main output — one renders a full-screen
+      session and the other a step sequence written for a person. how each answers `--json` is the
+      implementer's choice: refusing the flag, or accepting it and emitting something vacuous or
+      status-shaped. whatever it emits is covered by d-iuwoumr1 and is not pinned.
+
+      the seven data commands render their main output as json, which is what r-rn6wxdn4 is for.
+    status: delegated
+    because:
+      - r-rn6wxdn4
+      - d-iuwoumr1
+    pinned: false
+    facets:
+      - tooling
+  - id: d-fi7zsgez
+    title: a note is taken from the list, and it is not a ruling
+    statement: >
+      in the ratify session the owner opens the text-entry field on the selected entry to attach a
+      note, and the note is held beside the staged rulings rather than among them. it settles
+      nothing and gates nothing, and one entry takes a note and a ruling in the same submit.
+      d-f1b5r2f8 says what a submit does with notes and not where the owner enters one, and the
+      bound screen names a note on an entry among the text-entry field's uses.
+    status: delegated
+    because:
+      - d-f1b5r2f8
+      - r-z0wcwwn0
+    pinned: false
+    facets:
+      - tooling
+  - id: d-m7i568id
+    title: a command's findings are its main output
+    statement: >
+      the findings `check` and `conflicts` print are the data those commands exist to produce and
+      go to stdout. the progress and warning lines around them — an unresolvable base ref, an
+      empty result's note — are diagnostics and go to stderr.
+    status: delegated
+    because:
+      - r-d474vggq
+      - r-tbmrw430
+    pinned: false
+    facets:
+      - tooling

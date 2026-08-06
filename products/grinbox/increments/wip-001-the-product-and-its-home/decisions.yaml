@@ -9,7 +9,7 @@ decisions:
       `nodejs/grinbox/web`, the browser application; and `nodejs/grinbox/shared`, the contracts
       both speak. `nodejs/grinbox` is a group directory beside `nodejs/apps` and `nodejs/plan`,
       which puts each package exactly where the workspace's member pattern already looks.
-    status: proposed
+    status: accepted
     because:
       - r-y8wc6ldk
       - f:opus-workspace-members-sit-two-levels-under-nodejs
@@ -24,7 +24,7 @@ decisions:
       none of the three packages is published to a registry. They are private workspace packages,
       versioned and tagged by the monorepo's changesets process like any other private package
       there, and what grinbox ships is a running daemon rather than an artifact anyone installs.
-    status: proposed
+    status: delegated
     because:
       - f:opus-package-versions-are-written-by-changesets
     pinned: false
@@ -35,9 +35,25 @@ decisions:
       the packages are named `@twin-digital/grinbox-server`, `@twin-digital/grinbox-web`, and
       `@twin-digital/grinbox-shared`, under the one scope the workspace uses, rather than keeping
       grinbox's own `@grinbox` scope.
-    status: proposed
+    status: rejected
     because:
       - d-txqxjxvp
+    pinned: false
+    rejection_reason: >-
+      these packages should use the '@grinbox' npm scope
+
+  - id: d-jxipfcu0
+    title: the packages keep the @grinbox scope
+    statement: |
+      the packages are named `@grinbox/server`, `@grinbox/web`, and `@grinbox/shared`, keeping
+      grinbox's own scope rather than taking the workspace's. Nothing registers the scope: these
+      packages are never published, so the name is an identity within the workspace and a claim on
+      nothing outside it.
+    status: proposed
+    supersedes: d-ya291hq8
+    because:
+      - d-txqxjxvp
+      - d-cjjd5c0w
     pinned: false
 
   - id: d-5h9ot6s7
@@ -46,7 +62,7 @@ decisions:
       the daemon's package kind is `node-service` and the browser application's is `web-app`, both
       taking the wave shape the existing code kinds take — define, stub, code, document. The
       shared package is `npm-library`, unchanged.
-    status: proposed
+    status: tolerated
     because:
       - d-txqxjxvp
     pinned:
@@ -62,7 +78,7 @@ decisions:
       grinbox runs as a single long-running Node process owning the HTTP server, the schedule that
       polls for new mail, the execution of triage work, and the state store. There are no worker
       processes, no timer units, and no external job queue.
-    status: proposed
+    status: accepted
     because:
       - r-jp85k5ma
       - r-zpdecb2z
@@ -78,7 +94,7 @@ decisions:
       all persistent state is one SQLite file, opened once when the daemon starts and held for the
       process lifetime. That file is the whole of what must be backed up, and nothing outside the
       process holds state grinbox depends on.
-    status: proposed
+    status: accepted
     because:
       - r-jp85k5ma
       - d-81ouxrpi
@@ -92,7 +108,7 @@ decisions:
       served from the same process. The API is the whole of the remote-control surface — the
       browser application is one client of it with no privileged path — and grinbox ships no
       command-line client.
-    status: proposed
+    status: accepted
     because:
       - r-zpdecb2z
       - d-81ouxrpi
@@ -104,7 +120,7 @@ decisions:
     statement: |
       the shapes crossing the API — what the browser sends and what the daemon answers — are
       declared once in the shared package both depend on, rather than separately on each side.
-    status: proposed
+    status: accepted
     because:
       - d-txqxjxvp
       - d-ti7vexo3
@@ -117,7 +133,7 @@ decisions:
       grinbox's deployment — the machine, the service definition, and how its secrets reach it —
       stays in `pegasuspad/infrastructure` and the move does not touch it. The opus workspace
       produces the application; the infrastructure repository installs and runs it.
-    status: proposed
+    status: accepted
     because:
       - r-y8wc6ldk
     pinned:

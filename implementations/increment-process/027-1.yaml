@@ -1,0 +1,1475 @@
+version: "1"
+product: increment-process
+target: 27
+built_at: 2026-08-06
+packages:
+  - path: nodejs/plan/design-process
+    version: "0.8.0"
+  - path: docs/process-reference.md
+    version: "26"
+  - path: docs/process-migration.md
+    version: "26"
+  - path: docs/authoring.md
+    version: "26"
+  - path: .claude/skills/increment
+    version: "26"
+  - path: .claude/skills/implement-package
+    version: "26"
+coverage:
+  - claim: r-gq90gngs # foundations have defined shapes and meanings
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-foundations
+  - claim: r-6n45h5eb # foundations are expressed and reviewed directly
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-foundations
+  - claim: d-rx3s2hqo # decisions record the observable
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-foundations
+      - kind: attestation
+        ref: .claude/skills/implement-package/SKILL.md#decide-record-report
+  - claim: r-jx6uk0bs # products may be grouped into subfolders
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-foundations
+  - claim: d-34t7y2iq # a product is declared wherever its product.yaml sits under products/
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-foundations
+  - claim: r-dbfxxr6g # the open question is defined like a foundation is
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-foundations
+  - claim: d-auo2680a # plan is capture, clarify, ratify
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-process
+  - claim: d-1vt3677q # the phase is the skill's first argument, and the skill stays model-selectable
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-process
+      - kind: attestation
+        ref: .claude/skills/increment/SKILL.md#work-an-increment
+  - claim: r-05tkrv7r # opening an increment does not claim the head
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#capture
+      - kind: attestation
+        ref: .claude/skills/increment/SKILL.md#open-a-draft-increment
+  - claim: r-hbihi1xh # future work has a home outside any increment
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-backlog
+  - claim: r-pvcrlqg5 # capture is one action, by anyone
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-backlog
+      - kind: attestation
+        ref: .claude/skills/increment/plan.md#1-capture
+  - claim: r-9qhjtznd # the backlog is worked through the tooling
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-backlog
+  - claim: r-oabwygl2 # an item belongs to a product
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-backlog
+  - claim: r-fvi1hqkn # an item is a braindump
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-backlog
+      - kind: attestation
+        ref: docs/authoring.md#backlog-items
+  - claim: d-kfy1sexh # the backlog is an orphan branch
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-backlog
+  - claim: d-ubltnjpp # an item is a product-keyed markdown file
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-backlog
+  - claim: d-dyfgmg2u # the backlog command surface
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-backlog
+      - kind: attestation
+        ref: .claude/skills/increment/plan.md#1-capture
+  - claim: d-5pzfayi8 # the backlog is written with git plumbing, never a checkout
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-backlog
+  - claim: d-wpih0mc1 # adoption rewrites, then drains
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#adopting-a-backlog-item
+      - kind: attestation
+        ref: docs/authoring.md#backlog-items
+      - kind: attestation
+        ref: .claude/skills/increment/plan.md#1-capture
+  - claim: d-hg0f9shd # a sent item lands in the increment's drafts
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#adopting-a-backlog-item
+      - kind: attestation
+        ref: .claude/skills/increment/plan.md#1-capture
+  - claim: r-bs6wsobr # no maintained spec exists
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#clarify
+      - kind: attestation
+        ref: docs/process-migration.md#spec-citation-as-evidence-of-compliance
+  - claim: r-v4z0h7dn # every choice is decided, deferred, or an implementation detail
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#every-choice-is-accounted-for
+      - kind: attestation
+        ref: .claude/skills/increment/plan.md#4-survey-offer-it-and-classify-what-returns
+      - kind: attestation
+        ref: .claude/skills/increment/plan.md#5-ratify-the-loop
+      - kind: attestation
+        ref: .claude/skills/implement-package/SKILL.md#survey
+  - claim: d-29fjsjn2 # an implementation detail is one test, applied at two moments
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#every-choice-is-accounted-for
+      - kind: attestation
+        ref: .claude/skills/implement-package/SKILL.md#decide-record-report
+  - claim: r-kylqsn5a # unresolved uncertainty has a home
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#open-questions
+  - claim: r-d181l3s2 # a question routes to whoever can answer it
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#open-questions
+  - claim: d-ew65xgtj # questions are a draft increment's own source
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#open-questions
+  - claim: r-ygg7q7rh # questions close before an increment publishes
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#open-questions
+  - claim: d-uzygmhfc # an increment publishes with no open question
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#open-questions
+  - claim: r-m36ie8ee # nothing rests on an open question
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#open-questions
+  - claim: d-9s4d3ww2 # rulings are accepted, tolerated, delegated, or rejected
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ratify
+      - kind: attestation
+        ref: docs/process-migration.md#entries
+  - claim: r-gc7a3m56 # ruled-on is distinguishable from passed-over
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ratify
+  - claim: r-c0zi3pv0 # increments plan in parallel, unordered until landing
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#drafts-run-in-parallel
+      - kind: attestation
+        ref: .claude/skills/increment/SKILL.md#open-a-draft-increment
+  - claim: r-4z3yd1ri # a draft increment is checked as it is worked
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#drafts-run-in-parallel
+      - kind: attestation
+        ref: .claude/skills/increment/SKILL.md#in-flight
+  - claim: d-x0q4xgd8 # a draft increment directory is wip-NNN-<slug>
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#drafts-run-in-parallel
+      - kind: attestation
+        ref: docs/process-migration.md#one-design-one-increment
+      - kind: attestation
+        ref: .claude/skills/increment/SKILL.md#open-a-draft-increment
+  - claim: d-1qn5jzgd # the merge gate reads a draft increment as it is worked
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#drafts-run-in-parallel
+      - kind: attestation
+        ref: .claude/skills/increment/SKILL.md#in-flight
+  - claim: d-x1mhu3a3 # draft increments fold after the published ones, in ordinal order
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#drafts-run-in-parallel
+      - kind: attestation
+        ref: .claude/skills/increment/SKILL.md#in-flight
+  - claim: d-5xa0g4mp # the draft branch name is plan/<product>/<slug>
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#drafts-run-in-parallel
+      - kind: attestation
+        ref: .claude/skills/increment/SKILL.md#open-a-draft-increment
+  - claim: d-5smb6h2g # drafts fold into the default projection only
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#drafts-run-in-parallel
+  - claim: r-ca9witxh # dependencies between drafts are implicit
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#dependencies-between-drafts
+      - kind: attestation
+        ref: .claude/skills/increment/SKILL.md#open-a-draft-increment
+      - kind: attestation
+        ref: .claude/skills/increment/SKILL.md#land
+  - claim: d-oel258yc # stacking is the dependency
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#dependencies-between-drafts
+      - kind: attestation
+        ref: .claude/skills/increment/SKILL.md#open-a-draft-increment
+  - claim: r-0701ctqx # drafts do not conflict, and landing checks it
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#landing-claims-the-number
+      - kind: attestation
+        ref: .claude/skills/increment/SKILL.md#land
+  - claim: d-u3744xlr # conflicts are checked at landing, against the head
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#landing-claims-the-number
+      - kind: attestation
+        ref: .claude/skills/increment/SKILL.md#land
+  - claim: d-kmagri5u # the landing conflict check is its own command, over mechanical overlaps only
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#landing-claims-the-number
+      - kind: attestation
+        ref: .claude/skills/increment/SKILL.md#land
+  - claim: d-6x6l6ws7 # publish is the merge
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#publish-is-the-merge
+      - kind: attestation
+        ref: docs/process-migration.md#drafts-on-main
+  - claim: r-caao9k3z # shipped increments stay shipped
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#publish-is-the-merge
+  - claim: r-zcvxh2ty # the design validator gates merges
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#publish-is-the-merge
+  - claim: d-jenq1f31 # the merge gate wiring is thin repository configuration
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#publish-is-the-merge
+  - claim: r-0axqvtcc # pending decisions may not be published
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#publish-is-the-merge
+  - claim: r-ax84j1s2 # ruling a draft is one sitting in one place
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ratifying-and-landing-a-draft
+      - kind: attestation
+        ref: .claude/skills/increment/plan.md#5-ratify-the-loop
+  - claim: r-2keswxn8 # publishing a settled draft takes no agent
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ratifying-and-landing-a-draft
+      - kind: attestation
+        ref: .claude/skills/increment/SKILL.md#land
+  - claim: r-ycjjl48r # a draft is ratified through its pull request
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ratifying-and-landing-a-draft
+      - kind: attestation
+        ref: .claude/skills/increment/plan.md#5-ratify-the-loop
+      - kind: code-test
+        ref: test/target.test.ts
+      - kind: attestation
+        ref: src/session/target.ts
+  - claim: d-7i1l1kfy # how the session finds the pull request it works
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ratifying-and-landing-a-draft
+      - kind: code-test
+        ref: test/target.test.ts
+        note: --pr and branch resolution, the four refusals, opening a pull request a draft-carrying
+          branch lacks
+      - kind: code-test
+        ref: test/session.test.ts
+        note: landing offered exactly when nothing is proposed and no question is open
+      - kind: attestation
+        ref: src/session/target.ts
+  - claim: d-pm6a29v6 # the pull request's diff names the draft, and the owner picks only where it is ambiguous
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ratifying-and-landing-a-draft
+      - kind: code-test
+        ref: test/target.test.ts
+        note: one draft opens straight; several ask; a named product narrows and skips the screen; none
+          refuses
+      - kind: conformance-case
+        ref: test/conformance.test.ts
+        note: the select-draft screen against the surface's mock
+      - kind: attestation
+        ref: src/session/target.ts
+  - claim: d-9zot40jn # the screen's shape is an authored contract, not prose
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-screen-is-an-authored-contract
+      - kind: conformance-case
+        ref: test/conformance.test.ts
+        note: the render diffed against /design-process/ratify-screen@1, copied to test/fixtures
+      - kind: attestation
+        ref: src/session/render.ts
+  - claim: d-q50z7iq1 # how ratify-screen@1 is read
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-screen-is-an-authored-contract
+      - kind: conformance-case
+        ref: test/conformance.test.ts
+        note: all four mock frames; column widths, rule glyphs, the selection marker, truncation width,
+          and wrapping normalised away as the surface leaves them open
+      - kind: attestation
+        ref: test/conformance.test.ts
+  - claim: r-ge2xf5nz # the owner knows which draft they are ruling, and what the list does not show
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-header-and-the-list
+      - kind: code-test
+        ref: test/header.test.ts
+      - kind: attestation
+        ref: src/session/header.ts
+  - claim: d-kjwswmro # the header names the draft and what is not in the list
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-header-and-the-list
+      - kind: code-test
+        ref: test/header.test.ts
+        note: counts from the branch's merge-base, entries where a file holds them, the open draft
+          excluded, each line omitted where empty
+      - kind: conformance-case
+        ref: test/conformance.test.ts
+      - kind: attestation
+        ref: src/session/header.ts
+  - claim: r-jf51jzor # the owner sees every decision the draft carries, and what each is ruled
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-header-and-the-list
+      - kind: code-test
+        ref: test/session.test.ts
+      - kind: attestation
+        ref: src/session/entries.ts
+  - claim: d-8abusqwe # the ratify list is the draft's whole decision set, beside the entry's full text
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-header-and-the-list
+      - kind: code-test
+        ref: test/session.test.ts
+        note: every decision in whatever status beside every open question; re-ruling a ruled entry; the
+          bulk action leaves ruled entries alone
+      - kind: attestation
+        ref: src/session/entries.ts
+  - claim: r-fipf2016 # an entry is identified by what it says
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-header-and-the-list
+      - kind: code-test
+        ref: test/session.test.ts
+      - kind: attestation
+        ref: src/session/citations.ts
+  - claim: d-mhlya385 # a cited id is shown as the title it resolves to
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-header-and-the-list
+      - kind: code-test
+        ref: test/session.test.ts
+        note: a citation resolved to its title, a fact to its claim's first line, an unresolvable id to
+          itself, a question's route unresolved
+      - kind: conformance-case
+        ref: test/conformance.test.ts
+      - kind: attestation
+        ref: src/session/citations.ts
+  - claim: d-ovlyaoht # rulings stage in the session and apply in one write
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ruling-noting-and-submitting
+      - kind: attestation
+        ref: .claude/skills/increment/plan.md#5-ratify-the-loop
+  - claim: r-3l4h8ua1 # every status the owner needs is available where they rule
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ruling-noting-and-submitting
+      - kind: code-test
+        ref: test/session.test.ts
+      - kind: attestation
+        ref: src/session/model.ts
+  - claim: d-4xkyfjzu # deferring is offered beside the four rulings
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ruling-noting-and-submitting
+      - kind: attestation
+        ref: .claude/skills/increment/plan.md#5-ratify-the-loop
+      - kind: code-test
+        ref: test/session.test.ts
+        note: a deferral is staged from the ruling view, and a deferred decision does not hold the landing
+          closed
+      - kind: attestation
+        ref: src/session/model.ts
+  - claim: d-octrdz0j # what an answered question writes depends on where it routes
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ruling-noting-and-submitting
+  - claim: d-k85itgcv # an answer's placeholder entry takes the status its author's role gives it
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ruling-noting-and-submitting
+  - claim: d-ol4v00nl # bulk set-remaining acts on unruled decisions only
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ruling-noting-and-submitting
+  - claim: r-z0wcwwn0 # the owner asks for a wording change without ruling on it
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ruling-noting-and-submitting
+      - kind: code-test
+        ref: test/session.test.ts
+        note: a note is taken from the list without ruling the entry
+      - kind: attestation
+        ref: src/session/model.ts
+  - claim: r-iibk7tw0 # the owner can see where what they type will land
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ruling-noting-and-submitting
+      - kind: conformance-case
+        ref: test/conformance.test.ts
+        note: the text-entry and token frames, cursor at the insertion point
+      - kind: attestation
+        ref: src/session/render.ts
+  - claim: r-ospozqv8 # a submit changes only what it ruled
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ruling-noting-and-submitting
+      - kind: code-test
+        ref: test/session.test.ts
+      - kind: attestation
+        ref: src/session/staging.ts
+  - claim: r-xtbhb7gj # what the owner types is stored as they wrote it
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ruling-noting-and-submitting
+      - kind: code-test
+        ref: test/yaml-edit.test.ts
+        note: sixteen owner-typed values round-trip through the block scalar
+      - kind: attestation
+        ref: src/yaml-edit.ts
+  - claim: d-yfxziwwg # text the owner typed is written as a block scalar that round-trips
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ruling-noting-and-submitting
+      - kind: code-test
+        ref: test/yaml-edit.test.ts
+        note: folded where folding round-trips and literal where it does not; a status edit changes
+          exactly one line; untouched entries keep every byte
+      - kind: code-test
+        ref: test/session.test.ts
+      - kind: attestation
+        ref: src/yaml-edit.ts
+  - claim: r-clty5lqd # a submitted set of rulings leaves the remote current and says what it did
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ruling-noting-and-submitting
+      - kind: code-test
+        ref: test/session.test.ts
+      - kind: attestation
+        ref: src/session/run.ts
+  - claim: d-lqmwczg3 # the submit tallies what it ruled and pushes
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ruling-noting-and-submitting
+      - kind: code-test
+        ref: test/session.test.ts
+        note: the commit body in fixed status order with answered questions as their own clause, and none
+          for a sitting that changed nothing
+      - kind: attestation
+        ref: src/session/run.ts
+        note: the push follows the commit; a refused push is reported and the commit left standing
+  - claim: r-y9eux47d # the pull request carries the owner's notes
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ruling-noting-and-submitting
+      - kind: code-test
+        ref: test/session.test.ts
+      - kind: attestation
+        ref: src/session/review.ts
+  - claim: d-f1b5r2f8 # a submit carrying notes posts one review, and approving stays the landing's
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ruling-noting-and-submitting
+      - kind: code-test
+        ref: test/session.test.ts
+        note: one COMMENT review; a note anchored to the entry's lines; a note outside the diff into the
+          body naming the entry; no note posts nothing
+      - kind: attestation
+        ref: src/session/review.ts
+        note: no submit approves — approving stays the landing's step
+  - claim: r-jitunafp # an approval the owner gives is not discarded by the process
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ruling-noting-and-submitting
+      - kind: attestation
+        ref: .claude/skills/increment/plan.md#5-ratify-the-loop
+      - kind: attestation
+        ref: src/session/review.ts
+        note: the submit posts COMMENT and never APPROVE, so no push dismisses an approval the owner gave
+  - claim: r-rxb7pn9z # a credential acting as the owner is never written down
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ruling-noting-and-submitting
+      - kind: attestation
+        ref: .claude/skills/increment/plan.md#5-ratify-the-loop
+      - kind: attestation
+        ref: .claude/skills/increment/SKILL.md#land
+      - kind: attestation
+        ref: src/session/secret.ts
+  - claim: d-2b23mjrl # the owner's credential is asked for once and held for the session
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ruling-noting-and-submitting
+      - kind: attestation
+        ref: .claude/skills/increment/plan.md#5-ratify-the-loop
+      - kind: attestation
+        ref: .claude/skills/increment/SKILL.md#land
+      - kind: attestation
+        ref: src/session/run.ts
+        note: the token is asked for once at the first post and held in a closure for the session; nothing
+          writes it to a file, the environment, or an argument
+  - claim: d-ex0pr4e4 # the token is spent on the reviews and nothing else
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ruling-noting-and-submitting
+      - kind: attestation
+        ref: .claude/skills/increment/plan.md#5-ratify-the-loop
+      - kind: attestation
+        ref: src/session/review.ts
+        note: the token reaches only the reviews POST; push, open, and merge use the environment's
+          credentials
+  - claim: r-dp8zisqf # the owner directs a ruling without a session
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ruling-from-the-pull-request
+      - kind: attestation
+        ref: .claude/skills/increment/plan.md#5-ratify-the-loop
+      - kind: code-test
+        ref: test/header.test.ts
+      - kind: attestation
+        ref: src/session/header.ts
+  - claim: d-tmyu6t1y # a comment is an instruction; the sources are the ruling
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ruling-from-the-pull-request
+      - kind: attestation
+        ref: .claude/skills/increment/plan.md#5-ratify-the-loop
+      - kind: code-test
+        ref: test/header.test.ts
+        note: the unresolved-thread count the header carries
+      - kind: attestation
+        ref: src/session/header.ts
+  - claim: d-wtgyvwf3 # the agent opens the pull request, pushes everything, and stands off the branch
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#what-the-agent-does-around-the-session
+      - kind: attestation
+        ref: .claude/skills/increment/plan.md#5-ratify-the-loop
+  - claim: d-h418ljtp # the landing opens the pull request it needs
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#landing
+      - kind: attestation
+        ref: .claude/skills/increment/SKILL.md#land
+  - claim: d-8vsionnz # a merge the landing cannot complete is reported, not forced
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#landing
+  - claim: d-xn1jibg3 # the merge method comes from the repository, not from the landing
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#landing
+  - claim: d-d76q0tpa # land takes --root and nothing else
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#landing
+      - kind: attestation
+        ref: .claude/skills/increment/SKILL.md#land
+  - claim: r-sk47gw08 # design and implementation keep their own schedules
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#design-and-implementation-keep-their-own-schedules
+  - claim: d-wrjhfbei # pinned is false or a named reason
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#pinned-decisions
+      - kind: attestation
+        ref: docs/process-migration.md#reversal-cost-as-a-decision-attribute
+  - claim: d-63f18oml # a deferral is an ordinary decision
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#deferrals
+      - kind: attestation
+        ref: .claude/skills/increment/plan.md#2-clarify-work-the-foundation-sources
+      - kind: attestation
+        ref: .claude/skills/increment/plan.md#5-ratify-the-loop
+  - claim: d-uz9wis6a # deferred is a status
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#deferrals
+  - claim: d-3orwwaze # coverage skips deferrals
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#deferrals
+      - kind: attestation
+        ref: docs/process-migration.md#spec-citation-as-evidence-of-compliance
+      - kind: attestation
+        ref: .claude/skills/implement-package/waves/document.md#claims
+  - claim: d-g5cs9o4i # effective state is a fold
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#lifecycle--declare-changes-fold-for-state
+  - claim: d-jy7x42nx # retirement is an id and a reason
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#lifecycle--declare-changes-fold-for-state
+  - claim: d-81dz2qz2 # landing replaces the number collision
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#lifecycle--declare-changes-fold-for-state
+  - claim: d-qwquvf78 # the contract pools are schemas and surfaces
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#schemas-pool-by-identity-and-the-model-binds-them
+      - kind: code-test
+        ref: test/pools.test.ts
+      - kind: attestation
+        ref: src/pools.ts
+  - claim: r-2fytqadu # contracts are shared and versioned
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#schemas-pool-by-identity-and-the-model-binds-them
+  - claim: d-is1lgu15 # schema pool versions are dense
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#schemas-pool-by-identity-and-the-model-binds-them
+  - claim: d-emngkw5c # pool immutability is content identity
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#schemas-pool-by-identity-and-the-model-binds-them
+  - claim: r-bua9wl1s # the model binds schemas as requirements
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#schemas-pool-by-identity-and-the-model-binds-them
+  - claim: d-pe4j25wq # the model is a block of the requirements source
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#schemas-pool-by-identity-and-the-model-binds-them
+      - kind: code-test
+        ref: test/cli.test.ts
+        note: "`show --json` carries the model entry; `surface:` read with `api:` as the @1 spelling"
+      - kind: attestation
+        ref: src/project.ts
+  - claim: d-2mvbck4i # an implementer reads the contracts its model binds, wherever the pool is
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#schemas-pool-by-identity-and-the-model-binds-them
+      - kind: attestation
+        ref: .claude/skills/increment/implement.md#1-bind-to-the-design
+      - kind: attestation
+        ref: .claude/skills/implement-package/SKILL.md#reading-the-fold-includes-the-contracts-it-binds
+      - kind: manual-check
+        ref: src/project.ts
+        note: the projection prints a model entry's name, reference, and description, which is what an
+          implementer scans the pool for
+      - kind: attestation
+        ref: src/project.ts
+  - claim: r-j232vwp4 # authored surfaces are shared and versioned
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#authored-surfaces
+      - kind: code-test
+        ref: test/pools.test.ts
+        note: surface identity extraction, uniqueness, and dense versions
+      - kind: attestation
+        ref: src/pools.ts
+  - claim: d-rui9z0lc # a surface declares its identity in-file, and the file selects the extractor
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#authored-surfaces
+      - kind: code-test
+        ref: test/pools.test.ts
+      - kind: attestation
+        ref: src/pools.ts
+  - claim: d-ds6mco0p # a typescript surface declares its identity in a comment
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#authored-surfaces
+      - kind: code-test
+        ref: test/pools.test.ts
+      - kind: attestation
+        ref: src/pools.ts
+  - claim: d-tjitou0m # a yaml surface declares its identity in a comment
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#authored-surfaces
+      - kind: conformance-case
+        ref: test/fixtures/surfaces/design-process/ratify-screen.1.yaml
+        note: the pool's own yaml surface, read by its `# surface:` comment
+      - kind: code-test
+        ref: test/pools.test.ts
+      - kind: attestation
+        ref: src/pools.ts
+  - claim: d-6ier9trn # an openapi surface declares its identity in info.x-api-id
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#authored-surfaces
+      - kind: code-test
+        ref: test/pools.test.ts
+      - kind: attestation
+        ref: src/pools.ts
+  - claim: d-4n77krzi # a markdown surface declares its identity in frontmatter, keyed on the word the other formats use
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#authored-surfaces
+      - kind: code-test
+        ref: test/pools.test.ts
+      - kind: attestation
+        ref: src/pools.ts
+  - claim: d-i47qv6oa # files name their own schema version
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#every-structured-file-names-its-own-schema-version
+  - claim: d-e5ted839 # ids are opaque and random
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#identifiers
+      - kind: attestation
+        ref: docs/process-migration.md#entries
+  - claim: d-vx26i23m # question ids join the opaque id regime
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#identifiers
+  - claim: d-el21jvd0 # the validator enforces id format and uniqueness
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#identifiers
+  - claim: r-bwtud1e5 # products declare their own requirements
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#requirement-presets
+  - claim: d-wis1whfn # a preset may adopt presets, and inclusion is transitive
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#requirement-presets
+      - kind: attestation
+        ref: docs/process-migration.md#wider-scopes-convert-first
+  - claim: d-wlkql151 # a preset conflict is a double declaration, not a double path
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#requirement-presets
+  - claim: d-a8hiceqo # one increment may not both adopt and drop a preset
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#requirement-presets
+  - claim: r-2gcehlp8 # tooling folds foundations
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#projection-replaces-a-written-spec-document
+  - claim: r-ei82daip # decisions are comprehensible as a set
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#projection-replaces-a-written-spec-document
+  - claim: d-o7br0a9k # the projection lists a draft's open questions
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#projection-replaces-a-written-spec-document
+  - claim: d-bmhxzpx2 # the projection attributes a requirement to the preset that declares it
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#projection-replaces-a-written-spec-document
+  - claim: d-4nez3mjh # the projection counts deferrals and excludes them from coverage
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#projection-replaces-a-written-spec-document
+  - claim: d-j50yturh # the fold at an increment is the bundle
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-fold-at-an-increment-is-the-bundle
+      - kind: attestation
+        ref: docs/process-migration.md#spec-bundles
+  - claim: r-tne4cdos # the tooling answers where a product stands
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-fold-at-an-increment-is-the-bundle
+  - claim: r-v6mknsh7 # the tooling diffs the fold
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-fold-at-an-increment-is-the-bundle
+  - claim: d-9y7b8qtd # an increment and a git ref are separate parameters
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-fold-at-an-increment-is-the-bundle
+      - kind: attestation
+        ref: .claude/skills/increment/SKILL.md#land
+  - claim: d-z2n96v40 # the resolver and diff surfaces
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-fold-at-an-increment-is-the-bundle
+  - claim: r-xxa1st52 # the facts pool is held to its evidence bar by the merge gate
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-facts-pool-and-its-evidence
+  - claim: d-yc56w54u # facts and their evidence join the version regime
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-facts-pool-and-its-evidence
+  - claim: d-0e325noj # the checker enforces the evidence bar and the entries' cross-references
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-facts-pool-and-its-evidence
+  - claim: d-08yrcfd7 # no in-force citation rests on a retired fact
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-facts-pool-and-its-evidence
+  - claim: d-4nm0io8o # a run's recorded output must exist, cited or not
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-facts-pool-and-its-evidence
+  - claim: d-eaw3u72o # because cites requirements, facts, and decisions
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#citing-what-a-claim-rests-on
+      - kind: code-test
+        ref: test/validate.test.ts
+        note: a decision citing a requirement in force through an adopted preset draws no finding
+      - kind: attestation
+        ref: src/validate.ts
+  - claim: d-i8rwe1sv # facets are labels no rule reads
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#facets
+  - claim: d-8itv1czm # products map to packages by path and kind
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#a-product-maps-to-its-packages
+  - claim: d-mtbx4ktw # coverage refs resolve through the package mapping
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#a-product-maps-to-its-packages
+  - claim: d-nzba0wqu # documents live under docs/, drafts under the increment
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#a-product-maps-to-its-packages
+      - kind: attestation
+        ref: docs/process-migration.md#the-spec-two-cases
+  - claim: d-lm8br2p2 # the process's documents live at docs/
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#a-product-maps-to-its-packages
+      - kind: attestation
+        ref: docs/process-migration.md#the-spec-two-cases
+  - claim: d-0w7imrfe # the documents live at the docs/ root
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#a-product-maps-to-its-packages
+      - kind: attestation
+        ref: docs/process-migration.md#the-spec-two-cases
+  - claim: d-39d4o4fn # tree-consumed packages version themselves in frontmatter
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#a-product-maps-to-its-packages
+      - kind: attestation
+        ref: .claude/skills/increment/SKILL.md
+      - kind: attestation
+        ref: .claude/skills/increment/implement.md#4-land
+      - kind: attestation
+        ref: .claude/skills/implement-package/waves/document.md#check
+  - claim: d-i1reuf3u # implement forward
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#implement-forward
+      - kind: attestation
+        ref: .claude/skills/implement-package/SKILL.md#decide-record-report
+  - claim: d-q8ur5u3f # decomposition is design work
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#decomposition-is-design-work
+  - claim: d-qb67fb8s # kind selects the dispatch shape
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#dispatch-kind-selects-the-wave-shape
+      - kind: attestation
+        ref: .claude/skills/increment/implement.md#3-dispatch-one-implementer-per-package
+  - claim: d-cau8oksc # survey is a third implementer phase
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#dispatch-kind-selects-the-wave-shape
+      - kind: attestation
+        ref: .claude/skills/increment/implement.md#3-dispatch-one-implementer-per-package
+      - kind: attestation
+        ref: .claude/skills/increment/implement.md#3b-survey-mode
+      - kind: attestation
+        ref: .claude/skills/implement-package/SKILL.md#the-three-phases
+  - claim: d-rvvijts2 # the code wave shape
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#dispatch-kind-selects-the-wave-shape
+      - kind: attestation
+        ref: .claude/skills/implement-package/waves/code.md#the-code-wave-shape
+  - claim: d-o81xclq7 # the document wave shape
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#dispatch-kind-selects-the-wave-shape
+      - kind: attestation
+        ref: .claude/skills/implement-package/waves/document.md#the-document-wave-shape
+  - claim: d-zj004h21 # agent-skill packages run the document wave shape
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#dispatch-kind-selects-the-wave-shape
+      - kind: attestation
+        ref: .claude/skills/implement-package/waves/document.md#the-document-wave-shape
+  - claim: d-qoks4n67 # the companion increment opens first and closes unmerged if empty
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-companion-increment
+      - kind: attestation
+        ref: .claude/skills/increment/implement.md#2-open-the-companion-increment
+      - kind: attestation
+        ref: .claude/skills/increment/implement.md#4-land
+  - claim: d-n23bxend # implementation decisions open as delegated
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-companion-increment
+  - claim: d-ig8vxolb # implementation design output lands as increments
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-companion-increment
+  - claim: d-ub6h6h5u # license by because, overturn by supersedes
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-companion-increment
+      - kind: attestation
+        ref: .claude/skills/increment/implement.md#2-open-the-companion-increment
+  - claim: d-98df3rlb # escalation fires on requirements, pins, and contract surfaces
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-companion-increment
+      - kind: attestation
+        ref: .claude/skills/implement-package/SKILL.md#decide-record-report
+  - claim: r-imt7131t # a design may be captured from code after the fact
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-companion-increment
+      - kind: attestation
+        ref: .claude/skills/increment/plan.md#1b-capture-from-code-the-code-first-path
+  - claim: r-k8hqvl8r # code built ahead of its capture is provisional
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-companion-increment
+      - kind: attestation
+        ref: .claude/skills/increment/plan.md#1b-capture-from-code-the-code-first-path
+      - kind: attestation
+        ref: .claude/skills/increment/implement.md#1b-where-the-target-was-captured-from-code
+  - claim: d-wfi9lx00 # the ordering invariant reads both directions
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-companion-increment
+      - kind: attestation
+        ref: .claude/skills/increment/implement.md#4-land
+  - claim: d-xf5fl5ce # capture reuses the increment artifacts unchanged
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-companion-increment
+  - claim: d-mh42i389 # capture proposes the bound-or-free split for the owner to rule
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-companion-increment
+      - kind: attestation
+        ref: .claude/skills/increment/plan.md#1b-capture-from-code-the-code-first-path
+  - claim: d-padbxbv1 # a captured target opens no companion increment
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-companion-increment
+      - kind: attestation
+        ref: .claude/skills/increment/implement.md#1b-where-the-target-was-captured-from-code
+  - claim: d-7qh9hx2x # escalation aborts and retargets
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#everything-lands-at-head
+  - claim: d-ki941p9b # a record lands only at head
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#everything-lands-at-head
+  - claim: r-tue7kfgt # every claim carries graded evidence
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#proving-a-claim-is-met
+  - claim: d-0nl6sd96 # coverage is the implementation's artifact
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#proving-a-claim-is-met
+      - kind: attestation
+        ref: docs/process-migration.md#spec-citation-as-evidence-of-compliance
+  - claim: d-0hedq82d # implementations are recorded in a pool
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#proving-a-claim-is-met
+  - claim: d-vsrxwv8u # implementation records are named for their target
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#proving-a-claim-is-met
+  - claim: d-w74sea6u # implementations run by hand or autonomously, one record
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#proving-a-claim-is-met
+      - kind: attestation
+        ref: .claude/skills/increment/implement.md
+  - claim: d-0g9l44e4 # evidence is graded by provenance and coupling
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#proving-a-claim-is-met
+      - kind: attestation
+        ref: .claude/skills/implement-package/SKILL.md#coverage-you-hand-back
+  - claim: d-bj3se96r # evidence demonstrates the verification procedure
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#proving-a-claim-is-met
+  - claim: d-4s0zoh1v # the implementer always attests
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#proving-a-claim-is-met
+      - kind: attestation
+        ref: .claude/skills/implement-package/SKILL.md#coverage-you-hand-back
+  - claim: d-a6go362q # an implementation record is checked against the published fold
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#proving-a-claim-is-met
+  - claim: d-cfe28w5z # the tooling ships as opus workspace packages
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-tooling-and-the-documents
+  - claim: d-imz61dd5 # the CLI carries the subcommands the fold requires
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-tooling-and-the-documents
+  - claim: r-yzkxa2hj # the process ships its reference
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-tooling-and-the-documents
+  - claim: d-vt9r9zn5 # the reference ships as two documents; agents get skills
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-tooling-and-the-documents
+      - kind: attestation
+        ref: docs/process-migration.md#what-the-incremental-process-replaces
+  - claim: d-af2v9seu # authoring tests are their own document
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-tooling-and-the-documents
+      - kind: attestation
+        ref: docs/authoring.md#the-checklist
+  - claim: d-bef5ysmj # the authoring document lives at docs/authoring.md
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-tooling-and-the-documents
+      - kind: attestation
+        ref: docs/authoring.md#the-checklist
+      - kind: attestation
+        ref: docs/process-migration.md#the-spec-two-cases
+  - claim: d-3lnj73ds # the migration record covers what predates the process, not retirements inside it
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#the-incremental-design-process
+      - kind: attestation
+        ref: docs/process-migration.md#what-the-incremental-process-replaces
+  - claim: r-w2m32yl6 # an agent reads only what its dispatch needs
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#instruction-is-scoped-to-the-dispatch
+  - claim: r-15psk4yp # a rule governing more than one role is stated once
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#instruction-is-scoped-to-the-dispatch
+  - claim: d-80yxesle # the phase skills are one package, their phases bundled beside it
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#instruction-is-scoped-to-the-dispatch
+      - kind: attestation
+        ref: .claude/skills/increment/SKILL.md#work-an-increment
+  - claim: d-lv3oyfaj # the dispatcher is the implement phase of that package
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#instruction-is-scoped-to-the-dispatch
+      - kind: attestation
+        ref: .claude/skills/increment/implement.md
+      - kind: attestation
+        ref: .claude/skills/increment/SKILL.md#work-an-increment
+      - kind: attestation
+        ref: .claude/skills/implement-package/SKILL.md#the-three-phases
+  - claim: d-63z31u0l # one implementer skill, its kind-specific waves bundled beside it
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#instruction-is-scoped-to-the-dispatch
+      - kind: attestation
+        ref: .claude/skills/increment/implement.md#3-dispatch-one-implementer-per-package
+      - kind: attestation
+        ref: .claude/skills/implement-package/SKILL.md#implement-one-package
+  - claim: d-7a6o1qw9 # the code kind's waves are a bundled file
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#instruction-is-scoped-to-the-dispatch
+      - kind: attestation
+        ref: .claude/skills/implement-package/waves/code.md#the-code-wave-shape
+  - claim: d-mq2th41t # the document kind's waves are a bundled file
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#instruction-is-scoped-to-the-dispatch
+      - kind: attestation
+        ref: .claude/skills/implement-package/waves/document.md#the-document-wave-shape
+  - claim: d-udx0fefp # the session works a pull request, and the working tree it holds is no longer the subject
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ratifying-and-landing-a-draft
+      - kind: attestation
+        ref: .claude/skills/increment/plan.md#5-ratify-the-loop
+      - kind: code-test
+        ref: test/target.test.ts
+        note: "--pr and branch resolution: the session's subject is the pull request, not the tree it runs
+          in"
+      - kind: attestation
+        ref: src/session/target.ts
+  - claim: r-7bwh7ach # a statement names what it governs
+    covered_by:
+      - kind: attestation
+        ref: docs/authoring.md#scope
+      - kind: attestation
+        ref: docs/authoring.md#the-checklist
+  - claim: d-ayylbmel # a preset requirement names the subject it binds
+    covered_by:
+      - kind: attestation
+        ref: docs/authoring.md#scope
+      - kind: attestation
+        ref: docs/authoring.md#the-checklist
+  - claim: d-iufcotad # verification naming is binding
+    covered_by:
+      - kind: attestation
+        ref: docs/authoring.md#verification
+  - claim: d-gewznny6 # model entries speak the design's words
+    covered_by:
+      - kind: attestation
+        ref: docs/authoring.md#model-entries
+  - claim: d-t6dutbjw # a statement is one proposition of owner fiat
+    covered_by:
+      - kind: attestation
+        ref: docs/authoring.md#statements
+  - claim: d-pgq1xwf5 # the verification tests
+    covered_by:
+      - kind: attestation
+        ref: docs/authoring.md#verification
+      - kind: attestation
+        ref: docs/process-migration.md#entries
+  - claim: d-8z7j435b # a decision states the choice and cites its dependencies
+    covered_by:
+      - kind: attestation
+        ref: docs/authoring.md#decisions
+  - claim: d-m8217jow # pinning and revisit_when are proposal-time discipline
+    covered_by:
+      - kind: attestation
+        ref: docs/authoring.md#decisions
+  - claim: d-769urruv # the fact and evidence tests
+    covered_by:
+      - kind: attestation
+        ref: docs/authoring.md#facts-and-evidence
+  - claim: d-oh2avr7i # a draft claim cites a foundation or is extracted
+    covered_by:
+      - kind: attestation
+        ref: docs/authoring.md#drafts-and-extraction
+      - kind: attestation
+        ref: .claude/skills/implement-package/waves/document.md#compose
+  - claim: d-jokpfmyj # converting a design removes it from the legacy tree in the same change
+    covered_by:
+      - kind: attestation
+        ref: docs/process-migration.md#converting-what-exists
+  - claim: d-7qs2g0sp # the check runs over one tree, and the pools it reads are schemas and surfaces
+    covered_by:
+      - kind: attestation
+        ref: docs/process-migration.md#converting-what-exists
+      - kind: attestation
+        ref: package.json
+        note: the check script is `design-process check`, over the one tree this repository holds
+  - claim: d-ly23faio # the phase is settled before anything else, and an unknown phase is refused
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/increment/SKILL.md#work-an-increment
+  - claim: d-jcvr833x # a shared ordinal is a finding; an unsupported pair is prevented, not detected
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/increment/SKILL.md#in-flight
+  - claim: d-yaefvf6x # a draft increment directory always draws the name finding
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/increment/SKILL.md#in-flight
+  - claim: d-ra5uhjmg # the landing conflict check covers wip directories
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/increment/SKILL.md#land
+  - claim: d-wcnyuwkv # the plan skill drives one draft to publish
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/increment/plan.md
+  - claim: d-xxxo61q9 # the plan skill offers the survey and recommends
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/increment/plan.md#4-survey-offer-it-and-classify-what-returns
+  - claim: d-blant5zn # the census is per-package YAML under the increment's drafts
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/increment/plan.md#4-survey-offer-it-and-classify-what-returns
+      - kind: attestation
+        ref: .claude/skills/increment/implement.md#3b-survey-mode
+      - kind: attestation
+        ref: .claude/skills/implement-package/SKILL.md#survey
+  - claim: d-bignbf6h # the survey reads the draft fold whole
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/increment/implement.md#3b-survey-mode
+  - claim: d-70giusy0 # the implementation-detail test is stated once inside the instruction
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/increment/implement.md#2-open-the-companion-increment
+      - kind: attestation
+        ref: .claude/skills/implement-package/SKILL.md#decide-record-report
+  - claim: d-7px9m0v5 # each of the two skill packages states its own half of a shared rule
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/increment/implement.md#3-dispatch-one-implementer-per-package
+      - kind: attestation
+        ref: .claude/skills/implement-package/SKILL.md#implement-one-package
+  - claim: d-vadqz73a # worktrees off one integration branch, one final PR
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/increment/implement.md#3a-running-implementers-in-parallel
+  - claim: d-msvpbva6 # the orchestrator is the companion increment's only writer
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/increment/implement.md#3a-running-implementers-in-parallel
+      - kind: attestation
+        ref: .claude/skills/implement-package/SKILL.md#decide-record-report
+  - claim: d-nt7tach6 # an implementer writes only under its package path
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/increment/implement.md#3a-running-implementers-in-parallel
+      - kind: attestation
+        ref: .claude/skills/implement-package/SKILL.md#decide-record-report
+  - claim: d-o6v57l9y # a prepare phase returns the allocation problems it can see
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/increment/implement.md#3a-running-implementers-in-parallel
+      - kind: attestation
+        ref: .claude/skills/implement-package/SKILL.md#the-three-phases
+  - claim: d-e8h0g9e3 # the overturn count lands in the companion's pull request description
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/increment/implement.md#4-land
+  - claim: d-ro5uce2s # a coverage ref names an artifact whose deletion would change whether the claim holds
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/increment/implement.md#4-land
+  - claim: d-w507rgth # an implementer is pointed at the reference only where no wave shape lives
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/implement-package/SKILL.md#decide-record-report
+  - claim: d-i8qe4bmp # an implementer's decisions are scoped to the work in front of it
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/implement-package/SKILL.md#decide-record-report
+  - claim: d-euwmthl9 # a prepare-wave working list is transient
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/implement-package/SKILL.md#your-working-list-is-transient
+  - claim: d-fiul12e8 # a code package's public contract is minimised by default
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/implement-package/waves/code.md#stub
+  - claim: d-vw0t1z62 # the Check wave audits for shadow claims
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/implement-package/waves/document.md#check
+  - claim: d-eporg76f # document coverage refs carry section breadcrumbs
+    covered_by:
+      - kind: attestation
+        ref: .claude/skills/implement-package/waves/document.md#check
+  - claim: r-tbmrw430 # diagnostics go to stderr
+    covered_by:
+      - kind: code-test
+        ref: test/cli.test.ts
+        note: a passing check writes nothing to stdout and its note to stderr; a failure's tally is on
+          stderr
+      - kind: attestation
+        ref: src/cli/entry-point.ts
+  - claim: r-d474vggq # main output goes to stdout
+    covered_by:
+      - kind: code-test
+        ref: test/cli.test.ts
+        note: conflicts writes its findings to stdout and nothing else
+      - kind: attestation
+        ref: src/cli/entry-point.ts
+  - claim: r-rn6wxdn4 # every command takes --json
+    covered_by:
+      - kind: code-test
+        ref: test/cli.test.ts
+        note: all seven data commands parse as JSON on stdout with --json
+      - kind: attestation
+        ref: src/cli/entry-point.ts
+  - claim: r-brdf1c2g # node packages ship as ESM
+    covered_by:
+      - kind: attestation
+        ref: package.json
+        note: "the package declares `type: module` and an import-only exports map"
+  - claim: r-paoy41od # node packages are TypeScript
+    covered_by:
+      - kind: attestation
+        ref: src/
+        note: every source is TypeScript, built to .d.ts and ESM by tsconfig.build.json
+  - claim: r-6r489hbd # node packages support the current LTS
+    covered_by:
+      - kind: attestation
+        ref: package.json
+        note: the engines field names the current LTS
+  - claim: r-82ck2fax # package config is repo-kit managed
+    covered_by:
+      - kind: attestation
+        ref: .repo-kit.yml
+        note: package configuration is repo-kit managed, with the package-manifest opt-out d-cueyrbon
+          records
+  - claim: d-iuwoumr1 # a json serialised form is not a stable api
+    covered_by:
+      - kind: attestation
+        ref: src/index.ts
+        note: the entry point exports the rendered projection and not the data behind `--json`
+      - kind: attestation
+        ref: src/project.ts
+        note: ProjectionData is implementation, and says so
+  - claim: d-2q797wc4 # what show --json emits
+    covered_by:
+      - kind: code-test
+        ref: test/cli.test.ts
+        note: "`show --json` parses, carrying the fold's requirements, decisions, model, and coverage"
+      - kind: attestation
+        ref: src/project.ts
+  - claim: d-msmyyvzn # how an interactive command answers --json is the implementer's
+    covered_by:
+      - kind: code-test
+        ref: test/cli.test.ts
+        note: "`increment` refuses the flag, which is one of the answers the decision leaves open"
+      - kind: attestation
+        ref: src/cli/entry-point.ts
+  - claim: d-fi7zsgez # a note is taken from the list, and it is not a ruling
+    covered_by:
+      - kind: code-test
+        ref: test/session.test.ts
+        note: a note is taken from the list and the entry it names is not ruled by it
+      - kind: attestation
+        ref: src/session/model.ts
+  - claim: d-m7i568id # a command's findings are its main output
+    covered_by:
+      - kind: code-test
+        ref: test/cli.test.ts
+      - kind: attestation
+        ref: src/cli/entry-point.ts
+  - claim: d-cueyrbon # the package exports one entry point
+    covered_by:
+      - kind: attestation
+        ref:
+          - package.json
+          - src/index.ts
+        note: one "." entry, named re-exports only, no wildcard and no export *
+      - kind: attestation
+        ref: .repo-kit.yml
+        note: the package-manifest rule is disabled for this package; without the opt-out repo-kit sync
+          regenerates the "./*" subpath exports and the entry point reverts
+  - claim: d-211hgo91 # what the single entry point re-exports
+    covered_by:
+      - kind: attestation
+        ref: src/index.ts
+        note: the named re-exports, and nothing else under src/ reachable
+  - claim: d-y8wvy666 # a losing backlog write retries against the winner
+    covered_by:
+      - kind: code-test
+        ref: test/backlog.test.ts
+        note: a raced write loses neither item; an exhausted retry leaves the branch untouched
+      - kind: manual-check
+        ref: README.md#concurrent-writes
+      - kind: attestation
+        ref: src/backlog-store.ts
+        note: updateStore restores the local ref on a rejected push, refetches the tip, re-applies the
+          change over the winner's tree, and retries — four attempts by default — exiting non-zero
+          with the branch untouched when exhausted
+  - claim: d-lzisn9cb # a replaced skill package is deleted outright
+    covered_by:
+      - kind: attestation
+        ref: products/increment-process/product.yaml
+        note: the orchestrator attests the four retired skill packages carry no entry here and their
+          directories are deleted
+  - claim: d-grc2wbfo # the wip directory grammar, and what a near-miss is
+    covered_by:
+      - kind: code-test
+        ref: test/drafts.test.ts
+        note: all five near-misses draw the wip-worded finding citing d-x0q4xgd8, and their sources reach
+          neither the loader nor the projection
+      - kind: attestation
+        ref: src/load.ts
+  - claim: d-9yzzvfow # an increment is named by number or by draft directory across the fold types
+    covered_by:
+      - kind: attestation
+        ref: src/index.ts
+        note: IncrementRef exported; Fold carries label and drafts; FoldedClaim, OutOfForce, AddedClaim
+          and ClosedClaim admit a ref
+      - kind: code-test
+        ref: test/drafts.test.ts
+        note: the fold labelled by directory name
+  - claim: d-qo2qelw4 # a malformed pool file is a finding
+    covered_by:
+      - kind: code-test
+        ref: test/evidence-bar.test.ts
+        note: an unparseable facts/ file and an unparseable evidence/ file each raise pool-file-parse at
+          their own path
+      - kind: attestation
+        ref: src/pools.ts
+        note: loadPoolFile records the parse error as a finding instead of returning undefined silently;
+          the file's facts and runs no longer leave the pool unannounced
+  - claim: d-te89mei4 # uncited-run output existence is the implementer's call
+    covered_by:
+      - kind: code-test
+        ref: test/evidence-bar.test.ts
+        note: a run whose output is missing fails with no fact citing it, and a cited run in the same
+          state reports once rather than twice
+      - kind: attestation
+        ref: src/evidence-bar.ts
+        note: "the implementer's call is to enforce it: checkRunOutput checks every run entry's recorded
+          output against the tree, so the finding lands where the claim is made"
+  - claim: d-n4g97j7g # one rule reports both product id collisions
+    covered_by:
+      - kind: code-test
+        ref: test/products.test.ts
+        note: product-id-unique fires once for two roots sharing an id and once for .yaml and .yml in one
+          root; the shallowest-then-lexical root keeps the id and the loser's increments are
+          skipped rather than reported again
+      - kind: attestation
+        ref: src/load.ts
+  - claim: d-ixg3gith # an increments tree with no declaration above it declares no product
+    covered_by:
+      - kind: code-test
+        ref: test/products.test.ts
+        note: an increments/ tree with no declaration above it keeps the product-declaration finding,
+          pathed at the offending source file, and appears in no product list
+      - kind: attestation
+        ref: src/load.ts
