@@ -42,6 +42,20 @@ decisions:
     rejection_reason: >-
       these packages should use the '@grinbox' npm scope
 
+  - id: d-jxipfcu0
+    title: the packages keep the @grinbox scope
+    statement: |
+      the packages are named `@grinbox/server`, `@grinbox/web`, and `@grinbox/shared`, keeping
+      grinbox's own scope rather than taking the workspace's. Nothing registers the scope: these
+      packages are never published, so the name is an identity within the workspace and a claim on
+      nothing outside it.
+    status: proposed
+    supersedes: d-ya291hq8
+    because:
+      - d-txqxjxvp
+      - d-cjjd5c0w
+    pinned: false
+
   - id: d-5h9ot6s7
     title: two package kinds grinbox introduces
     statement: |
