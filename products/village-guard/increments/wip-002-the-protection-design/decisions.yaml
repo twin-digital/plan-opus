@@ -61,11 +61,12 @@ decisions:
     facets: pack-runtime
 
   - id: d-8b5m52it
-    title: the event subscription is the enrolment
+    title: the event subscription is the enrollment
     statement: |
       a mob is protected because the pack's `entityHurt` subscription sees its hit, and by nothing
-      else. the pack keeps no registry of protected mobs, scans no dimension, and runs no periodic
-      sweep.
+      else. the subscription is world-wide and taken once, while the pack's script evaluates, so it
+      stands before anything in the world can be hurt. the pack keeps no registry of protected mobs,
+      scans no dimension, tracks no mob's arrival or departure, and runs no periodic sweep.
     status: proposed
     pinned: false
     because:
