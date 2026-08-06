@@ -19,25 +19,36 @@ decisions:
 
   # how protection works
   - id: d-jp67dexu
-    title: protection is a clamped hit, not invulnerability
+    title: a mob's hit is clamped, a player's is cancelled
     statement: |
-      a protected mob takes every hit the game deals it. the pack subscribes
-      `world.beforeEvents.entityHurt` and writes the event's `damage` down to an amount that cannot
-      reach the mob's `effectiveMin` health, then restores the health lost in the same tick. it
-      never cancels a hit, never makes a mob invulnerable, and adds no effect to a mob.
+      the pack subscribes `world.beforeEvents.entityHurt` and splits on the hit's
+      `damageSource.damagingEntity`, because no damage cause distinguishes a player's swing from a
+      mob's.
+
+      a hit from anything other than a player has its `damage` written down to an amount that cannot
+      reach the mob's `effectiveMin` health, and the health lost is restored in the same tick. the
+      restore is not an ergonomic detail: a clamp alone lets the losses accumulate until the mob
+      dies anyway.
+
+      a hit a player dealt, whether in melee or by a projectile they loosed, is cancelled outright,
+      so nothing lands and the mob does not react.
+
+      the pack never makes a mob invulnerable and adds no effect to a mob.
     status: proposed
     pinned:
       reason: other
       notes: >-
-        fixes what a player observes when they strike a protected mob — the hit lands with its
-        vanilla reaction and the mob survives it — which is the difference between this design and
-        an invulnerability flag.
+        fixes what a player observes when they strike a protected mob, and what they observe when a
+        zombie does — two behaviours a consumer would notice changing.
     because:
       - r-pe87rfqq
       - r-eh0aac98
+      - r-ef113dxi
       - f:entity-hurt-before-event-sees-engine-dealt-damage
+      - f:no-damage-cause-names-the-attacker-and-none-names-reputation
       - f:a-damage-clamp-without-a-restore-still-kills
       - f:a-clamped-hit-knocks-back-and-a-cancelled-one-does-not
+      - f:a-clamped-hit-is-indistinguishable-from-a-vanilla-one-at-a-client
       - f:before-event-field-writes-take-effect
       - f:reaching-effective-minimum-is-fatal
       - f:health-not-clamped-at-minimum

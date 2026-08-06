@@ -404,7 +404,10 @@ async function setClient() {
   const { x, y, z } = arena();
   await buildArena();
   clear();
+  // the arena sets midnight and the world may be raining: a person is being asked to judge a red
+  // flash and a recoil, so give them daylight and clear sky
   cmd("time set day");
+  cmd("weather clear 999999");
   cmd("gamerule sendcommandfeedback true");
   await wait(10);
 
@@ -416,10 +419,13 @@ async function setClient() {
 
   const subjects = new Map();
   for (const lane of LANES) {
-    // a 3x3 pen: room to flinch and to panic, no room to leave
+    // a 3x3 pen with an open roof for light and a barred south face: the villager stays in, and
+    // the observer gets a face-on view and can strike through the bars. `hollow` lays stone at the
+    // pen's own floor level, so the subject spawns one above it rather than inside it.
     cmd(`fill ${x + lane.dx - 2} ${y} ${z - 2} ${x + lane.dx + 2} ${y + 3} ${z + 2} stone hollow`);
     cmd(`fill ${x + lane.dx - 1} ${y + 3} ${z - 1} ${x + lane.dx + 1} ${y + 3} ${z + 1} air`);
-    const v = spawn("minecraft:villager_v2", lane.dx);
+    cmd(`fill ${x + lane.dx - 1} ${y + 1} ${z + 2} ${x + lane.dx + 1} ${y + 2} ${z + 2} iron_bars`);
+    const v = spawn("minecraft:villager_v2", lane.dx, 1);
     if (!v) { say(probe, `[${lane.name}] SUBJECT-SPAWN-FAILED`); continue; }
     read(() => { v.nameTag = lane.name; });
     subjects.set(v.id, lane.mode);

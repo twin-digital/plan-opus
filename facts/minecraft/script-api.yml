@@ -2574,3 +2574,62 @@ facts:
           single unlucky death. Set A deliberately installs no restore; set B, which does, held full
           health in 3/3 runs.
 
+  - id: no-damage-cause-names-the-attacker-and-none-names-reputation
+    claim: |
+      Nothing in `EntityDamageCause` distinguishes a player's hit from a mob's: all 35 members were
+      surveyed and none contains "player" or "mob" — a player's swing and a zombie's both arrive as
+      `entityAttack`. The only attribution a handler gets is `EntityDamageSource`'s two optional
+      entity fields, `damagingEntity` and `damagingProjectile`, so a pack that must treat a player's
+      damage differently reads the entity rather than the cause. `damagingEntity` is the responsible
+      entity rather than the projectile, which has its own field, so one test covers a melee swing
+      and a loosed arrow alike. Separately, villager reputation is not on the surface at all: the
+      module contains zero identifiers matching `gossip` or `reputation`, so a pack can neither read
+      a villager's standing towards a player nor write it.
+    backing: tested
+    sources:
+      - run: damage-source-type-probe
+        where: "the cause survey — no member names a player or a mob"
+        quote: "EntityDamageCause members containing \"player\": none"
+      - run: damage-source-type-probe
+        where: "the cause survey — the full member list"
+        quote: "EntityDamageCause values=anvil,blockExplosion,campfire,charging,contact,drowning,entityAttack,entityExplosion,fall,fallingBlock,fire,fireTick,fireworks,flyIntoWall,freezing,lava,lightning,maceSmash,magic,magma,none,override,piston,projectile,ramAttack,selfDestruct,sonicBoom,soulCampfire,stalactite,stalagmite,starve,suffocation,temperature,thorns,wither"
+      - run: damage-source-type-probe
+        where: "the damage source's fields, and the reputation search"
+        quote: "EntityDamageSource fields=cause,damagingEntity?,damagingProjectile?"
+      - run: damage-source-type-probe
+        where: "the reputation search over the whole module"
+        quote: "reputation/gossip identifiers in the module: 0"
+
+  - id: a-clamped-hit-is-indistinguishable-from-a-vanilla-one-at-a-client
+    claim: |
+      Watched at a Bedrock client, a hit whose `entityHurt.damage` was written down produces the
+      same reaction as an unmodified hit, and a cancelled hit produces none. Three villagers were
+      penned side by side — one hit vanilla, one through a 0.5 clamp, one whose event was
+      cancelled — and struck with the same weapon. The vanilla and clamped lanes both flashed the
+      red damage particles, both recoiled, both played the villager's hurt grunt, and both grew
+      agitated afterwards; the cancelled lane did none of the four and simply stood there. Nothing
+      appeared on the clamped villager that the vanilla one did not have: no added particle, no
+      tint, no name-tag change, no chat output. This closes the half of the reaction question a
+      dedicated server cannot reach, the flinch and the sound being rendered on the client
+      [[f:a-clamped-hit-knocks-back-and-a-cancelled-one-does-not]].
+    caveat: |
+      An eye-level comparison, not an instrumented one: it establishes that the two lanes are
+      indistinguishable to a person looking for a difference, which is the standard the requirement
+      sets, and not that they are identical frame by frame. The red particles are vanilla's own
+      damage feedback, since the unmodified lane shows them too.
+    backing: tested
+    sources:
+      - run: protection-probe-client
+        where: "the staged comparison — three lanes, three subjects"
+        quote: "[2026-08-06 15:33:37:485 WARN] [Scripting] [vgprobe] client-comparison :: staged lanes=3 subjects=3 centre=(163,100,170)"
+      - run: protection-probe-client
+        where: "the session's own count — both reacting lanes were struck comparably, the cancelled lane landed nothing"
+        quote: "[2026-08-06 15:38:37:482 WARN] [Scripting] [vgprobe] client-comparison :: session-ended damage-landed-by-lane=[control=9, clamped=10, cancelled=0] note=the cancelled lane lands no after-event by construction; the counts say which lanes were actually struck"
+      - description: |
+          The observation is the design's owner's, made at a Bedrock client against the staged
+          session on 2026-08-06, and reported back in the session that recorded this fact: control
+          and clamped alike showed the red particles and the recoil, "same grunt and sound on
+          control and clamped", "nothing extra on clamped", and panic "on both that took the hit,
+          cancelled just stood there". Flinch and sound reach no server log, so no run captures
+          them and the owner's report is the evidence.
+

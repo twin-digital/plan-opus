@@ -246,3 +246,24 @@ runs:
       each hit landed on. 3/3 runs, no PROBE CRASHED lines. Hit counts differ per run because they
       depend on zombie pathing; the peak-speed readings they turn on do not.
 
+  - id: damage-source-type-probe
+    command: node evidence/minecraft/script-api/damage-source-probe/probe.mjs
+    output: evidence/minecraft/script-api/damage-source-probe/probe.out.txt
+    ran_at: 2026-08-06
+    environment: |
+      Reads @minecraft/server 2.8.0's index.d.ts, copied beside the script so the run is repeatable
+      against the exact declarations it was taken from. The counts are that version's and would
+      differ against another.
+
+  - id: protection-probe-client
+    command: send-command scriptevent vgprobe:client
+    output: evidence/minecraft/script-api/protection-probe/CLIENT-OUTPUT.txt
+    ran_at: 2026-08-06
+    environment: |
+      Same server, module version and pack as protection-probe-sources, brought up with the
+      compose.client.yaml overlay so a Bedrock client can join. The set pens three villagers side by
+      side — one hit vanilla, one through a 0.5 clamp, one whose entityHurt event is cancelled — and
+      runs a five-minute window. The log records only that the lanes were staged and how many hits
+      landed on each; the flinch, the sound and the panic are rendered on the client and were
+      observed there by the design's owner, whose report is cited as its own source.
+

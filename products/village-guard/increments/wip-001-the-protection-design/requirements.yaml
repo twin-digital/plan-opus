@@ -1,0 +1,21 @@
+version: "1"
+
+requirements:
+  # staying out of the way
+  - id: r-ef113dxi
+    title: a player's own hit does nothing
+    statement: |
+      damage a player deals a protected mob does nothing at all: the mob takes no harm and shows no
+      reaction, and the player's standing with it is unchanged. an accidental swing costs the player
+      nothing and leaves the mob as it was. harm from any other source is unaffected.
+    rationale: |
+      this narrows the reaction `r-eh0aac98` requires, and narrows it only for the player. a siege
+      still has to look like a siege.
+    verification:
+      - do: as a player, strike a protected villager in melee and again with an arrow, alongside the same strikes in a world without the pack
+      - verify: the pack's villager shows none of the four reactions the vanilla one shows — no flash, no sound, no recoil, no agitation
+      - do: trade with a protected villager, strike it several times, and trade again
+      - verify: its prices after the strikes are the prices it offered before them
+      - do: let a hostile mob attack the same villager
+      - verify: it reacts as the vanilla villager does
+    amends: r-eh0aac98

@@ -1,15 +1,16 @@
 version: "1"
 
 questions:
-  - id: q-fc5bw0k0
+  - id: q-12hs93gc
     question: |
-      does a hit whose damage is written down still flinch, still sound, and still panic? the
-      knockback half is measured and settled — `f:a-clamped-hit-knocks-back-and-a-cancelled-one-does-not`
-      puts a clamped hit's peak speed on top of a vanilla hit's and a cancelled hit's at nothing.
-      the rest is not: flinch and the hurt sound are rendered on the client and reach no server log,
-      and total displacement cannot separate panic-from-being-hit from a villager's ordinary flight
-      from a zombie. `evidence/minecraft/script-api/protection-probe/CLIENT.md` stages the
-      comparison — three penned villagers, vanilla against clamped against cancelled — and needs a
-      person at a client to make it.
+      does cancelling a player's hit also spare the player the villager's negative gossip? villager
+      reputation is not on the script API's surface at all — no `gossip` or `reputation` identifier
+      anywhere in the module — so the pack can neither read a villager's standing nor undo it, and a
+      cancelled hit spares it only if the engine hangs the gossip off the damage rather than off the
+      swing. `r-ef113dxi` wants an accidental swing to cost the player nothing, and this is what
+      decides whether cancelling delivers that or whether the requirement needs a mechanism the pack
+      does not yet have. observable at a client: trade with a villager, strike it repeatedly, trade
+      again, and read the prices.
     answer: fact
     facets: pack-runtime
+
