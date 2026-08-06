@@ -1,7 +1,7 @@
 version: "1"
 product: increment-process
-target: 26
-built_at: 2026-08-05
+target: 27
+built_at: 2026-08-06
 packages:
   - path: nodejs/plan/design-process
     version: "0.8.0"
@@ -278,12 +278,6 @@ coverage:
         ref: docs/process-reference.md#ratifying-and-landing-a-draft
       - kind: attestation
         ref: .claude/skills/increment/SKILL.md#land
-  - claim: d-gf6x5jzy # one interactive command carries the draft from ruling to published
-    covered_by:
-      - kind: attestation
-        ref: docs/process-reference.md#ratifying-and-landing-a-draft
-      - kind: attestation
-        ref: .claude/skills/increment/plan.md#5-ratify-the-loop
   - claim: r-ycjjl48r # a draft is ratified through its pull request
     covered_by:
       - kind: attestation
@@ -1140,6 +1134,18 @@ coverage:
         ref: docs/process-reference.md#instruction-is-scoped-to-the-dispatch
       - kind: attestation
         ref: .claude/skills/implement-package/waves/document.md#the-document-wave-shape
+  - claim: d-udx0fefp # the session works a pull request, and the working tree it holds is no longer the subject
+    covered_by:
+      - kind: attestation
+        ref: docs/process-reference.md#ratifying-and-landing-a-draft
+      - kind: attestation
+        ref: .claude/skills/increment/plan.md#5-ratify-the-loop
+      - kind: code-test
+        ref: test/target.test.ts
+        note: "--pr and branch resolution: the session's subject is the pull request, not the tree it runs
+          in"
+      - kind: attestation
+        ref: src/session/target.ts
   - claim: r-7bwh7ach # a statement names what it governs
     covered_by:
       - kind: attestation
@@ -1188,14 +1194,17 @@ coverage:
         ref: docs/authoring.md#drafts-and-extraction
       - kind: attestation
         ref: .claude/skills/implement-package/waves/document.md#compose
-  - claim: d-t03xkfj7 # both trees are checked until the migration empties design/
-    covered_by:
-      - kind: attestation
-        ref: docs/process-migration.md#converting-what-exists
   - claim: d-jokpfmyj # converting a design removes it from the legacy tree in the same change
     covered_by:
       - kind: attestation
         ref: docs/process-migration.md#converting-what-exists
+  - claim: d-7qs2g0sp # the check runs over one tree, and the pools it reads are schemas and surfaces
+    covered_by:
+      - kind: attestation
+        ref: docs/process-migration.md#converting-what-exists
+      - kind: attestation
+        ref: package.json
+        note: the check script is `design-process check`, over the one tree this repository holds
   - claim: d-ly23faio # the phase is settled before anything else, and an unknown phase is refused
     covered_by:
       - kind: attestation
@@ -1341,6 +1350,41 @@ coverage:
         ref: .repo-kit.yml
         note: package configuration is repo-kit managed, with the package-manifest opt-out d-cueyrbon
           records
+  - claim: d-iuwoumr1 # a json serialised form is not a stable api
+    covered_by:
+      - kind: attestation
+        ref: src/index.ts
+        note: the entry point exports the rendered projection and not the data behind `--json`
+      - kind: attestation
+        ref: src/project.ts
+        note: ProjectionData is implementation, and says so
+  - claim: d-2q797wc4 # what show --json emits
+    covered_by:
+      - kind: code-test
+        ref: test/cli.test.ts
+        note: "`show --json` parses, carrying the fold's requirements, decisions, model, and coverage"
+      - kind: attestation
+        ref: src/project.ts
+  - claim: d-msmyyvzn # how an interactive command answers --json is the implementer's
+    covered_by:
+      - kind: code-test
+        ref: test/cli.test.ts
+        note: "`increment` refuses the flag, which is one of the answers the decision leaves open"
+      - kind: attestation
+        ref: src/cli/entry-point.ts
+  - claim: d-fi7zsgez # a note is taken from the list, and it is not a ruling
+    covered_by:
+      - kind: code-test
+        ref: test/session.test.ts
+        note: a note is taken from the list and the entry it names is not ruled by it
+      - kind: attestation
+        ref: src/session/model.ts
+  - claim: d-m7i568id # a command's findings are its main output
+    covered_by:
+      - kind: code-test
+        ref: test/cli.test.ts
+      - kind: attestation
+        ref: src/cli/entry-point.ts
   - claim: d-cueyrbon # the package exports one entry point
     covered_by:
       - kind: attestation
