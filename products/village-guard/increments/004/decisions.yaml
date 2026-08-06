@@ -1,0 +1,112 @@
+version: "1"
+
+decisions:
+  # what ships
+  - id: d-issr5yjc
+    title: village-guard ships as one behavior pack
+    statement: |
+      village-guard's consumer-visible package set is a single behavior-pack package,
+      `@twin-digital/village-guard`, in the opus monorepo at `nodejs/minecraft/village-guard`. it
+      exposes no library surface, and its release artifact is the installable pack itself.
+    status: accepted
+    pinned:
+      reason: public-api
+    because:
+      - r-cizmztsh
+      - r-cyd08e6q
+      - r-w2vh7olv
+    facets: packaging
+
+  # how protection works
+  - id: d-jp67dexu
+    title: a mob's hit is clamped, a player's is cancelled, an operator's lands
+    statement: |
+      the pack subscribes `world.beforeEvents.entityHurt` and splits each hit three ways, on the
+      hit's `damageSource`.
+
+      a hit whose cause is `selfDestruct` or `override` is left alone entirely. those are the causes
+      the engine gives a deliberate removal rather than gameplay, so an operator keeps the ability
+      to kill a protected mob outright.
+
+      a hit whose `damagingEntity` is a player is cancelled, whether dealt in melee or by a
+      projectile they loosed, so nothing lands and the mob does not react.
+
+      every other hit has its `damage` written down to a fixed amount too small to be fatal, and the
+      mob is restored to full health in the same tick. the clamp is a constant rather than a figure
+      read off the mob, so the handler reads nothing while it runs. the restore is not an ergonomic
+      detail: a clamp alone lets the losses accumulate until the mob dies anyway.
+
+      the pack never makes a mob invulnerable and adds no effect to a mob.
+    status: accepted
+    pinned:
+      reason: other
+      notes: >-
+        fixes three behaviours a consumer observes — what a player sees when they strike a protected
+        mob, what they see when a zombie does, and whether an operator can remove one.
+    because:
+      - r-pe87rfqq
+      - r-ef113dxi
+      - f:entity-hurt-before-event-sees-engine-dealt-damage
+      - f:no-damage-cause-names-the-attacker-and-none-names-reputation
+      - f:cancelling-a-players-hit-prevents-the-reputation-change
+      - f:a-damage-clamp-without-a-restore-still-kills
+      - f:a-clamped-hit-knocks-back-and-a-cancelled-one-does-not
+      - f:a-clamped-hit-is-indistinguishable-from-a-vanilla-one-at-a-client
+      - f:kill-and-remove-cascades
+      - f:reaching-effective-minimum-is-fatal
+      - f:before-event-field-writes-take-effect
+      - f:health-not-clamped-at-minimum
+      - f:cancelled-call-return-values-observed
+      - f:after-event-deferral-subtick
+    facets: pack-runtime
+
+  - id: d-8b5m52it
+    title: the event subscription is the enrollment
+    statement: |
+      a mob is protected because the pack's `entityHurt` subscription sees its hit, and by nothing
+      else. the subscription is world-wide and taken once, while the pack's script evaluates, so it
+      stands before anything in the world can be hurt. the pack keeps no registry of protected mobs,
+      scans no dimension, tracks no mob's arrival or departure, and runs no periodic sweep.
+    status: accepted
+    pinned: false
+    because:
+      - r-1nxm8bg4
+      - d-jp67dexu
+    facets: pack-runtime
+
+  - id: d-6lbml4g9
+    title: the protected set is three vanilla type ids
+    statement: |
+      the pack protects `minecraft:villager_v2`, `minecraft:wandering_trader` and
+      `minecraft:iron_golem`, and no other entity type. the set is fixed in the pack and is not
+      configurable.
+    status: accepted
+    pinned:
+      reason: other
+      notes: >-
+        an installer reads the set as what the pack does to their world; adding or dropping a type
+        changes which mobs survive a siege.
+    because:
+      - r-1nxm8bg4
+      - r-9gw909jf
+      - f:preventing-a-villagers-death-prevents-its-conversion
+      - f:subscribe-filter-entity-types-requires-the-prefix
+    facets: pack-runtime
+
+  - id: d-itt177wv
+    title: the manifest declares the versions the design was measured against
+    statement: |
+      the pack's manifest depends on `@minecraft/server` 2.8.0 and declares a `min_engine_version`
+      no lower than the Bedrock 1.26 line, and neither moves without re-reading the behaviour the
+      protection rests on.
+    status: accepted
+    pinned:
+      reason: other
+      notes: >-
+        the pair decides which worlds accept the pack at all, which an installer meets directly.
+    because:
+      - r-cizmztsh
+      - d-jp67dexu
+      - f:entity-hurt-before-event-sees-engine-dealt-damage
+    facets: packaging
+
