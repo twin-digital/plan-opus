@@ -1,3 +1,9 @@
+---
+tags:
+  - process-doc
+  - tooling
+---
+
 # a record's package version cannot name what shipped
 
 `implementations/<product>/<NNN>-<k>.yaml` carries a `packages[].version` per package, and in a
