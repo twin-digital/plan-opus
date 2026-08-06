@@ -20,8 +20,10 @@ entries:
       vanilla does, and `r-ef113dxi` says the pack changes nothing else. The probe used
       `resetToMaxValue`, so the evidence behind the design was gathered on the reading that has this
       side effect.
-    classification: gap
-    routes_to: Clarify — a decision, consumer-observable
+    classification: closed
+    resolved_by: |
+      d-jp67dexu — restore to full health. The owner ruled it as the original intention, and
+      r-ef113dxi now names the restore as an exception rather than leaving it to a reading.
 
   - choice: whether operator damage and the void are exempt from the clamp
     where: Code — the entityHurt before-event handler's cause test
@@ -32,8 +34,16 @@ entries:
       arrives as a damage cause like any other (`f:kill-and-remove-cascades` records it as
       `selfDestruct`). An operator who cannot remove a villager will meet this on their first
       attempt, and a world edit that drops a mob into the void gets an immortal mob instead.
-    classification: gap
-    routes_to: Clarify — a decision, consumer-observable; the owner may also want to read it against r-pe87rfqq
+    classification: closed
+    resolved_by: |
+      d-jp67dexu — `selfDestruct` and `override` are left alone, so an operator keeps the ability to
+      kill a protected mob. Settled from the pool rather than by a new probe, at the owner's
+      direction: f:kill-and-remove-cascades records a deliberate kill arriving as `selfDestruct` and
+      f:reaching-effective-minimum-is-fatal records a component write to the minimum as `override`.
+      The residual is that both were observed from a script's `kill()` and component write rather
+      than from the `/kill` command, which the pool does not cover. If `/kill` bypasses the damage
+      path entirely, as `remove()` does, the exemption is simply unused. There is no `void` cause in
+      the enum at all, so the void half of the question was a phantom.
 
   - choice: the @minecraft/server version and min_engine_version the manifest declares
     where: Define — the pack manifest
@@ -42,8 +52,8 @@ entries:
       which `r-cizmztsh` speaks to directly. They are also what ties the design to its evidence —
       every fact behind `d-jp67dexu` was measured against `@minecraft/server` 2.8.0 on Bedrock
       1.26.x, and a different module version is a different set of observations.
-    classification: gap
-    routes_to: Clarify — a decision, and probably pinned
+    classification: closed
+    resolved_by: d-itt177wv — the manifest pins 2.8.0 and the 1.26 line, proposed pinned.
 
   - choice: how the clamp computes its written-down damage
     where: Code — the entityHurt before-event handler
@@ -55,8 +65,12 @@ entries:
       component *read* is permitted there is unobserved — no fact in the pool covers it. If reads
       are allowed both work and the choice is an implementation detail; if not, only the constant
       does.
-    classification: gap
-    routes_to: Clarify — an open question routed to fact, cheap to settle with a probe
+    classification: closed
+    resolved_by: |
+      d-jp67dexu — the clamp is a fixed constant, so the handler reads nothing while it runs and the
+      unobserved restricted-execution behaviour is never relied on. The question is not answered; it
+      is designed around, which costs nothing here because the restore returns the mob to full
+      health every tick and a constant too small to be fatal can never accumulate.
 
   - choice: the repo-kit feature that generates the pack's scripts does not exist
     where: Stub — package.json and the monorepo's generated configuration

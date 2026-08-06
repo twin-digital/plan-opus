@@ -5,8 +5,8 @@ requirements:
   - id: r-ef113dxi
     title: the pack changes nothing else, and a player's own hit does nothing
     statement: |
-      apart from not dying and not being converted, a protected mob behaves exactly as it does in
-      vanilla: trading, restocking, breeding, gossip, panic, and golem spawning are unchanged, and a
+      apart from not dying, not being converted, and being restored to full health when it is
+      harmed, a protected mob behaves exactly as it does in vanilla: trading, restocking, breeding, gossip, panic, and golem spawning are unchanged, and a
       mob that is hit still visibly takes the hit — flinch, knockback, sound, and panic as vanilla
       would. The protection adds no tell of its own — no effect particles, no name tag, no chat
       output.
@@ -17,6 +17,8 @@ requirements:
     rationale: |
       the exception is the player's alone. a siege still has to look like a siege.
     verification:
+      - do: with the pack running, harm a protected mob that is already below full health
+      - verify: it ends at full health, and nothing else about it has changed
       - do: with the pack running, trade with a protected villager, let it restock, breed a pair, provoke panic, and let a village spawn a golem, alongside the same scenario in a world without the pack
       - verify: each behaviour matches the vanilla world's
       - do: let a hostile mob strike a protected mob and watch the same strike land in the vanilla world

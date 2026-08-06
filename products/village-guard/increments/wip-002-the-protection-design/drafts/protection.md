@@ -74,3 +74,26 @@ nothing of the pack on the damage path, so there was no effect for a cancellatio
 preventing (`f:attacking-a-cured-villager-does-not-cost-it-its-discount`). The design proceeds on
 `f:cancelling-a-players-hit-prevents-the-reputation-change`, which is recorded as assumed and says
 so.
+
+## What the survey changed
+
+The read-only survey of the package found four choices the fold did not settle. Two were the
+owner's to rule and were ruled: the same-tick restore returns the mob to **full health**, which
+`r-ef113dxi` now names as an exception rather than leaving to a reading of "changes nothing else";
+and a hit whose cause is `selfDestruct` or `override` is left alone, so an operator keeps the
+ability to kill a protected mob.
+
+That second one was settled from the pool rather than with a new probe, at the owner's direction.
+`f:kill-and-remove-cascades` records a deliberate kill arriving as `selfDestruct`, and
+`f:reaching-effective-minimum-is-fatal` records a component write to the minimum as `override`.
+Both were observed from a script's own call rather than from the `/kill` command, and that gap is
+the residual: if `/kill` bypasses the damage path as `remove()` does, the exemption is simply
+unused. The void half of the question turned out to be a phantom — there is no `void` member in
+`EntityDamageCause` at all.
+
+The other two the survey settled by design. `d-itt177wv` pins the manifest to the module and engine
+versions the protection was measured against. And the clamp is a fixed constant rather than a figure
+read off the mob, so the handler reads nothing while it runs — which sidesteps the one thing the
+survey found that no fact covers, whether a component read is permitted inside a before-event
+handler's restricted-execution privilege. The restore returns the mob to full health every tick, so
+a constant too small to be fatal can never accumulate.
