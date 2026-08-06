@@ -1,3 +1,9 @@
+---
+tags:
+  - tooling
+  - process-doc
+---
+
 # The increment session opens on a settled draft, for review
 
 `design-process increment <product>` today is a ruling session: it exists to move proposed
