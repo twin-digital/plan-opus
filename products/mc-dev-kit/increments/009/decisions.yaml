@@ -1,0 +1,745 @@
+version: "2"
+decisions:
+  - id: d-zyo6kku9
+    title: the harness is its own package beside the library
+    statement: |
+      the harness ships as a second package of this product, `nodejs/minecraft/mc-dev-server`, published
+      as `@twin-digital/mc-dev-server` with kind `npm-cli`. It depends on `@twin-digital/mc-dev-kit`; the
+      library depends on nothing of the harness's, and a pack package consuming the kit's discovery or
+      build halves takes on no dependency on Docker.
+
+      `product.yaml` declares the package when the package's files exist, not before.
+    status: accepted
+    pinned:
+      reason: public-api
+      notes: the published name a consumer installs, and the split that keeps Docker out of a pack package's dependencies
+    facets: dev-loop
+    because:
+      - r-8et233c9
+      - r-whacwz1b
+      - r-jvb29tpu
+  - id: d-wtziwjh5
+    title: server image pinned with console helper
+    statement: |
+      the harness targets the `itzg/minecraft-bedrock-server` image at `latest`, and
+      the tag is the only part of it a run may change.
+    status: accepted
+    pinned:
+      reason: public-api
+      notes: the one server-side knob a consumer sets, and the tag every log-matching decision below is calibrated against
+    facets: dev-loop
+    because:
+      - f:bedrock-image-exposes-a-noninteractive-console-helper
+  - id: d-uqdxo2w6
+    title: deploy transport is cp and console exec
+    statement: |
+      built packs reach the server with `docker compose cp` and reloads are issued with `docker compose
+      exec` of the image's console helper. Compose's own `develop.watch` is not used.
+    status: tolerated
+    facets: dev-loop
+    because:
+      - r-whacwz1b
+      - d-wtziwjh5
+      - f:compose-cp-copies-without-bind-mounts
+      - f:bedrock-image-exposes-a-noninteractive-console-helper
+      - f:compose-watch-path-constraints
+  - id: d-w8cc8n18
+    title: generated compose file is fully resolved
+    statement: |
+      the harness writes a generated compose file with every value already substituted and invokes it by
+      absolute `-f` path, passing neither `--project-directory` nor an env file.
+    status: delegated
+    facets: dev-loop
+    because:
+      - f:compose-env-file-not-loaded-from-cwd
+  - id: d-imdfu09l
+    title: the project identity is derived from the workspace root
+    statement: |
+      the compose project name is the sluggified name of the package at the workspace root
+      d-joa4eefg resolves, and the name comes from that resolver rather than being computed a second time.
+      One workspace therefore addresses one server, a run started from a subdirectory addresses the same
+      server as one started from the root, and moving or renaming the checkout keeps the worlds — which a
+      path-keyed name would orphan, invisibly, now that worlds outlive a stop.
+
+      The cost is that two clones of one repository on a single daemon share a server rather than getting
+      one each. That is the rarer case, and it fails visibly — the second run attaches to the first's
+      server and says so — where a path-keyed name fails silently, leaving a volume nobody will look at
+      again.
+
+      Identity is the workspace and nothing else — not the config, not the profile, and not the world. The
+      world a run serves is a setting it carries (d-41m3iws5), and which of them a running server is
+      serving is what start compares (d-owprl7uy); neither changes which server a workspace is talking to.
+    status: tolerated
+    facets: dev-loop
+    because:
+      - r-7lroj1cg
+      - r-kfu7pcms
+      - d-w8cc8n18
+      - d-me8ieqnr
+      - r-ijeqntrd
+  - id: d-zo2yl18y
+    title: the world volume outlives a stop, and only destroy removes it
+    statement: |
+      the server's `/data` is a named Docker volume the harness creates on `start`. `stop` takes the
+      container down and leaves the volume standing, so every world on it survives to the next `start`.
+      Only `destroy` removes it.
+
+      What the volume is called is d-j2wfa1pd.
+
+      A volume rather than the container's own writable layer, so the world is independent of the
+      container's lifecycle — which is what lets a recreate swap the served world, change the image or
+      change the port without costing an author anything but their connection.
+    status: accepted
+    pinned:
+      reason: data-format
+      notes: whether an author's world survives a stop, and what a stop destroys
+    facets: dev-loop
+    because:
+      - r-kfu7pcms
+      - r-whacwz1b
+      - d-imdfu09l
+  - id: d-4iepnry2
+    title: both pack kinds are routed by the kind the pack set reports
+    statement: |
+      the harness deploys behavior and resource packs alike, routing each to its kind's pool and its
+      kind's world activation list by the kind the pack set reports. It reads no pool directory name as a
+      declaration of kind and re-derives kind from nothing: a misrouted pack is not observable from the
+      server's output, so the routing is prevented rather than caught.
+    status: delegated
+    facets: dev-loop
+    because:
+      - r-hpu39brj
+      - r-rlh87pau
+      - r-fghzi5qq
+      - f:pack-kind-mismatch-fails-silently-at-the-server
+  - id: d-cw6pder5
+    title: activation entries are written from the pack set
+    statement: |
+      an activation entry's uuid and version are taken from the pack set the kit returns, and its version
+      is written in whatever form the kit reports it. The harness reads no `manifest.json`, in the built
+      output or anywhere else, and converts nothing — the entry is known before a build runs, the server
+      accepts a SemVer string as readily as an array, and the two sides need not agree on the spelling.
+    status: accepted
+    facets: dev-loop
+    because:
+      - r-rlh87pau
+      - r-kbgjy2pt
+      - r-imfmv0qc
+      - f:bedrock-activation-entry-is-header-uuid-and-a-matching-version
+  - id: d-oo8256gl
+    title: a pack occupies a pool directory named for its uuid
+    statement: |
+      inside its kind's pool a pack occupies a directory named for its header uuid, lowercased. That name
+      is the whole of what a later read of the pool has to go on.
+    status: accepted
+    facets: dev-loop
+    because:
+      - r-xcz7nzr6
+      - r-iby30nx1
+      - d-0thqo4n0
+  - id: d-q8ikxtdk
+    title: reconcile reads live server state
+    statement: |
+      each reconcile reads the pool contents and activation lists off the running container rather than
+      trusting a record of what the last deploy wrote, so a hand-edited container, a crash mid-copy, or a
+      server left running from a previous session all converge on the next save.
+    status: delegated
+    facets: dev-loop
+    because:
+      - r-pcq10f2b
+      - d-uqdxo2w6
+      - f:compose-cp-copies-without-bind-mounts
+  - id: d-a9jaqn8m
+    title: the harness compares presence and identity, never content
+    statement: |
+      the harness compares pack presence, activation identity, and the file names a pack's pool directory
+      holds. No file's content is ever read back. A pack whose built output changed is re-deployed in
+      full.
+    status: delegated
+    facets: dev-loop
+    because:
+      - r-pcq10f2b
+      - d-q8ikxtdk
+  - id: d-n0dz38ky
+    title: a pool directory is replaced, not merged into
+    statement: |
+      deploying a pack removes its pool directory before copying, so the pool holds what the output tree
+      holds and nothing else. A copy over a directory already in place merges, which would leave a file
+      deleted from the output tree sitting on the server indefinitely.
+    status: accepted
+    facets: dev-loop
+    because:
+      - r-pcq10f2b
+      - r-8xmkne8a
+      - d-a9jaqn8m
+  - id: d-ftlfhac8
+    title: a reload is used unless the pack gained a file
+    statement: |
+      the harness applies a change with the console reload whenever the pack is already in its pool,
+      already listed at the same identity, and its built output holds no file its pool directory does not
+      already hold. Contents may differ and files may have gone; only a file the pack did not have before
+      forces a restart, along with an added or removed pack, a version change, and any activation-list
+      edit.
+
+      A reload takes up an edited file's new content and a removed file's absence, and cannot take up one
+      that was added — an added file stays absent until the world loads again, silently from the harness's
+      side. So the cheap path is drawn around a file set that grew, and not around one that merely
+      changed. The comparison is against the pool the reconcile already reads, not against anything the
+      harness remembers, so it holds on the first change after a reattach as it does on any other.
+
+      What a reload refreshes still varies by content type — scripts and functions fully, other
+      definitions partially, textures not at all. The harness does not model that and does not try: it
+      reloads where it may and leaves the engine's own limits to show themselves.
+    status: delegated
+    facets: dev-loop
+    because:
+      - r-cekp2mcb
+      - r-8xmkne8a
+      - d-a9jaqn8m
+      - f:a-bedrock-script-reload-resolves-only-the-files-loaded-at-world-load
+      - f:bedrock-reload-re-evaluates-an-edited-script-module
+      - f:bedrock-reload-absorbs-every-change-but-an-added-file
+      - f:bedrock-reload-updates-scripts-not-pool-or-manifest
+      - f:bedrock-activation-list-read-only-at-world-load
+  - id: d-i4oryd9x
+    title: readiness is the world-load pack stack line
+    statement: |
+      the server counts as ready when the container log emits the world-load line reporting the pack
+      stack, and the harness reports that line as what the load actually brought up.
+    status: delegated
+    facets: dev-loop
+    because:
+      - d-wtziwjh5
+      - f:bedrock-activation-list-read-only-at-world-load
+  - id: d-vrq7lc2o
+    title: a pack that will not build is deployed as a stub
+    statement: |
+      the start sequence runs each selected package's one-shot build, and a build that fails
+      does not stop it. A pack whose sources the kit reports sound but whose code will not build — or whose
+      package declares no `build` script — is deployed with a stub script in place of its bundle: the
+      pack's own identity, version and content, and a script that does nothing. The world loads with every
+      selected pack present and its activation list complete, and the failure is reported on the stream.
+      The watch builds start either way.
+
+      The first build that succeeds replaces the stub through the ordinary reconcile. The bundle sits where
+      the stub sat, so the pack's file set does not change in the swap and the fix costs a reload rather
+      than the restart d-ftlfhac8 prices for a grown file set.
+    status: accepted
+    facets: dev-loop
+    because:
+      - r-8et233c9
+      - r-97fvutt9
+      - d-ftlfhac8
+      - d-j3ayhwv1
+  - id: d-j3ayhwv1
+    title: the harness runs a package's own build scripts and watches its output
+    statement: |
+      the harness invokes a selected package's own `build` and `watch` package scripts — the kit ships no
+      command line of its own to call — and itself watches only the built output directories, deploying on
+      a debounced change there.
+    status: accepted
+    facets: dev-loop
+    because:
+      - r-97fvutt9
+      - r-hlnbi41r
+      - r-8h864ke8
+      - r-un786n7v
+      - r-1bvvl9k7
+      - r-v8jjhds5
+  - id: d-0yrfifhi
+    title: the command is minecraft-server, with start, stop and destroy
+    statement: |
+      the package's executable is `minecraft-server`. It takes three subcommands, each named explicitly —
+      there is no bare default invocation.
+
+      - `start` brings the server up and watches, or attaches to one already running
+      - `stop` takes the container down and leaves the volume, so the worlds keep
+      - `destroy` removes the volume and every world on it
+
+      Ctrl+C stops the watchers and the log follow and nothing else. `destroy` is the only command that
+      loses an author's work: it names what it is about to remove and asks before doing it, and where
+      nothing can be asked it does nothing.
+    status: accepted
+    pinned:
+      reason: public-api
+      notes: the executable, the two verbs, and that stop destroys the world
+    facets: dev-loop
+    because:
+      - r-8et233c9
+      - r-kfu7pcms
+      - d-zyo6kku9
+      - d-zo2yl18y
+  - id: d-ifke5eeh
+    title: start is idempotent against a running server
+    statement: |
+      the start command brings the compose project up only when it is not already running. Finding it
+      running and matching, it attaches — no `up`, no recreate, no restart — and reaches readiness from
+      the world-load line already in the container's log rather than waiting for a new one. Reattaching
+      after a Ctrl+C therefore costs nothing and disturbs nobody, which is the whole of what r-kfu7pcms
+      asks for.
+
+      Finding it running and not matching is d-owprl7uy's ladder, and every rung of that ladder says so
+      out loud. What start never does is recreate a container without saying it did: a recreate keeps the
+      volume and so keeps every world on it, but it drops the connected clients, and an author who was
+      standing in a world is owed the reason.
+    status: accepted
+    facets: dev-loop
+    because:
+      - r-kfu7pcms
+      - d-w8cc8n18
+      - d-imdfu09l
+      - d-i4oryd9x
+      - d-owprl7uy
+  - id: d-c1kvyord
+    title: selection is a profile, or every pack there is
+    statement: |
+      a run hosts every pack the kit discovers unless a profile narrows it. There are three ways a run
+      ends up with its packs and no others: `--profile <name>` names one in the config the run loaded;
+      with no `--profile`, the config's `default_profile` applies where it names one; and with neither,
+      the run hosts everything. There is no flag for naming packs one at a time — a selection worth making
+      is worth writing down, and a profile is where it goes.
+
+      A profile carries more than its packs: it names the world to host them against as well, and
+      `--seed`, `--spawn` and `--level` on the command line override whatever it says, as a profile's own
+      values override the config's top level.
+
+      A `--profile` naming no profile the config holds is an error — an absent or empty config holds none
+      — and a run hosts what was asked for or it does not start. A profile whose pack list is empty
+      selects no packs, which is a valid run; a profile that names no packs at all leaves the run hosting
+      everything, as though no profile applied.
+    status: accepted
+    pinned:
+      reason: public-api
+      notes: the flags a consumer invokes the harness with, what each selects, and how they compose
+    facets: dev-loop
+    because:
+      - r-u8cg9vi6
+      - r-co6glnme
+      - d-wkcxcv2b
+      - d-0yrfifhi
+      - d-41m3iws5
+  - id: d-wkcxcv2b
+    title: the config file has a default location and may be pointed elsewhere
+    statement: |
+      the harness looks for `.minecraft.yaml` or `.minecraft.yml` in the current directory, and `--config
+      <path>` points it at one somewhere else instead. A path given that way and not found is an error;
+      the default location simply not being there is not, and reads the same as an empty file. Both
+      default names present at once is an error rather than a precedence rule.
+
+      Every setting has a default, so a workspace with no config file at all is a complete run — every
+      pack the kit discovers, the level name `default`, the image tag the harness pins, the default port,
+      a seed the harness picks, and no profiles.
+
+      The file is YAML and its shape is `/mc-dev-kit/config@1` in the schema pool. Keys are camelCase
+      and every one is optional: `version`, which is absent or `"1"`; `level`, `seed`, `spawn`, `image`,
+      `port` and `eula`; `profiles`, a mapping of name to a profile carrying `packs` and its own `level`,
+      `seed` and `spawn`; and `defaultProfile` naming one of them.
+
+      A key the harness does not define is an error, and so is a value of the wrong shape. A file that
+      cannot be read or parsed fails the run naming the file and the parse error, rather than falling back
+      to defaults and hosting the wrong thing.
+    status: accepted
+    pinned:
+      reason: data-format
+      notes: an author writes and commits this file by hand, and the flag that reaches it
+    facets: dev-loop
+    because:
+      - r-u8cg9vi6
+      - r-8et233c9
+      - d-wtziwjh5
+      - d-imdfu09l
+      - d-41m3iws5
+  - id: d-jv1zleaj
+    title: the server's on-disk layout
+    statement: |
+      the harness fixes one layout for everything it reads and writes on the server: a behavior pack's
+      pool is `/data/development_behavior_packs`, the world is `/data/worlds/<level>`, and its behavior
+      activation list is `world_behavior_packs.json` inside it. A pack occupies a directory named for its
+      uuid in its kind's pool.
+
+      A resource pack's pool is `/data/development_resource_packs` and its world activation list is
+      `world_resource_packs.json` beside the behavior one, entries taking the same shape.
+
+      Activation entries are written in the run's selection order, so a reconcile that changed nothing
+      writes the same bytes.
+    status: delegated
+    pinned:
+      reason: data-format
+      notes: paths and file contents on the author's server, read back by every reconcile
+    facets: dev-loop
+    because:
+      - r-pcq10f2b
+      - d-oo8256gl
+      - d-q8ikxtdk
+      - d-imdfu09l
+      - f:bedrock-activation-entry-is-header-uuid-and-a-matching-version
+      - f:bedrock-resource-packs-mirror-the-behavior-pack-layout
+  - id: d-duvygv2f
+    title: the first deploy of a fresh world pays a restart
+    statement: |
+      the server creates a world directory on its first load and no activation list in it, so the first
+      run against a fresh volume loads a world with no packs, deploys into it, and restarts to bring them
+      up. The harness reports that restart as part of starting rather than as a change it detected.
+    status: delegated
+    facets: dev-loop
+    because:
+      - r-8et233c9
+      - d-jv1zleaj
+      - d-ftlfhac8
+      - f:bedrock-activation-entry-is-header-uuid-and-a-matching-version
+      - f:bedrock-activation-list-read-only-at-world-load
+  - id: d-e956frnx
+    title: the author accepts the server EULA on the command line or in the config
+    statement: |
+      the generated project sets the image's EULA acceptance from either an `--accept-eula` flag on the
+      command line or an `eula: true` key in the config the run loaded. Given neither, the start command
+      fails, links the EULA, and brings nothing up. The harness does not accept on the author's behalf.
+
+      Everything else about the server's posture is the harness's and is not configurable: the world is
+      offline-mode with no allow-list, a development server on the author's own machine or daemon; the
+      image's content log is enabled to the console — without it a pack's script output never reaches the
+      harness's stream at all; and resource packs are offered rather than required, so a client is
+      prompted to download them and may decline, which is the author's call to make per join rather than
+      the harness's to force.
+    status: accepted
+    pinned:
+      reason: public-api
+      notes: a legal acknowledgement the author makes, and the two ways they make it
+    facets: dev-loop
+    because:
+      - r-8et233c9
+      - d-wtziwjh5
+      - d-wkcxcv2b
+      - f:bedrock-script-console-output-is-not-a-deploy-signal
+      - f:bedrock-resource-packs-mirror-the-behavior-pack-layout
+  - id: d-joa4eefg
+    title: the kit exports workspace-root resolution
+    statement: |
+      the library exports workspace-root resolution: given a starting directory it climbs
+      ancestors until one is a workspace root, and reports the root it found and the name of the package
+      there — the name through d-me8ieqnr, so a root package declaring none is named by its directory.
+
+      A directory is a workspace root when it holds a `pnpm-workspace.yaml` or `pnpm-workspace.yml`, or a
+      `package.json` declaring `workspaces`. That is the whole rule, and it is not the rule discovery
+      applies to a root it is handed: that one treats any readable `package.json` as a root, which is
+      correct for a root already chosen and would end an ascent at its first step.
+
+      No ancestor being a workspace root is an answer the caller rules on. A marker that cannot be read or
+      parsed is not that answer and does not return one — it throws, naming the file, as d-ydph1k7d has
+      enumeration faults reject the call rather than degrade into data.
+    status: accepted
+    pinned:
+      reason: public-api
+      notes: a new export on the published library, depended on by a sibling package
+    facets: discovery
+    because:
+      - r-ziw808ls
+      - d-xnv5kh7k
+      - d-rl1msrus
+      - d-ai68xorc
+      - d-imdfu09l
+  - id: d-1u13wl57
+    title: discovery runs at the head of every reconcile
+    statement: |
+      the harness calls the kit's discovery again at the start of each reconcile rather than holding the
+      pack set from startup, so a version raised in a `package.json`, a pack added to the workspace, and a
+      pack removed from it all reach the next deploy.
+    status: accepted
+    facets: dev-loop
+    because:
+      - r-pcq10f2b
+      - r-kbgjy2pt
+      - d-cw6pder5
+      - d-k7py0qqv
+  - id: d-n81zkitr
+    title: a run launches best-effort and reports what it could not build
+    statement: |
+      a run fails before bringing anything up when a selected pack is one the kit reports
+      invalid. Such a pack may carry no identity and no version at all (d-61fegb3o), which leaves no pool
+      directory to name (d-oo8256gl) and no activation entry to write (d-cw6pder5) — there is nothing to
+      stub and nothing to host, and a run hosts what was asked for or it does not start.
+
+      Everything short of that is reported and carried. A build that fails, at start or mid-session, leaves
+      the pack deployed with a stub script (d-vrq7lc2o) or leaves its last good deploy standing, named on
+      the stream with its problem. A selected package declaring no `watch` script is built once and not
+      watched, reported at start. A watch process that exits is reported and not restarted. A reconcile
+      that throws — discovery rejecting an unparseable `package.json` anywhere in the workspace among them
+      — changes nothing on the server, is reported, and is retried on the next save.
+
+      A run otherwise fails only where it cannot be a run at all: no Docker, no reachable daemon, a
+      `--config` file that will not parse, or a selection naming something the workspace does not hold.
+    status: accepted
+    facets: dev-loop
+    because:
+      - r-8et233c9
+      - r-pcq10f2b
+      - d-vrq7lc2o
+      - d-c1kvyord
+      - r-iby30nx1
+  - id: d-plnvasfo
+    title: pool content the harness did not deploy is removed
+    statement: |
+      a reconcile removes any pool directory and any activation entry the selected packs do not account
+      for, whoever put it there. The server's pack state is the selection's, not a union with whatever a
+      previous run or a hand edit left behind.
+    status: delegated
+    facets: dev-loop
+    because:
+      - r-pcq10f2b
+      - d-q8ikxtdk
+      - d-jv1zleaj
+  - id: d-0qo3xvev
+    title: one reconcile at a time, and changes during one coalesce
+    statement: |
+      the harness runs one reconcile at a time. Changes arriving while one is in flight — the restart it
+      may be performing included — accumulate into a single follow-up reconcile that begins when the
+      current one returns. A reconcile is never cancelled part-way and never runs beside another.
+    status: accepted
+    facets: dev-loop
+    because:
+      - r-pcq10f2b
+      - r-cekp2mcb
+      - d-ftlfhac8
+  - id: d-7ayy4btp
+    title: a restart lets the world save first
+    statement: |
+      the harness takes a server down through the image's console `stop`, waited for,
+      and never through a container kill — every restart the loop performs, and the `stop` command too.
+      The world is written before the process goes down.
+    status: accepted
+    facets: dev-loop
+    because:
+      - r-kfu7pcms
+      - d-zo2yl18y
+      - d-uqdxo2w6
+      - d-ftlfhac8
+  - id: d-wgzr4lvx
+    title: one attached run per workspace
+    statement: |
+      the start command refuses to attach when another harness is already attached to the same compose
+      project, naming the running one. Two loops watching one server would race each other's reconciles
+      and restarts.
+    status: accepted
+    facets: dev-loop
+    because:
+      - r-pcq10f2b
+      - d-ifke5eeh
+      - d-imdfu09l
+  - id: d-62bpn2h2
+    title: the command line's exits and signals
+    statement: |
+      the harness exits `0` when the foreground loop is closed by the author and when `stop` succeeds, and
+      non-zero on every failure. `SIGINT`, `SIGTERM` and `SIGHUP` all detach: they stop the watchers and
+      the log follow, take the package watch processes down with them, and leave the server running. A
+      second signal during that shutdown exits immediately.
+
+      Every line the harness emits goes to the one tagged stream on stdout, including diagnostics; nothing
+      is written to stderr. `--help` and `--version` are answered on every subcommand, and an unrecognised
+      flag fails the run.
+    status: accepted
+    pinned:
+      reason: public-api
+      notes: exit codes and the flag set anything scripting the harness depends on
+    facets: dev-loop
+    because:
+      - r-kfu7pcms
+      - d-0yrfifhi
+      - d-c1kvyord
+      - d-e956frnx
+      - d-41m3iws5
+      - d-5e00ndwi
+  - id: d-a3fyy34f
+    title: POSIX hosts, and the ambient Docker connection
+    statement: |
+      the harness supports Linux and macOS hosts. Windows is out of scope. The Docker connection is
+      whatever the environment already selects — `DOCKER_HOST`, or the active Docker context — and the
+      harness offers no setting of its own for it.
+    status: tolerated
+    facets: dev-loop
+    because:
+      - r-whacwz1b
+      - d-uqdxo2w6
+      - d-imdfu09l
+  - id: d-5e00ndwi
+    title: activity and server output share one tagged stream
+    statement: |
+      the harness has one output stream, owned solely by the command line and written to by every other
+      part only through it, and every line on it is prefixed with a short source tag — the emitting
+      package for build output, `deploy` for the harness's own activity, `server` for container logs. A
+      pack's own script output arrives on that stream as `server` lines and is never read as a signal: a
+      reload that took effect emits nothing the harness can match.
+    status: delegated
+    pinned:
+      reason: data-format
+      notes: the per-line prefix anything consuming the harness's output reads
+    facets: dev-loop
+    because:
+      - r-8et233c9
+      - f:bedrock-script-console-output-is-not-a-deploy-signal
+  - id: d-41m3iws5
+    title: a run chooses its world's seed and spawn
+    statement: |
+      a run fixes the world it serves with three settings: `level` names it, `seed` sets what the server
+      generates it from, and `spawn`, an `[x, y, z]` array, sets where a joining player arrives. Each may
+      be set in four places, and the later overrides the earlier: the harness's own defaults, then the
+      config file's top level, then the selected profile, then `--level`, `--seed` and `--spawn` on the
+      command line. Where nothing sets one it is a wildcard for matching and a default for generating.
+
+      Each is optional, and an unspecified one is a wildcard rather than a demand: a run that names no
+      seed is content with whatever world is already serving, and one that names a seed requires that
+      world. That is what lets a profile describe its packs and its spawn without tying itself to a single
+      world.
+
+      Where a run names no seed and a world has to be generated, the harness picks the seed itself — a
+      uniformly random signed 64-bit integer, emitted as plain decimal — rather than leaving the server
+      to. A seed the server chose is one nobody can read back afterwards; a seed the harness chose is one
+      it records against the world it generated (d-5ocyva9w), so every world it makes can be made again.
+      The range is exact and its edges matter: one past either end is neither rejected nor clamped but
+      hashed as text, so a generator that overshoots by one quietly produces a low-entropy world instead
+      of failing.
+
+      The seed reaches the server as the generated project's level seed, since it is read only when a
+      world is generated — which is also why it says nothing about a world that already exists. The spawn
+      point has no server setting and is issued with `setworldspawn` on the console once the world has
+      loaded; the command acknowledges nothing, so the harness sends it and does not wait.
+    status: accepted
+    pinned:
+      reason: public-api
+      notes: the two settings that decide which world an author is developing against
+    facets: dev-loop
+    because:
+      - r-8et233c9
+      - d-zo2yl18y
+      - d-wtziwjh5
+      - d-uqdxo2w6
+      - d-i4oryd9x
+      - f:bedrock-world-generation-takes-a-seed-and-a-spawn-command
+      - f:bedrock-level-seed-is-64-bit-and-hashes-anything-else
+      - d-5ocyva9w
+      - d-5vjxmr4u
+  - id: d-5vjxmr4u
+    title: a volume holds many worlds and serves one
+    statement: |
+      the server's volume holds a world directory per level name the run has asked for, and the server
+      serves the one `level` names. Switching to another world the volume already holds costs a container
+      recreate and nothing else: the volume survives it, so every world on it does.
+
+      A level name the volume does not hold yet is generated, from the run's seed. So naming a new level
+      is how an author gets a second world, and naming an old one is how they go back to it — neither
+      disturbs the other, and both keep across a stop.
+
+      What accumulates is therefore a library an author builds up over sessions, and the two things that
+      empty it are `destroy` and nothing else. A world is reproducible from its level name and seed; what
+      is not reproducible is what the author did inside it, which is what snapshots are for.
+    status: accepted
+    facets: dev-loop
+    because:
+      - r-7lroj1cg
+      - r-8et233c9
+      - d-zo2yl18y
+      - d-41m3iws5
+      - d-jv1zleaj
+  - id: d-5ocyva9w
+    title: the harness reads a running server rather than a record of it
+    statement: |
+      the harness learns what a running server is from the server, not from anything it stamped there.
+      Container-level settings — the image and the published port — are read by inspecting the running
+      container. The world a server is serving is read from the level name in its configuration on the
+      volume.
+
+      What cannot be read back is the seed a world was generated from: the server records the seed it was
+      asked for, not the one an existing world already had, and the world's own copy is binary. So the
+      harness keeps one small file on the volume naming, per world it generated, the seed it generated it
+      from — which it can always do, because d-41m3iws5 has it choose the seed rather than the server.
+      That file is a record, which a reconcile is otherwise forbidden to trust (d-q8ikxtdk) — the
+      exception holds because a world's generation seed is immutable history rather than state that can
+      drift, and because nothing else can answer the question. What it is called and how it is shaped is
+      d-j2wfa1pd.
+    status: delegated
+    facets: dev-loop
+    because:
+      - d-q8ikxtdk
+      - d-41m3iws5
+      - d-5vjxmr4u
+      - d-imdfu09l
+  - id: d-owprl7uy
+    title: what start does when a server is already running
+    statement: |
+      start compares only what a reconcile cannot fix. Pack selection and spawn point are never part of
+      that comparison: the first is what the reconcile is for, and the second is set on a live world with
+      a console command. What remains is the level name, the seed, the image and the port, and an
+      unspecified one matches anything.
+
+      Given a running server, start takes the first of these that applies:
+
+      - every specified setting matches — attach, and reconcile as usual
+      - the level differs, and the volume holds that world — recreate the container onto it, and say so;
+        worlds survive, connected clients do not
+      - the level differs and the volume does not hold that world — generate it and recreate the container
+        onto it, and say so; the world that was serving is untouched
+      - only the image or port differs — recreate the container, and say so; the worlds survive
+      - the level matches but a specified seed is not the one that world was generated from, a world with
+        no seed on record matching nothing — this is the only rung that destroys a world. Warn, name the world and both seeds, and ask; regenerate on
+        agreement and bail out otherwise. Where nothing can be asked, bail out.
+
+      A recreate is never silent, and the destructive rung is never taken without an answer. Worlds are
+      long-lived now (d-zo2yl18y), so the one being regenerated may be weeks of an author's work rather
+      than minutes of it.
+    status: accepted
+    pinned:
+      reason: public-api
+      notes: what an author's second start does to the first one's server
+    facets: dev-loop
+    because:
+      - r-kfu7pcms
+      - r-pcq10f2b
+      - d-5vjxmr4u
+      - d-5ocyva9w
+      - d-wgzr4lvx
+      - d-7ayy4btp
+  - id: d-3ya31m19
+    title: the reconcile is the deploy, and it has one shape
+    statement: |
+      the harness changes what the server holds through one operation, and the deploy r-pcq10f2b speaks of
+      is a run of it. It runs at start once the one-shot builds have finished, and again on every
+      debounced change to a selected pack's built output.
+
+      A run has five steps, in order:
+
+      1. re-run discovery and resolve the selection
+      2. read the server's pool contents, activation lists, and the file names each pool directory holds
+      3. compare those against the built output of the selected packs
+      4. apply the difference — copy packs, remove pool directories, write activation lists
+      5. bring the change live, by console reload or by restart
+
+      A run with nothing to apply applies nothing and brings nothing live, which is what makes the
+      operation idempotent. Nothing else writes to the server.
+    status: accepted
+    facets: dev-loop
+    because:
+      - r-pcq10f2b
+      - r-8et233c9
+      - r-cekp2mcb
+      - d-q8ikxtdk
+      - d-1u13wl57
+      - d-ftlfhac8
+      - d-j3ayhwv1
+  - id: d-j2wfa1pd
+    title: the harness's own artefacts on the volume are the implementer's to name and shape
+    statement: |
+      the harness writes things on the volume that are its own rather than the server's, and what
+      they are called and how they are shaped is handed to the implementer: the volume's own name, the
+      record of which seed generated which world (d-5ocyva9w), when that record is written relative to the
+      world it describes, and which file the level name is read back from.
+
+      They are deferred together because they are one problem — an author's world library lives under
+      these names across sessions and harness versions, so each must be stable once chosen, and choosing
+      them wants the shape of the code that reads them. The implementer records them in the companion
+      increment, where a format worth pinning can be pinned.
+    status: deferred
+    facets: dev-loop
+    because:
+      - d-zo2yl18y
+      - d-5ocyva9w
+      - d-5vjxmr4u
+      - d-owprl7uy

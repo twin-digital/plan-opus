@@ -1,0 +1,131 @@
+version: "1"
+
+# Increment 008 adopted nodejs-library@2 and nodejs-cli@1. Both are reverted here: nodejs-cli's
+# stream rules contradict d-62bpn2h2 and d-5e00ndwi, and nodejs-library@2 brought r-lqfu2ki9, whose
+# one-entry-point rule contradicts d-wss8fker's pinned /build subpath. The presets need rework
+# before this product adopts them.
+presets:
+  - name: nodejs-cli
+    status: dropped
+  - name: nodejs-library
+    version: 1
+
+# The dev loop joins the kit. mc-dev-server's published requirements re-enter here under the
+# `dev-loop` facet, consolidated; drafts/absorption-map.md holds the old id -> new id table and
+# accounts for what is not carried.
+requirements:
+  # the daily loop
+  - id: r-8et233c9
+    title: one-command dev loop
+    statement: |
+      a single command takes an author from a clean checkout to a running server with every pack deployed
+      and watched — it builds the packs, starts the server, deploys the current build, and begins watching
+      for changes — with the server's output and the build/deploy activity shown in one interleaved
+      stream. The part of this product that provides it is the harness.
+    facets: dev-loop
+    verification:
+      - do: from a clean checkout, run the single dev command and nothing else
+      - verify: the packs build, the server starts, the current build is deployed, and watching begins
+      - verify: the server's output and the build/deploy activity appear in one interleaved stream
+
+  - id: r-kfu7pcms
+    title: server lifecycle outlives the foreground
+    statement: |
+      closing the foreground loop (Ctrl+C) leaves the server running so the author can reattach without
+      losing world state or disconnecting a client, and a separate explicit command stops the server and
+      tears it down. Detaching the watchers and stopping the server are distinct acts.
+    rationale: |
+      The world is the expensive, long-lived thing; the watchers are disposable.
+    facets: dev-loop
+    verification:
+      - do: start the loop with a client connected, then close the foreground with Ctrl+C
+      - verify: the server is still running, the world state intact, the client still connected
+      - do: reattach with the loop command, then run the explicit stop command
+      - verify: reattaching found the running server, and only the stop command tore it down
+
+  # what a run hosts
+  - id: r-u8cg9vi6
+    title: hosted packs are a selection
+    statement: |
+      which of the packs the kit discovers a run hosts comes from the profile selected for that run,
+      defaulting to all of them where no profile applies. A profile is a saved selection: it narrows what
+      a run hosts and never determines what the workspace contains.
+    facets: dev-loop
+    verification:
+      - do: run the loop with a selection naming a subset of the discovered packs, then again with no selection
+      - verify: the first run hosts exactly the selected packs; the second hosts every discovered pack
+      - do: persist the selection as a named profile and run with the profile
+      - verify: the run hosts the profile's selection, and what the workspace contains is unchanged
+
+  - id: r-hpu39brj
+    title: behavior packs required, other content optional
+    statement: |
+      the harness must deploy and activate behavior packs. Support for other kinds of addon content —
+      resource packs among them — is optional, at the builder's or designer's discretion.
+    facets: dev-loop
+    verification:
+      - do: run the dev loop over a workspace holding a behavior pack
+      - verify: the pack is deployed to the server and activated in the world
+
+  # deploy
+  - id: r-pcq10f2b
+    title: deploy reconciles to built packs
+    statement: |
+      after any deploy the server's pack state equals the built output of the selected packs: every
+      selected pack present and up to date, packs no longer selected removed from the server, and the
+      world's activation list matching the deployed packs. The operation is idempotent — re-running with
+      no change is a no-op — and is the same operation at startup and on file change.
+    facets: dev-loop
+    verification:
+      - do: deploy a selection, then re-run the deploy with nothing changed
+      - verify: the second run changes nothing on the server
+      - do: narrow the selection and deploy again
+      - verify: the server's pack state equals the built output of the now-selected packs — deselected packs removed, the world's activation list matching what is deployed
+
+  - id: r-cekp2mcb
+    title: edit to live without disconnect
+    statement: |
+      a saved change to a pack's source is reflected in the running server within a few seconds and
+      without disconnecting a connected client, whenever the change is one the server can apply without a
+      restart.
+    facets: dev-loop
+    verification:
+      - do: with the loop running and a client connected, save a source change the server can apply without a restart, such as a script edit
+      - verify: the change is observable in-game within a few seconds
+      - verify: the client stayed connected throughout
+
+  - id: r-97fvutt9
+    title: the harness deploys built output and nothing about how it was built
+    statement: |
+      the harness deploys a package's built output, not its source, and makes no assumption about how that
+      output was assembled. Getting a built pack to the dev server, or to a release, is the harness's and
+      the pipeline's concern: a pack package produces its built output and watches its own sources, and
+      carries no deploy or publish step.
+    rationale: |
+      Keeps packs interchangeable and the deploy transport free to change in one place.
+    facets: dev-loop
+    verification:
+      - do: place a valid built pack at a package's built-output location by hand, without running that package's build tooling, and deploy
+      - verify: what reaches the server is the content of the built-output location, not the package's source
+      - do: open the deployed package's manifest and scripts
+      - verify: the package defines no deploy or publish step
+
+  # scope and environment
+  - id: r-7lroj1cg
+    title: single-world scope
+    statement: |
+      the harness serves one world at a time. Running two dev worlds concurrently is out of scope.
+    facets: dev-loop
+    verification:
+      - do: start the dev loop and inspect what it stands up
+      - verify: the run serves exactly one world
+
+  - id: r-whacwz1b
+    title: remote Docker supported
+    statement: |
+      any component of the solution which requires a Docker service must function even when the Docker
+      engine is running on a remote host (e.g., bind mounts must not be required)
+    facets: dev-loop
+    verification:
+      - do: point the environment at a Docker engine on a remote host, with no shared filesystem, and run the full loop — build, start, deploy, edit, stop
+      - verify: every step succeeds, with no bind mount configured anywhere
