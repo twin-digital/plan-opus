@@ -717,7 +717,11 @@ coverage:
   - claim: d-3sb0vrc2 # externals come from the manifest's module dependencies
     covered_by:
       - kind: attestation
-        note: resolveId returns external for exactly the completed manifests' module_name dependencies
+        ref: src/internal/pack-build-plugin.ts
+        note: >
+          resolveId returns external for exactly the completed manifests' module_name dependencies,
+          and puts an undeclared scoped import through the bundler's own resolution so that one
+          resolving to nothing fails the build rather than shipping as a bare specifier
       - kind: code-test
         ref: src/internal/pack-build.test.ts
         note: >
@@ -1615,14 +1619,6 @@ coverage:
         note: the condition names are asserted at the key tsdown reads them from
       - kind: attestation
         ref: src/build.ts
-
-  - claim: d-0o67zhpe # the plugin resolves an undeclared game-module import and fails when nothing does
-    covered_by:
-      - kind: code-test
-        ref: src/internal/pack-build.test.ts
-        note: a resolvable undeclared scoped import is inlined; an unresolvable one fails the build
-      - kind: attestation
-        ref: src/internal/pack-build-plugin.ts
 
   - claim: d-6qjbel7g # the world volume is the compose volume world-data
     covered_by:

@@ -102,20 +102,6 @@ decisions:
     because:
       - d-1w5rjhg6
 
-  - id: d-0o67zhpe
-    title: the plugin resolves an undeclared game-module import and fails when nothing does
-    statement: |
-      an `@minecraft/`-scoped import the completed manifest does not declare is put through the
-      bundler's own resolution, and fails the build when that resolves to nothing. The bundler's own
-      behaviour is to warn and leave such an import external, which would ship a bare specifier the
-      game cannot load, so the check is the plugin's to make.
-    status: delegated
-    pinned: false
-    facets: build
-    because:
-      - d-3sb0vrc2
-      - r-2alueo3d
-
   - id: d-6qjbel7g
     title: the world volume is the compose volume world-data
     statement: |
