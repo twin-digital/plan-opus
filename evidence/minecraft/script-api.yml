@@ -207,3 +207,42 @@ runs:
       are normalised. The arity set's 18 controls all read CONTROL-RETURNED, the handlerwrite set's
       11 cases all read handler-ran=true, and both filter RUN-VALIDITY gates pass, so no reading is
       vacuous. Every observation is that engine build's behaviour and would differ against another.
+
+  # Runs backing the village-guard protection design's facts. Headless: the pack reports through
+  # console.warn and the driver reads the container log, so no client attaches.
+
+  - id: protection-probe-sources
+    command: node evidence/minecraft/script-api/protection-probe/run.mjs 3
+    output: evidence/minecraft/script-api/protection-probe/OUTPUT.txt
+    ran_at: 2026-08-06
+    environment: |
+      itzg/minecraft-bedrock-server, Bedrock dedicated 1.26.40.8, @minecraft/server 2.8.0 as a pack
+      manifest dependency with no experiments enabled, difficulty hard. protection-probe-pack 0.1.0,
+      uuid 7a3d1c40-5e21-4b88-9f0e-2c6a4d81b503, triggered as `scriptevent vgprobe:sources` from the
+      server console with no source entity, against a walled stone platform the pack builds at
+      (163, 100, 170) inside its own ticking area. The driver brings the stack up on a fresh volume
+      and runs the set three times. 3/3 runs, no PROBE CRASHED lines, every complete line present.
+      The results document is evidence/minecraft/script-api/protection-probe/RESULTS.md. Every
+      observation is that engine build's behaviour and would differ against another.
+
+  - id: protection-probe-conversion
+    command: node evidence/minecraft/script-api/protection-probe/run.mjs 3
+    output: evidence/minecraft/script-api/protection-probe/OUTPUT.txt
+    ran_at: 2026-08-06
+    environment: |
+      Same server, module version, pack and driver as protection-probe-sources, triggered as
+      `scriptevent vgprobe:conversion`. Difficulty hard, where vanilla zombie-to-villager conversion
+      is certain. Each run pairs a guarded villager against an unguarded control, three zombies
+      each, over a 1200-tick window. 3/3 runs, no PROBE CRASHED lines.
+
+  - id: protection-probe-reaction
+    command: node evidence/minecraft/script-api/protection-probe/run.mjs 3
+    output: evidence/minecraft/script-api/protection-probe/OUTPUT.txt
+    ran_at: 2026-08-06
+    environment: |
+      Same server, module version, pack and driver as protection-probe-sources, triggered as
+      `scriptevent vgprobe:reaction`. A zombie deals every hit, so the knockback is the engine's
+      own; one sampler reads the subject's velocity each tick and the before-event records the tick
+      each hit landed on. 3/3 runs, no PROBE CRASHED lines. Hit counts differ per run because they
+      depend on zombie pathing; the peak-speed readings they turn on do not.
+

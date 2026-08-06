@@ -37,6 +37,24 @@ The health then has to come back, or the mob ratchets down to a point and stays 
 `f:after-event-deferral-subtick` puts the `entityHurt` after-event in the same tick as the call
 that caused it, at delay 0, which is early enough that no second hit is waiting on it.
 
-What this leaves open is whether the reaction really does survive the write, which is
-`q-fc5bw0k0`, and whether the engine consults the event for damage a script did not ask for,
-which is `q-y65kdr8a`.
+## What the probe settled
+
+Three of the four things this rested on were unobserved when the comparison was written, and an
+engine probe closed them — `evidence/minecraft/script-api/protection-probe/`, three runs of each
+set against Bedrock 1.26.40.8.
+
+The engine does consult the event for damage a script did not ask for: five routes, every one
+raised, every one honouring the write
+(`f:entity-hurt-before-event-sees-engine-dealt-damage`). Preventing the death does prevent the
+conversion, against a control that converted in every run
+(`f:preventing-a-villagers-death-prevents-its-conversion`). And the clamped hit knocks back
+exactly as a vanilla hit does while a cancelled one does not knock back at all
+(`f:a-clamped-hit-knocks-back-and-a-cancelled-one-does-not`) — the measurement that separates the
+mechanism this design took from the one it rejected.
+
+It also found something the comparison had not: a clamp with no restore is a slower death, not a
+protection. Under sustained attack the 0.5 losses accumulate, and one subject died after 78 hits
+(`f:a-damage-clamp-without-a-restore-still-kills`). The same-tick restore holds the whole design up.
+
+What stays open is `q-fc5bw0k0`, narrowed to what a dedicated server cannot see: the flinch, the
+hurt sound, and panic.

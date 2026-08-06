@@ -2469,3 +2469,108 @@ facts:
         quote: |
           [2026-07-29 12:52:05.468] [mctest] hurt-filter-semantics :: SUMMARY [types-sheep] options="entityTypes=['minecraft:sheep']" received=["sheepA-entityAttack-by-pig","sheepB-entityAttack-by-pig","sheepA-lava-no-damager"] count=3 foreign-deliveries=0
           [2026-07-29 12:52:05.469] [mctest] hurt-filter-semantics :: SUMMARY [types-sheep-unqualified] options="entityTypes=['sheep']" received=[] count=0 foreign-deliveries=0
+
+  # Facts from the village-guard protection probe (Bedrock 1.26.40.8, @minecraft/server 2.8.0),
+  # recorded in evidence/minecraft/script-api/protection-probe/RESULTS.md. Headless: the pack
+  # reports through console.warn and the driver reads the container log. n=3 per set.
+
+  - id: entity-hurt-before-event-sees-engine-dealt-damage
+    claim: |
+      `world.beforeEvents.entityHurt` is raised for damage no script asked for, and a handler's
+      write to `damage` takes on those paths exactly as it does for `applyDamage`. Five routes were
+      dealt to a villager and every one raised the event in 3/3 runs, each carrying its own
+      `damageSource.cause`: the `/damage` command (`entityAttack`), burning after `setOnFire`
+      (`fireTick`, once per fire tick), `createExplosion` (`blockExplosion`), a fall
+      (`fall`), and a zombie's own melee swing (`entityAttack` with `damagingEntity`
+      `minecraft:zombie`). Writing `damage` down to 0.5 in the handler left exactly 0.5 health lost
+      on every one of them. The fall pair is the sharpest: the same 21-damage fall killed the
+      unwritten subject and left the written one at 19.5 health. This resolves what the earlier
+      before-event probes left open — every one of them drove the event with a script's own
+      `applyDamage`, so the engine's own damage paths were unobserved.
+    caveat: |
+      Suffocation is the one route named by the design that the probe could not deal at all:
+      burying the subject in a stone column took no health in any run, so the case discriminates
+      nothing either way and suffocation stays unmeasured.
+    backing: tested
+    sources:
+      - run: protection-probe-sources
+        where: "`damage-source-visibility` — the `/damage` command route"
+        quote: "[2026-08-06 14:32:27:155 WARN] [Scripting] [vgprobe] damage-source-visibility :: [command-damage/observe] handler-entered=1 health(number:20 -> number:16) health-lost=number:4 subject-alive=true delivered=[entityAttack@4] verdict=BEFORE-EVENT-RAISED"
+      - run: protection-probe-sources
+        where: "`damage-source-visibility` — burning after setOnFire"
+        quote: "[2026-08-06 14:32:31:250 WARN] [Scripting] [vgprobe] damage-source-visibility :: [fire/observe] handler-entered=3 health(number:20 -> number:17) health-lost=number:3 subject-alive=true delivered=[fireTick@1, fireTick@1, fireTick@1] verdict=BEFORE-EVENT-RAISED"
+      - run: protection-probe-sources
+        where: "`damage-source-visibility` — createExplosion"
+        quote: "[2026-08-06 14:32:35:555 WARN] [Scripting] [vgprobe] damage-source-visibility :: [explosion/observe] handler-entered=1 health(number:20 -> number:0) health-lost=number:20 subject-alive=true delivered=[blockExplosion@43] verdict=BEFORE-EVENT-RAISED"
+      - run: protection-probe-sources
+        where: "`damage-source-visibility` — a zombie's own melee swing"
+        quote: "[2026-08-06 14:33:07:600 WARN] [Scripting] [vgprobe] damage-source-visibility :: [zombie-attack/observe] handler-entered=7 health(number:20 -> undefined) health-lost=undefined subject-alive=false delivered=[entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@3] verdict=BEFORE-EVENT-RAISED"
+      - run: protection-probe-sources
+        where: "`damage-source-visibility` — a fall, unwritten: the subject died"
+        quote: "[2026-08-06 14:32:41:350 WARN] [Scripting] [vgprobe] damage-source-visibility :: [fall/observe] handler-entered=1 health(number:20 -> undefined) health-lost=undefined subject-alive=false delivered=[fall@21] verdict=BEFORE-EVENT-RAISED"
+      - run: protection-probe-sources
+        where: "`damage-source-visibility` — the same fall, written down to 0.5: the subject lived"
+        quote: "[2026-08-06 14:32:46:250 WARN] [Scripting] [vgprobe] damage-source-visibility :: [fall/clamp] handler-entered=1 health(number:20 -> number:19.5) health-lost=number:0.5 subject-alive=true delivered=[fall@21] verdict=CLAMP-WRITE-TOOK"
+
+  - id: preventing-a-villagers-death-prevents-its-conversion
+    claim: |
+      A zombie converts a villager on the killing blow and by no other trigger, so a villager that
+      cannot be killed cannot be converted. On hard difficulty, where vanilla conversion is certain,
+      an unguarded villager penned with three zombies was killed — `death-cause=[entityAttack]` —
+      and left one `minecraft:zombie_villager_v2` behind, in 3/3 runs. A villager under a handler
+      clamping `entityHurt.damage` and restoring the health in the after-event survived the full
+      1200-tick window at 20/20 health with no zombie villager anywhere near, in 3/3 runs. Nothing
+      converted a villager that stayed alive.
+    backing: tested
+    sources:
+      - run: protection-probe-conversion
+        where: "`zombie-conversion` — the unguarded control, killed and converted"
+        quote: "[2026-08-06 14:34:03:506 WARN] [Scripting] [vgprobe] zombie-conversion :: [control-unguarded] zombies=3 ticks=420 health(number:20 -> undefined) subject-alive=false villagers-near=0 zombie-villagers-near=1 death-cause=[entityAttack] verdict=CONTROL-CONVERTED"
+      - run: protection-probe-conversion
+        where: "`zombie-conversion` — the guarded villager, whole window at full health"
+        quote: "[2026-08-06 14:35:04:206 WARN] [Scripting] [vgprobe] zombie-conversion :: [guarded] zombies=3 ticks=1200 health(number:20 -> number:20) subject-alive=true villagers-near=1 zombie-villagers-near=0 death-cause=[] verdict=GUARDED-SURVIVED-UNCONVERTED"
+
+  - id: a-clamped-hit-knocks-back-and-a-cancelled-one-does-not
+    claim: |
+      Writing `entityHurt.damage` down leaves the engine's knockback untouched; cancelling the
+      event removes it. Measured as the peak speed in the six ticks after a zombie's swing, against
+      the resting speed in the four before it: a vanilla hit peaked at 0.417–0.646 across three
+      runs, a hit whose damage was written down to 0.5 peaked at 0.308–0.624, and a cancelled hit
+      peaked at 0.002–0.278 — frequently *below* the subject's own speed before the hit, so the hit
+      added nothing at all. The two mechanisms separate by roughly a factor of three, and the
+      clamped hit is indistinguishable from the vanilla one.
+    caveat: |
+      Panic is not discriminated by this measurement. Total horizontal displacement over the window
+      reads 6.5–9.1 vanilla, 8.9–12.7 clamped and 9.0–10.6 cancelled: a villager flees a zombie on
+      sight whether or not the hit lands, so displacement cannot separate panic-from-being-hit from
+      ordinary flight. Flinch and the hurt sound are rendered on the client and reach no server log,
+      so neither is observed here either.
+    backing: tested
+    sources:
+      - run: protection-probe-reaction
+        where: "`hit-reaction` — the vanilla control"
+        quote: "[2026-08-06 14:35:39:801 WARN] [Scripting] [vgprobe] hit-reaction :: [control-no-handler] hits=4 samples=600 subject-alive=true moved-horizontally=6.525 peak-speed-overall=0.58 per-hit=[entityAttack@3:rest=0.033->peak=0.568, entityAttack@3:rest=0.183->peak=0.58, entityAttack@3:rest=0.334->peak=0.566, entityAttack@3:rest=0.321->peak=0.491] verdict=SEE-NUMBERS"
+      - run: protection-probe-reaction
+        where: "`hit-reaction` — the cancelled treatment, no spike over resting speed"
+        quote: "[2026-08-06 14:36:41:307 WARN] [Scripting] [vgprobe] hit-reaction :: [cancelled] hits=13 samples=600 subject-alive=true moved-horizontally=9.01 peak-speed-overall=0.261 per-hit=[entityAttack@3:rest=0.052->peak=0.049, entityAttack@3:rest=0.049->peak=0.087, entityAttack@3:rest=0.029->peak=0.085, entityAttack@3:rest=0.043->peak=0.158, entityAttack@3:rest=0.085->peak=0.191, entityAttack@3:rest=0.109->peak=0.136] verdict=SEE-NUMBERS"
+
+  - id: a-damage-clamp-without-a-restore-still-kills
+    claim: |
+      Clamping `entityHurt.damage` to a small constant does not by itself keep a mob alive: with no
+      health restored, the losses accumulate and the mob dies anyway. A villager under a 0.5 clamp
+      and nothing else, penned with four zombies, lost 6.5 health over 23 hits in one run, 18 over
+      72 in another, and died in the third after 78. Under the same attack with the same clamp plus
+      a same-tick restore, the subject held 20/20 health for the whole window
+      [[f:preventing-a-villagers-death-prevents-its-conversion]]. The restore is what makes the
+      clamp a protection rather than a slower death.
+    backing: tested
+    sources:
+      - run: protection-probe-sources
+        where: "`damage-source-visibility` — the clamp-only subject that died under sustained attack"
+        quote: "[2026-08-06 14:41:53:105 WARN] [Scripting] [vgprobe] damage-source-visibility :: [zombie-attack/clamp] handler-entered=78 health(number:20 -> undefined) health-lost=undefined subject-alive=false delivered=[entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@2.5, entityAttack/minecraft:zombie@3, entityAttack/minecraft:zombie@3] verdict=CLAMP-INCONCLUSIVE (subject gone, read the death flag)"
+      - description: |
+          The same case survived its other two runs at reduced health — 23 hits for 6.5 health lost,
+          and 72 hits for 18 — so the reading is a ratchet under sustained attack rather than a
+          single unlucky death. Set A deliberately installs no restore; set B, which does, held full
+          health in 3/3 runs.
+

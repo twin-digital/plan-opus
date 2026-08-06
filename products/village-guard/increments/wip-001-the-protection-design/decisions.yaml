@@ -35,6 +35,9 @@ decisions:
     because:
       - r-pe87rfqq
       - r-eh0aac98
+      - f:entity-hurt-before-event-sees-engine-dealt-damage
+      - f:a-damage-clamp-without-a-restore-still-kills
+      - f:a-clamped-hit-knocks-back-and-a-cancelled-one-does-not
       - f:before-event-field-writes-take-effect
       - f:reaching-effective-minimum-is-fatal
       - f:health-not-clamped-at-minimum
@@ -69,5 +72,7 @@ decisions:
         changes which mobs survive a siege.
     because:
       - r-1nxm8bg4
+      - r-9gw909jf
+      - f:preventing-a-villagers-death-prevents-its-conversion
       - f:subscribe-filter-entity-types-requires-the-prefix
     facets: pack-runtime
