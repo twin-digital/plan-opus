@@ -1,0 +1,42 @@
+version: "2"
+model:
+  - name: ratify-screen
+    surface: /design-process/ratify-screen@2
+    description: what the session's ratify mode renders — the entry list, the detail pane, and the form of each field
+
+requirements:
+  - id: r-gzyfme0f
+    title: the detail pane wraps what it cannot fit
+    statement: |
+      every block the ratify session's detail pane renders — the statement, a pinning note, and a
+      citation — wraps to the pane rather than running past it. a wrapped list item continues
+      indented under its own text, so the item's marker stays the only thing in the margin and the
+      list reads as a list down its whole height.
+    rationale: |
+      a row wider than the viewport is not a cosmetic fault: the terminal wraps it, the frame grows
+      past the rows it was drawn for, and the screen scrolls — which costs the header, the footer,
+      and the session's ability to repaint over what it drew.
+    verification:
+      - do: render an entry whose citation is wider than the detail pane
+      - verify: no rendered row is wider than the viewport
+      - verify: the citation continues on the next row, indented under the item's text
+    facets:
+      - tooling
+  - id: r-4xa4kazt
+    title: a statement is reflowed to the pane
+    statement: |
+      the detail pane sets a statement's line length from the pane's width rather than from the
+      line breaks its source file carried, joining the breaks within a block. a blank line, a
+      markdown-style list item, and an indented block each begin a block and are held as written;
+      everything else within a block is joined and re-wrapped.
+    rationale: |
+      statements are authored as wrapped yaml scalars, so their breaks record the width of whoever
+      wrote them. reproducing those breaks gives a pane of short ragged lines that is no narrower
+      when the terminal is wide and no better when it is narrow.
+    verification:
+      - do: render a statement whose source wraps one sentence across two lines
+      - verify: the sentence occupies one row where the pane is wide enough to hold it
+      - do: render a statement carrying a blank line, a list item, and an indented block
+      - verify: each begins its own block, and the indented block is reproduced as written
+    facets:
+      - tooling
