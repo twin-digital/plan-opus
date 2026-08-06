@@ -1,0 +1,112 @@
+# Survey census — village-guard, kind minecraft-addon, one package.
+#
+# Read-only against the draft fold on plan/village-guard/the-protection-design. Each entry is a
+# choice building the pack would meet that the fold neither decides nor defers, with the
+# implementer's reading and this dispatcher's classification.
+
+version: "1"
+package: village-guard
+kind: minecraft-addon
+surveyed_at: 2026-08-06
+
+entries:
+  - choice: what the same-tick restore restores to
+    where: Code — the entityHurt after-event handler
+    reading: |
+      `d-jp67dexu` says the health lost is restored in the same tick, which reads two ways. Restoring
+      the delta puts back exactly what the clamped hit took. Restoring to maximum also heals damage
+      the mob was already carrying — so a villager sitting at 5 health when the pack is installed
+      jumps to full the first time anything scratches it. That is visible, it is not something
+      vanilla does, and `r-ef113dxi` says the pack changes nothing else. The probe used
+      `resetToMaxValue`, so the evidence behind the design was gathered on the reading that has this
+      side effect.
+    classification: gap
+    routes_to: Clarify — a decision, consumer-observable
+
+  - choice: whether operator damage and the void are exempt from the clamp
+    where: Code — the entityHurt before-event handler's cause test
+    reading: |
+      `r-pe87rfqq` puts operator action and the void outside what the pack must prevent, which is
+      permission not prohibition; `d-jp67dexu` clamps every hit that is not a player's. Taken
+      together the pack clamps them, and a protected mob becomes unkillable by `/kill` — which
+      arrives as a damage cause like any other (`f:kill-and-remove-cascades` records it as
+      `selfDestruct`). An operator who cannot remove a villager will meet this on their first
+      attempt, and a world edit that drops a mob into the void gets an immortal mob instead.
+    classification: gap
+    routes_to: Clarify — a decision, consumer-observable; the owner may also want to read it against r-pe87rfqq
+
+  - choice: the @minecraft/server version and min_engine_version the manifest declares
+    where: Define — the pack manifest
+    reading: |
+      Both are consumer-visible: together they decide which Bedrock worlds accept the pack at all,
+      which `r-cizmztsh` speaks to directly. They are also what ties the design to its evidence —
+      every fact behind `d-jp67dexu` was measured against `@minecraft/server` 2.8.0 on Bedrock
+      1.26.x, and a different module version is a different set of observations.
+    classification: gap
+    routes_to: Clarify — a decision, and probably pinned
+
+  - choice: how the clamp computes its written-down damage
+    where: Code — the entityHurt before-event handler
+    reading: |
+      Either a fixed small constant, or the mob's current health less its effective minimum read at
+      the moment of the hit. The constant needs no read; the computed form needs the health
+      component inside a before-event handler, and before-event handlers run with restricted-execution
+      privilege where the declarations warn that APIs modifying gameplay state throw. Whether a
+      component *read* is permitted there is unobserved — no fact in the pool covers it. If reads
+      are allowed both work and the choice is an implementation detail; if not, only the constant
+      does.
+    classification: gap
+    routes_to: Clarify — an open question routed to fact, cheap to settle with a probe
+
+  - choice: the repo-kit feature that generates the pack's scripts does not exist
+    where: Stub — package.json and the monorepo's generated configuration
+    reading: |
+      `r-82ck2fax` requires the package-script setup to be generated rather than hand-written,
+      `r-cyd08e6q` requires every build route to go through the dev kit, and `r-992moral` (pending
+      the preset) requires a dev-server script. All three are satisfied by one repo-kit feature keyed
+      on `exists: pack/manifest.json` — and `main` carries no such feature. It existed on
+      `archive/minecraft-prototype` as `bedrock-pack`, against the older `mc-pack-config`.
+      That feature lives in `.repo-kit.yml` at the opus repository root, outside this package's
+      path, so this implementer cannot write it.
+    classification: outside-path
+    routes_to: the dispatcher — a change needed outside the package, to be routed at implementation
+
+  - choice: the library packaging fields repo-kit would otherwise generate
+    where: Stub — package.json
+    reading: |
+      `d-issr5yjc` makes the release artifact the installable pack rather than an npm module, so the
+      `exports` and `files` entries the generic package-manifest feature adds do not apply, and the
+      package wants `private: true`. The prototype's feature removed them explicitly. Below the bar
+      on its own, but it is part of the same repo-kit feature as the entry above and cannot be
+      settled separately from it.
+    classification: outside-path
+    routes_to: the dispatcher — same change as the entry above
+
+  - choice: how tests exercise damage the engine deals rather than a script
+    where: Stub — the unit tests
+    reading: |
+      `r-hear6pun` requires the shared test lib, and the fake honours what this pack needs: it
+      dispatches `beforeEvents.entityHurt`, respects `cancel`, and re-reads the handler's `damage`
+      write before applying it. A test drives a zombie's swing by calling `applyDamage` with a
+      damage source carrying `damagingEntity`, which is enough to cover the player/mob split. What
+      the fake has no engine for is fire, falls and explosions arriving on their own, so the claims
+      about those rest on `f:entity-hurt-before-event-sees-engine-dealt-damage` rather than on a
+      unit test. That is a coverage-evidence matter at implementation, not a gap in the design.
+    classification: implementation detail
+
+  - choice: filtering the subscription versus filtering inside the handler
+    where: Code — the subscription
+    reading: |
+      `d-8b5m52it` makes the subscription the enrolment but does not say whether the type test rides
+      in `EntityHurtBeforeEventOptions.entityFilter` or in the handler body. No consumer can observe
+      which, and a reimplementation is free to swap them.
+    classification: implementation detail
+
+  - choice: a world holding the legacy `minecraft:villager` type id
+    where: Code — the protected set
+    reading: |
+      `d-6lbml4g9` fixes the set at `villager_v2`, `wandering_trader` and `iron_golem`. A world
+      carrying the pre-`v2` id would go unprotected. The decision settles the choice; this is noted
+      only so the consequence is on the record rather than discovered later.
+    classification: decided
+    by: d-6lbml4g9
