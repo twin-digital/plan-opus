@@ -18,6 +18,14 @@ below. Both are the same mechanism, both target an increment, and both write the
 - Read the effective design: `npx design-process show <product>`, then every `requirements.yaml`
   and `decisions.yaml` of the product's increments, in full. The fold binds; `drafts/` are raw
   material, never normative.
+- **Reading the fold includes the contracts the increment's model binds.** The projection prints a
+  model entry's name, reference, and description and none of the contract's content, so an
+  implementer working from the projection alone cannot see the shape it is bound to. The pools are
+  the planning repository's — `schemas/` and `surfaces/` — and a reference resolves by scanning the
+  pool for the file whose identity header matches it; pool layout is not normative, so do not derive
+  a path from one. A package built in another repository reads its contracts from the planning
+  repository's checkout: the pool does not travel with the code, and that is the ordinary case
+  rather than the exception.
 - A `deferred` decision binds nothing until answered: it names a choice and whom it is handed to.
   Its answer lands in the companion increment as an ordinary decision citing the deferral in
   `because`.
@@ -45,8 +53,8 @@ same one §4 states, seen from the other direction.
 they happen. It is a draft increment on its own branch; open it as SKILL.md says.
 
 Everything design-relevant lands there as it happens: **decisions**, **open questions** in
-`questions.yaml`, and **contracts** for any new external-facing schema or API surface, bound as a
-pool version through the increment's model.
+`questions.yaml`, and **contracts** for any new external-facing data shape or public surface —
+filed in `schemas/` or `surfaces/` and bound through the increment's model.
 
 Every companion entry is one of three: **licensed** — its `because` cites the deferral it
 answers; an **overturn** — it `supersedes` a plan-ruled decision, legal when unpinned and counted
