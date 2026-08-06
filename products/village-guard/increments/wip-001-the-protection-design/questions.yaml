@@ -3,14 +3,19 @@ version: "1"
 questions:
   - id: q-12hs93gc
     question: |
-      does cancelling a player's hit also spare the player the villager's negative gossip? villager
-      reputation is not on the script API's surface at all — no `gossip` or `reputation` identifier
-      anywhere in the module — so the pack can neither read a villager's standing nor undo it, and a
-      cancelled hit spares it only if the engine hangs the gossip off the damage rather than off the
-      swing. `r-ef113dxi` wants an accidental swing to cost the player nothing, and this is what
-      decides whether cancelling delivers that or whether the requirement needs a mechanism the pack
-      does not yet have. observable at a client: trade with a villager, strike it repeatedly, trade
-      again, and read the prices.
+      does cancelling a player's hit preserve the discount that player has built up with the
+      villager? in Bedrock an attack cannot raise a price at all — it can only cancel positive
+      reputation and other discounts
+      [[f:bedrock-negative-reputation-only-cancels-discounts]] — so the whole cost of an accidental
+      swing is the discount it takes away, and that is what `r-ef113dxi`'s "standing unchanged"
+      clause is asking the pack to protect. villager reputation is not on the script API's surface,
+      so the pack can neither read the standing nor restore it, and cancelling spares it only if the
+      engine hangs the reputation change off the damage rather than off the swing.
+
+      the first attempt at this could not answer it: both villagers had traded once, so neither
+      carried a discount for the attack to cancel, and no price moved in either lane. the test that
+      answers it builds real positive reputation first — trade repeatedly with both until prices
+      visibly fall — then strikes each and re-reads, so a lost discount has something to be lost
+      from.
     answer: fact
     facets: pack-runtime
-

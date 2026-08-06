@@ -482,6 +482,91 @@ async function setClient() {
   );
 }
 
+
+// ---------------------------------------------------- set E: the player's gossip
+
+// q-12hs93gc. Villager reputation is not on the script API's surface, so the pack can neither read
+// it nor undo it, and the only readable signal is what the villager charges. Two lanes, both
+// professioned and both kept alive off the damage path: one takes the player's hits normally, the
+// other has them cancelled. The control is what makes the test discriminate — if its prices do not
+// move either, Bedrock has no attack-driven reputation to spare and the question answers that way.
+async function setGossip() {
+  const probe = "player-gossip";
+  await buildArena();
+  clear();
+  cmd("time set day");
+  cmd("weather clear 999999");
+  await wait(10);
+
+  const LANES = [
+    { name: "GOSSIP-CONTROL", dx: -4, cancel: false },
+    { name: "GOSSIP-CANCELLED", dx: 4, cancel: true },
+  ];
+
+  const cancelled = new Set();
+  const kept = new Set();
+  for (const lane of LANES) {
+    cmd(`fill ${x0(lane) - 2} ${y0()} ${z0() - 2} ${x0(lane) + 2} ${y0() + 3} ${z0() + 2} stone hollow`);
+    cmd(`fill ${x0(lane) - 1} ${y0() + 3} ${z0() - 1} ${x0(lane) + 1} ${y0() + 3} ${z0() + 1} air`);
+    cmd(`fill ${x0(lane) - 1} ${y0() + 1} ${z0() + 2} ${x0(lane) + 1} ${y0() + 2} ${z0() + 2} iron_bars`);
+    // a job site so the villager takes a profession and has something to trade
+    cmd(`setblock ${x0(lane) - 1} ${y0() + 1} ${z0() - 1} composter`);
+    const v = spawn("minecraft:villager_v2", lane.dx, 1);
+    if (!v) { say(probe, `[${lane.name}] SUBJECT-SPAWN-FAILED`); continue; }
+    read(() => { v.nameTag = lane.name; });
+    const ev = read(() => v.triggerEvent("minecraft:become_farmer"));
+    say(probe, `[${lane.name}] spawned profession-event=${ev.ok ? "accepted" : ev.text}`);
+    kept.add(v.id);
+    if (lane.cancel) cancelled.add(v.id);
+  }
+
+  const before = world.beforeEvents.entityHurt.subscribe((ev) => {
+    try {
+      if (cancelled.has(ev.hurtEntity?.id) && ev.damageSource?.damagingEntity?.typeId === "minecraft:player") {
+        ev.cancel = true;
+      }
+    } catch (e) { /* the run's own readings report it */ }
+  });
+  const hits = new Map();
+  const after = world.afterEvents.entityHurt.subscribe((ev) => {
+    if (!kept.has(ev.hurtEntity?.id)) return;
+    const by = read(() => ev.damageSource.damagingEntity?.typeId).v ?? "none";
+    const key = `${cancelled.has(ev.hurtEntity.id) ? "cancelled" : "control"}/${by}`;
+    hits.set(key, (hits.get(key) ?? 0) + 1);
+  });
+  const topUp = system.runInterval(() => {
+    for (const v of read(() => arena().d.getEntities({ type: "minecraft:villager_v2" })).v ?? []) {
+      if (kept.has(v.id)) read(() => v.getComponent("minecraft:health")?.resetToMaxValue());
+    }
+  }, 10);
+
+  for (const pl of read(() => world.getAllPlayers()).v ?? []) {
+    read(() => pl.teleport({ x: x0({ dx: 0 }) + 0.5, y: y0() + 1, z: z0() + 6.5 }));
+    cmd(`gamemode survival "${pl.name}"`);
+    cmd(`give "${pl.name}" stone_sword`);
+    cmd(`give "${pl.name}" emerald 64`);
+    cmd(`give "${pl.name}" wheat 64`);
+  }
+
+  world.sendMessage("§e[village-guard] Two farmers: GOSSIP-CONTROL (west) and GOSSIP-CANCELLED (east).");
+  world.sendMessage("§e 1. Trade with each and write down what it charges.");
+  world.sendMessage("§e 2. Hit each about a dozen times with the sword.");
+  world.sendMessage("§e 3. Trade with each again and compare the prices.");
+  world.sendMessage("§e CONTROL is the calibration: if its prices do not move either, there is no reputation effect here to prevent.");
+  say(probe, `staged lanes=${LANES.length} centre=(${x0({ dx: 0 })},${y0()},${z0()})`);
+
+  for (let i = 0; i < 90; i++) await wait(100);
+
+  world.beforeEvents.entityHurt.unsubscribe(before);
+  world.afterEvents.entityHurt.unsubscribe(after);
+  system.clearRun(topUp);
+  say(probe, `session-ended landed=[${[...hits].map(([k, n]) => k + "=" + n).join(", ")}] note=a cancelled hit lands no after-event, so the cancelled lane reading zero is the mechanism working`);
+}
+
+const x0 = (lane) => arena().x + lane.dx;
+const y0 = () => arena().y;
+const z0 = () => arena().z;
+
 // ------------------------------------------------------------------ dispatch
 
 const SETS = {
@@ -489,6 +574,7 @@ const SETS = {
   conversion: { fn: setConversion, n: 2 },
   reaction: { fn: setReaction, n: 3 },
   client: { fn: setClient, n: 3 },
+  gossip: { fn: setGossip, n: 2 },
 };
 
 system.run(() => {

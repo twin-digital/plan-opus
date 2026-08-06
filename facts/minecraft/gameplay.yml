@@ -1,0 +1,26 @@
+version: "1"
+facts:
+  - id: bedrock-negative-reputation-only-cancels-discounts
+    claim: |
+      Bedrock Edition does not implement Java Edition's gossip effect on prices. A villager's
+      negative reputation there cannot raise a price at all — it only cancels positive reputation
+      and other discounts. So attacking a villager in Bedrock costs a player whatever discount they
+      had built up with that villager and nothing beyond it, and a villager the player has never
+      traded with has nothing for the attack to take.
+    caveat: |
+      The Minecraft Wiki is the reference work for this mechanic rather than a first-party
+      specification; Mojang publishes no document stating it. The observation below is consistent
+      with the wiki but does not on its own establish it, because it was made against villagers
+      carrying almost no positive reputation.
+    backing: documented
+    sources:
+      - url: https://minecraft.wiki/w/Villager
+        where: the Gossiping section, on how reputation changes prices
+        quote: "In Bedrock Edition negative reputation can only cancel out positive reputation and other price discounts but not increase the price."
+      - description: |
+          Observed against Bedrock dedicated 1.26.40.8 on 2026-08-06, in the staged session
+          `protection-probe-client` extended with its gossip set: two penned farmers, each traded
+          with once and then struck — one of them until a stone sword broke — and traded with again.
+          No price rose on either. The reading is consistent with the claim and is not decisive for
+          it: a single trade earns little positive reputation, so there was next to no discount for
+          the attack to cancel, which is exactly the case the wiki says produces no visible change.
