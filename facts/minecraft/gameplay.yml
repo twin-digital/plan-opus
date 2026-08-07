@@ -118,15 +118,11 @@ facts:
 
   - id: a-destroyed-bed-does-not-release-its-village-point-of-interest
     claim: |
-      Breaking a bed leaves the village's record of it standing. With every bed, job site and bell
-      destroyed — 0 beds, 0 job sites, 0 bells in the world — the village record still held 30
-      dwellers and 30 bed points of interest, pointing at air, and still did so after a chunk unload
-      and reload.
-
-      The consequence is that a village's breeding ceiling is the *recorded* bed count rather than
-      the standing bed blocks: three runs bred until villagers equalled recorded beds and stopped
-      there, one of them breeding from 15 to 30 with no bed block anywhere in the world.
+      Breaking a bed leaves the village's record of it standing.
     backing: tested
+    status: retired
+    reason: superseded
+    superseded_by: a-villagers-claimed-bed-poi-outlives-the-bed
     sources:
       - run: village-structures-wreck
         where: "`wreck` — the world after every village block was destroyed"
@@ -208,3 +204,40 @@ facts:
         where: "`jobs` — the professions either side of destroying every job site"
         quote: |
           [2026-08-07 18:39:44:300 WARN] [Scripting] [vgvil] diff :: professions after-jobs-destroyed tracked=7 unchanged=7 moves=[4584:v14m0s2->v14m0s2,4590:v10m0s5->v10m0s5,4591:v4m0s1->v4m0s1,4587:v8m0s2->v8m0s2,4585:v11m0s3->v11m0s3,4589:v10m0s2->v10m0s2,4588:v13m0s4->v13m0s4]
+
+  - id: a-villagers-claimed-bed-poi-outlives-the-bed
+    claim: |
+      A village's `POI` record holds one entry per villager, keyed by that villager's id, each with
+      three claim slots. A villager that has claimed a bed carries it in the first slot as a named
+      point at the bed's own coordinates, with the other two slots unclaimed; the entry count
+      therefore tracks villagers rather than beds — 30 beds and 5 villagers gave 5 entries, not 30.
+
+      That claim outlives the block. Across four captures of one run — beds standing, beds just
+      destroyed, a window with no beds at all, and beds rebuilt — every villager's slot held the same
+      coordinates throughout, matching the grid the beds were placed on. Destroying the bed does not
+      clear the claim, and rebuilding does not cause it to be re-taken.
+    caveat: |
+      What the claim's persistence costs is unmeasured. No villager ever slept — occupancy read zero
+      in every capture, including through a full night — so whether a stale claim still functions as
+      a bed for sleeping, breeding or golem spawning is not established here. The related reading
+      that a village's breeding ceiling is its recorded bed count is *not* supported: villagers and
+      POI entries move together because there is one entry per villager, which makes the comparison
+      circular. This supersedes
+      [[f:a-destroyed-bed-does-not-release-its-village-point-of-interest]], which made that mistake.
+    backing: tested
+    sources:
+      - description: |
+          The `beds` scenario captures the village records at four points — beds standing, beds just
+          destroyed, a window with no beds, and beds rebuilt — parsed into
+          evidence/minecraft/gameplay/village-structures-probe/records/beds/. Every villager's first
+          claim slot holds the same coordinates in all four, and those coordinates fall on the grid
+          the probe placed beds on (x = 149 + 3*col, z = 153 + 3*row about the arena centre), which
+          is what identifies the slot as the bed claim.
+      - run: village-structures-breed
+        where: "`breed` — 5 villagers in a village of 30 beds, giving 5 POI entries rather than 30"
+        quote: |
+          village 10-breeding :: id=Overworld_0de543f0-9834-4571-9790-cfe3dd0e3c02 dwellers=5/0/0/0 poiEntries=5 poiInstances=5 poiNames={"villager":5} players=0 bounds=117,181,88,112,133,197
+      - run: village-structures-wreck
+        where: "`wreck` — the world with every village block destroyed"
+        quote: |
+          [2026-08-07 18:49:48:944 WARN] [Scripting] [vgvil] destroy :: destroyed=all counts={"beds":0,"occupied":0,"jobs":0,"bells":0}

@@ -99,3 +99,12 @@ runs:
       world. Its own destroyed and rebuilt volume.
 
       This set: beds, job sites and bell destroyed together, a 7,200-tick window, then a chunk unload and reload.
+
+  - id: village-structures-bedscycle
+    command: node run.mjs beds --ticks 6000   # in evidence/minecraft/gameplay/village-structures-probe/
+    output: evidence/minecraft/gameplay/village-structures-probe/BEDS-OUTPUT.txt
+    ran_at: 2026-08-07
+    environment: |
+      Same server, module version, pack, village and method as village-structures-api. Every bed
+      destroyed, watched, rebuilt and watched again, with the village records captured at each of the
+      four points and parsed into records/beds/. Its own destroyed and rebuilt volume.
