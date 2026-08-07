@@ -1,0 +1,155 @@
+version: "2"
+
+decisions:
+  # the packages
+  - id: d-txqxjxvp
+    title: three packages under a grinbox group directory
+    statement: |
+      grinbox is three packages in the opus workspace — `nodejs/grinbox/server`, the daemon;
+      `nodejs/grinbox/web`, the browser application; and `nodejs/grinbox/shared`, the contracts
+      both speak. `nodejs/grinbox` is a group directory beside `nodejs/apps` and `nodejs/plan`,
+      which puts each package exactly where the workspace's member pattern already looks.
+    status: accepted
+    because:
+      - r-y8wc6ldk
+      - f:opus-workspace-members-sit-two-levels-under-nodejs
+    pinned:
+      reason: other
+      notes: |
+        fixes the package set and the directory tree of a workspace other products share
+
+  - id: d-cjjd5c0w
+    title: the packages are private and never published
+    statement: |
+      none of the three packages is published to a registry. They are private workspace packages,
+      versioned and tagged by the monorepo's changesets process like any other private package
+      there, and what grinbox ships is a running daemon rather than an artifact anyone installs.
+    status: delegated
+    because:
+      - f:opus-package-versions-are-written-by-changesets
+    pinned: false
+
+  - id: d-ya291hq8
+    title: the packages take the workspace's scope
+    statement: |
+      the packages are named `@twin-digital/grinbox-server`, `@twin-digital/grinbox-web`, and
+      `@twin-digital/grinbox-shared`, under the one scope the workspace uses, rather than keeping
+      grinbox's own `@grinbox` scope.
+    status: rejected
+    because:
+      - d-txqxjxvp
+    pinned: false
+    rejection_reason: >-
+      these packages should use the '@grinbox' npm scope
+
+  - id: d-jxipfcu0
+    title: the packages keep the @grinbox scope
+    statement: |
+      the packages are named `@grinbox/server`, `@grinbox/web`, and `@grinbox/shared`, keeping
+      grinbox's own scope rather than taking the workspace's. Nothing registers the scope: these
+      packages are never published, so the name is an identity within the workspace and a claim on
+      nothing outside it.
+    status: accepted
+    supersedes: d-ya291hq8
+    because:
+      - d-txqxjxvp
+      - d-cjjd5c0w
+    pinned: false
+
+  - id: d-5h9ot6s7
+    title: two package kinds grinbox introduces
+    statement: |
+      the daemon's package kind is `node-service` and the browser application's is `web-app`, both
+      taking the wave shape the existing code kinds take — define, stub, code, document. The
+      shared package is `npm-library`, unchanged.
+    status: tolerated
+    because:
+      - d-txqxjxvp
+    pinned:
+      reason: other
+      notes: |
+        the kind vocabulary is the process's and other products reach for it, so a kind grinbox
+        adds is not grinbox's to change quietly afterwards
+
+  # the shape of the application
+  - id: d-81ouxrpi
+    title: one process owns everything
+    statement: |
+      grinbox runs as a single long-running Node process owning the HTTP server, the schedule that
+      polls for new mail, the execution of triage work, and the state store. There are no worker
+      processes, no timer units, and no external job queue.
+    status: accepted
+    because:
+      - r-jp85k5ma
+      - r-zpdecb2z
+    pinned:
+      reason: other
+      notes: |
+        the deployment is one unit — the service definition, the backup, and the restart semantics
+        all assume one process owns the state
+
+  - id: d-dbjiycvl
+    title: state is one SQLite file
+    statement: |
+      all persistent state is one SQLite file, opened once when the daemon starts and held for the
+      process lifetime. That file is the whole of what must be backed up, and nothing outside the
+      process holds state grinbox depends on.
+    status: accepted
+    because:
+      - r-jp85k5ma
+      - d-81ouxrpi
+    pinned:
+      reason: data-format
+
+  - id: d-ti7vexo3
+    title: one HTTP surface, and the browser application is a client of it
+    statement: |
+      the daemon exposes one HTTP surface: a REST API, and the browser application's static assets
+      served from the same process. The API is the whole of the remote-control surface — the
+      browser application is one client of it with no privileged path — and grinbox ships no
+      command-line client.
+    status: accepted
+    because:
+      - r-zpdecb2z
+      - d-81ouxrpi
+    pinned:
+      reason: public-api
+
+  - id: d-j4huq3jy
+    title: the wire shapes are declared once
+    statement: |
+      the shapes crossing the API — what the browser sends and what the daemon answers — are
+      declared once in the shared package both depend on, rather than separately on each side.
+    status: accepted
+    because:
+      - d-txqxjxvp
+      - d-ti7vexo3
+    pinned: false
+
+  # the move, and what it splits
+  - id: d-mq7vdduz
+    title: the deployment stays where the infrastructure is
+    statement: |
+      grinbox's deployment — the machine, the service definition, and how its secrets reach it —
+      stays in `pegasuspad/infrastructure` and the move does not touch it. The opus workspace
+      produces the application; the infrastructure repository installs and runs it.
+    status: accepted
+    because:
+      - r-y8wc6ldk
+    pinned:
+      reason: other
+      notes: |
+        the seam between the two repositories is the built application, and neither repository
+        holds both halves of it
+
+  - id: d-riyvvlx5
+    title: how the deployment gets the built application is deferred
+    statement: |
+      how grinbox's deployment obtains the built application once the code lives in opus — what
+      the monorepo produces for it, and how the infrastructure repository fetches it — is deferred
+      to the implementation that performs the move. The role today copies a source tree out of a
+      checkout of the repository the code lives in, and that path does not survive the split.
+    status: deferred
+    because:
+      - d-mq7vdduz
+      - r-y8wc6ldk
