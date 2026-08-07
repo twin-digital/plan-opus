@@ -1,0 +1,232 @@
+version: "2"
+
+decisions:
+  - id: d-5n8oyi8c
+    title: the operator types are a closed set resident in grinbox's code
+    statement: |
+      the operator types a user may configure are a closed set, resident in grinbox's own code. A
+      user composes pipelines out of the types grinbox ships and cannot introduce one; adding a
+      type is a change to grinbox, and each type grinbox ships is declared on its own.
+    status: accepted
+    because:
+      - d-eme4ratv
+    pinned:
+      reason: public-api
+      notes: |
+        the whole vocabulary a user configures against, and the set every stored configuration
+        names
+
+  # the types the set holds, one decision each
+  - id: d-whkazlor
+    title: an LLM tagger
+    statement: |
+      grinbox ships a tagger whose outputs come from a model call over the message.
+    status: accepted
+    because:
+      - d-5n8oyi8c
+    pinned:
+      reason: public-api
+
+  - id: d-imlec3nt
+    title: a rule-based tagger
+    statement: |
+      grinbox ships a tagger whose output is derived deterministically, with no model call, by
+      evaluating rules the user writes against the message and the tags earlier steps produced.
+    status: accepted
+    because:
+      - d-5n8oyi8c
+      - r-xy0yd2nh
+    pinned:
+      reason: public-api
+
+  - id: d-bnw0na3n
+    title: an apply-category action
+    statement: |
+      grinbox ships an action that puts a category of its own on the message, in the user's
+      mailbox.
+    status: accepted
+    because:
+      - d-5n8oyi8c
+    pinned:
+      reason: public-api
+
+  - id: d-yjd4ag9q
+    title: an archive action
+    statement: |
+      grinbox ships an action that takes the message out of the user's inbox.
+    status: accepted
+    because:
+      - d-5n8oyi8c
+    pinned:
+      reason: public-api
+
+  - id: d-oectpw7n
+    title: a notify action
+    statement: |
+      grinbox ships an action that sends the user an out-of-band push about the message.
+    status: accepted
+    because:
+      - d-5n8oyi8c
+    pinned:
+      reason: public-api
+
+  - id: d-qcsxvo18
+    title: a digest delivery action
+    statement: |
+      grinbox ships an action that runs on a schedule rather than per message, collating what it
+      covers into one mail to the user. What it collates and how is the digest increment's.
+    status: tolerated
+    because:
+      - d-5n8oyi8c
+    pinned:
+      reason: public-api
+
+  # the gate
+  - id: d-cgosh169
+    title: one gate shape, on every type
+    statement: |
+      every operator type takes the same optional firing gate: one tag key and a non-empty set of
+      values it must hold. An operator whose gate does not hold does nothing at all — an action
+      does not fire, and a tagger emits none of its outputs, so operators depending on those
+      outputs are skipped.
+    status: tolerated
+    because:
+      - d-5n8oyi8c
+      - d-16geyxco
+    pinned:
+      reason: public-api
+      notes: |
+        the one conditional a user has, present on every type they configure
+
+  - id: d-2asvd71w
+    title: a gate reads an enum output, and its values must be members
+    statement: |
+      a gate's tag must be produced as a closed-enum output, never an extracted one, and every
+      value the gate permits must be a member of that enum. Both are checked when the operator is
+      saved.
+    status: tolerated
+    because:
+      - d-cgosh169
+      - d-04s2n18o
+      - r-qu9y7wgg
+    pinned: false
+
+  # the taggers
+  - id: d-95wp1n7r
+    title: an LLM tagger produces all its outputs in one call
+    statement: |
+      an LLM tagger declares one or more outputs and produces all of them from a single model
+      call, sharing the message's context between them.
+    status: accepted
+    because:
+      - d-04s2n18o
+      - d-5n8oyi8c
+    pinned: false
+
+  - id: d-dmwaark1
+    title: extracted values are normalized to comparable forms
+    statement: |
+      an extracted output is normalized by grinbox after the model answers, into a form that
+      compares and renders the same everywhere: money as integer minor units with an ISO currency,
+      a date as ISO 8601, text trimmed and length-capped. A value that will not normalize drops
+      its tag rather than failing the run or being stored as the model wrote it.
+    status: tolerated
+    because:
+      - d-04s2n18o
+      - d-95wp1n7r
+    pinned:
+      reason: data-format
+      notes: |
+        the stored form every later comparison, threshold, and rendering reads
+
+  - id: d-f5hy6ptl
+    title: a rule-based tagger has one output and always produces it
+    statement: |
+      a rule-based tagger produces exactly one tag, from an ordered list of rules evaluated first
+      match wins. The default is a field of its own that every configuration must carry — not a
+      wildcard rule at the end of the list — so that a tagger which fires always produces its
+      declared output, whatever the message.
+    status: tolerated
+    because:
+      - r-xy0yd2nh
+      - d-2gyfmt8m
+    pinned:
+      reason: public-api
+      notes: |
+        the shape of every stored rule configuration, and the guarantee downstream operators are
+        ordered against
+
+  - id: d-oq267pmh
+    title: rules are expressions, evaluated by grinbox's own reader
+    statement: |
+      a rule matches by an expression over the tags earlier steps produced and any field of the
+      message, read and evaluated by grinbox's own expression reader.
+    status: accepted
+    because:
+      - r-xy0yd2nh
+      - r-sfvm6ib3
+      - r-ut5mdtpx
+    pinned:
+      reason: public-api
+      notes: |
+        the language a user writes their rules in
+
+  # templates
+  - id: d-cnjkypbb
+    title: one placeholder grammar, everywhere text is composed
+    statement: |
+      every piece of text a user configures grinbox to compose — a prompt, a notification, a
+      category name, a digest line — is written in one placeholder grammar over the message's own
+      fields and the tags earlier steps produced. The tags a template names are inputs of the
+      operator that renders it, which is what orders it after their producers.
+    status: accepted
+    because:
+      - d-52lhql7t
+      - r-sfvm6ib3
+    pinned:
+      reason: public-api
+      notes: |
+        the grammar every stored template is written in, and the source of the ordering
+        dependencies derived from them
+
+  - id: d-svk1emrj
+    title: an unknown placeholder is refused at save and empty at run time
+    statement: |
+      a template naming a placeholder grinbox does not know is refused when the user saves it,
+      with the known names reported. The same name in a configuration already stored renders
+      empty and the triage proceeds.
+    status: accepted
+    because:
+      - r-5ezt7j0v
+      - d-cnjkypbb
+    pinned: false
+
+  - id: d-506swwel
+    title: field checks run at save, and never at enqueue
+    statement: |
+      the checks over a single operator's own fields — its templates, its gate, its section
+      definitions — run when that operator is created or edited and are not repeated when a
+      message arrives. A fault one operator carries therefore blocks neither an unrelated
+      operator's save nor the triage of arriving mail.
+    status: accepted
+    because:
+      - r-5ezt7j0v
+      - d-8y8i45y2
+    pinned: false
+
+  # the actions
+  - id: d-ypmi8g3g
+    title: the actions add, and only archiving takes anything away
+    statement: |
+      applying a category adds one grinbox-owned marker to the message and touches nothing else on
+      it. Archiving removes the message from the inbox and nothing more: it keeps every other
+      marker, stays searchable, and grinbox keeps its own record of the message and notes that it
+      left. No built-in action deletes a message.
+    status: tolerated
+    because:
+      - r-ziitim35
+      - d-5n8oyi8c
+    pinned:
+      reason: other
+      notes: |
+        what grinbox does to mail the user cannot get back is exactly what this fixes
