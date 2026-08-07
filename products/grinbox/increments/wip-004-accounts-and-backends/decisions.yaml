@@ -10,7 +10,7 @@ decisions:
       category to a message, and reporting a message's place in its thread. Nothing else in
       grinbox talks to a backend, and the mail resource operations an operator declares are routed
       to the provider of the account the message arrived on.
-    status: proposed
+    status: accepted
     because:
       - r-etj0gluz
       - d-v5zamgjn
@@ -26,7 +26,7 @@ decisions:
       a provider need not implement every mail operation — a backend that can read a mailbox but
       not send is an ordinary case — and which operations a backend supports is declared rather
       than discovered when an operation fails.
-    status: proposed
+    status: accepted
     because:
       - d-yp3tt9zd
       - r-etj0gluz
@@ -39,7 +39,7 @@ decisions:
       the backend's own mechanism for durable metadata, whatever that is. Grinbox owns the
       categories it applies and owns nothing else on the message; it never takes over the lifecycle
       of metadata it did not put there.
-    status: proposed
+    status: accepted
     because:
       - r-ziitim35
       - r-etj0gluz
@@ -57,7 +57,7 @@ decisions:
       the backend only what changed since. An account's first poll takes a bounded recent window
       rather than the whole mailbox, and where the backend can no longer answer from the stored
       cursor, grinbox falls back to listing by time and reconciles against what it already holds.
-    status: proposed
+    status: accepted
     because:
       - r-ls4dvyj7
       - d-yp3tt9zd
@@ -71,7 +71,7 @@ decisions:
       before it leaves the cursor where it was, so the next poll sees the same candidates again and
       recognizes them as already held. The guarantee comes from the ordering and from writes that
       can be repeated, not from one transaction spanning the cycle.
-    status: proposed
+    status: accepted
     because:
       - r-ls4dvyj7
       - d-8fvu0g4z
@@ -86,7 +86,7 @@ decisions:
     statement: |
       grinbox polls an account only while the user has a pipeline active on it. An account with
       none is left alone entirely — not polled, and no mail of its taken in.
-    status: proposed
+    status: accepted
     because:
       - r-63vrxr22
       - d-8fvu0g4z
@@ -101,7 +101,7 @@ decisions:
       that key nor stores it, and it asks only two things of whoever does: that the key is kept out
       of any backup of the state, and that it is bound to the host as tightly as the platform
       allows.
-    status: proposed
+    status: accepted
     because:
       - r-p2djwgjn
     pinned:
@@ -135,7 +135,7 @@ decisions:
       short-lived correlation token, and completes at one path grinbox exposes publicly. That path
       refuses any request not carrying a correlation token it is still waiting on, so a flow can
       be started only from inside even though it finishes from outside.
-    status: proposed
+    status: delegated
     because:
       - r-ieyj1wkn
       - r-ovi02v1m
@@ -151,7 +151,7 @@ decisions:
       TLS-bearing address that routes to its callback path and is reachable from the browser the
       user onboards with. Whether that address resolves publicly or only on the deployment's own
       network is the deployment's choice, and grinbox behaves the same either way.
-    status: proposed
+    status: tolerated
     because:
       - d-a1pf497w
       - d-mq7vdduz
@@ -168,7 +168,7 @@ decisions:
       the superseded one would fail at the next renewal. Where the provider refuses to renew at
       all, the account is marked as needing the user's attention and is skipped by polling until
       they authorize it again.
-    status: proposed
+    status: accepted
     because:
       - r-ieyj1wkn
       - r-fzuyjkts
@@ -180,7 +180,7 @@ decisions:
       grinbox asks for the whole set of permissions it will ever need when the user first
       authorizes a mailbox, including those no configured operator uses yet. It does not ask for
       more later.
-    status: proposed
+    status: accepted
     because:
       - r-ieyj1wkn
     pinned: false
