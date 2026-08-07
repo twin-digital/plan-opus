@@ -7,7 +7,7 @@ decisions:
       the operator types a user may configure are a closed set, resident in grinbox's own code. A
       user composes pipelines out of the types grinbox ships and cannot introduce one; adding a
       type is a change to grinbox, and each type grinbox ships is declared on its own.
-    status: proposed
+    status: accepted
     because:
       - d-eme4ratv
     pinned:
@@ -21,7 +21,7 @@ decisions:
     title: an LLM tagger
     statement: |
       grinbox ships a tagger whose outputs come from a model call over the message.
-    status: proposed
+    status: accepted
     because:
       - d-5n8oyi8c
     pinned:
@@ -31,7 +31,7 @@ decisions:
     title: a rule-based tagger
     statement: |
       grinbox ships a tagger whose output is derived deterministically, with no model call.
-    status: proposed
+    status: accepted
     because:
       - d-5n8oyi8c
       - r-xy0yd2nh
@@ -43,7 +43,7 @@ decisions:
     statement: |
       grinbox ships an action that puts a category of its own on the message, in the user's
       mailbox.
-    status: proposed
+    status: accepted
     because:
       - d-5n8oyi8c
     pinned:
@@ -53,7 +53,7 @@ decisions:
     title: an archive action
     statement: |
       grinbox ships an action that takes the message out of the user's inbox.
-    status: proposed
+    status: accepted
     because:
       - d-5n8oyi8c
     pinned:
@@ -63,7 +63,7 @@ decisions:
     title: a notify action
     statement: |
       grinbox ships an action that sends the user an out-of-band push about the message.
-    status: proposed
+    status: accepted
     because:
       - d-5n8oyi8c
     pinned:
@@ -74,7 +74,7 @@ decisions:
     statement: |
       grinbox ships an action that runs on a schedule rather than per message, collating what it
       covers into one mail to the user. What it collates and how is the digest increment's.
-    status: proposed
+    status: tolerated
     because:
       - d-5n8oyi8c
     pinned:
