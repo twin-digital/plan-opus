@@ -7,9 +7,6 @@ requirements:
       every message a digest's coverage includes is accounted for in what the user receives —
       shown in a section, or counted and named as uncovered. Nothing a digest covered goes
       unmentioned.
-    rationale: |
-      The digest is what makes archiving mail out of sight safe to do, and it is worth that only
-      if the user can trust that what it does not mention did not exist.
     verification:
       - do: cover a window holding messages in a category the digest has a section for and messages in a category it does not
       - verify: the first are shown, the second are reported as a count, and the two together are the whole of the window
@@ -19,8 +16,6 @@ requirements:
     statement: |
       a message appears in at most one digest, whatever a user has configured and however
       deliveries have failed or been delayed.
-    rationale: |
-      A digest read twice is a digest stopped being read.
 
   - id: r-i55lgsq8
     title: what a digest says is derived, not composed
