@@ -154,10 +154,13 @@ coverage:
           rather than a stub. the pack's scripts are `dev` and `dev:stop`, each the kit's command and
           nothing else
       - kind: attestation
-        ref: package.json
+        ref:
+          - package.json
+          - .minecraft.yml
         note: >
-          the package holds no server, container, world or activation file of its own, and nothing
-          was run beside that one command
+          nothing was run beside that one command. what the package holds of its own is the
+          harness's own config file — the world's level name, seed and spawn — and no server,
+          container, world or activation implementation
   - claim: r-82ck2fax # package config is repo-kit managed
     covered_by:
       - kind: manual-check
