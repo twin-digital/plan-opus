@@ -150,10 +150,9 @@ decisions:
     statement: |
       a delivery asserts, in code, that the items it rendered number exactly the messages it
       selected, and fails rather than sending a digest that lost one. What it covered but did not
-      render is reported in the digest itself rather than dropped: messages whose category no
-      enabled section claims, counted per category, and messages a section claims but a delivery's
-      own limit on how many it shows left out, counted as an overflow. Only the slotting tag's
-      fallback value — which means never digested — is left out of that reporting.
+      render is reported in the digest itself rather than dropped, counted and attributed to why
+      it was not shown. Only the slotting tag's fallback value — which means never digested — is
+      left out of that reporting.
     status: proposed
     because:
       - r-vd9mu8od
@@ -163,6 +162,18 @@ decisions:
       notes: |
         the assertion is the product's accounting guarantee, and removing it would leave the
         guarantee stated and unenforced
+
+  - id: d-z0gmsbkl
+    title: a delivery bounds how many items it shows
+    statement: |
+      a delivery shows at most a bounded number of items, whatever its window holds, so that one
+      run over a long backlog does not produce an unreadable mail. What the bound cuts is counted
+      as an overflow and reported with everything else the delivery covered but did not show.
+    status: proposed
+    because:
+      - r-vd9mu8od
+      - d-tm2dbemu
+    pinned: false
 
   - id: d-c3dofuyf
     title: prose is the only model involvement, and it cannot touch the items
