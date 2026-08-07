@@ -17,6 +17,12 @@ requirements:
       grinbox can route a message without calling a model: what a pipeline decides can be
       configured to depend only on the message itself and on what earlier steps recorded.
 
+  - id: r-ut5mdtpx
+    title: what a user configures is never executed as code
+    statement: |
+      nothing a user writes into grinbox's configuration is executed as program code. Grinbox
+      reads and evaluates what the user wrote itself, and hands none of it to a language runtime.
+
   - id: r-sfvm6ib3
     title: the whole message is available without asking for it
     statement: |
