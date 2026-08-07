@@ -1,0 +1,134 @@
+version: "2"
+
+decisions:
+  - id: d-5l0wqcj0
+    title: the browser application is typed from the server's own routes
+    statement: |
+      the browser application calls the API through a client typed from the server's route
+      definitions, so a change to a route's shape is a compile error in the browser package rather
+      than a runtime surprise. The browser package therefore builds against the server package,
+      and neither declares the wire shapes twice.
+    status: accepted
+    because:
+      - d-ti7vexo3
+      - d-j4huq3jy
+    pinned:
+      reason: other
+      notes: |
+        it makes the browser package depend on the server package at build time, which every
+        later change to either has to keep working
+
+  - id: d-u2rotm38
+    title: a refusal is structured, not prose
+    statement: |
+      where the API refuses a write it answers in a structured form naming what was wrong and
+      where — the field, the operator, the offending value — rather than a sentence for a human to
+      read. The interface composes what the user sees from that.
+    status: accepted
+    because:
+      - r-qu9y7wgg
+      - d-ti7vexo3
+    pinned:
+      reason: public-api
+      notes: |
+        every save surface in the interface renders these, and a client outside the browser
+        application would read them the same way
+
+  - id: d-8yht1ei9
+    title: credential surfaces answer with metadata alone
+    statement: |
+      the API's credential surfaces return what identifies a stored credential — what it is for,
+      when it was stored, whether it still works — and never the stored material, in any encoding,
+      by any route.
+    status: accepted
+    because:
+      - r-0kn0oida
+      - d-xe41okh9
+    pinned:
+      reason: public-api
+      notes: |
+        a later route added without knowing this is exactly how the guarantee would be lost
+
+  - id: d-p28t99vc
+    title: previewing runs a configuration without letting it out
+    statement: |
+      a configuration can be run against a chosen recent message on demand, returning what it
+      would produce, without writing tags, without settling anything, and without invoking any
+      operation that reaches outside grinbox.
+    status: accepted
+    because:
+      - r-a2qxqnwk
+      - d-v5zamgjn
+    pinned:
+      reason: public-api
+      notes: |
+        the affordance a user relies on before trusting a change, and a preview that quietly
+        reached outside would be the worst version of this surface
+
+  - id: d-6wgxtdn8
+    title: re-examining a message is available wherever the message is
+    statement: |
+      a user can ask grinbox to triage a message again from the interface, at any time, and the
+      result is an ordinary triage recorded alongside the earlier ones rather than a replacement
+      for them.
+    status: accepted
+    because:
+      - r-zagpfz75
+      - d-urdglhb6
+    pinned: false
+
+  - id: d-mzr8j0i6
+    title: grinbox records where a message stands on the backend
+    statement: |
+      grinbox records, per message, whether it is still in the user's inbox or has left it, and
+      keeps its own record of the message either way. A message that has left is still listed,
+      still readable, and still counted; what changes is only how it is marked.
+    status: accepted
+    because:
+      - r-jje7gb9a
+      - r-ziitim35
+    pinned:
+      reason: data-format
+      notes: |
+        what the digest's coverage and the browsing surfaces both read, and what makes archived
+        mail continue to exist for grinbox
+
+  - id: d-pk81w5nv
+    title: what the user sees of their mail is account-first
+    statement: |
+      the interface is organized around the user's accounts: a message browser across all of them
+      is the default surface, and an account is the primary way to narrow it. Configuration is a
+      place the user goes to change something, not a place they browse from.
+    status: accepted
+    because:
+      - r-bcbvl9g5
+    pinned: false
+
+  - id: d-4t7lf4wd
+    title: measurements come from the triage records themselves
+    statement: |
+      what the interface reports about volume, cost, failures, and caps is computed from the
+      per-triage records grinbox already keeps. There is no separate store of measurements and
+      nothing is recorded twice.
+    status: delegated
+    because:
+      - d-dbjiycvl
+      - r-56o7qts0
+    pinned: false
+
+  - id: d-obzpbcml
+    title: everything is scoped to a user, though there is only one
+    statement: |
+      accounts, configurations, caps, and credentials are all recorded against a user identity,
+      and grinbox bootstraps the single user it serves at first start. Nothing authenticates
+      anyone, and the scoping exists so that authenticating someone later is an addition rather
+      than a reshaping of everything stored.
+    status: accepted
+    because:
+      - r-ovi02v1m
+      - d-dbjiycvl
+    pinned:
+      reason: data-format
+      notes: |
+        every stored record carries it, so introducing it later would be a migration of the whole
+        state rather than a new surface
