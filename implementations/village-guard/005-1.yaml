@@ -7,14 +7,14 @@ packages:
     version: 0.2.0
 coverage:
   # ---- requirements, increment 001 ----
-  - claim: r-1nxm8bg4 # the whole village is protected
+  - claim: r-3otdixl2 # the whole village is protected
     covered_by:
       - kind: code-test
         ref: src/protection.test.ts
         note: >
-          `describe('the protected set')` — each of the three types survives a lethal hit at full
-          health, a mob created after `installProtection` is protected, and a mob in the overworld,
-          the nether and the end alike
+          `describe('the protected set')` — every id in `PROTECTED_TYPE_IDS`, the trader llama among
+          them, survives a lethal hit at full health; a mob created after `installProtection` is
+          protected; and a mob in the overworld, the nether and the end alike
       - kind: attestation
         ref: src/protection.ts
         note: >
@@ -95,13 +95,25 @@ coverage:
           0.578-0.693, where a cancelled hit reaches 0.194-0.274.
           `evidence/minecraft/script-api/gap-probe` in the planning repository
       - kind: attestation
+        ref:
+          - src/protection.ts
+          - ISSUES.md
+        note: >
+          NOT MET for one case, shipped as a known limit the owner accepted: an iron golem a player
+          strikes takes no harm and shows no hurt reaction, and turns hostile anyway. d-qgpu7qp0
+          records why the pack leaves it, and ISSUES.md states it to the installer. everything else
+          holds — the handlers write only `damage`, `cancel` and `resetToMaxValue()` and touch
+          nothing else about a mob. trading, restocking, breeding, gossip and golem spawning are not
+          observable against the fakes and were not observed in an engine. the knockback a zero
+          write leaves is measured; the flinch and the hurt sound render at a client and are not,
+          and the owner ruled that an accepted risk — backlog b-myudtbdv
+      - kind: manual-check
         ref: src/protection.ts
         note: >
-          trading, restocking, breeding, gossip and golem spawning are not observable against the
-          fakes and were not observed in an engine; what was verified is that the handlers write
-          only `damage`, `cancel` and `resetToMaxValue()` and touch nothing else about a mob. the
-          knockback a zero write leaves is measured; the flinch and the hurt sound render at a
-          client and are not, and the owner ruled that an accepted risk — backlog b-myudtbdv
+          the golem case, measured against Bedrock 1.26.40.8: a cancelled hit from a player-family
+          attacker left the golem at full health and drew 24 strikes back, where a creeper-family
+          attacker dealing real damage drew none.
+          `evidence/minecraft/script-api/golem-probe` in the planning repository
   # ---- requirements adopted from minecraft-addon and monorepo-package ----
   - claim: r-hear6pun # packs unit-test with the shared test lib
     covered_by:
@@ -234,17 +246,18 @@ coverage:
           `installProtection` is subscriptions and no state: no registry, no dimension scan, no
           arrival tracking, no periodic sweep. it is called at module scope, so the subscriptions
           stand while the script evaluates
-  - claim: d-6lbml4g9 # the protected set is three vanilla type ids
+  - claim: d-e0a34ilh # the protected set is four vanilla type ids
     covered_by:
       - kind: code-test
         ref: src/protection.test.ts
         note: >
-          the three-type parametrised test, plus `'leaves a mob outside the set to die'` and `'is
-          left alone on a mob outside the set'` — a sheep takes its full damage under a mob's hit
-          and a player's alike
+          `'is the four vanilla type ids, and nothing else'` asserts `PROTECTED_TYPE_IDS` against the
+          literal list, so adding or dropping a type fails the suite; the parametrised sweep drives
+          each of the four, and `'leaves a mob outside the set to die'` and `'is left alone on a mob
+          outside the set'` show a sheep taking its full damage under a mob's hit and a player's
       - kind: attestation
         ref: src/protection.ts
-        note: the set is a frozen module constant with the prefixed ids, and nothing configures it
+        note: the set is a module constant of the four prefixed ids, and nothing configures it
   - claim: d-itt177wv # the manifest declares the versions the design was measured against
     covered_by:
       - kind: manual-check
@@ -258,6 +271,19 @@ coverage:
           the package's `@minecraft/server` devDependency is the monorepo catalogue's 2.8.0, so what
           the pack compiles against and what its manifest declares are the same version
   # ---- decisions, increment 005 ----
+  - claim: d-qgpu7qp0 # the pack leaves an iron golem's retaliation alone
+    covered_by:
+      - kind: manual-check
+        ref: ISSUES.md
+        note: >
+          the pack sends no entity event and subscribes no arrival signal, so a golem's targeting is
+          untouched; the probe's numbers and the reason the remedy was not taken are stated in
+          ISSUES.md and linked from the README beside the promise the limit breaks
+      - kind: attestation
+        ref: src/protection.ts
+        note: >
+          `installProtection` is the two `entityHurt` subscriptions and nothing else — no
+          `entitySpawn`, no `entityLoad`, no `triggerEvent`
   - claim: d-iphqrkzm # the restore is a second subscription, and it splits the hit the same way
     covered_by:
       - kind: code-test

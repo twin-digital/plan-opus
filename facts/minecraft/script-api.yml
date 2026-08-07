@@ -2760,3 +2760,99 @@ facts:
       - run: gap-probe-hazard
         where: "`shipped-pack-hazard` — suffocation under a 0.5 clamp"
         quote: "[2026-08-07 02:09:02:845 WARN] [Scripting] [vggap] shipped-pack-hazard :: [clamp-0.5/suffocation] teleport=true placed-at=(169.5,100,176.5) hits-seen=715 restores=51 health(number:20 -> number:20) lowest-sampled=number:20 died=0 subject-alive=true threw=0 first-hits=[suffocation@2->clamp, suffocation@1.5->clamp, suffocation@1.5->clamp] verdict=SURVIVED-THE-HAZARD"
+
+  # Facts from the village-guard golem probe (Bedrock 1.26.40.8, @minecraft/server 2.8.0), recorded
+  # in evidence/minecraft/script-api/golem-probe/RESULTS.md. An iron golem carries no anger
+  # component: retaliation is `minecraft:behavior.hurt_by_target`, gated by a family filter.
+
+  - id: cancelling-a-hit-does-not-stop-an-iron-golems-retaliation
+    claim: |
+      An iron golem targets whoever swung at it whether or not the hit was cancelled. A
+      player-family attacker landed 23 hits on a golem whose `entityHurt` event the handler
+      cancelled: the golem ended the window at full health, so the cancel took, and it struck back
+      24 times, first at tick 35. The engine reads the attempt rather than the damage.
+    caveat: |
+      The attacker is a probe entity carrying the named `type_family`, not a client-driven player.
+      What this shows is what the engine does with a hit whose source carries that family; nothing
+      here shows a real player's swing takes the same path.
+    backing: tested
+    sources:
+      - run: golem-probe-aggro
+        where: "`aggro` — a player-family attacker whose hit is cancelled"
+        quote: "[2026-08-07 15:12:23:462 WARN] [Scripting] [vggolem] aggro :: [player/cancel] attacker=vgprobe:swinger_player treat=cancel from_player=null hits-on-golem=23 golem-health=number:100 golem-alive=true attacker-health=number:55 attacker-alive=true closest=0.137 strikes-by-golem=24 first-strike-tick=35 triggers=[] first-hits-on-golem=[entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player] first-strikes=[vgprobe:swinger_player@14, vgprobe:swinger_player@17, vgprobe:swinger_player@18, vgprobe:swinger_player@15] verdict=GOLEM-RETALIATED"
+
+  - id: an-iron-golems-retaliation-is-gated-by-its-family-filter
+    claim: |
+      Whether an iron golem retaliates turns on the attacker's `type_family`, not on the damage
+      taken. Vanilla `iron_golem.json` gates `minecraft:behavior.hurt_by_target` on
+      `entity_types: is_family != creeper`, and the engine honours it: a creeper-family attacker
+      landed 13 uncancelled hits, taking the golem from 100 health to 61, and drew 0 strikes — while
+      a player-family attacker drew 24 with no damage dealt at all.
+    caveat: |
+      The attacker is a probe entity carrying the named `type_family`, not a client-driven player.
+      What this shows is what the engine does with a hit whose source carries that family; nothing
+      here shows a real player's swing takes the same path.
+    backing: tested
+    sources:
+      - run: golem-probe-aggro
+        where: "`aggro` — a creeper-family attacker dealing real damage"
+        quote: "[2026-08-07 15:13:15:662 WARN] [Scripting] [vggolem] aggro :: [creeper/none] attacker=vgprobe:swinger_creeper treat=none from_player=null hits-on-golem=13 golem-health=number:61 golem-alive=true attacker-health=number:400 attacker-alive=true closest=0.037 strikes-by-golem=0 first-strike-tick=-1 triggers=[] first-hits-on-golem=[entityAttack@3<-vgprobe:swinger_creeper, entityAttack@3<-vgprobe:swinger_creeper, entityAttack@3<-vgprobe:swinger_creeper, entityAttack@3<-vgprobe:swinger_creeper] first-strikes=[] verdict=GOLEM-DID-NOT-RETALIATE"
+
+  - id: trigger-event-throws-in-a-before-event-handler
+    claim: |
+      `Entity.triggerEvent` cannot be called from a `beforeEvents` handler: it throws
+      `ReferenceError: Native function [Entity::triggerEvent] cannot be used in restricted
+      execution.` The before-event callback runs with restricted-execution privilege, so an entity
+      event is not a lever available while a hit is being decided.
+    backing: tested
+    sources:
+      - run: golem-probe-fromplayer
+        where: "`fromplayer` — triggering the event from inside the before-event handler"
+        quote: "[2026-08-07 15:16:49:335 WARN] [Scripting] [vggolem] from-player :: [in-handler/player/cancel] attacker=vgprobe:swinger_player treat=cancel from_player=string:first-hit:threw ReferenceError: Native function [Entity::triggerEvent] cannot be used in restricted execution. hits-on-golem=23 golem-health=number:100 golem-alive=true attacker-health=number:81 attacker-alive=true closest=0.083 strikes-by-golem=23 first-strike-tick=40 triggers=[] first-hits-on-golem=[entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player] first-strikes=[vgprobe:swinger_player@21, vgprobe:swinger_player@11, vgprobe:swinger_player@12, vgprobe:swinger_player@20] verdict=GOLEM-RETALIATED"
+
+  - id: from-player-prevents-an-iron-golems-target-but-does-not-clear-one
+    claim: |
+      Sending an iron golem `minecraft:from_player` before it is hit prevents the retaliation
+      entirely — 25 hits from a player-family attacker drew 0 strikes. Sending the same event to a
+      golem that has already taken a hit does not calm it: the strike cadence is a flat 20 ticks and
+      runs straight through the moment the event is applied, 28 strikes in the window with 5 of them
+      before the apply.
+
+      So the event swaps the behaviour's filter for one that excludes the player family; it does not
+      touch a target already chosen. Deferring it a single tick from the first hit is therefore a
+      race, and it loses: three runs of that one shape gave 29 strikes, 0 strikes and 23 strikes.
+    caveat: |
+      The attacker is a probe entity carrying the named `type_family`, not a client-driven player.
+      What this shows is what the engine does with a hit whose source carries that family; nothing
+      here shows a real player's swing takes the same path.
+    backing: tested
+    sources:
+      - run: golem-probe-timing
+        where: "`timing` — the event sent at spawn, ahead of every hit"
+        quote: "[2026-08-07 15:22:02:278 WARN] [Scripting] [vggolem] timing :: [spawn] attacker=vgprobe:swinger_player treat=cancel from_player=string:spawn:ok hits-on-golem=25 golem-health=number:100 golem-alive=true attacker-health=number:400 attacker-alive=true closest=0.01 strikes-by-golem=0 first-strike-tick=-1 strike-ticks=[] triggers=[minecraft:from_player] first-hits-on-golem=[entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player] first-strikes=[] verdict=GOLEM-DID-NOT-RETALIATE"
+      - run: golem-probe-timing
+        where: "`timing` — the same event sent at tick 120 to an already-angry golem"
+        quote: "[2026-08-07 15:24:04:933 WARN] [Scripting] [vggolem] timing :: [apply@120] attacker=vgprobe:swinger_player treat=cancel from_player=string:tick120:ok hits-on-golem=12 golem-health=number:100 golem-alive=true attacker-health=number:7 attacker-alive=true closest=0.053 strikes-by-golem=28 strikes-before-apply=5 first-strike-tick=30 strike-ticks=[30 50 70 90 110 140 160 180 200 220 240 260 280 300 320 340 360 380 400 420 440 460 480 500 520 540 560 580] triggers=[minecraft:from_player] first-hits-on-golem=[entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player] first-strikes=[vgprobe:swinger_player@18, vgprobe:swinger_player@7, vgprobe:swinger_player@19, vgprobe:swinger_player@9] verdict=GOLEM-RETALIATED"
+      - run: golem-probe-timing
+        where: "`timing` — the event deferred one tick from the first hit, losing the race"
+        quote: "[2026-08-07 15:22:33:383 WARN] [Scripting] [vggolem] timing :: [defer-first-hit/a] attacker=vgprobe:swinger_player treat=cancel from_player=string:first-hit:deferred:ok hits-on-golem=9 golem-health=number:100 golem-alive=true attacker-health=number:0 attacker-alive=true closest=0.068 strikes-by-golem=29 first-strike-tick=25 strike-ticks=[25 45 65 85 105 125 150 170 190 210 230 250 270 290 310 330 350 370 390 410 430 450 470 490 510 530 550 570 590] triggers=[minecraft:from_player] first-hits-on-golem=[entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player] first-strikes=[vgprobe:swinger_player@15, vgprobe:swinger_player@12, vgprobe:swinger_player@19, vgprobe:swinger_player@16] verdict=GOLEM-RETALIATED"
+
+  - id: enrolling-a-golem-on-arrival-stops-only-the-player-lane
+    claim: |
+      Sending `minecraft:from_player` to an iron golem as it arrives — through `entitySpawn` and
+      `entityLoad` — stops a player-family attacker drawing any retaliation at all, and leaves every
+      other attacker's alone: an enrolled golem drew 0 strikes from 12 player-family hits, and killed
+      a zombie that struck it. The exclusion the event installs is specific to the player family
+      rather than a general calm.
+    caveat: |
+      The attacker is a probe entity carrying the named `type_family`, not a client-driven player.
+      What this shows is what the engine does with a hit whose source carries that family; nothing
+      here shows a real player's swing takes the same path.
+    backing: tested
+    sources:
+      - run: golem-probe-enrol
+        where: "`enrol` — an enrolled golem under a player-family attacker"
+        quote: "[2026-08-07 15:26:49:399 WARN] [Scripting] [vggolem] enrol :: [enrolled/player/cancel] attacker=vgprobe:swinger_player treat=cancel from_player=null hits-on-golem=12 golem-health=number:100 golem-alive=true attacker-health=number:400 attacker-alive=true closest=0.033 strikes-by-golem=0 first-strike-tick=-1 strike-ticks=[] triggers=[] first-hits-on-golem=[entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player] first-strikes=[] verdict=GOLEM-DID-NOT-RETALIATE"
+      - run: golem-probe-enrol
+        where: "`enrol` — the same enrolled golem against a zombie"
+        quote: "[2026-08-07 15:27:19:849 WARN] [Scripting] [vggolem] enrol :: [enrolled/zombie/clamp0] attacker=minecraft:zombie treat=clamp0 from_player=null hits-on-golem=5 golem-health=number:100 golem-alive=true attacker-health=undefined attacker-alive=false closest=1.026 strikes-by-golem=2 first-strike-tick=15 strike-ticks=[15 35] triggers=[] first-hits-on-golem=[entityAttack@3<-minecraft:zombie, fireTick@1<-none, entityAttack@3<-minecraft:zombie, fireTick@1<-none] first-strikes=[minecraft:zombie@9.824, minecraft:zombie@11.792] verdict=GOLEM-RETALIATED"
