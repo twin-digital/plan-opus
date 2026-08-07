@@ -1,0 +1,54 @@
+version: "1"
+
+requirements:
+  - id: r-1698i3qa
+    title: one step's failure does not cost the rest
+    statement: |
+      where one step of a message's triage fails, the steps that do not depend on it still run, and
+      what they produced is kept. A triage that partly succeeded is recorded as such rather than
+      discarded.
+    verification:
+      - do: run a triage in which one step fails and another step, independent of it, succeeds
+      - verify: the independent step's output is kept, and the message's record shows the triage as neither wholly successful nor wholly failed
+
+  - id: r-zagpfz75
+    title: re-examining a message never repeats an outside effect
+    statement: |
+      a message may be triaged again at any time, and doing so never repeats an effect grinbox
+      already had outside itself on that message.
+    verification:
+      - do: triage a message so that an outside effect fires, then triage the same message again
+      - verify: the effect fires once, and the second triage's record shows the repeat attempt as capped rather than as an error
+
+  - id: r-p5jm5559
+    title: a step reaches only what it declared
+    statement: |
+      a step of a triage can reach outside grinbox only through the operations it declared, and
+      declaring an operation is what makes it reachable.
+    rationale: |
+      The declaration is where the caps are enforced, so an operation reachable without being
+      declared is one nothing meters and nothing caps — the backstop would have a hole exactly
+      where a mistake reaches for it. Without confinement, what an operator can do to the user's
+      mailbox is answered by reading its code rather than its declaration.
+    verification:
+      - do: take a step that declares one operation, and try to invoke an operation it did not declare
+      - verify: the undeclared operation is not there to be invoked
+
+  - id: r-qu9y7wgg
+    title: a configuration that could not run is refused when it is saved
+    statement: |
+      a triage configuration that could not run — one whose steps depend on something nothing
+      produces, that depends on itself, or that has two steps claiming the same output — is
+      rejected when the user saves it, naming what is wrong, rather than accepted and found broken
+      when mail arrives.
+    verification:
+      - do: save a configuration in which one step consumes an output no step produces
+      - verify: the save is refused and says which output has no producer
+      - do: save a configuration in which two steps claim the same output
+      - verify: the save is refused and names the contested output
+
+  - id: r-63vrxr22
+    title: mail arriving is what drives triage
+    statement: |
+      grinbox triages a message because the message arrived or because the user asked for it
+      again. Nothing else starts a triage, and no triage waits on the user to advance it.
