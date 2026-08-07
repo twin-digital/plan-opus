@@ -114,8 +114,9 @@ decisions:
     title: deployer-managed secrets are configuration; runtime-managed ones are state
     statement: |
       grinbox's secrets divide by who obtains them. Those identifying the application itself — the
-      key above, the mail provider's client secret, the model service's credential — reach grinbox
-      as deployment configuration and are never written into its state. Those the user obtains
+      key its stored credentials are encrypted under, the mail provider's client secret, the model
+      service's credential — reach grinbox as deployment configuration and are never written into
+      its state. Those the user obtains
       through grinbox — a mailbox's tokens, a notification service's key — live in the state,
       encrypted, and never reach the deployment.
     status: proposed
