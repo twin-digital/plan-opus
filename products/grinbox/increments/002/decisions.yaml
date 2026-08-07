@@ -9,7 +9,7 @@ decisions:
       enqueues, runs, settles, and records against: every tag produced, every operation attempted,
       and the outcome all belong to a triage. A message may be triaged more than once — when it
       arrives, and again whenever the user asks — and each of those is its own triage.
-    status: proposed
+    status: accepted
     because:
       - r-0lg2c2e4
       - r-63vrxr22
@@ -44,7 +44,7 @@ decisions:
       code, and is not stored alongside that configuration. A resource declaration is fixed by the
       type; inputs and outputs follow from what the configuration names, including the tags a gate
       or a template reads.
-    status: proposed
+    status: delegated
     because:
       - d-eme4ratv
       - r-qu9y7wgg
@@ -62,7 +62,7 @@ decisions:
       value — text, money, or a date — normalized by grinbox rather than by the producer, in which
       case a value that fails normalization drops the tag. An extracted output may be absent, so it
       cannot be what another step gates on.
-    status: proposed
+    status: accepted
     because:
       - d-eme4ratv
     pinned:
@@ -78,7 +78,7 @@ decisions:
       execution order is derived: an operator runs once every input tag key it declares is present
       on the current triage. The user never states an order, and the graph that results — producers
       to consumers, by tag key — is what the runtime follows.
-    status: proposed
+    status: accepted
     because:
       - d-52lhql7t
       - r-qu9y7wgg
@@ -107,7 +107,7 @@ decisions:
       operations all fail the save. What runs when mail arrives is a light recheck that the
       configuration is still runnable at all, and a triage whose pipeline no longer is is recorded
       as failed rather than run partway.
-    status: proposed
+    status: accepted
     because:
       - r-qu9y7wgg
       - d-2gyfmt8m
@@ -121,7 +121,7 @@ decisions:
       re-triage starts from an empty tag set and every operator evaluates afresh. What the user is
       shown as the message's current tags is the output of its latest settled triage in full,
       never a mixture of two.
-    status: proposed
+    status: accepted
     because:
       - d-eme4ratv
       - r-zagpfz75
@@ -138,7 +138,7 @@ decisions:
       configuration in force at that moment; the run executes against that snapshot. Editing an
       operator therefore never changes a triage already in flight, and a historical outcome
       resolves to the exact configuration that produced it.
-    status: proposed
+    status: accepted
     because:
       - r-zagpfz75
       - d-52lhql7t
@@ -155,7 +155,7 @@ decisions:
       as an input are skipped — the input will never arrive — and operators independent of it run
       normally. A triage in which anything failed or was skipped settles as partial; the whole
       triage is recorded as failed only where the runtime itself could not settle it.
-    status: proposed
+    status: accepted
     because:
       - r-1698i3qa
       - d-2gyfmt8m
@@ -167,7 +167,7 @@ decisions:
       a failed operator is not retried within its triage. The next triage of that message — the
       user's replay, or the next arrival — is the fresh attempt, and it is safe to take because
       re-triage cannot repeat an outside effect.
-    status: proposed
+    status: tolerated
     because:
       - r-zagpfz75
       - d-16geyxco
@@ -181,7 +181,7 @@ decisions:
       of resources. An operator is handed, per declared resource, a client exposing exactly the
       operations it declared: an undeclared operation is not a method on what it holds, so
       confinement is by construction rather than by check.
-    status: proposed
+    status: accepted
     because:
       - r-p5jm5559
       - d-52lhql7t
@@ -197,7 +197,7 @@ decisions:
       single message. Limits are checked before the operation reaches the outside service and are
       not configurable per operator; the per-message scope is what makes re-triage safe, since the
       counter is already spent.
-    status: proposed
+    status: accepted
     because:
       - r-zagpfz75
       - d-v5zamgjn
@@ -213,7 +213,7 @@ decisions:
       an operation that a limit denies returns a distinguishable outcome — capped, as against
       succeeded or failed — and the operator chooses what to make of it, most treating it as a
       clean no-op. Every attempt, whichever way it went, is recorded against the run that made it.
-    status: proposed
+    status: accepted
     because:
       - d-isyan49o
       - r-1698i3qa
