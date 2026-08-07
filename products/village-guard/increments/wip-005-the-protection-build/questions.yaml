@@ -1,0 +1,23 @@
+version: "1"
+
+questions:
+  - id: q-p5k0t5j0
+    question: |
+      a protected mob already at or below the clamp's own 0.5 health when a hit arrives still dies:
+      the clamped hit reaches the effective minimum, and reaching it is fatal. the restore keeps
+      that unreachable after the pack has seen one hit on the mob, so it is reachable only for a mob
+      already there when the pack starts, or one an operator drove there. sizing the clamp off the
+      mob would close it, and d-jp67dexu — pinned — forbids the handler reading anything while it
+      runs. is the gap accepted, or does the clamp get to read the mob's health?
+    answer: decision
+    facets: pack-runtime
+
+  - id: q-0ubcbkn5
+    question: |
+      does `beforeEvents.entityHurt` fire for drowning and suffocation? the protection probe drove
+      five routes and neither was among them — suffocation took no health in any run, and drowning
+      was not attempted — while r-pe87rfqq names both as harms the pack must stop. the pack treats
+      every non-operator cause alike, so if the event is raised the protection holds, and if it is
+      not the mob drowns or suffocates with the pack installed. measuring it needs a live server.
+    answer: fact
+    facets: pack-runtime

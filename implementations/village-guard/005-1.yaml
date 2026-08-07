@@ -1,0 +1,244 @@
+version: "1"
+product: village-guard
+target: 5
+built_at: 2026-08-07
+packages:
+  - path: nodejs/minecraft/village-guard
+    version: 0.2.0
+coverage:
+  # ---- requirements, increment 001 ----
+  - claim: r-1nxm8bg4 # the whole village is protected
+    covered_by:
+      - kind: code-test
+        ref: src/protection.test.ts
+        note: >
+          `describe('the protected set')` — each of the three types survives a lethal hit at full
+          health, a mob created after `installProtection` is protected, and a mob in the overworld,
+          the nether and the end alike
+      - kind: attestation
+        ref: src/protection.ts
+        note: >
+          the pack reads no configuration and offers no exclusion: the protected set is a module
+          constant, and the pack ships no functions, no commands and no dynamic properties
+  - claim: r-9gw909jf # protected villagers are not converted
+    covered_by:
+      - kind: code-test
+        ref: src/protection.test.ts
+        note: >
+          `'does not let the losses accumulate under sustained attack'` — two hundred lethal zombie
+          hits leave the villager valid at full health
+      - kind: attestation
+        ref: src/protection.ts
+        note: >
+          conversion rides on the killing blow, so not dying is not converting; conversion itself is
+          not on the script API and the test lib models none, so what was verified is the
+          entailment, not conversion in an engine
+  - claim: r-cizmztsh # installable on any vanilla world
+    covered_by:
+      - kind: manual-check
+        ref:
+          - behavior_pack/manifest.json
+          - package.json
+        note: >
+          ran `pnpm release-assets` and unzipped `.release-assets/village-guard-0.1.0.mcaddon`: one
+          `behavior_pack.mcpack` holding `manifest.json` and `scripts/main.js` at its root, and the
+          manifest declares one dependency — `@minecraft/server` — and no pack dependency
+      - kind: attestation
+        ref: behavior_pack/manifest.json
+        note: >
+          the artifact was not installed into a live Bedrock world: no client and no container
+          runtime in the build environment
+  # ---- requirements, increment 002 ----
+  - claim: r-pe87rfqq # protection survives ordinary play
+    covered_by:
+      - kind: code-test
+        ref: src/protection.test.ts
+        note: >
+          `'survives an ordinary %s'` across entityAttack, fire, fireTick, fall, drowning,
+          suffocation and blockExplosion; the sustained-attack test; and `describe('an operator')`
+          for the carve-out the requirement leaves outside
+      - kind: attestation
+        ref: src/protection.ts
+        note: >
+          nothing the pack does keeps a wandering trader loaded: it holds no reference to any mob,
+          adds no effect, and takes no tick callback. drowning and suffocation are covered against
+          the fakes only — whether the engine raises the before-event for them is q-0ubcbkn5
+  # ---- requirements, increment 004 ----
+  - claim: r-ef113dxi # the pack changes nothing else, and a player's own hit does nothing
+    covered_by:
+      - kind: code-test
+        ref: src/protection.test.ts
+        note: >
+          `describe("a player's own hit")` — melee and projectile both leave health untouched and
+          raise no after-event; `'restores a mob that was already below full health'`; `'still
+          lands, written down to a survivable amount'`; and `'leaves a hit mob carrying no effect,
+          no name tag and no chat output'`
+      - kind: attestation
+        ref: src/protection.ts
+        note: >
+          trading, restocking, breeding, gossip, panic, golem spawning and the client-side flinch
+          are not observable against the fakes; what was verified is that the handlers write only
+          `damage`, `cancel` and `resetToMaxValue()` and touch nothing else about a mob
+  # ---- requirements adopted from minecraft-addon and monorepo-package ----
+  - claim: r-hear6pun # packs unit-test with the shared test lib
+    covered_by:
+      - kind: code-test
+        ref: src/protection.test.ts
+        note: >
+          the suite obtains `@minecraft/server` only through `@twin-digital/minecraft-test-lib`'s
+          `createServer()` — no hand-rolled double, no `vi.mock`, no runner alias of its own
+      - kind: attestation
+        ref: vitest.config.ts
+        note: the generated config adds no module mapping for `@minecraft/server`
+  - claim: r-cyd08e6q # packs are built by the dev kit
+    covered_by:
+      - kind: manual-check
+        ref:
+          - tsdown.config.d/minecraft-pack.ts
+          - tsdown.config.ts
+          - package.json
+        note: >
+          the fragment is `packBuild(...)` and nothing else, merged over repo-kit's generated base;
+          `build` and `watch` are the shared scripts around tsdown and CI's `turbo run build`
+          reaches the same script. ran the build and read `dist/behavior_pack/` — completed manifest
+          and one ESM chunk with `@minecraft/server` left external
+      - kind: attestation
+        ref: tsdown.config.d/minecraft-pack.ts
+        note: the package defines no bundling of its own, and no build route bypasses the kit
+  - claim: r-w2vh7olv # a pack does not deliver itself
+    covered_by:
+      - kind: manual-check
+        ref: package.json
+        note: >
+          `release-assets` is the kit's own `mc-pack-archive`; the package is private and carries no
+          publish, deploy or upload script
+      - kind: attestation
+        ref: package.json
+        note: the pack publishes and deploys nothing directly
+  - claim: r-992moral # packs run against the dev server
+    covered_by:
+      - kind: manual-check
+        ref: package.json
+        note: >
+          `dev` is `minecraft-server start` and `dev:stop` is `minecraft-server stop`;
+          `pnpm exec minecraft-server --version` resolves to the workspace's dev server, and the
+          kit's `discoverPacks()` reports this pack valid, which is what the dev server deploys from
+      - kind: attestation
+        ref: package.json
+        note: >
+          the package holds no server, container, world or activation file of its own. a server was
+          not brought up: no container runtime in the build environment
+  - claim: r-82ck2fax # package config is repo-kit managed
+    covered_by:
+      - kind: manual-check
+        ref:
+          - package.json
+          - tsconfig.json
+          - tsconfig.build.json
+          - eslint.config.js
+          - vitest.config.ts
+          - tsdown.config.ts
+        note: >
+          every one of these is what `pnpm sync` writes; re-running it against the merged tree
+          leaves it clean. the package's one exception — the `package-manifest` rule, which would
+          re-add library `files` and a `./*` export wildcard to a pack that publishes no library
+          surface — is declared in the monorepo's own `.repo-kit.yml`
+      - kind: attestation
+        ref: package.json
+        note: >
+          what is hand-written in the package is its identity, its scripts' pack-specific entries
+          and its two pack-specific dependencies — no bundler, TypeScript, lint or script
+          configuration
+  # ---- decisions, increment 004 ----
+  - claim: d-issr5yjc # village-guard ships as one behavior pack
+    covered_by:
+      - kind: manual-check
+        ref:
+          - package.json
+          - behavior_pack/manifest.json
+        note: >
+          `@twin-digital/village-guard` at `nodejs/minecraft/village-guard`, one behavior pack, and
+          the release artifact is the `.mcaddon` the kit archives
+      - kind: attestation
+        ref: package.json
+        note: >
+          the manifest declares no `exports` and no `files`, so the package exposes no library
+          surface
+  - claim: d-jp67dexu # a mob's hit is clamped, a player's is cancelled, an operator's lands
+    covered_by:
+      - kind: code-test
+        ref: src/protection.test.ts
+        note: >
+          `describe('a hit no player dealt')` — clamped to 0.5, restored, and never written up;
+          `describe("a player's own hit")` — cancelled in melee and by a loosed projectile alike;
+          `describe('an operator')` — `kill()`, `override` and `selfDestruct` all land. the mob
+          carries no effect afterwards, so nothing was made invulnerable
+      - kind: attestation
+        ref: src/protection.ts
+        note: >
+          the split reads the hit's `damageSource` and the clamp is a module constant, so the
+          handler reads nothing off the mob while it runs
+  - claim: d-8b5m52it # the event subscription is the enrollment
+    covered_by:
+      - kind: code-test
+        ref: src/protection.test.ts
+        note: >
+          `'runs nothing on a schedule: an untouched mob keeps whatever health it has'` — two
+          hundred ticks change nothing and raise no event; `'protects a mob that arrives after the
+          subscriptions were taken'`
+      - kind: attestation
+        ref: src/protection.ts
+        note: >
+          `installProtection` is subscriptions and no state: no registry, no dimension scan, no
+          arrival tracking, no periodic sweep. it is called at module scope, so the subscriptions
+          stand while the script evaluates
+  - claim: d-6lbml4g9 # the protected set is three vanilla type ids
+    covered_by:
+      - kind: code-test
+        ref: src/protection.test.ts
+        note: >
+          the three-type parametrised test, plus `'leaves a mob outside the set to die'` and `'is
+          left alone on a mob outside the set'` — a sheep takes its full damage under a mob's hit
+          and a player's alike
+      - kind: attestation
+        ref: src/protection.ts
+        note: the set is a frozen module constant with the prefixed ids, and nothing configures it
+  - claim: d-itt177wv # the manifest declares the versions the design was measured against
+    covered_by:
+      - kind: manual-check
+        ref: behavior_pack/manifest.json
+        note: >
+          the source manifest declares `@minecraft/server` 2.8.0 and a `min_engine_version` on the
+          1.26 line; read again in `dist/behavior_pack/manifest.json` after the kit completed it
+      - kind: attestation
+        ref: package.json
+        note: >
+          the package's `@minecraft/server` devDependency is the monorepo catalogue's 2.8.0, so what
+          the pack compiles against and what its manifest declares are the same version
+  # ---- decisions, increment 005 ----
+  - claim: d-iphqrkzm # the restore is a second subscription, and it splits the hit the same way
+    covered_by:
+      - kind: code-test
+        ref: src/protection.test.ts
+        note: >
+          `'restores a mob that was already below full health'` and the sustained-attack test show
+          the restore; `describe('an operator')` shows the after handler splitting again — `kill()`
+          leaves the mob at zero rather than restored; the player tests show no after-event arriving
+          for a cancelled hit
+      - kind: attestation
+        ref: src/protection.ts
+        note: >
+          the two subscriptions are taken together in `installProtection`, and both call the same
+          `treat` function on the hit
+  - claim: d-9looc2q2 # the manifest's engine floor is the 1.26 line itself
+    covered_by:
+      - kind: manual-check
+        ref: behavior_pack/manifest.json
+        note: >
+          `min_engine_version` reads `[1, 26, 0]` in the source manifest and in the completed one
+          the build writes
+      - kind: attestation
+        ref: behavior_pack/manifest.json
+        note: >
+          the engine's own refusal of an undeclarable `@minecraft/server` 2.8.0 is what gates an
+          unsuitable engine; the floor names the line and narrows nothing further

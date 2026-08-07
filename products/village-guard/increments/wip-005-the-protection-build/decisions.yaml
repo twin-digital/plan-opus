@@ -1,0 +1,43 @@
+version: "1"
+
+decisions:
+  # how protection works
+  - id: d-iphqrkzm
+    title: the restore is a second subscription, and it splits the hit the same way
+    statement: |
+      the pack takes two world-wide `entityHurt` subscriptions rather than one. the before-event
+      writes the hit down; `afterEvents.entityHurt` restores the mob to full health. the
+      before-event cannot restore, because the damage it is shown has not landed yet, and the
+      after-event is delivered inside the same tick, so the restore lands in the tick d-jp67dexu
+      names.
+
+      the after handler applies the same three-way split as the before handler rather than restoring
+      whatever it is handed. `kill()` raises the after-event under cause `selfDestruct`, so a
+      restore that did not split again would undo an operator's removal. a cancelled hit raises no
+      after-event, so a player's hit never reaches the after handler at all.
+    status: proposed
+    pinned: false
+    because:
+      - d-jp67dexu
+      - d-8b5m52it
+      - f:after-event-deferral-subtick
+      - f:kill-and-remove-cascades
+      - f:a-damage-clamp-without-a-restore-still-kills
+      - f:cancelled-call-return-values-observed
+    facets: pack-runtime
+
+  # what ships
+  - id: d-9looc2q2
+    title: the manifest's engine floor is the 1.26 line itself
+    statement: |
+      the pack's `min_engine_version` is `1.26.0` — the bottom of the line d-itt177wv fixes the
+      floor to, rather than a patch version inside it.
+    status: proposed
+    pinned:
+      reason: other
+      notes: >-
+        it decides which worlds accept the pack, which is the reason d-itt177wv is pinned.
+    because:
+      - d-itt177wv
+      - r-cizmztsh
+    facets: packaging
