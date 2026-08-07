@@ -7,9 +7,6 @@ requirements:
       no effect grinbox has on the user's mailbox deletes a message, hides it from search, or
       removes metadata the user or anyone else put there. Taking a message out of the inbox leaves
       it findable and leaves everything else about it intact.
-    rationale: |
-      Grinbox acts on mail unattended and at volume, so a mistake it makes is discovered late; the
-      only tolerable mistakes are the ones the user can still undo by hand.
     verification:
       - do: let grinbox take a message out of the inbox and categorize another
       - verify: both messages are still findable by search, and neither has lost metadata it had before
@@ -17,13 +14,14 @@ requirements:
   - id: r-xy0yd2nh
     title: routing mail never requires a model
     statement: |
-      a user can route their mail on rules alone: whatever grinbox can decide about a message with
-      a model, it can also be configured to decide deterministically from the message and from
-      what earlier steps concluded.
-    rationale: |
-      A model call costs money on every message and answers differently on two identical runs.
-      Deterministic routing is what makes a class of mail reproducibly handled, and what a user
-      falls back to when a model's judgement proves unreliable.
+      grinbox can route a message without calling a model: what a pipeline decides can be
+      configured to depend only on the message itself and on what earlier steps recorded.
+
+  - id: r-ut5mdtpx
+    title: what a user configures is never executed as code
+    statement: |
+      nothing a user writes into grinbox's configuration is executed as program code. Grinbox
+      reads and evaluates what the user wrote itself, and hands none of it to a language runtime.
 
   - id: r-sfvm6ib3
     title: the whole message is available without asking for it
