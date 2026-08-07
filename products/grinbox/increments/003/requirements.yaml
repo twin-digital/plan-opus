@@ -1,0 +1,40 @@
+version: "1"
+
+requirements:
+  - id: r-ziitim35
+    title: nothing grinbox does to a mailbox loses mail
+    statement: |
+      no effect grinbox has on the user's mailbox deletes a message, hides it from search, or
+      removes metadata the user or anyone else put there. Taking a message out of the inbox leaves
+      it findable and leaves everything else about it intact.
+    verification:
+      - do: let grinbox take a message out of the inbox and categorize another
+      - verify: both messages are still findable by search, and neither has lost metadata it had before
+
+  - id: r-xy0yd2nh
+    title: routing mail never requires a model
+    statement: |
+      grinbox can route a message without calling a model: what a pipeline decides can be
+      configured to depend only on the message itself and on what earlier steps recorded.
+
+  - id: r-ut5mdtpx
+    title: what a user configures is never executed as code
+    statement: |
+      nothing a user writes into grinbox's configuration is executed as program code. Grinbox
+      reads and evaluates what the user wrote itself, and hands none of it to a language runtime.
+
+  - id: r-sfvm6ib3
+    title: the whole message is available without asking for it
+    statement: |
+      every step of a triage can read any part of the message it is triaging, without having
+      declared which parts it wanted.
+
+  - id: r-5ezt7j0v
+    title: a stored configuration keeps working
+    statement: |
+      a configuration grinbox accepted keeps triaging mail. A later tightening of what grinbox
+      accepts applies to what the user next saves, and does not stop mail being triaged under a
+      configuration already stored.
+    rationale: |
+      Triage runs unattended, so a configuration that begins failing after a deployment fails
+      silently and stays failing until the user happens to look.
