@@ -147,16 +147,17 @@ coverage:
         note: >
           the one command the README documents — `turbo run dev --filter=@twin-digital/village-guard
           -- --accept-eula`, from the repository root — run against a tree with every `dist/` in the
-          chain deleted: turbo built `@twin-digital/mc-dev-kit`, `@twin-digital/mc-dev-server` and
-          the rest, then ran the pack's own `dev`, which is `minecraft-server start`. the pack's
-          scripts are `dev` and `dev:stop`, each the kit's command and nothing else
+          chain deleted and no server running: turbo built `@twin-digital/mc-dev-kit`,
+          `@twin-digital/mc-dev-server` and the rest, then ran the pack's own `dev`, which brought a
+          Bedrock container up and loaded the world with this pack in its pack stack —
+          `Pack Stack - [00] village-guard`, then `Server started`, with the built script behind it
+          rather than a stub. the pack's scripts are `dev` and `dev:stop`, each the kit's command and
+          nothing else
       - kind: attestation
         ref: package.json
         note: >
-          the package holds no server, container, world or activation file of its own. the run above
-          was carried to the point where the harness reaches the Docker daemon and no further: the
-          agent this session holds cannot open a new connection to that host. the owner's own run of
-          the same script brought a server up and activated the pack
+          the package holds no server, container, world or activation file of its own, and nothing
+          was run beside that one command
   - claim: r-82ck2fax # package config is repo-kit managed
     covered_by:
       - kind: manual-check
