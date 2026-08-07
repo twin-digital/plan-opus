@@ -2,6 +2,59 @@ version: "1"
 
 decisions:
   # how protection works
+  - id: d-67dkvr3f
+    title: a mob's hit is written down to zero, a player's is cancelled, an operator's lands
+    statement: |
+      the pack subscribes `world.beforeEvents.entityHurt` and splits each hit three ways, on the
+      hit's `damageSource`.
+
+      a hit whose cause is `selfDestruct` or `override` is left alone entirely. those are the causes
+      the engine gives a deliberate removal rather than gameplay, so an operator keeps the ability
+      to kill a protected mob outright.
+
+      a hit whose `damagingEntity` is a player is cancelled, whether dealt in melee or by a
+      projectile they loosed, so nothing lands and the mob does not react.
+
+      every other hit has its `damage` written down to zero, and the mob is restored to full health
+      in the same tick. the write is a constant rather than a figure read off the mob, so the
+      handler reads nothing while it runs. the restore is what carries a mob that was harmed before
+      the pack first saw a hit on it back to full.
+
+      the constant is zero and not a small survivable amount. a written-down hit reaches the mob at
+      the amount the handler wrote, so any non-zero constant is fatal to a mob whose health is at or
+      below it — and that death is vanilla's entire death, not merely an event: a zombie converts the
+      villager, and the restore runs against a mob that has already gone. zero is the only constant
+      no mob's health can sit below. it does not turn the clamp into a cancel: the engine's knockback
+      is unchanged by the write, so the hit still lands and the mob still reacts.
+
+      the pack never makes a mob invulnerable and adds no effect to a mob.
+    status: proposed
+    supersedes: d-jp67dexu
+    pinned:
+      reason: other
+      notes: >-
+        it fixes what a consumer sees when a zombie strikes a protected mob at low health — the
+        difference between keeping the villager and losing it to conversion.
+    because:
+      - r-pe87rfqq
+      - r-9gw909jf
+      - r-ef113dxi
+      - f:a-clamped-hit-reaching-the-minimum-kills-and-converts
+      - f:a-hit-written-down-to-zero-still-knocks-back
+      - f:a-clamp-and-restore-holds-under-per-tick-damage
+      - f:entity-hurt-before-event-sees-engine-dealt-damage
+      - f:no-damage-cause-names-the-attacker-and-none-names-reputation
+      - f:cancelling-a-players-hit-prevents-the-reputation-change
+      - f:a-damage-clamp-without-a-restore-still-kills
+      - f:a-clamped-hit-knocks-back-and-a-cancelled-one-does-not
+      - f:kill-and-remove-cascades
+      - f:reaching-effective-minimum-is-fatal
+      - f:before-event-field-writes-take-effect
+      - f:health-not-clamped-at-minimum
+      - f:cancelled-call-return-values-observed
+      - f:after-event-deferral-subtick
+    facets: pack-runtime
+
   - id: d-iphqrkzm
     title: the restore is a second subscription, and it splits the hit the same way
     statement: |

@@ -27,12 +27,19 @@ coverage:
         note: >
           `'does not let the losses accumulate under sustained attack'` — two hundred lethal zombie
           hits leave the villager valid at full health
+      - kind: manual-check
+        ref: src/protection.ts
+        note: >
+          the pack's own handler, run against Bedrock 1.26.40.8 with a villager penned against four
+          zombies from 0.5 starting health: no conversion in 3/3 runs across 129, 137 and 133 hits,
+          where an unguarded control at the same health was converted every time.
+          `evidence/minecraft/script-api/gap-probe` in the planning repository
       - kind: attestation
         ref: src/protection.ts
         note: >
-          conversion rides on the killing blow, so not dying is not converting; conversion itself is
-          not on the script API and the test lib models none, so what was verified is the
-          entailment, not conversion in an engine
+          conversion rides on the killing blow, so not dying is not converting. conversion is not on
+          the script API, so the probe counts zombie villagers in the dimension rather than
+          observing the trigger
   - claim: r-cizmztsh # installable on any vanilla world
     covered_by:
       - kind: manual-check
@@ -46,8 +53,9 @@ coverage:
       - kind: attestation
         ref: behavior_pack/manifest.json
         note: >
-          the artifact was not installed into a live Bedrock world: no client and no container
-          runtime in the build environment
+          the release artifact itself was not installed into a world. what was run is the probe
+          pack, hand-installed into a fresh `itzg/minecraft-bedrock-server` world on this manifest's
+          engine line and loading with protection in force
   # ---- requirements, increment 002 ----
   - claim: r-pe87rfqq # protection survives ordinary play
     covered_by:
@@ -57,12 +65,18 @@ coverage:
           `'survives an ordinary %s'` across entityAttack, fire, fireTick, fall, drowning,
           suffocation and blockExplosion; the sustained-attack test; and `describe('an operator')`
           for the carve-out the requirement leaves outside
+      - kind: manual-check
+        ref: src/protection.ts
+        note: >
+          drowning and suffocation, which the fakes cannot decide, measured against Bedrock
+          1.26.40.8: both raise the before-event, and the pack's own handler held a villager at full
+          health through 511 drowning and 715 suffocation deliveries with no death fired.
+          `evidence/minecraft/script-api/gap-probe` in the planning repository
       - kind: attestation
         ref: src/protection.ts
         note: >
           nothing the pack does keeps a wandering trader loaded: it holds no reference to any mob,
-          adds no effect, and takes no tick callback. drowning and suffocation are covered against
-          the fakes only — whether the engine raises the before-event for them is q-0ubcbkn5
+          adds no effect, and takes no tick callback
   # ---- requirements, increment 004 ----
   - claim: r-ef113dxi # the pack changes nothing else, and a player's own hit does nothing
     covered_by:
@@ -71,14 +85,22 @@ coverage:
         note: >
           `describe("a player's own hit")` — melee and projectile both leave health untouched and
           raise no after-event; `'restores a mob that was already below full health'`; `'still
-          lands, written down to a survivable amount'`; and `'leaves a hit mob carrying no effect,
-          no name tag and no chat output'`
+          lands, written down to nothing'`; and `'leaves a hit mob carrying no effect, no name tag
+          and no chat output'`
+      - kind: manual-check
+        ref: src/protection.ts
+        note: >
+          that a written-down hit still lands, measured against Bedrock 1.26.40.8 as the peak speed
+          after a zombie's swing: 0.533-0.700 for a zero write against a vanilla control's
+          0.578-0.693, where a cancelled hit reaches 0.194-0.274.
+          `evidence/minecraft/script-api/gap-probe` in the planning repository
       - kind: attestation
         ref: src/protection.ts
         note: >
-          trading, restocking, breeding, gossip, panic, golem spawning and the client-side flinch
-          are not observable against the fakes; what was verified is that the handlers write only
-          `damage`, `cancel` and `resetToMaxValue()` and touch nothing else about a mob
+          trading, restocking, breeding, gossip and golem spawning are not observable against the
+          fakes and were not observed in an engine; what was verified is that the handlers write
+          only `damage`, `cancel` and `resetToMaxValue()` and touch nothing else about a mob.
+          whether a zero-damage hit still flashes and sounds at a client is q-on6z5pic
   # ---- requirements adopted from minecraft-addon and monorepo-package ----
   - claim: r-hear6pun # packs unit-test with the shared test lib
     covered_by:
@@ -126,8 +148,9 @@ coverage:
       - kind: attestation
         ref: package.json
         note: >
-          the package holds no server, container, world or activation file of its own. a server was
-          not brought up: no container runtime in the build environment
+          the package holds no server, container, world or activation file of its own. the pack's
+          own `dev` script was not run: what brought a Bedrock server up here is the probe harness's
+          compose stack, which is not the route this claim is about
   - claim: r-82ck2fax # package config is repo-kit managed
     covered_by:
       - kind: manual-check
@@ -164,19 +187,28 @@ coverage:
         note: >
           the manifest declares no `exports` and no `files`, so the package exposes no library
           surface
-  - claim: d-jp67dexu # a mob's hit is clamped, a player's is cancelled, an operator's lands
+  - claim: d-67dkvr3f # a mob's hit is written down to zero, a player's is cancelled, an operator's lands
     covered_by:
       - kind: code-test
         ref: src/protection.test.ts
         note: >
-          `describe('a hit no player dealt')` — clamped to 0.5, restored, and never written up;
-          `describe("a player's own hit")` — cancelled in melee and by a loosed projectile alike;
-          `describe('an operator')` — `kill()`, `override` and `selfDestruct` all land. the mob
-          carries no effect afterwards, so nothing was made invulnerable
+          `describe('a hit no player dealt')` — written down to zero, restored, and a mob starting
+          at 0.5 and 0.25 health left alive; `describe("a player's own hit")` — cancelled in melee
+          and by a loosed projectile alike; `describe('an operator')` — `kill()`, `override` and
+          `selfDestruct` all land. the mob carries no effect afterwards, so nothing was made
+          invulnerable
+      - kind: manual-check
+        ref: src/protection.ts
+        note: >
+          the pack's own handler, transcribed into the gap probe and run against Bedrock 1.26.40.8:
+          a villager survived 129, 137 and 133 zombie hits from 0.5 starting health with no death
+          fired, where the same subject under a 0.5 write was converted on the first hit in 3/3
+          runs; and it held at full health through 511 drowning and 715 suffocation deliveries.
+          `evidence/minecraft/script-api/gap-probe` in the planning repository
       - kind: attestation
         ref: src/protection.ts
         note: >
-          the split reads the hit's `damageSource` and the clamp is a module constant, so the
+          the split reads the hit's `damageSource` and the write is a module constant, so the
           handler reads nothing off the mob while it runs
   - claim: d-8b5m52it # the event subscription is the enrollment
     covered_by:

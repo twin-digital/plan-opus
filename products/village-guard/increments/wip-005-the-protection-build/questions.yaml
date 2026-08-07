@@ -1,23 +1,16 @@
 version: "1"
 
 questions:
-  - id: q-p5k0t5j0
+  - id: q-on6z5pic
     question: |
-      a protected mob already at or below the clamp's own 0.5 health when a hit arrives still dies:
-      the clamped hit reaches the effective minimum, and reaching it is fatal. the restore keeps
-      that unreachable after the pack has seen one hit on the mob, so it is reachable only for a mob
-      already there when the pack starts, or one an operator drove there. sizing the clamp off the
-      mob would close it, and d-jp67dexu — pinned — forbids the handler reading anything while it
-      runs. is the gap accepted, or does the clamp get to read the mob's health?
-    answer: decision
-    facets: pack-runtime
-
-  - id: q-0ubcbkn5
-    question: |
-      does `beforeEvents.entityHurt` fire for drowning and suffocation? the protection probe drove
-      five routes and neither was among them — suffocation took no health in any run, and drowning
-      was not attempted — while r-pe87rfqq names both as harms the pack must stop. the pack treats
-      every non-operator cause alike, so if the event is raised the protection holds, and if it is
-      not the mob drowns or suffocates with the pack installed. measuring it needs a live server.
+      does a hit written down to zero still flash the mob and play the hurt sound at a client?
+      r-ef113dxi requires a struck mob to visibly take the hit — flinch, knockback, sound and panic
+      as vanilla would. knockback is measured and unchanged by a zero write
+      (f:a-hit-written-down-to-zero-still-knocks-back), but flinch and sound render on the client and
+      reach no server log. what covers them today is
+      f:a-clamped-hit-is-indistinguishable-from-a-vanilla-one-at-a-client, which the owner observed
+      at a client against a hit written down to 0.5 — not to zero, and the engine may well tie the
+      hurt animation to damage actually taken. answering it needs a client session like the one that
+      recorded that fact.
     answer: fact
     facets: pack-runtime
