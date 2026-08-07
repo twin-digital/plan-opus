@@ -143,15 +143,19 @@ coverage:
       - kind: manual-check
         ref: package.json
         note: >
-          `dev` is `minecraft-server start` and `dev:stop` is `minecraft-server stop`;
-          `pnpm exec minecraft-server --version` resolves to the workspace's dev server, and the
-          kit's `discoverPacks()` reports this pack valid, which is what the dev server deploys from
+          `dev` is `minecraft-server start` and `dev:stop` is `minecraft-server stop`. running it
+          brought a Bedrock server up with this pack in the world's pack stack — but the pack
+          deployed as a stub, because `minecraft-server` runs a pack's own `build` script directly
+          and never builds the workspace dependency that build imports. building the dependencies
+          first (`turbo run build --filter=<pack>^...`) makes the same command produce a real pack.
+          the gap is the harness's and is backlog b-dkr8h9bx
       - kind: attestation
         ref: package.json
         note: >
-          the package holds no server, container, world or activation file of its own. the pack's
-          own `dev` script was not run: what brought a Bedrock server up here is the probe harness's
-          compose stack, which is not the route this claim is about
+          the package holds no server, container, world or activation file of its own, and its `dev`
+          script is the kit's command and nothing else. whether the requirement's "run the pack's
+          dev-server script and nothing else" admits a dependency build the way it admits
+          `pnpm install` is the owner's reading, and is unsettled
   - claim: r-82ck2fax # package config is repo-kit managed
     covered_by:
       - kind: manual-check
