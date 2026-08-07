@@ -1,6 +1,24 @@
 version: "2"
 
 decisions:
+  # the unit
+  - id: d-0t0dnhir
+    title: a triage is one pipeline applied to one message
+    statement: |
+      a triage is one application of a pipeline to one message, and it is the unit grinbox
+      enqueues, runs, settles, and records against: every tag produced, every operation attempted,
+      and the outcome all belong to a triage. A message may be triaged more than once — when it
+      arrives, and again whenever the user asks — and each of those is its own triage.
+    status: proposed
+    because:
+      - r-0lg2c2e4
+      - r-63vrxr22
+    pinned:
+      reason: other
+      notes: |
+        the word the rest of grinbox's foundations are written in, and the unit everything
+        recorded about a message hangs off
+
   # the primitive
   - id: d-eme4ratv
     title: the operator is the only pipeline primitive
