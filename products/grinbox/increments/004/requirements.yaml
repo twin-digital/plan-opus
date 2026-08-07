@@ -20,27 +20,18 @@ requirements:
     statement: |
       the user authorizes a mailbox from grinbox's own interface, and grinbox keeps that
       authorization working from then on without the user returning to it.
-    rationale: |
-      Grinbox is unattended for weeks at a time; an authorization needing a weekly human is an
-      authorization that will lapse.
 
   - id: r-fzuyjkts
     title: an account that stops working says so
     statement: |
       an account whose authorization no longer works is reported to the user as needing their
       attention, and grinbox stops polling it rather than failing against it repeatedly.
-    rationale: |
-      The failure is silent from the user's side — mail simply stops being triaged — so grinbox
-      saying so is the only way they find out before something matters.
 
   - id: r-ls4dvyj7
     title: a restart loses no arrival
     statement: |
       a message that arrived is triaged even where grinbox stopped, at any moment, between
       noticing it and recording it. No arrival is skipped because of a restart.
-    rationale: |
-      Grinbox is the only thing watching, and a message it never saw is one nobody will find
-      later — there is no second pass that catches it.
     verification:
       - do: interrupt grinbox part-way through taking in a batch of new messages, then start it again
       - verify: every message in that batch is triaged, and none is triaged twice
