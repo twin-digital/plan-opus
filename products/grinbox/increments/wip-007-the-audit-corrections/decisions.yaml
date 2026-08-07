@@ -1,0 +1,316 @@
+version: "2"
+
+# What an audit of the code against the fold at 006 found, where the code proved right and the
+# fold wrong or silent. Defects — where the fold is right and the code is not — are not here;
+# they are fixed in the code and change nothing in the design.
+
+decisions:
+  # the mail backend seam
+  - id: d-7a8aoi4z
+    title: a backend is reached through two seams, and the provider is five operations
+    statement: |
+      a mail backend meets grinbox at two places. The provider carries what the poll path needs —
+      enumerating candidate messages, fetching a message's metadata, applying a category,
+      reporting a message's place in its thread, and taking a full snapshot of the mailbox for the
+      reconcile below. The resource backends carry what an operator's declared operations reach:
+      archiving, fetching a body, and sending mail. A backend implements both.
+    status: proposed
+    supersedes: d-yp3tt9zd
+    because:
+      - r-etj0gluz
+      - d-v5zamgjn
+    pinned:
+      reason: public-api
+      notes: |
+        the surface a second backend is written against, which the superseded entry stated as one
+        seam of four operations and which is neither
+
+  - id: d-jeyg1z1r
+    title: a full reconcile heals what the incremental feed missed
+    statement: |
+      grinbox periodically takes a whole-mailbox snapshot per account and reconciles its own
+      record against it, correcting where a message stands on the backend. The incremental feed is
+      what notices arrivals; the reconcile is what corrects drift, and a message's standing may be
+      stale until it runs.
+    status: proposed
+    because:
+      - d-7a8aoi4z
+      - d-8fvu0g4z
+    pinned: false
+
+  - id: d-qwoyio2e
+    title: a candidate grinbox cannot fetch is passed over, and the cursor still advances
+    statement: |
+      where fetching one candidate message fails, grinbox records the failure, leaves that message
+      un-ingested, and advances the cursor with the rest of the cycle. The alternative — holding
+      the cursor — wedges the account behind one unfetchable message. That message is not triaged
+      and no later poll returns to it.
+    status: proposed
+    because:
+      - d-sj4u6eyj
+      - d-8fvu0g4z
+    pinned:
+      reason: other
+      notes: |
+        the one hole in the no-missed-arrival guarantee, and a reimplementation would otherwise
+        read d-sj4u6eyj as absolute
+
+  # polling
+  - id: d-nq4fk2xr
+    title: how often an account is polled is the user's, within bounds grinbox fixes
+    statement: |
+      polling cadence is configured per account by the user, between a floor and a ceiling grinbox
+      fixes. Nothing derives it from the mailbox's rate.
+    status: proposed
+    because:
+      - d-8fvu0g4z
+      - r-0lg2c2e4
+    pinned:
+      reason: public-api
+      notes: |
+        a stored per-account setting the interface exposes, and the ceiling interacts with the
+        arrival-latency requirement
+
+  - id: d-3rav7te6
+    title: the user can force a poll of every account
+    statement: |
+      the interface offers a poll of every eligible account on demand, ignoring each account's
+      cadence. It takes in whatever has arrived, which enqueues triage for it the way an ordinary
+      arrival does; it is not a re-triage of anything already held.
+    status: proposed
+    because:
+      - r-63vrxr22
+      - d-nq4fk2xr
+    pinned: false
+
+  # what grinbox records about a message
+  - id: d-jr86qq8b
+    title: where a message stands on the backend is one of five states
+    statement: |
+      grinbox records a message's standing as present in the inbox, archived out of it, trashed,
+      marked spam, or deleted, and keeps its own record whichever it is. Browsing surfaces filter
+      on that standing and default to showing what is still in the inbox, so a departed message is
+      listed when asked for rather than always.
+    status: proposed
+    supersedes: d-mzr8j0i6
+    because:
+      - r-jje7gb9a
+      - r-ziitim35
+      - d-7a8aoi4z
+    pinned:
+      reason: data-format
+      notes: |
+        the stored vocabulary every browsing surface and the digest's coverage read; the
+        superseded entry recorded two states and promised unconditional listing
+
+  # the HTTP surface
+  - id: d-i6ly6ifk
+    title: a third path answers whether the daemon is alive
+    statement: |
+      beside the API and the browser application's assets, grinbox serves one unauthenticated path
+      reporting that the process is up and what build it is running. It carries nothing about the
+      user's mail.
+    status: proposed
+    because:
+      - d-ti7vexo3
+      - r-ovi02v1m
+    pinned:
+      reason: public-api
+
+  - id: d-mu0k7nbu
+    title: the message browser's contract is paged, ordered newest first, and filtered
+    statement: |
+      listing messages is paged with a caller-supplied window and a bounded page size, ordered by
+      when the mail was received with the newest first and a stable tiebreak, and filtered by
+      account, by pipeline, by standing, by tag, by date, and by a substring search over sender and
+      subject. The page reports the total so a caller can size what it did not fetch.
+    status: proposed
+    because:
+      - d-pk81w5nv
+      - d-ti7vexo3
+    pinned:
+      reason: public-api
+      notes: |
+        every part of it is observable by any client of the API, and a reimplementation must
+        reproduce the ordering to page consistently
+
+  - id: d-1uo9p5wq
+    title: the interface opens on a summary, not on the mail
+    statement: |
+      the interface opens on a summary of what grinbox has been doing — recent volume, what needs
+      attention, and what remains to be set up. The message browser is one area beside it, reached
+      deliberately, and an account is the primary way to narrow that browser.
+    status: proposed
+    supersedes: d-pk81w5nv
+    because:
+      - r-56o7qts0
+      - r-bcbvl9g5
+    pinned: false
+
+  - id: d-npq16z9p
+    title: previewing shows a rule's verdict over recent mail, and covers only rules
+    statement: |
+      the preview a user gets before trusting a change is a draft rule-based tagger evaluated
+      against the tags already recorded for recent messages of the pipeline, reporting what it
+      would conclude for each. It runs no other operator type, reaches nothing outside grinbox,
+      writes nothing, and does not re-run the triage that produced those tags.
+    status: proposed
+    supersedes: d-p28t99vc
+    because:
+      - r-a2qxqnwk
+      - d-imlec3nt
+    pinned:
+      reason: public-api
+      notes: |
+        the superseded entry promised a configuration run against a chosen message, which is a
+        different and much larger surface than what exists
+
+  # operators
+  - id: d-nol93aud
+    title: the body is fetched only when the configuration reads it
+    statement: |
+      a message's body is fetched from the backend only where the operator about to run reads it,
+      determined from that operator's configuration, and is cached on the message once fetched. An
+      operator whose configuration does not mention the body never causes a fetch.
+    status: proposed
+    because:
+      - r-sfvm6ib3
+      - d-v5zamgjn
+    pinned:
+      reason: other
+      notes: |
+        a step's access to the message is meant to need no declaration, so what grinbox infers
+        from a configuration has to cover every way the body can be read
+
+  - id: d-kv9ipb56
+    title: a user picks the model, from a set grinbox ships
+    statement: |
+      an operator that calls a model names which one, chosen from a closed set grinbox ships and
+      offers. Changing that set changes which stored configurations are still valid.
+    status: proposed
+    because:
+      - d-whkazlor
+      - d-qcsxvo18
+    pinned:
+      reason: public-api
+
+  - id: d-5xp2tv2d
+    title: an operator run has a deadline
+    statement: |
+      an operator's run is bounded by a deadline, after which it is abandoned and recorded failed,
+      and the calls it has in flight outside grinbox are cancelled. Its dependents skip as they
+      would on any failure.
+    status: proposed
+    because:
+      - d-16geyxco
+    pinned: false
+
+  - id: d-6fdulczu
+    title: a restart abandons the runs it interrupted
+    statement: |
+      an operator run in flight when grinbox stops is recorded failed on the next start rather
+      than resumed, and its triage settles partial. Nothing re-runs it: the message keeps whatever
+      the triage produced before the interruption until the user asks for a re-triage.
+    status: proposed
+    because:
+      - d-0tebpjex
+      - d-16geyxco
+    pinned: false
+
+  - id: d-3422l6jl
+    title: enabling or disabling an operator is a save, and can be refused
+    statement: |
+      turning an operator on or off is validated like any other change to the pipeline, and is
+      refused where the result could not run — turning off a producer something else depends on,
+      or turning on a second producer of a tag key already claimed.
+    status: proposed
+    because:
+      - d-8y8i45y2
+      - d-2dqylf0q
+      - r-qu9y7wgg
+    pinned: false
+
+  # the digest
+  - id: d-5pdw87zm
+    title: a section may mark the items that pass a threshold
+    statement: |
+      a digest section may name one of its tags and a value, and the items whose tag compares
+      greater are marked in what the user receives. The comparison is over the normalized stored
+      form, so the threshold is written in that form, and the tag must be one whose type orders.
+    status: proposed
+    because:
+      - d-hl6z38i6
+      - d-dmwaark1
+    pinned:
+      reason: public-api
+
+  - id: d-6vnf59rv
+    title: an edition's schedule is a recurrence with an optional zone
+    statement: |
+      an edition's cadence is a recurrence expression with an optional named time zone. With no
+      zone named, both the firing and the dates the digest prints resolve in the zone of the
+      machine grinbox runs on, so moving that machine moves the user's digest.
+    status: proposed
+    because:
+      - d-ocqvnmfm
+    pinned:
+      reason: public-api
+
+  - id: d-85ee8586
+    title: a first delivery covers from the edition's creation
+    statement: |
+      an edition's first delivery covers mail taken in since the edition was created, not the
+      account's held history. Mail that arrived before the edition existed is never digested by it.
+    status: proposed
+    because:
+      - d-jsnfvo0m
+      - d-jbqvsnox
+    pinned:
+      reason: data-format
+
+  - id: d-n75x2w30
+    title: the item bound keeps the oldest mail in the window
+    statement: |
+      where a delivery's item bound cuts, what it shows is the oldest mail in the window and what
+      it counts as overflow is the newest.
+    status: proposed
+    because:
+      - d-z0gmsbkl
+    pinned: false
+
+  # deployment
+  - id: d-qizjjf3n
+    title: the deployment must also keep grinbox off the network it is not on
+    statement: |
+      grinbox itself serves its whole interface on one unauthenticated listener and distinguishes
+      no path by where the request came from. That only one path is publicly reachable is
+      something the deployment does in front of grinbox, and it is a second thing grinbox requires
+      of its deployment beside the reachable redirect.
+    status: proposed
+    supersedes: d-cdwao54j
+    because:
+      - r-ovi02v1m
+      - d-a1pf497w
+      - d-mq7vdduz
+    pinned:
+      reason: other
+      notes: |
+        the superseded entry said grinbox asks exactly one thing of its deployment, and getting
+        the unstated second one wrong exposes an unauthenticated interface
+
+  - id: d-cciox4w5
+    title: the key outliving the machine is the deployment's to arrange
+    statement: |
+      the key grinbox's stored credentials are encrypted under is bound to the host and kept out
+      of the state's backups, so a rebuilt machine cannot read credentials written by the machine
+      it replaced unless the deployment kept that key elsewhere and supplies it again. Grinbox's
+      state surviving a rebuild therefore rests on a custody arrangement outside grinbox.
+    status: proposed
+    because:
+      - d-9hyzpk7j
+      - d-xe41okh9
+      - r-jp85k5ma
+    pinned:
+      reason: other
+      notes: |
+        a requirement of the product turns on a step no part of grinbox performs or can check

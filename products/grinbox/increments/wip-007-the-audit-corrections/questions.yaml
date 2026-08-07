@@ -1,0 +1,22 @@
+version: "1"
+
+questions:
+  - id: q-c4ffnpus
+    question: |
+      r-llrpzkd1 says every outside effect is capped on how often it may happen, and that nothing
+      the user configures can exempt an effect from its cap. The code breaks that three ways, each
+      deliberate: the interface deletes a cap outright and says the operation then runs unbounded;
+      two metered operations ship with no cap at all; and a cap is consumed once per attempt while
+      the attempt may retry up to four times, so a cap of fifty permits two hundred calls. Does the
+      requirement stand as written — making all three defects to fix — or is it amended, and to
+      what?
+    answer: requirement
+
+  - id: q-urj6g53b
+    question: |
+      the notification grinbox sends carries a link into the mail provider's own web client, and
+      the message-detail view carries the same link. r-etj0gluz confines naming a backend to the
+      account a message arrived on. Getting the user back to their mail is worth something; naming
+      one backend everywhere the user looks is what the requirement forbids. Should the link be
+      dropped, or should the requirement admit a backend-supplied link as an exception?
+    answer: requirement
