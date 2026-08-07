@@ -99,8 +99,9 @@ coverage:
         note: >
           trading, restocking, breeding, gossip and golem spawning are not observable against the
           fakes and were not observed in an engine; what was verified is that the handlers write
-          only `damage`, `cancel` and `resetToMaxValue()` and touch nothing else about a mob.
-          whether a zero-damage hit still flashes and sounds at a client is q-on6z5pic
+          only `damage`, `cancel` and `resetToMaxValue()` and touch nothing else about a mob. the
+          knockback a zero write leaves is measured; the flinch and the hurt sound render at a
+          client and are not, and the owner ruled that an accepted risk — backlog b-myudtbdv
   # ---- requirements adopted from minecraft-addon and monorepo-package ----
   - claim: r-hear6pun # packs unit-test with the shared test lib
     covered_by:
