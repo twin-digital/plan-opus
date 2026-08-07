@@ -4,6 +4,23 @@
 
 version: "1"
 facts:
+  - id: opus-workspace-members-sit-two-levels-under-nodejs
+    claim: |
+      The opus monorepo's workspace members are whatever matches `nodejs/*/*`, plus the two named
+      `tooling/` paths. A package there sits exactly two levels under `nodejs/` — a group
+      directory, then the package — and a directory nested deeper than that is not a workspace
+      member, since neither `*` crosses a path separator. An application wanting several packages
+      of its own therefore gets a group directory holding them, not a tree beneath one package.
+    backing: documented
+    sources:
+      - url: https://github.com/twin-digital/opus/blob/a18908f1808750128c75c8e7cd9280181b6b4156/pnpm-workspace.yaml
+        where: packages — the workspace's member patterns
+        quote: |
+          packages:
+            - nodejs/*/*
+            - tooling/scripts
+            - tooling/renovate-tools
+
   - id: opus-package-config-is-generated-from-one-root-file
     claim: |
       In the opus monorepo a package's shared configuration is not written in the package. It is
