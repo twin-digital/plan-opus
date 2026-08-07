@@ -3,25 +3,38 @@ tags:
   - dev-loop
 ---
 
-# minecraft-server deploys a pack as a stub and reports it live
+# a stub deploy is permanent: the reconcile compares file names, never content
 
-`minecraft-server start` runs each selected pack's own `build` script directly (`runBuild` in
-`src/package-scripts/scripts.ts` shells out to `<manager> run build` in the package directory),
-outside the workspace's task graph. When that build fails, the loop carries on and deploys whatever
-is on disk:
+When a pack's build fails, `minecraft-server` deploys a stub in its place and carries on, reporting
+the pack in the world's pack stack:
 
     [deploy] @twin-digital/village-guard: nothing built at .../dist/behavior_pack; deployed as a stub
 
-The world then loads with the pack in its pack stack and no script behind it, which reads as success
-in the log — an author sees `Pack Stack - [00] village-guard` and no protection in the world.
-Observed 2026-08-07 on `impl/village-guard/004`.
+`stubPayload` puts that stub at the same paths the real bundle would occupy, deliberately — its own
+comment says "the stub sits where the bundle will sit, so the first build that succeeds replaces it
+without the pack's file set growing". But `planReconcile` compares presence, activation identity and
+**file names only**; its doc comment states "no file's content is ever read back", and `changed` —
+the set of packs a watcher saw rebuild — "at start nothing is named".
 
-The build failure that surfaced this is fixed in opus by declaring a `dev` task in `turbo.json`
-(`dependsOn: ["^build"]`), so a dev run builds the workspace dependencies a pack's build imports.
-What remains is the harness's own behaviour: a failed build should not deploy a stub and report the
-pack as hosted. Either refuse to deploy the pack and say so plainly, or fail the run.
+So a stub and a real bundle are indistinguishable to the planner, and a stub deployed once is never
+replaced at any later start. Two further things close every escape:
 
-Worth deciding alongside: whether the harness should build through the workspace's task runner at
-all, rather than the package script, given its README claims "from a clean checkout ... with every
-pack built". The turbo task makes that unnecessary for opus, and does nothing for a consumer
-workspace without turbo.
+- The pool lives on the Docker volume, which survives `stop`, `down` and container recreation, so
+  the poisoned pack outlives the container that received it.
+- A rebuild does not dislodge it either. `packBuild` rewrites only files that changed, so when the
+  local output tree is already correct the build writes 0 files, the watcher observes no change, and
+  no `changed` entry is produced. Deleting the pool directory by hand is the only escape.
+
+Observed 2026-08-07: a build failure at 13:20 left a 78-byte stub in the pool; every run for the
+next 90 minutes reported `Pack Stack - [00] village-guard` while the world ran a script that does
+nothing. The owner connected, hit protected villagers, and killed one. The local build was correct
+and 2192 bytes the whole time.
+
+**The fix the owner proposes**: hash the deployed files in the container and compare against what
+would be deployed, copying on any difference — content, not names. `sha256sum` is present in
+`itzg/minecraft-bedrock-server` at `/usr/bin/sha256sum`, verified on the running image, so this is
+one `compose exec` per reconcile. Weigh that against the round trip an exec costs over an `ssh://`
+DOCKER_HOST, where the reconcile already makes several.
+
+That also subsumes the narrower question of whether a failed build should deploy a stub at all: with
+content compared, the next good build replaces it wherever it came from.
