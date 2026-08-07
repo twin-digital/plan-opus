@@ -4,12 +4,13 @@ requirements:
   - id: r-vd9mu8od
     title: a digest accounts for everything it covers
     statement: |
-      every message a digest's coverage includes is accounted for in what the user receives —
-      shown in a section, or counted and named as uncovered. Nothing a digest covered goes
-      unmentioned.
+      every message a digest's coverage includes is accounted for in what the user receives:
+      shown in a section, or included in a count the digest reports of what it did not show and
+      why.
     verification:
-      - do: cover a window holding messages in a category the digest has a section for and messages in a category it does not
-      - verify: the first are shown, the second are reported as a count, and the two together are the whole of the window
+      - do: cover a window holding messages a section claims, messages in a category no section claims, and more messages a section claims than one delivery will show
+      - verify: the first are shown, and the other two are reported as counts naming why each was not shown
+      - verify: the shown items and the reported counts together are the whole of the window
 
   - id: r-yq13riob
     title: a message is digested once

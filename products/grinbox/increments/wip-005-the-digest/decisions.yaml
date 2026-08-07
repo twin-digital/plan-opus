@@ -146,13 +146,14 @@ decisions:
         the shapes an edition's stored configuration is written in
 
   - id: d-tm2dbemu
-    title: the accounting is asserted, and what no section claims is counted
+    title: the accounting is asserted, and what is not shown is counted
     statement: |
       a delivery asserts, in code, that the items it rendered number exactly the messages it
-      selected, and fails rather than sending a digest that lost one. Messages in the window whose
-      category no enabled section claims are counted per category and reported in the digest
-      itself; only the slotting tag's fallback value — which means never digested — is left out of
-      that count.
+      selected, and fails rather than sending a digest that lost one. What it covered but did not
+      render is reported in the digest itself rather than dropped: messages whose category no
+      enabled section claims, counted per category, and messages a section claims but a delivery's
+      own limit on how many it shows left out, counted as an overflow. Only the slotting tag's
+      fallback value — which means never digested — is left out of that reporting.
     status: proposed
     because:
       - r-vd9mu8od
