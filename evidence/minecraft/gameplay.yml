@@ -1,0 +1,101 @@
+# Runs backing facts about Minecraft's own gameplay mechanics, as distinct from the script API's
+# behaviour.
+
+version: "1"
+runs:
+  # The village-structure probe: what a village loses when its beds, job sites and bell are
+  # destroyed. Its primary instrument is the world's own `VILLAGE_*` LevelDB records rather than the
+  # mobs' behaviour, because the script API exposes no village surface at all.
+
+  - id: village-structures-api
+    command: node run.mjs api   # in evidence/minecraft/gameplay/village-structures-probe/
+    output: evidence/minecraft/gameplay/village-structures-probe/API-OUTPUT.txt
+    ran_at: 2026-08-07
+    environment: |
+      itzg/minecraft-bedrock-server, Bedrock dedicated 1.26.40.8, @minecraft/server 2.8.0 as a pack
+      manifest dependency with no experiments enabled, difficulty normal. village-structure-probe-pack
+      0.1.0, uuid 682a9bae-4a8a-40f2-9d38-020ae1313337. A command-built village on a walled 41x41
+      platform at (163, 100, 170) inside its own ticking area: 30 beds, 15 job sites of 13 kinds, one
+      bell, and command-spawned villagers each given 16 bread. No client attaches, so the world holds
+      no player. Each scenario runs on its own destroyed and rebuilt volume.
+
+      Village state is read out of the world's LevelDB rather than inferred from the mobs. Each
+      capture is a snapshot through the server's own backup protocol — `save hold`, `save query`
+      polled through the container log, every named file truncated to the byte length it reported,
+      then `save resume` — with no container stopped to flush. Records land one save behind, so each
+      capture saves twice and every "after" reading is at least one save late: sound for minute-scale
+      effects, useless for tick-scale ones. Parsing needs `leveldb-zlib` and `prismarine-nbt`, native
+      and not vendored, which build only under a cmake older than 4.x.
+
+      Two limits bound every fact drawn from these runs: no iron golem ever spawned, including on an
+      intact 30-bed village across locked day, locked night and a running cycle, so golem spawning is
+      a rig result rather than an observation about villages; and trading, restocking and reputation
+      need a player, so the `PLAYERS` record was empty in every snapshot. The results document is
+      evidence/minecraft/gameplay/village-structures-probe/RESULTS.md.
+
+      This set: enumerates every component the script API exposes on a villager.
+
+  - id: village-structures-baseline
+    command: node run.mjs baseline --ticks 6000   # in evidence/minecraft/gameplay/village-structures-probe/
+    output: evidence/minecraft/gameplay/village-structures-probe/BASELINE-OUTPUT.txt
+    ran_at: 2026-08-07
+    environment: |
+      Same server, module version, pack, village and method as village-structures-api: Bedrock
+      dedicated 1.26.40.8, @minecraft/server 2.8.0, difficulty normal, a command-built village on a
+      walled 41x41 platform at (163, 100, 170) in its own ticking area — 30 beds, 15 job sites of 13
+      kinds, one bell, villagers each given 16 bread — with no client attached and no player in the
+      world. Its own destroyed and rebuilt volume.
+
+      This set: 12 villagers under a locked day and then a running cycle, showing the village form and breed to its ceiling; captures the records of a world before any village exists.
+
+  - id: village-structures-breed
+    command: node run.mjs breed --ticks 2400   # in evidence/minecraft/gameplay/village-structures-probe/
+    output: evidence/minecraft/gameplay/village-structures-probe/BREED-OUTPUT.txt
+    ran_at: 2026-08-07
+    environment: |
+      Same server, module version, pack, village and method as village-structures-api: Bedrock
+      dedicated 1.26.40.8, @minecraft/server 2.8.0, difficulty normal, a command-built village on a
+      walled 41x41 platform at (163, 100, 170) in its own ticking area — 30 beds, 15 job sites of 13
+      kinds, one bell, villagers each given 16 bread — with no client attached and no player in the
+      world. Its own destroyed and rebuilt volume.
+
+      This set: 4 villagers against 30 beds, deliberately under the breeding ceiling, then every bed destroyed and rebuilt.
+
+  - id: village-structures-jobs
+    command: node run.mjs jobs --ticks 6000   # in evidence/minecraft/gameplay/village-structures-probe/
+    output: evidence/minecraft/gameplay/village-structures-probe/JOBS-OUTPUT.txt
+    ran_at: 2026-08-07
+    environment: |
+      Same server, module version, pack, village and method as village-structures-api: Bedrock
+      dedicated 1.26.40.8, @minecraft/server 2.8.0, difficulty normal, a command-built village on a
+      walled 41x41 platform at (163, 100, 170) in its own ticking area — 30 beds, 15 job sites of 13
+      kinds, one bell, villagers each given 16 bread — with no client attached and no player in the
+      world. Its own destroyed and rebuilt volume.
+
+      This set: every job site block destroyed, watched, rebuilt and watched again, tracking each villager’s profession integers by entity id.
+
+  - id: village-structures-bell
+    command: STACK=b node run.mjs bell --ticks 2400   # in evidence/minecraft/gameplay/village-structures-probe/
+    output: evidence/minecraft/gameplay/village-structures-probe/BELL-OUTPUT.txt
+    ran_at: 2026-08-07
+    environment: |
+      Same server, module version, pack, village and method as village-structures-api: Bedrock
+      dedicated 1.26.40.8, @minecraft/server 2.8.0, difficulty normal, a command-built village on a
+      walled 41x41 platform at (163, 100, 170) in its own ticking area — 30 beds, 15 job sites of 13
+      kinds, one bell, villagers each given 16 bread — with no client attached and no player in the
+      world. Its own destroyed and rebuilt volume.
+
+      This set: only the bell destroyed, with beds and job sites left standing.
+
+  - id: village-structures-wreck
+    command: node run.mjs wreck --ticks 2400   # in evidence/minecraft/gameplay/village-structures-probe/
+    output: evidence/minecraft/gameplay/village-structures-probe/WRECK-OUTPUT.txt
+    ran_at: 2026-08-07
+    environment: |
+      Same server, module version, pack, village and method as village-structures-api: Bedrock
+      dedicated 1.26.40.8, @minecraft/server 2.8.0, difficulty normal, a command-built village on a
+      walled 41x41 platform at (163, 100, 170) in its own ticking area — 30 beds, 15 job sites of 13
+      kinds, one bell, villagers each given 16 bread — with no client attached and no player in the
+      world. Its own destroyed and rebuilt volume.
+
+      This set: beds, job sites and bell destroyed together, a 7,200-tick window, then a chunk unload and reload.

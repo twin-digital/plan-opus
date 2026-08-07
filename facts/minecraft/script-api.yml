@@ -2856,3 +2856,18 @@ facts:
       - run: golem-probe-enrol
         where: "`enrol` — the same enrolled golem against a zombie"
         quote: "[2026-08-07 15:27:19:849 WARN] [Scripting] [vggolem] enrol :: [enrolled/zombie/clamp0] attacker=minecraft:zombie treat=clamp0 from_player=null hits-on-golem=5 golem-health=number:100 golem-alive=true attacker-health=undefined attacker-alive=false closest=1.026 strikes-by-golem=2 first-strike-tick=15 strike-ticks=[15 35] triggers=[] first-hits-on-golem=[entityAttack@3<-minecraft:zombie, fireTick@1<-none, entityAttack@3<-minecraft:zombie, fireTick@1<-none] first-strikes=[minecraft:zombie@9.824, minecraft:zombie@11.792] verdict=GOLEM-RETALIATED"
+
+  - id: no-village-profession-or-trade-surface-on-a-villager
+    claim: |
+      `@minecraft/server` 2.8.0 exposes nothing about villages. A villager's components are movement,
+      inventory, navigation, health, variant, mark_variant, skin_id, breathable, can_climb and
+      type_family and no more — no village membership, no profession, no trades, no reputation. The
+      three variant integers are the only profession-shaped values reachable, and nothing names the
+      village an entity belongs to, so a village can be observed only through the world's own
+      records or through behaviour.
+    backing: tested
+    sources:
+      - run: village-structures-api
+        where: "`api` — every component a villager carries"
+        quote: |
+          [2026-08-07 18:02:50:988 WARN] [Scripting] [vgvil] api :: villager components=[minecraft:movement,minecraft:movement.basic,minecraft:inventory,minecraft:navigation.walk,minecraft:health,minecraft:variant,minecraft:underwater_movement,minecraft:lava_movement,minecraft:mark_variant,minecraft:is_hidden_when_invisible,minecraft:skin_id,minecraft:breathable,minecraft:can_climb,minecraft:type_family]
