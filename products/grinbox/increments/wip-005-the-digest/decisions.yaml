@@ -10,7 +10,7 @@ decisions:
       builds a digest makes none: it selects, groups, renders, and sends. This is what makes
       accounting for every covered message a property of the code rather than an instruction
       something is trusted to follow.
-    status: proposed
+    status: delegated
     because:
       - r-i55lgsq8
       - r-vd9mu8od
@@ -26,7 +26,7 @@ decisions:
       a digest is an ordinary operator instance — an edition — whose configuration carries the
       schedule it fires on. A pipeline may carry several, differing only in configuration, and
       nothing about a second edition is a second mechanism.
-    status: proposed
+    status: delegated
     because:
       - d-5n8oyi8c
       - d-r8iz7u3q
@@ -38,7 +38,7 @@ decisions:
       an edition fires once per account its pipeline is active on, covering that account's mail
       and sending through it to the address the account belongs to. A pipeline active on several
       accounts digests each mailbox separately.
-    status: proposed
+    status: accepted
     because:
       - d-ocqvnmfm
       - d-yz5n7wmu
@@ -51,7 +51,7 @@ decisions:
       by an ordinary rule-based tagger. Editions claim values of that tag with their sections, and
       the tag's fallback value means the message is never digested. Adding a category is editing a
       configuration, not shipping code.
-    status: proposed
+    status: delegated
     because:
       - d-r8iz7u3q
       - d-f5hy6ptl
@@ -69,7 +69,7 @@ decisions:
       to the moment this one was claimed. The window is over when grinbox took the message in
       rather than when the mail was sent, so mail that reached grinbox late is digested in the
       window it actually arrived in rather than missed.
-    status: proposed
+    status: accepted
     because:
       - r-yq13riob
       - r-g6n22sn9
@@ -85,7 +85,7 @@ decisions:
       the watermark advances when a delivery completes and at no other time, so a failed or
       abandoned delivery's window is absorbed into the next one — the next delivery covers the
       union rather than resuming after the gap.
-    status: proposed
+    status: accepted
     because:
       - r-g6n22sn9
       - d-jsnfvo0m
@@ -97,7 +97,7 @@ decisions:
       where grinbox was down across several of an edition's occurrences, it fires once on return,
       for the most recent occurrence due, and the older ones never fire. Their coverage is not
       lost: the unadvanced watermark folds it into the one that does fire.
-    status: proposed
+    status: accepted
     because:
       - d-jbqvsnox
       - r-g6n22sn9
@@ -109,7 +109,7 @@ decisions:
       an occurrence is claimed by recording it before any work is done, and the record is unique
       per edition, account, and occurrence. Nothing can claim an occurrence twice, so nothing can
       send it twice.
-    status: proposed
+    status: accepted
     because:
       - r-yq13riob
     pinned: false
@@ -120,7 +120,7 @@ decisions:
       no two editions of a pipeline may claim the same category, checked when an edition is saved.
       With coverage windows disjoint by construction and categories disjoint by validation, a
       message cannot reach two digests.
-    status: proposed
+    status: delegated
     because:
       - r-yq13riob
       - d-fg96l5uu
@@ -136,7 +136,7 @@ decisions:
       grammar the rest of grinbox uses, an absent tag renders empty, and a message whose rendering
       comes out entirely empty falls back to naming its sender and subject rather than vanishing.
       A section with nothing in it is left out of the email.
-    status: proposed
+    status: accepted
     because:
       - d-cnjkypbb
       - r-vd9mu8od
@@ -153,7 +153,7 @@ decisions:
       render is reported in the digest itself rather than dropped, counted and attributed to why
       it was not shown. Only the slotting tag's fallback value — which means never digested — is
       left out of that reporting.
-    status: proposed
+    status: accepted
     because:
       - r-vd9mu8od
       - d-fg96l5uu
@@ -169,7 +169,7 @@ decisions:
       a delivery shows at most a bounded number of items, whatever its window holds, so that one
       run over a long backlog does not produce an unreadable mail. What the bound cuts is counted
       as an overflow and reported with everything else the delivery covered but did not show.
-    status: proposed
+    status: delegated
     because:
       - r-vd9mu8od
       - d-tm2dbemu
@@ -182,7 +182,7 @@ decisions:
       a model writes from the already-rendered items. Prose is the whole of a model's part in a
       delivery: it cannot add, remove, or alter an item, and a prose passage that fails or is
       capped is dropped from the email rather than failing the delivery.
-    status: proposed
+    status: accepted
     because:
       - r-i55lgsq8
       - d-r8iz7u3q
@@ -195,7 +195,7 @@ decisions:
       it, while windowed caps bind as they do anywhere. Where a cap denies the send itself the
       delivery fails — an undelivered digest is a failure, not the clean no-op a denied per-message
       action is. A window holding nothing to report completes without sending at all.
-    status: proposed
+    status: accepted
     because:
       - d-isyan49o
       - d-coeyvi2n
