@@ -1,0 +1,133 @@
+version: "2"
+decisions:
+  - id: d-4uz3egbj
+    title: ratify mode is offered for every draft, settled or not
+    statement: |
+      ratify mode is offered for every draft the session opens on, whatever statuses its entries
+      hold. nothing proposed and no question open is the landing's condition and stays there; it is
+      not a condition on entering the session or on what the session offers. a draft carrying
+      nothing unsettled opens on ratify with landing available beside it.
+    status: proposed
+    because:
+      - r-0h5q1lfl
+      - r-ax84j1s2
+      - d-7i1l1kfy
+    pinned:
+      reason: public-api
+      notes: |
+        which drafts the published command will open on, and what it offers when it does
+    facets:
+      - tooling
+  - id: d-v2aky476
+    title: the session works a draft, and a published increment is read through show
+    statement: |
+      reviewing a published increment is not a mode of the session. the session works a draft on
+      its pull request, and a published increment is read through `show`. an entry that landed is
+      changed by a later increment superseding it, not by a sitting reopening it.
+    status: proposed
+    because:
+      - d-4uz3egbj
+      - d-udx0fefp
+      - d-9s4d3ww2
+    pinned: false
+    facets:
+      - tooling
+      - process-doc
+  - id: d-nb5yg1w1
+    title: a submit does not end the sitting
+    statement: |
+      a submit returns the owner to the list they submitted from, with the staged set cleared of
+      what it wrote. the session ends when the owner ends it, or when a landing completes. no
+      outcome of a submit ends it — a refused push included — and no state the session holds for
+      the sitting is discarded by one.
+    status: proposed
+    because:
+      - r-clty5lqd
+      - r-ax84j1s2
+      - d-ovlyaoht
+      - d-x1jlr7jc
+    pinned:
+      reason: public-api
+      notes: |
+        whether a sitting continues is what the owner plans a sitting around
+    facets:
+      - tooling
+  - id: d-x1jlr7jc
+    title: a refused push pulls, reapplies by id, and tries again
+    statement: |
+      the commit a submit writes carries a body naming each status the set took and how many
+      entries took it — `3 accepted, 1 rejected` — in a fixed status order, omitting any status no
+      entry took, and counting answered questions as their own clause since an answer is not a
+      status. a sitting that changed nothing writes no commit. after committing, the submit pushes
+      the branch to its remote.
+
+      a push the remote refuses is not the end of it. the session fetches the branch's tip,
+      reapplies the sitting's rulings and notes onto it, and pushes again. reapplication matches
+      entries by id rather than by position or file offset, so the rulings survive edits made to
+      the draft out of band between one sitting and the next.
+
+      where an entry the sitting ruled carries a different status at the tip, neither is written
+      over the other: the session reports the pair to the owner and leaves the entry as the tip has
+      it, and the owner rules it again from the list if they still want to.
+
+      the owner's rulings exist somewhere durable from the moment the write happens until the push
+      is accepted or the owner is told it was not, whatever the session does in between.
+    status: proposed
+    because:
+      - r-clty5lqd
+      - r-ax84j1s2
+      - d-ovlyaoht
+      - d-yfxziwwg
+    supersedes: d-lqmwczg3
+    pinned:
+      reason: public-api
+      notes: |
+        the commit body every later reader of the branch sees, and what an owner is entitled to
+        assume happened to a sitting they submitted
+    facets:
+      - tooling
+  - id: d-26vs308h
+    title: the draft's requirements are a second list beside its decisions
+    statement: |
+      the session holds a second entry list, carrying the requirements the draft declares, with the
+      same list-beside-the-full-text arrangement the ratify list already has; the owner moves
+      between the two lists without leaving the session. the key that moves between them is the
+      implementer's.
+
+      the list holds what the draft declares, its amendments included, and not what the fold gives
+      it: the sitting reviews what the pull request changes.
+
+      a requirement takes a note and no ruling — the process gives a requirement no status to
+      leave — and a note taken there is the note `d-f1b5r2f8` posts, against the requirement's own
+      lines in the source that carries it.
+    status: proposed
+    because:
+      - r-84zd8sfk
+      - r-ax84j1s2
+      - d-8abusqwe
+      - d-fi7zsgez
+      - d-f1b5r2f8
+    pinned:
+      reason: public-api
+      notes: |
+        the screen the owner works from, and what a render is checked against
+    facets:
+      - tooling
+  - id: d-g00ah4em
+    title: the list marks what an entry closes and what closed it
+    statement: |
+      an entry in either list is marked where it closes another foundation — `supersedes` on a
+      decision, `amends` on a requirement — and marked differently where another entry of the same
+      draft closes it. the two marks are distinct from each other and from an unmarked entry, and
+      the closed entry's is the recessive one, it being the entry the owner has least left to do
+      about.
+
+      which colours carry the marks is the implementer's, as is what stands in for them where the
+      terminal has no colour.
+    status: proposed
+    because:
+      - r-n86ssoew
+      - d-8abusqwe
+    pinned: false
+    facets:
+      - tooling
