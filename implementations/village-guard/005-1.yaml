@@ -123,8 +123,13 @@ coverage:
           the suite obtains `@minecraft/server` only through `@twin-digital/minecraft-test-lib`'s
           `createServer()` — no hand-rolled double, no `vi.mock`, no runner alias of its own
       - kind: attestation
-        ref: vitest.config.ts
-        note: the generated config adds no module mapping for `@minecraft/server`
+        ref:
+          - src/entry.test.ts
+          - vitest.config.ts
+        note: >
+          both suites take `@minecraft/server` from the shared lib and write no behaviour by hand.
+          the entry suite reaches the pack's own entry module through the lib's vitest plugin and
+          `loadPack`, which is the install the lib documents for load-time behaviour
   - claim: r-cyd08e6q # packs are built by the dev kit
     covered_by:
       - kind: manual-check
@@ -234,6 +239,13 @@ coverage:
           handler reads nothing off the mob while it runs
   - claim: d-8b5m52it # the event subscription is the enrollment
     covered_by:
+      - kind: code-test
+        ref: src/entry.test.ts
+        note: >
+          the pack's own entry module is evaluated as the engine evaluates it, through `loadPack`,
+          and the subscriptions it took while evaluating are what the assertions read — so an entry
+          that imported the wrong name or called nothing fails here, where the injection suite would
+          pass unchanged
       - kind: code-test
         ref: src/protection.test.ts
         note: >
