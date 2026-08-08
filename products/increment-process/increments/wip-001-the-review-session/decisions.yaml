@@ -1,0 +1,273 @@
+version: "2"
+decisions:
+  - id: d-4uz3egbj
+    title: how the session finds the pull request it works, and which drafts it opens on
+    statement: |
+      `design-process increment` is a full-screen terminal application over a draft's pull request,
+      and it is the whole flow: the owner rules from it and publishes from it, never switching
+      commands. no new package, no service, and no browser — it reaches the fold, the projection,
+      and the conflict check as library calls rather than reimplementing them.
+
+      `--pr <url>` names the pull request to work and is not required. given one, the session
+      resolves it to its head branch and works that: where the current tree is already on that
+      branch it works in place, and otherwise it fetches the branch, materialises a temporary git
+      worktree from it, runs there, and removes the worktree when the session ends. it needs a
+      local clone of the pull request's repository, found from the working directory the command
+      ran in.
+
+      given no `--pr`, the session takes the branch the working directory is on, looks for the
+      pull request whose head is that branch, and works it. where the branch has none, the session
+      pushes it — setting its upstream where it has none — and opens one, titled for the draft it
+      carries. this is the ordinary case rather than an error: a branch carrying a draft and no
+      pull request is a draft nobody has posted yet, and posting it is what the owner came to do.
+
+      four things it refuses instead, saying which: the branch is the repository's default branch,
+      which never carries a draft and cannot be the head of a pull request into itself; the tree
+      holds no draft increment, so there is nothing to rule; the tree has uncommitted changes,
+      which the owner would be ruling without having written; and the head branch lives on a fork
+      the local clone cannot push to.
+
+      the product comes from the draft the branch holds, so the product argument is optional
+      throughout. ratify is offered for every draft, whatever statuses its entries hold, and is
+      where a session opens; what is open decides which *other* modes are offered, and no longer
+      decides whether ratify is. landing becomes available exactly when nothing is proposed and no
+      question is open, and is entered from the same session. `increment` takes `--root` as every
+      operation does, and `--pr`.
+    status: proposed
+    because:
+      - r-0h5q1lfl
+      - r-ycjjl48r
+      - r-ax84j1s2
+      - r-2keswxn8
+      - d-h418ljtp
+    supersedes: d-7i1l1kfy
+    pinned:
+      reason: public-api
+      notes: |
+        the command a published cli offers, what it accepts, when it refuses to open, and which
+        drafts it opens on
+    facets:
+      - tooling
+  - id: d-v2aky476
+    title: the session works a draft, and a published increment is read through show
+    statement: |
+      reviewing a published increment is not a mode of the session. the session works a draft on
+      its pull request, and a published increment is read through `show`. an entry that landed is
+      changed by a later increment superseding it, not by a sitting reopening it.
+    status: proposed
+    because:
+      - d-4uz3egbj
+      - d-udx0fefp
+      - d-9s4d3ww2
+    pinned: false
+    facets:
+      - tooling
+      - process-doc
+  - id: d-nb5yg1w1
+    title: a submit does not end the sitting
+    statement: |
+      a submit returns the owner to the list they submitted from, with the staged set cleared of
+      what it wrote. the session ends when the owner ends it, or when a landing completes. no
+      outcome of a submit ends it — a refused push included — and no state the session holds for
+      the sitting is discarded by one.
+
+      the command's exit code is what the sitting was, not what a submit did: a sitting the owner
+      ended is a success, whatever any submit within it met, since the outcomes were reported to
+      the owner where they happened and the owner chose to leave.
+    status: proposed
+    because:
+      - r-clty5lqd
+      - r-ax84j1s2
+      - d-ovlyaoht
+      - d-x1jlr7jc
+    pinned:
+      reason: public-api
+      notes: |
+        whether a sitting continues is what the owner plans a sitting around
+    facets:
+      - tooling
+  - id: d-x1jlr7jc
+    title: a refused push pulls, reapplies by id, and tries again
+    statement: |
+      the commit a submit writes carries a body naming each status the set took and how many
+      entries took it — `3 accepted, 1 rejected` — in a fixed status order, omitting any status no
+      entry took, and counting answered questions as their own clause since an answer is not a
+      status. a sitting that changed nothing writes no commit. after committing, the submit pushes
+      the branch to its remote.
+
+      a push the remote refuses is not the end of it. the session fetches the branch's tip,
+      reapplies the sitting's rulings and notes onto it, and pushes again. reapplication matches
+      entries by id rather than by position or file offset, so the rulings survive edits made to
+      the draft out of band between one sitting and the next.
+
+      the commit the refused push left is the sitting's own, and unwinding it to reapply is the one
+      commit the session may discard. a commit the remote has accepted is never rewritten: where
+      the reapply would have to move one, the session reports and stops rather than rewriting the
+      owner's branch under them.
+
+      where an entry the sitting ruled carries a different status at the tip, neither is written
+      over the other: the session reports the pair to the owner and leaves the entry as the tip has
+      it, and the owner rules it again from the list if they still want to. that entry's ruling
+      leaves the stage with the rest of what the submit resolved — the owner is being asked to rule
+      it again, which a stage still holding it would contradict. what the comparison reads is the
+      entry's status; a question the tip has already closed is a divergence like any other, and a
+      note, which writes to no source, is not subject to it.
+
+      a push refused again after the reapply is reported to the owner, who stays in the sitting.
+      the owner's rulings exist somewhere durable from the moment the write happens until the push
+      is accepted or the owner is told it was not, whatever the session does in between.
+    status: proposed
+    because:
+      - r-clty5lqd
+      - r-ax84j1s2
+      - d-ovlyaoht
+      - d-yfxziwwg
+    supersedes: d-lqmwczg3
+    pinned:
+      reason: public-api
+      notes: |
+        the commit body every later reader of the branch sees, and what an owner is entitled to
+        assume happened to a sitting they submitted
+    facets:
+      - tooling
+  - id: d-26vs308h
+    title: the draft's requirements are a second list beside its decisions
+    statement: |
+      the session holds a second entry list, carrying the requirements the draft declares, with the
+      same list-beside-the-full-text arrangement the ratify list already has; the owner moves
+      between the two lists without leaving the session. the key that moves between them is the
+      implementer's.
+
+      a session opens on the decisions list, that being the one carrying the rulings.
+
+      the list holds what the draft declares, its amendments included, and not what the fold gives
+      it: the sitting reviews what the pull request changes. it holds the draft's model bindings
+      after its requirements, since they live in the same source, ratify with it, and are otherwise
+      shown nowhere the owner rules — a rebinding to a pool version that already exists changes no
+      file, so `d-kjwswmro`'s header count does not see it.
+
+      a requirement or a model binding takes a note and no ruling — the process gives neither a
+      status to leave — and a note taken there is the note `d-f1b5r2f8` posts, against the entry's
+      own lines in the source that carries it.
+
+      a submit carrying notes and no ruling writes no commit, and posts its review against the
+      branch as the remote already has it. `d-f1b5r2f8` orders the review after the commit and the
+      push so that it anchors to the state it describes; where there is no commit, that state is
+      the one already pushed, and a sitting spent reading and noting posts what it wrote.
+    status: proposed
+    because:
+      - r-84zd8sfk
+      - r-ax84j1s2
+      - d-8abusqwe
+      - d-fi7zsgez
+      - d-f1b5r2f8
+    pinned:
+      reason: public-api
+      notes: |
+        the screen the owner works from, and what a render is checked against
+    facets:
+      - tooling
+  - id: d-g00ah4em
+    title: the list marks what an entry closes and what closed it
+    statement: |
+      an entry in either list is marked where it closes another foundation — `supersedes` on a
+      decision, `amends` on a requirement, and a `retires` entry in either source — and marked
+      differently where another entry of the same draft closes it. the two marks are distinct from
+      each other and from an unmarked entry, and the closed entry's is the recessive one, it being
+      the entry the owner has least left to do about.
+
+      an entry that both closes another and is closed by a later one carries the closing mark: the
+      row has one closure field, and what the owner still has something to do about wins it.
+
+      which colours carry the marks is the implementer's, as is what stands in for them where the
+      terminal has no colour.
+    status: proposed
+    because:
+      - r-n86ssoew
+      - d-8abusqwe
+    pinned: false
+    facets:
+      - tooling
+  - id: d-smnssz39
+    title: how a ratify-screen version is read
+    statement: |
+      `/design-process/ratify-screen` is read as follows at every version, and this says nothing
+      about how any other surface is written.
+
+      the file has two halves that say the same thing twice on purpose. `mock:` carries rendered
+      frames; the sections beside it carry the same shape as rules. the frames are what a render
+      is compared against; the rules are what settles a case no frame happens to show. where the
+      two appear to disagree, the rules govern — a frame is one instance and a rule is the
+      statement.
+
+      what the surface commits to is arrangement, the order of things within a region, and the
+      form of each field. what it does not commit to, and what an implementer therefore settles
+      as an ordinary implementation detail, is everything the frames incidentally have: column
+      widths, separator and rule glyphs, the selection marker, the truncation width, which colours
+      carry an emphasis, and any behaviour no section names — key bindings, scrolling, an empty
+      list, a terminal too narrow to hold both panes. silence here is not a gap to escalate; the
+      preamble names the surface, and what falls outside it is the implementer's.
+
+      a key path addresses the thing it names — `detail-pane.metadata.pinned` — and that is how
+      prose cites a region of this surface. the paths are an addressing scheme for this file, not
+      a vocabulary any other surface inherits or a structure the pool enforces.
+
+      a render conforming is one matching the frames of the version its product binds, in
+      arrangement, order, and field form, and differing from them only in what the paragraph above
+      leaves open.
+    status: proposed
+    because:
+      - r-j232vwp4
+      - d-9zot40jn
+    supersedes: d-q50z7iq1
+    pinned:
+      reason: public-api
+      notes: |
+        what conformance to the screen means, and so what a build is checked against
+    facets:
+      - tooling
+      - schema
+  - id: d-ufuosc77
+    title: a companion increment is gated as a whole and reviewed entry by entry
+    statement: |
+      a companion increment reaches the owner the way a plan draft does: the orchestrator opens its
+      pull request, pushes everything, hands the owner the url, and stands off the branch while a
+      sitting is open. the owner opens a session on it and pages through its entries.
+
+      what stays whole is the gate, not the review. the merge gate reads `proposed` entries and
+      open questions, and a companion whose entries are all `delegated` carries neither — so it
+      lands without a per-entry ruling being required of the owner, while every entry remains
+      reachable and re-rulable in the session.
+    status: proposed
+    because:
+      - r-0h5q1lfl
+      - d-4uz3egbj
+      - d-n23bxend
+      - d-wtgyvwf3
+      - d-msvpbva6
+    pinned: false
+    facets:
+      - prompts
+      - process-doc
+  - id: d-r01s6ek8
+    title: a note directing no change is answered by saying so
+    statement: |
+      a review thread carrying a note that asks for no change to any source is answered by replying
+      that none was needed and resolving it. a note settles nothing and gates nothing, so a thread
+      an agent leaves open on the ground that it names no commit would hold the draft's publish
+      against a note that was never a direction.
+
+      this is the note the requirements list makes ordinary: an entry read and remarked on, whose
+      source the owner does not want touched. a note that does direct a change is answered as any
+      direction is, with the commit that made it. a note the agent judges needs discussion stays
+      open, as CLAUDE.md already has it.
+    status: proposed
+    because:
+      - d-26vs308h
+      - d-fi7zsgez
+      - d-tmyu6t1y
+      - r-z0wcwwn0
+    pinned: false
+    facets:
+      - prompts
+      - process-doc
