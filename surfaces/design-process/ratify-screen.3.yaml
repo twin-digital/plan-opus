@@ -23,13 +23,13 @@ mock:
   ratify: |
     increment-process · wip-001-the-review-session · plan/increment-process/the-review-session · #214
     also changed: surfaces (1)                                                        1 unresolved
-    ── decisions (5) ──────────────────────────────────────────────────────────────────────────────
+    ── decisions (6) ──────────────────────────────────────────────────────────────────────────────
     ›a refused push pulls, reapplies b…  │ A REFUSED PUSH PULLS, REAPPLIES BY ID, AND TRIES AGAIN
      d-x1jlr7jc  closes d-lqmwczg3       │ [d-x1jlr7jc]
                                          │
      the submit reports and stops        │ the commit a submit writes carries a body naming each
      d-3n1kq8lp  closed by d-x1jlr7jc    │ status the set took and how many entries took it — `3
-                                    ···  │ accepted, 1 rejected` — in a fixed status order.
+                                         │ accepted, 1 rejected` — in a fixed status order.
      a submit does not end the sitting   │
      d-nb5yg1w1                deferred  │ ─────────────────────────────────────────────────────
                                          │ pinned(public-api): the commit body every later reader
@@ -46,7 +46,7 @@ mock:
   requirements: |
     increment-process · wip-001-the-review-session · plan/increment-process/the-review-session · #214
     also changed: surfaces (1)                                                        1 unresolved
-    ── requirements (3) ───────────────────────────────────────────────────────────────────────────
+    ── requirements (4) ───────────────────────────────────────────────────────────────────────────
     ›a settled draft is reviewed, not …  │ A SETTLED DRAFT IS REVIEWED, NOT ONLY A PROPOSED ONE
      r-0h5q1lfl                          │ [r-0h5q1lfl]
                                          │
@@ -54,7 +54,17 @@ mock:
      r-n86ssoew                          │ carries, whatever statuses that draft's entries hold,
                                          │ and the owner reads and re-rules each of them there.
      the pull request carries the owne…  │
-     r-8s0dd2wq  closes r-y9eux47d       │ ─────────────────────────────────────────────────────
+     r-8s0dd2wq  closes r-y9eux47d       │ why it matters:
+                                         │   an implementation's companion carries its whole
+     ratify-screen                       │   design set as delegated, so a session that opens
+     /design-process/ratify-screen@3     │   only on proposed entries has nothing to show.
+                                         │
+                                         │ verification:
+                                         │   - do: open a session on a draft whose every
+                                         │     decision carries a ruling
+                                         │   - verify: the draft's decisions are listed
+                                         │
+                                         │ ─────────────────────────────────────────────────────
                                          │ because:
                                          │   - ruling a draft is one sitting in one place
                                          │     [r-ax84j1s2]
@@ -96,9 +106,12 @@ select-draft:
   on-choice: the ordinary view, on the chosen draft
 
 header:
-  present-in: every mode
+  present-in: the decisions and requirements modes
   lines: 2
-  notes: the header's height does not vary with what it carries, so the body below it does not shift
+  notes: >-
+    the header's height does not vary with what it carries, so the body below it does not shift.
+    the draft-selection screen precedes a draft being chosen and carries its own identity line
+    instead, since the fields below name a draft it has not got yet
   identity:
     form: "<product> · <increment-directory> · <branch> · #<pr-number>"
   other-inputs:
@@ -147,17 +160,40 @@ entry-list:
   window: the list scrolls to keep the selected entry within it
 
 requirement-list:
-  holds: the requirements the draft declares
+  holds: the requirements the draft declares, then its model bindings
   entry: as the entry list's, with no staged ruling
-  detail-pane: as below, with the metadata a requirement carries
+  model-binding:
+    line-1: the binding's name
+    line-2: the contract reference it names, in place of an id
 
 detail-pane:
   order:
     - heading
     - blank line
     - statement
+    - rationale, on a requirement carrying one
+    - verification, on a requirement carrying one
     - horizontal rule
     - metadata
+  requirement-blocks:
+    notes: >-
+      the two blocks a requirement carries that a decision does not, so that the whole of what the
+      owner ratifies is in the pane
+    rationale:
+      form: |
+        why it matters:
+          <text, reflowed and indented>
+      absent: the block is omitted where the requirement carries no rationale
+    verification:
+      form: |
+        verification:
+          - do: <text>
+          - verify: <text>
+      notes: one step per item, in the order the source carries them, each keyed as the source keys it
+      absent: the block is omitted where the requirement carries no verification
+  model-binding:
+    statement: the binding's description, where it carries one
+    metadata: the contract reference, and the binding's status where it is not the default
   heading:
     form: "<TITLE> [<id>]"
     notes: no kind-and-increment line follows the heading
