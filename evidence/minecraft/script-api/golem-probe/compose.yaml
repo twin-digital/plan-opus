@@ -1,0 +1,18 @@
+name: golem-probe
+services:
+  bedrock:
+    image: itzg/minecraft-bedrock-server
+    environment:
+      EULA: "TRUE"
+      LEVEL_NAME: dev
+      SERVER_NAME: golem-probe
+      GAMEMODE: creative
+      DIFFICULTY: hard
+      ALLOW_CHEATS: "true"
+      CONTENT_LOG_FILE_ENABLED: "true"
+      CONTENT_LOG_CONSOLE_OUTPUT_ENABLED: "true"
+      LEVEL_SEED: "1"
+    volumes:
+      - data:/data
+volumes:
+  data:

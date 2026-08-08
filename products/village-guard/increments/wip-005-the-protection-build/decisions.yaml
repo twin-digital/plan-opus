@@ -1,0 +1,153 @@
+version: "1"
+
+decisions:
+  # how protection works
+  - id: d-67dkvr3f
+    title: a mob's hit is written down to zero, a player's is cancelled, an operator's lands
+    statement: |
+      the pack subscribes `world.beforeEvents.entityHurt` and splits each hit three ways, on the
+      hit's `damageSource`.
+
+      a hit whose cause is `selfDestruct` or `override` is left alone entirely. those are the causes
+      the engine gives a deliberate removal rather than gameplay, so an operator keeps the ability
+      to kill a protected mob outright.
+
+      a hit whose `damagingEntity` is a player is cancelled, whether dealt in melee or by a
+      projectile they loosed, so no harm lands and the mob shows no hurt reaction. what a cancel does
+      not reach is the mob's own targeting: an iron golem retaliates against whoever swung whether
+      the hit was cancelled or not, which d-qgpu7qp0 records.
+
+      every other hit has its `damage` written down to zero, and the mob is restored to full health
+      in the same tick. the write is a constant rather than a figure read off the mob, so the
+      handler reads nothing while it runs. the restore is what carries a mob that was harmed before
+      the pack first saw a hit on it back to full.
+
+      the constant is zero and not a small survivable amount. a written-down hit reaches the mob at
+      the amount the handler wrote, so any non-zero constant is fatal to a mob whose health is at or
+      below it — and that death is vanilla's entire death, not merely an event: a zombie converts the
+      villager, and the restore runs against a mob that has already gone. zero is the only constant
+      no mob's health can sit below. it does not turn the clamp into a cancel: the engine's knockback
+      is unchanged by the write, so the hit still lands and the mob still reacts.
+
+      the pack never makes a mob invulnerable and adds no effect to a mob.
+    status: proposed
+    supersedes: d-jp67dexu
+    pinned:
+      reason: other
+      notes: >-
+        it fixes what a consumer sees when a zombie strikes a protected mob at low health — the
+        difference between keeping the villager and losing it to conversion.
+    because:
+      - r-pe87rfqq
+      - r-9gw909jf
+      - r-ef113dxi
+      - f:a-clamped-hit-reaching-the-minimum-kills-and-converts
+      - f:a-hit-written-down-to-zero-still-knocks-back
+      - f:a-clamp-and-restore-holds-under-per-tick-damage
+      - f:entity-hurt-before-event-sees-engine-dealt-damage
+      - f:no-damage-cause-names-the-attacker-and-none-names-reputation
+      - f:cancelling-a-players-hit-prevents-the-reputation-change
+      - f:a-damage-clamp-without-a-restore-still-kills
+      - f:a-clamped-hit-knocks-back-and-a-cancelled-one-does-not
+      - f:kill-and-remove-cascades
+      - f:reaching-effective-minimum-is-fatal
+      - f:before-event-field-writes-take-effect
+      - f:health-not-clamped-at-minimum
+      - f:cancelled-call-return-values-observed
+      - f:after-event-deferral-subtick
+    facets: pack-runtime
+
+  - id: d-e0a34ilh
+    title: the protected set is four vanilla type ids
+    statement: |
+      the pack protects `minecraft:villager_v2`, `minecraft:wandering_trader`,
+      `minecraft:trader_llama` and `minecraft:iron_golem`, and no other entity type. the set is
+      fixed in the pack and is not configurable.
+
+      a trader llama is protected because it arrives with a wandering trader and is lost the same
+      way, so a set that keeps the trader and not its llamas keeps half of what arrived.
+    status: proposed
+    supersedes: d-6lbml4g9
+    pinned:
+      reason: other
+      notes: >-
+        an installer reads the set as what the pack does to their world; adding or dropping a type
+        changes which mobs survive a siege.
+    because:
+      - r-3otdixl2
+      - r-9gw909jf
+      - f:preventing-a-villagers-death-prevents-its-conversion
+      - f:subscribe-filter-entity-types-requires-the-prefix
+    facets: pack-runtime
+
+  - id: d-qgpu7qp0
+    title: the pack leaves an iron golem's retaliation alone
+    statement: |
+      the pack does nothing about an iron golem turning hostile toward a player who struck it. a
+      player's hit is cancelled and takes no health, and the golem retaliates anyway.
+
+      an iron golem carries no anger component. retaliation is `minecraft:behavior.hurt_by_target`,
+      gated on the attacker's family, and the engine sets the target from the attempt rather than
+      from the damage — so cancelling reaches it at no point. the one mechanism that does reach it
+      is sending the golem `minecraft:from_player` before it is ever hit, which requires acting on
+      the mob's arrival and so cannot be reconciled with d-8b5m52it, and which writes a component
+      group saved with the entity that no vanilla event removes — a permanent change to every iron
+      golem in an installer's world, outliving the pack itself.
+
+      the pack ships the limit rather than that remedy, and states it as a known defect in the
+      package's own `ISSUES.md`. r-ef113dxi is left standing rather than narrowed to fit around what
+      was built: the limit is accepted, which is not the same as the behaviour being wanted.
+    status: proposed
+    pinned:
+      reason: other
+      notes: >-
+        a consumer meets it directly — an accidental swing at a golem still costs the player.
+    because:
+      - r-ef113dxi
+      - d-8b5m52it
+      - f:cancelling-a-hit-does-not-stop-an-iron-golems-retaliation
+      - f:an-iron-golems-retaliation-is-gated-by-its-family-filter
+      - f:trigger-event-throws-in-a-before-event-handler
+      - f:from-player-prevents-an-iron-golems-target-but-does-not-clear-one
+      - f:enrolling-a-golem-on-arrival-stops-only-the-player-lane
+    facets: pack-runtime
+
+  - id: d-iphqrkzm
+    title: the restore is a second subscription, and it splits the hit the same way
+    statement: |
+      the pack takes two world-wide `entityHurt` subscriptions rather than one. the before-event
+      writes the hit down; `afterEvents.entityHurt` restores the mob to full health. the
+      before-event cannot restore, because the damage it is shown has not landed yet, and the
+      after-event is delivered inside the same tick, so the restore lands in the tick d-jp67dexu
+      names.
+
+      the after handler applies the same three-way split as the before handler rather than restoring
+      whatever it is handed. `kill()` raises the after-event under cause `selfDestruct`, so a
+      restore that did not split again would undo an operator's removal. a cancelled hit raises no
+      after-event, so a player's hit never reaches the after handler at all.
+    status: proposed
+    pinned: false
+    because:
+      - d-jp67dexu
+      - d-8b5m52it
+      - f:after-event-deferral-subtick
+      - f:kill-and-remove-cascades
+      - f:a-damage-clamp-without-a-restore-still-kills
+      - f:cancelled-call-return-values-observed
+    facets: pack-runtime
+
+  # what ships
+  - id: d-9looc2q2
+    title: the manifest's engine floor is the 1.26 line itself
+    statement: |
+      the pack's `min_engine_version` is `1.26.0` — the bottom of the line d-itt177wv fixes the
+      floor to, rather than a patch version inside it.
+    status: proposed
+    pinned:
+      reason: other
+      notes: >-
+        it decides which worlds accept the pack, which is the reason d-itt177wv is pinned.
+    because:
+      - d-itt177wv
+      - r-cizmztsh
+    facets: packaging
