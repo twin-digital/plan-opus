@@ -2633,3 +2633,262 @@ facts:
           cancelled just stood there". Flinch and sound reach no server log, so no run captures
           them and the owner's report is the evidence.
 
+
+  # Facts from the village-guard gap probe (Bedrock 1.26.40.8, @minecraft/server 2.8.0), recorded in
+  # evidence/minecraft/script-api/gap-probe/RESULTS.md. Headless: the pack reports through
+  # console.warn and the driver reads the container log, so no client attaches. The probe pack
+  # transcribes the shipped pack's own handler, so these read on what village-guard actually does.
+
+  - id: a-clamped-hit-reaching-the-minimum-kills-and-converts
+    claim: |
+      A hit written down in the before-event still kills when the mob's health is at or below what
+      the write leaves, and the death is vanilla's whole death rather than an event: a zombie
+      converts the villager. A villager set to 0.5 health under a 0.5 clamp died on the first hit in
+      3/3 penned runs, each ending with zero villagers and two zombie villagers — the same verdict
+      an unguarded control at the same health reached. A restore in the after-handler does not undo
+      it: the restore ran, and the villager was already gone.
+
+      The boundary is the clamp's own value. At 0.5 health under a 0.5 clamp the death fires; at 1
+      health under the same clamp it does not; at 0.5 and at 0.25 health under a *zero* clamp it does
+      not, and the subject survived 129, 137 and 133 hits across three runs at full health. So a
+      clamp that leaves the mob any health at all is survivable and one that can reach the effective
+      minimum is not, which makes the fatal case reachable for any mob sitting at or below the
+      constant when the pack first sees a hit on it.
+    backing: tested
+    sources:
+      - run: gap-probe-run
+        where: "`sub-clamp` — 0.5 health under a 0.5 clamp, the death the restore hides"
+        quote: "[2026-08-07 01:26:34:371 WARN] [Scripting] [vggap] sub-clamp :: [at-0.5/clamp-0.5] effectiveMin=number:0 health(number:0.5 -> number:20) applyDamage=ok value=boolean:true died=1 subject-alive=true before=[entityAttack@4->clamp] after=[entityAttack@0.5->clamp] verdict=DIED"
+      - run: gap-probe-run
+        where: "`sub-clamp` — the same subject under a zero clamp"
+        quote: "[2026-08-07 01:26:38:370 WARN] [Scripting] [vggap] sub-clamp :: [at-0.5/clamp-0] effectiveMin=number:0 health(number:0.5 -> number:20) applyDamage=ok value=boolean:true died=0 subject-alive=true before=[entityAttack@4->clamp] after=[entityAttack@0->clamp] verdict=SURVIVED"
+      - run: gap-probe-conversion
+        where: "`clamp-death-conversion` — the 0.5 clamp, penned against zombies"
+        quote: "[2026-08-07 01:59:20:780 WARN] [Scripting] [vggap] clamp-death-conversion :: [at-0.5/clamp-0.5] health(number:0.5 -> undefined) hits=1 restores=1 died=1 subject-alive=false villagers-now=0 zombie-villagers-now=2 verdict=CONVERTED"
+
+  - id: a-hit-written-down-to-zero-still-knocks-back
+    claim: |
+      Writing `entityHurt.damage` to zero takes no health and leaves the engine's knockback intact,
+      so a zero write is a clamp rather than a quiet cancel. Measured as the peak speed in the six
+      ticks after a zombie's swing against the resting speed in the four before it, over nine blocks
+      of four lanes: a vanilla control peaked 0.578–0.693, a hit written down to 0.5 peaked
+      0.521–0.687, a hit written down to 0 peaked 0.533–0.700, and a cancelled hit peaked
+      0.194–0.274. The zero lane sits inside the vanilla band and roughly three times above the
+      cancelled one, and lost 0 health in 9/9 blocks.
+
+      This extends [[f:a-clamped-hit-knocks-back-and-a-cancelled-one-does-not]], which measured the
+      same separation for a 0.5 write, to the bottom of the range.
+    caveat: |
+      Nothing here says anything about how often a hit lands. Hit counts ranged from 0 to 69 across
+      the nine blocks with no pattern by lane, so whether a zero write changes the invulnerability
+      window between hits is unmeasured. Flinch and the hurt sound are rendered on the client and
+      reach no server log, so neither is observed here.
+    backing: tested
+    sources:
+      - run: gap-probe-run
+        where: "`zero-clamp` — the vanilla control"
+        quote: "[2026-08-07 00:54:41:191 WARN] [Scripting] [vggap] zero-clamp :: [control] before-events=7 after-events=7 health(number:20 -> undefined) health-lost=undefined subject-alive=false samples=122 peak-speed-overall=0.654 per-hit=[entityAttack@3:rest=0.192->peak=0.654, entityAttack@3:rest=0.162->peak=0.519, entityAttack@3:rest=0.223->peak=0.58, entityAttack@3:rest=0.32->peak=0.542, entityAttack@3:rest=0.186->peak=0.579, entityAttack@3:rest=0.33->peak=0.579, entityAttack@3:rest=0.19->peak=0.192] delivered=[entityAttack@3, entityAttack@3, entityAttack@3, entityAttack@3, entityAttack@3, entityAttack@3, entityAttack@3] verdict=SEE-NUMBERS"
+      - run: gap-probe-run
+        where: "`zero-clamp` — the zero lane, in the same run"
+        quote: "[2026-08-07 00:55:22:991 WARN] [Scripting] [vggap] zero-clamp :: [clamp0] before-events=69 after-events=19 health(number:20 -> number:20) health-lost=number:0 subject-alive=true samples=400 peak-speed-overall=0.651 per-hit=[entityAttack@3:rest=0.073->peak=0.624, entityAttack@3:rest=0.624->peak=0.425, entityAttack@3:rest=0.188->peak=0.605, entityAttack@3:rest=0.605->peak=0.327, entityAttack@3:rest=0.284->peak=0.651, entityAttack@3:rest=0.651->peak=0.348, entityAttack@3:rest=0.16->peak=0.548, entityAttack@3:rest=0.548->peak=0.373] delivered=[entityAttack@3, entityAttack@3, entityAttack@3, entityAttack@3, entityAttack@3, entityAttack@3, entityAttack@3, entityAttack@3] verdict=SEE-NUMBERS"
+      - run: gap-probe-run
+        where: "`zero-clamp` — the cancelled lane, in the same run"
+        quote: "[2026-08-07 00:55:43:891 WARN] [Scripting] [vggap] zero-clamp :: [cancel] before-events=33 after-events=0 health(number:20 -> number:20) health-lost=number:0 subject-alive=true samples=400 peak-speed-overall=0.269 per-hit=[entityAttack@3:rest=0.108->peak=0.096, entityAttack@3:rest=0.108->peak=0.096, entityAttack@3:rest=0.056->peak=0.2, entityAttack@3:rest=0.1->peak=0.231, entityAttack@3:rest=0.14->peak=0.231, entityAttack@3:rest=0.01->peak=0.123, entityAttack@3:rest=0->peak=0, entityAttack@3:rest=0.102->peak=0.008] delivered=[entityAttack@3, entityAttack@3, entityAttack@3, entityAttack@3, entityAttack@3, entityAttack@3, entityAttack@3, entityAttack@3] verdict=SEE-NUMBERS"
+
+  - id: drowning-and-suffocation-raise-the-before-event
+    claim: |
+      `world.beforeEvents.entityHurt` is raised for drowning and for suffocation, each carrying its
+      own `damageSource.cause` — `drowning` and `suffocation` — at 2 damage a tick-group. Both were
+      driven on a villager held in a sealed one-block stone shaft, flooded and capped for the first
+      and with its head block made solid for the second.
+
+      This closes the two routes r-pe87rfqq names that
+      [[f:entity-hurt-before-event-sees-engine-dealt-damage]] left open: its caveat records
+      suffocation as dealing no health in any run, and drowning was never attempted. Both readings
+      were the rig — a villager walks out of an open arena before either route reaches it.
+    backing: tested
+    sources:
+      - run: gap-probe-run
+        where: "`water-and-walls` — drowning, observed without a write"
+        quote: "[2026-08-07 01:27:16:620 WARN] [Scripting] [vggap] water-and-walls :: [drowning/observe] cell-block=string:minecraft:water recentred=0 health(number:20 -> undefined) health-lost=undefined died=1 subject-alive=false before-events=10 after-events=10 delivered=[drowning@2, drowning@2, drowning@2, drowning@2, drowning@2, drowning@2, drowning@2, drowning@2, drowning@2, drowning@2] verdict=BEFORE-EVENT-RAISED"
+      - run: gap-probe-run
+        where: "`water-and-walls` — suffocation, observed without a write"
+        quote: "[2026-08-07 01:28:02:015 WARN] [Scripting] [vggap] water-and-walls :: [suffocation/observe] cell-block=string:minecraft:stone recentred=0 health(number:18 -> undefined) health-lost=undefined died=1 subject-alive=false before-events=10 after-events=10 delivered=[suffocation@2, suffocation@2, suffocation@2, suffocation@2, suffocation@2, suffocation@2, suffocation@2, suffocation@2, suffocation@2, suffocation@2] verdict=BEFORE-EVENT-RAISED"
+
+  - id: a-health-write-and-a-remove-raise-no-hurt-event
+    claim: |
+      Two removal routes reach no `entityHurt` handler at all. Writing a health component's
+      currentValue to the effective minimum fires `entityDie` with no `entityHurt` before or after
+      it, and `Entity.remove()` fires neither: both left the subject gone with an `entityHurt`
+      subscriber installed and nothing delivered to it. `kill()`, the `/kill` command and an
+      `applyDamage` under cause `override` do raise the before-event — as `selfDestruct@20`,
+      `selfDestruct@20` and `override@100` — so those three are visible to a handler and the first
+      two are indistinguishable from each other there.
+    backing: tested
+    sources:
+      - run: gap-probe-run
+        where: "`operator-removal` — remove(), raising nothing"
+        quote: "[2026-08-07 01:01:31:249 WARN] [Scripting] [vggap] operator-removal :: [remove()] call=ok value=undefined health(number:20 -> undefined) subject-alive=false before=[] after=[] verdict=REMOVED"
+      - run: gap-probe-run
+        where: "`operator-removal` — a health write to the minimum, raising no hurt event"
+        quote: "[2026-08-07 01:01:33:649 WARN] [Scripting] [vggap] operator-removal :: [health-write-to-min] call=ok value=boolean:true health(number:20 -> undefined) subject-alive=false before=[] after=[] verdict=REMOVED"
+      - run: gap-probe-run
+        where: "`operator-removal` — kill() reaching the before-event as selfDestruct"
+        quote: "[2026-08-07 01:01:21:648 WARN] [Scripting] [vggap] operator-removal :: [kill()] call=ok value=boolean:true health(number:20 -> undefined) subject-alive=false before=[selfDestruct@20->pass] after=[selfDestruct@20->pass] verdict=REMOVED"
+
+  - id: a-clamp-and-restore-holds-under-per-tick-damage
+    claim: |
+      A before-handler clamp paired with a `resetToMaxValue()` in the matching after-handler keeps a
+      mob at full health under damage arriving every tick, and the restore call itself is legal from
+      an after-event handler. A villager held in a flooded shaft took 511 delivered before-events in
+      the window and one held inside a solid block took 715; both ended alive at full health with no
+      death fired and nothing thrown, under a 0.5 clamp and a zero clamp alike. Three runs, each on
+      its own volume, are byte-identical.
+
+      Only about a tenth of the delivered before-events are matched by an after-event — 51 restores
+      against 511 and 715 hits — and the health still holds, so the restore does not have to answer
+      every delivery to keep the mob at full.
+    caveat: |
+      This says the clamp-and-restore pair holds, not that a mob survives. A mob already at or below
+      the clamp dies to the first hit whatever the restore does, which
+      [[f:a-clamped-hit-reaching-the-minimum-kills-and-converts]] records.
+    backing: tested
+    sources:
+      - run: gap-probe-hazard
+        where: "`shipped-pack-hazard` — drowning under a zero clamp"
+        quote: "[2026-08-07 02:09:45:045 WARN] [Scripting] [vggap] shipped-pack-hazard :: [clamp-0/drowning] teleport=true placed-at=(169.5,100,176.5) hits-seen=511 restores=51 health(number:20 -> number:20) lowest-sampled=number:20 died=0 subject-alive=true threw=0 first-hits=[drowning@2->clamp, drowning@2->clamp, drowning@2->clamp] verdict=SURVIVED-THE-HAZARD"
+      - run: gap-probe-hazard
+        where: "`shipped-pack-hazard` — suffocation under a 0.5 clamp"
+        quote: "[2026-08-07 02:09:02:845 WARN] [Scripting] [vggap] shipped-pack-hazard :: [clamp-0.5/suffocation] teleport=true placed-at=(169.5,100,176.5) hits-seen=715 restores=51 health(number:20 -> number:20) lowest-sampled=number:20 died=0 subject-alive=true threw=0 first-hits=[suffocation@2->clamp, suffocation@1.5->clamp, suffocation@1.5->clamp] verdict=SURVIVED-THE-HAZARD"
+
+  # Facts from the village-guard golem probe (Bedrock 1.26.40.8, @minecraft/server 2.8.0), recorded
+  # in evidence/minecraft/script-api/golem-probe/RESULTS.md. An iron golem carries no anger
+  # component: retaliation is `minecraft:behavior.hurt_by_target`, gated by a family filter.
+
+  - id: cancelling-a-hit-does-not-stop-an-iron-golems-retaliation
+    claim: |
+      An iron golem targets whoever swung at it whether or not the hit was cancelled. A
+      player-family attacker landed 23 hits on a golem whose `entityHurt` event the handler
+      cancelled: the golem ended the window at full health, so the cancel took, and it struck back
+      24 times, first at tick 35. The engine reads the attempt rather than the damage.
+    caveat: |
+      The attacker is a probe entity carrying the named `type_family`, not a client-driven player.
+      What this shows is what the engine does with a hit whose source carries that family; nothing
+      here shows a real player's swing takes the same path.
+    backing: tested
+    sources:
+      - run: golem-probe-aggro
+        where: "`aggro` — a player-family attacker whose hit is cancelled"
+        quote: "[2026-08-07 15:12:23:462 WARN] [Scripting] [vggolem] aggro :: [player/cancel] attacker=vgprobe:swinger_player treat=cancel from_player=null hits-on-golem=23 golem-health=number:100 golem-alive=true attacker-health=number:55 attacker-alive=true closest=0.137 strikes-by-golem=24 first-strike-tick=35 triggers=[] first-hits-on-golem=[entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player] first-strikes=[vgprobe:swinger_player@14, vgprobe:swinger_player@17, vgprobe:swinger_player@18, vgprobe:swinger_player@15] verdict=GOLEM-RETALIATED"
+
+  - id: an-iron-golems-retaliation-is-gated-by-its-family-filter
+    claim: |
+      Whether an iron golem retaliates turns on the attacker's `type_family`, not on the damage
+      taken. Vanilla `iron_golem.json` gates `minecraft:behavior.hurt_by_target` on
+      `entity_types: is_family != creeper`, and the engine honours it: a creeper-family attacker
+      landed 13 uncancelled hits, taking the golem from 100 health to 61, and drew 0 strikes — while
+      a player-family attacker drew 24 with no damage dealt at all.
+    caveat: |
+      The attacker is a probe entity carrying the named `type_family`, not a client-driven player.
+      What this shows is what the engine does with a hit whose source carries that family; nothing
+      here shows a real player's swing takes the same path.
+    backing: tested
+    sources:
+      - run: golem-probe-aggro
+        where: "`aggro` — a creeper-family attacker dealing real damage"
+        quote: "[2026-08-07 15:13:15:662 WARN] [Scripting] [vggolem] aggro :: [creeper/none] attacker=vgprobe:swinger_creeper treat=none from_player=null hits-on-golem=13 golem-health=number:61 golem-alive=true attacker-health=number:400 attacker-alive=true closest=0.037 strikes-by-golem=0 first-strike-tick=-1 triggers=[] first-hits-on-golem=[entityAttack@3<-vgprobe:swinger_creeper, entityAttack@3<-vgprobe:swinger_creeper, entityAttack@3<-vgprobe:swinger_creeper, entityAttack@3<-vgprobe:swinger_creeper] first-strikes=[] verdict=GOLEM-DID-NOT-RETALIATE"
+
+  - id: trigger-event-throws-in-a-before-event-handler
+    claim: |
+      `Entity.triggerEvent` cannot be called from a `beforeEvents` handler: it throws
+      `ReferenceError: Native function [Entity::triggerEvent] cannot be used in restricted
+      execution.` The before-event callback runs with restricted-execution privilege, so an entity
+      event is not a lever available while a hit is being decided.
+    backing: tested
+    sources:
+      - run: golem-probe-fromplayer
+        where: "`fromplayer` — triggering the event from inside the before-event handler"
+        quote: "[2026-08-07 15:16:49:335 WARN] [Scripting] [vggolem] from-player :: [in-handler/player/cancel] attacker=vgprobe:swinger_player treat=cancel from_player=string:first-hit:threw ReferenceError: Native function [Entity::triggerEvent] cannot be used in restricted execution. hits-on-golem=23 golem-health=number:100 golem-alive=true attacker-health=number:81 attacker-alive=true closest=0.083 strikes-by-golem=23 first-strike-tick=40 triggers=[] first-hits-on-golem=[entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player] first-strikes=[vgprobe:swinger_player@21, vgprobe:swinger_player@11, vgprobe:swinger_player@12, vgprobe:swinger_player@20] verdict=GOLEM-RETALIATED"
+
+  - id: from-player-prevents-an-iron-golems-target-but-does-not-clear-one
+    claim: |
+      Sending an iron golem `minecraft:from_player` before it is hit prevents the retaliation
+      entirely — 25 hits from a player-family attacker drew 0 strikes. Sending the same event to a
+      golem that has already taken a hit does not calm it: the strike cadence is a flat 20 ticks and
+      runs straight through the moment the event is applied, 28 strikes in the window with 5 of them
+      before the apply.
+
+      So the event swaps the behaviour's filter for one that excludes the player family; it does not
+      touch a target already chosen. Deferring it a single tick from the first hit is therefore a
+      race, and it loses: three runs of that one shape gave 29 strikes, 0 strikes and 23 strikes.
+    caveat: |
+      The attacker is a probe entity carrying the named `type_family`, not a client-driven player.
+      What this shows is what the engine does with a hit whose source carries that family; nothing
+      here shows a real player's swing takes the same path.
+    backing: tested
+    sources:
+      - run: golem-probe-timing
+        where: "`timing` — the event sent at spawn, ahead of every hit"
+        quote: "[2026-08-07 15:22:02:278 WARN] [Scripting] [vggolem] timing :: [spawn] attacker=vgprobe:swinger_player treat=cancel from_player=string:spawn:ok hits-on-golem=25 golem-health=number:100 golem-alive=true attacker-health=number:400 attacker-alive=true closest=0.01 strikes-by-golem=0 first-strike-tick=-1 strike-ticks=[] triggers=[minecraft:from_player] first-hits-on-golem=[entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player] first-strikes=[] verdict=GOLEM-DID-NOT-RETALIATE"
+      - run: golem-probe-timing
+        where: "`timing` — the same event sent at tick 120 to an already-angry golem"
+        quote: "[2026-08-07 15:24:04:933 WARN] [Scripting] [vggolem] timing :: [apply@120] attacker=vgprobe:swinger_player treat=cancel from_player=string:tick120:ok hits-on-golem=12 golem-health=number:100 golem-alive=true attacker-health=number:7 attacker-alive=true closest=0.053 strikes-by-golem=28 strikes-before-apply=5 first-strike-tick=30 strike-ticks=[30 50 70 90 110 140 160 180 200 220 240 260 280 300 320 340 360 380 400 420 440 460 480 500 520 540 560 580] triggers=[minecraft:from_player] first-hits-on-golem=[entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player] first-strikes=[vgprobe:swinger_player@18, vgprobe:swinger_player@7, vgprobe:swinger_player@19, vgprobe:swinger_player@9] verdict=GOLEM-RETALIATED"
+      - run: golem-probe-timing
+        where: "`timing` — the event deferred one tick from the first hit, losing the race"
+        quote: "[2026-08-07 15:22:33:383 WARN] [Scripting] [vggolem] timing :: [defer-first-hit/a] attacker=vgprobe:swinger_player treat=cancel from_player=string:first-hit:deferred:ok hits-on-golem=9 golem-health=number:100 golem-alive=true attacker-health=number:0 attacker-alive=true closest=0.068 strikes-by-golem=29 first-strike-tick=25 strike-ticks=[25 45 65 85 105 125 150 170 190 210 230 250 270 290 310 330 350 370 390 410 430 450 470 490 510 530 550 570 590] triggers=[minecraft:from_player] first-hits-on-golem=[entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player] first-strikes=[vgprobe:swinger_player@15, vgprobe:swinger_player@12, vgprobe:swinger_player@19, vgprobe:swinger_player@16] verdict=GOLEM-RETALIATED"
+
+  - id: enrolling-a-golem-on-arrival-stops-only-the-player-lane
+    claim: |
+      Sending `minecraft:from_player` to an iron golem as it arrives — through `entitySpawn` and
+      `entityLoad` — stops a player-family attacker drawing any retaliation at all, and leaves every
+      other attacker's alone: an enrolled golem drew 0 strikes from 12 player-family hits, and killed
+      a zombie that struck it. The exclusion the event installs is specific to the player family
+      rather than a general calm.
+    caveat: |
+      The attacker is a probe entity carrying the named `type_family`, not a client-driven player.
+      What this shows is what the engine does with a hit whose source carries that family; nothing
+      here shows a real player's swing takes the same path.
+    backing: tested
+    sources:
+      - run: golem-probe-enrol
+        where: "`enrol` — an enrolled golem under a player-family attacker"
+        quote: "[2026-08-07 15:26:49:399 WARN] [Scripting] [vggolem] enrol :: [enrolled/player/cancel] attacker=vgprobe:swinger_player treat=cancel from_player=null hits-on-golem=12 golem-health=number:100 golem-alive=true attacker-health=number:400 attacker-alive=true closest=0.033 strikes-by-golem=0 first-strike-tick=-1 strike-ticks=[] triggers=[] first-hits-on-golem=[entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player] first-strikes=[] verdict=GOLEM-DID-NOT-RETALIATE"
+      - run: golem-probe-enrol
+        where: "`enrol` — the same enrolled golem against a zombie"
+        quote: "[2026-08-07 15:27:19:849 WARN] [Scripting] [vggolem] enrol :: [enrolled/zombie/clamp0] attacker=minecraft:zombie treat=clamp0 from_player=null hits-on-golem=5 golem-health=number:100 golem-alive=true attacker-health=undefined attacker-alive=false closest=1.026 strikes-by-golem=2 first-strike-tick=15 strike-ticks=[15 35] triggers=[] first-hits-on-golem=[entityAttack@3<-minecraft:zombie, fireTick@1<-none, entityAttack@3<-minecraft:zombie, fireTick@1<-none] first-strikes=[minecraft:zombie@9.824, minecraft:zombie@11.792] verdict=GOLEM-RETALIATED"
+
+  - id: no-village-profession-or-trade-surface-on-a-villager
+    claim: |
+      `@minecraft/server` 2.8.0 exposes nothing about villages. A villager's components are movement,
+      inventory, navigation, health, variant, mark_variant, skin_id, breathable, can_climb and
+      type_family and no more — no village membership, no profession, no trades, no reputation. The
+      three variant integers are the only profession-shaped values reachable, and nothing names the
+      village an entity belongs to, so a village can be observed only through the world's own
+      records or through behaviour.
+    backing: tested
+    sources:
+      - run: village-structures-api
+        where: "`api` — every component a villager carries"
+        quote: |
+          [2026-08-07 18:02:50:988 WARN] [Scripting] [vgvil] api :: villager components=[minecraft:movement,minecraft:movement.basic,minecraft:inventory,minecraft:navigation.walk,minecraft:health,minecraft:variant,minecraft:underwater_movement,minecraft:lava_movement,minecraft:mark_variant,minecraft:is_hidden_when_invisible,minecraft:skin_id,minecraft:breathable,minecraft:can_climb,minecraft:type_family]
+
+  - id: from-player-adds-a-group-and-nothing-removes-it
+    claim: |
+      Vanilla `iron_golem.json` defines exactly two events, and both only add: `minecraft:from_player`
+      adds the component group `minecraft:player_created`, and `minecraft:from_village` adds
+      `minecraft:village_created`. No event removes either group.
+
+      So sending a golem `minecraft:from_player` is a one-way change. A component group is saved with
+      the entity, and the entity carries no event that would take it off again, so a pack that sends
+      the event alters every golem it reaches for as long as that golem exists — including after the
+      pack is removed.
+    caveat: |
+      What is read here is the entity definition. That a component group persists with the saved
+      entity is the engine's documented behaviour for component groups rather than something this
+      reading measures, and no probe here removed a pack and re-inspected a golem afterwards.
+    backing: tested
+    sources:
+      - run: iron-golem-vanilla-events
+        where: "the `events` object of the vanilla entity definition"
+        quote: |
+          "events":{"minecraft:from_player":{"add":{"component_groups":["minecraft:player_created"]}},"minecraft:from_village":{"add":{"component_groups":["minecraft:village_created"]}}}}}

@@ -281,3 +281,105 @@ runs:
       nothing and cancels nothing, reading the hits only and healing solely as a rescue below 7
       health. Prices were read at the client by the owner, before and after each attachment.
 
+
+  # Runs backing the facts the implementation of village-guard 004 produced. Same headless shape as
+  # the protection probe: the pack reports through console.warn and the driver reads the container
+  # log, so no client attaches. The probe pack transcribes the shipped pack's own handler logic, so
+  # the restore, hazard, operator and convert sets exercise what @twin-digital/village-guard 0.1.0
+  # does rather than an approximation of it, with the clamp constant the one thing varied.
+
+  - id: gap-probe-run
+    command: node evidence/minecraft/script-api/gap-probe/run.mjs 3
+    output: evidence/minecraft/script-api/gap-probe/OUTPUT.txt
+    ran_at: 2026-08-07
+    environment: |
+      itzg/minecraft-bedrock-server, Bedrock dedicated 1.26.40.8, @minecraft/server 2.8.0 as a pack
+      manifest dependency with no experiments enabled, difficulty hard. gap-probe-pack 0.1.0, uuid
+      b1f8d240-3c77-4e6a-9a15-8d40e2c7f931, triggered as `scriptevent vggap:<set>` from the server
+      console with no source entity, against a walled stone platform the pack builds at
+      (163, 100, 170) inside its own ticking area. Covers the zeroclamp, subclamp, water, restore and
+      operator sets, three runs each, no PROBE CRASHED lines. The results document is
+      evidence/minecraft/script-api/gap-probe/RESULTS.md, which records the four rig faults found
+      while writing these probes and what each had corrupted. Entity handles go stale after the first
+      run in a session, so a case reporting its subject gone without being struck is that fault
+      rather than a reading. Every observation is that engine build's behaviour and would differ
+      against another.
+
+  - id: gap-probe-conversion
+    command: node evidence/minecraft/script-api/gap-probe/run.mjs 1 convert  # three times, each on a destroyed and rebuilt volume
+    output: evidence/minecraft/script-api/gap-probe/CONVERT-OUTPUT.txt
+    ran_at: 2026-08-07
+    environment: |
+      Same server, module version, pack and driver as gap-probe-run, triggered as
+      `scriptevent vggap:convert`. Difficulty hard, where vanilla zombie-to-villager conversion is
+      certain. The set pens one villager and four zombies together in a walled 3x3, re-centring both
+      sides on a timer, and varies only the subject's starting health and the pack's clamp constant;
+      an unguarded villager at the same starting health is the control. Driven one run per destroyed
+      and rebuilt volume, because entity handles go stale after the first run in a session. 3/3 runs
+      reach the same verdict on every case, no PROBE CRASHED lines.
+
+  - id: gap-probe-hazard
+    command: node evidence/minecraft/script-api/gap-probe/run.mjs 1 hazard  # three times, each on a destroyed and rebuilt volume
+    output: evidence/minecraft/script-api/gap-probe/HAZARD-OUTPUT.txt
+    ran_at: 2026-08-07
+    environment: |
+      Same server, module version, pack and driver as gap-probe-run, triggered as
+      `scriptevent vggap:hazard`. The subject is held in a sealed one-block stone shaft — flooded and
+      capped for drowning, its head block made solid for suffocation — with the shipped pack's own
+      handlers installed and the clamp constant varied. Driven one run per destroyed and rebuilt
+      volume, for the same reason as gap-probe-conversion.
+
+  # Runs backing the golem-retaliation facts, from the same session that implemented village-guard
+  # 005. Headless, and the attacker in every case is a probe entity carrying a named `type_family`
+  # rather than a client-driven player — every fact resting on these says so.
+
+  - id: golem-probe-aggro
+    command: OUT_FILE=AGGRO-OUTPUT.txt node evidence/minecraft/script-api/golem-probe/run.mjs 1 aggro
+    output: evidence/minecraft/script-api/golem-probe/AGGRO-OUTPUT.txt
+    ran_at: 2026-08-07
+    environment: |
+      itzg/minecraft-bedrock-server, Bedrock dedicated 1.26.40.8, @minecraft/server 2.8.0 as a pack
+      manifest dependency with no experiments enabled, difficulty hard. golem-probe-pack 0.1.0, uuid
+      19729136-3a4c-4243-8a5d-e1bbec325650, triggered as `scriptevent vggolem:aggro` from the server
+      console, against a 9x9 walled stone pen the pack builds at (163, 100, 170) inside its own
+      ticking area. The attacker is `vgprobe:swinger_<family>`, a mob the probe pack defines in three
+      copies differing only in `type_family`. Driven on its own destroyed and rebuilt volume. The
+      results document is evidence/minecraft/script-api/golem-probe/RESULTS.md.
+
+  - id: golem-probe-fromplayer
+    command: OUT_FILE=FROMPLAYER-OUTPUT.txt node evidence/minecraft/script-api/golem-probe/run.mjs 1 fromplayer
+    output: evidence/minecraft/script-api/golem-probe/FROMPLAYER-OUTPUT.txt
+    ran_at: 2026-08-07
+    environment: |
+      Same server, module version, pack and driver as golem-probe-aggro, triggered as
+      `scriptevent vggolem:fromplayer`, on its own destroyed and rebuilt volume.
+
+  - id: golem-probe-timing
+    command: OUT_FILE=TIMING-OUTPUT.txt node evidence/minecraft/script-api/golem-probe/run.mjs 1 timing
+    output: evidence/minecraft/script-api/golem-probe/TIMING-OUTPUT.txt
+    ran_at: 2026-08-07
+    environment: |
+      Same server, module version, pack and driver as golem-probe-aggro, triggered as
+      `scriptevent vggolem:timing`, on its own destroyed and rebuilt volume. The set sends
+      `minecraft:from_player` at a named moment — at spawn, deferred one tick from the first hit, or
+      at a fixed tick after the golem is already angry — and records the tick of every strike.
+
+  - id: golem-probe-enrol
+    command: OUT_FILE=ENROL-OUTPUT.txt node evidence/minecraft/script-api/golem-probe/run.mjs 1 enrol
+    output: evidence/minecraft/script-api/golem-probe/ENROL-OUTPUT.txt
+    ran_at: 2026-08-07
+    environment: |
+      Same server, module version, pack and driver as golem-probe-aggro, triggered as
+      `scriptevent vggolem:enrol`, on its own destroyed and rebuilt volume. The set subscribes
+      entitySpawn and entityLoad and sends `minecraft:from_player` on arrival, then drives a
+      player-family attacker, a plain attacker and a zombie against the enrolled golem.
+
+  - id: iron-golem-vanilla-events
+    command: docker exec <container> tr -d '\n\t ' < /data/behavior_packs/vanilla/entities/iron_golem.json | grep -o '"events":{.*'
+    output: evidence/minecraft/script-api/golem-probe/IRON-GOLEM-EVENTS.txt
+    ran_at: 2026-08-09
+    environment: |
+      The vanilla behaviour pack shipped inside itzg/minecraft-bedrock-server, Bedrock dedicated
+      1.26.40.8 — the same image every golem-probe set ran against. The entity definition is read
+      off the running container's filesystem; it is the engine build's own data and would differ
+      against another.
