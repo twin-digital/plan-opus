@@ -1,5 +1,5 @@
 ---
-version: "26"
+version: "30"
 name: increment
 description: Run one phase of a product's increment in this repository. Plan — open a draft increment on its own branch, work Clarify in the foundation sources, loop Ratify through its pull request, and land it into the next number; use when asked to plan an increment, capture or adopt a backlog item, run the Plan phase, or drive a product's design to a mergeable state. Implement — build the fold at a published increment, dispatch one implementer per package, accumulate design consequences in a companion increment, and file the implementation record; use when asked to implement a product, an increment, or the fold of a design. Invoked as `/increment plan` or `/increment implement`.
 ---
