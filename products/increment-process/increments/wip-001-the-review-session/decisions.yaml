@@ -1,10 +1,12 @@
 version: "2"
 decisions:
   - id: d-4uz3egbj
-    title: ratify is offered for every draft, settled or not
+    title: the ratify session offers ratify for every draft, settled or not
     statement: |
-      ratify is offered for every draft, whatever statuses its entries hold, and is where a session
-      opens. nothing proposed and no question open is the landing's condition, not the session's.
+      the ratify session — `design-process increment`, opened on a draft's pull request — offers
+      ratify mode for every draft it opens on, whatever statuses that draft's entries hold.
+      nothing proposed and no question open is the condition on that session's landing, not a
+      condition on the session opening or on ratify being among the modes it offers.
     status: accepted
     because:
       - r-0h5q1lfl
@@ -16,27 +18,13 @@ decisions:
         which drafts the published command opens on
     facets:
       - tooling
-  - id: d-v2aky476
-    title: the session works a draft, and a published increment is read through show
-    statement: |
-      the session works a draft on its pull request; a published increment is read through `show`.
-      an entry that landed is changed by a later increment superseding it, not by a sitting
-      reopening it.
-    status: proposed
-    because:
-      - d-4uz3egbj
-      - d-udx0fefp
-      - d-9s4d3ww2
-    pinned: false
-    facets:
-      - tooling
-      - process-doc
   - id: d-nb5yg1w1
-    title: a submit does not end the sitting
+    title: a submit does not end the ratify session's sitting
     statement: |
-      a submit returns the owner to the list, with the staged set cleared of what it wrote. the
-      session ends when the owner ends it or a landing completes, and no outcome of a submit ends
-      it. the exit code is what the sitting was, not what a submit did.
+      in the ratify session, a submit returns the owner to the list it was made from, with the
+      staged set cleared of what it wrote. the session ends when the owner ends it or a landing
+      completes, and no outcome of a submit ends it. the command's exit code is what the sitting
+      was, not what a submit within it did.
     status: accepted
     because:
       - r-clty5lqd
@@ -50,17 +38,18 @@ decisions:
     facets:
       - tooling
   - id: d-x1jlr7jc
-    title: a refused push pulls, reapplies by id, and tries again
+    title: a ratify session's refused push pulls, reapplies by id, and tries again
     statement: |
-      the commit a submit writes names each status the set took and its count — `3 accepted, 1
-      rejected` — omitting a status no entry took and counting answered questions as their own
-      clause; a sitting that changed nothing writes no commit. the submit then pushes.
+      the commit a ratify session's submit writes to the draft's branch names each status the set
+      took and its count — `3 accepted, 1 rejected` — omitting a status no entry took and counting
+      answered questions as their own clause; a sitting that changed nothing writes no commit. the
+      submit then pushes that branch to its remote.
 
-      a refused push is not the end of it: the session fetches the tip, reapplies the sitting's
-      rulings by entry id, and pushes again. it may unwind its own unpushed commit to do so, and
-      never rewrites one the remote has accepted. an entry whose status differs at the tip is left
-      as the tip has it and reported to the owner, its ruling leaving the stage. a second refusal is
-      reported and the sitting continues.
+      a push the remote refuses is not the end of it: the session fetches the branch's tip,
+      reapplies the sitting's rulings by entry id, and pushes again. it may unwind its own unpushed
+      commit to do so, and never rewrites one the remote has accepted. an entry whose status
+      differs at the tip is left as the tip has it and reported to the owner, its ruling leaving the
+      stage. a second refusal is reported and the sitting continues.
 
       the owner's rulings are durable from the write until the push is accepted or the owner is told
       it was not.
@@ -78,15 +67,15 @@ decisions:
     facets:
       - tooling
   - id: d-26vs308h
-    title: the draft's requirements are a second list beside its decisions
+    title: the ratify session holds a requirements list beside its decisions list
     statement: |
-      the session holds a second list carrying the requirements the draft declares and its model
-      bindings, in the ratify list's arrangement. a session opens on the decisions list, and the key
-      that moves between them is the implementer's.
+      the ratify session holds a second entry list, carrying the requirements the open draft
+      declares and that draft's model bindings, in the ratify list's arrangement. the session opens
+      on the decisions list, and the key that moves between the two is the implementer's.
 
-      an entry there takes a note and no ruling — the process gives it no status to leave. a submit
-      carrying only notes writes no commit and posts its review against the branch as the remote
-      already has it.
+      an entry in the requirements list takes a note and no ruling — the process gives a requirement
+      and a model binding no status to leave. a submit carrying only notes writes no commit and
+      posts its review against the branch as the remote already has it.
     status: accepted
     because:
       - r-84zd8sfk
@@ -101,11 +90,12 @@ decisions:
     facets:
       - tooling
   - id: d-g00ah4em
-    title: the list marks what an entry closes and what closed it
+    title: the ratify session's lists mark what an entry closes and what closed it
     statement: |
-      an entry is marked where it closes another foundation — `supersedes`, `amends`, or a
-      `retires` entry — and marked differently where a later entry of the same draft closes it. an
-      entry that is both carries the closing mark. which colours carry them is the implementer's.
+      in either of the ratify session's entry lists, an entry is marked where it closes another
+      foundation — `supersedes`, `amends`, or a `retires` entry — and marked differently where a
+      later entry of the same draft closes it. an entry that is both carries the closing mark.
+      which colours carry the marks is the implementer's.
     status: tolerated
     because:
       - r-n86ssoew
@@ -114,10 +104,11 @@ decisions:
     facets:
       - tooling
   - id: d-smnssz39
-    title: the screen's reading rule holds for every ratify-screen version
+    title: the reading rule holds for every ratify-screen version
     statement: |
-      `d-q50z7iq1` states how `/design-process/ratify-screen@1` is read; it is read that way at
-      every version. a build is checked against the frames of the version its product binds.
+      `d-q50z7iq1` states how the authored surface `/design-process/ratify-screen@1` is read; every
+      version of that surface is read the same way. a build is checked against the frames of the
+      version its product's model binds.
     status: delegated
     because:
       - d-q50z7iq1
@@ -133,12 +124,13 @@ decisions:
   - id: d-ufuosc77
     title: a companion increment is gated as a whole and reviewed entry by entry
     statement: |
-      a companion increment reaches the owner as a plan draft does: its pull request opened,
-      everything pushed, the url handed over, and the branch left alone while a sitting is open.
+      at the end of an implementation, the orchestrator puts its companion increment to the owner
+      as the plan phase puts a draft: the pull request opened, everything pushed, the url handed
+      over, and the branch left alone while a sitting is open.
 
-      what stays whole is the gate, not the review. the merge gate reads `proposed` entries and open
-      questions, so an all-`delegated` companion lands without a per-entry ruling while every entry
-      stays reachable in the session.
+      what stays whole is the companion's gate, not its review. the merge gate reads `proposed`
+      entries and open questions, so an all-`delegated` companion lands without a per-entry ruling
+      while every entry stays reachable in the ratify session.
     status: delegated
     because:
       - r-0h5q1lfl
