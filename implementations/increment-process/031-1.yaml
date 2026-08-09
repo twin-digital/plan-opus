@@ -1,6 +1,6 @@
 version: "1"
 product: increment-process
-target: 30
+target: 31
 built_at: 2026-08-09
 packages:
   - path: nodejs/plan/design-process
@@ -1575,3 +1575,23 @@ coverage:
       - kind: attestation
         ref: .claude/skills/increment/implement.md#4-land
         note: the companion is put to the owner as the plan phase puts a draft; the gate is whole, the review is entry by entry
+  - claim: r-tb9nctcr # the whole of an entry's detail is reachable
+    covered_by:
+      - kind: code-test
+        ref: test/session-render.test.ts
+        note: the pane pages to the content's last row, marks its edge while content sits above or below, and moves on the first press back
+      - kind: conformance-case
+        ref: test/fixtures/surfaces/design-process/ratify-screen.4.yaml
+        note: the detail pane's scrolling section of /design-process/ratify-screen@4
+      - kind: attestation
+        ref: src/session/render.ts
+  - claim: d-ko3lggbr # the session's lists show a draft's retirements
+    covered_by:
+      - kind: conformance-case
+        ref: test/conformance.test.ts
+        note: both frames of /design-process/ratify-screen@4, each carrying its list's retirement row
+      - kind: code-test
+        ref: test/session.test.ts
+        note: each list holds its source's retirements, titled from the fold at head, marked retired, taking a note and no ruling
+      - kind: attestation
+        ref: src/session/entries.ts
