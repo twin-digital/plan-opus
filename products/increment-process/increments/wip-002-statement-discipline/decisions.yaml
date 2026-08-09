@@ -74,6 +74,88 @@ decisions:
     pinned:
       reason: data-format
 
+  # the terms glossary
+  - id: d-amueiyj2
+    title: terms are declared in the requirements source
+    statement: |
+      a product's terms are declared in a `terms:` block of the requirements source, beside
+      `components:`, `presets:`, and `model:` — state-shaped entries folding by id, ratified
+      with the increment that declares them; a definition is binding and one line.
+      `/design-process/requirements@3` carries the block.
+    status: proposed
+    because:
+      - r-uc90eb7v
+    pinned:
+      reason: data-format
+
+  - id: d-0435v8sr
+    title: a term is a slug, a definition, a display form, and a scope
+    statement: |
+      a term entry carries a slug id, a one-line binding definition, an optional `display` for
+      a natural written form the slug cannot carry — capitalization or punctuation — an
+      optional component scope, and a status of active or retired. There is no aliases field:
+      one term, one written form.
+    status: proposed
+    because:
+      - d-amueiyj2
+    pinned:
+      reason: data-format
+
+  - id: d-bgoclt56
+    title: the name is the identity, and prose resolves by normalization
+    statement: |
+      a term's slug is its identity — no opaque id — and statements use the natural form,
+      resolved by normalization: case-insensitive, hyphen and space interchangeable, `display`
+      matched where declared. Slugs are unique across the product's closure, and a collision
+      with an adopted term is a validator finding.
+    status: proposed
+    because:
+      - r-uc90eb7v
+      - d-amueiyj2
+    pinned:
+      reason: data-format
+
+  - id: d-2t3fbn09
+    title: clarify in place; a meaning change is a new term
+    statement: |
+      a later increment redeclares a term to tighten its wording; a change of meaning mints a
+      new term and retires the old with `superseded_by`, since a definition is imported into
+      the meaning of every statement using it. Retirement is refused while an in-force
+      foundation uses the term, unless `superseded_by` resolves it.
+    status: proposed
+    because:
+      - d-0435v8sr
+    pinned:
+      reason: data-format
+
+  - id: d-x9x3fxp4
+    title: terms travel with adoption and resolve at the declaring scope
+    statement: |
+      a preset's requirements use only terms its own closure declares, and an adopted
+      requirement's terms resolve against the declaring product's fold, never the adopter's.
+      Sharing is opt-in: two products may define one word locally and diverge, as adopted
+      presets may drift.
+    status: proposed
+    because:
+      - r-uc90eb7v
+      - d-amueiyj2
+    pinned:
+      reason: data-format
+
+  - id: d-lb99q03v
+    title: declaration checks gate; usage checks report
+    statement: |
+      the validator gates on declarations — slug collisions in the closure, an unresolved
+      `superseded_by`, a retirement without reason. Usage detection in unmarked prose is
+      heuristic and reports instead: a redefinition's reach, a retirement's apparent users,
+      orphan terms. The reviewer-applied tests and the extraction triggers land in the
+      authoring guidance.
+    status: proposed
+    because:
+      - d-bgoclt56
+      - d-2t3fbn09
+    pinned: false
+
   # statement form
   - id: d-pxlmdkz1
     title: the authoring guidance offers the EARS templates
