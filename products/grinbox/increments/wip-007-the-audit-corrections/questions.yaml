@@ -1,22 +1,49 @@
 version: "1"
 
+# r-llrpzkd1 is breached three ways, and the three do not share an answer: one is about what
+# counts as an effect, one about what a cap counts, one about whose cap it is.
+
 questions:
-  - id: q-c4ffnpus
+  - id: q-b97492y7
     question: |
-      r-llrpzkd1 says every outside effect is capped on how often it may happen, and that nothing
-      the user configures can exempt an effect from its cap. The code breaks that three ways, each
-      deliberate: the interface deletes a cap outright and says the operation then runs unbounded;
-      two metered operations ship with no cap at all; and a cap is consumed once per attempt while
-      the attempt may retry up to four times, so a cap of fifty permits two hundred calls. Does the
-      requirement stand as written — making all three defects to fix — or is it amended, and to
-      what?
+      two metered operations against the mail provider — fetching a message's metadata and listing
+      messages — ship with no cap at all, and an operation with no cap runs unbounded. Both are
+      reads: they spend the provider's quota rather than reaching the user or costing money.
+      Does r-llrpzkd1's "every effect grinbox has outside its own process" cover a read, so that
+      both want caps; or does it narrow to the effects a user or a bill would notice?
+    answer: requirement
+
+  - id: q-o623r2s8
+    question: |
+      a cap is consumed once per attempt, and a failed attempt retries up to three more times, so a
+      cap of fifty model invocations permits two hundred calls and two hundred charges. The
+      operations that reach the user — a notification, a sent mail — are never retried, so retries
+      multiply spend and never multiply what the user sees. Does a cap count operations, a bounded
+      retry of one failed operation being part of the operation it retries; or does it count calls,
+      so the retry loop consumes the cap each time round?
+    answer: requirement
+
+  - id: q-xk30ak52
+    question: |
+      the interface deletes a cap outright and says so — "operations on this resource will run
+      unbounded until you add a limit again" — after which the operation is uncapped until a
+      restart reinstates the seeded default. A cap the user added themselves stays gone.
+      r-llrpzkd1 says nothing the user configures can exempt an effect from its cap, and its
+      rationale says the cap is not a setting. Does that hold for every cap, or for the caps
+      grinbox seeds, leaving caps a user adds on top freely removable?
+      What hangs on it: d-isyan49o makes the per-message cap the thing that stops a replay
+      repeating an effect, and r-zagpfz75 rests on that — so a per-message cap the user can delete
+      means re-triage can repeat a notification, and r-zagpfz75 needs either its own amendment or a
+      dedupe that does not live in a deletable cap.
     answer: requirement
 
   - id: q-urj6g53b
     question: |
-      the notification grinbox sends carries a link into the mail provider's own web client, and
-      the message-detail view carries the same link. r-etj0gluz confines naming a backend to the
-      account a message arrived on. Getting the user back to their mail is worth something; naming
-      one backend everywhere the user looks is what the requirement forbids. Should the link be
-      dropped, or should the requirement admit a backend-supplied link as an exception?
+      every notification grinbox sends carries a link into the mail provider's own web client, and
+      the message-detail view carries the same link; both are built from one shared helper that
+      names the provider and hard-codes its first signed-in-account slot. r-etj0gluz confines
+      naming a backend to the account a message arrived on. Getting the user back to their mail is
+      worth something, and a notification with no way through to the message is weaker for it.
+      Should the link go, should the seam carry a link the backend supplies, or should the
+      requirement admit a backend-named link as an exception?
     answer: requirement
