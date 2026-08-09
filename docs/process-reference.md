@@ -1,5 +1,5 @@
 ---
-version: "26"
+version: "30"
 ---
 
 # The incremental design process
@@ -414,9 +414,10 @@ narrows the list to that product's drafts, and where that leaves one the selecti
 skipped; the product argument is optional throughout, since the draft the diff names carries it.
 Where the diff carries no increment, the session says so and exits.
 
-The session has modes, and what is open decides which are offered. **Ratify** is where a draft
-carrying anything proposed or unanswered opens. **Landing** becomes available exactly when
-nothing is proposed and no question is open, and is entered from the same session.
+The session has modes. **Ratify** is offered for every draft the session opens on, whatever
+statuses that draft's entries hold. **Landing** becomes available exactly when nothing is
+proposed and no question is open, and is entered from the same session — that condition is on
+landing, not on the session opening or on ratify being among the modes it offers.
 
 #### The screen is an authored contract
 
@@ -1082,7 +1083,8 @@ calls, so dispatch never depends on a kind's waves:
 
 Survey maps to no wave; a shape partitions its waves across prepare and implement.
 
-The shape for code kinds — `npm-library`, `npm-cli`, `minecraft-addon`:
+The shape for code kinds — `npm-library`, `npm-cli`, `minecraft-addon`, `node-service`, and
+`web-app`:
 
 | wave | phase | produces | validated against |
 |---|---|---|---|
@@ -1092,7 +1094,11 @@ The shape for code kinds — `npm-library`, `npm-cli`, `minecraft-addon`:
 | **Document** | implement | READMEs and user-facing documentation | the implementation |
 
 Prepare may return as soon as the API stubs stand, with test authoring finishing inside
-implement, so dependents unblock at the earliest honest moment.
+implement, so dependents unblock at the earliest honest moment. What a code kind stands up in
+prepare is whatever a sibling compiles against: a `node-service` — a long-running process
+deployed and operated rather than installed by a consumer — stands up the surface it serves,
+while a `web-app` — a browser application built and served rather than imported — has nothing
+compiling against it, so its prepare is the no-op the shape already provides for.
 
 The shape for the `document` and `agent-skill` kinds:
 
@@ -1137,14 +1143,19 @@ and record, including overturning unpinned decisions.
 
 The companion increment is the **only channel**: every design change an implementation produces
 lands through it, as an ordinary design increment, and the implementation record carries no
-design content — target, packages, and coverage only. The merge gate reads only `proposed`, so
-a companion increment whose escalations were ruled as they arose lands gated by pull-request
-review and the validation checks rather than by per-entry rulings; ruling a delegated entry up
-— or reversing it — is implement-forward, whenever the owner chooses.
+design content — target, packages, and coverage only. The merge gate reads `proposed` entries
+and open questions, so a companion increment whose escalations were ruled as they arose lands
+gated by pull-request review and the validation checks rather than by per-entry rulings; ruling
+a delegated entry up — or reversing it — is implement-forward, whenever the owner chooses.
 
-At completion the companion increment is ratified as a whole — every decision ruled, every
-question answered or removed — and merges through the ordinary gate. **Only then does the
-implementation publish**: a design with no implementation is a safe state the process
+At completion the orchestrator puts the companion increment to the owner as the Plan phase puts
+a draft: the pull request opened, everything pushed, the url handed over, and the branch left
+alone while a sitting is open. What stays whole is the companion's **gate**, not its review —
+an all-`delegated` companion lands without a per-entry ruling, while every entry stays reachable
+in the ratify session for the owner who wants one.
+
+The companion merges through the ordinary gate, and **only then does the implementation
+publish**: a design with no implementation is a safe state the process
 supports, and an implementation whose backing design has not published is not — so no package
 version releases and no document deliverable goes live before the design increment its
 implementation targets is published. An implementation whose companion increment stayed empty
@@ -1350,6 +1361,7 @@ contract, survey, the implementation-detail test, findings and escalation, the t
 list, the narrow scoping of a decision — and nothing kind-specific. Each kind's wave shape is a
 file beside it under `waves/`, linked from `SKILL.md` and read only by an implementer dispatched
 for that kind: `waves/code.md` carries the Define–Stub–Code–Document shape and governs
-`npm-library`, `npm-cli`, and `minecraft-addon`; `waves/document.md` carries the
-Claims–Compose–Check shape and governs `document` and `agent-skill`. Adding a kind is a file
+`npm-library`, `npm-cli`, `minecraft-addon`, `node-service`, and `web-app`;
+`waves/document.md` carries the Claims–Compose–Check shape and governs `document` and
+`agent-skill`. Adding a kind is a file
 under `waves/` and its own wave-shape decision.
