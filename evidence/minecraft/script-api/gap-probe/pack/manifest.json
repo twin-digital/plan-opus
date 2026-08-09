@@ -1,0 +1,22 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "village-guard gap probes",
+    "description": "In-engine probes for whether a hit written down to zero is still a hit, whether a mob at or below the clamp dies of one, whether beforeEvents.entityHurt fires for drowning and suffocation, and whether the shipped pack survives a siege.",
+    "uuid": "b1f8d240-3c77-4e6a-9a15-8d40e2c7f931",
+    "version": [0, 1, 0],
+    "min_engine_version": [1, 26, 0]
+  },
+  "modules": [
+    {
+      "type": "script",
+      "language": "javascript",
+      "entry": "scripts/main.js",
+      "uuid": "5c92a7e1-40db-4f38-b6c2-71ea935d08cf",
+      "version": [0, 1, 0]
+    }
+  ],
+  "dependencies": [
+    { "module_name": "@minecraft/server", "version": "2.8.0" }
+  ]
+}

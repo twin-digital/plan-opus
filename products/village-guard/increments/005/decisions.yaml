@@ -1,0 +1,139 @@
+version: "1"
+
+decisions:
+  # how protection works
+  - id: d-67dkvr3f
+    title: each hit is split three ways on its damage source
+    statement: |
+      the pack subscribes `world.beforeEvents.entityHurt` and treats each hit by its `damageSource`:
+
+      - cause `selfDestruct` or `override` — left alone, so an operator can still remove a protected
+        mob outright.
+      - `damagingEntity` a player — cancelled, in melee and by a loosed projectile alike, so no harm
+        lands and the mob shows no hurt reaction.
+      - anything else — `damage` written to zero, and the mob restored to full health in the same
+        tick.
+
+      the amount is zero rather than a small survivable one because a written-down hit reaches the
+      mob at the amount the handler wrote: any non-zero constant kills a mob already at or below it,
+      and a zombie converts a villager that dies that way. the engine's knockback is unchanged by the
+      write, so the hit still lands.
+
+      the treatment is chosen from the hit alone; the handler reads nothing off the mob. the pack
+      never makes a mob invulnerable and adds no effect to a mob.
+    status: accepted
+    supersedes: d-jp67dexu
+    pinned:
+      reason: other
+      notes: >-
+        it fixes what a consumer meets — what a player's own swing does, what a zombie's does,
+        whether an operator can remove a protected mob, and whether a villager at low health
+        survives a siege.
+    because:
+      - r-pe87rfqq
+      - r-9gw909jf
+      - r-ef113dxi
+      - f:entity-hurt-before-event-sees-engine-dealt-damage
+      - f:no-damage-cause-names-the-attacker-and-none-names-reputation
+      - f:cancelling-a-players-hit-prevents-the-reputation-change
+      - f:a-clamped-hit-reaching-the-minimum-kills-and-converts
+      - f:a-hit-written-down-to-zero-still-knocks-back
+      - f:a-clamped-hit-knocks-back-and-a-cancelled-one-does-not
+      - f:a-damage-clamp-without-a-restore-still-kills
+      - f:reaching-effective-minimum-is-fatal
+      - f:health-not-clamped-at-minimum
+      - f:kill-and-remove-cascades
+      - f:cancelled-call-return-values-observed
+      - f:before-event-field-writes-take-effect
+    facets: pack-runtime
+
+  - id: d-e0a34ilh
+    title: the protected set is four vanilla type ids
+    statement: |
+      the pack protects `minecraft:villager_v2`, `minecraft:wandering_trader`,
+      `minecraft:trader_llama` and `minecraft:iron_golem`, and no other entity type. the set is
+      fixed in the pack and is not configurable.
+
+      a trader llama is protected because it arrives with a wandering trader and is lost the same
+      way, so a set that keeps the trader and not its llamas keeps half of what arrived.
+    status: accepted
+    supersedes: d-6lbml4g9
+    pinned:
+      reason: other
+      notes: >-
+        an installer reads the set as what the pack does to their world; adding or dropping a type
+        changes which mobs survive a siege.
+    because:
+      - r-3otdixl2
+      - r-9gw909jf
+      - f:preventing-a-villagers-death-prevents-its-conversion
+      - f:subscribe-filter-entity-types-requires-the-prefix
+    facets: pack-runtime
+
+  - id: d-qgpu7qp0
+    title: the pack leaves an iron golem's retaliation alone
+    statement: |
+      the pack does nothing about an iron golem turning hostile toward a player who struck it. a
+      player's hit is cancelled and takes no health, and the golem retaliates anyway.
+
+      cancelling cannot reach it, and the one mechanism that can must run before the golem is ever
+      hit — so it needs the pack to act on a mob's arrival, which the design rules out, and it
+      permanently alters every golem it reaches. the pack ships the limit rather than that remedy, and states it as a known
+      defect in the package's own `ISSUES.md`.
+
+      r-ef113dxi is left standing rather than narrowed to fit what was built: the limit is accepted,
+      which is not the same as the behaviour being wanted.
+    status: accepted
+    pinned:
+      reason: other
+      notes: >-
+        a consumer meets it directly — an accidental swing at a golem still costs the player.
+    because:
+      - r-ef113dxi
+      - d-8b5m52it
+      - f:cancelling-a-hit-does-not-stop-an-iron-golems-retaliation
+      - f:an-iron-golems-retaliation-is-gated-by-its-family-filter
+      - f:trigger-event-throws-in-a-before-event-handler
+      - f:from-player-prevents-an-iron-golems-target-but-does-not-clear-one
+      - f:enrolling-a-golem-on-arrival-stops-only-the-player-lane
+      - f:from-player-adds-a-group-and-nothing-removes-it
+    facets: pack-runtime
+
+  - id: d-iphqrkzm
+    title: the restore is a second subscription, and it splits the hit the same way
+    statement: |
+      the pack takes two world-wide `entityHurt` subscriptions rather than one. the before-event
+      writes the hit down; `afterEvents.entityHurt` restores the mob to full health. the
+      before-event cannot restore, because the damage it is shown has not landed yet, and the
+      after-event is delivered inside the same tick, so the restore lands in that same tick.
+
+      the after handler applies the same three-way split as the before handler rather than restoring
+      whatever it is handed. `kill()` raises the after-event under cause `selfDestruct`, so a
+      restore that did not split again would undo an operator's removal. a cancelled hit raises no
+      after-event, so a player's hit never reaches the after handler at all.
+    status: accepted
+    pinned: false
+    because:
+      - d-67dkvr3f
+      - d-8b5m52it
+      - f:after-event-deferral-subtick
+      - f:kill-and-remove-cascades
+      - f:a-damage-clamp-without-a-restore-still-kills
+      - f:cancelled-call-return-values-observed
+    facets: pack-runtime
+
+  # what ships
+  - id: d-9looc2q2
+    title: the manifest's engine floor is the 1.26 line itself
+    statement: |
+      the pack's `min_engine_version` is `1.26.0`: the bottom of the Bedrock 1.26 line, rather than
+      a patch version inside it.
+    status: delegated
+    pinned:
+      reason: other
+      notes: >-
+        it decides which worlds accept the pack at all, which an installer meets directly.
+    because:
+      - d-itt177wv
+      - r-cizmztsh
+    facets: packaging

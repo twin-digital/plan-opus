@@ -1,0 +1,115 @@
+# village-guard village-structure probe — scenario breed, ticks 2400
+server=1.26.40.8 pack=682a9bae-4a8a-40f2-9d38-020ae1313337 scenario=breed
+
+[step 1] build 4
+
+[step 2] label few-villagers-many-beds
+
+[step 3] watch 2400
+
+--- capture 10-breeding ---
+snapshot 10-breeding-prime :: files=7 [dev/db/000006.log:2119931 dev/db/MANIFEST-000004:101 dev/db/000005.ldb:598 dev/db/CURRENT:16 dev/level.dat:3032 dev/level.dat_old:3032 dev/levelname.txt:3]
+snapshot 10-breeding-prime :: truncated dev/db/000006.log 2158778 -> 2119931
+snapshot 10-breeding :: files=7 [dev/db/000006.log:2187186 dev/db/MANIFEST-000004:101 dev/db/000005.ldb:598 dev/db/CURRENT:16 dev/level.dat:3032 dev/level.dat_old:3032 dev/levelname.txt:3]
+snapshot 10-breeding :: truncated dev/db/000006.log 2210705 -> 2187186
+records 10-breeding :: totalKeys=731 villages=1 ids=[Overworld_0de543f0-9834-4571-9790-cfe3dd0e3c02]
+village 10-breeding :: id=Overworld_0de543f0-9834-4571-9790-cfe3dd0e3c02 dwellers=5/0/0/0 poiEntries=5 poiInstances=5 poiNames={"villager":5} players=0 bounds=117,181,88,112,133,197
+record 10-breeding :: village=Overworl kind=DWELLERS bytes=385 nbt={"Dwellers":[{"actors":[{"ID":"18446744065119617029","TS":"0","last_saved_pos":[159,100,182]},{"ID":"18446744065119617027","TS":"0","last_saved_pos":[152,100,171]},{"ID":"18446744065119617025","TS":"0","last_saved_pos":[153,100,185]},{"ID":"18446744065119617026","TS":"0","last_saved_pos":[176,100,165]},{"ID":"18446744065119617028","TS":"0","last_saved_pos":[154,100,165]}]},{"actors":[]},{"actors":[]},{"actors":[]}]}
+record 10-breeding :: village=Overworl kind=INFO bytes=226 nbt={"BDTime":"0","GDTime":"0","Initialized":1,"MTick":"0","PDTick":"0","RX0":0,"RX1":1,"RY0":0,"RY1":1,"RZ0":0,"RZ1":1,"Tick":"0","Version":1,"X0":117,"X1":181,"Y0":88,"Y1":112,"Z0":133,"Z1":197}
+record 10-breeding :: village=Overworl kind=PLAYERS bytes=19 nbt={"Players":[]}
+record 10-breeding :: village=Overworl kind=POI bytes=1200 nbt={"POI":[{"VillagerID":"18446744065119617029","instances":[{"Capacity":"1","InitEvent":"","Name":"villager","OwnerCount":"1","Radius":0.75,"Skip":0,"SoundEvent":"undefined","Type":0,"UseAABB":1,"Weight":"1","X":149,"Y":100,"Z":165},{"Skip":1},{"Skip":1}]},{"VillagerID":"18446744065119617027","instances":[{"Capacity":"1","InitEvent":"","Name":"villager","OwnerCount":"1","Radius":0.75,"Skip":0,"SoundEvent":"undefined","Type":0,"UseAABB":1,"Weight":"1","X":149,"Y":100,"Z":159},{"Skip":1},{"Skip":1}]},{"VillagerID":"18446744065119617025","instances":[{"Capacity":"1","InitEvent":"","Name":"villager","OwnerCount":"1","Radius":0.75,"Skip":0,"SoundEvent":"undefined","Type":0,"UseAABB":1,"Weight":"1","X":149,"Y":100,"Z":162},{"Skip":1},{"Skip":1}]},{"VillagerID":"18446744065119617026","instances":[{"Capacity":"1","InitEvent":"","Name":"villager","OwnerCount":"1","Radius":0.75,"Skip":0,"SoundEvent":"undefined","Type":0,"UseAABB":1,"Weight":"1","X":149,"Y":100,"Z":156},{"Skip":1},{"Skip":1}]},{"VillagerID":"18446744065119617028","instances":[{"Capacity":"1","InitEvent":"","Name":"villager","OwnerCount":"1","Radius":0.75,"Skip":0,"SoundEvent":"undefined","Type":0,"UseAABB":1,"Weight":"1","X":149,"Y":100,"Z":153},{"Skip":1},{"Skip":1}]}]}
+
+[step 4] destroy beds
+
+[step 5] label no-beds
+
+[step 6] watch 2400
+
+--- capture 20-no-beds ---
+snapshot 20-no-beds-prime :: files=7 [dev/db/000006.log:3309125 dev/db/MANIFEST-000004:101 dev/db/000005.ldb:598 dev/db/CURRENT:16 dev/level.dat:3032 dev/level.dat_old:3032 dev/levelname.txt:3]
+snapshot 20-no-beds-prime :: truncated dev/db/000006.log 3369495 -> 3309125
+snapshot 20-no-beds :: files=7 [dev/db/000006.log:3416530 dev/db/MANIFEST-000004:101 dev/db/000005.ldb:598 dev/db/CURRENT:16 dev/level.dat:3032 dev/level.dat_old:3032 dev/levelname.txt:3]
+snapshot 20-no-beds :: truncated dev/db/000006.log 3461074 -> 3416530
+records 20-no-beds :: totalKeys=761 villages=1 ids=[Overworld_0de543f0-9834-4571-9790-cfe3dd0e3c02]
+village 20-no-beds :: id=Overworld_0de543f0-9834-4571-9790-cfe3dd0e3c02 dwellers=8/0/0/0 poiEntries=8 poiInstances=8 poiNames={"villager":8} players=0 bounds=120,184,88,112,127,191
+record 20-no-beds :: village=Overworl kind=DWELLERS bytes=568 nbt={"Dwellers":[{"actors":[{"ID":"18446744065119617062","TS":"0","last_saved_pos":[147,100,154]},{"ID":"18446744065119617061","TS":"0","last_saved_pos":[147,100,154]},{"ID":"18446744065119617060","TS":"0","last_saved_pos":[153,100,176]},{"ID":"18446744065119617029","TS":"0","last_saved_pos":[165,100,160]},{"ID":"18446744065119617027","TS":"0","last_saved_pos":[147,100,167]},{"ID":"18446744065119617025","TS":"0","last_saved_pos":[154,100,174]},{"ID":"18446744065119617026","TS":"0","last_saved_pos":[146,100,162]},{"ID":"18446744065119617028","TS":"0","last_saved_pos":[144,100,159]}]},{"actors":[]},{"actors":[]},{"actors":[]}]}
+record 20-no-beds :: village=Overworl kind=INFO bytes=226 nbt={"BDTime":"0","GDTime":"0","Initialized":1,"MTick":"0","PDTick":"0","RX0":0,"RX1":1,"RY0":0,"RY1":1,"RZ0":0,"RZ1":1,"Tick":"0","Version":1,"X0":120,"X1":184,"Y0":88,"Y1":112,"Z0":127,"Z1":191}
+record 20-no-beds :: village=Overworl kind=PLAYERS bytes=19 nbt={"Players":[]}
+record 20-no-beds :: village=Overworl kind=POI bytes=1911 nbt={"POI":[{"VillagerID":"18446744065119617062","instances":[{"Capacity":"1","InitEvent":"","Name":"villager","OwnerCount":"1","Radius":0.75,"Skip":0,"SoundEvent":"undefined","Type":0,"UseAABB":1,"Weight":"1","X":152,"Y":100,"Z":159},{"Skip":1},{"Skip":1}]},{"VillagerID":"18446744065119617061","instances":[{"Capacity":"1","InitEvent":"","Name":"villager","OwnerCount":"1","Radius":0.75,"Skip":0,"SoundEvent":"undefined","Type":0,"UseAABB":1,"Weight":"1","X":152,"Y":100,"Z":156},{"Skip":1},{"Skip":1}]},{"VillagerID":"18446744065119617060","instances":[{"Capacity":"1","InitEvent":"","Name":"villager","OwnerCount":"1","Radius":0.75,"Skip":0,"SoundEvent":"undefined","Type":0,"UseAABB":1,"Weight":"1","X":152,"Y":100,"Z":153},{"Skip":1},{"Skip":1}]},{"VillagerID":"18446744065119617029","instances":[{"Capacity":"1","InitEvent":"","Name":"villager","OwnerCount":"1","Radius":0.75,"Skip":0,"SoundEvent":"undefined","Type":0,"UseAABB":1,"Weight":"1","X":149,"Y":100,"Z":165},{"Skip":1},{"Skip":1}]},{"VillagerID":"18446744065119617027","instances":[{"Capacity":"1","InitEvent":"","Name":"villager","OwnerCount":"1","Radius":0.75,"Skip":0,"SoundEvent":"undefined","Type":0,"UseAABB":1,"Weight":"1","X":149,"Y":100,"Z":159},{"Skip":1},{"Skip":1}]},{"VillagerID":"18446744065119617025","instances":[{"Capacity":"1","InitEvent":"","Name":"villager","OwnerCount":"1","Radius":0.75,"Skip":0,"SoundEvent":"undefined","Type":0,"UseAABB":1,"Weight":"1","X":149,"Y":100,"Z":162},{"Skip":1},{"Skip":1}]},{"VillagerID":"18446744065119617026","instances":[{"Capacity":"1","InitEvent":"","Name":"villager","OwnerCount":"1","Radius":0.75,"Skip":0,"SoundEvent":"undefined","Type":0,"UseAABB":1,"Weight":"1","X":149,"Y":100,"Z":156},{"Skip":1},{"Skip":1}]},{"VillagerID":"18446744065119617028","instances":[{"Capacity":"1","InitEvent":"","Name":"villager","OwnerCount":"1","Radius":0.75,"Skip":0,"SoundEvent":"undefined","Type":0,"UseAABB":1,"Weight":"1","X":149,"Y":100,"Z":153},{"Skip":1},{"Skip":1}]}]}
+
+[step 7] rebuild beds
+
+[step 8] label beds-rebuilt
+
+[step 9] watch 2400
+
+--- capture 30-beds-rebuilt ---
+snapshot 30-beds-rebuilt-prime :: files=8 [dev/db/MANIFEST-000004:198 dev/db/000008.ldb:308856 dev/db/000007.log:933244 dev/db/000005.ldb:598 dev/db/CURRENT:16 dev/level.dat:3032 dev/level.dat_old:3032 dev/levelname.txt:3]
+snapshot 30-beds-rebuilt-prime :: truncated dev/db/000007.log 1001015 -> 933244
+snapshot 30-beds-rebuilt :: files=8 [dev/db/MANIFEST-000004:198 dev/db/000008.ldb:308856 dev/db/000007.log:1078739 dev/db/000005.ldb:598 dev/db/CURRENT:16 dev/level.dat:3032 dev/level.dat_old:3032 dev/levelname.txt:3]
+snapshot 30-beds-rebuilt :: truncated dev/db/000007.log 1147577 -> 1078739
+records 30-beds-rebuilt :: totalKeys=766 villages=1 ids=[Overworld_0de543f0-9834-4571-9790-cfe3dd0e3c02]
+village 30-beds-rebuilt :: id=Overworld_0de543f0-9834-4571-9790-cfe3dd0e3c02 dwellers=10/0/0/0 poiEntries=10 poiInstances=10 poiNames={"villager":10} players=0 bounds=120,184,88,112,130,194
+record 30-beds-rebuilt :: village=Overworl kind=DWELLERS bytes=690 nbt={"Dwellers":[{"actors":[{"ID":"18446744065119617063","TS":"0","last_saved_pos":[159,100,180]},{"ID":"18446744065119617062","TS":"0","last_saved_pos":[176,100,163]},{"ID":"18446744065119617061","TS":"0","last_saved_pos":[156,100,161]},{"ID":"18446744065119617060","TS":"0","last_saved_pos":[157,100,172]},{"ID":"18446744065119617029","TS":"0","last_saved_pos":[159,100,177]},{"ID":"18446744065119617027","TS":"0","last_saved_pos":[174,100,162]},{"ID":"18446744065119617025","TS":"0","last_saved_pos":[151,100,156]},{"ID":"18446744065119617064","TS":"0","last_saved_pos":[161,100,177]},{"ID":"18446744065119617026","TS":"0","last_saved_pos":[178,100,165]},{"ID":"18446744065119617028","TS":"0","last_saved_pos":[148,100,159]}]},{"actors":[]},{"actors":[]},{"actors":[]}]}
+record 30-beds-rebuilt :: village=Overworl kind=INFO bytes=226 nbt={"BDTime":"0","GDTime":"0","Initialized":1,"MTick":"0","PDTick":"0","RX0":0,"RX1":1,"RY0":0,"RY1":1,"RZ0":0,"RZ1":1,"Tick":"0","Version":1,"X0":120,"X1":184,"Y0":88,"Y1":112,"Z0":130,"Z1":194}
+record 30-beds-rebuilt :: village=Overworl kind=PLAYERS bytes=19 nbt={"Players":[]}
+record 30-beds-rebuilt :: village=Overworl kind=POI bytes=2385 nbt={"POI":[{"VillagerID":"18446744065119617063","instances":[{"Capacity":"1","InitEvent":"","Name":"villager","OwnerCount":"1","Radius":0.75,"Skip":0,"SoundEvent":"undefined","Type":0,"UseAABB":1,"Weight":"1","X":152,"Y":100,"Z":162},{"Skip":1},{"Skip":1}]},{"VillagerID":"18446744065119617062","instances":[{"Capacity":"1","InitEvent":"","Name":"villager","OwnerCount":"1","Radius":0.75,"Skip":0,"SoundEvent":"undefined","Type":0,"UseAABB":1,"Weight":"1","X":152,"Y":100,"Z":159},{"Skip":1},{"Skip":1}]},{"VillagerID":"18446744065119617061","instances":[{"Capacity":"1","InitEvent":"","Name":"villager","OwnerCount":"1","Radius":0.75,"Skip":0,"SoundEvent":"undefined","Type":0,"UseAABB":1,"Weight":"1","X":152,"Y":100,"Z":156},{"Skip":1},{"Skip":1}]},{"VillagerID":"18446744065119617060","instances":[{"Capacity":"1","InitEvent":"","Name":"villager","OwnerCount":"1","Radius":0.75,"Skip":0,"SoundEvent":"undefined","Type":0,"UseAABB":1,"Weight":"1","X":152,"Y":100,"Z":153},{"Skip":1},{"Skip":1}]},{"VillagerID":"18446744065119617029","instances":[{"Capacity":"1","InitEvent":"","Name":"villager","OwnerCount":"1","Radius":0.75,"Skip":0,"SoundEvent":"undefined","Type":0,"UseAABB":1,"Weight":"1","X":149,"Y":100,"Z":165},{"Skip":1},{"Skip":1}]},{"VillagerID":"18446744065119617027","instances":[{"Capacity":"1","InitEvent":"","Name":"villager","OwnerCount":"1","Radius":0.75,"Skip":0,"SoundEvent":"undefined","Type":0,"UseAABB":1,"Weight":"1","X":149,"Y":100,"Z":159},{"Skip":1},{"Skip":1}]},{"VillagerID":"18446744065119617025","instances":[{"Capacity":"1","InitEvent":"","Name":"villager","OwnerCount":"1","Radius":0.75,"Skip":0,"SoundEvent":"undefined","Type":0,"UseAABB":1,"Weight":"1","X":149,"Y":100,"Z":162},{"Skip":1},{"Skip":1}]},{"VillagerID":"18446744065119617064","instances":[{"Capacity":"1","InitEvent":"","Name":"villager","OwnerCount":"1","Radius":0.75,"Skip":0,"SoundEvent":"undefined","Type":0,"UseAABB":1,"Weight":"1","X":152,"Y":100,"Z":165},{"Skip":1},{"Skip":1}]},{"VillagerID":"18446744065119617026","instances":[{"Capacity":"1","InitEvent":"","Name":"villager","OwnerCount":"1","Radius":0.75,"Skip":0,"SoundEvent":"undefined","Type":0,"UseAABB":1,"Weight":"1","X":149,"Y":100,"Z":156},{"Skip":1},{"Skip":1}]},{"VillagerID":"18446744065119617028","instances":[{"Capacity":"1","InitEvent":"","Name":"villager","OwnerCount":"1","Radius":0.75,"Skip":0,"SoundEvent":"undefined","Type":0,"UseAABB":1,"Weight":"1","X":149,"Y":100,"Z":153},{"Skip":1},{"Skip":1}]}]}
+
+=== raw [vgvil] lines, delivery order ===
+[2026-08-07 18:47:03:849 WARN] [Scripting] [vgvil] boot :: ready sets=api,baseline,beds,jobs,bell,wreck
+[2026-08-07 18:47:07:939 WARN] [Scripting] [vgvil] build :: start msg=4
+[2026-08-07 18:47:13:900 WARN] [Scripting] [vgvil] village :: platform built centre=(163,100,170) half=20 attempts=3
+[2026-08-07 18:47:15:901 WARN] [Scripting] [vgvil] build :: village-built bedsPlaced=30 bedsRead=30 jobsPlaced=16 jobsRead=15 bells=1
+[2026-08-07 18:47:16:900 WARN] [Scripting] [vgvil] village :: villagers spawned=4/4 feed=ok
+[2026-08-07 18:47:26:900 WARN] [Scripting] [vgvil] build :: complete
+[2026-08-07 18:47:30:701 WARN] [Scripting] [vgvil] label :: start msg=few-villagers-many-beds
+[2026-08-07 18:47:30:701 WARN] [Scripting] [vgvil] label :: label=few-villagers-many-beds
+[2026-08-07 18:47:30:701 WARN] [Scripting] [vgvil] label :: complete
+[2026-08-07 18:47:31:850 WARN] [Scripting] [vgvil] watch :: start msg=2400
+[2026-08-07 18:47:31:850 WARN] [Scripting] [vgvil] watch :: phase-start name=few-villagers-many-beds ticks=2400
+[2026-08-07 18:47:31:855 WARN] [Scripting] [vgvil] watch :: snap phase=few-villagers-many-beds t=0 villagers=4 adults=3 babies=1 golems=0 born=0 golemSpawns=0 beds=30 bedsOccupied=0 jobs=15 bells=1 professions=v11m0s2x1|v13m0s1x1|v2m0s5x1
+[2026-08-07 18:47:38:101 WARN] [Scripting] [vgvil] watch :: spawn phase=few-villagers-many-beds t=0 cause=Born type=minecraft:villager_v2 bornTotal=1
+[2026-08-07 18:48:01:851 WARN] [Scripting] [vgvil] watch :: snap phase=few-villagers-many-beds t=600 villagers=5 adults=3 babies=2 golems=0 born=1 golemSpawns=0 beds=30 bedsOccupied=0 jobs=15 bells=1 professions=v11m0s2x1|v13m0s1x1|v2m0s5x1
+[2026-08-07 18:48:31:851 WARN] [Scripting] [vgvil] watch :: snap phase=few-villagers-many-beds t=1200 villagers=5 adults=3 babies=2 golems=0 born=1 golemSpawns=0 beds=30 bedsOccupied=0 jobs=15 bells=1 professions=v11m0s2x1|v13m0s1x1|v2m0s5x1
+[2026-08-07 18:49:01:852 WARN] [Scripting] [vgvil] watch :: snap phase=few-villagers-many-beds t=1800 villagers=5 adults=3 babies=2 golems=0 born=1 golemSpawns=0 beds=30 bedsOccupied=0 jobs=15 bells=1 professions=v11m0s2x1|v13m0s1x1|v2m0s5x1
+[2026-08-07 18:49:31:851 WARN] [Scripting] [vgvil] watch :: snap phase=few-villagers-many-beds t=2400 villagers=5 adults=3 babies=2 golems=0 born=1 golemSpawns=0 beds=30 bedsOccupied=0 jobs=15 bells=1 professions=v11m0s2x1|v13m0s1x1|v2m0s5x1
+[2026-08-07 18:49:31:851 WARN] [Scripting] [vgvil] watch :: phase-end name=few-villagers-many-beds ticks=2400 bornInPhase=1 golemSpawnsInPhase=0 deathsInPhase=0
+[2026-08-07 18:49:31:851 WARN] [Scripting] [vgvil] watch :: complete
+[2026-08-07 18:49:54:950 WARN] [Scripting] [vgvil] destroy :: start msg=beds
+[2026-08-07 18:49:56:951 WARN] [Scripting] [vgvil] destroy :: destroyed=beds counts={"beds":0,"occupied":0,"jobs":15,"bells":1}
+[2026-08-07 18:49:56:951 WARN] [Scripting] [vgvil] destroy :: complete
+[2026-08-07 18:50:00:450 WARN] [Scripting] [vgvil] label :: start msg=no-beds
+[2026-08-07 18:50:00:450 WARN] [Scripting] [vgvil] label :: label=no-beds
+[2026-08-07 18:50:00:450 WARN] [Scripting] [vgvil] label :: complete
+[2026-08-07 18:50:01:551 WARN] [Scripting] [vgvil] watch :: start msg=2400
+[2026-08-07 18:50:01:551 WARN] [Scripting] [vgvil] watch :: phase-start name=no-beds ticks=2400
+[2026-08-07 18:50:01:552 WARN] [Scripting] [vgvil] watch :: snap phase=no-beds t=0 villagers=5 adults=3 babies=2 golems=0 born=1 golemSpawns=0 beds=0 bedsOccupied=0 jobs=15 bells=1 professions=v11m0s2x1|v13m0s1x1|v2m0s5x1
+[2026-08-07 18:50:04:951 WARN] [Scripting] [vgvil] watch :: spawn phase=no-beds t=0 cause=Born type=minecraft:villager_v2 bornTotal=2
+[2026-08-07 18:50:31:551 WARN] [Scripting] [vgvil] watch :: snap phase=no-beds t=600 villagers=6 adults=3 babies=3 golems=0 born=2 golemSpawns=0 beds=0 bedsOccupied=0 jobs=15 bells=1 professions=v11m0s2x1|v13m0s1x1|v2m0s5x1
+[2026-08-07 18:51:01:551 WARN] [Scripting] [vgvil] watch :: snap phase=no-beds t=1200 villagers=6 adults=3 babies=3 golems=0 born=2 golemSpawns=0 beds=0 bedsOccupied=0 jobs=15 bells=1 professions=v11m0s2x1|v13m0s1x1|v2m0s5x1
+[2026-08-07 18:51:18:550 WARN] [Scripting] [vgvil] watch :: spawn phase=no-beds t=1200 cause=Born type=minecraft:villager_v2 bornTotal=3
+[2026-08-07 18:51:31:551 WARN] [Scripting] [vgvil] watch :: snap phase=no-beds t=1800 villagers=7 adults=3 babies=4 golems=0 born=3 golemSpawns=0 beds=0 bedsOccupied=0 jobs=15 bells=1 professions=v11m0s2x1|v13m0s1x1|v2m0s5x1
+[2026-08-07 18:51:33:601 WARN] [Scripting] [vgvil] watch :: spawn phase=no-beds t=1800 cause=Born type=minecraft:villager_v2 bornTotal=4
+[2026-08-07 18:52:01:551 WARN] [Scripting] [vgvil] watch :: snap phase=no-beds t=2400 villagers=8 adults=3 babies=5 golems=0 born=4 golemSpawns=0 beds=0 bedsOccupied=0 jobs=15 bells=1 professions=v11m0s2x1|v13m0s1x1|v2m0s5x1
+[2026-08-07 18:52:01:551 WARN] [Scripting] [vgvil] watch :: phase-end name=no-beds ticks=2400 bornInPhase=3 golemSpawnsInPhase=0 deathsInPhase=0
+[2026-08-07 18:52:01:551 WARN] [Scripting] [vgvil] watch :: complete
+[2026-08-07 18:52:25:300 WARN] [Scripting] [vgvil] rebuild :: start msg=beds
+[2026-08-07 18:52:27:301 WARN] [Scripting] [vgvil] rebuild :: rebuilt=beds counts={"beds":30,"occupied":0,"jobs":15,"bells":1}
+[2026-08-07 18:52:27:301 WARN] [Scripting] [vgvil] rebuild :: complete
+[2026-08-07 18:52:30:700 WARN] [Scripting] [vgvil] label :: start msg=beds-rebuilt
+[2026-08-07 18:52:30:700 WARN] [Scripting] [vgvil] label :: label=beds-rebuilt
+[2026-08-07 18:52:30:700 WARN] [Scripting] [vgvil] label :: complete
+[2026-08-07 18:52:31:801 WARN] [Scripting] [vgvil] watch :: start msg=2400
+[2026-08-07 18:52:31:801 WARN] [Scripting] [vgvil] watch :: phase-start name=beds-rebuilt ticks=2400
+[2026-08-07 18:52:31:802 WARN] [Scripting] [vgvil] watch :: snap phase=beds-rebuilt t=0 villagers=8 adults=3 babies=5 golems=0 born=4 golemSpawns=0 beds=30 bedsOccupied=0 jobs=15 bells=1 professions=v11m0s2x1|v13m0s1x1|v2m0s5x1
+[2026-08-07 18:52:41:101 WARN] [Scripting] [vgvil] watch :: spawn phase=beds-rebuilt t=0 cause=Born type=minecraft:villager_v2 bornTotal=5
+[2026-08-07 18:53:01:802 WARN] [Scripting] [vgvil] watch :: snap phase=beds-rebuilt t=600 villagers=9 adults=3 babies=6 golems=0 born=5 golemSpawns=0 beds=30 bedsOccupied=0 jobs=15 bells=1 professions=v11m0s2x1|v13m0s1x1|v2m0s5x1
+[2026-08-07 18:53:31:802 WARN] [Scripting] [vgvil] watch :: snap phase=beds-rebuilt t=1200 villagers=9 adults=3 babies=6 golems=0 born=5 golemSpawns=0 beds=30 bedsOccupied=0 jobs=15 bells=1 professions=v11m0s2x1|v13m0s1x1|v2m0s5x1
+[2026-08-07 18:54:01:801 WARN] [Scripting] [vgvil] watch :: snap phase=beds-rebuilt t=1800 villagers=9 adults=3 babies=6 golems=0 born=5 golemSpawns=0 beds=30 bedsOccupied=0 jobs=15 bells=1 professions=v11m0s2x1|v13m0s1x1|v2m0s5x1
+[2026-08-07 18:54:13:051 WARN] [Scripting] [vgvil] watch :: spawn phase=beds-rebuilt t=1800 cause=Born type=minecraft:villager_v2 bornTotal=6
+[2026-08-07 18:54:31:802 WARN] [Scripting] [vgvil] watch :: snap phase=beds-rebuilt t=2400 villagers=10 adults=3 babies=7 golems=0 born=6 golemSpawns=0 beds=30 bedsOccupied=0 jobs=15 bells=1 professions=v11m0s2x1|v13m0s1x1|v2m0s5x1
+[2026-08-07 18:54:31:802 WARN] [Scripting] [vgvil] watch :: phase-end name=beds-rebuilt ticks=2400 bornInPhase=2 golemSpawnsInPhase=0 deathsInPhase=0
+[2026-08-07 18:54:31:802 WARN] [Scripting] [vgvil] watch :: complete
+[2026-08-07 18:54:47:751 WARN] [Scripting] [vgvil] watch :: spawn phase=beds-rebuilt t=2400 cause=Born type=minecraft:villager_v2 bornTotal=7
+
+=== end ===
