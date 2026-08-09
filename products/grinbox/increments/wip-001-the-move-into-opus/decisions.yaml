@@ -6,11 +6,12 @@ decisions:
   - id: d-6ct1o00j
     title: the deployment fetches a versioned bundle the workspace releases
     statement: |
-      opus builds grinbox into one self-contained bundle per release — the daemon's and the
-      browser application's compiled output, plus a production manifest and lockfile pruned to the
-      daemon's own dependencies — and attaches it to the tag changesets writes. The infrastructure
-      repository names a version and fetches that asset, rather than copying a source tree out of
-      a checkout.
+      opus builds grinbox into one self-contained bundle — the daemon's and the browser
+      application's compiled output, plus a production manifest and lockfile pruned to the
+      daemon's own dependencies — and attaches it to the release the workspace's own
+      release-assets hook publishes for `@grinbox/server`, beside the checksum file that hook
+      writes. The infrastructure repository names a version and fetches that asset by URL,
+      verifying it against that checksum, rather than copying a source tree out of a checkout.
     status: accepted
     because:
       - d-riyvvlx5
@@ -21,3 +22,21 @@ decisions:
       notes: |
         it is the seam between the two repositories: the infrastructure repository reads the
         bundle's layout, and the daemon's launch resolves paths inside it
+
+  - id: d-vx1pxkyz
+    title: the three packages carry one version
+    statement: |
+      the three grinbox packages version in lockstep, so a change to any of them releases all
+      three at the same number and the deployment names one version for the application. The
+      bundle rides on the daemon's release, and the browser application is half of what it holds —
+      a change to the browser application alone must therefore still produce a release.
+    status: accepted
+    because:
+      - d-6ct1o00j
+      - d-cjjd5c0w
+      - d-txqxjxvp
+    pinned:
+      reason: other
+      notes: |
+        the version the deployment names is the whole application's, and a change to the browser
+        application that released nothing would silently strand it
