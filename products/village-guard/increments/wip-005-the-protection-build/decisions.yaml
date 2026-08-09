@@ -11,8 +11,13 @@ decisions:
         mob outright.
       - `damagingEntity` a player — cancelled, in melee and by a loosed projectile alike, so no harm
         lands and the mob shows no hurt reaction.
-      - anything else — `damage` written down to the amount d-2572ugmw names, and the mob restored to
-        full health in the same tick.
+      - anything else — `damage` written to zero, and the mob restored to full health in the same
+        tick.
+
+      the amount is zero rather than a small survivable one because a written-down hit reaches the
+      mob at the amount the handler wrote: any non-zero constant kills a mob already at or below it,
+      and a zombie converts a villager that dies that way. the engine's knockback is unchanged by the
+      write, so the hit still lands.
 
       the treatment is chosen from the hit alone; the handler reads nothing off the mob. the pack
       never makes a mob invulnerable and adds no effect to a mob.
@@ -21,44 +26,25 @@ decisions:
     pinned:
       reason: other
       notes: >-
-        it fixes three things a consumer meets — what a player's own swing does, what a zombie's
-        does, and whether an operator can remove a protected mob.
+        it fixes what a consumer meets — what a player's own swing does, what a zombie's does,
+        whether an operator can remove a protected mob, and whether a villager at low health
+        survives a siege.
     because:
       - r-pe87rfqq
+      - r-9gw909jf
       - r-ef113dxi
       - f:entity-hurt-before-event-sees-engine-dealt-damage
       - f:no-damage-cause-names-the-attacker-and-none-names-reputation
       - f:cancelling-a-players-hit-prevents-the-reputation-change
+      - f:a-clamped-hit-reaching-the-minimum-kills-and-converts
+      - f:a-hit-written-down-to-zero-still-knocks-back
       - f:a-clamped-hit-knocks-back-and-a-cancelled-one-does-not
       - f:a-damage-clamp-without-a-restore-still-kills
+      - f:reaching-effective-minimum-is-fatal
+      - f:health-not-clamped-at-minimum
       - f:kill-and-remove-cascades
       - f:cancelled-call-return-values-observed
       - f:before-event-field-writes-take-effect
-    facets: pack-runtime
-
-  - id: d-2572ugmw
-    title: the written-down amount is zero
-    statement: |
-      a hit the pack writes down has its `damage` set to zero, not to a small survivable amount.
-
-      a written-down hit reaches the mob at the amount the handler wrote, so any non-zero constant
-      kills a mob whose health is already at or below it — and a zombie converts a villager that
-      dies that way. zero is the only constant no mob's health can sit below, and it gives up
-      nothing: the engine's knockback is unchanged by the write.
-    status: proposed
-    pinned:
-      reason: other
-      notes: >-
-        it decides whether a protected villager at low health survives a siege or is lost to
-        conversion.
-    because:
-      - d-67dkvr3f
-      - r-pe87rfqq
-      - r-9gw909jf
-      - f:a-clamped-hit-reaching-the-minimum-kills-and-converts
-      - f:a-hit-written-down-to-zero-still-knocks-back
-      - f:reaching-effective-minimum-is-fatal
-      - f:health-not-clamped-at-minimum
     facets: pack-runtime
 
   - id: d-e0a34ilh
