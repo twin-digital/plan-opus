@@ -3,58 +3,62 @@ version: "1"
 decisions:
   # how protection works
   - id: d-67dkvr3f
-    title: a mob's hit is written down to zero, a player's is cancelled, an operator's lands
+    title: each hit is split three ways on its damage source
     statement: |
-      the pack subscribes `world.beforeEvents.entityHurt` and splits each hit three ways, on the
-      hit's `damageSource`.
+      the pack subscribes `world.beforeEvents.entityHurt` and treats each hit by its `damageSource`:
 
-      a hit whose cause is `selfDestruct` or `override` is left alone entirely. those are the causes
-      the engine gives a deliberate removal rather than gameplay, so an operator keeps the ability
-      to kill a protected mob outright.
+      - cause `selfDestruct` or `override` — left alone, so an operator can still remove a protected
+        mob outright.
+      - `damagingEntity` a player — cancelled, in melee and by a loosed projectile alike, so no harm
+        lands and the mob shows no hurt reaction.
+      - anything else — `damage` written down to the amount d-2572ugmw names, and the mob restored to
+        full health in the same tick.
 
-      a hit whose `damagingEntity` is a player is cancelled, whether dealt in melee or by a
-      projectile they loosed, so no harm lands and the mob shows no hurt reaction. what a cancel does
-      not reach is the mob's own targeting: an iron golem retaliates against whoever swung whether
-      the hit was cancelled or not, which d-qgpu7qp0 records.
-
-      every other hit has its `damage` written down to zero, and the mob is restored to full health
-      in the same tick. the write is a constant rather than a figure read off the mob, so the
-      handler reads nothing while it runs. the restore is what carries a mob that was harmed before
-      the pack first saw a hit on it back to full.
-
-      the constant is zero and not a small survivable amount. a written-down hit reaches the mob at
-      the amount the handler wrote, so any non-zero constant is fatal to a mob whose health is at or
-      below it — and that death is vanilla's entire death, not merely an event: a zombie converts the
-      villager, and the restore runs against a mob that has already gone. zero is the only constant
-      no mob's health can sit below. it does not turn the clamp into a cancel: the engine's knockback
-      is unchanged by the write, so the hit still lands and the mob still reacts.
-
-      the pack never makes a mob invulnerable and adds no effect to a mob.
+      the treatment is chosen from the hit alone; the handler reads nothing off the mob. the pack
+      never makes a mob invulnerable and adds no effect to a mob.
     status: proposed
     supersedes: d-jp67dexu
     pinned:
       reason: other
       notes: >-
-        it fixes what a consumer sees when a zombie strikes a protected mob at low health — the
-        difference between keeping the villager and losing it to conversion.
+        it fixes three things a consumer meets — what a player's own swing does, what a zombie's
+        does, and whether an operator can remove a protected mob.
     because:
       - r-pe87rfqq
-      - r-9gw909jf
       - r-ef113dxi
-      - f:a-clamped-hit-reaching-the-minimum-kills-and-converts
-      - f:a-hit-written-down-to-zero-still-knocks-back
-      - f:a-clamp-and-restore-holds-under-per-tick-damage
       - f:entity-hurt-before-event-sees-engine-dealt-damage
       - f:no-damage-cause-names-the-attacker-and-none-names-reputation
       - f:cancelling-a-players-hit-prevents-the-reputation-change
-      - f:a-damage-clamp-without-a-restore-still-kills
       - f:a-clamped-hit-knocks-back-and-a-cancelled-one-does-not
+      - f:a-damage-clamp-without-a-restore-still-kills
       - f:kill-and-remove-cascades
-      - f:reaching-effective-minimum-is-fatal
-      - f:before-event-field-writes-take-effect
-      - f:health-not-clamped-at-minimum
       - f:cancelled-call-return-values-observed
-      - f:after-event-deferral-subtick
+      - f:before-event-field-writes-take-effect
+    facets: pack-runtime
+
+  - id: d-2572ugmw
+    title: the written-down amount is zero
+    statement: |
+      a hit the pack writes down has its `damage` set to zero, not to a small survivable amount.
+
+      a written-down hit reaches the mob at the amount the handler wrote, so any non-zero constant
+      kills a mob whose health is already at or below it — and a zombie converts a villager that
+      dies that way. zero is the only constant no mob's health can sit below, and it gives up
+      nothing: the engine's knockback is unchanged by the write.
+    status: proposed
+    pinned:
+      reason: other
+      notes: >-
+        it decides whether a protected villager at low health survives a siege or is lost to
+        conversion.
+    because:
+      - d-67dkvr3f
+      - r-pe87rfqq
+      - r-9gw909jf
+      - f:a-clamped-hit-reaching-the-minimum-kills-and-converts
+      - f:a-hit-written-down-to-zero-still-knocks-back
+      - f:reaching-effective-minimum-is-fatal
+      - f:health-not-clamped-at-minimum
     facets: pack-runtime
 
   - id: d-e0a34ilh
@@ -118,8 +122,7 @@ decisions:
       the pack takes two world-wide `entityHurt` subscriptions rather than one. the before-event
       writes the hit down; `afterEvents.entityHurt` restores the mob to full health. the
       before-event cannot restore, because the damage it is shown has not landed yet, and the
-      after-event is delivered inside the same tick, so the restore lands in the tick d-jp67dexu
-      names.
+      after-event is delivered inside the same tick, so the restore lands in that same tick.
 
       the after handler applies the same three-way split as the before handler rather than restoring
       whatever it is handed. `kill()` raises the after-event under cause `selfDestruct`, so a
@@ -128,7 +131,7 @@ decisions:
     status: proposed
     pinned: false
     because:
-      - d-jp67dexu
+      - d-67dkvr3f
       - d-8b5m52it
       - f:after-event-deferral-subtick
       - f:kill-and-remove-cascades

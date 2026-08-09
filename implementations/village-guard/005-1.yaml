@@ -258,6 +258,23 @@ coverage:
           `installProtection` is subscriptions and no state: no registry, no dimension scan, no
           arrival tracking, no periodic sweep. it is called at module scope, so the subscriptions
           stand while the script evaluates
+  - claim: d-2572ugmw # the written-down amount is zero
+    covered_by:
+      - kind: code-test
+        ref: src/protection.test.ts
+        note: >
+          `'still lands, written down to nothing'` reads the delivered damage as 0, and
+          `'leaves a mob at %s health alive, taking nothing'` drives a mob at 0.5 and 0.25 health
+          through a lethal zombie hit and finds it valid at full health
+      - kind: manual-check
+        ref: src/protection.ts
+        note: >
+          measured against Bedrock 1.26.40.8: a villager at 0.5 health survived 129, 137 and 133
+          zombie hits under a zero write, where the same subject under a 0.5 write was converted on
+          the first hit in 3/3 runs. `evidence/minecraft/script-api/gap-probe`
+      - kind: attestation
+        ref: src/protection.ts
+        note: the written amount is a module constant of 0
   - claim: d-e0a34ilh # the protected set is four vanilla type ids
     covered_by:
       - kind: code-test
