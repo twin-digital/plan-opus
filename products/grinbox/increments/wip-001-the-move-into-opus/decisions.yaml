@@ -23,17 +23,20 @@ decisions:
         it is the seam between the two repositories: the infrastructure repository reads the
         bundle's layout, and the daemon's launch resolves paths inside it
 
-  - id: d-uyo5nehu
-    title: the packages carry the workspace's generated export map
+  - id: d-qrxtbcei
+    title: the shared package declares the vocabulary, and the routes declare the envelopes
     statement: |
-      each grinbox package keeps the subpath export map the workspace generates for every package
-      it holds, rather than declaring an exception to narrow it to the barrel alone. The map is
-      reachable only from the other two packages, since none of the three is published, and the
-      named barrel stays the entry point a sibling imports.
+      the shapes crossing the API are declared once, and where depends on what they are. The
+      values inside a request or a response — the closed enums, the operator configurations, the
+      contract, the resource and limit registries, the refusal envelope — are declared in the
+      shared package both tiers import. The request and response envelopes are declared by the
+      daemon's route definitions, and the browser application reads them by inference from those
+      routes rather than declaring them again.
     status: accepted
+    supersedes: d-j4huq3jy
     because:
-      - d-cjjd5c0w
-      - d-txqxjxvp
+      - d-5l0wqcj0
+      - d-ti7vexo3
     pinned: false
 
   - id: d-p77q4tob
