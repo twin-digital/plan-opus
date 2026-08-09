@@ -32,7 +32,7 @@ decisions:
       record against it, correcting where a message stands on the backend. The incremental feed is
       what notices arrivals; the reconcile is what corrects drift, and a message's standing may be
       stale until it runs.
-    status: proposed
+    status: tolerated
     because:
       - d-7a8aoi4z
       - d-8fvu0g4z
@@ -45,7 +45,7 @@ decisions:
       un-ingested, and advances the cursor with the rest of the cycle. The alternative — holding
       the cursor — wedges the account behind one unfetchable message. That message is not triaged
       and no later poll returns to it.
-    status: proposed
+    status: tolerated
     because:
       - d-sj4u6eyj
       - d-8fvu0g4z
@@ -61,7 +61,7 @@ decisions:
     statement: |
       polling cadence is configured per account by the user, between a floor and a ceiling grinbox
       fixes. Nothing derives it from the mailbox's rate.
-    status: proposed
+    status: accepted
     because:
       - d-8fvu0g4z
       - r-0lg2c2e4
@@ -77,7 +77,7 @@ decisions:
       the interface offers a poll of every eligible account on demand, ignoring each account's
       cadence. It takes in whatever has arrived, which enqueues triage for it the way an ordinary
       arrival does; it is not a re-triage of anything already held.
-    status: proposed
+    status: accepted
     because:
       - r-63vrxr22
       - d-nq4fk2xr
@@ -91,7 +91,7 @@ decisions:
       marked spam, or deleted, and keeps its own record whichever it is. Browsing surfaces filter
       on that standing and default to showing what is still in the inbox, so a departed message is
       listed when asked for rather than always.
-    status: proposed
+    status: accepted
     supersedes: d-mzr8j0i6
     because:
       - r-jje7gb9a
@@ -110,7 +110,7 @@ decisions:
       beside the API and the browser application's assets, grinbox serves one unauthenticated path
       reporting that the process is up and what build it is running. It carries nothing about the
       user's mail.
-    status: proposed
+    status: delegated
     because:
       - d-ti7vexo3
       - r-ovi02v1m
@@ -124,7 +124,7 @@ decisions:
       when the mail was received with the newest first and a stable tiebreak, and filtered by
       account, by pipeline, by standing, by tag, by date, and by a substring search over sender and
       subject. The page reports the total so a caller can size what it did not fetch.
-    status: proposed
+    status: accepted
     because:
       - d-pk81w5nv
       - d-ti7vexo3
@@ -140,7 +140,7 @@ decisions:
       the interface opens on a summary of what grinbox has been doing — recent volume, what needs
       attention, and what remains to be set up. The message browser is one area beside it, reached
       deliberately, and an account is the primary way to narrow that browser.
-    status: proposed
+    status: accepted
     supersedes: d-pk81w5nv
     because:
       - r-56o7qts0
@@ -154,7 +154,7 @@ decisions:
       against the tags already recorded for recent messages of the pipeline, reporting what it
       would conclude for each. It runs no other operator type, reaches nothing outside grinbox,
       writes nothing, and does not re-run the triage that produced those tags.
-    status: proposed
+    status: accepted
     supersedes: d-p28t99vc
     because:
       - r-a2qxqnwk
@@ -172,7 +172,7 @@ decisions:
       a message's body is fetched from the backend only where the operator about to run reads it,
       determined from that operator's configuration, and is cached on the message once fetched. An
       operator whose configuration does not mention the body never causes a fetch.
-    status: proposed
+    status: accepted
     because:
       - r-sfvm6ib3
       - d-v5zamgjn
@@ -187,7 +187,7 @@ decisions:
     statement: |
       an operator that calls a model names which one, chosen from a closed set grinbox ships and
       offers. Changing that set changes which stored configurations are still valid.
-    status: proposed
+    status: accepted
     because:
       - d-whkazlor
       - d-qcsxvo18
@@ -200,7 +200,7 @@ decisions:
       an operator's run is bounded by a deadline, after which it is abandoned and recorded failed,
       and the calls it has in flight outside grinbox are cancelled. Its dependents skip as they
       would on any failure.
-    status: proposed
+    status: accepted
     because:
       - d-16geyxco
     pinned: false
@@ -211,7 +211,7 @@ decisions:
       an operator run in flight when grinbox stops is recorded failed on the next start rather
       than resumed, and its triage settles partial. Nothing re-runs it: the message keeps whatever
       the triage produced before the interruption until the user asks for a re-triage.
-    status: proposed
+    status: tolerated
     because:
       - d-0tebpjex
       - d-16geyxco
@@ -223,7 +223,7 @@ decisions:
       turning an operator on or off is validated like any other change to the pipeline, and is
       refused where the result could not run — turning off a producer something else depends on,
       or turning on a second producer of a tag key already claimed.
-    status: proposed
+    status: accepted
     because:
       - d-8y8i45y2
       - d-2dqylf0q
@@ -237,7 +237,7 @@ decisions:
       a digest section may name one of its tags and a value, and the items whose tag compares
       greater are marked in what the user receives. The comparison is over the normalized stored
       form, so the threshold is written in that form, and the tag must be one whose type orders.
-    status: proposed
+    status: delegated
     because:
       - d-hl6z38i6
       - d-dmwaark1
@@ -250,7 +250,7 @@ decisions:
       an edition's cadence is a recurrence expression with an optional named time zone. With no
       zone named, both the firing and the dates the digest prints resolve in the zone of the
       machine grinbox runs on, so moving that machine moves the user's digest.
-    status: proposed
+    status: accepted
     because:
       - d-ocqvnmfm
     pinned:
@@ -261,7 +261,7 @@ decisions:
     statement: |
       an edition's first delivery covers mail taken in since the edition was created, not the
       account's held history. Mail that arrived before the edition existed is never digested by it.
-    status: proposed
+    status: delegated
     because:
       - d-jsnfvo0m
       - d-jbqvsnox
@@ -273,7 +273,7 @@ decisions:
     statement: |
       where a delivery's item bound cuts, what it shows is the oldest mail in the window and what
       it counts as overflow is the newest.
-    status: proposed
+    status: delegated
     because:
       - d-z0gmsbkl
     pinned: false
@@ -286,7 +286,7 @@ decisions:
       no path by where the request came from. That only one path is publicly reachable is
       something the deployment does in front of grinbox, and it is a second thing grinbox requires
       of its deployment beside the reachable redirect.
-    status: proposed
+    status: delegated
     supersedes: d-cdwao54j
     because:
       - r-ovi02v1m
@@ -305,7 +305,7 @@ decisions:
       of the state's backups, so a rebuilt machine cannot read credentials written by the machine
       it replaced unless the deployment kept that key elsewhere and supplies it again. Grinbox's
       state surviving a rebuild therefore rests on a custody arrangement outside grinbox.
-    status: proposed
+    status: delegated
     because:
       - d-9hyzpk7j
       - d-xe41okh9
