@@ -1,0 +1,26 @@
+version: "2"
+model:
+  - name: ratify-screen
+    surface: /design-process/ratify-screen@4
+    description: what the session renders — its two entry lists, the detail pane beside them, and the form of each field
+
+requirements:
+  - id: r-tb9nctcr
+    title: the whole of an entry's detail is reachable
+    statement: |
+      every part of the detail pane's content is brought into view from within the session,
+      however tall that content stands against the pane, and the pane shows when it is holding
+      back more than it displays.
+    rationale: |
+      a requirement's pane now carries a statement, a rationale, and its verification steps, so
+      content taller than the pane is the ordinary case rather than the exception. what the owner
+      cannot reach, the owner cannot ratify.
+    verification:
+      - do: open a session on an entry whose detail stands taller than the pane
+      - verify: the pane shows that more content follows
+      - do: page to the end of that entry
+      - verify: the last row of its detail is in view
+      - do: page back once
+      - verify: the pane moves on that first press
+    facets:
+      - tooling
