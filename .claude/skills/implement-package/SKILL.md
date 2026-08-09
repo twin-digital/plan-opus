@@ -1,5 +1,5 @@
 ---
-version: "26"
+version: "30"
 name: implement-package
 description: Implement one package of a product inside a running implementation — survey, prepare, and implement, reading the wave shape bundled for the package's kind. Invoked by an implementation's dispatcher; use directly when asked to build one package against a product's fold.
 ---
@@ -46,7 +46,7 @@ Which waves each phase covers is your kind's business. Read your wave file:
 
 | kind | wave file |
 |---|---|
-| `npm-library`, `npm-cli`, `minecraft-addon` | [`waves/code.md`](waves/code.md) |
+| `npm-library`, `npm-cli`, `minecraft-addon`, `node-service`, `web-app` | [`waves/code.md`](waves/code.md) |
 | `document`, `agent-skill` | [`waves/document.md`](waves/document.md) |
 | anything else | no wave file exists — return an open question as a finding and build nothing |
 
