@@ -125,7 +125,7 @@ coverage:
       - kind: attestation
         ref:
           - src/entry.test.ts
-          - vitest.config.ts
+          - vitest.config.d/minecraft-test-lib.ts
         note: >
           both suites take `@minecraft/server` from the shared lib and write no behaviour by hand.
           the entry suite reaches the pack's own entry module through the lib's vitest plugin and
@@ -188,6 +188,7 @@ coverage:
           - eslint.config.js
           - vitest.config.ts
           - tsdown.config.ts
+          - .nvmrc
         note: >
           every one of these is what `pnpm sync` writes; re-running it against the merged tree
           leaves it clean. the package's one exception — the `package-manifest` rule, which would
@@ -246,7 +247,9 @@ coverage:
   - claim: d-8b5m52it # the event subscription is the enrollment
     covered_by:
       - kind: code-test
-        ref: src/entry.test.ts
+        ref:
+          - src/entry.test.ts
+          - behavior_pack/scripts/main.ts
         note: >
           the pack's own entry module is evaluated as the engine evaluates it, through `loadPack`,
           and the subscriptions it took while evaluating are what the assertions read — so an entry
