@@ -314,3 +314,41 @@ decisions:
       reason: other
       notes: |
         a requirement of the product turns on a step no part of grinbox performs or can check
+
+  # the caps, from the rulings on q-xk30ak52 and q-o623r2s8
+  - id: d-qv5l66ya
+    title: the caps grinbox seeds are the backstop, and the user's are layered over them
+    statement: |
+      grinbox seeds a cap for every operation it caps, and those seeded caps cannot be removed or
+      loosened by anyone. A user adds caps of their own on top — a stricter bound on an operation
+      already capped, or a bound on one not yet capped — and may remove what they added at any
+      time, leaving the seeded cap still standing. Where several caps bind one operation, the first
+      to deny denies.
+    status: proposed
+    because:
+      - r-llrpzkd1
+      - d-isyan49o
+      - r-zagpfz75
+    pinned:
+      reason: other
+      notes: |
+        it is what makes r-llrpzkd1 true, and what r-zagpfz75 rests on — a replay cannot repeat an
+        effect only because the per-message cap it spends is one the user cannot delete
+
+  - id: d-eqwrgoyv
+    title: a cap counts operations, and a retry is part of the operation it retries
+    statement: |
+      a cap counts operations attempted, not calls made. Where grinbox retries an operation that
+      failed, the retries belong to the operation that spent the cap and do not spend it again. The
+      operations that reach the user are not retried at all, so this multiplies no effect the user
+      would see.
+    status: proposed
+    because:
+      - r-llrpzkd1
+      - d-isyan49o
+      - d-coeyvi2n
+    pinned:
+      reason: public-api
+      notes: |
+        what a configured number means, and a reimplementation counting calls would deny at a
+        quarter of the configured volume
