@@ -137,8 +137,11 @@ reach in to enforce.
 
 The companion lands by SKILL.md's steps. What a companion's landing adds:
 
-1. **It is ratified as a whole** at its own pull request, rather than entry by entry as a plan
-   draft's Ratify loop rules them.
+1. **Put it to the owner as the plan phase puts a draft** — the pull request opened, everything
+   pushed, the url handed over, and the branch left alone while a sitting is open. What stays
+   whole is the companion's gate, not its review: the merge gate reads `proposed` entries and open
+   questions, so an all-`delegated` companion lands without a per-entry ruling while every entry
+   stays reachable in the ratify session.
 2. **Count its overturns** — entries whose `supersedes` names a plan-ruled decision — and state
    the count in the companion increment's pull request description, where the owner rules at
    ratify.
