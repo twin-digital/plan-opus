@@ -1,0 +1,27 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "village-guard golem probes",
+    "description": "In-engine probes for whether cancelling beforeEvents.entityHurt stops an iron golem retaliating against whoever hit it, and whether minecraft:from_player keeps a player's hit from angering one.",
+    "uuid": "19729136-3a4c-4243-8a5d-e1bbec325650",
+    "version": [0, 1, 0],
+    "min_engine_version": [1, 26, 0]
+  },
+  "modules": [
+    {
+      "type": "script",
+      "language": "javascript",
+      "entry": "scripts/main.js",
+      "uuid": "1ae7ed0a-c196-4eae-9587-9a77c5df9c46",
+      "version": [0, 1, 0]
+    },
+    {
+      "type": "data",
+      "uuid": "ee5227f1-9ff3-4df4-ac0e-03da545fd53a",
+      "version": [0, 1, 0]
+    }
+  ],
+  "dependencies": [
+    { "module_name": "@minecraft/server", "version": "2.8.0" }
+  ]
+}
