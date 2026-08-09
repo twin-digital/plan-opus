@@ -1155,8 +1155,8 @@ an all-`delegated` companion lands without a per-entry ruling, while every entry
 in the ratify session for the owner who wants one.
 
 The companion merges through the ordinary gate, and **only then does the implementation
-publish**: a design with no implementation is a safe state the process
-supports, and an implementation whose backing design has not published is not — so no package
+publish**: a design with no implementation is a safe state the process supports, and an
+implementation whose backing design has not published is not — so no package
 version releases and no document deliverable goes live before the design increment its
 implementation targets is published. An implementation whose companion increment stayed empty
 simply closes it — an increment that declares nothing is not published.
@@ -1361,7 +1361,6 @@ contract, survey, the implementation-detail test, findings and escalation, the t
 list, the narrow scoping of a decision — and nothing kind-specific. Each kind's wave shape is a
 file beside it under `waves/`, linked from `SKILL.md` and read only by an implementer dispatched
 for that kind: `waves/code.md` carries the Define–Stub–Code–Document shape and governs
-`npm-library`, `npm-cli`, `minecraft-addon`, `node-service`, and `web-app`;
-`waves/document.md` carries the Claims–Compose–Check shape and governs `document` and
-`agent-skill`. Adding a kind is a file
-under `waves/` and its own wave-shape decision.
+`npm-library`, `npm-cli`, `minecraft-addon`, `node-service`, and `web-app`; `waves/document.md`
+carries the Claims–Compose–Check shape and governs `document` and `agent-skill`. Adding a kind
+is a file under `waves/` and its own wave-shape decision.
