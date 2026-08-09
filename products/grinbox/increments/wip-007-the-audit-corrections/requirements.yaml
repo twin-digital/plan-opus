@@ -2,9 +2,15 @@ version: "1"
 
 requirements:
   - id: r-zmn2p7lf
-    title: what a cap covers
+    title: outside effects are capped, and the cap cannot be waived
     statement: |
-      the effects r-llrpzkd1 caps are the ones that reach the user, change their mailbox, or cost
-      money. Reading from a mail provider to find out what arrived is not one of them and needs no
-      cap.
+      every effect grinbox has that reaches the user, changes their mailbox, or costs money is
+      subject to a cap on how often it may happen, and nothing the user configures can exempt an
+      effect from its cap. Reading from a mail provider to learn what has arrived is not such an
+      effect and needs no cap.
     amends: r-llrpzkd1
+    verification:
+      - do: set a cap low and drive grinbox past it
+      - verify: the further attempts do not reach the outside service, and grinbox's record of the message says they were capped
+      - do: read every surface the user configures for a way to remove or loosen a cap grinbox itself seeded
+      - verify: none exists
