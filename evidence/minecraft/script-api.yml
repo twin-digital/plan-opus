@@ -373,3 +373,13 @@ runs:
       `scriptevent vggolem:enrol`, on its own destroyed and rebuilt volume. The set subscribes
       entitySpawn and entityLoad and sends `minecraft:from_player` on arrival, then drives a
       player-family attacker, a plain attacker and a zombie against the enrolled golem.
+
+  - id: iron-golem-vanilla-events
+    command: docker exec <container> tr -d '\n\t ' < /data/behavior_packs/vanilla/entities/iron_golem.json | grep -o '"events":{.*'
+    output: evidence/minecraft/script-api/golem-probe/IRON-GOLEM-EVENTS.txt
+    ran_at: 2026-08-09
+    environment: |
+      The vanilla behaviour pack shipped inside itzg/minecraft-bedrock-server, Bedrock dedicated
+      1.26.40.8 — the same image every golem-probe set ran against. The entity definition is read
+      off the running container's filesystem; it is the engine build's own data and would differ
+      against another.

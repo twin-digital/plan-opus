@@ -1,0 +1,5 @@
+# vanilla iron_golem.json — the events it defines
+# read from itzg/minecraft-bedrock-server, Bedrock dedicated 1.26.40.8, 2026-08-09
+# docker exec <container> tr -d '\n\t ' < /data/behavior_packs/vanilla/entities/iron_golem.json | grep -o '"events":{.*'
+
+"events":{"minecraft:from_player":{"add":{"component_groups":["minecraft:player_created"]}},"minecraft:from_village":{"add":{"component_groups":["minecraft:village_created"]}}}}}

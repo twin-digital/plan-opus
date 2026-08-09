@@ -2871,3 +2871,24 @@ facts:
         where: "`api` — every component a villager carries"
         quote: |
           [2026-08-07 18:02:50:988 WARN] [Scripting] [vgvil] api :: villager components=[minecraft:movement,minecraft:movement.basic,minecraft:inventory,minecraft:navigation.walk,minecraft:health,minecraft:variant,minecraft:underwater_movement,minecraft:lava_movement,minecraft:mark_variant,minecraft:is_hidden_when_invisible,minecraft:skin_id,minecraft:breathable,minecraft:can_climb,minecraft:type_family]
+
+  - id: from-player-adds-a-group-and-nothing-removes-it
+    claim: |
+      Vanilla `iron_golem.json` defines exactly two events, and both only add: `minecraft:from_player`
+      adds the component group `minecraft:player_created`, and `minecraft:from_village` adds
+      `minecraft:village_created`. No event removes either group.
+
+      So sending a golem `minecraft:from_player` is a one-way change. A component group is saved with
+      the entity, and the entity carries no event that would take it off again, so a pack that sends
+      the event alters every golem it reaches for as long as that golem exists — including after the
+      pack is removed.
+    caveat: |
+      What is read here is the entity definition. That a component group persists with the saved
+      entity is the engine's documented behaviour for component groups rather than something this
+      reading measures, and no probe here removed a pack and re-inspected a golem afterwards.
+    backing: tested
+    sources:
+      - run: iron-golem-vanilla-events
+        where: "the `events` object of the vanilla entity definition"
+        quote: |
+          "events":{"minecraft:from_player":{"add":{"component_groups":["minecraft:player_created"]}},"minecraft:from_village":{"add":{"component_groups":["minecraft:village_created"]}}}}}

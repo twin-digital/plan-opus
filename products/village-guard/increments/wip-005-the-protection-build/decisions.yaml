@@ -76,17 +76,13 @@ decisions:
       the pack does nothing about an iron golem turning hostile toward a player who struck it. a
       player's hit is cancelled and takes no health, and the golem retaliates anyway.
 
-      an iron golem carries no anger component. retaliation is `minecraft:behavior.hurt_by_target`,
-      gated on the attacker's family, and the engine sets the target from the attempt rather than
-      from the damage — so cancelling reaches it at no point. the one mechanism that does reach it
-      is sending the golem `minecraft:from_player` before it is ever hit, which requires acting on
-      the mob's arrival and so cannot be reconciled with d-8b5m52it, and which writes a component
-      group saved with the entity that no vanilla event removes — a permanent change to every iron
-      golem in an installer's world, outliving the pack itself.
+      cancelling cannot reach it, and the one mechanism that can must run before the golem is ever
+      hit — so it needs the pack to act on a mob's arrival, which the design rules out, and it
+      permanently alters every golem it reaches. the pack ships the limit rather than that remedy, and states it as a known
+      defect in the package's own `ISSUES.md`.
 
-      the pack ships the limit rather than that remedy, and states it as a known defect in the
-      package's own `ISSUES.md`. r-ef113dxi is left standing rather than narrowed to fit around what
-      was built: the limit is accepted, which is not the same as the behaviour being wanted.
+      r-ef113dxi is left standing rather than narrowed to fit what was built: the limit is accepted,
+      which is not the same as the behaviour being wanted.
     status: proposed
     pinned:
       reason: other
@@ -100,6 +96,7 @@ decisions:
       - f:trigger-event-throws-in-a-before-event-handler
       - f:from-player-prevents-an-iron-golems-target-but-does-not-clear-one
       - f:enrolling-a-golem-on-arrival-stops-only-the-player-lane
+      - f:from-player-adds-a-group-and-nothing-removes-it
     facets: pack-runtime
 
   - id: d-iphqrkzm
@@ -129,13 +126,13 @@ decisions:
   - id: d-9looc2q2
     title: the manifest's engine floor is the 1.26 line itself
     statement: |
-      the pack's `min_engine_version` is `1.26.0` — the bottom of the line d-itt177wv fixes the
-      floor to, rather than a patch version inside it.
+      the pack's `min_engine_version` is `1.26.0`: the bottom of the Bedrock 1.26 line, rather than
+      a patch version inside it.
     status: proposed
     pinned:
       reason: other
       notes: >-
-        it decides which worlds accept the pack, which is the reason d-itt177wv is pinned.
+        it decides which worlds accept the pack at all, which an installer meets directly.
     because:
       - d-itt177wv
       - r-cizmztsh
