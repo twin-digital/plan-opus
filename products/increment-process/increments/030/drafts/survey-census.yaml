@@ -1,0 +1,342 @@
+# The survey run at Clarify against this draft's fold, one surveyor per package the fold
+# names. `classification` is Clarify's, added when the census was worked: decided (a
+# foundation determines it), deferred (a ruled decision names it and whom it is handed to),
+# or detail (an implementation detail by the test at process-reference.md#every-choice-is-
+# accounted-for). A choice that was none of the three was a gap, and each is named below
+# with what closed it.
+
+packages:
+  - package: docs/process-migration.md
+    entries: []
+    note: >-
+      d-3lnj73ds scopes this document to what predates the process; the draft's one supersession
+      is an in-process one, recorded by the increment that makes it.
+  - package: .claude/skills/implement-package
+    entries: []
+    note: >-
+      the draft states no rule about implementers, waves, phases, censuses, or coverage, and
+      leaves d-n23bxend, d-ub6h6h5u, and d-msvpbva6 untouched.
+  - package: docs/authoring.md
+    entries: []
+    note: >-
+      d-af2v9seu fixes this document to the tests binding a foundation's writer; the draft adds
+      no such test. the placeholder line in ratify-screen@3's text-entry mock is illustrative
+      field text, and a checklist item drawn from it would be a shadow claim.
+
+  - package: nodejs/plan/design-process
+    kind: npm-cli
+    entries:
+      - choice: where a submit's git and network work runs relative to the render loop
+        where: src/session/run.ts — drive() resolves on state.submit and submit() runs after teardown
+        reading: >-
+          the sitting must continue, so the write, push, retry and review post run while the
+          alternate screen is up. whether that is a suspended loop, an action queue, or a
+          re-entrant draw is nobody's business outside the package.
+        classification: detail
+      - choice: where a submit's own report goes, now that it cannot print after teardown
+        where: run.ts — the committed-and-pushed line and the notes-posted line
+        reading: >-
+          ratify-screen@3 names no region for it, and what no section names is the implementer's;
+          the footer already carries a message line.
+        classification: detail
+      - choice: what "the staged set cleared of what it wrote" leaves behind
+        where: src/session/staging.ts
+        reading: >-
+          a ruling whose entry diverged at the tip was written nowhere, and both readings — clear
+          it, or keep it staged for a second attempt — are available from the text.
+        classification: gap
+        closed_by: d-x1jlr7jc, which now says the diverged entry's ruling leaves the stage
+      - choice: whether the session re-reads the draft's sources after a submit
+        where: run.ts / entries.ts — state.entries is collected once at open
+        reading: >-
+          after a fetch-and-reapply the statuses and line offsets have moved, so a reload is
+          required; whether the selection and scroll survive it is the pane's business.
+        classification: detail
+      - choice: the exit code of a sitting that submitted, failed, continued, and then quit
+        where: run.ts — runIncrementSession returns submit()'s code
+        reading: >-
+          with the submit no longer terminal the code is no longer "what the submit did". a
+          published cli's exit code is scriptable surface.
+        classification: gap
+        closed_by: d-nb5yg1w1, which now fixes the code to what the sitting was, not what a submit did
+      - choice: when the owner's token is prompted for, now that a submit is mid-session
+        where: run.ts heldToken
+        reading: the secret field renders as an overlay; d-2b23mjrl already fixes the semantics
+        classification: decided
+      - choice: the git mechanic by which rulings are reapplied onto the fetched tip
+        where: run.ts writeAndCommit
+        reading: >-
+          reapplication by id rules out rebase and cherry-pick, which reapply by diff and so by
+          position; reset-to-tip and re-run the staged write is what remains. which commands
+          realise it is internal.
+        classification: decided
+      - choice: how many times a refused push retries, and what stops the loop
+        where: the retry around git push
+        reading: >-
+          a cap is internal; that a refusal is eventually reported rather than looped on is what
+          r-clty5lqd needs.
+        classification: gap
+        closed_by: d-x1jlr7jc, which now states the terminal report and the sitting continuing
+      - choice: what artifact makes the rulings durable while the first commit is unwound
+        where: between applyStaged and the accepted push
+        reading: >-
+          a reset-to-tip reapply momentarily destroys the only commit, and the in-memory staged
+          set is lost on a crash. the clause the obvious implementation is least likely to meet.
+        classification: decided
+        note: d-x1jlr7jc's last paragraph binds it; naming the artifact is the implementer's
+      - choice: what counts as a status that differs at the tip
+        where: the comparison against the fetched tip's sources
+        reading: >-
+          status is the plain reading; a differing rejection_reason, a question the tip already
+          removed, and a note are each arguable.
+        classification: gap
+        closed_by: d-x1jlr7jc, which now says what the comparison reads
+      - choice: the form of the divergence report
+        where: wherever the pair is shown
+        reading: the surface names no region; a footer line cannot carry several pairs
+        classification: detail
+      - choice: whether a generated id for a routed answer is re-minted on reapply
+        where: run.ts withGeneratedIds
+        reading: an id minted against the old tree can collide at the tip; nothing outside observes which id won
+        classification: detail
+      - choice: when note anchors are computed relative to the reapply
+        where: run.ts postNotes → review.ts entryLine
+        reading: >-
+          the anchors must be computed after the accepted push; getting it wrong silently demotes
+          every note into the review body.
+        classification: detail
+      - choice: which list the session opens on
+        where: openSession in src/session/model.ts
+        reading: owner-visible on every open, and the decision did not say
+        classification: gap
+        closed_by: d-26vs308h, which now opens on the decisions list
+      - choice: whether each list keeps its own selection and scroll across a swap
+        where: SessionState
+        reading: the difference between the two lists feeling like one screen or two, but nothing outside is bound by it
+        classification: detail
+      - choice: how the requirements list is modelled beside the entry list
+        where: entries.ts OpenEntry, staging.ts stagingProblems
+        reading: ids are prefix-disjoint, so one note map is safe; purely internal
+        classification: detail
+      - choice: which of a requirement's fields the detail pane renders
+        where: render.ts detailRows; the surface said only "the metadata a requirement carries"
+        reading: >-
+          a requirement carries rationale, verification, facets, informed_by, and amends, and the
+          pane's fixed order accommodated none of the first two. what "in full" includes is the
+          owner's, not the implementer's.
+        classification: gap
+        closed_by: ratify-screen@3, whose detail pane now names a requirement's regions and their order
+      - choice: what a draft declaring no requirements shows
+        where: run.ts, which exits early today on an empty entry list
+        reading: the early exit goes; the surface names no empty state, so the wording is the implementer's
+        classification: detail
+      - choice: whether an amending requirement's pane shows the text it amends
+        where: the requirement detail pane
+        reading: d-mhlya385 settles resolving the citation to a title; showing the amended prose beside it is not decided
+        classification: decided
+      - choice: the scope searched for "closed by"
+        where: the reverse index over the draft's entries
+        reading: >-
+          "another entry of the same draft" excludes a sibling draft on the same pull request and
+          a later published increment; named because the natural implementation is a repo-wide scan.
+        classification: decided
+      - choice: what shows when an entry is both a closer and closed, or is closed by two
+        where: the id row, whose form admits one closure field
+        reading: rare, but the owner sees it, and the surface's singular phrasing does not settle it
+        classification: gap
+        closed_by: d-g00ah4em, which now gives the closing mark precedence
+      - choice: precedence when the closure field and the staged ruling compete for the row's width
+        where: render.ts listRows
+        reading: widths and truncation are the implementer's by the surface's preamble
+        classification: detail
+      - choice: OpenEntry carries supersedes but not amends
+        where: entries.ts
+        reading: mechanical; the loader's RequirementEntry already exposes amends
+        classification: detail
+      - choice: how the conformance normaliser finds the header/body divider now the rule carries a label
+        where: test/conformance.test.ts — isRule is /^─+$/ and the fixture is still a copy of @1
+        reading: >-
+          the normaliser would take the detail pane's own rule as the header divider and mis-split
+          every frame. implementation work, but it is the check d-9zot40jn rests on and it fails open.
+        classification: detail
+      - choice: what the ··· row in the ratify mock denotes
+        where: mock.ratify, in the list's separator column
+        reading: no section names it; a conformant render would differ visibly from the bound mock
+        classification: gap
+        closed_by: ratify-screen@3, from which the row is removed
+      - choice: whether the body-rule's count is the draft's entries or the visible window
+        where: the "decisions (5)" label
+        reading: the whole list; named because the mock's own count did not match the frame it depicted
+        classification: gap
+        closed_by: ratify-screen@3, whose frame and label now agree
+
+  - package: docs/process-reference.md
+    kind: document
+    entries:
+      - choice: what the reference states about which drafts ratify mode opens on
+        where: "Ratifying and landing a draft", which transcribes d-7i1l1kfy's mode sentence
+        reading: >-
+          the document can state only one of the two, and writing the newer leaves a pinned
+          accepted decision's prose contradicted with nothing in the fold recording it.
+        classification: gap
+        closed_by: d-4uz3egbj, which now supersedes d-7i1l1kfy outright
+      - choice: whether the reading rules for the ratify screen are stated for the version now bound
+        where: "The screen is an authored contract", which names ratify-screen@1 literally
+        reading: >-
+          d-q50z7iq1 is scoped to @1; 028 bound @2 and this draft binds @3, and no decision
+          extends the rule forward. a version-general statement is the cleanest foundation.
+        classification: gap
+        closed_by: d-smnssz39, which restates the rule for any ratify-screen version
+      - choice: what becomes of the commit a submit already wrote when the push is refused
+        where: "Ruling, noting, and submitting"
+        reading: >-
+          the superseded prose promised the owner's branch is never rewritten under them, and the
+          replacement did not restate it; the document cannot write the paragraph without a position.
+        classification: gap
+        closed_by: d-x1jlr7jc, which now says which commit is unwound and which is never rewritten
+      - choice: whether the fetch-reapply-retry is bounded, and what happens when the retry is refused
+        where: the same passage
+        reading: the count is internal; whether the owner is ever told it did not land is not
+        classification: gap
+        closed_by: d-x1jlr7jc
+      - choice: what a submit carrying only requirement notes does
+        where: the commit/push/review ordering paragraph
+        reading: >-
+          with no ruling there is no commit and no push, and the sequence d-f1b5r2f8 anchors the
+          review to does not happen. it decides whether a sitting spent noting posts anything at all.
+        classification: gap
+        closed_by: d-26vs308h, which now says what a notes-only submit does
+      - choice: whether a draft's model bindings appear in the requirements list
+        where: "The header, and the list"
+        reading: >-
+          a rebinding to a pool version that already exists changes no file, so d-kjwswmro's
+          header count would not see it and the list would not hold it — counted nowhere, which
+          is what r-ge2xf5nz exists to prevent.
+        classification: gap
+        closed_by: d-26vs308h, which now holds the model bindings in the list
+      - choice: how a requirement the draft retires is treated in the list and its marks
+        where: the new list passage and the closure-marks passage
+        reading: retirement is a third closure the lifecycle carries, beside supersedes and amends
+        classification: gap
+        closed_by: d-g00ah4em, which now names retires among the closures
+      - choice: what an entry both closing and closed shows
+        where: the closure-marks passage
+        reading: below the bar, but the surface's singular phrasing reads like a commitment
+        classification: gap
+        closed_by: d-g00ah4em
+      - choice: what frontmatter version a document composed against a draft carries
+        where: the file's frontmatter
+        reading: >-
+          a detail if a document is only ever composed at a published increment, and not one if a
+          Clarify-time compose against a draft is a real path.
+        classification: detail
+        note: >-
+          the wave has a document composed at its target; a Clarify-time compose is the survey,
+          which writes nothing.
+      - choice: whether the reference states d-v2aky476, and under what name
+        where: the session's opening passage
+        reading: the document speaks of "the projection" throughout and never names the show command
+        classification: detail
+        note: >-
+          d-v2aky476 was dropped as redundant — d-udx0fefp has the session opening on a draft's
+          pull request and d-9s4d3ww2 closes a ruled entry against reopening, so the document
+          states nothing new here.
+      - choice: how much of the two-list screen the reference restates in prose
+        where: "The header, and the list"
+        reading: >-
+          d-9zot40jn puts the layout and every field's form in the surface and leaves what the
+          list holds to decisions; a second prose record of the shape is the drift it prevents.
+        classification: decided
+      - choice: whether the one-sitting sentence is widened
+        where: "Ratifying and landing a draft"
+        reading: >-
+          r-ax84j1s2 is a floor and r-0h5q1lfl widens it, so the composer states the wider claim
+          and cites both; a reader meeting the narrower sentence takes the reach for less than ruled.
+        classification: decided
+      - choice: whether the header is two rows in the draft-selection mode
+        where: the surface's header section against its own select-draft mock
+        reading: the bound contract disagreed with itself, and the tie-breaker was scoped to @1
+        classification: gap
+        closed_by: ratify-screen@3, whose header rule now names the modes it governs
+      - choice: whether this compose also closes the document's 026→028 gap
+        where: the claim selection
+        reading: the wave already answers it — the claims are everything in force at the target
+        classification: decided
+        note: scope for whoever schedules the build, not a gap in the fold
+
+  - package: .claude/skills/increment
+    kind: agent-skill
+    entries:
+      - choice: whether plan.md keeps the stand-off rule as written, and on what basis
+        where: plan.md, "The pull request is where a draft is ratified"
+        reading: >-
+          d-wtgyvwf3's stated reason rests on d-lqmwczg3, which this draft retires. the rule
+          survives — the reapply window is between sittings, not mid-sitting — but a compose
+          copying the reason forward states a mechanism the fold no longer carries.
+        classification: decided
+        note: >-
+          d-wtgyvwf3 states the rule; the clause the skill restates is its rationale, and the
+          composer writes the rule against the fold in force rather than transcribing the old why.
+      - choice: what the skill tells an agent about the divergence report
+        where: plan.md, beside "do not re-apply them by hand"
+        reading: >-
+          the stand-off forbids the mid-sitting case, but the same divergence arises legitimately
+          between sittings when an agent applies a ruling the owner left in a comment.
+        classification: decided
+        note: d-x1jlr7jc leaves the entry as the tip has it and reports the pair; the agent's part is d-tmyu6t1y's
+      - choice: whether implement.md's "ratified as a whole" sentence is rewritten
+        where: implement.md, "Land"
+        reading: >-
+          the contrast is now wrong as stated: the companion is gated as a whole, because the gate
+          reads proposed, while being reviewable entry by entry in the session.
+        classification: gap
+        closed_by: d-ufuosc77
+      - choice: whether implement.md gains the companion analogue of plan.md's handover discipline
+        where: implement.md, §2 and §4
+        reading: >-
+          the operational consequence of r-0h5q1lfl, and no foundation states it; an orchestrator
+          following the current text still hands the owner nothing but a pull-request description.
+        classification: gap
+        closed_by: d-ufuosc77
+      - choice: what the skill states about when ratify mode is offered
+        where: SKILL.md and plan.md, which restate the landing unlock
+        reading: >-
+          the two decisions cannot both be read literally and the one being narrowed is pinned;
+          above a build's bar to settle.
+        classification: gap
+        closed_by: d-4uz3egbj, which now supersedes d-7i1l1kfy rather than narrowing it silently
+      - choice: what an agent does with an unresolved thread that is a note on a requirement
+        where: plan.md, "A comment directs a ruling; the sources are the ruling"
+        reading: >-
+          a requirement note is the first whose expected outcome is no source change, and the
+          draft makes a whole list of them; a note that directs nothing has no commit to link,
+          and leaving the thread open blocks the publish that d-fi7zsgez says a note never gates.
+        classification: gap
+        closed_by: d-r01s6ek8
+      - choice: whether this skill states the draft's new session behaviour at all
+        where: the claim selection
+        reading: >-
+          the risk is the opposite failure — a skill narrating the screen it does not build, which
+          then drifts. the draft's decisions reach the skill through their agent consequences.
+        classification: decided
+        note: d-9zot40jn keeps the screen's shape in the surface; the skill states what an agent does
+      - choice: which of the three files carries whatever session claims land
+        where: the claim mapping
+        reading: >-
+          an allocation, and the composer's, but placement is observable because an agent reads
+          only its phase's file.
+        classification: detail
+      - choice: whether the skill states d-v2aky476
+        where: SKILL.md's phase-settling section
+        reading: the skill only ever opens sessions on drafts, so the refusal describes a path it never takes
+        classification: detail
+        note: d-v2aky476 was dropped as redundant; nothing is left for the skill to state
+      - choice: what frontmatter version this package declares
+        where: the compose's last step
+        reading: >-
+          the value is written before the number is claimed, so a draft landing out of order
+          publishes a skill declaring a version it does not reflect.
+        classification: detail
+        note: >-
+          d-39d4o4fn puts the version in frontmatter and the landing rename claims the number;
+          composing at a published target is the ordinary path.

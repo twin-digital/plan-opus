@@ -1,0 +1,47 @@
+version: "2"
+model:
+  - name: ratify-screen
+    surface: /design-process/ratify-screen@3
+    description: what the session renders — its two entry lists, the detail pane beside them, and the form of each field
+
+requirements:
+  - id: r-0h5q1lfl
+    title: a settled draft is reviewed, not only a proposed one
+    statement: |
+      the ratify session opens on any draft its pull request carries, whatever statuses that
+      draft's entries hold, and the owner reads and re-rules each of them there. a draft in which
+      nothing is proposed and no question is open is reviewed the same way as one that is.
+    rationale: |
+      an implementation's companion carries its whole design set as delegated, so a session that
+      opens only on proposed entries has nothing to show for exactly the increment the owner most
+      needs to page through, and reviewing the build's design means reading yaml.
+    verification:
+      - do: open a session on a draft whose every decision carries a ruling and whose questions are all answered
+      - verify: the draft's decisions are listed, and the selected one's whole text is legible
+      - do: change one entry's ruling and submit
+      - verify: the draft's source carries the new status
+    facets:
+      - tooling
+  - id: r-84zd8sfk
+    title: the owner reads and notes a draft's requirements where they rule its decisions
+    statement: |
+      in the ratify session the owner reaches every requirement the draft declares, reads each in
+      full, and attaches a note to it, without leaving for another tool.
+    verification:
+      - do: open a session on a draft declaring requirements as well as decisions
+      - verify: each declared requirement is reachable from the session, and its whole statement is legible
+      - do: attach a note to a requirement and submit
+      - verify: the pull request carries a comment against that requirement's text, and the requirement's source is unchanged
+    facets:
+      - tooling
+  - id: r-n86ssoew
+    title: what a draft closes is legible from the list
+    statement: |
+      in the ratify session's entry lists, an entry closing another foundation and an entry closed
+      by another of the same draft are each told apart from an entry doing neither, and from each
+      other, without opening any of them.
+    verification:
+      - do: open a session on a draft carrying an entry that supersedes a published decision, an entry a later one of the same draft supersedes, and an entry doing neither
+      - verify: the three are told apart in the list, and the third carries no mark of closure
+    facets:
+      - tooling
