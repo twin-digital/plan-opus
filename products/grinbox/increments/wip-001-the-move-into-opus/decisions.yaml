@@ -23,6 +23,19 @@ decisions:
         it is the seam between the two repositories: the infrastructure repository reads the
         bundle's layout, and the daemon's launch resolves paths inside it
 
+  - id: d-uyo5nehu
+    title: the packages carry the workspace's generated export map
+    statement: |
+      each grinbox package keeps the subpath export map the workspace generates for every package
+      it holds, rather than declaring an exception to narrow it to the barrel alone. The map is
+      reachable only from the other two packages, since none of the three is published, and the
+      named barrel stays the entry point a sibling imports.
+    status: accepted
+    because:
+      - d-cjjd5c0w
+      - d-txqxjxvp
+    pinned: false
+
   - id: d-p77q4tob
     title: the bundle's layout, and how the daemon finds the interface in it
     statement: |
