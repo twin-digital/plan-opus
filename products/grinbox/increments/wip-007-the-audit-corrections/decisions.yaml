@@ -14,7 +14,7 @@ decisions:
       reporting a message's place in its thread, and taking a full snapshot of the mailbox for the
       reconcile below. The resource backends carry what an operator's declared operations reach:
       archiving, fetching a body, and sending mail. A backend implements both.
-    status: proposed
+    status: accepted
     supersedes: d-yp3tt9zd
     because:
       - r-etj0gluz
@@ -324,7 +324,7 @@ decisions:
       already capped, or a bound on one not yet capped — and may remove what they added at any
       time, leaving the seeded cap still standing. Where several caps bind one operation, the first
       to deny denies.
-    status: proposed
+    status: accepted
     because:
       - r-llrpzkd1
       - d-isyan49o
@@ -342,7 +342,7 @@ decisions:
       failed, the retries belong to the operation that spent the cap and do not spend it again. The
       operations that reach the user are not retried at all, so this multiplies no effect the user
       would see.
-    status: proposed
+    status: accepted
     because:
       - r-llrpzkd1
       - d-isyan49o
