@@ -23,6 +23,25 @@ decisions:
         it is the seam between the two repositories: the infrastructure repository reads the
         bundle's layout, and the daemon's launch resolves paths inside it
 
+  - id: d-p77q4tob
+    title: the bundle's layout, and how the daemon finds the interface in it
+    statement: |
+      the bundle unpacks to a fixed tree: `server/` holding the daemon's compiled output and its
+      entry point, `web/` holding the browser application's built assets, `bin/` holding the
+      launch wrapper, `systemd/` holding the unit, and a production manifest and lockfile at the
+      root. The daemon resolves the interface's assets as `web/` beside the directory its own
+      entry point sits in, and an environment variable overrides that. Both halves are built from
+      one commit, since the interface's asset names are content-hashed.
+    status: accepted
+    because:
+      - d-6ct1o00j
+      - r-zpdecb2z
+    pinned:
+      reason: data-format
+      notes: |
+        the infrastructure repository unpacks this tree and its unit names paths inside it, so
+        the layout is read by a repository that cannot see the code that writes it
+
   - id: d-vx1pxkyz
     title: the three packages carry one version
     statement: |
