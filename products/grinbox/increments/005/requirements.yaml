@@ -1,0 +1,37 @@
+version: "1"
+
+requirements:
+  - id: r-vd9mu8od
+    title: a digest accounts for everything it covers
+    statement: |
+      every message a digest's coverage includes is accounted for in what the user receives:
+      shown in a section, or included in a count the digest reports of what it did not show and
+      why.
+    verification:
+      - do: cover a window holding messages a section claims, messages in a category no section claims, and more messages a section claims than one delivery will show
+      - verify: the first are shown, and the other two are reported as counts naming why each was not shown
+      - verify: the shown items and the reported counts together are the whole of the window
+
+  - id: r-yq13riob
+    title: a message is digested once
+    statement: |
+      a message appears in at most one digest, whatever a user has configured and however
+      deliveries have failed or been delayed.
+
+  - id: r-i55lgsq8
+    title: what a digest says is derived, not composed
+    statement: |
+      what a digest says about a message comes from what that message's triage recorded. No model
+      chooses which messages appear, what is said about them, or how they are grouped.
+
+  - id: r-g6n22sn9
+    title: an undelivered digest costs no coverage
+    statement: |
+      mail that a digest would have covered had it been delivered is covered by the next delivery
+      instead. A failed or missed delivery narrows nothing.
+
+  - id: r-jje7gb9a
+    title: a digest reports mail that has left the inbox
+    statement: |
+      whether a message is still in the user's inbox has no bearing on whether it appears in a
+      digest.

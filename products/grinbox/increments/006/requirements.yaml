@@ -1,0 +1,36 @@
+version: "1"
+
+requirements:
+  - id: r-bcbvl9g5
+    title: running grinbox takes nothing but grinbox
+    statement: |
+      everything a user has to do to run grinbox — adding a mailbox, building and changing a
+      configuration, reading what happened, adjusting a cap, re-examining a message — is done from
+      grinbox's own interface. None of it requires a shell on the machine, or reading or writing
+      grinbox's stored state directly.
+    verification:
+      - do: from a fresh installation, add a mailbox, build a configuration, let mail be triaged, read the outcome, change a cap, and re-examine a message
+      - verify: none of it required a shell on the host or a direct read or write of the stored state
+
+  - id: r-a2qxqnwk
+    title: a change can be tried before it is trusted
+    statement: |
+      a user can see what a configuration change would do to real, recent mail of their own before
+      relying on it, and looking does not triage that mail for real or have any effect outside
+      grinbox.
+
+  - id: r-0kn0oida
+    title: no secret comes back out
+    statement: |
+      nothing grinbox holds on the user's behalf — a mailbox's tokens, a notification service's
+      key — is returned by its interface, in any form, to anyone.
+    verification:
+      - do: read every response the interface gives about a stored credential
+      - verify: each carries only what identifies the credential, and no part of the secret itself
+
+  - id: r-56o7qts0
+    title: grinbox says what it needs
+    statement: |
+      the user learns from grinbox's own interface that something needs them — a mailbox whose
+      authorization lapsed, a step that keeps failing, a cap being hit — rather than by going to
+      look for it or by noticing that mail stopped being triaged.
