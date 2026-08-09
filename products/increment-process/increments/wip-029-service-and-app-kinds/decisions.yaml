@@ -1,0 +1,34 @@
+version: "2"
+
+# Two kinds grinbox earns. Each declares the shape it runs, the way the agent-skill kind did
+# (d-zj004h21), rather than being added to the code shape's own enumeration.
+
+decisions:
+  - id: d-zbe7t126
+    title: node-service packages run the code wave shape
+    statement: |
+      the node-service kind — a long-running process deployed and operated rather than installed
+      by a consumer — runs Define, Stub, Code, Document. Its prepare is not a no-op: the surface
+      it serves is what sibling packages compile against, so its stubs stand that surface up
+      before a sibling can be built.
+    status: proposed
+    because:
+      - d-qb67fb8s
+      - d-rvvijts2
+    facets:
+      - process-doc
+      - prompts
+
+  - id: d-ean70iuz
+    title: web-app packages run the code wave shape
+    statement: |
+      the web-app kind — a browser application built and served rather than imported — runs
+      Define, Stub, Code, Document. Nothing compiles against it, so its prepare stands nothing up
+      and is the no-op the shape already provides for.
+    status: proposed
+    because:
+      - d-qb67fb8s
+      - d-rvvijts2
+    facets:
+      - process-doc
+      - prompts
