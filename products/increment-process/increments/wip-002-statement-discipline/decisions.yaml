@@ -1,0 +1,93 @@
+version: "2"
+decisions:
+  # the statement/commentary split
+  - id: d-oqiw2ggm
+    title: entries carry commentary beside the statement
+    statement: |
+      requirement and decision entries take an optional `commentary` field: prose that binds
+      nothing, is never citable, and never resolves a question the statement leaves open. The
+      field is named `commentary` because `notes` already means two other things in this product
+      — a pin's notes and the owner's session notes. `/design-process/requirement@2` and
+      `/design-process/decision@3` carry the field.
+    status: proposed
+    because:
+      - r-m8cwwkt3
+    pinned:
+      reason: data-format
+
+  - id: d-u5q2wh44
+    title: commentary is excluded from the fold's readers by default
+    statement: |
+      the projection omits commentary unless asked for it, and the fold an implementation binds
+      to never carries it; commentary lives in the sources and is shown to the owner at ratify.
+      An entry whose statement needs its commentary to be built correctly is an authoring
+      defect, and this exclusion is what surfaces it.
+    status: proposed
+    because:
+      - r-q0969r5a
+      - d-oqiw2ggm
+    pinned:
+      reason: public-api
+      notes: what the fold hands an implementer is the contract every implementation reads
+
+  - id: d-kjeqksd8
+    title: the statement budget is sixty words, a case clause twenty-five
+    statement: |
+      in the dialects that carry `commentary`, a statement over sixty words is a validator
+      finding, and a `when`, `then`, or `otherwise` clause over twenty-five. Commentary is
+      unbudgeted — it is the drain. Published sources in earlier dialects are not read against
+      the budget.
+    status: proposed
+    because:
+      - r-0ls6xch4
+      - d-oqiw2ggm
+    pinned: false
+
+  # structured branching
+  - id: d-qv81x173
+    title: a decision enumerates its branches as cases
+    statement: |
+      a decision entry takes an optional `cases:` list — ordered `when`/`then` pairs with an
+      optional terminal `otherwise` — normative like the statement, the first matching case
+      governing. A list needs at least two cases; one case is a sentence. Requirements carry
+      none: a requirement with branches is carve-outs, which authoring already routes to
+      decisions. `/design-process/decision@3` carries the field.
+    status: proposed
+    because:
+      - r-0ls6xch4
+      - d-kjeqksd8
+    pinned:
+      reason: data-format
+
+  # verification retirement
+  - id: d-8o8o8qo1
+    title: requirements carry no verification procedure
+    statement: |
+      requirement entries in `/design-process/requirement@2` carry no `verification`; coverage
+      evidence demonstrates the statement read literally. Where how a claim is checked is the
+      owner's business, a conformance case carries it — owner-vetted, tied to the claim, filed
+      with the implementation that covers it.
+    status: proposed
+    supersedes: d-bj3se96r
+    because:
+      - r-0ls6xch4
+    pinned:
+      reason: data-format
+
+  # statement form
+  - id: d-pxlmdkz1
+    title: the authoring guidance offers the EARS templates
+    statement: |
+      the authoring document offers the EARS sentence templates as guidance for requirement
+      statements — a trial, reviewer-applied and never a validator rule; a statement fitting no
+      template is not a finding.
+    status: proposed
+    because:
+      - r-0ls6xch4
+    pinned: false
+
+retires:
+  - id: d-pgq1xwf5
+    reason: verification is retired; the field these content tests govern is gone from the current dialect
+  - id: d-iufcotad
+    reason: verification is retired; the field whose naming this binds is gone from the current dialect
