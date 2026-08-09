@@ -1,0 +1,18 @@
+version: "1"
+
+questions:
+  - id: q-hd7m3aw4
+    question: |
+      d-g00ah4em names `supersedes`, `amends`, and `a retires entry` as the ways an entry of the
+      ratify session's lists closes another foundation, and the session marks the first two. a
+      `retires:` entry is not a decision or a requirement: it is a top-level `{id, reason}` pair
+      naming a published foundation that is closing with no successor, so nothing in either list
+      is the entry that carries the mark. `/design-process/ratify-screen@3` shows the closure
+      field only where an entry supersedes or amends, and neither of its frames holds a row for a
+      retirement, so the build renders retirements nowhere and the owner ratifies a draft's
+      retirements without seeing them. does a `retires:` entry take a row of its own — in which
+      list, and taking a ruling or only a note — or does the session leave retirements to the
+      diff?
+    answer: decision
+    facets:
+      - tooling
