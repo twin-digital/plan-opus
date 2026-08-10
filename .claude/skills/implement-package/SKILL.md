@@ -1,5 +1,5 @@
 ---
-version: "30"
+version: "34"
 name: implement-package
 description: Implement one package of a product inside a running implementation — survey, prepare, and implement, reading the wave shape bundled for the package's kind. Invoked by an implementation's dispatcher; use directly when asked to build one package against a product's fold.
 ---
@@ -11,6 +11,12 @@ This file is what every implementer does whatever its kind; the wave shape for y
 file under `waves/`, and you read the one your kind names and no other.
 
 ## Reading the fold includes the contracts it binds
+
+Dispatch hands you the whole fold whatever your package: a claim's scope decides which
+packages answer for it, through the component mapping, never which foundations you read.
+What you build from is the projection at the target increment — the requirements and
+decisions in force, none of the commentary; at a published increment the projection does
+not show commentary at all, and a statement is what binds.
 
 Read every contract the fold's model binds. The projection prints a model entry's name, its
 reference, and its description — none of the contract's content — so an implementer working
@@ -54,13 +60,16 @@ Adding a kind is a file under `waves/` and its own wave-shape decision.
 
 ## Survey
 
-Walk what building this package would take against the fold or draft fold you were given, and
-return the choices the build would meet that the fold neither decides nor defers, each with
-your reading of it. Classifying is Clarify's, not yours — where your reading finds an
-implementation detail, say so in the reading and return the choice anyway.
+Walk what building this package would take against the whole fold or draft fold you were
+given — survey is never scope-filtered — and return the choices the build would meet that the
+fold neither decides nor defers, each with your reading of it. Classifying is Clarify's, not
+yours — where your reading finds an implementation detail, say so in the reading and return
+the choice anyway.
 
 Return one census for this package: structured YAML whose entries each carry the choice met,
-where in the build it arises, and your reading.
+where in the build it arises, and your reading. The census is a return payload, not a file —
+the dispatcher concatenates the censuses for Clarify, and once every choice is classified it
+is discarded; nothing persists in the tree.
 
 ## Decide, record, report
 
@@ -93,13 +102,16 @@ you are wholly blocked, end the phase early and return your findings and state.
 
 ## Your working list is transient
 
-The list a prepare wave builds to drive its own composition is an input to the work, not a
-deliverable: keep it outside the tree and drop it when the phase ends. A survey census is the
-one thing a phase produces that outlives it.
+Every list a wave builds to drive its own composition — the document kind's claim list, the
+code kind's test plan, a survey's census — is an input to the work, not a deliverable: keep
+it outside the tree and drop it when the phase ends. The census outlives the phase only as
+the payload you return, and is discarded once Clarify classifies its choices.
 
 ## Coverage you hand back
 
 Record an `attestation` for every claim you implemented — always — alongside whatever better
 evidence exists. The coverage kinds are `attestation`, `code-test`, `manual-check`, and
 `conformance-case`; what makes one entry stronger evidence than another is who vetted the
-check and how tightly it ties to the claim, not whether it runs automatically.
+check and how tightly it ties to the claim, not whether it runs automatically. What an
+entry's evidence demonstrates is the claim's statement read literally — no requirement
+carries a verification procedure to satisfy instead.

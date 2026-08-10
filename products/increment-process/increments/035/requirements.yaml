@@ -1,0 +1,26 @@
+version: "2"
+model:
+  - name: requirements-source
+    schema: /design-process/requirements@3
+    description: the per-increment requirements file — fiat, presets, components, terms, and contract bindings
+  - name: decisions-source
+    schema: /design-process/decisions@3
+    description: the per-increment decisions file at the version whose entries carry scope, commentary, and cases
+  - name: decision
+    schema: /design-process/decision@3
+    description: one recorded choice — its status, scope, commentary, and cases
+  - name: fact
+    schema: /design-process/fact@2
+    description: one finding in the repo-wide facts/ pool, generated id, frozen once merged
+  - name: facts-source
+    schema: /design-process/facts@2
+    description: a facts/ file — its version and the facts it declares
+  - name: run
+    schema: /design-process/run@2
+    description: one execution under evidence/ that a tested fact rests on, generated id, frozen once merged
+  - name: runs-source
+    schema: /design-process/runs@2
+    description: an evidence/ file — its version and the runs it declares
+  - name: product-declaration
+    schema: /design-process/product@2
+    description: products/<id>/product.yaml, whose presence declares the product and whose status can retire it
