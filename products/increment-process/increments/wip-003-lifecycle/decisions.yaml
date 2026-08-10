@@ -4,11 +4,11 @@ decisions:
   - id: d-sm7l2s7l
     title: entries fall into three regimes
     statement: |
-      the system's entries fall into three regimes. Append-only log entries — requirements,
-      decisions — are immutable once published and close only through later declarations.
-      State-shaped entries — presets, model entries, components, terms — fold by name, and a
-      later redeclaration is the same identity. Pool entries — facts, runs — freeze in
-      substance at merge and carry their own closure transition.
+      entries change in one of three ways. Requirements and decisions (the log entries) never
+      change once published: a later increment writes a successor or a retirement. Presets,
+      model entries, components, and terms (the state entries) are redeclared: the same name
+      written again, and the latest declaration is the current state. Facts and runs (the pool
+      entries) are frozen where they sit: the one edit is marking one retired.
     status: proposed
     pinned:
       reason: data-format
@@ -78,10 +78,10 @@ decisions:
   - id: d-vkudjo4x
     title: fact@2 and run@2 — opaque ids, frozen substance
     statement: |
-      `/design-process/fact@2` and `run@2` carry opaque ids — `f-` and `run-` — and a
-      free-text retirement `reason`. A merged entry's substance is frozen: the gate refuses
-      any change to a fact or run in force at head beyond the one closure transition. `@1`
-      files keep their kebab ids and dialect, and references resolve across both.
+      `/design-process/fact@2` and `run@2` carry generated ids — `f-` and `run-` — and a
+      free-text retirement `reason`. A merged fact or run is frozen: the gate refuses any
+      edit to one beyond marking it retired. `@1` files keep their kebab ids and dialect,
+      and references resolve across both.
     status: proposed
     supersedes: d-yc56w54u
     because:
