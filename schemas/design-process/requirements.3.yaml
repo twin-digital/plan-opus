@@ -40,22 +40,33 @@ properties:
         description:
           type: string
         status:
-          enum: [bound, unbound]
-          description: bound when absent
-      if:
-        properties:
-          status:
-            const: unbound
-        required: [status]
-      then:
-        not:
-          anyOf:
-            - required: [schema]
-            - required: [surface]
-      else:
-        oneOf:
-          - required: [schema]
-          - required: [surface]
+          enum: [retired]
+          description: absent when the entry names its contract
+        reason:
+          type: string
+          description: the retirement's reason, required when retired
+      allOf:
+        - if:
+            required: [status]
+          then:
+            not:
+              anyOf:
+                - required: [schema]
+                - required: [surface]
+          else:
+            oneOf:
+              - required: [schema]
+              - required: [surface]
+        - if:
+            properties:
+              status:
+                const: retired
+            required: [status]
+          then:
+            required: [reason]
+          else:
+            not:
+              required: [reason]
   presets:
     type: array
     minItems: 1
@@ -81,12 +92,15 @@ properties:
                 type: string
                 pattern: "^[a-z0-9][a-z0-9-]*$"
         status:
-          enum: [applied, dropped]
+          enum: [applied, retired]
           description: applied when absent
+        reason:
+          type: string
+          description: the retirement's reason, required when retired
       if:
         properties:
           status:
-            const: dropped
+            const: retired
         required: [status]
       then:
         allOf:
@@ -94,8 +108,12 @@ properties:
               required: [version]
           - not:
               required: [scope]
+          - required: [reason]
       else:
-        required: [version]
+        allOf:
+          - required: [version]
+          - not:
+              required: [reason]
   components:
     type: array
     minItems: 1

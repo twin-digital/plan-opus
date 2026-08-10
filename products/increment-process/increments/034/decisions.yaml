@@ -1,0 +1,180 @@
+version: "2"
+decisions:
+  # the architecture, named
+  - id: d-sm7l2s7l
+    title: entries fall into three regimes
+    statement: |
+      entries change in one of three ways. Requirements and decisions (the log entries) never
+      change once published: a later increment writes a successor or a retirement. Presets,
+      model entries, components, and terms (the state entries) are redeclared: the same name
+      written again, and the latest declaration is the current state. Facts and runs (the pool
+      entries) are frozen where they sit: the one edit is marking one retired.
+    status: delegated
+    pinned:
+      reason: data-format
+
+  - id: d-05hxj5wc
+    title: three consumer-protection models, assigned by citation geometry
+    statement: |
+      a consumer of a changed entity is protected by one of three models, assigned by citation
+      geometry. Version-pinned channels — schemas, surfaces, applied presets — drift: the
+      consumer moves by explicitly taking the new version. Product-local vocabularies — components, terms —
+      guard: the retiring increment fixes its own citations. Unpinned cross-product citation —
+      facts alone — is loud staleness: the corrector acts now, and each citing product answers
+      at its own next landing.
+    status: delegated
+    pinned:
+      reason: other
+      notes: the model a future entity kind gets is read off this assignment rather than re-litigated
+
+  # one closure vocabulary
+  - id: d-cizeaklk
+    title: retired is the one closure status
+    statement: |
+      `retired` is the one closure status, with a free-text `reason`, wherever an entry leaves
+      force by status. A preset entry is name, version, and a status of applied (the default)
+      or retired with its reason — applying a preset is still owner fiat, still whole, still at
+      a pinned version, still transitive, ids deduplicated across everything it brings in.
+      `/design-process/requirements@3` carries the enum.
+    status: accepted
+    supersedes: d-wis1whfn
+    because:
+      - r-5sdjvnr8
+    pinned:
+      reason: data-format
+
+  - id: d-4i5k9nsi
+    title: succession is one relation with two spellings
+    statement: |
+      a requirement or decision is replaced by a new entry that names the one it replaces:
+      `supersedes`, with `amends` retired. Everything else points the other way: the write
+      that marks an entry retired — a redeclaration of the same name for state entries, the
+      one permitted edit for facts and runs — names the replacement with `superseded_by`. A
+      rejection's reason field is `reason`; retirement without a successor stays a `retires:`
+      entry, one id and one reason.
+    status: accepted
+    supersedes: d-jy7x42nx
+    because:
+      - r-5sdjvnr8
+      - d-sm7l2s7l
+    pinned:
+      reason: data-format
+
+  - id: d-vax1016k
+    title: a model entry names its contract or is retired
+    statement: |
+      a model entry names its entity and one `schema:` or `surface:` contract, or is
+      `status: retired` with a reason. There is no shapeless state: an entity whose contract
+      is not yet settled is carried by a deferral, like any other unmade choice. Entries fold
+      by name, the entity name staying the design's word for the thing.
+      `/design-process/requirements@3` carries the enum; sources already written keep `bound`
+      and `unbound` in their dialect.
+    status: tolerated
+    supersedes: d-pe4j25wq
+    because:
+      - r-5sdjvnr8
+    pinned:
+      reason: data-format
+
+  # the facts pool
+  - id: d-vkudjo4x
+    title: fact@2 and run@2 — opaque ids, frozen substance
+    statement: |
+      `/design-process/fact@2` and `run@2` carry generated ids — `f-` and `run-` — and a
+      free-text retirement `reason`. A merged fact or run is frozen: the gate refuses any
+      edit to one beyond marking it retired. `@1` files keep their kebab ids and dialect,
+      and references resolve across both.
+    status: accepted
+    supersedes: d-yc56w54u
+    because:
+      - r-wgtyrh2r
+      - r-buek5llj
+    pinned:
+      reason: data-format
+
+  - id: d-hxxlgaw9
+    title: retiring a cited fact captures the debt it creates
+    statement: |
+      retiring a cited fact is never refused: supersede-and-retire lands in one change, and
+      the gate requires that change to carry a backlog item per citing product, naming the
+      retired fact, its replacement, and the citing entries. An in-force foundation resting on
+      a retired fact is a reported finding that blocks only its own product's next landing,
+      until a superseding entry re-bases or revises it. An entry declared after the retirement
+      that cites the retired fact is an ordinary finding; staleness covers only citers that
+      predate it.
+    status: accepted
+    supersedes: d-08yrcfd7
+    because:
+      - r-ajpjx5w0
+      - d-05hxj5wc
+    pinned:
+      reason: other
+      notes: the gate contract every fact-citing product relies on
+
+  - id: d-a3agzjct
+    title: the evidence checker keeps its bar, minus the enums
+    statement: |
+      the checker's evidence rules stand with two changes: a retirement's `reason` is free
+      text, and the fact-citation rule moves to the staleness model. Unchanged: the
+      backing-specific source minimums, verbatim quotes whitespace-normalised, in-repo paths
+      resolving, a live run behind every `run:` source — a retired run uncitable by an
+      in-force fact, satisfiable in one pool change — artifacts urls only on tested facts,
+      and pool-wide id uniqueness.
+    status: delegated
+    supersedes: d-0e325noj
+    because:
+      - d-vkudjo4x
+      - d-hxxlgaw9
+    pinned: false
+
+  - id: d-8y5vmff8
+    title: findings gate, reports inform, and both name their product
+    statement: |
+      the check's output has two severities. A finding gates any merge and sets the nonzero
+      exit; a report gates nothing repo-wide. Each names the product it concerns where one
+      does, and a report the staleness model scopes to a product is enforced by that product's
+      own landing sequence, not by the check's exit.
+    status: accepted
+    because:
+      - d-hxxlgaw9
+      - d-lb99q03v
+    pinned:
+      reason: public-api
+
+  - id: d-3kow7q0r
+    title: one increment declares a name once
+    statement: |
+      a source declaring the same preset, component, term, or model entity twice in one
+      increment is a validator failure — the folded state would otherwise depend on entry
+      order. Applying and retiring one preset in a single increment is the same failure.
+    status: accepted
+    supersedes: d-a8hiceqo
+    pinned: false
+
+  # ids and products
+  - id: d-kqofgshc
+    title: prefixes default to three letters, the owner names exceptions
+    statement: |
+      generated ids are {prefix}-{8 lowercase base36 characters}, random; a new entity kind's
+      prefix defaults to three letters, and the owner names a different one — minimum one
+      letter — per kind, by how critical the entity is. Ratified now: `r-`, `d-`, `q-`, `b-`,
+      `f-` at one letter; `run-` at three. The id is the citation form; titles churn freely.
+    status: accepted
+    supersedes: d-e5ted839
+    because:
+      - r-buek5llj
+    pinned:
+      reason: data-format
+
+  - id: d-i849afta
+    title: a product retires in its own declaration
+    statement: |
+      a product retires by `status: retired` with a `reason` in its `product.yaml` —
+      `/design-process/product@2` carries the fields. A retired product's fold stays readable
+      and its published increments stand; applying a retired preset at a new version is a
+      validator finding, and versions already applied are untouched.
+    status: accepted
+    because:
+      - r-5sdjvnr8
+    pinned:
+      reason: data-format

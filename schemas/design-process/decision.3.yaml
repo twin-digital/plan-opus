@@ -15,7 +15,7 @@ properties:
     type: string
   status:
     enum: [proposed, accepted, tolerated, delegated, rejected, deferred]
-  rejection_reason:
+  reason:
     type: string
     description: the owner's reason, required when status is rejected
   pinned:
@@ -84,4 +84,7 @@ if:
       const: rejected
   required: [status]
 then:
-  required: [rejection_reason]
+  required: [reason]
+else:
+  not:
+    required: [reason]

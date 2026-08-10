@@ -1,0 +1,33 @@
+version: "2"
+requirements:
+  - id: r-5sdjvnr8
+    title: lifecycle vocabulary is uniform
+    statement: |
+      one word marks an entry leaving force, one relation marks succession, and every closure
+      carries a reason — uniformly across entity kinds.
+
+  - id: r-buek5llj
+    title: id prefixes default to three letters
+    statement: |
+      a generated id prefix defaults to three letters; the owner names a different prefix, of
+      any length down to one letter, per entity kind.
+
+  - id: r-wgtyrh2r
+    title: a merged fact or run is frozen
+    statement: |
+      once a fact or run merges, what it says never changes; the one edit allowed is marking
+      it retired, with its reason and its replacement where one exists. To say something
+      different, write a new entry.
+
+  - id: r-xrhll9x6
+    title: the increment session loses no work to a failed GitHub write
+    statement: |
+      when a write from the increment session — `design-process increment` — to GitHub fails,
+      a refused review or a rejected push included, the work it carried is kept and shown in
+      the session, ready to retry or to save; nothing the owner entered is lost.
+
+  - id: r-ajpjx5w0
+    title: correcting a fact is never blocked, and citers answer next
+    statement: |
+      correcting the facts pool is never blocked by a fact's citers. A product whose in-force
+      foundations rest on a retired fact is told loudly, and answers at its own next landing.
