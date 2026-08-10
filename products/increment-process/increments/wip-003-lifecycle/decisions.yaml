@@ -61,13 +61,14 @@ decisions:
       reason: data-format
 
   - id: d-vax1016k
-    title: a model entry names its contract, is pending, or is retired
+    title: a model entry names its contract or is retired
     statement: |
-      a model entry names its entity and one `schema:` or `surface:` contract. An entry may
-      instead be `status: pending` — the entity is part of the design's vocabulary, its shape
-      not yet settled — or `status: retired` with a reason. Entries fold by name, and the
-      entity name stays the design's word for the thing. `/design-process/requirements@3`
-      carries the enum; sources already written keep `bound` and `unbound` in their dialect.
+      a model entry names its entity and one `schema:` or `surface:` contract, or is
+      `status: retired` with a reason. There is no shapeless state: an entity whose contract
+      is not yet settled is carried by a deferral, like any other unmade choice. Entries fold
+      by name, the entity name staying the design's word for the thing.
+      `/design-process/requirements@3` carries the enum; sources already written keep `bound`
+      and `unbound` in their dialect.
     status: proposed
     supersedes: d-pe4j25wq
     because:
