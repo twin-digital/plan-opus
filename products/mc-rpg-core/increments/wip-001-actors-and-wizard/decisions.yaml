@@ -135,10 +135,10 @@ decisions:
       every model, texture, animation, and animation controller an actor renders from is committed
       in the assets
 
-      pack under this product's own names. no vanilla name or path appears in a shipped client
-      entity definition,
+      pack under this product's own names. apart from the material an actor is drawn with, no
+      vanilla name or path
 
-      render controller, or animation controller.
+      appears in a shipped client entity definition, render controller, or animation controller.
     status: proposed
     pinned:
       reason: other
@@ -146,9 +146,10 @@ decisions:
         moving under a game update
     scope: assets-pack
     because:
-      - r-pngblab3
+      - r-qi348761
       - f:mojang-publishes-the-vanilla-packs-with-all-rights-reserved-under-the-eula
       - f:a-resource-packs-internal-asset-names-are-global-to-the-pack-stack
+      - f:the-vanilla-material-definitions-are-not-published
     commentary: >
       what is taken from the game's own packs is taken from one pinned revision of
       `Mojang/bedrock-samples`,
@@ -167,8 +168,18 @@ decisions:
     scope: assets-pack
     because:
       - r-rpcudvbl
+      - r-qi348761
       - d-lyvjq8l1
       - f:the-evoker-client-entity-names-its-geometry-texture-material-and-animations
+      - f:the-vanilla-material-definitions-are-not-published
+    commentary: >
+      the material is the one thing not vendored because it cannot be: the published vanilla pack
+      carries no
+
+      material definitions, so there is nothing to copy, and a client entity must name one.
+      r-qi348761 carries the
+
+      exception this rests on.
   - id: d-5lutr7ok
     title: the spawn call takes a preset name and returns a handle
     statement: |
@@ -741,7 +752,7 @@ decisions:
         provenance against
     scope: assets-pack
     because:
-      - r-pngblab3
+      - r-qi348761
       - d-lyvjq8l1
       - f:mojang-publishes-the-vanilla-packs-with-all-rights-reserved-under-the-eula
     commentary: >

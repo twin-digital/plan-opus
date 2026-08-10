@@ -156,5 +156,12 @@ All six of the remaining gaps are closed:
 - **12, the kinds bound** → `d-ny9lcyjg` restated over both halves, with the resource half's enumeration
   moved to commentary so the rule is the test and not the list.
 
+And gap 1, the materials contradiction, is ruled: `r-qi348761` supersedes `r-pngblab3` with materials
+excepted, `q-ac8gcffb` is removed, and `d-lyvjq8l1` and `d-3ggbl0kl` are restated against it. The exemption
+turned out to rest on something stronger than the reason first given — the published vanilla pack carries no
+material definitions at all, so naming one the game ships is forced by the format rather than chosen
+(`f:the-vanilla-material-definitions-are-not-published`). It is written for materials alone rather than as a
+general licence, so a second such case earns its own amendment.
+
 Items 14–18 remain outside this product. The test-lib registry gap is now `q-sf1l1ypo`, with the capability
 captured against `mc-test-lib`; the rest are reported and unresolved.

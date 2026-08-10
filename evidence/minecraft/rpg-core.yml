@@ -88,3 +88,14 @@ runs:
       nothing is fetched. Which definition won is only visible on a client: the owner joined with a real
       Bedrock client and reported what each actor looked like, transcribed verbatim in the output file
       beside the captured server-side half. A visual observation by one person on one client.
+
+  - id: published-materials-probe
+    command: node evidence/minecraft/rpg-core/published-materials-probe/probe.mjs
+    output: evidence/minecraft/rpg-core/published-materials-probe/OUTPUT.txt
+    ran_at: 2026-08-10
+    environment: |
+      A read of `Mojang/bedrock-samples` through the GitHub API at the pinned tag `v1.21.130.3`, commit
+      84aa19df535fcf6d044f28bf76f236029bd8407a: the published resource pack's top-level listing, a direct
+      request for its `materials` directory, a recursive tree walk counting every path ending `.material`,
+      and the `materials` block of the evoker's own client entity. Pinned rather than read at `main` so the
+      reading is reproducible, since the repository moves. Nothing but the public API is involved.

@@ -107,6 +107,49 @@ requirements:
     commentary: |
       the game's asset identifiers are not a compatibility surface: an actor that names them can
       change appearance, or stop rendering, on a version bump, with no build failure to announce it.
+  - id: r-qi348761
+    title: an actor's appearance does not depend on the game's own assets, materials excepted
+    statement: >
+      an actor's appearance and animation are carried by this product, and resolve to no model,
+      texture, animation,
+
+      or identifier the game ships. the material an actor is drawn with is excepted. a Minecraft
+      version change does
+
+      not alter how an actor looks.
+    commentary: >
+      the game's asset identifiers are not a compatibility surface: an actor that names them can
+      change
+
+      appearance, or stop rendering, on a version bump, with no build failure to announce it.
+
+
+      the material is excepted because the format leaves no alternative, not as a convenience. a
+      client entity must
+
+      name the material it is drawn with, and the published vanilla pack carries no material
+      definitions at all, so
+
+      there is nothing to vendor — naming one the game ships is forced. the exception is written for
+      materials alone
+
+      rather than as a general licence for whatever the format forces next, so a second such case
+      earns its own
+
+      amendment.
+
+
+      what the exception costs is bounded: one string rather than the whole appearance, on a flatter
+      and older
+
+      surface than a version-suffixed geometry identifier, and a material that did change would show
+      as a wrongly
+
+      drawn actor rather than an absent one.
+    informed_by:
+      - f:the-vanilla-material-definitions-are-not-published
+    scope: assets-pack
+    supersedes: r-pngblab3
   - id: r-9owgd93o
     title: the library refuses to act when an actor's definitions are absent
     statement: >

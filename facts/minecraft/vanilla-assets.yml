@@ -87,3 +87,38 @@ facts:
                   "celebrating": "animation.humanoid.celebrating",
                   "controller_general": "controller.animation.evoker.general",
                   "controller_move": "controller.animation.villager.move",
+
+  - id: the-vanilla-material-definitions-are-not-published
+    claim: |
+      The published vanilla resource pack carries no material definitions. At `Mojang/bedrock-samples` tag
+      `v1.21.130.3` the resource pack's top level holds no entry named `materials`, a request for that
+      directory answers 404, and a recursive walk of all 19806 paths in the repository finds zero ending
+      `.material` — while geometry, textures, animations, render controllers, particles, fogs and the client
+      entity definitions are all there. A pack cannot therefore vendor a material from this source, though it
+      can vendor every other part of an entity's appearance. Since a client entity names the material it is
+      drawn with — the evoker's names `evoker` — naming a material the game ships is forced rather than
+      chosen.
+    backing: tested
+    caveat: |
+      This says the definitions are absent from the published pack, not that they are absent from the game:
+      the names resolve at run time, so the engine carries them somewhere the repository does not expose.
+      Whether they were ever published, or could be obtained another way, is outside what this reads. The
+      count and the tag are the state at one revision.
+    sources:
+      - run: published-materials-probe
+        where: resource_pack top level — the check for a materials entry
+        quote: |
+          entry named "materials" present: false
+      - run: published-materials-probe
+        where: the direct request for resource_pack/materials
+        quote: |
+          HTTP 404 — no such directory
+      - run: published-materials-probe
+        where: the recursive tree walk
+        quote: |
+          paths in tree: 19806
+          paths ending .material: 0
+      - run: published-materials-probe
+        where: the material a vendored evoker would have to name
+        quote: |
+          materials block of evocation_illager.entity.json: "default": "evoker"
