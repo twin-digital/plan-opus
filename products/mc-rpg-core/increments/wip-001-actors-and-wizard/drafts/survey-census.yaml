@@ -1,0 +1,407 @@
+# Survey census — mc-rpg-core @ wip-001-actors-and-wizard
+#
+# Clarify dispatched the implement phase in survey mode, read-only, against this draft fold on its
+# branch: one implementer per package the fold names — nodejs/minecraft/rpg-core (npm-library) and
+# nodejs/minecraft/rpg-core-pack (minecraft-addon), both proposed by d-6jlj0rl2 and neither existing
+# on disk. Every proposed decision was assumed in force.
+#
+# Both censuses are recorded here as returned, abridged only in the readings' wording where the same
+# ground is covered twice. drafts/survey-routing.md carries the classification of every entry and
+# what the draft did about it.
+
+censuses:
+  - package: nodejs/minecraft/rpg-core
+    kind: npm-library
+    entries:
+      - choice: where the single preset registry d-ipgh0g2d requires lives, and which package generates what from it
+        arises: before either package can be stubbed
+        reading: >-
+          d-ipgh0g2d has the library's identifiers and the pack's entity definitions "produced from one
+          preset registry"; d-6jlj0rl2 says neither package holds the other's content. The registry is
+          neither package's content and the fold names no third home. Three shapes differ in what a
+          reimplementer must preserve and in whether the pack depends on the library.
+
+      - choice: whether the library publishes the assets pack's uuid and version, so an adventure can write the manifest dependency
+        arises: deciding the entry point's exports
+        reading: >-
+          d-knzip5zc obliges an adventure to name "that pack's uuid and version". The library is the only
+          half installed from npm, but the uuid is arguably the sibling's content. Left unsettled, every
+          adventure hand-copies a uuid — the drift d-ipgh0g2d rules out for identifiers.
+
+      - choice: how the library learns the namespace major, and whether its own major is locked to the pack's
+        arises: resolving a preset name to an entity identifier
+        reading: >-
+          d-i8pjw2on says the library "resolves its own calls through the same namespace" but not how the
+          major reaches it. Locked together, r-pop72yk6 holds by construction; floating, the library
+          carries a constant that can silently disagree with the pack it is paired with.
+
+      - choice: the library's npm identity — name, published or workspace-only, private or not
+        arises: writing package.json
+        reading: >-
+          product.yaml gives the path and kind, not the name. Whether adventures live inside this
+          monorepo decides the next entry.
+
+      - choice: whether the library ships its TypeScript sources, given the kit resolves workspace deps through the `source` export condition
+        arises: the exports map and `files`
+        reading: >-
+          The shared base and the kit's fragment both set conditionNames ['source']; repo-kit emits
+          `source: ./src/index.ts` while `files` ships only `dist`. For a published tarball the `source`
+          condition matches a file that was never packed. A real build failure, not a taste call.
+
+      - choice: how the library declares @minecraft/server, and how that squares with the version an adventure's manifest declares
+        arises: package.json, and the first import
+        reading: >-
+          The package is types-only and must never be bundled; the kit leaves manifest-declared modules
+          external. Nothing in the fold says which script-API version the library is written against, and
+          an adventure pinned to a different 2.x may meet a member the engine lacks.
+
+      - choice: how a preset is named in the public surface, and what happens when an adventure names one that does not exist
+        arises: the spawn call's signature
+        reading: >-
+          d-5lutr7ok leaves the signature open, so the shape is the implementer's. The error case is not:
+          d-xobjyw2e covers an unregistered entity type and says nothing about an unknown preset name.
+          Different failures with different fixes — rebuild versus install the pack.
+
+      - choice: whether d-xobjyw2e's error is exported, and what an adventure may read off it
+        arises: the entry point's exports, and the error's fields
+        reading: >-
+          "Names the preset, the identifier, and the pack" is satisfied by a message. Whether the class is
+          exported for `instanceof` and the three facts are readable fields is surface a reimplementation
+          must preserve, and r-lqfu2ki9 pushes against exporting more than necessary.
+
+      - choice: what the actor-handle's surface is — which operations besides removal it carries
+        arises: the handle type is half the public API
+        reading: >-
+          The term defines the concept, not the membership. r-8ih6ab2r forces removal to exist.
+          d-c0l4gwx2 defers only speech. Rename, move, read position, the underlying Entity, isValid are
+          all open and all permanent surface.
+
+      - choice: how an adventure reaches an actor it spawned in a previous session
+        arises: the first test spanning a world reload
+        reading: >-
+          r-8ih6ab2r has an actor persist until the adventure removes it, but a handle does not survive a
+          reload and the fold gives no lookup call and no durable identifier to query by. r-8ih6ab2r's own
+          final clause is unimplementable as the fold stands.
+
+      - choice: what stops an adventure that spawns on world load from accumulating a duplicate actor every restart
+        arises: the same reload test
+        reading: >-
+          An actor persists and the only verb is spawn. A script runs at every world load, so the obvious
+          adventure yields N wizards after N restarts. If this is left to adventures, r-e8p2oto6's "its
+          own story, its triggers, its logic" starts including actor-lifecycle bookkeeping.
+
+      - choice: which side sets an actor's default name, and whether the name survives a restart
+        arises: the spawn implementation
+        reading: >-
+          The preset term makes the default name the preset's and r-e8p2oto6 forbids an adventure carrying
+          it; d-w0smdozf gives every actor the same components, so a per-preset name cannot come from
+          there — leaving the library setting nameTag at spawn. Sound but unstated, and it puts a
+          library-set value under an assets-pack-scoped claim. No fact attests a script-set nameTag
+          survives a reload.
+
+      - choice: whether the library passes SpawnEntityOptions.initialPersistence
+        arises: the spawnEntity call
+        reading: >-
+          r-8ih6ab2r wants exactly what initialPersistence gives, but is scoped assets-pack and
+          d-w0smdozf's component list names nothing about persistence. Compounding it, test-lib's fake
+          throws NotImplementedError for any options argument, so no test exercising the spawn path runs
+          under the shared test lib.
+
+      - choice: which way an actor faces before any player approaches
+        arises: whether the spawn call sets initialRotation
+        reading: >-
+          r-apu8m7vz covers only the approach case. An actor facing a wall until someone walks up is
+          within the letter of it. Whether "the place to put the actor" includes a facing is a surface
+          choice.
+
+      - choice: how the library behaves for spawn failures other than an unregistered entity type
+        arises: the spawn implementation's error handling
+        reading: >-
+          d-xobjyw2e is pinned partly on "no call half-succeeds" and covers one failure. Unloaded chunks
+          and unknown dimensions have their own throws. After d-xobjyw2e an author expects one error
+          vocabulary, not two.
+
+      - choice: what a handle call does once its actor has been removed or invalidated
+        arises: every handle method after the first
+        reading: >-
+          d-xobjyw2e answers "is the type registered", a different question from "is this actor still
+          there". The pool documents the engine's invalidation behaviour thoroughly; the fold does not
+          rule. remove() called twice is the ordinary case.
+
+      - choice: whether the entity-type lookup may be memoised, and whether "every entry point" includes handle methods that do not touch the type
+        arises: placing the check
+        reading: >-
+          Close to an implementation detail, except that d-xobjyw2e's pin is "no call half-succeeds",
+          which is the property the answer affects.
+
+      - choice: how the registered / not-registered branch gets a unit test, given the shared test lib does not model EntityTypes
+        arises: the first test for the product's most load-bearing decision
+        reading: >-
+          A hard contradiction, verified in source. r-hear6pun requires @minecraft/server be stood up with
+          minecraft-test-lib and forbids a hand-rolled double or module mock. test-lib lists the registry
+          classes as out-of-scope, EntityTypes.get() throws NotImplementedError, and createServer() hands
+          back the same static fake for every bundle, so there is no per-bundle state to register into.
+          Every way out changes another product's package or breaks r-hear6pun.
+
+      - choice: whether the four scope-less requirements adopted from minecraft-addon@4 bind this package, and what satisfies them for a package holding no pack
+        arises: building the claim list
+        reading: >-
+          Read literally they are in force for `library`. r-cyd08e6q wants the build configuration to
+          merge the kit's fragment, which would destroy this package's dist and suppress its .d.ty,
+          making the nodejs-library packaging requirement unsatisfiable. The generous reading is that they
+          are vacuous here; the literal reading is a direct contradiction.
+
+      - choice: where the exception letting this package have one entry point is declared
+        arises: package.json
+        reading: >-
+          r-lqfu2ki9 forbids a subpath wildcard; repo-kit emits `./*` for any package with src/*.ts, and
+          r-82ck2fax says the generated configuration is not edited in the package and an exception is
+          declared where that configuration lives. Six packages already carry that opt-out, so the
+          mechanism is settled — but the change is in the monorepo root, outside this package's path.
+
+      - choice: where d-ro5pj8er's build-time pairing check runs, and what share is the library's
+        arises: wrap-up, since d-ro5pj8er is scoped library as well as assets-pack
+        reading: >-
+          This package can carry none of it, and the sibling may not either. mc-pack-archive "reads the
+          output tree and consults nothing else" and will archive one pack happily. Adding a check to the
+          pack package collides with r-cyd08e6q and r-w2vh7olv. d-hybkhum6 puts a second pairing beyond
+          reach: an adventure's archive is cut by the adventure's build, which neither package runs.
+
+      - choice: what gives the library any live-server evidence, and what demonstrates r-e8p2oto6 at all
+        arises: choosing coverage kinds
+        reading: >-
+          d-6jlj0rl2 has the assets pack declare no script module, so neither package runs a script in a
+          world. Every run-time claim has no route to a manual check beyond an adventure that exists in
+          neither package. r-e8p2oto6 is a claim about what an adventure carries, and only an example
+          adventure could evidence it.
+
+      - choice: how the Node-shaped requirements apply to code that never runs on Node
+        arises: engines, and the build target
+        reading: >-
+          The library's code executes in the Bedrock script engine, whose constraints are sharper — the
+          pool records es2022 acceptance and that node shims kill a module. The two are compatible in
+          practice, but the binding constraint is the engine's and the fold states it nowhere for the
+          library.
+
+  - package: nodejs/minecraft/rpg-core-pack
+    kind: minecraft-addon
+    entries:
+      - choice: whether the wizard's client entity may name a material the game ships
+        arises: filling in `materials` in the client entity
+        reading: >-
+          Two foundations contradict and the implementer could not build to both. r-pngblab3 forbids
+          resolving to any "model, texture, animation, material, or identifier that the game ships" —
+          material named explicitly — and d-lyvjq8l1 bars any vanilla name from a shipped client entity
+          definition. d-3ggbl0kl requires the opposite for that one field. The practical stake is real:
+          materials come from `materials/*.material`, a whole-file merge point, which d-ny9lcyjg bars the
+          pack from declaring in — so vendoring a material would collide across majors. That reads as why
+          d-3ggbl0kl was written, but the fold never reconciles it with r-pngblab3's word "material".
+
+      - choice: what the adopted nodejs / nodejs-library / minecraft-addon requirements mean for a package with no TypeScript
+        arises: standing the package up at all
+        reading: >-
+          This package holds no src/, no exports map, and is private with exports and files removed by
+          repo-kit's minecraft-pack feature. Four adopted requirements read literally against that — two
+          about a packed package.json, one about an exports map, one about unit tests standing up
+          @minecraft/server. Vacuous or misdirected rather than violated, but bound with no scope
+          narrowing and no exemption.
+
+      - choice: who assembles the release archive d-hybkhum6 and d-ro5pj8er describe
+        arises: wiring release-assets, and trying to make the pairing check fail
+        reading: >-
+          d-hybkhum6 puts this product's packs inside an adventure's archive, which nothing in this
+          package's path produces. d-ro5pj8er's "both at agreeing versions" reads two ways and fails
+          either way: this package's two halves are versioned from one package.json and so are equal by
+          construction, verifying nothing; the product's two packages appear together only in an
+          adventure's archive. This claim as written cannot be carried by this package.
+
+      - choice: where the build-time checks the fold requires actually live
+        arises: adding the namespace lint, the withdrawal check, and the pairing check
+        reading: >-
+          None is expressible from inside the package. r-cyd08e6q forbids build logic and r-82ck2fax makes
+          the configuration generated. Mechanically blocked too: packBuild takes one option, returns a
+          fragment whose plugins array is the single plugin performing the whole build, and
+          tsdown.config.d fragments shallow-merge — so a second fragment supplying plugins replaces the
+          kit's outright. All three are changes to mc-dev-kit or .repo-kit.yml.
+
+      - choice: how a release that produced one half without the other is made to fail
+        arises: running the release-assets hook
+        reading: >-
+          archivePackage skips an empty kind directory and throws only when zero members were added — its
+          doc says the archive holds one member per pack whatever the number. So a package whose resource
+          half failed to build publishes a behavior-only .mcaddon silently, which the pool says presents
+          as an actor no player can see or point at. The exact release d-ro5pj8er must refuse, and the kit
+          permits it.
+
+      - choice: how the preset registry becomes entity definitions
+        arises: producing the per-preset entity JSON on both sides
+        reading: >-
+          The kit copies pack files verbatim and offers no generation step; r-cyd08e6q forbids the pack
+          carrying build logic. Either the generated JSON is committed with something gating drift, or
+          generation becomes a kit capability. The fold says neither.
+
+      - choice: whether the namespace reaches the packs' header.name
+        arises: authoring both manifests
+        reading: >-
+          The kit completes header.name from the owning package and reports a problem if a source manifest
+          specifies it. So both halves necessarily receive the identical name — an operator sees two
+          entries with one name — and two majors installed together also show one name unless the package
+          is renamed per major. Not implementable inside the manifest.
+
+      - choice: what the previous release's actor identifiers are compared against
+        arises: implementing d-5f011w0o's refusal
+        reading: >-
+          Nothing in the kit, the package, or the monorepo holds a record of what a prior release exposed;
+          versions come from changesets and the kit reads only the current tree. Whether the baseline is a
+          committed identifier manifest, the published .mcaddon, or a git tag — and what "the release" is
+          in a turbo + changesets flow — is undecided.
+
+      - choice: the literal form of the namespace, and what it is when the package is pre-1.0
+        arises: the first identifier written
+        reading: >-
+          The term fixes that the prefix derives from the major, not how. Several forms are consistent and
+          the choice is permanent, since d-i8pjw2on is pinned public-api. Sharper: under semver a 0.x
+          package breaks compatibly on a minor, so at 0.x "major" names one namespace across every
+          breaking change and r-pop72yk6's coexistence does not hold. The fold neither requires a 1.0.0
+          first release nor says what the namespace is below it.
+
+      - choice: what makes the authored namespace and the package's major version agree
+        arises: the first major bump, and every one after
+        reading: >-
+          The major lives in package.json, which changesets writes; renaming every identifier is a
+          separate manual edit. A major changeset landing without the rename produces a pack whose uuid
+          and names claim the previous major — the contention d-i8pjw2on prevents. Whether the lint reads
+          the major from package.json or from a constant in the pack, the fold does not say.
+
+      - choice: what "the pack's uuid carries the namespace" means concretely
+        arises: choosing the uuids for the two manifests
+        reading: >-
+          A uuid cannot spell a version. The buildable reading is a fresh uuid per major, recorded
+          somewhere durable. The kit reports duplicate-uuid across the workspace, so a reused uuid fails
+          loudly — a forgotten rotation on a major bump does not.
+
+      - choice: whether the behavior half declares a manifest dependency on its own resource half
+        arises: authoring behavior_pack/manifest.json
+        reading: >-
+          Load-bearing and unsettled. The pool shows a resource pack reaches the client stack because a
+          behavior pack names it by uuid, against an empty resource activation list. d-knzip5zc has an
+          adventure declare one uuid. Without this entry, an adventure activates one pack and the actor is
+          the invisible unpointable case. Cheap to get right, silent to get wrong — and the install story
+          additionally rests on a second dependency hop no probe has tested.
+
+      - choice: which of this package's two uuids an adventure names
+        arises: writing the README section an adventure author copies from
+        reading: >-
+          d-knzip5zc is pinned public-api and says "that pack's uuid" — one package, two packs, two uuids.
+          Almost certainly the behavior half's, given the previous entry, but this is the one string every
+          adventure hard-codes.
+
+      - choice: how any assets-pack-scoped claim gets demonstrated
+        arises: building a test plan for r-wqwub3zz, r-apu8m7vz, r-8ih6ab2r, r-pngblab3
+        reading: >-
+          Every claim scoped to this package is about what a running world does, and this package holds no
+          script that could spawn an actor. Demonstrating any of them needs a spawner living outside this
+          package's path. The fold does not say where that harness lives or which package owns the manual
+          checks.
+
+      - choice: what stops a player displacing an actor
+        arises: writing the shared component set
+        reading: >-
+          r-wqwub3zz requires no player action move it and r-8ih6ab2r requires it stay where placed.
+          d-w0smdozf enumerates three things and says the actor carries no navigation and no other goal —
+          but no navigation does not stop a mob being shoved by a player, a piston, water, or a minecart.
+          pushable, knockback resistance, and whether the actor has physics at all are unaddressed, and
+          d-w0smdozf is pinned on "what a player sees an actor do".
+
+      - choice: what makes an actor survive a restart and a chunk unload
+        arises: the same component set
+        reading: >-
+          A custom entity's persistence turns on its despawn components; a mob without persistence can be
+          removed when no player is near. d-w0smdozf names none of it. Adjacent: the pool records
+          look_at_player's probability defaults to ~0.02, an occasional glance, and that 1.26.0 replaced
+          min/max_look_time with a look_time range — so "watches continuously" needs non-default values
+          the fold does not state.
+
+      - choice: whether the actor declares minecraft:nameable
+        arises: the same component set
+        reading: >-
+          r-wqwub3zz bars a player renaming an actor. In creative a name tag renames any nameable mob, so
+          the requirement is met by omitting a component — the kind of thing added later by someone making
+          the actor nicer, quietly breaking a pinned requirement. The fold does not record the omission as
+          deliberate.
+
+      - choice: where an actor's default name lives and how it reaches the entity
+        arises: deciding whether the pack carries anything for the wizard's name
+        reading: >-
+          The natural home is the resource pack's texts/*.lang, which d-ny9lcyjg bars as a whole-file
+          kind. So the default name must be a string in the library applied as a nameTag at spawn — not
+          localizable, and per the pool name tags on the observed client appear only while hovering. If the
+          name is the library's, this package answers for no part of r-rpcudvbl or r-e8p2oto6.
+
+      - choice: the full set of assets vendored for the wizard
+        arises: copying out of bedrock-samples and re-identifying
+        reading: >-
+          Achievable — every named asset resolves, including animation.common.look_at_target, which lives
+          in look_at_target.animation.json rather than anything spelled "common", and the geometry whose
+          identifier is a top-level key in the legacy 1.8.0 form, so re-identification is a key rename.
+          But the real client entity carries more than d-3ggbl0kl names: a render controller, a vanilla
+          particle identifier r-pngblab3 forbids, a spawn-egg texture that must go, scripts.scale 0.9375
+          without which the wizard is the wrong size, riding Molang, and six animations an actor with no
+          goals never plays. Whether the vendored set is trimmed or copied whole is open, and it decides
+          how much surface the namespace lint covers.
+
+      - choice: where the pinned bedrock-samples revision is recorded and how re-vendoring is done
+        arises: the first vendoring and every refresh after
+        reading: >-
+          d-lyvjq8l1's title says "a pinned revision" but its statement names no source, no revision, and
+          no provenance record; the only URLs in the pool point at main and so pin nothing. Since
+          d-5f011w0o frees appearance to change within a major, re-vendoring is expected more than once.
+
+      - choice: whether the wizard ships the evoker's own pixels
+        arises: writing the wizard's texture
+        reading: >-
+          The evoker is a bald grey-faced illager in a robe; it reads as a spellcaster, less obviously as
+          elderly. Whether the texture ships unmodified or re-painted is an owner judgement the fold does
+          not make, and d-3ggbl0kl is pinned on precisely that ground.
+
+      - choice: whether publishing the archive as a release asset is redistribution the EULA permits
+        arises: the release-assets hook uploading the .mcaddon
+        reading: >-
+          The pool's licence fact carries an explicit caveat that what the EULA permits for a
+          redistributed asset is not quoted. The brief's answer is that it does not arise for a family
+          addon nobody publishes — but publish.yaml uploads whatever release-assets writes to that
+          package's GitHub release. The first release is a distribution of re-identified Mojang assets to
+          whoever can read it.
+
+      - choice: what entries this package needs in the monorepo's declarative configuration
+        arises: sync, before the first build
+        reading: >-
+          package-manifest needs a false opt-out; the typescript feature is unconditional and writes a
+          typecheck script into a package with no src/; the test feature keys on src/**/*.test.ts so a
+          pack with no script module gets no test script. village-guard sidesteps the last two by carrying
+          a src/. All are changes outside this package's path.
+
+      - choice: the declared format and engine versions of the vendored definitions
+        arises: writing the client entity, geometry, animation and controller files
+        reading: >-
+          Each vendored file carries a format_version from its era and the client entity a
+          min_engine_version of 1.8.0. Per the pool, min_engine_version is the tiebreak when two
+          definitions share an identifier — which d-i8pjw2on guarantees never happens, so the field is
+          free, itself worth stating. Whether the files keep their declared versions or are converted
+          forward, and what min_engine_version the manifests declare against the automation-pinned server
+          version, the fold does not say.
+
+      - choice: what world the pack's dev loop runs against
+        arises: writing .minecraft.yml
+        reading: >-
+          The repo-kit feature writes the scripts but not the config, so .minecraft.yml is hand-authored.
+          For an actor pack the world is arbitrary, but the choice is coupled to where the spawner harness
+          lives.
+
+      - choice: whether d-ny9lcyjg's content-kind bound covers the behavior half
+        arises: laying out behavior_pack/
+        reading: >-
+          d-ny9lcyjg's two lists are entirely resource-pack kinds. The behavior half has its own whole-file
+          merge points and its own named kinds. Nothing is at stake for this increment, but the decision
+          reads as a general bound while enumerating one half, so the next preset wanting a loot table or a
+          spawn rule meets an unstated rule.
