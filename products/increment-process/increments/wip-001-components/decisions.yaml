@@ -55,6 +55,44 @@ decisions:
     pinned:
       reason: data-format
 
+  - id: d-x3ar9r8q
+    title: the component graph is acyclic
+    statement: |
+      a component never appears among its own ancestors: parent references form a tree rooted
+      at the product, and a declaration or redeclaration that would close a cycle is refused at
+      the increment that declares it.
+    status: proposed
+    because:
+      - d-cgr6q2j1
+    pinned:
+      reason: data-format
+
+  - id: d-uw3ilu6d
+    title: re-parenting is reported, not guarded
+    statement: |
+      a redeclaration changing a component's parent is legal whenever the new parent resolves
+      acyclically. The projection reports the in-force claims whose reach the move changes, and
+      the owner rules the redeclaration with that reach in view; a use-keyed guard would freeze
+      the tree the moment anything is scoped beneath it.
+    status: proposed
+    because:
+      - r-5endqgyi
+      - d-cgr6q2j1
+    pinned: false
+
+  - id: d-5gz40hdo
+    title: a preset declares no components
+    statement: |
+      a requirement-preset product declares no components, and its own requirements carry no
+      scope — either is a validator finding. The adoption's scope, the adopter's, is the only
+      scoping an adopted requirement gets; its statement's subject names the kind of thing it
+      binds.
+    status: proposed
+    because:
+      - d-ekoz1t47
+    pinned:
+      reason: data-format
+
   # scoped foundations
   - id: d-rplsevuk
     title: scope names a subtree
