@@ -54,6 +54,78 @@ decisions:
         it fixes which of the two mechanisms the user may weaken, and a throttle that spent a cap
         would let a burst exhaust the backstop it was added to protect
 
+  # From the survey census: the throttle setting's shape and records.
+
+  - id: d-k3wq81vn
+    title: a kind's interval is the user's setting, keyed by the kind's name
+    statement: |
+      a notification kind's interval is a setting of the user's, keyed by the kind's name and
+      shared across every pipeline: operators naming one kind share one throttle wherever they
+      live. The setting outlives the operators naming its kind, and an operator's unnamed
+      own-kind carries no interval until the user names one.
+    status: proposed
+    because:
+      - r-lph86tsg
+      - d-vn2jdxbs
+      - d-5amonj40
+      - d-obzpbcml
+    pinned:
+      reason: public-api
+
+  - id: d-p8xrn2ce
+    title: a kind's name is stored as typed and matched exactly
+    statement: |
+      a notification kind's name is a non-empty line of text, trimmed of surrounding whitespace
+      and otherwise stored as typed. Two operators share a kind exactly when their stored names
+      match character for character.
+    status: proposed
+    because:
+      - d-vn2jdxbs
+      - r-lph86tsg
+    pinned:
+      reason: data-format
+
+  - id: d-w2fzk9bd
+    title: a throttle change is recorded like any configuration change
+    statement: |
+      setting, changing, or removing a kind's interval is an accepted configuration change: it
+      writes a history entry as a cap change does — before and after, the action, when, and
+      which user — and the throttle joins the change log's entity vocabulary.
+    status: proposed
+    because:
+      - r-k6gh82fx
+      - d-5xsm1hc6
+      - d-k3wq81vn
+    pinned:
+      reason: data-format
+
+  - id: d-t6mhv3aq
+    title: the interval is whole seconds, present or absent
+    statement: |
+      a throttle interval is stored as a whole number of seconds, at least one, with no ceiling.
+      Removing the throttle deletes the setting; no stored setting means unthrottled, and zero
+      is not stored.
+    status: proposed
+    because:
+      - d-5amonj40
+      - d-6ptxams7
+      - d-k3wq81vn
+    pinned:
+      reason: data-format
+
+  - id: d-e9jslw4x
+    title: a suppression is its own recorded outcome
+    statement: |
+      a suppressed push records as its own outcome kind in the attempt vocabulary, beside
+      succeeded, failed, and capped. The record carries the notification kind and the identifier
+      of the run whose push it deferred to, which the interface resolves to that run's triage.
+    status: proposed
+    because:
+      - d-5amonj40
+      - r-k6gh82fx
+    pinned:
+      reason: data-format
+
   # The digest's second rendition, from the unmerged infrastructure #90 and #94.
 
   - id: d-1oqjgi9m
@@ -126,6 +198,21 @@ decisions:
       notes: |
         it constrains what any later change to the digest's appearance may reach for
 
+  - id: d-h5ycq7rm
+    title: the rich rendition's markup is grinbox's alone
+    statement: |
+      the only markup in the rich rendition is what grinbox itself authors. Template literals,
+      model-written prose, and message-derived text all reach the recipient as the characters
+      they are, in both renditions.
+    status: proposed
+    because:
+      - r-8sg01qdd
+      - d-zkb393z9
+      - d-c3dofuyf
+    pinned:
+      reason: other
+      notes: it fixes what template text can and cannot do to the delivered markup
+
   # Money in display form, from the unmerged infrastructure #93.
 
   - id: d-nj43sz9w
@@ -176,3 +263,33 @@ decisions:
     pinned:
       reason: other
       notes: the amounts in every delivered digest, and moving the machine does not change them
+
+  - id: d-b1ntd8go
+    title: the display form's conventions are fixed once
+    statement: |
+      the display form places a known symbol before the amount, groups thousands with commas,
+      marks the decimal with a period, and leads a negative amount with a minus sign — one
+      convention in every digest, whatever the machine's locale.
+    status: proposed
+    because:
+      - r-735kq72h
+      - d-oc073wsp
+    pinned:
+      reason: other
+      notes: the residual conventions the ISO-currency rules leave open, visible on every amount
+
+  - id: d-u4gpx6ke
+    title: the interface shows money as the digest does
+    statement: |
+      the interface renders an extracted money value in display form wherever it shows the
+      tag's value, by the same rules the digest follows. What the user types when configuring —
+      a threshold — stays in the stored form the wire already fixes.
+    status: proposed
+    because:
+      - r-735kq72h
+      - d-oc073wsp
+      - d-m6ingqyv
+      - d-5pdw87zm
+    pinned:
+      reason: other
+      notes: a consumer-visible change to every surface showing a money tag
