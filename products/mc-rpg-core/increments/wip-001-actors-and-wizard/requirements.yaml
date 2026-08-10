@@ -22,6 +22,10 @@ terms:
     definition: >
       what a spawn call gives an adventure back: the actor it created, and whatever the adventure
       may do to that actor afterwards.
+  - id: namespace
+    definition: >
+      the prefix, derived from the assets pack's major version, that every name the pack declares
+      carries.
 presets:
   - name: minecraft-addon
     version: 4
@@ -87,16 +91,13 @@ requirements:
   - id: r-9owgd93o
     title: the library refuses to act when an actor's definitions are absent
     statement: >
-      where the entity definitions an actor needs are not present in the world, the library refuses
-      the
+      where an actor's entity definitions are absent from the world, the library refuses the call
+      and names what
 
-      call and says so, naming what is missing. it never returns a handle to an actor it did not
-      create,
+      is missing. it returns no handle to an actor it did not create, and claims nothing about
+      whether an actor
 
-      and never leaves an adventure to discover the absence from a later failure. the library makes
-      no
-
-      claim about whether an actor will render.
+      will render.
     scope: library
     commentary: >
       the two halves of this product are installed separately, so a world running an adventure
@@ -111,6 +112,15 @@ requirements:
       than
 
       none, because an adventure's author would trust it.
+
+
+      leaving an adventure to discover the absence from a later failure is the shape this rules out.
+      and a check
+
+      that appeared to cover appearance, and could not, would be worse than none, because an author
+      would trust
+
+      it.
   - id: r-pop72yk6
     title: adventures built against different versions of the product coexist in one world
     statement: >

@@ -26,16 +26,13 @@ decisions:
   - id: d-knzip5zc
     title: code travels as an npm dependency, assets as a manifest uuid dependency
     statement: >
-      an adventure takes the library as an ordinary development dependency of its package, bundled
+      an adventure takes the library as a development dependency of its package, bundled into its
+      own script at
 
-      into the adventure's own script at build time. it takes the assets pack as an entry in its
+      build time, and takes the assets pack as a `dependencies` entry in its behavior pack manifest
+      naming that
 
-      behavior pack manifest's `dependencies`, naming that pack's header uuid and version. there is
-
-      exactly one route for each: the library ships no pack to depend on, and the assets pack ships
-      no
-
-      script to import.
+      pack's uuid and version.
     status: proposed
     pinned:
       reason: public-api
@@ -49,6 +46,11 @@ decisions:
       - f:pack-dependency-entries-name-a-uuid-or-a-module-name-plus-a-version
       - f:a-script-module-does-not-resolve-across-packs
       - f:a-declared-pack-dependency-activates-the-depended-on-pack
+    commentary: >
+      there is exactly one route for each, by construction: the library ships no pack to depend on,
+      and the assets
+
+      pack ships no script to import.
   - id: d-gzoqebyy
     title: an actor is a custom entity, never the game's NPC entity
     statement: >
@@ -88,12 +90,14 @@ decisions:
       - f:a-client-entity-definition-is-keyed-by-the-entity-identifier
   - id: d-w0smdozf
     title: what the shared actor components establish
-    statement: |
-      an actor refuses damage from every cause rather than from a filtered set of them; it is
-      summonable by identifier and has no spawn egg, so it never appears in the creative menu; it
-      looks at a nearby player continuously rather than at the occasional-glance probability the
-      look-at behaviour defaults to; and it carries no navigation and no behaviour goal other than
-      looking. which components express these, and with what values, is the implementer's.
+    statement: >
+      an actor refuses damage from every cause rather than a filtered set; it is summonable by
+      identifier with no
+
+      spawn egg, so it never appears in the creative menu; and it watches a nearby player
+      continuously, carrying
+
+      no navigation and no other behaviour goal.
     status: proposed
     pinned:
       reason: other
@@ -106,20 +110,19 @@ decisions:
       - r-8ih6ab2r
       - f:damage-sensor-can-stop-received-damage-being-applied
       - f:behavior-look-at-player-rotates-the-head-toward-a-nearby-player
+    commentary: >
+      which components express these, and with what values, is the implementer's. continuously is
+      against the
+
+      look-at behaviour's own default, which is an occasional glance.
   - id: d-lyvjq8l1
     title: assets are vendored from a pinned revision and re-identified before they are committed
     statement: >
       every model, texture, animation, and animation controller an actor renders from is committed
-      in
+      in the assets
 
-      the assets pack under this product's own identifiers and paths. what is taken from the game's
-
-      own packs is taken from one pinned revision of `Mojang/bedrock-samples`, re-identified out of
-
-      the vanilla identifier namespaces before it is committed, and refreshed only by a deliberate
-
-      change to that pin. no vanilla identifier or path appears in a shipped client entity
-      definition,
+      pack under this product's own names. no vanilla name or path appears in a shipped client
+      entity definition,
 
       render controller, or animation controller.
     status: proposed
@@ -132,6 +135,11 @@ decisions:
       - r-pngblab3
       - f:mojang-publishes-the-vanilla-packs-with-all-rights-reserved-under-the-eula
       - f:a-resource-packs-internal-asset-names-are-global-to-the-pack-stack
+    commentary: >
+      what is taken from the game's own packs is taken from one pinned revision of
+      `Mojang/bedrock-samples`,
+
+      re-identified before it is committed, and refreshed only by a deliberate change to that pin.
   - id: d-3ggbl0kl
     title: the wizard preset is vendored from the evoker, without its material
     statement: |
@@ -165,19 +173,10 @@ decisions:
   - id: d-xobjyw2e
     title: every entry point checks its actor's entity type is registered, and throws naming the pack
     statement: >
-      every library entry point that acts on an actor checks first that the entity type its preset
+      every library entry point acting on an actor first looks up whether the entity type its preset
+      names is
 
-      names is registered in the world, by looking the identifier up rather than by attempting the
-
-      action and interpreting what comes back. where it is not registered the call throws an error
-
-      this product defines, naming the preset, the identifier, and the pack that supplies it. the
-      check
-
-      is per call rather than once at startup, since a pack's presence is a property of the world
-      the
-
-      call is running against.
+      registered in the world, rather than attempting the action and reading what comes back.
     status: proposed
     pinned:
       reason: public-api
@@ -189,26 +188,27 @@ decisions:
       - f:an-entity-type-can-be-looked-up-by-identifier-without-spawning
       - f:an-unsatisfiable-pack-dependency-is-not-enforced-at-load
       - f:an-entity-type-resolves-for-a-script-in-any-other-loaded-pack
+    cases:
+      - when: the entity type is registered
+        then: the call proceeds
+      - when: it is not registered
+        then: the call throws an error this product defines, naming the preset, the identifier, and the pack
+          that supplies it
+    commentary: >
+      the check is per call rather than once at startup, since a pack's presence is a property of
+      the world the
+
+      call runs against, not of the process.
   - id: d-bcybwddk
     title: the check covers the definitions only, and the library asserts nothing about appearance
     statement: >
-      the check the library runs before acting has one rung: the entity type the preset names is
+      the library checks an actor's definitions and nothing else. it performs no runtime check of
+      the resource
 
-      registered in the world, or it is not, and where it is not the call throws naming the preset,
-      the
+      pack and reports nothing about it: no counting of the world's pack stack, no inference from an
+      entity's
 
-      identifier, and the pack that supplies it.
-
-
-      the library performs no runtime check of the resource pack and reports nothing about it. no
-
-      counting of the world's pack stack, no inference from what an entity's dimensions read, and no
-
-      error or success path that states or implies an actor will render. a call that succeeds means
-      the
-
-      actor exists and behaves; whether a player sees it is outside what the library observes or
-      claims.
+      dimensions, and no path that implies an actor will render.
     status: proposed
     pinned:
       reason: public-api
@@ -221,6 +221,17 @@ decisions:
       - f:the-active-client-pack-stack-is-countable-from-a-script
       - f:an-entitys-server-side-size-does-not-reflect-its-resource-pack
       - f:a-resource-pack-cannot-carry-anything-a-script-can-reach
+    commentary: >
+      a call that succeeds means the actor exists and behaves; whether a player sees it is outside
+      what the library
+
+      observes or claims. counting the pack stack was available and rejected: a count cannot tell
+      this product's
+
+      resource pack from any other's, so a check resting on it would report a healthy world for an
+      install that is
+
+      silently wrong.
   - id: d-hybkhum6
     title: an adventure's release archive bundles the assets pack, so an install is one file
     statement: >
@@ -250,35 +261,13 @@ decisions:
   - id: d-i8pjw2on
     title: every name the assets pack declares is namespaced by its major version
     statement: >
-      the assets pack's uuid and every name it declares carry its major version: the actor entity
+      the assets pack's uuid and every name it declares carry the namespace: the actor entity
+      identifiers, and
 
-      identifiers, and each internal asset name too — geometry, texture paths, materials, render
+      each internal asset name too — geometry, texture paths, materials, render controllers,
+      animations, and
 
-      controllers, animations, and animation controllers. the library, bundled into an adventure,
-      resolves
-
-      its own calls through the same namespace.
-
-
-      so two adventures built against the same major carry an identical pack, which a server
-      deduplicates
-
-      to one with no effect on either, and two adventures built against different majors carry packs
-      that
-
-      share no uuid and no name and coexist without contending. a world may hold one pack per major
-      in use
-
-      and no more.
-
-
-      the namespace is exhaustive over name kinds rather than confined to the entity identifier,
-      because a
-
-      resource pack's internal names are resolved across the whole pack stack and not within their
-      own
-
-      pack. a partial namespace would let one adventure's actor render with another's geometry.
+      animation controllers. the library resolves its own calls through the same namespace.
     status: proposed
     pinned:
       reason: public-api
@@ -295,27 +284,33 @@ decisions:
       - f:duplicate-pack-copies-are-deduplicated-and-the-activation-pin-selects
       - f:a-client-entity-definition-is-keyed-by-the-entity-identifier
       - f:a-resource-packs-internal-asset-names-are-global-to-the-pack-stack
+    cases:
+      - when: two adventures were built against the same major
+        then: they carry an identical pack, which a server deduplicates with no effect on either
+      - when: they were built against different majors
+        then: they carry packs sharing no uuid and no name, which coexist without contending
+    commentary: >
+      so a world holds one pack per major in use and no more, and nothing is left for an operator to
+      reconcile.
+
+
+      the namespace is exhaustive over name kinds rather than confined to the entity identifier,
+      because a
+
+      resource pack's internal names resolve across the whole pack stack and not within their own
+      pack. a partial
+
+      namespace would let one adventure's actor render with another's geometry.
   - id: d-5f011w0o
     title: within a major the assets pack only adds, and the build refuses a release that removes
     statement: >
-      within one major version the assets pack never withdraws or repurposes a name an adventure can
+      within one major the assets pack never withdraws or repurposes a name an adventure can
+      reference. appearance
 
-      reference: an actor entity identifier present in a release is present in every later release
-      of that
+      may change freely — a texture, a model, a re-vendored animation — since none of that is a name
+      an adventure
 
-      major, naming the same character. appearance may change freely — a texture, a model, a
-      re-vendored
-
-      animation — since none of that is a name an adventure holds.
-
-
-      the build enforces it rather than the discipline: a release compares the set of actor
-      identifiers it
-
-      exposes against the previous release of the same major, and fails where any has disappeared or
-      been
-
-      renamed. a withdrawal is how a new major begins.
+      holds.
     status: proposed
     pinned:
       reason: other
@@ -327,34 +322,29 @@ decisions:
       - d-i8pjw2on
       - d-xobjyw2e
       - f:duplicate-pack-copies-are-deduplicated-and-the-activation-pin-selects
+    cases:
+      - when: a release of the same major exposes every actor identifier the previous one did
+        then: the release proceeds
+      - when: any has disappeared or been renamed
+        then: the build refuses the release
+    commentary: >
+      an actor identifier present in a release names the same character in every later release of
+      that major. the
+
+      build enforces this rather than the discipline: it compares the identifier set a release
+      exposes against the
+
+      previous release of the same major.
+
+
+      withdrawing a name is how a new major begins.
   - id: d-ny9lcyjg
     title: the assets pack declares only content whose names can be namespaced
     statement: >
-      the assets pack confines itself to content kinds that name what they declare, so the
-      major-version
+      the assets pack confines itself to content kinds that name what they declare, so the namespace
+      reaches all
 
-      namespace can reach all of it: entity definitions, geometry, textures, materials, render
-      controllers,
-
-      animations, animation controllers, particles, fogs, and attachables.
-
-
-      it declares nothing in the kinds a resource pack supplies as a whole file rather than as named
-      entries —
-
-      `blocks.json`, `sounds.json`, `biomes_client.json`, the `texts` translation files, and the
-      `ui` tree. those
-
-      hold no name to qualify, so two majors supplying one of them contend over the file itself and
-      the namespace
-
-      cannot separate them. an actor needs none of them.
-
-
-      a preset that comes to need one of the excluded kinds is a change to this decision, not a
-      detail of the
-
-      preset.
+      of it.
     status: proposed
     pinned:
       reason: other
@@ -375,22 +365,36 @@ decisions:
       is to stay out
 
       rather than to establish the behaviour first.
+
+
+      the whole-file kinds hold no name to qualify, so two majors supplying one contend over the
+      file itself and the
+
+      namespace cannot separate them. an actor needs none of them. a preset that comes to need one
+      is a change to
+
+      this decision, not a detail of the preset.
+
+
+      the exclusion is precautionary. that the named kinds collide by name is measured; that the
+      whole-file kinds
+
+      resolve by override or merge instead is read off how a resource pack supplies them and is not
+      measured here.
+    cases:
+      - when: a kind names its entries
+        then: the pack may declare it — entity definitions, geometry, textures, materials, render
+          controllers, animations, animation controllers, particles, fogs, attachables
+      - when: a kind is supplied as a whole file
+        then: the pack declares nothing in it — `blocks.json`, `sounds.json`, `biomes_client.json`, the
+          `texts` files, the `ui` tree
   - id: d-ro5pj8er
     title: pack pairing is enforced at build time, which is the only place identity is checkable
     statement: >
-      the pairing of this product's two packs is established where identity can be checked at all:
-      the
+      the pairing of this product's two packs is established at build time: the release archive is
+      verified to
 
-      release archive is verified to hold both of them at agreeing versions, and a build producing
-      one
-
-      without the other fails. this is the whole of the guarantee that an actor's appearance ships
-      with
-
-      its definitions — nothing at run time contributes to it, because nothing at run time can tell
-      this
-
-      product's resource pack from any other's.
+      hold both at agreeing versions, and a build producing one without the other fails.
     status: proposed
     pinned:
       reason: other
@@ -405,6 +409,12 @@ decisions:
       - d-bcybwddk
       - f:the-active-client-pack-stack-is-countable-from-a-script
       - f:what-a-client-renders-for-a-broken-appearance-definition
+    commentary: >
+      this is the whole of the guarantee that an actor's appearance ships with its definitions —
+      nothing at run time
+
+      contributes to it, because nothing at run time can tell this product's resource pack from any
+      other's.
   - id: d-c0l4gwx2
     title: how an actor converses is deferred
     statement: >
