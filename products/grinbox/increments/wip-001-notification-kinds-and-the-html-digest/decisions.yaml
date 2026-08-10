@@ -25,11 +25,10 @@ decisions:
     title: a throttled push is an outcome, not a failure
     statement: |
       the user sets a minimum interval per notification kind. An operator whose kind was delivered
-      inside that interval sends nothing, completes, and records the suppression on its own run.
-      The triage settles as it would have.
+      inside that interval sends nothing, completes, and records on its own run the suppression,
+      the kind, and the push it deferred to. The triage settles as it would have.
     commentary: |
-      The record names the kind and the delivery the suppression deferred to, so a user asking why
-      no push arrived reads the answer off the message rather than inferring it.
+      A user asking why no push arrived reads the answer off the message rather than inferring it.
     status: proposed
     because:
       - r-lph86tsg
@@ -107,20 +106,8 @@ decisions:
     because:
       - d-rd986rrt
       - d-z5opt8rp
-    pinned: false
-
-  - id: d-rgmoboxu
-    title: the renditions are two formattings of one rendering
-    statement: |
-      a section renders once into per-item cells and a mark flag, carrying nothing specific to
-      either rendition; each rendition formats that structure. The delivery's accounting assertion
-      runs over the rendering, before either formatting.
-    status: proposed
-    because:
-      - r-m7y9ocdu
-      - d-hl6z38i6
-      - d-tm2dbemu
-    pinned: false
+    pinned:
+      reason: public-api
 
   - id: d-7pviv01j
     title: a marked item is marked in each rendition's own terms
@@ -131,7 +118,7 @@ decisions:
     status: proposed
     because:
       - d-5pdw87zm
-      - d-rgmoboxu
+      - d-1oqjgi9m
     pinned:
       reason: other
       notes: what the user actually sees of a threshold mark, in each rendition
@@ -149,8 +136,7 @@ decisions:
     pinned:
       reason: other
       notes: |
-        it constrains what any later change to the digest's appearance may reach for, and rests on
-        q-mf8fl0ls
+        it constrains what any later change to the digest's appearance may reach for
 
   # Money in display form, from the unmerged infrastructure #93.
 
@@ -166,10 +152,7 @@ decisions:
       - d-dmwaark1
       - d-5pdw87zm
     pinned:
-      reason: other
-      notes: |
-        the user writes a threshold in the stored form while reading the display form, so the
-        split between the two is behaviour they configure against
+      reason: data-format
 
   - id: d-m6ingqyv
     title: what renders in display form is what the pipeline declared as money

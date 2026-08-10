@@ -4,35 +4,28 @@ terms:
   - id: notification-kind
     display: notification kind
     definition: |
-      what a push is about, named by the user and carried by the operators that send it. Several
-      operators may send one, and it is what a throttle is set against.
+      what a push is about, named by the user and carried by the operators that send it.
 
   - id: throttle
     definition: |
       a minimum interval the user sets on a notification kind, suppressing pushes that fall
-      inside it. A throttle is the user's to set, change, and remove; it is not a cap.
+      inside it.
 
   - id: triage
     definition: |
       one application of a pipeline to one message: the unit grinbox enqueues, runs, settles, and
-      records every tag, attempt, and outcome against. A message may have several, each its own.
-
-  - id: digest
-    definition: the one mail a delivery sends to the account's owner.
+      records against.
 
   - id: delivery
     definition: |
-      one firing of an edition for one account and occurrence. It covers one coverage window and
-      either sends a digest or, with nothing to report, completes without sending.
+      one firing of an edition for one account and occurrence.
 
 requirements:
   - id: r-lph86tsg
     title: a burst of one notification kind costs one push
     statement: |
-      the user groups the pushes grinbox sends into notification kinds and sets, per kind, how
-      often one may reach them. Inside that interval the first push of a kind is delivered and
-      the rest are suppressed, so a burst of related mail costs one push rather than one per
-      message.
+      the user decides how often a class of push may reach them, and a burst of related mail
+      costs one push rather than one per message.
     commentary: |
       A push worth having loses its value the moment a burst of it teaches the user to swipe the
       channel away, and the same burst spends the push service's own rate limit that every other
