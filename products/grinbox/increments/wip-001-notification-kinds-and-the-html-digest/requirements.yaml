@@ -5,7 +5,25 @@ terms:
     display: notification kind
     definition: |
       what a push is about, named by the user and carried by the operators that send it. Several
-      operators may send one, and it is the unit grinbox throttles.
+      operators may send one, and it is what a throttle is set against.
+
+  - id: throttle
+    definition: |
+      a minimum interval the user sets on a notification kind, suppressing pushes that fall
+      inside it. A throttle is the user's to set, change, and remove; it is not a cap.
+
+  - id: triage
+    definition: |
+      one application of a pipeline to one message: the unit grinbox enqueues, runs, settles, and
+      records every tag, attempt, and outcome against. A message may have several, each its own.
+
+  - id: digest
+    definition: the one mail a delivery sends to the account's owner.
+
+  - id: delivery
+    definition: |
+      one firing of an edition for one account and occurrence. It covers one coverage window and
+      either sends a digest or, with nothing to report, completes without sending.
 
 requirements:
   - id: r-lph86tsg
