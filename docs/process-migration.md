@@ -1,5 +1,5 @@
 ---
-version: "26"
+version: "34"
 ---
 
 # What the incremental process replaces
@@ -119,7 +119,8 @@ the legacy checker can retire with the last design out.
 
 ### Designs to products
 
-The old `products.yaml` already names the merges — its slot names are the facet vocabulary:
+The old `products.yaml` already named the merges — its slot names supplied the facet labels
+the conversion-era dialect carried:
 
 | old design(s) | new product | facets |
 |---|---|---|
@@ -147,17 +148,19 @@ ordinals give that order.
 
 ### Entries
 
-- **Ids**: the old slug becomes `title`; an opaque id is generated. Old falsifier conditions
-  carry over as `revisit_when` where the owner keeps them.
-- **Statuses**: `accepted` carries. Old `tolerated` defaults to `delegated`, the ruling that
-  claims least about what the owner reviewed; the owner promotes individual entries to the new
-  `tolerated` where they remember actually ruling. `proposed` stays proposed, and appears only in
-  draft increments.
-- **Rejected decisions are not migrated.** They were never in force; git history keeps the
+- **Ids**: the old slug became `title`; an opaque id was generated. Old falsifier conditions
+  carried over as `revisit_when`, a field of the conversion-era dialect, where the owner kept
+  them.
+- **Statuses**: `accepted` carried. Old `tolerated` defaulted to `delegated`, the ruling that
+  claims least about what the owner reviewed; the owner promoted individual entries to the new
+  `tolerated` where they remembered actually ruling. `proposed` stayed proposed, and appeared
+  only in draft increments.
+- **Rejected decisions were not migrated.** They were never in force; git history keeps the
   record.
-- **Requirements gain `verification` at conversion, where their statements are not
-  self-verifying** — do/verify procedures drafted by the converting agent, ratified in the
-  conversion review. This is the migration's main authoring cost.
+- **Requirements gained `verification` at conversion, where their statements were not
+  self-verifying** — do/verify procedures in the conversion-era dialect, drafted by the
+  converting agent and ratified in the conversion review. This was the migration's main
+  authoring cost.
 
 ### Wider scopes convert first
 

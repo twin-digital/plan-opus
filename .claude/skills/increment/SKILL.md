@@ -1,5 +1,5 @@
 ---
-version: "30"
+version: "34"
 name: increment
 description: Run one phase of a product's increment in this repository. Plan — open a draft increment on its own branch, work Clarify in the foundation sources, loop Ratify through its pull request, and land it into the next number; use when asked to plan an increment, capture or adopt a backlog item, run the Plan phase, or drive a product's design to a mergeable state. Implement — build the fold at a published increment, dispatch one implementer per package, accumulate design consequences in a companion increment, and file the implementation record; use when asked to implement a product, an increment, or the fold of a design. Invoked as `/increment plan` or `/increment implement`.
 ---
@@ -49,7 +49,7 @@ change with `npm run check`.
   work in a fresh worktree rather than adding a second — branched from the ancestor when
   stacking, from `main` otherwise. A tree holding two drafts that are not ancestor and dependent
   is not supported.
-- Generate ids with `npx design-process id {r|d|q}`.
+- Generate ids with `npx design-process id {r|d|q|f|run}`.
 
 ## In flight
 
@@ -64,7 +64,7 @@ So expect findings from `npm run check` in flight — one `increment-dir-name` f
 directory the tree holds, plus the proposed-decision and open-question findings, plus a
 `draft-ordinal-unique` finding if two drafts share an ordinal. All of them are expected, and all
 of them clear before the merge — `land` runs the full check itself, after the rename, and stops if
-anything survives. **The `increment-dir-name` finding is cleared by the landing rename and by
+any finding survives; a report informs and gates nothing. **The `increment-dir-name` finding is cleared by the landing rename and by
 nothing else**, so the check never exits 0 while a draft is in flight.
 
 The density gate reads published numbers only. A wip ordinal is not one, so a draft neither
@@ -110,8 +110,8 @@ Three steps of that sequence are worth knowing from the outside:
   increment directory in the working tree carrying no published number, plus any numbered above the
   head — what this branch would add to the sequence — against `origin/main`, then `main`. Two
   overlaps are findings: a foundation id the draft declares that the head already declares
-  (`landing-duplicate-id`), and an `amends:`, `supersedes:`, or `retires:` aimed at an entry not in
-  force at the head (`landing-already-closed`). Semantic overlap — two drafts ruling the same choice
+  (`landing-duplicate-id`), and a `supersedes:` or `retires:` aimed at an entry not in force at
+  the head (`landing-already-closed`). Semantic overlap — two drafts ruling the same choice
   under different ids — is the owner's scan of the open drafts. No gate reads in-flight drafts
   against each other, and the later of two overlapping drafts recomputes when the head moves;
   `npx design-process diff <product> --from-ref <gitref>` shows what moved. Building on another
