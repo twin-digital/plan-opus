@@ -9,7 +9,7 @@ decisions:
       model entries, components, and terms (the state entries) are redeclared: the same name
       written again, and the latest declaration is the current state. Facts and runs (the pool
       entries) are frozen where they sit: the one edit is marking one retired.
-    status: proposed
+    status: delegated
     pinned:
       reason: data-format
 
@@ -22,7 +22,7 @@ decisions:
       guard: the retiring increment fixes its own citations. Unpinned cross-product citation —
       facts alone — is loud staleness: the corrector acts now, and each citing product answers
       at its own next landing.
-    status: proposed
+    status: delegated
     pinned:
       reason: other
       notes: the model a future entity kind gets is read off this assignment rather than re-litigated
@@ -36,7 +36,7 @@ decisions:
       or retired with its reason — applying a preset is still owner fiat, still whole, still at
       a pinned version, still transitive, ids deduplicated across everything it brings in.
       `/design-process/requirements@3` carries the enum.
-    status: proposed
+    status: accepted
     supersedes: d-wis1whfn
     because:
       - r-5sdjvnr8
@@ -52,7 +52,7 @@ decisions:
       one permitted edit for facts and runs — names the replacement with `superseded_by`. A
       rejection's reason field is `reason`; retirement without a successor stays a `retires:`
       entry, one id and one reason.
-    status: proposed
+    status: accepted
     supersedes: d-jy7x42nx
     because:
       - r-5sdjvnr8
@@ -83,7 +83,7 @@ decisions:
       free-text retirement `reason`. A merged fact or run is frozen: the gate refuses any
       edit to one beyond marking it retired. `@1` files keep their kebab ids and dialect,
       and references resolve across both.
-    status: proposed
+    status: accepted
     supersedes: d-yc56w54u
     because:
       - r-wgtyrh2r
