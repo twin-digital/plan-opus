@@ -1,0 +1,73 @@
+version: "1"
+facts:
+  - id: style-blocks-survive-only-some-mail-clients
+    claim: |
+      mail-client support for the <style> element is partial and conditional — Gmail drops blocks
+      outside the head and drops them entirely for non-Google accounts in its apps, and Outlook for
+      Windows mishandles rule ordering — so only presentation carried on the elements themselves
+      renders in every client
+    backing: documented
+    caveat: |
+      caniemail is community-maintained test data (client rows last tested 2019–2023), corroborating
+      Google's first-party statement rather than a client vendor's own
+    sources:
+      - url: https://developers.google.com/workspace/gmail/design/css
+        where: CSS Support — the opening sentence
+        quote: |
+          You can style email sent to Gmail using inline `<style>` blocks and standard CSS.
+      - url: https://www.caniemail.com/features/html-style/
+        where: the Gmail rows' support notes
+        quote: |
+          Partial. Not supported inside the <body>.
+      - url: https://www.caniemail.com/features/html-style/
+        where: the Gmail iOS and Android rows' support notes
+        quote: |
+          Partial. Not supported with non Google accounts.
+      - url: https://www.caniemail.com/features/html-style/
+        where: the Outlook Windows rows' support notes
+        quote: |
+          Buggy. <style> elements need to be declared before their rules are used.
+
+  - id: external-stylesheets-are-not-loaded-by-mail-clients
+    claim: |
+      the <link> element is unsupported in nearly every mail client — Gmail, Outlook for Windows,
+      Outlook.com, and Yahoo among them — so a stylesheet referenced rather than carried never
+      styles the delivered mail
+    backing: documented
+    caveat: |
+      caniemail is community-maintained test data; the aggregate percentage spans niche clients as
+      well as the major ones
+    sources:
+      - url: https://www.caniemail.com/features/html-link/
+        where: the support summary above the client table
+        quote: |
+          14.29% supported
+
+  - id: outlook-blocks-remote-images-by-default
+    claim: |
+      Outlook blocks automatic download of remote images by default, so an image referenced from
+      the internet does not render in a delivered mail until the reader acts
+    backing: documented
+    sources:
+      - url: https://support.microsoft.com/en-us/outlook/block-or-unblock-automatic-picture-downloads-in-classic-outlook-email-messages
+        where: the article's opening paragraph
+        quote: |
+          Microsoft Outlook is configured by default to block automatic picture downloads from the
+          Internet.
+
+  - id: dark-mode-clients-restyle-message-backgrounds
+    claim: |
+      a client reading in dark mode changes the message's background colours itself — Outlook
+      darkens the reading pane and changes the message background unless the user opts out — so
+      the colours a sender fixes behind its content are not the colours read
+    backing: documented
+    sources:
+      - url: https://support.microsoft.com/en-us/office/dark-mode-in-outlook-3e2446e0-9a7b-4189-9af9-57fb94d02ae3
+        where: the description of dark mode's effect on the reading pane
+        quote: |
+          When dark mode is turned on, the reading pane has a dark background to reduce eye strain.
+      - url: https://support.microsoft.com/en-us/office/dark-mode-in-outlook-3e2446e0-9a7b-4189-9af9-57fb94d02ae3
+        where: the opt-out step, whose name records the default behaviour
+        quote: |
+          Set the Office Theme to Black and select the check box next to Never change the message
+          background color.
