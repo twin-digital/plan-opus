@@ -471,12 +471,12 @@ decisions:
     pinned: false
 
   - id: d-3jzcw7xt
-    title: a limit-denied send fails the delivery, and an empty coverage window sends nothing
+    title: a limit-denied send fails the delivery, and an empty span sends nothing
     statement: |
       a delivery has no subject message, so per-message limits neither apply to it nor count
       against it, while windowed limits bind as they do anywhere. Where a limit denies the send
       itself, the delivery fails rather than being the clean no-op a denied per-message action
-      is. A coverage window holding nothing to report completes without sending.
+      is. A span holding nothing to report completes without sending.
     status: proposed
     supersedes: d-dmylyoqs
     because:
@@ -507,7 +507,7 @@ decisions:
     title: editions of one pipeline claim disjoint values
     statement: |
       no two editions of a pipeline may claim the same value of the slotting tag, checked when
-      an edition is saved. With coverage windows disjoint by construction and claimed values
+      an edition is saved. With spans disjoint by construction and claimed values
       disjoint by validation, a message cannot reach two digests.
     status: proposed
     supersedes: d-nfsr4h6f
@@ -685,12 +685,12 @@ decisions:
     pinned: false
 
   - id: d-h8tq5wnm
-    title: coverage is a half-open window over when mail was taken in
+    title: the span is half-open over when mail was taken in
     statement: |
-      a delivery's coverage window runs over the messages grinbox took in after the last
-      completed delivery and up to the moment this one was claimed. It is measured over when
-      grinbox took the message in rather than when the mail was sent, so late-arriving mail is
-      digested in the window it actually arrived in.
+      a delivery's span runs over the messages grinbox took in after the last completed
+      delivery and up to the moment this one was claimed. It is measured over when grinbox
+      took the message in rather than when the mail was sent, so late-arriving mail is
+      digested in the span it actually arrived in.
     status: proposed
     supersedes: d-jsnfvo0m
     because:

@@ -41,8 +41,7 @@ terms:
 
   - id: digest
     definition: |
-      the mail a delivery sends: one edition's rendering of one coverage window for one
-      account.
+      the mail a delivery sends: one edition's rendering of one span for one account.
 
   - id: edition
     definition: |
@@ -52,10 +51,9 @@ terms:
     definition: |
       one due moment of an edition's schedule.
 
-  - id: coverage-window
-    display: coverage window
+  - id: span
     definition: |
-      the half-open span of intake time one delivery covers: after the last completed
+      the half-open stretch of intake time one delivery covers: after the last completed
       delivery, up to when this one was claimed.
 
 requirements:
@@ -76,7 +74,7 @@ requirements:
       content, whatever formatting their mail client renders — including none.
     commentary: |
       The digest is the product's one outbound artifact. A delivery a client degrades into
-      unreadable markup has spent its window's coverage for nothing.
+      unreadable markup has spent its span for nothing.
 
   - id: r-8sg01qdd
     title: text taken from a message is never markup
