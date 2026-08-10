@@ -18,10 +18,11 @@ decisions:
   - id: d-u5q2wh44
     title: commentary is excluded from the fold's readers by default
     statement: |
-      the projection omits commentary unless asked for it, and the fold an implementation binds
-      to never carries it; commentary lives in the sources and is shown to the owner at ratify.
-      An entry whose statement needs its commentary to be built correctly is an authoring
-      defect, and this exclusion is what surfaces it.
+      the projection omits commentary unless asked for it, and at a published increment refuses
+      the ask — that projection is the fold an implementation binds to. Commentary lives in the
+      sources and is shown to the owner at ratify. An entry whose statement needs its
+      commentary to be built correctly is an authoring defect, and this exclusion is what
+      surfaces it.
     status: proposed
     because:
       - r-q0969r5a
@@ -58,6 +59,32 @@ decisions:
       - d-kjeqksd8
     pinned:
       reason: data-format
+
+  - id: d-msopc76y
+    title: rationale is retired
+    statement: |
+      a requirement's statement is one proposition of owner fiat, in product terms, naming no
+      mechanism and no observation procedure — the test is reversal: would the owner overturn a
+      decision to hold it? A statement failing it enters as a decision; carve-outs and
+      qualified absolutes move the same way. `rationale` is retired — a reversal warning is
+      commentary's job — and `/design-process/requirement@2` carries no such field.
+    status: proposed
+    supersedes: d-t6dutbjw
+    because:
+      - d-oqiw2ggm
+    pinned:
+      reason: data-format
+
+  - id: d-dbl5f6zb
+    title: conformance-case authoring is deferred to the owner
+    statement: |
+      how a conformance case comes into existence — who writes it, how the owner vets it, where
+      it files — is deferred to the owner, to rule when the first case is needed. Until then
+      implementers cite existing cases and otherwise attest.
+    status: deferred
+    because:
+      - d-8o8o8qo1
+    pinned: false
 
   # verification retirement
   - id: d-8o8o8qo1
@@ -149,7 +176,9 @@ decisions:
       `superseded_by`, a retirement without reason. Usage detection in unmarked prose is
       heuristic and reports instead: a redefinition's reach, a retirement's apparent users,
       orphan terms. The reviewer-applied tests and the extraction triggers land in the
-      authoring guidance.
+      authoring guidance. The term-retirement guard is the one usage-fed gate: it reads the
+      same matcher, and over-blocking resolves by `superseded_by` or a prose edit, both local
+      to the product.
     status: proposed
     because:
       - d-bgoclt56
