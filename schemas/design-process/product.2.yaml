@@ -11,6 +11,12 @@ properties:
   kind:
     type: string
     examples: [process, requirement-preset, nodejs-library, minecraft-addon]
+  status:
+    enum: [active, retired]
+    description: active when absent
+  reason:
+    type: string
+    description: the retirement's reason, required when retired
   packages:
     type: array
     items:
@@ -37,3 +43,13 @@ properties:
               items:
                 type: string
                 pattern: "^[a-z0-9][a-z0-9-]*$"
+if:
+  properties:
+    status:
+      const: retired
+  required: [status]
+then:
+  required: [reason]
+else:
+  not:
+    required: [reason]
