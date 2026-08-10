@@ -12,11 +12,15 @@ decisions:
       release-assets hook publishes for `@grinbox/server`, beside the checksum file that hook
       writes. The infrastructure repository names a version and fetches that asset by URL,
       verifying it against that checksum, rather than copying a source tree out of a checkout.
+      One bundle rather than two, because the daemon serves the interface out of its own process
+      and so needs its assets on its own filesystem.
     status: proposed
     because:
       - d-riyvvlx5
       - d-mq7vdduz
       - d-cjjd5c0w
+      - r-zpdecb2z
+      - d-ti7vexo3
     pinned:
       reason: data-format
       notes: |
