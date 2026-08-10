@@ -28,9 +28,9 @@ decisions:
     facets: fakes
 
   - id: d-herh9vjy
-    title: the registry belongs to the bundle
+    title: the registry belongs to the server
     statement: |
-      `createServer()` returns an `EntityTypes` bound to that bundle's own registry, so two bundles
+      `createServer()` returns an `EntityTypes` bound to that server's own registry, so two servers
       in one process share nothing and a test needs no reset hook. The aliased surface's
       module-scope `EntityTypes` is a third binding beside `world` and `system`, moving with them on
       install and throwing ShimNotInstalledError while unset. No registry state lives at module
@@ -39,17 +39,17 @@ decisions:
     pinned:
       reason: public-api
       notes: |
-        `server.EntityTypes` is per-bundle rather than the one shared class object every bundle
-        holds today, so a consumer comparing the two across bundles reads a different answer.
+        `server.EntityTypes` is per-server rather than the one shared class object every server
+        holds today, so a consumer comparing the two across servers reads a different answer.
     because:
       - r-qayd22z2
       - r-rpm1k57j
-      - d-nmjafny2
+      - d-4009wvxs
       - d-ysxt6ihr
       - d-uj5gbt9w
     revisit_when:
       - the aliased surface's `EntityTypes` is required to satisfy `typeof MC.EntityTypes` in a way
-        a per-bundle object cannot, so only one shared class object typechecks
+        a per-server object cannot, so only one shared class object typechecks
     facets:
       - fakes
       - shim
@@ -57,8 +57,8 @@ decisions:
   - id: d-fhq1ng5m
     title: registration is a free function and the registry starts empty
     statement: |
-      A bundle's registry starts empty, and a test fills it through an exported free function over
-      the bundle rather than through a member `@minecraft/server` does not declare. Both branches
+      A server's registry starts empty, and a test fills it through an exported free function over
+      the server rather than through a member `@minecraft/server` does not declare. Both branches
       are arrangeable from the start: a registered type, and a lookup that misses. `getAll` reports
       in registration order.
     status: proposed
@@ -100,11 +100,11 @@ decisions:
   - id: d-dub2g4kr
     title: the registry gates spawning, not the control plane
     statement: |
-      `Dimension.spawnEntity` resolves its type through the bundle's registry and throws
+      `Dimension.spawnEntity` resolves its type through the server's registry and throws
       InvalidArgumentError naming the identifier where nothing registers it, as the engine does.
-      `createEntity` and `createPlayer` do not consult the registry: they are control-plane
-      functions the engine has no counterpart for, so there is no engine behaviour for them to
-      model.
+      `createEntity` and `createPlayer` do not consult the registry: the engine declares no
+      function at all, so these are the library's own and have no engine behaviour to model. The
+      package says so where a user of them will read it.
     status: proposed
     pinned:
       reason: other
@@ -113,10 +113,11 @@ decisions:
         through the engine surface is refused.
     because:
       - f:entity-type-lookup-agrees-with-spawnability
+      - f:engine-surface-outside-instances
       - d-a0jmbtbh
       - r-0lbj68w9
       - r-5mlc26io
-      - r-62r76czb
+      - r-ovyzy5ey
     revisit_when:
       - packs come to reach the fakes only through the control plane, so gating the engine surface
         alone catches no misspelt identifier that reaches a test
@@ -229,3 +230,58 @@ decisions:
       - tests routinely register a localization key over every vanilla type they touch, so
         supplying none costs more preamble than the unpinned value would misstate
     facets: fakes
+
+  - id: d-4009wvxs
+    title: the server is the fakes API's route, not the only one
+    statement: |
+      `createServer` returns one server whose properties are named as `@minecraft/server` exports
+      them — `world`, `system`, and the eight registry classes — and it is the fakes API's route to
+      them; code reaching the engine through the module import reaches the same objects by the
+      surface the package supplies. The design and the package call it the fake server, or the
+      server where nothing else could be meant.
+    status: proposed
+    supersedes: d-gjzbiyl6
+    because:
+      - r-qklf4op9
+      - r-rpm1k57j
+    revisit_when:
+      - a second thing in the package comes to be called the server, so the word stops picking out
+        what `createServer` returns
+    facets:
+      - fakes
+      - shim
+
+  - id: d-1en7u7ki
+    title: entity ids are sequential opaque strings
+    statement: |
+      an auto-assigned entity id is a decimal string issued sequentially from 1 per server and never
+      reissued
+    status: proposed
+    supersedes: d-ow40nqqi
+    because:
+      - d-4009wvxs
+    revisit_when:
+      - a pack parses or orders ids in a way the engine's negative-integer spelling supports and this
+        one does not
+    facets: fakes
+
+  - id: d-0wycxopa
+    title: currentServer reaches the setup-installed server
+    statement: |
+      the root barrel exports `currentServer(): FakeServer`, returning the fake server the bindings
+      point at and throwing ShimNotInstalledError when they are unset. It is how a test on the
+      default static-import path reaches the server the free functions take
+    status: proposed
+    supersedes: d-u52w8eim
+    pinned:
+      reason: public-api
+    because:
+      - d-ksotjt7v
+      - d-03cbb3td
+      - d-4009wvxs
+      - d-ksk6d7ua
+    revisit_when:
+      - the default path comes to hand a test its server directly, so a reader-function is a second
+        way to reach what the test already holds
+    facets:
+      - shim
