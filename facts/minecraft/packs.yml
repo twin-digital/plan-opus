@@ -416,11 +416,15 @@ facts:
   - id: a-declared-pack-dependency-activates-the-depended-on-pack
     claim: |
       A behavior pack a world activates brings the packs its manifest depends on into the pack stack
-      with it, without their being listed. A world whose activation list named only the consumer
-      loaded the consumer at stack position 00 and the provider at 01, the provider reaching the
-      stack through the consumer's `dependencies` entry alone, and the provider's own script then
-      evaluated. The pulled-in pack lands after the pack that named it: a world listing both
-      explicitly, provider first, loaded them in that listed order instead.
+      with it, without their being listed, and it does so across pack kinds. A world whose behavior
+      activation list named only the consumer loaded the consumer at stack position 00 and the depended-on
+      behavior pack at 01, the latter reaching the stack through the consumer's `dependencies` entry
+      alone, and its own script then evaluated. The pulled-in pack lands after the pack that named it: a
+      world listing both explicitly, provider first, loaded them in that listed order instead. A
+      *resource* pack is pulled in the same way — a behavior pack declaring one by uuid, against an empty
+      resource activation list, produced the same client pack stack count as listing it explicitly. What
+      the depended-on pack must be is present in the server's pool; the world's activation list need not
+      name it.
     backing: tested
     caveat: |
       The depended-on pack has to be present in the server's pack pool for this to happen — a
@@ -441,15 +445,32 @@ facts:
         quote: |
           [2026-08-10 01:39:24:621 INFO] Pack Stack - [00] probe provider (id: 4a1f0000-0000-4000-8000-000000000001, version: 1.0.0) @ development_behavior_packs/4a1f0000-0000-4000-8000-000000000001
           [2026-08-10 01:39:24:621 INFO] Pack Stack - [01] probe consumer dep (id: 4a1f0000-0000-4000-8000-000000000002, version: 1.0.0) @ development_behavior_packs/4a1f0000-0000-4000-8000-000000000002
+      - run: rp-dependency-probe
+        where: scenario C — resource pack in the pool, resource activation list empty
+        quote: |
+          rp-pool: 6c3a0000-0000-4000-8000-000000000002
+          behavior activation list: [{"pack_id":"6c3a0000-0000-4000-8000-000000000001","version":[1,0,0]}]
+          resource activation list: []
+      - run: rp-dependency-probe
+        where: scenario C — the unlisted resource pack reached the client stack anyway
+        quote: |
+          [2026-08-10 04:52:57:535 WARN] [Scripting] PROBE bp packstack-client-successCount=2
+      - run: rp-dependency-probe
+        where: scenario A — the same count with no resource pack in the pool, for contrast
+        quote: |
+          [2026-08-10 04:52:17:232 WARN] [Scripting] PROBE bp packstack-client-successCount=1
 
   - id: an-unsatisfiable-pack-dependency-is-not-enforced-at-load
     claim: |
-      A behavior pack whose manifest depends on a pack that is not present loads and runs regardless.
-      With the depended-on pack absent from the pool, the dependent still entered the stack at
-      position 00, its script evaluated, and its delayed work ran to completion; nothing refused the
-      load and no dependency error appeared in the log. The only trace of the absence was that the
-      missing pack's entity type would not resolve. A pack therefore cannot treat its manifest as a
-      guarantee that what it depends on is there, and has to detect the absence itself at run time.
+      A behavior pack whose manifest depends on a pack that is not present loads and runs regardless,
+      and this holds whichever kind of pack is missing. With a depended-on *behavior* pack absent from
+      the pool, the dependent still entered the stack at position 00, its script evaluated, and its
+      delayed work ran to completion; the only trace of the absence was that the missing pack's entity
+      type would not resolve. With a depended-on *resource* pack absent, the same: the behavior pack
+      loaded, its script evaluated, and its own entity type resolved normally. In neither case did
+      anything refuse the load or log a dependency error. A pack therefore cannot treat its manifest as
+      a guarantee that what it depends on is there, and has to detect the absence itself at run time —
+      and for a resource pack there is nothing it can detect.
     backing: tested
     sources:
       - run: cross-pack-probe
@@ -465,6 +486,17 @@ facts:
         quote: |
           [2026-08-10 01:41:39:719 WARN] [Scripting] PROBE q1-dep tickingarea=ok
           [2026-08-10 01:41:39:719 WARN] [Scripting] PROBE q1-dep spawnEntity=THREW
+      - run: rp-dependency-probe
+        where: scenario A — the declared resource pack is not in the pool at all
+        quote: |
+          rp-pool:
+          behavior activation list: [{"pack_id":"6c3a0000-0000-4000-8000-000000000001","version":[1,0,0]}]
+          resource activation list: []
+      - run: rp-dependency-probe
+        where: scenario A — the behavior pack loaded and ran with its resource-pack dependency missing
+        quote: |
+          [2026-08-10 04:52:17:232 WARN] [Scripting] PROBE bp bp-script-evaluated=true
+          [2026-08-10 04:52:17:232 WARN] [Scripting] PROBE bp entityType-rpdep:actor=defined
 
   - id: a-worlds-activation-lists-name-the-packs-it-runs
     claim: |

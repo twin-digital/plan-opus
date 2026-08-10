@@ -200,27 +200,20 @@ decisions:
       - d-xobjyw2e
 
   - id: d-bcybwddk
-    title: the check has two rungs — the definitions exactly, and a resource pack by count
+    title: the check covers the definitions only, and the library asserts nothing about appearance
     statement: |
-      the check the library runs before acting has two rungs, and reports them apart.
+      the check the library runs before acting has one rung: the entity type the preset names is
+      registered in the world, or it is not, and where it is not the call throws naming the preset, the
+      identifier, and the pack that supplies it.
 
-      the first is exact: the entity type the preset names is registered, or it is not, and where it is
-      not the call throws naming the preset, the identifier, and the behavior pack that supplies it.
-
-      the second is a presence test only: the world's client pack stack holds more than the vanilla
-      texture pack alone. where it does not, no resource pack is active and the call throws naming the
-      resource pack. where it does, the library has established that *a* resource pack is active and
-      never that it is this product's — the count is all a script can read, so identity is not checked
-      and no error claims it was. a failure of the second rung is reported as a distinct condition from
-      a failure of the first, so an adventure's author reads which half is missing.
-
-      the second rung is defensive about its own mechanism: the count it rests on is an observed
-      behaviour of a command documented only as printing, so a call that fails or answers unexpectedly
-      leaves the rung unverified rather than failing the spawn.
+      the library performs no runtime check of the resource pack and reports nothing about it. no
+      counting of the world's pack stack, no inference from what an entity's dimensions read, and no
+      error or success path that states or implies an actor will render. a call that succeeds means the
+      actor exists and behaves; whether a player sees it is outside what the library observes or claims.
     status: proposed
     pinned:
       reason: public-api
-      notes: which failures an adventure meets, and what a successful call is and is not evidence of
+      notes: what a successful call is evidence of, which is narrower than it looks and is what an adventure's author will otherwise assume
     supersedes: d-e4lx5lti
     facets: library
     because:
@@ -231,15 +224,17 @@ decisions:
       - f:a-resource-pack-cannot-carry-anything-a-script-can-reach
 
   - id: d-ro5pj8er
-    title: pack pairing is enforced where identity can be checked — at build time
+    title: pack pairing is enforced at build time, which is the only place identity is checkable
     statement: |
-      because a running world cannot tell whose resource pack is active, the pairing of the two packs is
-      established where identity is checkable: the release archive is verified to hold both this
-      product's packs at agreeing versions, and a build producing one without the other fails. the
-      runtime rung catches an absent resource pack; this catches a mispackaged or mismatched one, which
-      the runtime rung cannot distinguish from a correct install.
+      the pairing of this product's two packs is established where identity can be checked at all: the
+      release archive is verified to hold both of them at agreeing versions, and a build producing one
+      without the other fails. this is the whole of the guarantee that an actor's appearance ships with
+      its definitions — nothing at run time contributes to it, because nothing at run time can tell this
+      product's resource pack from any other's.
     status: proposed
-    pinned: false
+    pinned:
+      reason: other
+      notes: it is the only thing standing between an adventure and an actor nobody can see, so a build that stops enforcing it removes the product's one appearance guarantee
     facets: [library, assets-pack]
     because:
       - r-9owgd93o

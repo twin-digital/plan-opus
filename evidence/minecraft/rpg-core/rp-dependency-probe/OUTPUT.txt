@@ -1,0 +1,50 @@
+docker host: ssh://prod-development-docker
+image: itzg/minecraft-bedrock-server:latest   requested VERSION: 1.26.43.1
+behavior pack 6c3a0000-0000-4000-8000-000000000001 declares dependencies: [@minecraft/server, uuid 6c3a0000-0000-4000-8000-000000000002]
+resource pack 6c3a0000-0000-4000-8000-000000000002
+
+=== A rpdep-absent — the declared resource pack is not in the pool at all
+level: rpdepabsent   rp staged: false   rp listed active: false
+bp-pool: 6c3a0000-0000-4000-8000-000000000001
+rp-pool:
+behavior activation list: [{"pack_id":"6c3a0000-0000-4000-8000-000000000001","version":[1,0,0]}]
+resource activation list: []
+[2026-08-10 04:52:12:805 INFO] Profiler config ('bootstrap.json') load result: success=1, errorMessage=(null)
+[2026-08-10 04:52:13:239 INFO] Pack Stack - [00] rpdep behavior (id: 6c3a0000-0000-4000-8000-000000000001, version: 1.0.0) @ development_behavior_packs/6c3a0000-0000-4000-8000-000000000001
+[2026-08-10 04:52:17:232 WARN] [Scripting] PROBE bp bp-script-evaluated=true
+[2026-08-10 04:52:17:232 WARN] [Scripting] PROBE bp entityType-rpdep:actor=defined
+[2026-08-10 04:52:17:232 WARN] [Scripting] PROBE bp entityTypes-total=129
+[2026-08-10 04:52:17:232 WARN] [Scripting] PROBE bp packstack-client-successCount=1
+[2026-08-10 04:52:17:232 WARN] [Scripting] PROBE bp done
+
+=== B rpdep-active — the declared resource pack staged and listed active
+level: rpdepactive   rp staged: true   rp listed active: true
+bp-pool: 6c3a0000-0000-4000-8000-000000000001
+rp-pool: 6c3a0000-0000-4000-8000-000000000002
+behavior activation list: [{"pack_id":"6c3a0000-0000-4000-8000-000000000001","version":[1,0,0]}]
+resource activation list: [{"pack_id":"6c3a0000-0000-4000-8000-000000000002","version":[1,0,0]}]
+[2026-08-10 04:52:32:902 INFO] Profiler config ('bootstrap.json') load result: success=1, errorMessage=(null)
+[2026-08-10 04:52:33:297 INFO] Pack Stack - [00] rpdep behavior (id: 6c3a0000-0000-4000-8000-000000000001, version: 1.0.0) @ development_behavior_packs/6c3a0000-0000-4000-8000-000000000001
+[2026-08-10 04:52:37:291 WARN] [Scripting] PROBE bp bp-script-evaluated=true
+[2026-08-10 04:52:37:291 WARN] [Scripting] PROBE bp entityType-rpdep:actor=defined
+[2026-08-10 04:52:37:291 WARN] [Scripting] PROBE bp entityTypes-total=129
+[2026-08-10 04:52:37:291 WARN] [Scripting] PROBE bp packstack-client-successCount=2
+[2026-08-10 04:52:37:291 WARN] [Scripting] PROBE bp done
+
+=== C rpdep-pull — staged but absent from the resource activation list
+level: rpdeppull   rp staged: true   rp listed active: false
+bp-pool: 6c3a0000-0000-4000-8000-000000000001
+rp-pool: 6c3a0000-0000-4000-8000-000000000002
+behavior activation list: [{"pack_id":"6c3a0000-0000-4000-8000-000000000001","version":[1,0,0]}]
+resource activation list: []
+[2026-08-10 04:52:53:132 INFO] Profiler config ('bootstrap.json') load result: success=1, errorMessage=(null)
+[2026-08-10 04:52:53:534 INFO] Pack Stack - [00] rpdep behavior (id: 6c3a0000-0000-4000-8000-000000000001, version: 1.0.0) @ development_behavior_packs/6c3a0000-0000-4000-8000-000000000001
+[2026-08-10 04:52:57:535 WARN] [Scripting] PROBE bp bp-script-evaluated=true
+[2026-08-10 04:52:57:535 WARN] [Scripting] PROBE bp entityType-rpdep:actor=defined
+[2026-08-10 04:52:57:535 WARN] [Scripting] PROBE bp entityTypes-total=129
+[2026-08-10 04:52:57:535 WARN] [Scripting] PROBE bp packstack-client-successCount=2
+[2026-08-10 04:52:57:535 WARN] [Scripting] PROBE bp done
+
+=== teardown
+container and volume removed
+exit=0

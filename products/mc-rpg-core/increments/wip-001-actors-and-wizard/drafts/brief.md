@@ -116,7 +116,7 @@ loaded and ran normally; the only symptom was the entity type failing to resolve
 statement of intent, not a guarantee, and that is precisely what `d-xobjyw2e`'s per-call check exists
 for.
 
-## The invariant, and the half of it that cannot be checked
+## The invariant
 
 `r-9owgd93o` asks the library to refuse rather than half-work when its definitions are absent.
 `EntityTypes.get(identifier)` is the right primitive: stable, and it returns `undefined` instead of
@@ -124,42 +124,51 @@ throwing, so the check needs no spawn attempt and no location made ticking first
 on every entry point rather than once at startup, because pack presence is a property of the world the
 call runs against, not of the process.
 
-The API surface reaches the behavior pack only: `@minecraft/server` has no pack-presence member at all,
-which is what `d-e4lx5lti` recorded. The `rp-detection-probe` run then found the exception, one level
-down from the API — so `d-bcybwddk` supersedes it.
+The check reaches the definitions and stops there. `@minecraft/server` carries no pack-presence member
+at all — the only two "pack"-named things in its whole surface are `getPackStructureIds` and
+`getPackSettings`, and neither reports what is active.
 
-## The resource pack is detectable, by count and not by name
+## The resource pack is not checked at run time
 
-`packstack` prints the client or server pack stack to chat, needs no cheats, and sits at permission
-level Any. Run through `runCommand` as `packstack client`, its `successCount` tracked the client stack
-exactly across three worlds differing only in their resource packs — 1 with none, 2 with one activated,
-1 again with the same pack in the pool but unlisted. The identities go to chat, which no script reads,
-so what comes back is a number.
+A count *is* available — `packstack client` run through `runCommand` returns a `successCount` that tracked
+the client stack exactly across worlds differing only in their resource packs, 1 with none and 2 with one
+active. It is a count and not a name: identities are printed to chat, which no script reads. A check built
+on it would report a healthy world for any unrelated resource pack, so the owner ruled it not worth having,
+and `d-bcybwddk` leaves the resource pack unchecked at run time rather than checked misleadingly. The fact
+stays recorded because the *absence* of a name is the reason for the ruling.
 
-That makes the second rung of the check a presence test and nothing more. It catches the failure that
-actually happens — behavior pack installed, resource pack not — and it cannot tell this product's pack
-from anyone else's, so `d-bcybwddk` says so rather than letting a passing check imply more. The rung is
-also defensive about itself: the count is an observed behaviour of a command documented only as
-*printing*, so a call that answers unexpectedly leaves the rung unverified rather than refusing a spawn
-that would have worked.
-
-Identity is checkable where the packs are built rather than where they run, which is `d-ro5pj8er`.
+Identity is therefore established where identity is checkable at all — the build (`d-ro5pj8er`). That is
+the whole appearance guarantee, and `r-9owgd93o` now says in as many words that the library claims nothing
+about whether an actor renders.
 
 Three avenues that looked plausible and are closed, so nobody re-opens them:
 
 - **The bounding box does not know.** An entity's server-side extent and head location come from its
   behavior definition; with a resource pack active whose geometry for it was a 320-block cube, every
-  measurement was unchanged. `minecraft:collision_box` is a behavior-pack component and the client
-  entity definition has no size field at all. (`hasComponent('minecraft:collision_box')` also reads
-  false on an entity that declares one, so that is not a route either.)
-- **A resource pack cannot carry a canary.** A pack declaring `resources` beside `script` and `data`
-  and listed as a resource pack does not load at all — no stack entry, no script evaluation, and its
-  entity type does not resolve. `getPackStructureIds` sees behavior-pack structures only, and an
-  identical `.mcstructure` in a resource pack is never enumerated.
+  measurement was unchanged. `minecraft:collision_box` is a behavior-pack component and the client entity
+  definition has no size field at all. (`hasComponent('minecraft:collision_box')` also reads false on an
+  entity that declares one, so that is not a route either.)
+- **A resource pack cannot carry a canary.** A pack declaring `resources` beside `script` and `data` and
+  listed as a resource pack does not load at all — no stack entry, no script evaluation, and its entity
+  type does not resolve. `getPackStructureIds` sees behavior-pack structures only, and an identical
+  `.mcstructure` in a resource pack is never enumerated.
 - **A resource-pack animation cannot fire a command.** In resource packs timelines run Molang only; a
   behavior animation's timeline is the one that may run commands or entity events.
 
-Two things remain untested here for want of a client: whether `/playsound` or `/fog` fail differently
-for a resource-pack-supplied identifier than for a bogus one — both refuse at the selector before
-reaching the identifier when no player is connected — and whether `packstack client` can be aimed at
-one player rather than reporting the world's stack. Neither is needed for the rung as designed.
+Two things remain untested for want of a client: whether `/playsound` or `/fog` fail differently for a
+resource-pack-supplied identifier than for a bogus one — both refuse at the selector before reaching the
+identifier when no player is connected — and what a client actually renders for an entity whose client
+definition it lacks. The second is the one that matters, and no probe here can reach it.
+
+## What a resource-pack dependency does and does not do
+
+A behavior pack declaring a resource pack by uuid loads and runs perfectly well with that resource pack
+absent from the pool: script evaluated, own entity type resolved, no dependency error logged. So the
+manifest buys no enforcement, exactly as for a behavior-pack dependency.
+
+What it does buy is activation. With the resource activation list *empty* and the pack merely present in
+the pool, the client stack count matched the fully-listed control. So `world_resource_packs.json` need not
+name a resource pack that an active behavior pack depends on — presence in the pool is the requirement.
+That is worth knowing for `d-7uvpewdk`: installing the assets pack once puts it in the pool, and every
+adventure that declares it gets it activated without touching the world's resource list.
+

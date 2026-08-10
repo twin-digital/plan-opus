@@ -31,3 +31,17 @@ runs:
       console, and the probe additionally reads the same commands' printed output through the server's
       own console, which a script cannot see. No Minecraft client is involved, so anything requiring a
       player-type selector is out of its reach.
+
+  - id: rp-dependency-probe
+    command: node evidence/minecraft/rpg-core/rp-dependency-probe/probe.mjs
+    output: evidence/minecraft/rpg-core/rp-dependency-probe/OUTPUT.txt
+    ran_at: 2026-08-10
+    environment: |
+      The same containerised Bedrock 1.26.43.1 harness as the other two runs. One behavior pack, declaring
+      a manifest `dependencies` uuid entry for a resource pack, held byte-identical across three worlds
+      while only the resource side varies: the resource pack absent from the pool, staged and listed
+      active, and staged but absent from the resource activation list. Both pack pools are emptied per
+      scenario. The behavior pack reports through console.warn whether its script evaluated, whether its
+      own entity type resolves via `EntityTypes.get`, and the client pack stack count — so no spawn is
+      attempted and no ticking area is needed. No Minecraft client is involved; nothing here observes
+      rendering.
