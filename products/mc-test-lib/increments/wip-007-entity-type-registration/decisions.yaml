@@ -32,8 +32,9 @@ decisions:
     statement: |
       `createServer()` returns an `EntityTypes` bound to that bundle's own registry, so two bundles
       in one process share nothing and a test needs no reset hook. The aliased surface's
-      module-scope `EntityTypes` resolves through the installed server, as `world` and `system` do;
-      no registry state lives at module scope.
+      module-scope `EntityTypes` is a third binding beside `world` and `system`, moving with them on
+      install and throwing ShimNotInstalledError while unset. No registry state lives at module
+      scope.
     status: proposed
     pinned:
       reason: public-api
@@ -45,6 +46,7 @@ decisions:
       - r-rpm1k57j
       - d-nmjafny2
       - d-ysxt6ihr
+      - d-uj5gbt9w
     revisit_when:
       - the aliased surface's `EntityTypes` is required to satisfy `typeof MC.EntityTypes` in a way
         a per-bundle object cannot, so only one shared class object typechecks
@@ -57,7 +59,8 @@ decisions:
     statement: |
       A bundle's registry starts empty, and a test fills it through an exported free function over
       the bundle rather than through a member `@minecraft/server` does not declare. Both branches
-      are arrangeable from the start: a registered type, and a lookup that misses.
+      are arrangeable from the start: a registered type, and a lookup that misses. `getAll` reports
+      in registration order.
     status: proposed
     pinned:
       reason: public-api
@@ -76,7 +79,7 @@ decisions:
     statement: |
       A lookup reproduces the engine's recorded behaviour: a miss returns `undefined` rather than
       throwing or fabricating, a bare identifier means `minecraft:<id>` and nothing else, and
-      matching is otherwise exact.
+      matching is otherwise exact. The arity and argument-type guards are the engine's.
     status: proposed
     pinned:
       reason: public-api
@@ -122,15 +125,56 @@ decisions:
     title: localizationKey is registered or throws
     statement: |
       An `EntityType` carries `id` and `localizationKey` and nothing else. `localizationKey` reads
-      back the key the test registered, and throws UnsetValueError where none was registered.
+      back the key the test registered, and throws UnsetValueError where none was registered — so it
+      is an accessor where the engine's is an own value property, a divergence stated with the rest.
     status: proposed
     pinned:
       reason: public-api
     because:
       - f:entity-type-carries-id-and-localization-key
       - r-62r76czb
+      - r-ovyzy5ey
       - d-dk3rf1w8
     revisit_when:
       - a rule is found that reproduces the engine's key for vanilla and pack-defined types alike,
         so the throw obstructs tests that never touch the field
+    facets: fakes
+
+  # raised by the survey of the draft fold: choices the build meets that the six above left open
+  - id: d-gr7gky6j
+    title: registerEntityType takes an id and an optional key, and refuses a duplicate
+    statement: |
+      `registerEntityType(server, id, localizationKey?)` registers one type and returns it. The id
+      normalizes on entry and is stored and reported in the canonical prefixed form. Registering an
+      id already registered throws rather than replacing the entry, which would strand an
+      `EntityType` a test already holds.
+    status: proposed
+    pinned:
+      reason: public-api
+    because:
+      - d-fhq1ng5m
+      - f:entity-type-entries-are-stable-objects
+      - r-v1r7n10i
+      - r-62r76czb
+    revisit_when:
+      - suites come to re-register deliberately — building a type up across a shared fixture and a
+        test — so the refusal obstructs the arrangement rather than catching a mistake
+    facets: fakes
+
+  - id: d-5noauehh
+    title: spawnEntity takes an EntityType; createEntity stays string-only
+    statement: |
+      `Dimension.spawnEntity` accepts an `EntityType` wherever it accepts an id, reading the type's
+      `id` and nothing else. `createEntity` continues to take a `typeId` string.
+    status: proposed
+    pinned:
+      reason: public-api
+    because:
+      - d-dub2g4kr
+      - d-fhq1ng5m
+      - r-nmkxdrga
+      - r-5mlc26io
+    revisit_when:
+      - tests routinely convert an `EntityType` back to a string to reach `createEntity`, so the
+        narrower control-plane signature costs more than the symmetry is worth
     facets: fakes
