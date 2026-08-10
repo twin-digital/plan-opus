@@ -5,6 +5,9 @@ components:
   - id: assets-pack
     description: what an adventure depends on — the actor entity definitions and the models, textures,
       and animations they render from
+  - id: example
+    description: the adventure built on the other two packages, which spawns every actor and carries the
+      product's run-time evidence
 terms:
   - id: actor
     definition: >
@@ -41,8 +44,12 @@ terms:
 presets:
   - name: minecraft-addon
     version: 4
+    scope:
+      - assets-pack
+      - example
   - name: nodejs-library
     version: 2
+    scope: library
 requirements:
   - id: r-e8p2oto6
     title: an adventure carries no actor content

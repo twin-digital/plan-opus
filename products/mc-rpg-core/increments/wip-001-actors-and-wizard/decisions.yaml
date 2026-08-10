@@ -91,13 +91,13 @@ decisions:
   - id: d-w0smdozf
     title: what the shared actor components establish
     statement: >
-      an actor refuses damage from every cause rather than a filtered set; it is summonable by
-      identifier with no
+      an actor refuses damage from every cause; is summonable by identifier with no spawn egg, so it
+      never appears
 
-      spawn egg, so it never appears in the creative menu; and it watches a nearby player
-      continuously, carrying
+      in the creative menu; cannot be displaced by anything in play; survives a restart and a chunk
+      unload with no
 
-      no navigation and no other behaviour goal.
+      player near; cannot be renamed by a player; and watches a nearby player continuously.
     status: proposed
     pinned:
       reason: other
@@ -111,10 +111,24 @@ decisions:
       - f:damage-sensor-can-stop-received-damage-being-applied
       - f:behavior-look-at-player-rotates-the-head-toward-a-nearby-player
     commentary: >
-      which components express these, and with what values, is the implementer's. continuously is
-      against the
+      which components express these, and with what values, is the implementer's — but three of them
+      are met by
 
-      look-at behaviour's own default, which is an occasional glance.
+      what the definition does *not* say, and are recorded here so they are not lost. no navigation
+      does not stop a
+
+      mob being shoved by a player, a piston, water, or a minecart. an entity without a persistence
+      component can
+
+      be removed by the engine when no player is near. and the bar on renaming is met by omitting
+
+      `minecraft:nameable`, since in creative a name tag renames any nameable mob.
+
+
+      continuous watching is against the look-at behaviour's own default, which the pool records as
+      a roughly 0.02
+
+      probability — an occasional glance.
   - id: d-lyvjq8l1
     title: assets are vendored from a pinned revision and re-identified before they are committed
     statement: >
@@ -326,7 +340,7 @@ decisions:
       - when: a release of the same major exposes every actor identifier the previous one did
         then: the release proceeds
       - when: any has disappeared or been renamed
-        then: the build refuses the release
+        then: the release is refused
     commentary: >
       an actor identifier present in a release names the same character in every later release of
       that major. the
@@ -389,12 +403,12 @@ decisions:
         then: the pack declares nothing in it — `blocks.json`, `sounds.json`, `biomes_client.json`, the
           `texts` files, the `ui` tree
   - id: d-ro5pj8er
-    title: pack pairing is enforced at build time, which is the only place identity is checkable
+    title: an archive never ships one half of the product without the other
     statement: >
-      the pairing of this product's two packs is established at build time: the release archive is
-      verified to
+      no release archive carrying this product ships an actor's definitions without its appearance,
+      or the
 
-      hold both at agreeing versions, and a build producing one without the other fails.
+      reverse. an archive missing either half is refused rather than published.
     status: proposed
     pinned:
       reason: other
@@ -411,10 +425,16 @@ decisions:
       - f:what-a-client-renders-for-a-broken-appearance-definition
     commentary: >
       this is the whole of the guarantee that an actor's appearance ships with its definitions —
-      nothing at run time
+      nothing at run
 
-      contributes to it, because nothing at run time can tell this product's resource pack from any
-      other's.
+      time contributes to it, because nothing at run time can tell this product's resource pack from
+      any other's.
+
+
+      what it does not mean is the two halves' version numbers agreeing: the kit completes both from
+      one
+
+      `package.json`, so they agree by construction and checking it would verify nothing.
   - id: d-c0l4gwx2
     title: how an actor converses is deferred
     statement: >
@@ -426,3 +446,105 @@ decisions:
       increment defines are spawned, placed, named, looked at, and removed; they do not speak.
     status: deferred
     scope: library
+  - id: d-lgaqtx4c
+    title: enforcing the two release checks is deferred to mc-dev-kit
+    statement: >
+      who enforces d-ro5pj8er's archive completeness and d-5f011w0o's identifier withdrawal is
+      deferred to
+
+      `@twin-digital/mc-dev-kit`. until that product carries them, both hold as stated intent and
+      neither is
+
+      mechanically enforced.
+    status: deferred
+    scope:
+      - library
+      - assets-pack
+    commentary: >
+      neither check is expressible from inside this product. `mc-pack-archive` reads the output tree
+      and consults
+
+      nothing else, skipping an empty kind directory and throwing only when no member at all was
+      added — so a
+
+      package whose resource half failed to build publishes a behavior-only archive silently. and
+      `packBuild`
+
+      returns a fragment whose `plugins` array is the single plugin performing the whole build,
+      while
+
+      `tsdown.config.d` fragments shallow-merge, so a second fragment supplying plugins replaces the
+      kit's rather
+
+      than adding to it. r-cyd08e6q forbids the pack carrying build logic of its own in any case.
+
+
+      what the kit needs is an extension point for a product's own build-time checks, an archive
+      that refuses an
+
+      incomplete addon, and somewhere a prior release's identifier set is recorded. captured against
+      that product.
+  - id: d-2qxdv80k
+    title: an example adventure package carries the product's run-time evidence
+    statement: >
+      the product ships a third package: an adventure built on the other two, which spawns every
+      actor the product
+
+      offers. it is what demonstrates the product's run-time claims, and what an adventure's author
+      reads as the
+
+      worked example.
+    status: proposed
+    pinned:
+      reason: other
+      notes: it is the only package of the product that runs a script in a world, so every run-time claim
+        depends on it existing
+    scope: example
+    because:
+      - r-e8p2oto6
+      - r-lna5xlfe
+      - d-6jlj0rl2
+      - d-5lutr7ok
+    commentary: >
+      neither other package runs a script in a world — the library is a library and d-6jlj0rl2 has
+      the assets pack
+
+      declare no script module — so without this package no claim about what an actor does at run
+      time has any
+
+      route to a demonstration, and r-e8p2oto6, a claim about what an adventure carries, has none at
+      all.
+
+
+      it is an example rather than a product of its own on purpose: a real adventure is its own
+      product, as
+
+      village-guard is, and should not be load-bearing for this one's evidence.
+  - id: d-3or6phg1
+    title: the assets pack's behavior half declares its resource half by uuid
+    statement: >
+      the assets pack's behavior manifest names its own resource half in `dependencies`, so an
+      adventure declaring
+
+      one uuid gets both halves. the uuid an adventure names is the behavior half's.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: the uuid every adventure hard-codes, and the reason one entry activates both halves
+    scope: assets-pack
+    because:
+      - r-e8p2oto6
+      - d-knzip5zc
+      - f:a-declared-pack-dependency-activates-the-depended-on-pack
+      - f:what-a-client-renders-for-a-broken-appearance-definition
+    commentary: >
+      without it an adventure naming one uuid activates one pack, and an actor whose appearance
+      never arrived is
+
+      the invisible, unpointable case. cheap to get right and silent to get wrong.
+
+
+      the install story rests on a second dependency hop — an adventure names the behavior half,
+      which names the
+
+      resource half — and the pool's fact tests one hop only.
