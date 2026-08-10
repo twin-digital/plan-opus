@@ -48,7 +48,7 @@ decisions:
       component or a live component names it as parent — unless the retiring entry carries
       `superseded_by` naming another component, through which the scope references in published
       sources resolve.
-    status: proposed
+    status: accepted
     because:
       - d-9qbjzflc
       - d-hl3l8df0
@@ -61,7 +61,7 @@ decisions:
       a component never appears among its own ancestors: parent references form a tree rooted
       at the product, and a declaration or redeclaration that would close a cycle is refused at
       the increment that declares it.
-    status: proposed
+    status: accepted
     because:
       - d-cgr6q2j1
     pinned:
@@ -74,7 +74,7 @@ decisions:
       acyclically. The projection reports the in-force claims whose reach the move changes, and
       the owner rules the redeclaration with that reach in view; a use-keyed guard would freeze
       the tree the moment anything is scoped beneath it.
-    status: proposed
+    status: tolerated
     because:
       - r-5endqgyi
       - d-cgr6q2j1
@@ -87,7 +87,7 @@ decisions:
       scope — either is a validator finding. The adoption's scope, the adopter's, is the only
       scoping an adopted requirement gets; its statement's subject names the kind of thing it
       binds.
-    status: proposed
+    status: accepted
     because:
       - d-ekoz1t47
     pinned:
@@ -152,14 +152,14 @@ decisions:
     title: an adoption's scope is the adopter's
     statement: |
       a `scope:` on a preset adoption names the adopter's components and governs everything the
-      adoption's closure contributes. Scope inside adopted content — an adopted requirement's
-      own field, a nested adoption's — names the declaring product's tree and does not
-      constrain the adopter. One preset reached by two paths carries the union of their
-      scopes.
+      adoption's closure contributes; scope enters the closure only at the top, since a preset
+      has no components for its own entries to name. One preset reached by two paths carries
+      the union of their scopes.
     status: proposed
     because:
       - d-ue31prqs
       - d-rplsevuk
+      - d-5gz40hdo
     pinned:
       reason: data-format
 
