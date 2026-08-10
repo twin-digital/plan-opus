@@ -1,4 +1,10 @@
-version: "2"
+version: "3"
+
+components:
+  - id: library
+    description: what an adventure imports — the actor presets, the spawn call, and the handle it returns
+  - id: assets-pack
+    description: what an adventure depends on — the actor entity definitions and the models, textures, and animations they render from
 
 presets:
   - name: minecraft-addon
@@ -19,7 +25,7 @@ requirements:
       - verify: none of them is an entity definition, a model, a texture, or an animation
       - do: bring that adventure up on a server holding the product's packs
       - verify: every actor appears, each with its own appearance and its default name
-    facets: [library, assets-pack]
+    scope: [library, assets-pack]
 
   - id: r-lna5xlfe
     title: an actor is spawned by naming a preset
@@ -32,7 +38,7 @@ requirements:
       - verify: the actor appears carrying that preset's appearance and default name
       - do: add a preset to the product, then rebuild and run that adventure unchanged
       - verify: the adventure builds, and the actor it spawns is unchanged
-    facets: library
+    scope: library
 
   # what an actor is, as a player meets it
   - id: r-wqwub3zz
@@ -50,7 +56,7 @@ requirements:
       - verify: after each, the actor is present, at its original position, with its name and appearance unchanged
       - do: subject the same actor to a piston, flowing water, and an explosion, and shoot it with a projectile
       - verify: it is undamaged and has not moved
-    facets: assets-pack
+    scope: assets-pack
 
   - id: r-apu8m7vz
     title: an actor faces a player who approaches
@@ -60,7 +66,7 @@ requirements:
       - do: stand an actor in open ground and walk a player from 20 blocks away to within 2 blocks of it, watching the actor throughout
       - verify: the actor turns to face the player as they come near
       - verify: the actor's position is the same at the end as at the start
-    facets: assets-pack
+    scope: assets-pack
 
   - id: r-8ih6ab2r
     title: an actor outlives a restart and leaves only when removed
@@ -73,7 +79,7 @@ requirements:
       - verify: the actor is at the same position, with the same name and appearance
       - do: have the adventure remove that actor, then stop and start the server again
       - verify: it is absent, and has not returned
-    facets: assets-pack
+    scope: assets-pack
 
   # what the product owns about how an actor looks
   - id: r-pngblab3
@@ -90,7 +96,7 @@ requirements:
       - verify: every one of them resolves inside the pack
       - do: bring an actor up on a server whose Minecraft version differs from the one the product's assets were taken from
       - verify: it renders as it does on the original version
-    facets: assets-pack
+    scope: assets-pack
 
   - id: r-9owgd93o
     title: the library refuses to act when an actor's definitions are absent
@@ -112,7 +118,7 @@ requirements:
       - verify: the reason is stated there, rather than having to be inferred from a later error
       - do: read every failure message and every success path the library can produce
       - verify: none of them states or implies that an actor will render
-    facets: library
+    scope: library
 
   - id: r-rpcudvbl
     title: a wizard preset
@@ -121,7 +127,7 @@ requirements:
     verification:
       - do: spawn that preset's actor in front of a player and look at it
       - verify: the owner judges, at the ratification of the increment offering it, that it reads as an elderly robed spellcaster
-    facets: [library, assets-pack]
+    scope: [library, assets-pack]
 
 model:
   - name: actor-preset

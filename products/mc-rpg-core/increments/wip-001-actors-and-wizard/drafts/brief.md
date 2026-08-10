@@ -155,10 +155,35 @@ Three avenues that looked plausible and are closed, so nobody re-opens them:
 - **A resource-pack animation cannot fire a command.** In resource packs timelines run Molang only; a
   behavior animation's timeline is the one that may run commands or entity events.
 
-Two things remain untested for want of a client: whether `/playsound` or `/fog` fail differently for a
-resource-pack-supplied identifier than for a bogus one — both refuse at the selector before reaching the
-identifier when no player is connected — and what a client actually renders for an entity whose client
-definition it lacks. The second is the one that matters, and no probe here can reach it.
+## What a missing appearance actually looks like
+
+The `rp-render-check` run put four actors side by side in front of a real client, identical in behaviour
+and differing only in what the resource pack said about their appearance. The results are not symmetric,
+and the asymmetry is the point:
+
+- **No client entity at all** — the case a wholly absent resource pack produces — renders nothing, and
+  the observer could not find it by looking *or* by pointing at where it stood. Silent and undetectable.
+- **Unresolvable geometry** renders nothing either, but the entity is still there to the client: hovering
+  over its position raises its name tag.
+- **Unresolvable texture** is loud — the body renders in full, in the black-and-magenta missing-texture
+  pattern.
+- A complete definition renders correctly.
+
+Name tags are not the safety net one might assume: on that client they appear only while the player is
+hovering over an entity, never passively. So they cannot announce an actor a player is not already
+pointing at.
+
+This is why `d-ro5pj8er` is pinned. The failure the product must not ship is an adventure whose wizard
+exists, behaves, and holds a conversation while being invisible and unfindable — and nothing at run time
+can see it coming. A build-time pairing check is the only place that failure is preventable.
+
+One thing left open: whether the no-client-entity actor was un-hoverable or merely hard to hover. It does
+not change the conclusion, and closing it needs another pass with a deliberately oversized collision box.
+
+Also still untested, and now much less interesting: whether `/playsound` or `/fog` fail differently for a
+resource-pack-supplied identifier than for a bogus one. Both refuse at the selector before reaching the
+identifier when no player is connected, and both need cheats, so neither is a foundation the library
+could rest on.
 
 ## What a resource-pack dependency does and does not do
 

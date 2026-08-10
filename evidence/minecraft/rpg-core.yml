@@ -45,3 +45,18 @@ runs:
       own entity type resolves via `EntityTypes.get`, and the client pack stack count — so no spawn is
       attempted and no ticking area is needed. No Minecraft client is involved; nothing here observes
       rendering.
+
+  - id: rp-render-check
+    command: node evidence/minecraft/rpg-core/rp-render-check/setup.mjs up
+    output: evidence/minecraft/rpg-core/rp-render-check/OBSERVATION.md
+    ran_at: 2026-08-10
+    environment: |
+      A joinable Bedrock 1.26.43.1 server on the same containerised harness, flat creative world, resource
+      pack required and confirmed active in the client pack stack. Four actors identical in behaviour stand
+      in a row, differing only in what the resource pack says about their appearance: a complete client
+      entity, none at all, one naming an unresolvable geometry, and one naming an unresolvable texture. The
+      script's own output — that all four spawned, and which packs the world loaded — is captured in the
+      server console. The rendering half is not machine-readable: the owner joined with a real Bedrock
+      client and reported what each actor looked like, and that report is transcribed verbatim in the
+      output file alongside the captured server-side half. A visual observation by one person on one
+      client, not a measurement.

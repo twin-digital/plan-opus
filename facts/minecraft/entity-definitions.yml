@@ -81,3 +81,44 @@ facts:
         where: the note under the component description
         quote: |
           In 1.26.0 the schema is stricter and rejects invalid JSON. The `min_look_time` and `max_look_time` fields are deprecated and replaced by a single `look_time` range (with `min` and `max`). Existing uses of `min_look_time` / `max_look_time` are upgraded automatically.
+
+  - id: what-a-client-renders-for-a-broken-appearance-definition
+    claim: |
+      How a missing appearance definition presents to a player depends on which part is missing, and the
+      worst case is the silent one. With **no client entity definition at all** — which is what a wholly
+      absent resource pack produces — nothing renders and nothing could be found by looking or by pointing
+      at where the entity stood, though the server had spawned it. With a client entity present naming an
+      **unresolvable geometry**, nothing renders either, but the entity is still there to the client:
+      hovering over its position raises its name tag. With a resolvable geometry and an **unresolvable
+      texture** the failure is loud — the body renders in full, in the black-and-magenta missing-texture
+      pattern, flickering between the two. A complete definition renders correctly. So a resource pack
+      that fails to arrive produces an actor a player cannot see or interact with and receives no
+      indication of, while a resource pack that arrives with a broken texture is unmistakable at a glance.
+    backing: tested
+    caveat: |
+      A visual observation by one person on one Bedrock client, not a measurement, and the name-tag
+      behaviour is that client's: name tags appeared only while the observer hovered over an entity and
+      never passively, so a name tag cannot be relied on to announce an actor a player is not already
+      pointing at. One thing is left open — whether the no-client-entity actor was un-hoverable or merely
+      hard to hover. The observer could not raise its name tag and the server confirms it existed;
+      separating "the client gives it no target volume" from "the volume was small and was missed" needs a
+      further pass. The design conclusion is the same either way.
+    sources:
+      - run: rp-render-check
+        where: Client side, as observed — the four actors
+        quote: |
+          full should look right: normal evoker
+
+          'no client entity': nothing there at all, couldnt get the name tag to show up at all
+
+          'bad geometry': completely invisible, but if my mouse hovers in that area the nametag shows up
+
+          'bad texture': humanoid (evoker?) shape, colored in black and magenta (with z-fighting causing the colors to swap)
+      - run: rp-render-check
+        where: Client side, as observed — the note on name tags
+        quote: |
+          note for context, nametags are _never_ visible unless i hover over the entity. so for 'no client entity' its either not there, or the hover region is so small i couldnt find it
+      - run: rp-render-check
+        where: Server side, captured — the actors and the active resource pack
+        quote: |
+          [2026-08-10 05:12:20:870 WARN] [Scripting] RENDERCHECK spawned rptest:no_client at -1,-60,4
