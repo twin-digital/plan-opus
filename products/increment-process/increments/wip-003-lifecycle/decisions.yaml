@@ -17,8 +17,8 @@ decisions:
     title: three consumer-protection models, assigned by citation geometry
     statement: |
       a consumer of a changed entity is protected by one of three models, assigned by citation
-      geometry. Version-pinned channels — schemas, surfaces, preset adoption — drift: the
-      consumer moves by explicit adoption. Product-local vocabularies — components, terms —
+      geometry. Version-pinned channels — schemas, surfaces, applied presets — drift: the
+      consumer moves by explicitly taking the new version. Product-local vocabularies — components, terms —
       guard: the retiring increment fixes its own citations. Unpinned cross-product citation —
       facts alone — is loud staleness: the corrector acts now, and each citing product answers
       at its own next landing.
@@ -32,9 +32,9 @@ decisions:
     title: retired is the one closure status
     statement: |
       `retired` is the one closure status, with a free-text `reason`, wherever an entry leaves
-      force by status. A preset adoption entry is name, version, and a status of adopted (the
-      default) or retired with its reason — adoption still owner fiat, still whole, still at a
-      pinned version, still transitive with ids deduplicated across the closure.
+      force by status. A preset entry is name, version, and a status of applied (the default)
+      or retired with its reason — applying a preset is still owner fiat, still whole, still at
+      a pinned version, still transitive, ids deduplicated across everything it brings in.
       `/design-process/requirements@3` carries the enum.
     status: proposed
     supersedes: d-wis1whfn
@@ -139,6 +139,15 @@ decisions:
     pinned:
       reason: public-api
 
+  - id: d-3kow7q0r
+    title: one increment may not both apply and retire a preset
+    statement: |
+      a single increment's presets block declaring one name both applied and retired is a
+      validator failure — the folded state would otherwise depend on entry order.
+    status: proposed
+    supersedes: d-a8hiceqo
+    pinned: false
+
   # ids and products
   - id: d-kqofgshc
     title: prefixes default to three letters, the owner names exceptions
@@ -159,8 +168,8 @@ decisions:
     statement: |
       a product retires by `status: retired` with a `reason` in its `product.yaml` —
       `/design-process/product@2` carries the fields. A retired product's fold stays readable
-      and its published increments stand; adopting a retired preset at a new version is a
-      validator finding, and existing pinned adoptions are untouched.
+      and its published increments stand; applying a retired preset at a new version is a
+      validator finding, and versions already applied are untouched.
     status: proposed
     because:
       - r-5sdjvnr8
