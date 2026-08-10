@@ -1,0 +1,12 @@
+version: "1"
+kind: minecraft-addon
+packages:
+  - path: nodejs/minecraft/rpg-core
+    kind: npm-library
+  - path: nodejs/minecraft/rpg-core-pack
+    kind: minecraft-addon
+facets:
+  - id: library
+    description: what an adventure imports — the actor presets, the spawn call, and the handle it returns
+  - id: assets-pack
+    description: what an adventure depends on — the actor entity definitions and the models, textures, and animations they render from

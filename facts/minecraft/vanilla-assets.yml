@@ -1,0 +1,89 @@
+# Facts about the game's own resource and behavior pack assets — where they are published, what
+# governs their use, and what a pack that reuses them is naming.
+
+version: "1"
+facts:
+  - id: mojang-publishes-the-vanilla-packs-with-all-rights-reserved-under-the-eula
+    claim: |
+      Mojang publishes the vanilla packs as a GitHub repository of samples and assets for building
+      Bedrock add-ons, so the models, textures, animations, and definitions the game ships are
+      obtainable as files without extracting them from a client. They carry no open-source grant: the
+      repository's licence reserves all rights and makes downloading the files an agreement to the
+      Minecraft End User License Agreement, with the files subject to its terms. The assets are
+      therefore available for the purpose the repository names, on terms set by the EULA rather than
+      by any licence in the repository.
+    backing: documented
+    caveat: |
+      What the EULA permits for an asset a pack redistributes is not quoted here. This fact records
+      where the assets come from and which agreement governs them — not the scope of that agreement,
+      which is a reading of the EULA and the usage guidelines, neither of them cited.
+    sources:
+      - url: https://github.com/Mojang/bedrock-samples
+        where: the repository description
+        quote: |
+          Samples and assets for building Minecraft: Bedrock Edition add-ons
+      - url: https://raw.githubusercontent.com/Mojang/bedrock-samples/main/LICENSE.md
+        where: the whole file
+        quote: |
+          (c) Mojang AB. All rights reserved.
+
+          By downloading the files in this repository, you agree to the [Minecraft End User License Agreement](https://www.minecraft.net/en-us/eula) and that these files are subject to its terms.
+
+  - id: a-custom-client-entity-may-reference-the-vanilla-packs-assets
+    claim: |
+      A client entity definition may name materials, textures, and geometry that live in the vanilla
+      resource pack rather than in the pack declaring the entity, and may name the vanilla pack's
+      animations the same way; the alternative in both cases is the creator's own, which sit in the
+      corresponding folder at the resource pack's root. An entity's appearance can therefore be
+      assembled from vanilla assets with nothing copied — and an entity assembled that way holds a
+      dependency on those vanilla identifiers and paths continuing to resolve.
+    backing: documented
+    sources:
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/cliententitydocumentation/cliententitydocumentationintroduction
+        where: Materials, Textures, Animations — the closing sentences
+        quote: |
+          Players can reference materials, textures, and geometry from the vanilla Minecraft Resource Pack or create their own.  Custom materials, textures, and geometry should be in the corresponding folder at the root of the Resource Pack.
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/cliententitydocumentation/cliententitydocumentationintroduction
+        where: Animations
+        quote: |
+          Allows the player to assign names to reference the long name for animations. These names are used by the animation controller JSON. Players can reference animations from the vanilla Minecraft Resource Pack or create their own. Custom animations should be in the animation folder at the root of the Resource Pack.
+
+  - id: the-evoker-client-entity-names-its-geometry-texture-material-and-animations
+    claim: |
+      The vanilla evoker is registered as `minecraft:evocation_illager`, not under its common name. Its
+      client entity definition names material `evoker`, texture `textures/entity/illager/evoker`, and
+      geometry `geometry.evoker.v1.8`, renders at scale 0.9375, and reaches its animations under
+      `animation.evoker.general`, `animation.evoker.casting`, `animation.common.look_at_target`,
+      `animation.evoker.move`, and `animation.humanoid.celebrating`, driven by
+      `controller.animation.evoker.general` and `controller.animation.villager.move`. A pack reusing or
+      vendoring the evoker's appearance names these identifiers — none of which is spelled from the
+      mob's common name, and one of which carries an engine-version suffix.
+    backing: documented
+    sources:
+      - url: https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/entity/evocation_illager.entity.json
+        where: minecraft:client_entity.description — identifier through animations
+        quote: |
+          "identifier": "minecraft:evocation_illager",
+                "min_engine_version": "1.8.0",
+                "materials": {
+                  "default": "evoker"
+                },
+                "textures": {
+                  "default": "textures/entity/illager/evoker"
+                },
+                "geometry": {
+                  "default": "geometry.evoker.v1.8"
+                },
+                "scripts": {
+                  "scale": "0.9375",
+      - url: https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/entity/evocation_illager.entity.json
+        where: minecraft:client_entity.description.animations
+        quote: |
+          "animations": {
+                  "general": "animation.evoker.general",
+                  "casting": "animation.evoker.casting",
+                  "look_at_target": "animation.common.look_at_target",
+                  "move": "animation.evoker.move",
+                  "celebrating": "animation.humanoid.celebrating",
+                  "controller_general": "controller.animation.evoker.general",
+                  "controller_move": "controller.animation.villager.move",

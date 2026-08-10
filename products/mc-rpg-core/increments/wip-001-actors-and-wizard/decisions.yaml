@@ -1,0 +1,168 @@
+version: "2"
+decisions:
+  # how the product is split, and how each half reaches an adventure
+  - id: d-6jlj0rl2
+    title: a library package and an assets-pack package, neither holding the other's content
+    statement: |
+      the product ships two packages. one is a Node library holding no pack, and is what an adventure
+      imports for code. the other holds a behavior pack and a resource pack, declares no script
+      module, and is what an adventure depends on for the actor entity definitions and their assets.
+      neither package holds any of the other's content.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: which package an adventure imports and which it declares a manifest dependency on, and that the split exists at all
+    facets: [library, assets-pack]
+    because:
+      - r-e8p2oto6
+      - r-cyd08e6q
+
+  - id: d-knzip5zc
+    title: code travels as an npm dependency, assets as a manifest uuid dependency
+    statement: |
+      an adventure takes the library as an ordinary development dependency of its package, bundled
+      into the adventure's own script at build time. it takes the assets pack as an entry in its
+      behavior pack manifest's `dependencies`, naming that pack's header uuid and version. there is
+      exactly one route for each: the library ships no pack to depend on, and the assets pack ships no
+      script to import.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: what an adventure's package manifest and pack manifest must each declare to use the product
+    facets: [library, assets-pack]
+    because:
+      - r-e8p2oto6
+      - d-6jlj0rl2
+      - f:pack-dependency-entries-name-a-uuid-or-a-module-name-plus-a-version
+
+  - id: d-7uvpewdk
+    title: the assets pack is installed once and never bundled into an adventure's archive
+    statement: |
+      the assets pack is distributed and installed as an addon in its own right, and no adventure's
+      release archive contains a copy of it. every adventure sharing a world shares the one
+      installation.
+    status: proposed
+    pinned:
+      reason: other
+      notes: what has to be installed on a server, and in how many pieces, before an adventure runs
+    facets: assets-pack
+    because:
+      - d-knzip5zc
+      - f:pack-dependency-entries-name-a-uuid-or-a-module-name-plus-a-version
+
+  # what an actor is
+  - id: d-gzoqebyy
+    title: an actor is a custom entity, never the game's NPC entity
+    statement: |
+      no actor is the game's `minecraft:npc` entity, and the product delivers nothing through the NPC
+      dialogue system. an actor is an entity this product defines.
+    status: proposed
+    pinned:
+      reason: other
+      notes: what a click on an actor does, and which game modes a world running an adventure may be in, both change if this is reversed
+    facets: assets-pack
+    because:
+      - r-wqwub3zz
+      - f:npc-dialogue-needs-survival-or-adventure-mode
+      - f:an-npc-is-edited-and-despawned-by-ordinary-clicks
+      - f:the-npc-scripting-component-is-pre-release
+
+  - id: d-ipgh0g2d
+    title: one entity identifier per preset, over one shared set of components
+    statement: |
+      every actor carries the same behavior-pack components, and each preset has its own entity
+      identifier and its own client entity definition. the identifiers the library names and the
+      entity definitions the assets pack holds are produced from one preset registry, so the two
+      cannot come to disagree.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: an actor's identifier is visible in a world — in a target selector, and in what the server logs about the entity
+    facets: [library, assets-pack]
+    because:
+      - r-lna5xlfe
+      - d-6jlj0rl2
+      - f:a-client-entity-definition-is-keyed-by-the-entity-identifier
+
+  - id: d-w0smdozf
+    title: what the shared actor components establish
+    statement: |
+      an actor refuses damage from every cause rather than from a filtered set of them; it is
+      summonable by identifier and has no spawn egg, so it never appears in the creative menu; it
+      looks at a nearby player continuously rather than at the occasional-glance probability the
+      look-at behaviour defaults to; and it carries no navigation and no behaviour goal other than
+      looking. which components express these, and with what values, is the implementer's.
+    status: proposed
+    pinned:
+      reason: other
+      notes: what a player sees an actor do, and whether an actor can be placed from the creative menu at all
+    facets: assets-pack
+    because:
+      - r-wqwub3zz
+      - r-apu8m7vz
+      - r-8ih6ab2r
+      - f:damage-sensor-can-stop-received-damage-being-applied
+      - f:behavior-look-at-player-rotates-the-head-toward-a-nearby-player
+
+  # where an actor's appearance comes from
+  - id: d-lyvjq8l1
+    title: assets are vendored from a pinned revision and re-identified before they are committed
+    statement: |
+      every model, texture, animation, and animation controller an actor renders from is committed in
+      the assets pack under this product's own identifiers and paths. what is taken from the game's
+      own packs is taken from one pinned revision of `Mojang/bedrock-samples`, re-identified out of
+      the vanilla identifier namespaces before it is committed, and refreshed only by a deliberate
+      change to that pin. no vanilla identifier or path appears in a shipped client entity definition,
+      render controller, or animation controller.
+    status: proposed
+    pinned:
+      reason: other
+      notes: an actor's appearance is what a player sees, and the re-identification is what stops it moving under a game update
+    facets: assets-pack
+    because:
+      - r-pngblab3
+      - f:mojang-publishes-the-vanilla-packs-with-all-rights-reserved-under-the-eula
+
+  - id: d-3ggbl0kl
+    title: the wizard preset is vendored from the evoker, without its material
+    statement: |
+      the wizard preset's appearance is vendored from the game's evoker — its geometry, its texture,
+      and its animations — re-identified into this product's namespace. the evoker's material is the
+      one thing not vendored: the preset names a stock entity material instead.
+    status: proposed
+    pinned:
+      reason: other
+      notes: the wizard's face, which a player meets directly and would notice changing
+    facets: assets-pack
+    because:
+      - r-rpcudvbl
+      - d-lyvjq8l1
+      - f:the-evoker-client-entity-names-its-geometry-texture-material-and-animations
+
+  # the surface an adventure calls
+  - id: d-5lutr7ok
+    title: the spawn call takes a preset name and returns a handle
+    statement: |
+      the library's spawn call takes the name of a preset, the place to put the actor, and options
+      that may override the actor's default name; it returns a handle to the actor it created. where
+      the assets pack is not active in the world, the call fails with an error this product names
+      rather than with whatever the engine raises. the call's exact signature is not fixed here.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: the one call every adventure makes, and the failure an adventure's author reads when the dependency is missing
+    facets: library
+    because:
+      - r-lna5xlfe
+      - d-knzip5zc
+      - d-ipgh0g2d
+
+  # what this increment hands on
+  - id: d-c0l4gwx2
+    title: how an actor converses is deferred
+    statement: |
+      how an adventure holds a conversation with an actor — what the player is shown, where the words
+      live, and who authors them — is deferred to a later increment of this product. the actors this
+      increment defines are spawned, placed, named, looked at, and removed; they do not speak.
+    status: deferred
+    facets: library

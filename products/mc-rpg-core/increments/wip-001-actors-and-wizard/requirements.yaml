@@ -1,0 +1,114 @@
+version: "2"
+
+presets:
+  - name: minecraft-addon
+    version: 4
+  - name: nodejs-library
+    version: 2
+
+requirements:
+  # what an adventure gets, and what it does not carry
+  - id: r-e8p2oto6
+    title: an adventure carries no actor content
+    statement: |
+      an adventure built on this product spawns and uses an actor without carrying an entity
+      definition, a model, a texture, an animation, or a default name for it. what an adventure
+      carries is its own story, its triggers, and its logic.
+    verification:
+      - do: build an adventure that spawns one actor of every kind the product offers, then list every file the adventure's packs contain
+      - verify: none of them is an entity definition, a model, a texture, or an animation
+      - do: bring that adventure up on a server holding the product's packs
+      - verify: every actor appears, each with its own appearance and its default name
+    facets: [library, assets-pack]
+
+  - id: r-lna5xlfe
+    title: an actor is spawned by naming a preset
+    statement: |
+      an adventure spawns an actor by naming one preset, and that name is the whole of what it
+      supplies to obtain the actor's appearance and default name. adding a preset to the product
+      changes nothing for an adventure that does not name it.
+    verification:
+      - do: write an adventure that spawns an actor by naming a preset and supplying nothing else about its appearance or its name
+      - verify: the actor appears carrying that preset's appearance and default name
+      - do: add a preset to the product, then rebuild and run that adventure unchanged
+      - verify: the adventure builds, and the actor it spawns is unchanged
+    facets: library
+
+  # what an actor is, as a player meets it
+  - id: r-wqwub3zz
+    title: a player in creative cannot alter or remove an actor
+    statement: |
+      no action a player can take in creative mode edits an actor, renames it, removes it, moves it
+      from where it was placed, or harms it. an actor is changed only by the adventure that spawned
+      it.
+    rationale: |
+      the worlds this product is for are built in creative, where an ordinary click on a character is
+      an authoring action rather than play; an actor a curious player can rename or delete with one
+      click is not a character.
+    verification:
+      - do: in creative mode, left-click an actor, right-click it, and attack it
+      - verify: after each, the actor is present, at its original position, with its name and appearance unchanged
+      - do: subject the same actor to a piston, flowing water, and an explosion, and shoot it with a projectile
+      - verify: it is undamaged and has not moved
+    facets: assets-pack
+
+  - id: r-apu8m7vz
+    title: an actor faces a player who approaches
+    statement: |
+      an actor turns to face a player who comes near it, and otherwise holds still.
+    verification:
+      - do: stand an actor in open ground and walk a player from 20 blocks away to within 2 blocks of it, watching the actor throughout
+      - verify: the actor turns to face the player as they come near
+      - verify: the actor's position is the same at the end as at the start
+    facets: assets-pack
+
+  - id: r-8ih6ab2r
+    title: an actor outlives a restart and leaves only when removed
+    statement: |
+      an actor stays in the world, at the position it was placed, with its name and appearance, until
+      the adventure that spawned it removes it — across a server restart, and whether or not a player
+      is nearby.
+    verification:
+      - do: spawn an actor, move every player far from it, stop the server, and start it again
+      - verify: the actor is at the same position, with the same name and appearance
+      - do: have the adventure remove that actor, then stop and start the server again
+      - verify: it is absent, and has not returned
+    facets: assets-pack
+
+  # what the product owns about how an actor looks
+  - id: r-pngblab3
+    title: an actor's appearance does not depend on the game's own assets
+    statement: |
+      an actor's appearance and animation are carried by this product, and resolve to no model,
+      texture, animation, material, or identifier that the game ships. a Minecraft version change
+      does not alter how an actor looks.
+    rationale: |
+      the game's asset identifiers are not a compatibility surface: an actor that names them can
+      change appearance, or stop rendering, on a version bump, with no build failure to announce it.
+    verification:
+      - do: search the product's resource pack for every model, texture, animation, material, and animation-controller identifier it names, and check each against what the pack itself contains
+      - verify: every one of them resolves inside the pack
+      - do: bring an actor up on a server whose Minecraft version differs from the one the product's assets were taken from
+      - verify: it renders as it does on the original version
+    facets: assets-pack
+
+  - id: r-rpcudvbl
+    title: a wizard preset
+    statement: |
+      the product offers a preset that reads as an elderly robed spellcaster.
+    verification:
+      - do: spawn that preset's actor in front of a player and look at it
+      - verify: the owner judges, at the ratification of the increment offering it, that it reads as an elderly robed spellcaster
+    facets: [library, assets-pack]
+
+model:
+  - name: actor-preset
+    status: unbound
+    description: |
+      the named description of one kind of actor, which an adventure spawns by naming: the actor's
+      appearance and its default name. its shape is fixed when the library's surface is authored.
+  - name: actor-handle
+    status: unbound
+    description: |
+      what a spawn call gives an adventure back — the actor it created, and whatever the adventure
+      may do to that actor afterwards.
