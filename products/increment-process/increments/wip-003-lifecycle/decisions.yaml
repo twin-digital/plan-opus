@@ -46,11 +46,12 @@ decisions:
   - id: d-4i5k9nsi
     title: succession is one relation with two spellings
     statement: |
-      a log entry's successor names its predecessor with `supersedes`; a state or pool entry's
-      closing write names its successor with `superseded_by` — which spelling applies is fixed
-      by regime. `amends` is retired, `/design-process/requirement@2` carrying `supersedes`,
-      and a rejection's reason field is `reason`. Retirement without a successor stays a
-      `retires:` entry — one id, one reason.
+      a requirement or decision is replaced by a new entry that names the one it replaces:
+      `supersedes`, with `amends` retired. Everything else points the other way: the write
+      that marks an entry retired — a redeclaration of the same name for state entries, the
+      one permitted edit for facts and runs — names the replacement with `superseded_by`. A
+      rejection's reason field is `reason`; retirement without a successor stays a `retires:`
+      entry, one id and one reason.
     status: proposed
     supersedes: d-jy7x42nx
     because:
