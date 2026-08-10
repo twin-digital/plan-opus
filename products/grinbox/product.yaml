@@ -1,16 +1,13 @@
 version: "1"
 kind: application
 
-# Descriptive: where the packages are today, in the repository that still holds them. The move
-# into opus is this increment's r-y8wc6ldk and d-txqxjxvp; the implementation that performs it
-# rewrites these entries.
 packages:
-  - path: apps/grinbox/packages/server
+  - path: nodejs/grinbox/server
     kind: node-service
-    repo: pegasuspad/infrastructure
-  - path: apps/grinbox/packages/web
+    repo: twin-digital/opus
+  - path: nodejs/grinbox/web
     kind: web-app
-    repo: pegasuspad/infrastructure
-  - path: apps/grinbox/packages/shared
+    repo: twin-digital/opus
+  - path: nodejs/grinbox/shared
     kind: npm-library
-    repo: pegasuspad/infrastructure
+    repo: twin-digital/opus
