@@ -326,6 +326,54 @@ decisions:
       - d-i8pjw2on
       - d-xobjyw2e
       - f:duplicate-pack-copies-are-deduplicated-and-the-activation-pin-selects
+  - id: d-ny9lcyjg
+    title: the assets pack declares only content whose names can be namespaced
+    statement: >
+      the assets pack confines itself to content kinds that name what they declare, so the
+      major-version
+
+      namespace can reach all of it: entity definitions, geometry, textures, materials, render
+      controllers,
+
+      animations, animation controllers, particles, fogs, and attachables.
+
+
+      it declares nothing in the kinds a resource pack supplies as a whole file rather than as named
+      entries —
+
+      `blocks.json`, `sounds.json`, `biomes_client.json`, the `texts` translation files, and the
+      `ui` tree. those
+
+      hold no name to qualify, so two majors supplying one of them contend over the file itself and
+      the namespace
+
+      cannot separate them. an actor needs none of them.
+
+
+      a preset that comes to need one of the excluded kinds is a change to this decision, not a
+      detail of the
+
+      preset.
+    status: proposed
+    pinned:
+      reason: other
+      notes: it bounds what the product can ever offer a preset, and relaxing it quietly reintroduces
+        contention between majors that d-i8pjw2on cannot reach
+    scope: assets-pack
+    because:
+      - r-pop72yk6
+      - d-i8pjw2on
+      - f:a-resource-packs-internal-asset-names-are-global-to-the-pack-stack
+    commentary: >
+      the exclusion is precautionary. that the named kinds collide by name is measured; that the
+
+      whole-file kinds resolve by override or merge instead is read off how a resource pack supplies
+      them and is
+
+      not measured here. excluding them costs the product nothing it needs, so the cheaper posture
+      is to stay out
+
+      rather than to establish the behaviour first.
   - id: d-ro5pj8er
     title: pack pairing is enforced at build time, which is the only place identity is checkable
     statement: >

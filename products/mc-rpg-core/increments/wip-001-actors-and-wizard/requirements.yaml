@@ -18,6 +18,10 @@ terms:
     definition: >
       a named, complete description of one kind of actor, comprising its appearance and its default
       name, which an adventure spawns by naming.
+  - id: actor-handle
+    definition: >
+      what a spawn call gives an adventure back: the actor it created, and whatever the adventure
+      may do to that actor afterwards.
 presets:
   - name: minecraft-addon
     version: 4
@@ -150,14 +154,3 @@ requirements:
     scope:
       - library
       - assets-pack
-model:
-  - name: actor-preset
-    status: unbound
-    description: |
-      the named description of one kind of actor, which an adventure spawns by naming: the actor's
-      appearance and its default name. its shape is fixed when the library's surface is authored.
-  - name: actor-handle
-    status: unbound
-    description: |
-      what a spawn call gives an adventure back — the actor it created, and whatever the adventure
-      may do to that actor afterwards.

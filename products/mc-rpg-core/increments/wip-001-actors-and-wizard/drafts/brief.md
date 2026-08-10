@@ -208,6 +208,25 @@ internal names resolve across the whole pack stack rather than within their own 
 them and two adventures' packs collide on the rest, which renders one adventure's actor with another's
 geometry — a subtler fault than a missing pack, and a harder one to see.
 
+The namespace does not have to be applied by a transform. Majors are rare, so the names can simply be
+*authored* with the current major in them, and the build's job reduces to a lint that every declared name
+carries it. That is a great deal less to get wrong than a rewrite: exhaustiveness stops being a property one
+hopes a transform achieved and becomes a check that fails loudly when a new asset is added without its
+namespace. `d-i8pjw2on` fixes that names carry the major, not how they come to.
+
+`d-ny9lcyjg` bounds what the pack may hold, because not every resource-pack kind has a name to qualify.
+Entity definitions, geometry, textures, materials, render controllers, animations, animation controllers,
+particles, fogs and attachables all name what they declare, so the namespace reaches them — around eight
+names for an actor with a model, a texture and animations, and file names are not among them since only the
+identifier inside a file is referenced. Textures are the exception, addressed by path, so their location is
+their name.
+
+What the pack must stay out of is the kinds a resource pack supplies as a whole file — `blocks.json`,
+`sounds.json`, `biomes_client.json`, the `texts` translation files, the `ui` tree. Those hold no name to
+qualify, so two majors supplying one of them contend over the file and no namespace separates them. An actor
+needs none, so the exclusion is free; it is recorded because a preset that later wants a custom sound event
+would otherwise reintroduce the contention quietly.
+
 Sharing within a major is only safe if a later release never withdraws what an earlier adventure names, so
 `d-5f011w0o` holds the assets pack to adding within a major and has the build refuse a release that
 removes. The compatibility surface this constrains is small: the set of actor identifiers, and nothing
