@@ -120,6 +120,22 @@ requirements:
       - verify: none of them states or implies that an actor will render
     scope: library
 
+  - id: r-pop72yk6
+    title: an adventure never runs against a version of the product it was not built against
+    statement: |
+      where the version of this product present in a world is not the one an adventure was built against,
+      the adventure fails and says so rather than running. it is never left to behave as though the two
+      agree.
+    rationale: |
+      a world can hold several installed adventures, each carrying its own copy of this product, and a
+      world asked for a version it does not have loads a different one silently. without this the older
+      adventure runs against newer assets, and the way that presents is an actor nobody can see.
+    verification:
+      - do: install two adventures built against different versions of this product in one world, then run both
+      - verify: the adventure whose version is not the one present failed, and named the version it expected
+      - verify: it did not spawn an actor
+    scope: library
+
   - id: r-rpcudvbl
     title: a wizard preset
     statement: |

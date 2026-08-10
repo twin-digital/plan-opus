@@ -60,3 +60,16 @@ runs:
       client and reported what each actor looked like, and that report is transcribed verbatim in the
       output file alongside the captured server-side half. A visual observation by one person on one
       client, not a measurement.
+
+  - id: duplicate-uuid-probe
+    command: node evidence/minecraft/rpg-core/duplicate-uuid-probe/probe.mjs
+    output: evidence/minecraft/rpg-core/duplicate-uuid-probe/OUTPUT.txt
+    ran_at: 2026-08-10
+    environment: |
+      The same containerised Bedrock 1.26.43.1 harness. Two behavior packs declaring one shared uuid but
+      distinguishable content — one defines entity `dup:from_a`, the other `dup:from_b` — are placed in the
+      pool together across seven scenarios that vary the versions each copy declares, the version the
+      world's activation list names, whether the list names the uuid twice, and the directory names the
+      copies sit in; a resource-pack pair sharing a uuid is covered too. A separate observer pack with its
+      own uuid reports which entity type resolves, and so which copy won, plus the client pack stack count.
+      Both pools are emptied per scenario and each scenario runs against its own freshly generated world.

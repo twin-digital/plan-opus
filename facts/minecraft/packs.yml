@@ -635,3 +635,55 @@ facts:
         where: scenario withrp — the resource pack's structure cannot be fetched
         quote: |
           [2026-08-10 04:17:13:867 WARN] [Scripting] PROBE bp structure-get-rp=undefined
+
+  - id: duplicate-pack-copies-are-deduplicated-and-the-activation-pin-selects
+    claim: |
+      A server's pool may hold several directories declaring the same pack uuid, and this is tolerated
+      silently: one copy loads, the others are ignored, nothing is logged, and the pack appears once in
+      the stack. Naming the same uuid twice in a world's activation list is likewise absorbed — still one
+      stack entry. Two resource-pack directories sharing a uuid behave the same, the client pack stack
+      counting one of them. Which copy loads is chosen by the version the activation list names, not by
+      which version is highest: with copies at 1.0.0 and 1.1.0 in the pool, a list naming 1.0.0 loaded the
+      1.0.0 copy and a list naming 1.1.0 loaded the 1.1.0 copy. A pin no copy satisfies does not fail —
+      naming 1.2.0 against that same pool loaded 1.1.0. So a world silently runs a version other than the
+      one its activation list asks for rather than refusing to load the pack.
+    backing: tested
+    caveat: |
+      Between copies of identical version the choice is not attributable to anything a creator controls:
+      inverting the directory names so the other copy sorted first did not change which one won, and in
+      both ties the first-copied directory won, which is consistent with pool enumeration following
+      creation order rather than name order. That does not matter for genuine duplicates, which are copies
+      of one build, and should not be relied on otherwise. Untested: a pin *below* the lowest version in
+      the pool, and whether the same selection rule governs the client's own import path, where the
+      documented rule — higher version replaces, same or lower ignored — describes importing rather than a
+      server pool [[f:manifest-declares-pack-identity-version-and-module-kinds]].
+    sources:
+      - run: duplicate-uuid-probe
+        where: scenario A — two behavior directories, one uuid, one version
+        quote: |
+          bp pool dirs: bp_a_v1 bp_b_v1 observer   rp pool dirs: (none)
+      - run: duplicate-uuid-probe
+        where: scenario A — one stack entry and one copy's content
+        quote: |
+          [2026-08-10 05:50:46:407 WARN] [Scripting] PROBE entityType-dup:from_a=defined
+          [2026-08-10 05:50:46:407 WARN] [Scripting] PROBE entityType-dup:from_b=undefined
+      - run: duplicate-uuid-probe
+        where: scenario C — the activation list names the uuid twice
+        quote: |
+          behavior activation list: [{"pack_id":"8e5c0000-0000-4000-8000-000000000001","version":[1,0,0]},{"pack_id":"8e5c0000-0000-4000-8000-000000000001","version":[1,0,0]},{"pack_id":"8e5c0000-0000-4000-8000-000000000003","version":[1,0,0]}]
+      - run: duplicate-uuid-probe
+        where: scenario B — pool holds 1.0.0 and 1.1.0, the list pins 1.0.0
+        quote: |
+          [2026-08-10 05:50:42:415 INFO] Pack Stack - [00] dup copy a v1.0.0 (id: 8e5c0000-0000-4000-8000-000000000001, version: 1.0.0) @ development_behavior_packs/bp_a_v1
+      - run: duplicate-uuid-probe
+        where: scenario E — the same pool with the list pinning 1.1.0
+        quote: |
+          [2026-08-10 05:51:53:101 INFO] Pack Stack - [00] dup copy b v1.1.0 (id: 8e5c0000-0000-4000-8000-000000000001, version: 1.1.0) @ development_behavior_packs/bp_b_v11
+      - run: duplicate-uuid-probe
+        where: scenario G — the list pins 1.2.0, which no copy in the pool is
+        quote: |
+          behavior activation list: [{"pack_id":"8e5c0000-0000-4000-8000-000000000001","version":[1,2,0]},{"pack_id":"8e5c0000-0000-4000-8000-000000000003","version":[1,0,0]}]
+      - run: duplicate-uuid-probe
+        where: scenario F — directory names inverted so the other copy sorts first
+        quote: |
+          bp pool dirs: zz_copy_a_v1 aa_copy_b_v1 observer   rp pool dirs: (none)

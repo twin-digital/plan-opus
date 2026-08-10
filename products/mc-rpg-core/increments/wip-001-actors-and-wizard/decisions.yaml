@@ -223,6 +223,49 @@ decisions:
       - f:an-entitys-server-side-size-does-not-reflect-its-resource-pack
       - f:a-resource-pack-cannot-carry-anything-a-script-can-reach
 
+  - id: d-hybkhum6
+    title: an adventure's release archive bundles the assets pack, so an install is one file
+    statement: |
+      an adventure's release archive contains this product's packs alongside its own, so installing an
+      adventure is installing one archive and nothing else. no separate installation of the assets pack is
+      required, and several adventures installed together each carrying a copy is the expected state rather
+      than a fault.
+    status: proposed
+    pinned:
+      reason: other
+      notes: what an operator installs, and how many pieces they must keep in step
+    supersedes: d-7uvpewdk
+    scope: [library, assets-pack]
+    because:
+      - r-e8p2oto6
+      - d-knzip5zc
+      - f:duplicate-pack-copies-are-deduplicated-and-the-activation-pin-selects
+      - f:release-archives-follow-pack-content
+
+  - id: d-38ehbk8j
+    title: the assets pack states its version as an entity type, and the library asserts it
+    statement: |
+      the assets pack defines one entity type whose identifier carries the pack's own version, and the
+      library — which knows the version it was built against — checks that identifier before acting. where
+      it does not resolve, the call throws naming the version the library expects and the fact that a
+      different one is present.
+
+      this is what makes the version an adventure runs against observable at all: the pack's declared
+      version is not readable from a script, and a world that cannot satisfy the version its activation
+      list names loads a different one without saying so.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: the identifier is a contract between the two packages and changes with every version of the assets pack
+    scope: [library, assets-pack]
+    because:
+      - r-pop72yk6
+      - d-xobjyw2e
+      - d-hybkhum6
+      - f:duplicate-pack-copies-are-deduplicated-and-the-activation-pin-selects
+      - f:an-entity-type-can-be-looked-up-by-identifier-without-spawning
+      - f:an-entity-type-resolves-for-a-script-in-any-other-loaded-pack
+
   - id: d-ro5pj8er
     title: pack pairing is enforced at build time, which is the only place identity is checkable
     statement: |

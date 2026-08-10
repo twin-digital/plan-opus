@@ -43,11 +43,9 @@ states the bundler's entry itself. So one package cannot emit both a pack and an
 entry. That is a property of the kit, asserted here from its published behaviour — another product's
 decisions are not citable, and this did not warrant a fact of its own.
 
-`d-7uvpewdk` keeps the assets pack out of each adventure's release archive. Bundling a copy per
-adventure would put two packs carrying the same header uuid in one world, which is what a manifest
-dependency identifies its target by. That this is an outright conflict rather than a tolerated
-duplicate is untested, and the decision does not rest on it: one installation is also the only way an
-asset refresh reaches every adventure at once.
+How the two reach a server is a separate question from how they are built, and it is settled further
+down: an adventure's archive carries this product's packs with it (`d-hybkhum6`), which makes an install
+one file rather than two things to keep in step.
 
 ## Why one identifier per preset
 
@@ -107,9 +105,9 @@ at build time or not at all, which is `d-knzip5zc`'s npm route — now evidenced
 Two things the probe found that nobody asked it:
 
 **A declared dependency activates the pack it names.** A world listing only the consumer loaded the
-provider too, pulled in by the consumer's `dependencies` entry. So an adventure declaring the assets
-pack does not also need the world's activation list to name it — which is most of why `d-7uvpewdk`
-installs the assets pack once rather than bundling copies.
+provider too, pulled in by the consumer's `dependencies` entry. So an adventure declaring the assets pack
+does not also need the world's activation list to name it — the pack has only to be in the pool, which is
+what makes a bundled install work without an operator editing activation lists.
 
 **An unsatisfiable dependency is not enforced.** With the depended-on pack absent, the dependent
 loaded and ran normally; the only symptom was the entity type failing to resolve. The manifest is a
@@ -185,6 +183,30 @@ resource-pack-supplied identifier than for a bogus one. Both refuse at the selec
 identifier when no player is connected, and both need cheats, so neither is a foundation the library
 could rest on.
 
+## Why an adventure bundles the assets pack
+
+Installing two things and keeping them in step is a worse burden than it looks for the audience here, so
+an adventure's archive carries this product's packs with it (`d-hybkhum6`). Several adventures installed
+together then each hold a copy, and that is safe: a pool holding several directories that declare one pack
+uuid loads one of them silently — no error, one stack entry, and naming the uuid twice in a world's
+activation list is absorbed too.
+
+Which copy loads is chosen by the version the activation list names, not by which is highest. That much is
+deterministic. What is not safe is the case a pin cannot satisfy: asked for a version no copy in the pool
+is, the server loads a different one and says nothing. So the hazard bundling introduces is not a
+collision, it is a silent substitution — and the way a substituted assets pack presents is the invisible,
+unfindable actor above.
+
+`d-38ehbk8j` closes that: the assets pack states its own version as an entity identifier, and the library,
+which knows what it was built against, looks that identifier up before acting. The pack's declared version
+is not readable from a script, so an identifier is what makes it observable — and this is the one identity
+check the product has, rather than mere presence. `r-pop72yk6` is the owner's fiat behind it.
+
+Note what it does and does not reach. It establishes that the *definitions* are the expected version. It
+says nothing about the resource pack, which no script can see at all — the two ship in one archive and the
+build enforces the pairing (`d-ro5pj8er`), so a correct definitions version is strong evidence about the
+appearance without being proof of it.
+
 ## What a resource-pack dependency does and does not do
 
 A behavior pack declaring a resource pack by uuid loads and runs perfectly well with that resource pack
@@ -194,6 +216,6 @@ manifest buys no enforcement, exactly as for a behavior-pack dependency.
 What it does buy is activation. With the resource activation list *empty* and the pack merely present in
 the pool, the client stack count matched the fully-listed control. So `world_resource_packs.json` need not
 name a resource pack that an active behavior pack depends on — presence in the pool is the requirement.
-That is worth knowing for `d-7uvpewdk`: installing the assets pack once puts it in the pool, and every
-adventure that declares it gets it activated without touching the world's resource list.
+That is what makes `d-hybkhum6` workable: an adventure's archive puts the assets pack in the pool, and
+the adventure's own manifest dependency is enough to activate it — nobody has to edit a resource list.
 
