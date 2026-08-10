@@ -98,27 +98,29 @@ decisions:
     facets: fakes
 
   - id: d-dub2g4kr
-    title: the registry does not gate entity creation
+    title: creating an entity consults the registry
     statement: |
-      Creating a fake entity neither consults the registry nor writes to it, so a test may create an
-      entity of a type it never registered. This diverges from the engine, where a lookup and a
-      spawn agree, and the divergence is stated as the library's own where a user of the library
-      will find it.
+      Creating a fake entity resolves its type through the bundle's registry and throws
+      InvalidArgumentError naming the identifier where nothing registers it, as the engine does.
+      The registry starts empty, so a test arranges the types it creates — through a preset for the
+      vanilla set, and by registration for a pack's own.
     status: proposed
     pinned:
       reason: other
       notes: |
-        A consumer-visible behaviour rather than a surface: a suite creating an unregistered entity
-        succeeds here and would fail against the engine.
+        A consumer-visible behaviour rather than a surface: a suite creating an entity of a type it
+        never registered is refused.
     because:
       - f:entity-type-lookup-agrees-with-spawnability
-      - r-nmkxdrga
-      - r-qak2scbs
-      - r-ovyzy5ey
-      - r-8r8gf6b7
+      - f:entity-type-lookup-argument-guards
+      - d-1g2k3g56
+      - r-0lbj68w9
+      - r-62r76czb
     revisit_when:
-      - packs come to rely on the fakes refusing an unregistered type, so the divergence hides the
-        bug it was meant to leave visible
+      - arranging the registry costs more preamble than the misspelt-identifier bug it catches is
+        worth, the vanilla preset having stopped covering what tests create
+      - a pack legitimately creates entities of types no world registers, so agreeing with the
+        engine here refuses a test the engine would not
     facets: fakes
 
   - id: d-m6ryo7ea
@@ -177,4 +179,27 @@ decisions:
     revisit_when:
       - tests routinely convert an `EntityType` back to a string to reach `createEntity`, so the
         narrower control-plane signature costs more than the symmetry is worth
+    facets: fakes
+
+  - id: d-1g2k3g56
+    title: four presets ship, and the vanilla pair composes into one call
+    statement: |
+      Four presets ship: `withVanillaDimensions`, `withVanillaEntityTypes`, `withVanillaWorld` —
+      which supplies those two and nothing else — and `asSpawnedEntity`, which is per-entity and
+      stands outside the composite. The vanilla entity-type ids come from `@minecraft/vanilla-data`
+      rather than hand-authored. Widening the composite is a supersession of this decision.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: |
+        The composite's membership is fixed here so it cannot widen silently into the implicit
+        defaults r-qak2scbs forbids.
+    supersedes: d-fkbx974k
+    because:
+      - r-b92y0kb7
+      - r-qak2scbs
+      - f:entity-type-registry-holds-pack-defined-types
+    revisit_when:
+      - a third server-scoped vanilla preset ships and the composite's fixed membership makes every
+        consumer opt into it by name, so the composite saves nothing
     facets: fakes
