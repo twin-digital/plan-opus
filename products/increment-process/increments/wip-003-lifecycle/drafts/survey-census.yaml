@@ -1,0 +1,365 @@
+# Survey census — dispatched 2026-08-10 against the stacked draft fold (wip-001 components,
+# wip-002 statement-discipline, wip-003 lifecycle), one read-only implementer per package.
+# Classification is Clarify's: decided (a foundation determines it), deferred (a ruled
+# deferral hands it off), detail (implementation detail — no consumer could observe it, no
+# reimplementation must preserve it; includes instruction/document composition the Compose
+# wave settles against the fold), or closed-by (a foundation this survey caused to be written
+# or edited).
+
+packages:
+  - path: nodejs/plan/design-process
+    census:
+      - choice: materialize scope into descendant sets, or resolve late by ancestor-walk
+        classification: detail
+        note: late resolution is the reading consistent with d-rplsevuk; not contract
+      - choice: superseded_by chains followed transitively; cycle/dangling handling
+        classification: detail
+        note: transitive with cycle guard; unresolvable terminus is a finding — validator behavior under d-cc3nilxq
+      - choice: may a draft foundation scope to a retired component with superseded_by
+        classification: decided
+        note: d-cc3nilxq resolves published references; a new scope names a live component per d-hl3l8df0 ("a scope naming no live component is a validator finding")
+      - choice: does superseded_by lift the live-children guard
+        classification: decided
+        note: d-cc3nilxq's resolution clause reaches scope references; a child's parent ref is not a scope reference — re-parenting is explicit
+      - choice: do component ids and term slugs share a namespace with preset/model names
+        classification: detail
+        note: scope fields carry bare slugs read positionally; collision across blocks observable by no consumer today
+      - choice: scope list naming ancestor and descendant — normalize or find
+        classification: detail
+      - choice: what a word is for the budget (backticked identities, hyphens)
+        classification: detail
+        note: single implementation; the finding message documents the count
+      - choice: budget keyed off the file's declared dialect
+        classification: decided
+        note: d-kjeqksd8 — "in the dialects that carry commentary"
+      - choice: are titles / one-line definitions budgeted; how "one line" is checked
+        classification: detail
+        note: literal newline-absence; no second budget was ruled
+      - choice: finding granularity per entry vs per clause
+        classification: detail
+      - choice: which commands take the commentary flag; JSON behavior
+        classification: detail
+        note: one rule behind one flag; surface naming is the implementer's
+      - choice: what "the fold an implementation binds to" is mechanically
+        classification: closed-by
+        note: d-u5q2wh44 edited — projection at a published increment refuses the ask
+      - choice: is rationale treated as excluded commentary
+        classification: closed-by
+        note: d-msopc76y retires rationale outright
+      - choice: commentary in diff/conflicts output
+        classification: detail
+        note: neither carries statement text today
+      - choice: term-matcher corpus (statements, titles, cases, commentary, adopted text)
+        classification: detail
+        note: reports only (d-lb99q03v); adopted text excluded per d-x9x3fxp4
+      - choice: normalization beyond case and hyphen/space (plurals)
+        classification: detail
+        note: d-bgoclt56's enumeration is the resolution rule; the report matcher may cast wider, it only reports
+      - choice: overlapping-term match policy
+        classification: detail
+      - choice: severity/report channel absent from Finding
+        classification: closed-by
+        note: d-8y5vmff8 — findings gate, reports inform, both name their product
+      - choice: term-retirement guard vs report-only usage detection
+        classification: closed-by
+        note: d-lb99q03v edited — the guard is the one usage-fed gate
+      - choice: substance-freeze base; --static-only behavior
+        classification: detail
+        note: same base as other change rules; a silent skip is the implementer's to avoid
+      - choice: what the closure transition permits (field allowlist, file moves, reflow)
+        classification: detail
+        note: field-level diff over {status, reason, superseded_by}; ids are file-independent
+      - choice: freeze applies to @1 entries; revival refused
+        classification: decided
+        note: d-vkudjo4x scopes by in-force-at-head, not dialect; retired→active is a substance change
+      - choice: may new @1 pool files be created after @2 exists
+        classification: detail
+        note: the pool is bi-dialect; nothing rules new @1 files out, nothing needs to
+      - choice: how the gate reads the backlog branch (offline, CI)
+        classification: detail
+        note: implementation reads the ref the checkout carries; d-hxxlgaw9 fixes the requirement, not the transport
+      - choice: what makes a backlog item "carried by" the change
+        classification: detail
+        note: match by the retired fact's id in the item body — the only mechanism consistent with braindump items
+      - choice: distinguishing this change's item from a stale one
+        classification: detail
+        note: any live item naming the fact satisfies; adoption drains it
+      - choice: which products count as citing
+        classification: decided
+        note: in-force foundations at the published fold — d-hxxlgaw9 says "in-force"; drafts on other branches are invisible to the gate by construction
+      - choice: expressing a per-product landing block with one exit code
+        classification: closed-by
+        note: d-8y5vmff8
+      - choice: may a new entry cite an already-retired fact
+        classification: closed-by
+        note: d-hxxlgaw9 edited — post-retirement citers are ordinary findings
+      - choice: is the old citation-fact-retired rule renamed or downgraded
+        classification: detail
+      - choice: diff JSON amended/superseded buckets after amends retires
+        classification: detail
+        note: keep both keys; amended empties going forward
+      - choice: session writes reason vs rejection_reason by dialect
+        classification: detail
+        note: write by the target file's declared version — entailed by every-file-names-its-schema
+      - choice: does a retired preset adoption stay visible in the fold
+        classification: detail
+        note: d-cizeaklk makes it an entry with a status; rendering is the projection's
+      - choice: does unbound still delete a model entry from the fold
+        classification: decided
+        note: d-vax1016k folds by name with three statuses; unbound is a present entry without a binding
+      - choice: same preset adopted at two scopes in one increment
+        classification: closed-by
+        note: d-ekoz1t47 — two paths union; one increment declaring twice folds by name as ever
+      - choice: collectIds and uniqueness across both id dialects and pool dirs
+        classification: detail
+      - choice: does the id command expose f and run
+        classification: decided
+        note: d-kqofgshc ratifies the prefixes; a generator that cannot mint them fails the decision
+      - choice: where the per-kind prefix registry lives
+        classification: decided
+        note: r-buek5llj makes naming a prefix an owner act — a design-time ruling, not a config surface
+      - choice: does the taken-set scan git history
+        classification: detail
+      - choice: scope composition through the preset closure
+        classification: closed-by
+        note: d-ekoz1t47 — the adoption's scope is the adopter's; deeper scopes do not constrain it
+      - choice: adopted requirement's own scope field in the adopter
+        classification: closed-by
+        note: d-ekoz1t47 — names the declaring product's tree; inert in the adopter
+      - choice: two paths, same version, different scopes
+        classification: closed-by
+        note: d-ekoz1t47 — union
+      - choice: scope-aware preset-conflict detection
+        classification: detail
+      - choice: does coverage completeness become per-package
+        classification: decided
+        note: no draft decision changes the record's completeness rule; it stays whole-product, the mapping serving reporting and dispatch
+      - choice: mapping direction (package declaring ancestor answers for descendants)
+        classification: decided
+        note: d-rplsevuk's subtree reading — a package declaring X answers for X and beneath; a root-scoped claim is everyone's
+      - choice: claim whose scope resolves to no declaring package
+        classification: detail
+        note: report, not finding — product.yaml is descriptive and gate-free by d-8itv1czm's regime
+      - choice: package declaring an unknown or retired component
+        classification: detail
+        note: report; the ordinary state right after a retirement lands
+      - choice: projection scope filter replacing --facet
+        classification: decided
+        note: d-hfbf4eb7 — scope filters arrive; published dialects keep their facets readable, which is the tooling's ordinary multi-dialect duty
+      - choice: session gains a pinning-ruling axis
+        classification: deferred
+        note: implementation work its companion increment carries; d-lks6pry8 names the owner ruling both together
+      - choice: detail pane renders cases and commentary; ratify-screen bump
+        classification: deferred
+        note: the implementation proposes ratify-screen@5 as an ordinary design increment — the abort-and-retarget path
+      - choice: cases/commentary layout in the pane
+        classification: detail
+      - choice: staged writes refuse fields the target dialect cannot carry
+        classification: detail
+        note: entailed by every-file-names-its-schema; the writer reads the version it writes
+      - choice: header counts components and terms as changed inputs
+        classification: decided
+        note: the header's stated job — inputs the ruling list does not hold — reaches them; composition applies it
+  - path: docs/process-reference.md
+    census:
+      - choice: traces for retired vocabulary vs silent absence
+        classification: detail
+        note: composition, coordinated with the migration document's allocation at the Claims wave
+      - choice: components section placement and shape
+        classification: detail
+      - choice: YAML examples for components and terms
+        classification: detail
+      - choice: stating the retirement guard once or per vocabulary
+        classification: detail
+        note: d-05hxj5wc names it one model; composition follows
+      - choice: named sections for the regimes and protection models
+        classification: detail
+        note: they exist to be cited — composition gives them stable homes
+      - choice: successor section for statements/commentary/cases/budget
+        classification: detail
+      - choice: how much conformance-case successor is stated
+        classification: closed-by
+        note: d-dbl5f6zb defers authoring/vetting to the owner; the reference states the deferral
+      - choice: stating the budget numbers and the counting rule
+        classification: detail
+        note: numbers stated (ruled); the count is the validator's, documented in its finding
+      - choice: naming the commentary opt-in surface
+        classification: closed-by
+        note: d-u5q2wh44 edited — published-fold refusal is the rule the reference states; flag naming stays implementation
+      - choice: ratify-screen conflict with commentary display
+        classification: deferred
+        note: ratify-screen@5 arrives via the implementation's companion; the reference states the claim loosely until the surface lands
+      - choice: blanket policy for @N citations in prose
+        classification: detail
+        note: composition convention — current dialect named, carve-outs only where a published source reads differently
+      - choice: facts-pool bi-dialect presentation
+        classification: detail
+      - choice: where the backlog-debt gate is stated (facts vs backlog section)
+        classification: detail
+        note: the backlog section must stop reading as gate-free-everywhere; composition places the exception once
+      - choice: identifiers section covers slug identities beside generated ids
+        classification: detail
+      - choice: stating term normalization normatively
+        classification: decided
+        note: d-bgoclt56 is normative for authors; d-lb99q03v keeps the validator heuristic — both stated, no conflict
+      - choice: projection grouping semantics under scope
+        classification: decided
+        note: d-rplsevuk determines membership — filtering a component shows every claim reaching it, ancestors' included
+      - choice: does the boundaries-are-decision-content sentence survive facets
+        classification: detail
+        note: its content is sharper now; composition keeps it
+      - choice: coverage-resolution statement and the no-declaring-package case
+        classification: decided
+        note: completeness stays whole-product; the unaddressed-claim case is a report (see CLI census)
+      - choice: product retirement's home and tooling silence
+        classification: detail
+        note: d-i849afta states what is ruled; listing behavior is implementation
+      - choice: components and terms in the foundations list
+        classification: detail
+  - path: docs/process-migration.md
+    census:
+      - choice: does scope extend to intra-process retirements
+        classification: decided
+        note: precedent — the document already carries wave-tags and reversal-cost entries, both intra-process vocabulary
+      - choice: which retirements get entries, at what granularity
+        classification: detail
+      - choice: where the why comes from for compressed supersessions
+        classification: decided
+        note: the document's stated purpose is holding reasoning the affirmative documents drop; the fold's outcome binds, the argument may be fuller
+      - choice: conversion instructions the delta invalidates (verification, revisit_when)
+        classification: detail
+        note: the document records what the conversion did; rewriting it to the new dialect would make it lie
+      - choice: facets column of the designs table
+        classification: detail
+        note: annotate as historical; asserting component trees for other products is out of bounds
+      - choice: recording the pool id-dialect change under Sweeps
+        classification: detail
+      - choice: refreshing the wider-scopes entry for dropped→retired
+        classification: detail
+      - choice: three-document boundary statement
+        classification: detail
+  - path: docs/authoring.md
+    census:
+      - choice: checklist renumbering
+        classification: detail
+      - choice: row granularity for arriving tests
+        classification: detail
+      - choice: EARS template subset and examples
+        classification: detail
+        note: composition; d-pxlmdkz1 rules the trial, the content is the document's — owner reviews the doc PR
+      - choice: marking EARS as a second, weaker tier
+        classification: detail
+      - choice: reconciling "no validator rule" with the budget
+        classification: detail
+        note: the budget is the reference's rule; authoring teaches living inside it
+      - choice: commentary vs rationale vs drafts boundary
+        classification: closed-by
+        note: d-msopc76y retires rationale; the remaining boundary is commentary (entry-level) vs drafts (increment-level), already ruled
+      - choice: Scope section name collision with the scope field
+        classification: detail
+        note: rename the prose test to subject; composition
+      - choice: authoring test for when to scope
+        classification: detail
+        note: composition; the asymmetry (absent binds everything) is the test's content
+      - choice: what the extraction triggers are
+        classification: detail
+        note: composition writes second-gloss/collision/bare-referent from the design discussion; reviewer-applied, owner reviews the doc
+      - choice: reviewer-applied terms tests
+        classification: detail
+      - choice: authoring test for cases
+        classification: detail
+      - choice: document subtitle and enumeration re-cut
+        classification: detail
+      - choice: pinning row rewritten against d-lks6pry8
+        classification: detail
+      - choice: facts-section tests for the new lifecycle
+        classification: detail
+        note: free-text reason quality is exactly a reviewer-applied test; composition adds it
+  - path: .claude/skills/increment
+    census:
+      - choice: components/terms in Clarify's authoring list; declaration ordering
+        classification: detail
+        note: composition; the validator's scope-resolves finding already enforces order
+      - choice: default scoping posture
+        classification: detail
+        note: authoring.md carries the test; the skill points
+      - choice: restate budgets or point
+        classification: detail
+      - choice: extraction-trigger pointer
+        classification: detail
+      - choice: how the owner sees commentary at ratify
+        classification: closed-by
+        note: d-u5q2wh44 edited; the session shows it, the surface bump arrives with implementation
+      - choice: where the fact-retirement duty is written
+        classification: detail
+        note: stated once in SKILL.md's shared lifecycle, both phases reach it
+      - choice: citer enumeration and item template
+        classification: detail
+      - choice: stale-fact finding in the expected-findings list
+        classification: detail
+        note: composition; the remedy routes into Clarify as ordinary design work
+      - choice: conflict-check sentence naming amends
+        classification: detail
+        note: the check reads published dialects that carry it; instruction states the current spelling and the tooling reads both
+      - choice: id line extended to new prefixes; slug vocabularies distinguished
+        classification: detail
+      - choice: survey dispatch narrowed by scope
+        classification: closed-by
+        note: d-2purxfdw — whole fold to every implementer
+      - choice: survey breadth when the delta is scoped
+        classification: closed-by
+        note: d-2purxfdw — whole-fold survey stands
+      - choice: how commentary stays out of what implementers read
+        classification: closed-by
+        note: d-u5q2wh44 edited — implementers bind to the published-fold projection; instruction routes them there
+      - choice: who writes component: into product.yaml
+        classification: decided
+        note: the existing division stands — implementers report, the dispatcher writes shared files; the mapping stays implementer-maintained through that channel
+      - choice: coverage completeness under scoped claims; unaddressed components
+        classification: decided
+        note: whole-product completeness unchanged; see CLI census
+      - choice: census format gains a scope field
+        classification: detail
+  - path: .claude/skills/implement-package
+    census:
+      - choice: implementer self-resolves scope or trusts dispatch
+        classification: closed-by
+        note: d-2purxfdw — the whole fold arrives either way; resolution answers coverage, not reading
+      - choice: implementer proposing a component-mapping change
+        classification: decided
+        note: reported like any outside-path change; the dispatcher writes it
+      - choice: Claims-wave selection under computable scope
+        classification: decided
+        note: selection stays judgement over everything in force (d-2purxfdw); scope informs allocation
+      - choice: telling implementers commentary exists and is absent
+        classification: detail
+        note: composition; the underdetermined-statement report goes through the existing open-question channel
+      - choice: underdetermined statement as a finding kind
+        classification: detail
+      - choice: reading the fold includes terms; declaring-scope resolution stated
+        classification: decided
+        note: d-amueiyj2 makes definitions binding — reading them is reading the fold; d-x9x3fxp4 is the rule instruction restates once
+      - choice: term coinage joins the escalation list
+        classification: decided
+        note: entailed by r-uc90eb7v — an input change the owner rules is already the escalation bar
+      - choice: implementer companion entries carry scope
+        classification: detail
+        note: the narrow-scoping rule the skill already states, now with a field to carry it
+      - choice: cases read, allocated, covered like statements
+        classification: decided
+        note: d-qv81x173 — normative like the statement; coverage and audits reach branches because they are the claim
+      - choice: succession spelling for implementer entries; closing state/pool entries
+        classification: decided
+        note: d-4i5k9nsi fixes the spellings; a companion is an ordinary increment and the guards apply to it as to any
+      - choice: frontmatter version under a stack
+        classification: decided
+        note: the record's target — the newest published increment at the record's merge — is the version, per the existing rule
+      - choice: document-wave audit gains a term-usage direction
+        classification: detail
+        note: composition; the shadow-decision framing extends to unratified coinage
+      - choice: conformance-case creation from an implementer's seat
+        classification: closed-by
+        note: d-dbl5f6zb — deferred to the owner; cite existing cases, otherwise attest
+      - choice: out-of-scope sightings in a survey census
+        classification: decided
+        note: moot under d-2purxfdw — dispatch is never narrowed

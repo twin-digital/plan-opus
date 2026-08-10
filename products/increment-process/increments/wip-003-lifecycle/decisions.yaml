@@ -97,7 +97,9 @@ decisions:
       the gate requires that change to carry a backlog item per citing product, naming the
       retired fact, its replacement, and the citing entries. An in-force foundation resting on
       a retired fact is a reported finding that blocks only its own product's next landing,
-      until a superseding entry re-bases or revises it.
+      until a superseding entry re-bases or revises it. An entry declared after the retirement
+      that cites the retired fact is an ordinary finding; staleness covers only citers that
+      predate it.
     status: proposed
     supersedes: d-08yrcfd7
     because:
@@ -122,6 +124,20 @@ decisions:
       - d-vkudjo4x
       - d-hxxlgaw9
     pinned: false
+
+  - id: d-8y5vmff8
+    title: findings gate, reports inform, and both name their product
+    statement: |
+      the check's output has two severities. A finding gates any merge and sets the nonzero
+      exit; a report gates nothing repo-wide. Each names the product it concerns where one
+      does, and a report the staleness model scopes to a product is enforced by that product's
+      own landing sequence, not by the check's exit.
+    status: proposed
+    because:
+      - d-hxxlgaw9
+      - d-lb99q03v
+    pinned:
+      reason: public-api
 
   # ids and products
   - id: d-kqofgshc
