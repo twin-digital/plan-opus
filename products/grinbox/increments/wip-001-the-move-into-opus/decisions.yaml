@@ -12,7 +12,7 @@ decisions:
       release, beside the checksum the workspace's release-assets hook writes. The infrastructure
       repository names one version, fetches both by URL, and verifies each against its checksum,
       rather than copying a source tree out of a checkout.
-    status: proposed
+    status: accepted
     because:
       - d-riyvvlx5
       - d-mq7vdduz
@@ -49,7 +49,7 @@ decisions:
       beside them. The daemon resolves the interface's assets as `web/` beside the directory its
       own entry point sits in, and an environment variable overrides that, so a deployment may
       put the interface elsewhere and say so.
-    status: proposed
+    status: tolerated
     because:
       - d-6ct1o00j
       - r-zpdecb2z
@@ -68,7 +68,7 @@ decisions:
       same number, so the deployment names a single version for the whole application and nobody
       pairs artifacts by hand. The grouping binds these three and nothing else — a release
       touching no grinbox package is unaffected by it.
-    status: proposed
+    status: tolerated
     because:
       - d-cjjd5c0w
       - d-txqxjxvp
@@ -130,7 +130,7 @@ decisions:
       scheduled per account or per edition, so the latency a user sees is their account's
       interval plus up to one heartbeat. A heartbeat arriving while the previous cycle is still
       running does nothing.
-    status: proposed
+    status: delegated
     because:
       - r-0lg2c2e4
       - d-nq4fk2xr
@@ -151,7 +151,7 @@ decisions:
       the callback's own origin, which it derives from the consent URL it was handed. The
       daemon addresses the message to an opener origin the deployment configures, and to any
       origin where it configures none.
-    status: proposed
+    status: accepted
     because:
       - r-ieyj1wkn
       - r-ovi02v1m
@@ -169,7 +169,7 @@ decisions:
       grinbox's authorization flow sends a PKCE challenge and replays its verifier at the code
       exchange, though the daemon is a confidential client holding a secret. The verifier is
       minted with the correlation token, never leaves the daemon, and is discarded with it.
-    status: proposed
+    status: delegated
     because:
       - r-ovi02v1m
       - d-a1pf497w
@@ -186,7 +186,7 @@ decisions:
       and are consumed on first use; a token unknown, already used, or older than that is
       refused identically. They are never written to the state, so a restart during consent
       fails the flow in progress and the user begins it again.
-    status: proposed
+    status: delegated
     because:
       - d-a1pf497w
       - d-dbjiycvl
@@ -205,7 +205,7 @@ decisions:
       change, as renewing an authorization does. An entry carries no secret material. What
       grinbox seeds at install — the single user, and the caps that are the backstop — writes
       no entry, being nobody's action.
-    status: proposed
+    status: accepted
     because:
       - r-k6gh82fx
       - d-obzpbcml
@@ -226,7 +226,7 @@ decisions:
       it; deleting a pipeline releases the accounts running it, which then poll nothing; a
       credential an operator still names cannot be deleted until the operator stops naming it.
       A deleted name is free to take again.
-    status: proposed
+    status: accepted
     because:
       - r-k6gh82fx
       - d-yz5n7wmu
@@ -248,7 +248,7 @@ decisions:
       with no policy of its own is not retried. A retry stops at the operator's deadline. The
       poll path reaches its provider without passing through this, so a poll that fails waits
       for the next heartbeat.
-    status: proposed
+    status: tolerated
     because:
       - d-eqwrgoyv
       - d-v5zamgjn
