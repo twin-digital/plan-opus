@@ -85,7 +85,7 @@ properties:
           type: integer
           minimum: 1
         scope:
-          description: the component subtree the adoption applies to; the whole product when absent
+          description: the component subtree the preset applies to; the whole product when absent
           oneOf:
             - type: string
               pattern: "^[a-z0-9][a-z0-9-]*$"
@@ -95,8 +95,8 @@ properties:
                 type: string
                 pattern: "^[a-z0-9][a-z0-9-]*$"
         status:
-          enum: [adopted, retired]
-          description: adopted when absent
+          enum: [applied, retired]
+          description: applied when absent
         reason:
           type: string
           description: the retirement's reason, required when retired
