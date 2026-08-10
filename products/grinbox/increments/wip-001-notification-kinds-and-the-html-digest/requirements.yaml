@@ -20,7 +20,7 @@ terms:
     definition: |
       one firing of an edition for one account and occurrence.
 
-  - id: cap
+  - id: limit
     definition: |
       a bound on how often a resource operation may happen — per user, scoped to a rolling
       window or to a single message.
@@ -137,10 +137,37 @@ requirements:
       having declared which parts it wanted.
     supersedes: r-sfvm6ib3
 
+  # The limit ruling: the requirements' own statements carried into the settled word.
+
+  - id: r-q8vm3xtk
+    title: outside effects are limited, and the limit cannot be waived
+    statement: |
+      every effect grinbox has outside its own process is subject to a limit on how often it may
+      happen, and nothing the user configures can exempt an effect from its limit.
+    supersedes: r-llrpzkd1
+
+  - id: r-w6kq2mfp
+    title: outside effects are limited, and the limit cannot be waived
+    statement: |
+      every effect grinbox has that reaches the user, changes their mailbox, or costs money is
+      subject to a limit on how often it may happen, and nothing the user configures can exempt
+      an effect from its limit. Reading from a mail provider to learn what has arrived is not
+      such an effect and needs no limit.
+    supersedes: r-zmn2p7lf
+
+  - id: r-t4jn8zvw
+    title: running grinbox takes nothing but grinbox
+    statement: |
+      everything a user has to do to run grinbox — adding a mailbox, building and changing a
+      configuration, reading what happened, adjusting a limit, re-examining a message — is done
+      from grinbox's own interface. None of it requires a shell on the machine, or reading or
+      writing grinbox's stored state directly.
+    supersedes: r-bcbvl9g5
+
   - id: r-x3jb6wlq
     title: grinbox says what it needs
     statement: |
       the user learns from grinbox's own interface that something needs them — a mailbox whose
-      authorization lapsed, an operator that keeps failing, a cap being hit — rather than by
+      authorization lapsed, an operator that keeps failing, a limit being hit — rather than by
       going to look for it or by noticing that mail stopped being triaged.
     supersedes: r-56o7qts0

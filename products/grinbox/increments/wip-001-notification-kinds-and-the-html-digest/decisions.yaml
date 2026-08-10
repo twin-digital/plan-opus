@@ -35,24 +35,25 @@ decisions:
       reason: public-api
 
   - id: d-6ptxams7
-    title: the cooldown is the user's, and the caps still bind under it
+    title: the cooldown is the user's, and the limits still bind under it
     statement: |
       a notification kind's interval is a cooldown the user sets, changes, and removes at will. It
-      is not a cap: the seeded caps on the push resource bind underneath and stay beyond the user's
-      reach. A push the cooldown suppresses reaches no resource, so it spends no cap.
+      is not a limit: the seeded limits on the push resource bind underneath and stay beyond the
+      user's reach. A push the cooldown suppresses reaches no resource, so it counts against no
+      limit.
     commentary: |
-      Removing an interval exposes the caps rather than uncapping anything.
+      Removing an interval exposes the limits rather than loosening any bound.
     status: proposed
     because:
       - r-lph86tsg
-      - r-zmn2p7lf
-      - d-qv5l66ya
-      - d-eqwrgoyv
+      - r-w6kq2mfp
+      - d-b6zt4kpn
+      - d-g3xc9rmv
     pinned:
       reason: other
       notes: |
-        it fixes which of the two mechanisms the user may weaken, and a cooldown that spent a cap
-        would let a burst exhaust the backstop it was added to protect
+        it fixes which of the two mechanisms the user may weaken, and a cooldown that counted
+        against a limit would let a burst exhaust the backstop it was added to protect
 
   # From the survey census: the cooldown setting's shape and records.
 
@@ -68,7 +69,7 @@ decisions:
       - r-lph86tsg
       - d-vn2jdxbs
       - d-5amonj40
-      - d-obzpbcml
+      - d-e4mw6tzr
     pinned:
       reason: public-api
 
@@ -89,12 +90,12 @@ decisions:
     title: a cooldown change is recorded like any configuration change
     statement: |
       setting, changing, or removing a kind's interval is an accepted configuration change: it
-      writes a history entry as a cap change does — before and after, the action, when, and
+      writes a history entry as a limit change does — before and after, the action, when, and
       which user — and the cooldown joins the change log's entity vocabulary.
     status: proposed
     because:
       - r-k6gh82fx
-      - d-5xsm1hc6
+      - d-u7pn5wqk
       - d-k3wq81vn
     pinned:
       reason: data-format
@@ -117,7 +118,7 @@ decisions:
     title: a suppression is its own recorded outcome
     statement: |
       a suppressed push records as its own outcome kind in the attempt vocabulary, beside
-      succeeded, failed, and capped. The record carries the notification kind and the identifier
+      succeeded, failed, and skipped by limit. The record carries the notification kind and the identifier
       of the run whose push it deferred to, which the interface resolves to that run's triage.
     status: proposed
     because:
@@ -212,7 +213,7 @@ decisions:
     because:
       - r-8sg01qdd
       - d-zkb393z9
-      - d-c3dofuyf
+      - d-i5vy7bkm
     pinned:
       reason: other
       notes: it fixes what template text can and cannot do to the delivered markup
@@ -298,33 +299,166 @@ decisions:
       reason: other
       notes: a consumer-visible change to every surface showing a money tag
 
-  # The vocabulary pass: supersessions settling cap, category, provider, operator, digest,
+  # The vocabulary pass: supersessions settling limit, category, provider, operator, digest,
   # window, run, contract, and snapshot. Each restates its predecessor's ruling in the
   # settled vocabulary; none changes what is ruled.
 
-  - id: d-vg82mkoq
-    title: caps are per user, per operation, and scoped by window or by message
+  # The limit ruling: the entries that said cap, carried into the settled word.
+
+  - id: d-j8wm2qfx
+    title: a limit-denied operation is an outcome, not an error
     statement: |
-      a cap bounds a resource operation for a user, scoped either to a rolling window or to a
-      single message. Caps are checked before the operation reaches the outside service and are
-      not configurable per operator; the per-message scope is what makes re-triage safe, since
-      the counter is already spent.
+      an operation that a limit denies returns a distinguishable outcome — skipped by limit, as
+      against succeeded or failed — and the operator chooses what to make of it, most treating
+      it as a clean no-op. Every attempt, whichever way it went, is recorded against the run
+      that made it.
     status: proposed
-    supersedes: d-isyan49o
+    supersedes: d-coeyvi2n
     because:
+      - d-isyan49o
+      - r-2qw8xj5m
+    pinned:
+      reason: public-api
+      notes: |
+        the shape every operator implementation branches on
+
+  - id: d-b6zt4kpn
+    title: the limits grinbox seeds are the backstop, and the user's are layered over them
+    statement: |
+      grinbox seeds a limit for every operation it limits, and the seeded limits cannot be
+      removed or loosened by anyone. A user adds limits on top — stricter, or on an operation
+      not yet limited — and may remove what they added, leaving the seeded limit standing.
+      Where several limits bind one operation, the first to deny denies.
+    status: proposed
+    supersedes: d-qv5l66ya
+    because:
+      - r-q8vm3xtk
+      - d-isyan49o
       - r-zagpfz75
-      - d-v5zamgjn
     pinned:
       reason: other
       notes: |
-        the one backstop the user is promised, and its per-message scope is what another
-        requirement rests on
+        it is what makes r-q8vm3xtk true, and what r-zagpfz75 rests on — a replay cannot repeat
+        an effect only because the per-message limit it spends is one the user cannot delete
+
+  - id: d-g3xc9rmv
+    title: a limit counts operations, and a retry is part of the operation it retries
+    statement: |
+      a limit counts operations attempted, not calls made. Where grinbox retries an operation
+      that failed, the retries belong to the operation that spent the limit and do not spend it
+      again. The operations that reach the user are not retried at all, so this multiplies no
+      effect the user would see.
+    status: proposed
+    supersedes: d-eqwrgoyv
+    because:
+      - r-q8vm3xtk
+      - d-isyan49o
+      - d-j8wm2qfx
+    pinned:
+      reason: public-api
+      notes: |
+        what a configured number means, and a reimplementation counting calls would deny at a
+        quarter of the configured volume
+
+  - id: d-e4mw6tzr
+    title: everything is scoped to a user, though there is only one
+    statement: |
+      accounts, configurations, limits, and credentials are all recorded against a user
+      identity, and grinbox bootstraps the single user it serves at first start. Nothing
+      authenticates anyone, and the scoping exists so that authenticating someone later is an
+      addition rather than a reshaping of everything stored.
+    status: proposed
+    supersedes: d-obzpbcml
+    because:
+      - r-ovi02v1m
+      - d-dbjiycvl
+    pinned:
+      reason: data-format
+      notes: |
+        every stored record carries it, so introducing it later would be a migration of the whole
+        state rather than a new surface
+
+  - id: d-l9qh3xnw
+    title: measurements come from the triage records themselves
+    statement: |
+      what the interface reports about volume, cost, failures, and limits is computed from the
+      per-triage records grinbox already keeps. There is no separate store of measurements and
+      nothing is recorded twice.
+    status: proposed
+    supersedes: d-4t7lf4wd
+    because:
+      - d-dbjiycvl
+      - r-x3jb6wlq
+    pinned: false
+
+  - id: d-i5vy7bkm
+    title: prose is the only model involvement, and it cannot touch the items
+    statement: |
+      a section may carry prose before or after its items — fixed text, or a short passage a
+      model writes from the already-rendered items. Prose is the whole of a model's part in a
+      delivery: it cannot add, remove, or alter an item, and a passage that fails or is skipped
+      by its limit is dropped, and the delivery proceeds.
+    status: proposed
+    supersedes: d-c3dofuyf
+    because:
+      - r-i55lgsq8
+      - d-w4hn8qpv
+    pinned: false
+
+  - id: d-u7pn5wqk
+    title: every configuration change is recorded, with who made it
+    statement: |
+      each accepted change to an account, pipeline, operator, credential, or limit writes an
+      entry: what it was before and after, which of created, updated, enabled, disabled, or
+      deleted, when, and which user asked — or no user, where grinbox itself made the change.
+      An entry carries no secret material. What grinbox seeds at install writes no entry, being
+      nobody's action.
+    commentary: |
+      Renewing an authorization is a change grinbox makes itself. The seeded rows are the single
+      user and the backstop limits.
+    status: proposed
+    supersedes: d-5xsm1hc6
+    because:
+      - r-k6gh82fx
+      - d-e4mw6tzr
+      - d-8yht1ei9
+      - d-b6zt4kpn
+    pinned:
+      reason: data-format
+      notes: |
+        the stored history the interface reads back, and a later write path added without
+        knowing this leaves a change with no entry
+
+  - id: d-s2kf8vjq
+    title: deleting configuration keeps the history and stops the work
+    statement: |
+      nothing the user deletes leaves the state: an account, pipeline, operator, credential, or
+      limit is marked deleted and stops being acted on, while the messages and triages already
+      recorded stay and stay readable. A deleted name is free to take again.
+    cases:
+      - when: an account is deleted
+        then: its stored credentials are deleted with it
+      - when: a pipeline is deleted
+        then: the accounts running it are released, and then poll nothing
+      - when: an operator still names a credential
+        then: the credential cannot be deleted until the operator stops naming it
+    status: proposed
+    supersedes: d-yf30pvpd
+    because:
+      - r-k6gh82fx
+      - d-yz5n7wmu
+      - d-e4mw6tzr
+    pinned:
+      reason: other
+      notes: |
+        it fixes what a deletion costs the user and what every historical surface can still
+        read afterwards
 
   - id: d-a4yrn8sw
     title: the shared package declares the vocabulary, and the routes declare the envelopes
     statement: |
       the values inside a request or a response — the closed enums, the operator configurations,
-      the operator contract, the resource and cap registries, the refusal envelope — are declared
+      the operator contract, the resource and limit registries, the refusal envelope — are declared
       in the shared package both tiers import. The request and response envelopes are declared by
       the daemon's route definitions, and the browser application reads them by inference from
       those routes.
@@ -336,17 +470,17 @@ decisions:
     pinned: false
 
   - id: d-3jzcw7xt
-    title: a capped send fails the delivery, and an empty coverage window sends nothing
+    title: a limit-denied send fails the delivery, and an empty coverage window sends nothing
     statement: |
-      a delivery has no subject message, so per-message caps neither apply to it nor count
-      against it, while windowed caps bind as they do anywhere. Where a cap denies the send
+      a delivery has no subject message, so per-message limits neither apply to it nor count
+      against it, while windowed limits bind as they do anywhere. Where a limit denies the send
       itself, the delivery fails rather than being the clean no-op a denied per-message action
       is. A coverage window holding nothing to report completes without sending.
     status: proposed
     supersedes: d-dmylyoqs
     because:
-      - d-vg82mkoq
-      - d-coeyvi2n
+      - d-isyan49o
+      - d-j8wm2qfx
       - r-g6n22sn9
     pinned: false
 
@@ -428,13 +562,13 @@ decisions:
     status: proposed
     supersedes: d-q5j1ig1f
     because:
-      - d-eqwrgoyv
+      - d-g3xc9rmv
       - d-v5zamgjn
       - d-5xp2tv2d
     pinned:
       reason: other
       notes: |
-        d-eqwrgoyv rests on the operations reaching the user not being retried, and a retried
+        d-g3xc9rmv rests on the operations reaching the user not being retried, and a retried
         send is an effect the user sees twice
 
   - id: d-x8rw5jvq
