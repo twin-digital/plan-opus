@@ -20,6 +20,44 @@ terms:
     definition: |
       one firing of an edition for one account and occurrence.
 
+  - id: cap
+    definition: |
+      a bound on how often a resource operation may happen — per user, scoped to a rolling
+      window or to a single message.
+
+  - id: category
+    definition: |
+      the grinbox-owned marker put on a message through the backend's durable-metadata
+      mechanism, so the user sees it in their own mail client.
+
+  - id: operator
+    definition: |
+      one configured unit of a pipeline: it declares the tags it reads and produces and the
+      resource operations it reaches, and a triage runs it.
+
+  - id: provider
+    definition: |
+      the external mail service an account belongs to and authorizes against.
+
+  - id: digest
+    definition: |
+      the mail a delivery sends: one edition's rendering of one coverage window for one
+      account.
+
+  - id: edition
+    definition: |
+      an operator instance whose configuration carries the schedule it fires on.
+
+  - id: occurrence
+    definition: |
+      one due moment of an edition's schedule.
+
+  - id: coverage-window
+    display: coverage window
+    definition: |
+      the half-open span of intake time one delivery covers: after the last completed
+      delivery, up to when this one was claimed.
+
 requirements:
   - id: r-lph86tsg
     title: a burst of one notification kind costs one push
@@ -57,3 +95,52 @@ requirements:
     commentary: |
       Normalization exists so grinbox can compare values, and the form that serves comparison is
       not the form that serves a reader.
+
+  # The vocabulary pass: amendments carrying the requirements into the settled word for a
+  # pipeline's configured unit. Each restates its predecessor with no other change.
+
+  - id: r-2qw8xj5m
+    title: one operator's failure does not cost the rest
+    statement: |
+      where one operator of a message's triage fails, the operators that do not depend on it
+      still run, and what they produced is kept. A triage that partly succeeded is recorded as
+      such rather than discarded.
+    supersedes: r-1698i3qa
+
+  - id: r-9fkp4tzv
+    title: an operator reaches only what it declared
+    statement: |
+      an operator can reach outside grinbox only through the operations it declared, and
+      declaring an operation is what makes it reachable.
+    supersedes: r-p5jm5559
+
+  - id: r-c5nm7ryw
+    title: a configuration that could not run is refused when it is saved
+    statement: |
+      a triage configuration that could not run — one whose operators depend on something
+      nothing produces, that depends on itself, or that has two operators claiming the same
+      output — is rejected when the user saves it, naming what is wrong, rather than accepted
+      and found broken when mail arrives.
+    supersedes: r-qu9y7wgg
+
+  - id: r-dk3vq6tp
+    title: routing mail never requires a model
+    statement: |
+      grinbox can route a message without calling a model: what a pipeline decides can be
+      configured to depend only on the message itself and on what earlier operators recorded.
+    supersedes: r-xy0yd2nh
+
+  - id: r-hw8gn2fs
+    title: the whole message is available without asking for it
+    statement: |
+      every operator of a triage can read any part of the message it is triaging, without
+      having declared which parts it wanted.
+    supersedes: r-sfvm6ib3
+
+  - id: r-x3jb6wlq
+    title: grinbox says what it needs
+    statement: |
+      the user learns from grinbox's own interface that something needs them — a mailbox whose
+      authorization lapsed, an operator that keeps failing, a cap being hit — rather than by
+      going to look for it or by noticing that mail stopped being triaged.
+    supersedes: r-56o7qts0

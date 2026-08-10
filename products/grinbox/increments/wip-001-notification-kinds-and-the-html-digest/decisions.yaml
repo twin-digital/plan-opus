@@ -242,7 +242,7 @@ decisions:
     status: proposed
     because:
       - r-735kq72h
-      - d-04s2n18o
+      - d-x8rw5jvq
       - d-2dqylf0q
     pinned:
       reason: other
@@ -297,3 +297,308 @@ decisions:
     pinned:
       reason: other
       notes: a consumer-visible change to every surface showing a money tag
+
+  # The vocabulary pass: supersessions settling cap, category, provider, operator, digest,
+  # window, run, contract, and snapshot. Each restates its predecessor's ruling in the
+  # settled vocabulary; none changes what is ruled.
+
+  - id: d-vg82mkoq
+    title: caps are per user, per operation, and scoped by window or by message
+    statement: |
+      a cap bounds a resource operation for a user, scoped either to a rolling window or to a
+      single message. Caps are checked before the operation reaches the outside service and are
+      not configurable per operator; the per-message scope is what makes re-triage safe, since
+      the counter is already spent.
+    status: proposed
+    supersedes: d-isyan49o
+    because:
+      - r-zagpfz75
+      - d-v5zamgjn
+    pinned:
+      reason: other
+      notes: |
+        the one backstop the user is promised, and its per-message scope is what another
+        requirement rests on
+
+  - id: d-a4yrn8sw
+    title: the shared package declares the vocabulary, and the routes declare the envelopes
+    statement: |
+      the values inside a request or a response — the closed enums, the operator configurations,
+      the operator contract, the resource and cap registries, the refusal envelope — are declared
+      in the shared package both tiers import. The request and response envelopes are declared by
+      the daemon's route definitions, and the browser application reads them by inference from
+      those routes.
+    status: proposed
+    supersedes: d-qrxtbcei
+    because:
+      - d-5l0wqcj0
+      - d-ti7vexo3
+    pinned: false
+
+  - id: d-3jzcw7xt
+    title: a capped send fails the delivery, and an empty coverage window sends nothing
+    statement: |
+      a delivery has no subject message, so per-message caps neither apply to it nor count
+      against it, while windowed caps bind as they do anywhere. Where a cap denies the send
+      itself, the delivery fails rather than being the clean no-op a denied per-message action
+      is. A coverage window holding nothing to report completes without sending.
+    status: proposed
+    supersedes: d-dmylyoqs
+    because:
+      - d-vg82mkoq
+      - d-coeyvi2n
+      - r-g6n22sn9
+    pinned: false
+
+  - id: d-8wqk2nvy
+    title: which edition claims a message is a tag
+    statement: |
+      a message is slotted into an edition's digest by an ordinary tag with a closed set of
+      values, produced by an ordinary rule-based tagger. Editions claim values of that tag with
+      their sections, and the tag's fallback value means the message is never digested. Adding a
+      value is editing a configuration, not shipping code.
+    status: proposed
+    supersedes: d-fg96l5uu
+    because:
+      - d-w4hn8qpv
+      - d-f5hy6ptl
+    pinned:
+      reason: public-api
+      notes: |
+        the mechanism a user reshapes their digests through, and what section definitions are
+        validated against
+
+  - id: d-y7pm3kdz
+    title: editions of one pipeline claim disjoint values
+    statement: |
+      no two editions of a pipeline may claim the same value of the slotting tag, checked when
+      an edition is saved. With coverage windows disjoint by construction and claimed values
+      disjoint by validation, a message cannot reach two digests.
+    status: proposed
+    supersedes: d-nfsr4h6f
+    because:
+      - r-yq13riob
+      - d-8wqk2nvy
+      - d-506swwel
+    pinned: false
+
+  - id: d-q2hx8vlm
+    title: a backend is reached through two seams, and the poll seam is five operations
+    statement: |
+      a mail backend implements two seams. The poll seam carries what the poll path needs —
+      enumerating candidates, fetching metadata, applying a category, reporting thread placement,
+      and taking the whole-mailbox snapshot the reconcile reads. The resource backends carry what
+      an operator's declared operations reach: archiving, fetching a body, and sending mail.
+    status: proposed
+    supersedes: d-7a8aoi4z
+    because:
+      - r-etj0gluz
+      - d-v5zamgjn
+    pinned:
+      reason: public-api
+      notes: the surface a second backend is written against
+
+  - id: d-f9tj4wnr
+    title: a backend implements what it can, and the gap is visible
+    statement: |
+      a backend need not implement every mail operation — one that can read a mailbox but not
+      send is an ordinary case — and which operations a backend supports is declared rather than
+      discovered when an operation fails.
+    status: proposed
+    supersedes: d-z5opt8rp
+    because:
+      - d-q2hx8vlm
+      - r-etj0gluz
+    pinned: false
+
+  - id: d-m5zk9xcw
+    title: which outside calls grinbox retries
+    statement: |
+      grinbox retries an outside call within the operation that made it, invisibly to the
+      operator that declared it, and on any failure rather than a classified subset. A retry
+      stops at the operator's deadline. The poll path reaches its poll seam without passing
+      through this, so a failed poll waits for the next heartbeat.
+    cases:
+      - when: the call is a read — listing a mailbox, fetching a message's metadata or body, invoking a model
+        then: it takes up to three further attempts with a doubling wait
+      - when: the call is one of the two mailbox writes
+        then: it takes up to two further attempts at a fixed wait
+      - when: the call sends a notification or sends mail, or its operation has no policy of its own
+        then: it is never retried
+    status: proposed
+    supersedes: d-q5j1ig1f
+    because:
+      - d-eqwrgoyv
+      - d-v5zamgjn
+      - d-5xp2tv2d
+    pinned:
+      reason: other
+      notes: |
+        d-eqwrgoyv rests on the operations reaching the user not being retried, and a retried
+        send is an effect the user sees twice
+
+  - id: d-x8rw5jvq
+    title: an output is a closed enum or a typed extraction
+    statement: |
+      an operator declares each output tag one of two ways. An extracted output may be absent,
+      so it cannot be what another operator gates on.
+    cases:
+      - when: the tag is declared with a closed set of permitted values
+        then: it is produced whenever the operator runs
+      - when: the tag is declared as an extraction of a typed value — text, money, or a date — normalized by grinbox
+        then: a value that fails normalization drops the tag
+    status: proposed
+    supersedes: d-04s2n18o
+    because:
+      - d-eme4ratv
+    pinned:
+      reason: data-format
+      notes: |
+        the normalized forms are what is stored on every triage and read back by everything that
+        renders or compares a tag
+
+  - id: d-n6qv2hpk
+    title: a rule-based tagger
+    statement: |
+      grinbox ships a tagger whose output is derived deterministically, with no model call, by
+      evaluating rules the user writes against the message and the tags earlier operators
+      produced.
+    status: proposed
+    supersedes: d-imlec3nt
+    because:
+      - d-5n8oyi8c
+      - r-dk3vq6tp
+    pinned:
+      reason: public-api
+
+  - id: d-c7fs3wlz
+    title: rules are expressions, evaluated by grinbox's own reader
+    statement: |
+      a rule matches by an expression over the tags earlier operators produced and any field of
+      the message, read and evaluated by grinbox's own expression reader.
+    status: proposed
+    supersedes: d-oq267pmh
+    because:
+      - r-dk3vq6tp
+      - r-hw8gn2fs
+      - r-ut5mdtpx
+    pinned:
+      reason: public-api
+      notes: |
+        the language a user writes their rules in
+
+  - id: d-t2gm7ryx
+    title: one placeholder grammar, everywhere text is composed
+    statement: |
+      every piece of text a user configures grinbox to compose — a prompt, a notification, a
+      category name, a digest line — is written in one placeholder grammar over the message's
+      own fields and the tags earlier operators produced. The tags a template names are inputs
+      of the operator that renders it, which is what orders it after their producers.
+    status: proposed
+    supersedes: d-cnjkypbb
+    because:
+      - d-52lhql7t
+      - r-hw8gn2fs
+    pinned:
+      reason: public-api
+      notes: |
+        the grammar every stored template is written in, and the source of the ordering
+        dependencies derived from them
+
+  - id: d-k9zb4mtw
+    title: an edition is an instance, and its schedule is its cadence
+    statement: |
+      an edition is an ordinary operator instance whose configuration carries the schedule it
+      fires on, and each firing delivers a digest. A pipeline may carry several editions,
+      differing only in configuration, and nothing about a second edition is a second mechanism.
+    status: proposed
+    supersedes: d-ocqvnmfm
+    because:
+      - d-5n8oyi8c
+      - d-w4hn8qpv
+    pinned: false
+
+  - id: d-w4hn8qpv
+    title: judgement happens at triage, collation at delivery
+    statement: |
+      every judgement about a message — which edition claims it, what is worth pulling out of
+      it — is made when the message is triaged, by ordinary operators. The delivery that builds
+      a digest makes none: it selects, groups, renders, and sends. This keeps accounting for
+      every covered message a property of the code.
+    status: proposed
+    supersedes: d-r8iz7u3q
+    because:
+      - r-i55lgsq8
+      - r-vd9mu8od
+    pinned:
+      reason: other
+      notes: |
+        the division everything about the digest follows from, and reversing it would move the
+        product's central guarantee out of reach
+
+  - id: d-p3vd6kxz
+    title: an edition fires per account, and is sent to that account's owner
+    statement: |
+      an edition fires once per account its pipeline is active on, covering that account's mail
+      and sending through it to the address the account belongs to. A pipeline active on several
+      accounts digests each mailbox separately.
+    status: proposed
+    supersedes: d-wf49d4jb
+    because:
+      - d-k9zb4mtw
+      - d-yz5n7wmu
+    pinned: false
+
+  - id: d-h8tq5wnm
+    title: coverage is a half-open window over when mail was taken in
+    statement: |
+      a delivery's coverage window runs over the messages grinbox took in after the last
+      completed delivery and up to the moment this one was claimed. It is measured over when
+      grinbox took the message in rather than when the mail was sent, so late-arriving mail is
+      digested in the window it actually arrived in.
+    status: proposed
+    supersedes: d-jsnfvo0m
+    because:
+      - r-yq13riob
+      - r-g6n22sn9
+    pinned:
+      reason: data-format
+      notes: |
+        the stored watermark is what every later window is computed from, and a change to what it
+        measures re-cuts windows already delivered
+
+  - id: d-z6xj9bfw
+    title: a triage captures the configuration it was enqueued with
+    statement: |
+      when a triage is enqueued it captures, per operator, the type, the code version, and the
+      configuration in force at that moment; every operator run in the triage executes against
+      that capture. Editing an operator therefore never changes a triage already in flight, and
+      a historical outcome resolves to the exact configuration that produced it.
+    status: proposed
+    supersedes: d-nr71oscu
+    because:
+      - r-zagpfz75
+      - d-52lhql7t
+    pinned:
+      reason: data-format
+      notes: |
+        the capture is what every historical triage is read against, and dropping it would make
+        old outcomes unreadable rather than merely differently computed
+
+  - id: d-r5wc2qnj
+    title: listing messages is paged, ordered newest first, and filtered
+    statement: |
+      listing messages is paged with caller-supplied page bounds and a bounded page size,
+      ordered by when the mail was received, newest first with a stable tiebreak, and filtered
+      by account, pipeline, standing, tag, date, and a substring search over sender and subject.
+      The page reports the total so a caller can size what it did not fetch.
+    status: proposed
+    supersedes: d-mu0k7nbu
+    because:
+      - d-1uo9p5wq
+      - d-ti7vexo3
+    pinned:
+      reason: public-api
+      notes: |
+        every part of it is observable by any client of the API, and a reimplementation must
+        reproduce the ordering to page consistently
