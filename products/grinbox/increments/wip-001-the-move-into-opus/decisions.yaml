@@ -12,7 +12,7 @@ decisions:
       release-assets hook publishes for `@grinbox/server`, beside the checksum file that hook
       writes. The infrastructure repository names a version and fetches that asset by URL,
       verifying it against that checksum, rather than copying a source tree out of a checkout.
-    status: accepted
+    status: proposed
     because:
       - d-riyvvlx5
       - d-mq7vdduz
@@ -32,7 +32,7 @@ decisions:
       shared package both tiers import. The request and response envelopes are declared by the
       daemon's route definitions, and the browser application reads them by inference from those
       routes rather than declaring them again.
-    status: accepted
+    status: delegated
     supersedes: d-j4huq3jy
     because:
       - d-5l0wqcj0
@@ -48,7 +48,7 @@ decisions:
       root. The daemon resolves the interface's assets as `web/` beside the directory its own
       entry point sits in, and an environment variable overrides that. Both halves are built from
       one commit, since the interface's asset names are content-hashed.
-    status: accepted
+    status: proposed
     because:
       - d-6ct1o00j
       - r-zpdecb2z
@@ -65,7 +65,7 @@ decisions:
       three at the same number and the deployment names one version for the application. The
       bundle rides on the daemon's release, and the browser application is half of what it holds —
       a change to the browser application alone must therefore still produce a release.
-    status: accepted
+    status: proposed
     because:
       - d-6ct1o00j
       - d-cjjd5c0w
@@ -88,7 +88,7 @@ decisions:
       not become a crash loop, is a third thing grinbox requires of its deployment. A
       termination signal is answered instead by draining what is in flight and exiting zero;
       only an abrupt stop leaves runs for the next start's sweep.
-    status: accepted
+    status: proposed
     because:
       - d-81ouxrpi
       - d-mq7vdduz
@@ -107,7 +107,7 @@ decisions:
       the deployment — across every triage in flight, taking the longest-waiting ready run
       first. The bound is the process's, not an account's or a pipeline's, so one busy pipeline
       and every other share it.
-    status: accepted
+    status: proposed
     because:
       - d-81ouxrpi
       - d-2gyfmt8m
@@ -126,7 +126,7 @@ decisions:
       scheduled per account or per edition, so the latency a user sees is their account's
       interval plus up to one heartbeat. A heartbeat arriving while the previous cycle is still
       running does nothing.
-    status: accepted
+    status: proposed
     because:
       - r-0lg2c2e4
       - d-nq4fk2xr
@@ -147,7 +147,7 @@ decisions:
       the callback's own origin, which it derives from the consent URL it was handed. The
       daemon addresses the message to an opener origin the deployment configures, and to any
       origin where it configures none.
-    status: accepted
+    status: proposed
     because:
       - r-ieyj1wkn
       - d-a1pf497w
@@ -164,7 +164,7 @@ decisions:
       grinbox's authorization flow sends a PKCE challenge and replays its verifier at the code
       exchange, though the daemon is a confidential client holding a secret. The verifier is
       minted with the correlation token, never leaves the daemon, and is discarded with it.
-    status: accepted
+    status: proposed
     because:
       - d-a1pf497w
       - d-xe41okh9
@@ -181,7 +181,7 @@ decisions:
       and are consumed on first use; a token unknown, already used, or older than that is
       refused identically. They are never written to the state, so a restart during consent
       fails the flow in progress and the user begins it again.
-    status: accepted
+    status: proposed
     because:
       - d-a1pf497w
       - d-dbjiycvl
@@ -200,7 +200,7 @@ decisions:
       change, as renewing an authorization does. An entry carries no secret material. What
       grinbox seeds at install — the single user, and the caps that are the backstop — writes
       no entry, being nobody's action.
-    status: accepted
+    status: proposed
     because:
       - d-obzpbcml
       - d-8yht1ei9
@@ -220,7 +220,7 @@ decisions:
       it; deleting a pipeline releases the accounts running it, which then poll nothing; a
       credential an operator still names cannot be deleted until the operator stops naming it.
       A deleted name is free to take again.
-    status: accepted
+    status: proposed
     because:
       - r-k6gh82fx
       - d-yz5n7wmu
@@ -242,7 +242,7 @@ decisions:
       with no policy of its own is not retried. A retry stops at the operator's deadline. The
       poll path reaches its provider without passing through this, so a poll that fails waits
       for the next heartbeat.
-    status: accepted
+    status: proposed
     because:
       - d-eqwrgoyv
       - d-v5zamgjn
