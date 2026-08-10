@@ -1,6 +1,6 @@
 version: "1"
 product: increment-process
-target: 34
+target: 35
 built_at: 2026-08-10
 packages:
   - path: nodejs/plan/design-process
@@ -1853,3 +1853,42 @@ coverage:
     covered_by:
       - kind: attestation
         ref: "docs/process-reference.md#publish-is-the-merge"
+  - claim: d-cy161btt
+    covered_by:
+      - kind: attestation
+        ref: src/types.ts
+        note: severity and product on the one Finding shape; absent severity reads finding
+      - kind: code-test
+        ref: test/cli.test.ts
+      - kind: code-test
+        ref: test/pool-lifecycle.test.ts
+  - claim: d-i7cdcz6v
+    covered_by:
+      - kind: attestation
+        ref: src/cli/entry-point.ts
+      - kind: code-test
+        ref: test/project.test.ts
+        note: --commentary refused at published folds; --scope filters; facet gone
+  - claim: d-zd6y6s1i
+    covered_by:
+      - kind: attestation
+        ref: src/ids.ts
+        note: taken-set scan covers facts/ and evidence/
+      - kind: code-test
+        ref: test/ids.test.ts
+      - kind: code-test
+        ref: test/cli.test.ts
+  - claim: d-ghg1khvy
+    covered_by:
+      - kind: attestation
+        ref: src/validate.ts
+        note: published citer = report
+      - kind: code-test
+        ref: test/pool-lifecycle.test.ts
+  - claim: d-dqwoto9x
+    covered_by:
+      - kind: attestation
+        ref: src/staleness.ts
+        note: reader injected via ValidateOptions; a failed read skips the gate
+      - kind: code-test
+        ref: test/pool-lifecycle.test.ts
