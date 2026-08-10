@@ -1,0 +1,260 @@
+version: "2"
+
+# The design consequences of moving grinbox's code into the opus workspace.
+
+decisions:
+  - id: d-6ct1o00j
+    title: each package releases its own artifact, and the deployment fetches both
+    statement: |
+      opus releases two artifacts: the daemon's, holding its compiled output, a production
+      manifest and lockfile pruned to its own dependencies, the launch wrapper and the unit; and
+      the browser application's, holding its built assets. Each is attached to its own package's
+      release, beside the checksum the workspace's release-assets hook writes. The infrastructure
+      repository names one version, fetches both by URL, and verifies each against its checksum,
+      rather than copying a source tree out of a checkout.
+    status: accepted
+    because:
+      - d-riyvvlx5
+      - d-mq7vdduz
+      - d-cjjd5c0w
+      - d-vx1pxkyz
+    pinned:
+      reason: data-format
+      notes: |
+        it is the seam between the two repositories: the infrastructure repository fetches these
+        artifacts by name and unpacks them, and neither repository holds both halves of it
+
+  - id: d-qrxtbcei
+    title: the shared package declares the vocabulary, and the routes declare the envelopes
+    statement: |
+      the shapes crossing the API are declared once, and where depends on what they are. The
+      values inside a request or a response — the closed enums, the operator configurations, the
+      contract, the resource and limit registries, the refusal envelope — are declared in the
+      shared package both tiers import. The request and response envelopes are declared by the
+      daemon's route definitions, and the browser application reads them by inference from those
+      routes rather than declaring them again.
+    status: delegated
+    supersedes: d-j4huq3jy
+    because:
+      - d-5l0wqcj0
+      - d-ti7vexo3
+    pinned: false
+
+  - id: d-p77q4tob
+    title: where each artifact unpacks, and how the daemon finds the interface
+    statement: |
+      the two artifacts unpack into one tree: the daemon's gives `server/` holding its compiled
+      output and entry point, `bin/` holding the launch wrapper, `systemd/` holding the unit, and
+      a production manifest and lockfile at the root; the browser application's gives `web/`
+      beside them. The daemon resolves the interface's assets as `web/` beside the directory its
+      own entry point sits in, and an environment variable overrides that, so a deployment may
+      put the interface elsewhere and say so.
+    status: tolerated
+    because:
+      - d-6ct1o00j
+      - r-zpdecb2z
+      - d-ti7vexo3
+    pinned:
+      reason: data-format
+      notes: |
+        the infrastructure repository unpacks both artifacts into this tree and its unit names
+        paths inside it, so the layout is read by a repository that cannot see the code that
+        writes it
+
+  - id: d-vx1pxkyz
+    title: the three packages carry one version
+    statement: |
+      the three grinbox packages version in lockstep: releasing any one releases all three at the
+      same number, so the deployment names a single version for the whole application and nobody
+      pairs artifacts by hand. The grouping binds these three and nothing else — a release
+      touching no grinbox package is unaffected by it.
+    status: tolerated
+    because:
+      - d-cjjd5c0w
+      - d-txqxjxvp
+      - d-5l0wqcj0
+    pinned:
+      reason: other
+      notes: |
+        the browser application is compiled against the daemon's own route definitions, so a
+        deployment running two independently chosen versions has no guarantee they agree and
+        nothing would check it
+
+  # What the daemon does that nothing in the fold accounted for, found by reading the code
+  # against the design while porting it.
+
+  - id: d-fzl3y2g5
+    title: a failed start exits, and bringing it back is the supervisor's
+    statement: |
+      the daemon logs and exits non-zero when it cannot start — invalid configuration, an
+      unusable encryption key, a migration that will not run — rather than retrying in place or
+      starting degraded. Restarting it, with a delay between attempts so a standing fault does
+      not become a crash loop, is a third thing grinbox requires of its deployment. A
+      termination signal is answered instead by draining what is in flight and exiting zero;
+      only an abrupt stop leaves runs for the next start's sweep.
+    status: accepted
+    because:
+      - d-81ouxrpi
+      - d-mq7vdduz
+      - d-qizjjf3n
+      - d-6fdulczu
+    pinned:
+      reason: other
+      notes: |
+        the restart delay is written into a service definition in another repository, and
+        nothing in grinbox's own code shows that the daemon depends on it
+
+  - id: d-k5nnblfp
+    title: operator runs are bounded by one process-wide pool
+    statement: |
+      the daemon runs at most a fixed number of operator runs at once — three by default, set by
+      the deployment — across every triage in flight, taking the longest-waiting ready run
+      first. The bound is the process's, not an account's or a pipeline's, so one busy pipeline
+      and every other share it.
+    status: delegated
+    because:
+      - d-81ouxrpi
+      - d-2gyfmt8m
+    pinned:
+      reason: other
+      notes: |
+        it is the throughput ceiling behind the arrival-latency promise, and a number the
+        deployment supplies rather than the daemon choosing per install
+
+  - id: d-ey4o63h1
+    title: one heartbeat drives both schedulers
+    statement: |
+      the poll scheduler and the digest scheduler each wake on a fixed heartbeat — a minute by
+      default, set by the deployment — and act on whatever is due at that moment: an account
+      whose own interval has elapsed, an edition whose occurrence has passed. Nothing is
+      scheduled per account or per edition, so the latency a user sees is their account's
+      interval plus up to one heartbeat. A heartbeat arriving while the previous cycle is still
+      running does nothing.
+    status: delegated
+    because:
+      - r-0lg2c2e4
+      - d-nq4fk2xr
+      - d-6vnf59rv
+      - d-81ouxrpi
+    pinned:
+      reason: other
+      notes: |
+        the arrival latency the product promises is the account's interval plus this heartbeat,
+        so the ceiling on the per-account interval alone does not bound it
+
+  - id: d-drh5k4jx
+    title: the callback page hands the result back by posted message
+    statement: |
+      the public callback path answers with a small page that posts its outcome — a marker
+      naming grinbox, whether it succeeded, and the account it bound or the reason it did not —
+      to the window that opened it, then closes. The interface trusts such a message only from
+      the callback's own origin, which it derives from the consent URL it was handed. The
+      daemon addresses the message to an opener origin the deployment configures, and to any
+      origin where it configures none.
+    status: accepted
+    because:
+      - r-ieyj1wkn
+      - r-ovi02v1m
+      - d-a1pf497w
+      - d-ti7vexo3
+    pinned:
+      reason: data-format
+      notes: |
+        both tiers read the same payload and the same origin pair, and the deployment
+        configures one side of it
+
+  - id: d-8nuuq7y0
+    title: authorization uses PKCE as well as the client secret
+    statement: |
+      grinbox's authorization flow sends a PKCE challenge and replays its verifier at the code
+      exchange, though the daemon is a confidential client holding a secret. The verifier is
+      minted with the correlation token, never leaves the daemon, and is discarded with it.
+    status: delegated
+    because:
+      - r-ovi02v1m
+      - d-a1pf497w
+    pinned:
+      reason: other
+      notes: |
+        it hardens the one flow that crosses grinbox's publicly reachable path, against an
+        authorization code intercepted on the way back
+
+  - id: d-z7b2kksz
+    title: a pending authorization lives five minutes, in memory
+    statement: |
+      the correlation token and its verifier are held in the daemon's memory for five minutes
+      and are consumed on first use; a token unknown, already used, or older than that is
+      refused identically. They are never written to the state, so a restart during consent
+      fails the flow in progress and the user begins it again.
+    status: delegated
+    because:
+      - d-a1pf497w
+      - d-dbjiycvl
+    pinned:
+      reason: other
+      notes: |
+        it is how long the user has to finish consent, and it names the one piece of work a
+        restart is allowed to lose
+
+  - id: d-5xsm1hc6
+    title: every configuration change is recorded, with who made it
+    statement: |
+      each accepted change to an account, pipeline, operator, credential, or cap writes an entry
+      holding what it was before and after, which of created, updated, enabled, disabled, or
+      deleted it was, when, and which user asked — or no user, where grinbox itself made the
+      change, as renewing an authorization does. An entry carries no secret material. What
+      grinbox seeds at install — the single user, and the caps that are the backstop — writes
+      no entry, being nobody's action.
+    status: accepted
+    because:
+      - r-k6gh82fx
+      - d-obzpbcml
+      - d-8yht1ei9
+      - d-qv5l66ya
+    pinned:
+      reason: data-format
+      notes: |
+        the stored history the interface reads back, and a later write path added without
+        knowing this leaves a change with no entry
+
+  - id: d-yf30pvpd
+    title: deleting configuration keeps the history and stops the work
+    statement: |
+      nothing the user deletes leaves the state: an account, pipeline, operator, credential, or
+      cap is marked deleted and stops being acted on, while the messages and triages already
+      recorded stay and stay readable. Deleting an account deletes its stored credentials with
+      it; deleting a pipeline releases the accounts running it, which then poll nothing; a
+      credential an operator still names cannot be deleted until the operator stops naming it.
+      A deleted name is free to take again.
+    status: accepted
+    because:
+      - r-k6gh82fx
+      - d-yz5n7wmu
+      - d-obzpbcml
+    pinned:
+      reason: other
+      notes: |
+        it fixes what a deletion costs the user and what every historical surface can still
+        read afterwards
+
+  - id: d-q5j1ig1f
+    title: which outside calls grinbox retries
+    statement: |
+      grinbox retries an outside call within the operation that made it, invisibly to the
+      operator that declared it, and on any failure rather than on a classified subset. Reads —
+      listing a mailbox, fetching a message's metadata or body, invoking a model — take up to
+      three further attempts with a doubling wait, and the two mailbox writes take up to two at
+      a fixed one. Sending a notification and sending mail are never retried, and an operation
+      with no policy of its own is not retried. A retry stops at the operator's deadline. The
+      poll path reaches its provider without passing through this, so a poll that fails waits
+      for the next heartbeat.
+    status: tolerated
+    because:
+      - d-eqwrgoyv
+      - d-v5zamgjn
+      - d-5xp2tv2d
+    pinned:
+      reason: other
+      notes: |
+        d-eqwrgoyv rests on the operations reaching the user not being retried, and a retried
+        send is an effect the user sees twice
