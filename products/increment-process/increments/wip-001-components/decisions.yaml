@@ -84,9 +84,9 @@ decisions:
     title: a preset declares no components
     statement: |
       a requirement-preset product declares no components, and its own requirements carry no
-      scope — either is a validator finding. The adoption's scope, the adopter's, is the only
-      scoping an adopted requirement gets; its statement's subject names the kind of thing it
-      binds.
+      scope — either is a validator finding. The preset entry's scope — the applying product's
+      — is the only scoping a preset's requirement gets; its statement's subject names the kind
+      of thing it binds.
     status: accepted
     because:
       - d-ekoz1t47
@@ -122,11 +122,12 @@ decisions:
       reason: data-format
 
   - id: d-ue31prqs
-    title: a preset adopts at a scope
+    title: a preset applies at a scope
     statement: |
-      a preset adoption entry takes an optional `scope:` — one component id or a list — and the
-      adopted requirements apply at that scope with the ordinary subtree reading; absent scope
-      adopts for the whole product. `/design-process/requirements@3` carries the field.
+      a preset entry takes an optional `scope:` — one component id or a list — and the
+      requirements the preset brings in apply at that scope, with the ordinary subtree reading;
+      absent scope applies the preset to the whole product. `/design-process/requirements@3`
+      carries the field.
     status: accepted
     because:
       - r-r3bhwqno
@@ -174,6 +175,20 @@ decisions:
     status: delegated
     because:
       - d-bz5k3yz7
+    pinned: false
+
+  - id: d-492sxcc9
+    title: a preset conflict is a double declaration, not a double path
+    statement: |
+      the mechanical conflict the merge gate blocks on is identity collision between two
+      declarations of one requirement id — by an applied preset and the product applying it,
+      or by two presets either brings in. A retired declaration does not count: an id with one
+      declaration in force collides with nothing, so a requirement may move from a product into
+      a preset it applies. An id reached by two paths is one declaration seen twice,
+      deduplicated; semantic conflict between differently-numbered requirements stays with
+      review and the question channel.
+    status: proposed
+    supersedes: d-wlkql151
     pinned: false
 
   # facets
