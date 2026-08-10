@@ -60,3 +60,144 @@ decisions:
       notes: |
         it fixes which of the two mechanisms the user may weaken, and a throttle that spent a cap
         would let a burst exhaust the backstop it was added to protect
+
+  # The digest's second rendition, from the unmerged infrastructure #90 and #94.
+
+  - id: d-1oqjgi9m
+    title: a digest is delivered in two renditions in one mail
+    statement: |
+      a digest delivery is one mail carrying two renditions of the same digest: a plain-text one
+      and a rich one. The recipient's client chooses which it shows, and a client that renders no
+      formatting shows the text rendition whole.
+    status: proposed
+    because:
+      - r-m7y9ocdu
+      - d-qcsxvo18
+    pinned:
+      reason: data-format
+      notes: |
+        the shape of what lands in the user's mailbox, and what the send operation a second mail
+        backend implements has to carry
+
+  - id: d-rd986rrt
+    title: the send operation takes an optional second rendition
+    statement: |
+      the operation that sends mail takes a required plain-text body and an optional rich
+      rendition of the same content. That rendition belongs to the operation every mail backend
+      implements and every caller writes against, not to one backend.
+    status: proposed
+    because:
+      - r-m7y9ocdu
+      - d-1oqjgi9m
+      - d-7a8aoi4z
+      - d-v5zamgjn
+    pinned:
+      reason: public-api
+      notes: |
+        the seam a second mail backend is written against, and the argument shape the metered
+        client and every sending caller share
+
+  - id: d-or4jo6s1
+    title: carrying a rendition is not a capability a backend declares
+    statement: |
+      a backend declares that it sends mail and nothing about which renditions it carries. Handing
+      the send operation a rich rendition is always permitted where sending is declared, and a
+      backend that cannot offer alternatives sends the plain text alone rather than failing.
+    status: proposed
+    because:
+      - d-rd986rrt
+      - d-z5opt8rp
+    pinned: false
+
+  - id: d-rgmoboxu
+    title: the renditions are two formattings of one rendering
+    statement: |
+      a section renders once into per-item cells and a mark flag, carrying nothing specific to
+      either rendition; each rendition formats that structure. The delivery's accounting assertion
+      runs over the rendering, before either formatting.
+    status: proposed
+    because:
+      - r-m7y9ocdu
+      - d-hl6z38i6
+      - d-tm2dbemu
+    pinned: false
+
+  - id: d-7pviv01j
+    title: a marked item is marked in each rendition's own terms
+    statement: |
+      the comparison that marks an item runs once and is unchanged; how the mark reads is each
+      rendition's own. The plain-text rendition suffixes the item, and the rich rendition styles
+      it instead.
+    status: proposed
+    because:
+      - d-5pdw87zm
+      - d-rgmoboxu
+    pinned:
+      reason: other
+      notes: what the user actually sees of a threshold mark, in each rendition
+
+  - id: d-zkb393z9
+    title: the rich rendition is self-contained and imposes no colour scheme
+    statement: |
+      the rich rendition carries its presentation on its own elements, references no external
+      asset, and sets neither a page background nor a body text colour. What it does colour is
+      translucent, so the mail reads on a light or a dark background.
+    status: proposed
+    because:
+      - r-m7y9ocdu
+      - d-1oqjgi9m
+    pinned:
+      reason: other
+      notes: |
+        it constrains what any later change to the digest's appearance may reach for, and rests on
+        q-mf8fl0ls
+
+  # Money in display form, from the unmerged infrastructure #93.
+
+  - id: d-nj43sz9w
+    title: the display form is rendered, never stored
+    statement: |
+      a digest renders an extracted money tag in display form. The normalized stored form stays
+      what grinbox keeps and what a section's threshold compares, and no display form is written
+      to state.
+    status: proposed
+    because:
+      - r-735kq72h
+      - d-dmwaark1
+      - d-5pdw87zm
+    pinned:
+      reason: other
+      notes: |
+        the user writes a threshold in the stored form while reading the display form, so the
+        split between the two is behaviour they configure against
+
+  - id: d-m6ingqyv
+    title: what renders in display form is what the pipeline declared as money
+    statement: |
+      a tag renders in display form when the pipeline's enabled operators type its key as an
+      extracted money output. A tag under such a key whose stored value is not money renders
+      verbatim, as does every other tag.
+    status: proposed
+    because:
+      - r-735kq72h
+      - d-04s2n18o
+      - d-2dqylf0q
+    pinned:
+      reason: other
+      notes: |
+        rendering verbatim rather than blanking or dropping is what the user sees when the
+        declaration and the stored value disagree
+
+  - id: d-oc073wsp
+    title: the display form follows from the ISO currency alone
+    statement: |
+      an extracted money value's display form follows from its ISO currency alone: the symbol
+      where grinbox knows one, the code beside the amount where it does not, and no decimals where
+      the currency's minor unit is its whole unit. The machine's locale has no part in it.
+    status: proposed
+    because:
+      - r-735kq72h
+      - d-dmwaark1
+    pinned:
+      reason: other
+      notes: the amounts in every delivered digest, and moving the machine does not change them
