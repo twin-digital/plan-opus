@@ -1,0 +1,56 @@
+[etreg] registry :: begin
+[etreg] at-module-eval :: case=vanilla threw ReferenceError: Native function [EntityTypes::get] cannot be used in early execution.
+[etreg] at-module-eval :: case=custom threw ReferenceError: Native function [EntityTypes::get] cannot be used in early execution.
+[etreg] at-module-eval :: case=absent threw ReferenceError: Native function [EntityTypes::get] cannot be used in early execution.
+[etreg] at-module-eval :: case=all threw ReferenceError: Native function [EntityTypes::getAll] cannot be used in early execution.
+[etreg] at-event :: case=startup threw ReferenceError: Native function [EntityTypes::get] cannot be used in early execution.
+[etreg] at-event :: case=startupCustom threw ReferenceError: Native function [EntityTypes::get] cannot be used in early execution.
+[etreg] at-event :: case=startupAll threw ReferenceError: Native function [EntityTypes::getAll] cannot be used in early execution.
+[etreg] at-event :: case=worldLoad returned object<EntityType>
+[etreg] at-event :: case=worldLoadCustom returned object<EntityType>
+[etreg] at-event :: case=worldLoadAll returned object<Array> length=129
+[etreg] get :: case=registered-vanilla-prefixed argument="minecraft:sheep" returned object<EntityType> .id returned string:"minecraft:sheep"
+[etreg] get :: case=registered-vanilla-bare argument="sheep" returned object<EntityType> .id returned string:"minecraft:sheep"
+[etreg] get :: case=registered-vanilla-second argument="minecraft:zombie" returned object<EntityType> .id returned string:"minecraft:zombie"
+[etreg] get :: case=pack-defined-prefixed argument="mctest:probe_dummy" returned object<EntityType> .id returned string:"mctest:probe_dummy"
+[etreg] get :: case=pack-defined-bare argument="probe_dummy" returned undefined .id n/a
+[etreg] get :: case=absent-namespaced argument="mctest:nothing_registers_this" returned undefined .id n/a
+[etreg] get :: case=absent-bare argument="nothing_registers_this" returned undefined .id n/a
+[etreg] get :: case=absent-minecraft-namespace argument="minecraft:nothing_registers_this" returned undefined .id n/a
+[etreg] get :: case=empty-string argument="" returned undefined .id n/a
+[etreg] get :: case=prefix-only argument="minecraft:" returned undefined .id n/a
+[etreg] get :: case=whitespace argument=" minecraft:sheep " returned undefined .id n/a
+[etreg] get :: case=case-mismatch argument="minecraft:Sheep" returned undefined .id n/a
+[etreg] guard :: case=no-argument threw TypeError: Incorrect number of arguments to function. Expected 1, received 0
+[etreg] guard :: case=two-arguments threw TypeError: Incorrect number of arguments to function. Expected 1, received 2
+[etreg] guard :: case=undefined threw InvalidArgumentError: Invalid type passed to argument [0]. Expected type: string
+[etreg] guard :: case=null threw InvalidArgumentError: Invalid type passed to argument [0]. Expected type: string
+[etreg] guard :: case=number threw TypeError: Native type conversion failed. Function argument [0] expected type: string
+[etreg] guard :: case=object threw TypeError: Object did not have a native handle. Function argument [0] expected type: string
+[etreg] guard :: case=getall-one-argument threw TypeError: Incorrect number of arguments to function. Expected 0, received 1
+[etreg] shape :: subject=minecraft:sheep returned object<EntityType>
+[etreg] shape :: subject=minecraft:sheep ctor=EntityType members=[localizationKey(own,value)=string:"entity.sheep.name" id(own,value)=string:"minecraft:sheep" id(proto1,value)=undefined localizationKey(proto1,value)=undefined]
+[etreg] shape :: subject=mctest:probe_dummy returned object<EntityType>
+[etreg] shape :: subject=mctest:probe_dummy ctor=EntityType members=[localizationKey(own,value)=string:"entity.mctest:probe_dummy.name" id(own,value)=string:"mctest:probe_dummy" id(proto1,value)=undefined localizationKey(proto1,value)=undefined]
+[etreg] shape :: identity-across-calls same-object=true
+[etreg] shape :: identity-bare-vs-prefixed same-object=true bare=object<EntityType>
+[etreg] getall :: returned object<Array>
+[etreg] getall :: count=129 is-array=true
+[etreg] getall :: contains-pack-defined=true
+[etreg] getall :: contains-sheep=true
+[etreg] getall :: unprefixed-ids=0
+[etreg] getall :: duplicate-ids=0
+[etreg] getall :: entry-identity-matches-get=true
+[etreg] getall :: same-array-across-calls=false same-entry-objects=true
+[etreg] getall :: first-ten=[mctest:probe_dummy minecraft:agent minecraft:allay minecraft:area_effect_cloud minecraft:armadillo minecraft:armor_stand minecraft:arrow minecraft:axolotl minecraft:bat minecraft:bee]
+[etreg] getall :: non-minecraft-namespaces=[mctest:probe_dummy]
+[etreg] spawn :: tickingarea returned object<CommandResult> successCount=0
+[etreg] spawn :: tickingarea-list successCount=1
+[etreg] spawn :: platform returned object<CommandResult> successCount=1
+[etreg] spawn :: case=pack-defined id=mctest:probe_dummy lookup returned object<EntityType> spawn returned object<Entity> typeId=string:"mctest:probe_dummy"
+[etreg] spawn :: case=vanilla id=minecraft:sheep lookup returned object<EntityType> spawn returned object<Entity> typeId=string:"minecraft:sheep"
+[etreg] spawn :: case=absent-namespaced id=mctest:nothing_registers_this lookup returned undefined spawn threw InvalidArgumentError: Invalid value passed to argument [0]. 'mctest:nothing_registers_this' is not a valid entity type. typeId=string:"n/a"
+[etreg] spawn :: case=absent-minecraft-namespace id=minecraft:nothing_registers_this lookup returned undefined spawn threw InvalidArgumentError: Invalid value passed to argument [0]. 'minecraft:nothing_registers_this' is not a valid entity type. typeId=string:"n/a"
+[etreg] spawn :: case=bare-vanilla id=sheep lookup returned object<EntityType> spawn returned object<Entity> typeId=string:"minecraft:sheep"
+[etreg] spawn :: case=bare-pack-defined id=probe_dummy lookup returned undefined spawn threw InvalidArgumentError: Invalid value passed to argument [0]. 'minecraft:probe_dummy' is not a valid entity type. typeId=string:"n/a"
+[etreg] registry :: complete

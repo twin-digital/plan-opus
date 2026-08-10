@@ -1,0 +1,136 @@
+version: "1"
+
+# d-duelxt32's first revisit condition fired: mc-rpg-core's d-xobjyw2e puts `EntityTypes.get` on
+# every library entry point, so the throwing registry blocks the test rather than sitting in
+# startup code no test enters. Only EntityTypes is reopened; the other seven registries keep the
+# ruling.
+decisions:
+
+  - id: d-uky2xju6
+    title: EntityTypes behaves; the other seven registries throw
+    statement: |
+      `EntityTypes.get` and `getAll` read a registry the test arranges. The other seven registry
+      classes stay declared with every member throwing NotImplementedError. The engine's refusal to
+      answer a registry read during early execution is not modelled: the fakes have no early phase,
+      and a lookup answers whenever a test makes it.
+    status: proposed
+    pinned:
+      reason: public-api
+    because:
+      - f:entity-type-registry-refuses-early-execution
+      - r-0lbj68w9
+    supersedes: d-duelxt32
+    revisit_when:
+      - a pack resolves an id through one of the other seven on the path its test exercises, so that
+        registry blocks the test the way this one did
+      - a pack ships startup code relying on the engine's refusal — a catch around the lookup, or a
+        deferral to world load — which no test can exercise while the early phase is unmodelled
+    facets: fakes
+
+  - id: d-herh9vjy
+    title: the registry belongs to the bundle
+    statement: |
+      `createServer()` returns an `EntityTypes` bound to that bundle's own registry, so two bundles
+      in one process share nothing and a test needs no reset hook. The aliased surface's
+      module-scope `EntityTypes` resolves through the installed server, as `world` and `system` do;
+      no registry state lives at module scope.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: |
+        `server.EntityTypes` is per-bundle rather than the one shared class object every bundle
+        holds today, so a consumer comparing the two across bundles reads a different answer.
+    because:
+      - r-qayd22z2
+      - r-rpm1k57j
+      - d-nmjafny2
+      - d-ysxt6ihr
+    revisit_when:
+      - the aliased surface's `EntityTypes` is required to satisfy `typeof MC.EntityTypes` in a way
+        a per-bundle object cannot, so only one shared class object typechecks
+    facets:
+      - fakes
+      - shim
+
+  - id: d-fhq1ng5m
+    title: registration is a free function and the registry starts empty
+    statement: |
+      A bundle's registry starts empty, and a test fills it through an exported free function over
+      the bundle rather than through a member `@minecraft/server` does not declare. Both branches
+      are arrangeable from the start: a registered type, and a lookup that misses.
+    status: proposed
+    pinned:
+      reason: public-api
+    because:
+      - r-5mlc26io
+      - r-qak2scbs
+      - r-rnnnz98l
+    revisit_when:
+      - nearly every suite opens by registering the same vanilla set, so the empty start costs more
+        preamble than the arranged miss is worth — the point at which a preset, or a package built
+        on this one, carries the vanilla registry instead
+    facets: fakes
+
+  - id: d-0m25p71q
+    title: lookup reproduces the engine, misses included
+    statement: |
+      A lookup reproduces the engine's recorded behaviour: a miss returns `undefined` rather than
+      throwing or fabricating, a bare identifier means `minecraft:<id>` and nothing else, and
+      matching is otherwise exact.
+    status: proposed
+    pinned:
+      reason: public-api
+    because:
+      - f:entity-type-lookup-misses-return-undefined
+      - f:entity-type-bare-id-means-the-minecraft-namespace
+      - f:entity-type-entries-are-stable-objects
+      - f:entity-type-registry-holds-pack-defined-types
+      - f:entity-type-lookup-argument-guards
+      - r-0lbj68w9
+      - r-62r76czb
+      - r-v1r7n10i
+    revisit_when:
+      - a later observation shows the bare form searching namespaces rather than assuming
+        `minecraft:`, so a pack-defined type does answer to its bare name
+    facets: fakes
+
+  - id: d-dub2g4kr
+    title: the registry does not gate entity creation
+    statement: |
+      Creating a fake entity neither consults the registry nor writes to it, so a test may create an
+      entity of a type it never registered. This diverges from the engine, where a lookup and a
+      spawn agree, and the divergence is stated as the library's own where a user of the library
+      will find it.
+    status: proposed
+    pinned:
+      reason: other
+      notes: |
+        A consumer-visible behaviour rather than a surface: a suite creating an unregistered entity
+        succeeds here and would fail against the engine.
+    because:
+      - f:entity-type-lookup-agrees-with-spawnability
+      - r-nmkxdrga
+      - r-qak2scbs
+      - r-ovyzy5ey
+      - r-8r8gf6b7
+    revisit_when:
+      - packs come to rely on the fakes refusing an unregistered type, so the divergence hides the
+        bug it was meant to leave visible
+    facets: fakes
+
+  - id: d-m6ryo7ea
+    title: localizationKey is registered or throws
+    statement: |
+      An `EntityType` carries `id` and `localizationKey` and nothing else. `localizationKey` reads
+      back the key the test registered, and throws UnsetValueError where none was registered.
+    status: proposed
+    pinned:
+      reason: public-api
+    because:
+      - f:entity-type-carries-id-and-localization-key
+      - r-62r76czb
+      - d-dk3rf1w8
+    revisit_when:
+      - a rule is found that reproduces the engine's key for vanilla and pack-defined types alike,
+        so the throw obstructs tests that never touch the field
+    facets: fakes
