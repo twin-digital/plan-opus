@@ -3124,3 +3124,29 @@ facts:
         where: "`guard` — an argument to getAll"
         quote: |
           [etreg] guard :: case=getall-one-argument threw TypeError: Incorrect number of arguments to function. Expected 0, received 1
+
+  - id: entity-type-localization-key-derives-from-the-id
+    claim: |
+      An `EntityType`'s `localizationKey` follows one rule from its identifier, with no exceptions:
+      it is `entity.<id>.name`, with a leading `minecraft:` stripped and any other namespace kept.
+      Checked against every entry the registry held — 129 types, vanilla and pack-defined together —
+      the derived key matched the engine's for all of them, and no read threw. So a vanilla type
+      reads `entity.sheep.name` and a pack-defined one `entity.mctest:probe_dummy.name`, both from
+      the same rule.
+    caveat: |
+      Measured on one world with one content pack installed, so the pack-defined side of the rule
+      rests on that pack's single type.
+    backing: tested
+    sources:
+      - run: entity-type-registry-probe
+        where: "`localization` — the derived key against every registry entry"
+        quote: |
+          [etreg] localization :: checked=129 mismatches=0 read-threw=0
+      - run: entity-type-registry-probe
+        where: "`shape` — a vanilla type's key, namespace stripped"
+        quote: |
+          [etreg] shape :: subject=minecraft:sheep ctor=EntityType members=[localizationKey(own,value)=string:"entity.sheep.name" id(own,value)=string:"minecraft:sheep" id(proto1,value)=undefined localizationKey(proto1,value)=undefined]
+      - run: entity-type-registry-probe
+        where: "`shape` — a pack-defined type's key, namespace kept"
+        quote: |
+          [etreg] shape :: subject=mctest:probe_dummy ctor=EntityType members=[localizationKey(own,value)=string:"entity.mctest:probe_dummy.name" id(own,value)=string:"mctest:probe_dummy" id(proto1,value)=undefined localizationKey(proto1,value)=undefined]

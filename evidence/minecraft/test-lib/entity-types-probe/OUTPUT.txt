@@ -225,5 +225,68 @@ server=1.26.43.1 pack=3f8a5c21-9d47-4e63-b0a2-6c1e8f4d7b39
 [2026-08-10 21:48:49:861 WARN] [Scripting] [etreg] spawn :: case=bare-vanilla id=sheep lookup returned object<EntityType> spawn returned object<Entity> typeId=string:"minecraft:sheep"
 [2026-08-10 21:48:49:861 WARN] [Scripting] [etreg] spawn :: case=bare-pack-defined id=probe_dummy lookup returned undefined spawn threw InvalidArgumentError: Invalid value passed to argument [0]. 'minecraft:probe_dummy' is not a valid entity type. typeId=string:"n/a"
 [2026-08-10 21:48:49:861 WARN] [Scripting] [etreg] registry :: complete
+[2026-08-10 22:27:13:791 WARN] [Scripting] [etreg] boot :: ready
+[2026-08-10 22:27:14:051 WARN] [Scripting] [etreg] registry :: begin
+[2026-08-10 22:27:14:052 WARN] [Scripting] [etreg] at-module-eval :: case=vanilla threw ReferenceError: Native function [EntityTypes::get] cannot be used in early execution.
+[2026-08-10 22:27:14:052 WARN] [Scripting] [etreg] at-module-eval :: case=custom threw ReferenceError: Native function [EntityTypes::get] cannot be used in early execution.
+[2026-08-10 22:27:14:052 WARN] [Scripting] [etreg] at-module-eval :: case=absent threw ReferenceError: Native function [EntityTypes::get] cannot be used in early execution.
+[2026-08-10 22:27:14:052 WARN] [Scripting] [etreg] at-module-eval :: case=all threw ReferenceError: Native function [EntityTypes::getAll] cannot be used in early execution.
+[2026-08-10 22:27:14:052 WARN] [Scripting] [etreg] at-event :: case=startup threw ReferenceError: Native function [EntityTypes::get] cannot be used in early execution.
+[2026-08-10 22:27:14:052 WARN] [Scripting] [etreg] at-event :: case=startupCustom threw ReferenceError: Native function [EntityTypes::get] cannot be used in early execution.
+[2026-08-10 22:27:14:052 WARN] [Scripting] [etreg] at-event :: case=startupAll threw ReferenceError: Native function [EntityTypes::getAll] cannot be used in early execution.
+[2026-08-10 22:27:14:052 WARN] [Scripting] [etreg] at-event :: case=worldLoad returned object<EntityType>
+[2026-08-10 22:27:14:052 WARN] [Scripting] [etreg] at-event :: case=worldLoadCustom returned object<EntityType>
+[2026-08-10 22:27:14:052 WARN] [Scripting] [etreg] at-event :: case=worldLoadAll returned object<Array> length=129
+[2026-08-10 22:27:14:052 WARN] [Scripting] [etreg] get :: case=registered-vanilla-prefixed argument="minecraft:sheep" returned object<EntityType> .id returned string:"minecraft:sheep"
+[2026-08-10 22:27:14:052 WARN] [Scripting] [etreg] get :: case=registered-vanilla-bare argument="sheep" returned object<EntityType> .id returned string:"minecraft:sheep"
+[2026-08-10 22:27:14:052 WARN] [Scripting] [etreg] get :: case=registered-vanilla-second argument="minecraft:zombie" returned object<EntityType> .id returned string:"minecraft:zombie"
+[2026-08-10 22:27:14:052 WARN] [Scripting] [etreg] get :: case=pack-defined-prefixed argument="mctest:probe_dummy" returned object<EntityType> .id returned string:"mctest:probe_dummy"
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] get :: case=pack-defined-bare argument="probe_dummy" returned undefined .id n/a
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] get :: case=absent-namespaced argument="mctest:nothing_registers_this" returned undefined .id n/a
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] get :: case=absent-bare argument="nothing_registers_this" returned undefined .id n/a
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] get :: case=absent-minecraft-namespace argument="minecraft:nothing_registers_this" returned undefined .id n/a
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] get :: case=empty-string argument="" returned undefined .id n/a
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] get :: case=prefix-only argument="minecraft:" returned undefined .id n/a
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] get :: case=whitespace argument=" minecraft:sheep " returned undefined .id n/a
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] get :: case=case-mismatch argument="minecraft:Sheep" returned undefined .id n/a
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] guard :: case=no-argument threw TypeError: Incorrect number of arguments to function. Expected 1, received 0
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] guard :: case=two-arguments threw TypeError: Incorrect number of arguments to function. Expected 1, received 2
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] guard :: case=undefined threw InvalidArgumentError: Invalid type passed to argument [0]. Expected type: string
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] guard :: case=null threw InvalidArgumentError: Invalid type passed to argument [0]. Expected type: string
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] guard :: case=number threw TypeError: Native type conversion failed. Function argument [0] expected type: string
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] guard :: case=object threw TypeError: Object did not have a native handle. Function argument [0] expected type: string
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] guard :: case=boolean threw TypeError: Native type conversion failed. Function argument [0] expected type: string
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] guard :: case=symbol threw TypeError: Native type conversion failed. Function argument [0] expected type: string
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] guard :: case=array threw TypeError: Native type conversion failed. Function argument [0] expected type: string
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] guard :: case=function threw TypeError: Native type conversion failed. Function argument [0] expected type: string
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] guard :: case=string-object threw TypeError: Object has an invalid native handle. Function argument [0] expected type: string
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] guard :: case=getall-one-argument threw TypeError: Incorrect number of arguments to function. Expected 0, received 1
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] shape :: subject=minecraft:sheep returned object<EntityType>
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] shape :: subject=minecraft:sheep ctor=EntityType members=[localizationKey(own,value)=string:"entity.sheep.name" id(own,value)=string:"minecraft:sheep" id(proto1,value)=undefined localizationKey(proto1,value)=undefined]
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] shape :: subject=mctest:probe_dummy returned object<EntityType>
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] shape :: subject=mctest:probe_dummy ctor=EntityType members=[localizationKey(own,value)=string:"entity.mctest:probe_dummy.name" id(own,value)=string:"mctest:probe_dummy" id(proto1,value)=undefined localizationKey(proto1,value)=undefined]
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] shape :: identity-across-calls same-object=true
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] shape :: identity-bare-vs-prefixed same-object=true bare=object<EntityType>
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] getall :: returned object<Array>
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] getall :: count=129 is-array=true
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] getall :: contains-pack-defined=true
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] getall :: contains-sheep=true
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] getall :: unprefixed-ids=0
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] getall :: duplicate-ids=0
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] getall :: entry-identity-matches-get=true
+[2026-08-10 22:27:14:053 WARN] [Scripting] [etreg] getall :: same-array-across-calls=false same-entry-objects=true
+[2026-08-10 22:27:14:054 WARN] [Scripting] [etreg] getall :: first-ten=[mctest:probe_dummy minecraft:agent minecraft:allay minecraft:area_effect_cloud minecraft:armadillo minecraft:armor_stand minecraft:arrow minecraft:axolotl minecraft:bat minecraft:bee]
+[2026-08-10 22:27:14:054 WARN] [Scripting] [etreg] getall :: non-minecraft-namespaces=[mctest:probe_dummy]
+[2026-08-10 22:27:14:055 WARN] [Scripting] [etreg] localization :: checked=129 mismatches=0 read-threw=0
+[2026-08-10 22:27:14:117 WARN] [Scripting] [etreg] spawn :: tickingarea returned object<CommandResult> successCount=0
+[2026-08-10 22:27:24:033 WARN] [Scripting] [etreg] spawn :: tickingarea-list successCount=1
+[2026-08-10 22:27:24:033 WARN] [Scripting] [etreg] spawn :: platform returned object<CommandResult> successCount=0
+[2026-08-10 22:27:25:033 WARN] [Scripting] [etreg] spawn :: case=pack-defined id=mctest:probe_dummy lookup returned object<EntityType> spawn returned object<Entity> typeId=string:"mctest:probe_dummy"
+[2026-08-10 22:27:25:034 WARN] [Scripting] [etreg] spawn :: case=vanilla id=minecraft:sheep lookup returned object<EntityType> spawn returned object<Entity> typeId=string:"minecraft:sheep"
+[2026-08-10 22:27:25:034 WARN] [Scripting] [etreg] spawn :: case=absent-namespaced id=mctest:nothing_registers_this lookup returned undefined spawn threw InvalidArgumentError: Invalid value passed to argument [0]. 'mctest:nothing_registers_this' is not a valid entity type. typeId=string:"n/a"
+[2026-08-10 22:27:25:034 WARN] [Scripting] [etreg] spawn :: case=absent-minecraft-namespace id=minecraft:nothing_registers_this lookup returned undefined spawn threw InvalidArgumentError: Invalid value passed to argument [0]. 'minecraft:nothing_registers_this' is not a valid entity type. typeId=string:"n/a"
+[2026-08-10 22:27:25:034 WARN] [Scripting] [etreg] spawn :: case=bare-vanilla id=sheep lookup returned object<EntityType> spawn returned object<Entity> typeId=string:"minecraft:sheep"
+[2026-08-10 22:27:25:034 WARN] [Scripting] [etreg] spawn :: case=bare-pack-defined id=probe_dummy lookup returned undefined spawn threw InvalidArgumentError: Invalid value passed to argument [0]. 'minecraft:probe_dummy' is not a valid entity type. typeId=string:"n/a"
+[2026-08-10 22:27:25:034 WARN] [Scripting] [etreg] registry :: complete
 
 === end ===

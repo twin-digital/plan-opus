@@ -126,22 +126,22 @@ decisions:
     facets: fakes
 
   - id: d-m6ryo7ea
-    title: localizationKey is registered or throws
+    title: localizationKey derives from the id
     statement: |
-      An `EntityType` carries `id` and `localizationKey` and nothing else. `localizationKey` reads
-      back the key the test registered, and throws UnsetValueError where none was registered — so it
-      is an accessor where the engine's is an own value property, a divergence stated with the rest.
+      An `EntityType` carries `id` and `localizationKey` and nothing else, both own value
+      properties as the engine's are. `localizationKey` is derived from the id by the engine's own
+      rule, and a registration may supply one instead.
     status: proposed
     pinned:
       reason: public-api
     because:
       - f:entity-type-carries-id-and-localization-key
+      - f:entity-type-localization-key-derives-from-the-id
+      - r-0lbj68w9
       - r-62r76czb
-      - r-ovyzy5ey
-      - d-dk3rf1w8
     revisit_when:
-      - a rule is found that reproduces the engine's key for vanilla and pack-defined types alike,
-        so the throw obstructs tests that never touch the field
+      - a type is found whose key the rule does not produce, so deriving fabricates a value the
+        engine reports differently
     facets: fakes
 
   # raised by the survey of the draft fold: choices the build meets that the six above left open
@@ -206,29 +206,25 @@ decisions:
     facets: fakes
 
   - id: d-a0jmbtbh
-    title: the vanilla preset registers ids only, in its source's order
+    title: the vanilla preset registers the ids its source carries
     statement: |
       `withVanillaEntityTypes` registers the entity-type ids `@minecraft/vanilla-data` carries, in
-      that source's order, and supplies no `localizationKey` — the engine's keys are pinned by no
-      source the library reads. It skips an id already registered, so it composes with a test's own
+      that source's order. It skips an id already registered, so it composes with a test's own
       registrations rather than colliding with the duplicate refusal.
     status: proposed
     pinned:
       reason: public-api
       notes: |
         The list is `@minecraft/vanilla-data`'s, which is corroborated by the observed count and not
-        compared id-for-id with it; the package states which it is.
+        compared id-for-id with a world's registry; the package states which it is.
     because:
       - d-1g2k3g56
       - d-gr7gky6j
-      - d-m6ryo7ea
       - r-b92y0kb7
       - r-8r8gf6b7
     revisit_when:
       - an id-for-id comparison finds `@minecraft/vanilla-data`'s list and a world's registry
         disagreeing, so the preset misdescribes the vanilla set it names
-      - tests routinely register a localization key over every vanilla type they touch, so
-        supplying none costs more preamble than the unpinned value would misstate
     facets: fakes
 
   - id: d-4009wvxs

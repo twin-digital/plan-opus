@@ -197,6 +197,35 @@ const runGetAll = () => {
   say("getall", `non-minecraft-namespaces=[${[...new Set(sample.filter((i) => !i.startsWith("minecraft:")))].join(" ")}]`);
 };
 
+// Whether the engine's localizationKey follows one rule from the identifier, across every type the
+// registry holds rather than the two the shape probe sampled.
+const runLocalization = () => {
+  const all = read(() => EntityTypes.getAll());
+  if (!all.ok || !all.v) {
+    say("localization", `getAll ${all.text}`);
+    return;
+  }
+  const derive = (id) => `entity.${id.startsWith("minecraft:") ? id.slice("minecraft:".length) : id}.name`;
+  const mismatches = [];
+  let unset = 0;
+  let checked = 0;
+  for (const type of all.v) {
+    const id = read(() => type.id).v;
+    const key = read(() => type.localizationKey);
+    if (typeof id !== "string") continue;
+    checked++;
+    if (!key.ok) {
+      unset++;
+      say("localization", `case=read-threw id=${id} ${key.text}`);
+      continue;
+    }
+    if (key.v !== derive(id)) mismatches.push(`${id} => ${val(key.v)} (derived ${derive(id)})`);
+  }
+  say("localization", `checked=${checked} mismatches=${mismatches.length} read-threw=${unset}`);
+  for (const m of mismatches.slice(0, 25)) say("localization", `mismatch ${m}`);
+  if (mismatches.length > 25) say("localization", `... and ${mismatches.length - 25} more`);
+};
+
 const runSpawnAgreement = async () => {
   // whether the registry agrees with what the world will actually spawn: the property a pack's
   // "is this type registered" check is really asking about
@@ -249,6 +278,7 @@ const runRegistry = async () => {
   runArgumentGuards();
   runShape();
   runGetAll();
+  runLocalization();
   await runSpawnAgreement();
   say("registry", "complete");
 };

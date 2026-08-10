@@ -1,5 +1,30 @@
-version: "1"
+version: "3"
 
 presets:
   - name: nodejs-library
     version: 2
+
+# Extracted from the fold rather than coined here: each of these is leaned on across increments and
+# defined nowhere. `registry` and `module registry` are separated because the bare word was carrying
+# both senses in force at once.
+terms:
+  - id: fake-server
+    definition: what `createServer` returns — the `world`, `system` and registry classes holding every piece of state one test arranges
+    status: active
+
+  - id: control-plane
+    definition: the package's exported free functions, through which a test arranges and inspects what the engine's own surface cannot express
+    status: active
+
+  - id: registry
+    definition: an engine class resolving an identifier to a type, `EntityTypes` and the seven declared beside it
+    status: active
+
+  - id: module-registry
+    definition: the JavaScript runtime's record of evaluated modules, which a test runner resets between files
+    status: active
+
+  - id: bundle
+    definition: a superseded name for a fake server, reading in a Minecraft context like the pack under test
+    status: retired
+    reason: it names a bundler's output in adjacent products, and in a Minecraft context reads like a pack or an addon — the thing under test rather than the thing testing it
