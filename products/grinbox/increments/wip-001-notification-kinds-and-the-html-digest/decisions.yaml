@@ -1,0 +1,62 @@
+version: "3"
+
+decisions:
+  - id: d-vn2jdxbs
+    title: a notify operator declares the notification kind it sends
+    statement: |
+      every notify operator carries a notification kind — a short name the user chooses — and
+      every push it sends belongs to it. Operators may share one, which is how the user groups
+      pushes that should not pile up. An operator naming none is its own kind.
+    commentary: |
+      An operator naming none being its own kind is what lets a configuration stored before kinds
+      existed keep sending exactly as it did.
+    status: proposed
+    because:
+      - r-lph86tsg
+      - d-oectpw7n
+      - r-5ezt7j0v
+    pinned:
+      reason: public-api
+      notes: |
+        it is a field of every stored notify configuration and the name a throttle is set against,
+        so the interface and a reimplementation both read it
+
+  - id: d-5amonj40
+    title: a throttled push is an outcome, not a failure
+    statement: |
+      the user sets a minimum interval per notification kind. An operator whose kind was delivered
+      inside that interval sends nothing, completes, and records the suppression on its own run.
+      The triage settles as it would have.
+    commentary: |
+      The record names the kind and the delivery the suppression deferred to, so a user asking why
+      no push arrived reads the answer off the message rather than inferring it.
+    status: proposed
+    because:
+      - r-lph86tsg
+      - d-coeyvi2n
+      - r-k6gh82fx
+    pinned:
+      reason: public-api
+      notes: |
+        it is the shape the interface renders on a message's record, and an arm a reimplementation
+        must reproduce beside succeeded, failed, and capped
+
+  - id: d-6ptxams7
+    title: the throttle is the user's, and the caps still bind under it
+    statement: |
+      a notification kind's interval is a throttle the user sets, changes, and removes at will. It
+      is not a cap: the seeded caps on the push resource bind underneath and stay beyond the user's
+      reach. A push the throttle suppresses reaches no resource, so it spends no cap.
+    commentary: |
+      Removing an interval exposes the caps rather than uncapping anything.
+    status: proposed
+    because:
+      - r-lph86tsg
+      - r-zmn2p7lf
+      - d-qv5l66ya
+      - d-eqwrgoyv
+    pinned:
+      reason: other
+      notes: |
+        it fixes which of the two mechanisms the user may weaken, and a throttle that spent a cap
+        would let a burst exhaust the backstop it was added to protect

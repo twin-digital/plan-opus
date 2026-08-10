@@ -1,0 +1,21 @@
+version: "3"
+
+terms:
+  - id: notification-kind
+    display: notification kind
+    definition: |
+      what a push is about, named by the user and carried by the operators that send it. Several
+      operators may send one, and it is the unit grinbox throttles.
+
+requirements:
+  - id: r-lph86tsg
+    title: a burst of one notification kind costs one push
+    statement: |
+      the user groups the pushes grinbox sends into notification kinds and sets, per kind, how
+      often one may reach them. Inside that interval the first push of a kind is delivered and
+      the rest are suppressed, so a burst of related mail costs one push rather than one per
+      message.
+    commentary: |
+      A push worth having loses its value the moment a burst of it teaches the user to swipe the
+      channel away, and the same burst spends the push service's own rate limit that every other
+      notification depends on.
