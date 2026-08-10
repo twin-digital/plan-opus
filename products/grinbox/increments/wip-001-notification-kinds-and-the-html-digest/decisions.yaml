@@ -17,9 +17,6 @@ decisions:
       - r-5ezt7j0v
     pinned:
       reason: public-api
-      notes: |
-        it is a field of every stored notify configuration and the name a throttle is set against,
-        so the interface and a reimplementation both read it
 
   - id: d-5amonj40
     title: a throttled push is an outcome, not a failure
@@ -36,9 +33,6 @@ decisions:
       - r-k6gh82fx
     pinned:
       reason: public-api
-      notes: |
-        it is the shape the interface renders on a message's record, and an arm a reimplementation
-        must reproduce beside succeeded, failed, and capped
 
   - id: d-6ptxams7
     title: the throttle is the user's, and the caps still bind under it
@@ -74,9 +68,6 @@ decisions:
       - d-qcsxvo18
     pinned:
       reason: data-format
-      notes: |
-        the shape of what lands in the user's mailbox, and what the send operation a second mail
-        backend implements has to carry
 
   - id: d-rd986rrt
     title: the send operation takes an optional second rendition
@@ -92,9 +83,6 @@ decisions:
       - d-v5zamgjn
     pinned:
       reason: public-api
-      notes: |
-        the seam a second mail backend is written against, and the argument shape the metered
-        client and every sending caller share
 
   - id: d-or4jo6s1
     title: carrying a rendition is not a capability a backend declares
@@ -174,9 +162,13 @@ decisions:
   - id: d-oc073wsp
     title: the display form follows from the ISO currency alone
     statement: |
-      an extracted money value's display form follows from its ISO currency alone: the symbol
-      where grinbox knows one, the code beside the amount where it does not, and no decimals where
-      the currency's minor unit is its whole unit. The machine's locale has no part in it.
+      an extracted money value's display form follows from its ISO currency alone — the machine's
+      locale has no part in it. The amount carries no decimals where the currency's minor unit is
+      its whole unit.
+    cases:
+      - when: grinbox knows a symbol for the currency
+        then: the symbol denotes the currency in the display form
+      - otherwise: the ISO code renders beside the amount
     status: proposed
     because:
       - r-735kq72h
