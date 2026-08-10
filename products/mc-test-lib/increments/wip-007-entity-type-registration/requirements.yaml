@@ -4,6 +4,14 @@ presets:
   - name: nodejs-library
     version: 2
 
+# The two facets `product.yaml` has always named, declared as components so a decision's `scope`
+# resolves against them.
+components:
+  - id: fakes
+    description: the in-memory fakes of the `@minecraft/server` object model and their control plane — the test-double library itself
+  - id: shim
+    description: the import-level shim that stands the fakes in for a direct `@minecraft/server` module import in a test runner
+
 # Extracted from the fold rather than coined here: each of these is leaned on across increments and
 # defined nowhere. `registry` and `module registry` are separated because the bare word was carrying
 # both senses in force at once.
