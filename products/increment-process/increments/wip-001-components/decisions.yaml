@@ -7,7 +7,7 @@ decisions:
       a product's components are declared in a `components:` block of the requirements source,
       beside `presets:` and `model:` — state-shaped entries that fold by id, ratified with the
       increment that declares them. `/design-process/requirements@3` carries the block.
-    status: proposed
+    status: accepted
     because:
       - r-s0j3i7oh
     pinned:
@@ -20,7 +20,7 @@ decisions:
       optional `parent`, and a `status` of active (the default) or retired. It carries nothing
       else — no package information and no configuration; what realizes a component is the
       mapping's business.
-    status: proposed
+    status: accepted
     because:
       - d-rk99dwty
     pinned:
@@ -33,7 +33,7 @@ decisions:
       ids are flat slugs, never path-shaped, so re-parenting is the redeclaration of one entry
       and touches no published foundation. A parent that does not resolve, or a cycle, is a
       validator finding.
-    status: proposed
+    status: accepted
     because:
       - r-5endqgyi
       - d-9qbjzflc
@@ -55,6 +55,44 @@ decisions:
     pinned:
       reason: data-format
 
+  - id: d-x3ar9r8q
+    title: the component graph is acyclic
+    statement: |
+      a component never appears among its own ancestors: parent references form a tree rooted
+      at the product, and a declaration or redeclaration that would close a cycle is refused at
+      the increment that declares it.
+    status: proposed
+    because:
+      - d-cgr6q2j1
+    pinned:
+      reason: data-format
+
+  - id: d-uw3ilu6d
+    title: re-parenting is reported, not guarded
+    statement: |
+      a redeclaration changing a component's parent is legal whenever the new parent resolves
+      acyclically. The projection reports the in-force claims whose reach the move changes, and
+      the owner rules the redeclaration with that reach in view; a use-keyed guard would freeze
+      the tree the moment anything is scoped beneath it.
+    status: proposed
+    because:
+      - r-5endqgyi
+      - d-cgr6q2j1
+    pinned: false
+
+  - id: d-5gz40hdo
+    title: a preset declares no components
+    statement: |
+      a requirement-preset product declares no components, and its own requirements carry no
+      scope — either is a validator finding. The adoption's scope, the adopter's, is the only
+      scoping an adopted requirement gets; its statement's subject names the kind of thing it
+      binds.
+    status: proposed
+    because:
+      - d-ekoz1t47
+    pinned:
+      reason: data-format
+
   # scoped foundations
   - id: d-rplsevuk
     title: scope names a subtree
@@ -62,7 +100,7 @@ decisions:
       a foundation scoped to a component applies to that component and everything beneath it; a
       foundation carrying no scope applies to the whole product. There is no container-only
       reading — what a scope denotes does not change when children are added beneath it.
-    status: proposed
+    status: accepted
     because:
       - r-s0j3i7oh
       - r-5endqgyi
@@ -76,7 +114,7 @@ decisions:
       resolved against the product's component fold; a scope naming no live component is a
       validator finding. `/design-process/requirement@2` and `/design-process/decision@3` carry
       the field.
-    status: proposed
+    status: accepted
     because:
       - r-s0j3i7oh
       - d-rplsevuk
@@ -89,7 +127,7 @@ decisions:
       a preset adoption entry takes an optional `scope:` — one component id or a list — and the
       adopted requirements apply at that scope with the ordinary subtree reading; absent scope
       adopts for the whole product. `/design-process/requirements@3` carries the field.
-    status: proposed
+    status: accepted
     because:
       - r-r3bhwqno
       - d-rplsevuk
@@ -103,7 +141,7 @@ decisions:
       descriptive and implementer-maintained like the rest of the mapping; absent reads as the
       product root. Coverage resolution maps a claim's scope through the component tree to the
       packages declaring those components. `/design-process/product@2` carries the field.
-    status: proposed
+    status: delegated
     because:
       - d-rplsevuk
       - d-hl3l8df0
@@ -132,7 +170,7 @@ decisions:
       answer for it, through the component mapping, never which foundations an implementer
       reads. Survey stays whole-fold: a filter computed from a descriptive mapping would hide
       exactly the gaps survey exists to find.
-    status: proposed
+    status: delegated
     because:
       - d-bz5k3yz7
     pinned: false
@@ -144,7 +182,7 @@ decisions:
       facets are retired: `requirement@2`, `decision@3`, and `product@2` carry no facets field,
       and the projection filters and groups by scope instead. Published sources keep the field
       in the dialect they declare.
-    status: proposed
+    status: accepted
     supersedes: d-i8rwe1sv
     because:
       - d-hl3l8df0
