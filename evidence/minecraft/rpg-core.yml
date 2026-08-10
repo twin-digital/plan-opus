@@ -1,0 +1,18 @@
+# The run behind the cross-pack facts: what crosses a behavior-pack boundary — an entity type one
+# pack defines and a script module one pack holds — as seen from a script in a different pack.
+
+version: "1"
+runs:
+  - id: cross-pack-probe
+    command: node evidence/minecraft/rpg-core/cross-pack-probe/probe.mjs
+    output: evidence/minecraft/rpg-core/cross-pack-probe/OUTPUT.txt
+    ran_at: 2026-08-10
+    environment: |
+      An itzg/minecraft-bedrock-server container running Bedrock dedicated server 1.26.43.1, driven
+      by the script beside this entry over a remote Docker daemon. The probe authors its packs, copies
+      them into the server's development_behavior_packs pool, writes each world's behavior activation
+      list, restarts the server, and captures what the packs' own scripts report through console.warn
+      into the server console, which needs content-log-console-output-enabled set. The pool is emptied
+      before each scenario. Each scenario runs against a freshly generated world on the same volume. No
+      Minecraft client is involved, so nothing here observes rendering. Observations are this server
+      version's behaviour and would need re-running against another.

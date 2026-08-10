@@ -88,14 +88,45 @@ shipped under the vanilla identifier it came with, and the evoker's *material* i
 — materials live in their own vanilla files and drag in more than they are worth, so `d-3ggbl0kl`
 names a stock one.
 
-## What the two open questions gate
+## What the boundary probe settled
 
-`q-cam2g9om` asks whether a script in one pack can spawn an entity another pack defines. Everything
-here rests on yes. It is the kind of thing that is obviously true right up until it is not, and no
-fact in the pool carries it.
+Two questions gated the shape of this increment, and the `cross-pack-probe` run answered both against
+a real 1.26.43.1 server.
 
-`q-abwhpdno` asks whether a script module in one pack can import from another. The answer being *no*
-is why `d-knzip5zc` sends the library through npm; if it is yes, run-time sharing is a real
-alternative and the route deserves re-ruling.
+**An entity type crosses the boundary.** A consumer pack's script spawned the provider pack's entity,
+read its `typeId` back, counted it in the dimension, and summoned another by command — and did so
+whether or not a manifest dependency was declared. With the defining pack absent, the same call fails
+at the identifier: `'probe:actor' is not a valid entity type`. So resolution turns on the defining
+pack being *loaded* and on nothing else, which is what the split in `d-6jlj0rl2` needed.
 
-One spike on the dev server answers both, and both should be answered before this lands.
+**A script module does not.** Four static specifier shapes and a dynamic `import()` all fail with
+`ReferenceError: Import [...] not found.`, and the importing pack's entry then does not run at all.
+Every importer declared the manifest dependency, so a dependency opens no module path. Code is shared
+at build time or not at all, which is `d-knzip5zc`'s npm route — now evidenced rather than assumed.
+
+Two things the probe found that nobody asked it:
+
+**A declared dependency activates the pack it names.** A world listing only the consumer loaded the
+provider too, pulled in by the consumer's `dependencies` entry. So an adventure declaring the assets
+pack does not also need the world's activation list to name it — which is most of why `d-7uvpewdk`
+installs the assets pack once rather than bundling copies.
+
+**An unsatisfiable dependency is not enforced.** With the depended-on pack absent, the dependent
+loaded and ran normally; the only symptom was the entity type failing to resolve. The manifest is a
+statement of intent, not a guarantee, and that is precisely what `d-xobjyw2e`'s per-call check exists
+for.
+
+## The invariant, and the half of it that cannot be checked
+
+`r-9owgd93o` asks the library to refuse rather than half-work when its definitions are absent.
+`EntityTypes.get(identifier)` is the right primitive: stable, and it returns `undefined` instead of
+throwing, so the check needs no spawn attempt and no location made ticking first. `d-xobjyw2e` puts it
+on every entry point rather than once at startup, because pack presence is a property of the world the
+call runs against, not of the process.
+
+The check reaches the behavior pack only. `@minecraft/server` exposes no way to observe whether a
+*resource* pack is active — the script API is server-side and pack delivery to a client is not in it —
+so a world holding the behavior pack alone spawns actors that behave correctly and render as whatever
+the client does with an entity it has no definition for. `d-e4lx5lti` states that limit rather than
+implying the check covers more than it does. If an API for it ever appears, the limit is worth
+revisiting; nothing here depends on its absence being permanent.

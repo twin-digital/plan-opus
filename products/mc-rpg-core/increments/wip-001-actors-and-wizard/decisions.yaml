@@ -16,6 +16,7 @@ decisions:
     because:
       - r-e8p2oto6
       - r-cyd08e6q
+      - f:an-entity-type-resolves-for-a-script-in-any-other-loaded-pack
 
   - id: d-knzip5zc
     title: code travels as an npm dependency, assets as a manifest uuid dependency
@@ -34,6 +35,8 @@ decisions:
       - r-e8p2oto6
       - d-6jlj0rl2
       - f:pack-dependency-entries-name-a-uuid-or-a-module-name-plus-a-version
+      - f:a-script-module-does-not-resolve-across-packs
+      - f:a-declared-pack-dependency-activates-the-depended-on-pack
 
   - id: d-7uvpewdk
     title: the assets pack is installed once and never bundled into an adventure's archive
@@ -49,6 +52,8 @@ decisions:
     because:
       - d-knzip5zc
       - f:pack-dependency-entries-name-a-uuid-or-a-module-name-plus-a-version
+      - f:a-declared-pack-dependency-activates-the-depended-on-pack
+      - f:a-worlds-activation-lists-name-the-packs-it-runs
 
   # what an actor is
   - id: d-gzoqebyy
@@ -144,18 +149,55 @@ decisions:
     title: the spawn call takes a preset name and returns a handle
     statement: |
       the library's spawn call takes the name of a preset, the place to put the actor, and options
-      that may override the actor's default name; it returns a handle to the actor it created. where
-      the assets pack is not active in the world, the call fails with an error this product names
-      rather than with whatever the engine raises. the call's exact signature is not fixed here.
+      that may override the actor's default name; it returns a handle to the actor it created. the
+      call's exact signature is not fixed here.
     status: proposed
     pinned:
       reason: public-api
-      notes: the one call every adventure makes, and the failure an adventure's author reads when the dependency is missing
+      notes: the one call every adventure makes
     facets: library
     because:
       - r-lna5xlfe
       - d-knzip5zc
       - d-ipgh0g2d
+
+  - id: d-xobjyw2e
+    title: every entry point checks its actor's entity type is registered, and throws naming the pack
+    statement: |
+      every library entry point that acts on an actor checks first that the entity type its preset
+      names is registered in the world, by looking the identifier up rather than by attempting the
+      action and interpreting what comes back. where it is not registered the call throws an error
+      this product defines, naming the preset, the identifier, and the pack that supplies it. the check
+      is per call rather than once at startup, since a pack's presence is a property of the world the
+      call is running against.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: the error an adventure's author meets, and the guarantee that no call half-succeeds
+    facets: library
+    because:
+      - r-9owgd93o
+      - d-ipgh0g2d
+      - f:an-entity-type-can-be-looked-up-by-identifier-without-spawning
+      - f:an-unsatisfiable-pack-dependency-is-not-enforced-at-load
+      - f:an-entity-type-resolves-for-a-script-in-any-other-loaded-pack
+
+  - id: d-e4lx5lti
+    title: the check covers the behavior pack; a missing resource pack is not detectable
+    statement: |
+      what the check establishes is that the actor's *definitions* are present. it does not establish
+      that the resource pack carrying the actor's appearance is, and the library does not claim to: a
+      world holding the behavior pack alone spawns actors that behave correctly and render as whatever
+      a client does with an entity it has no definition for. the library therefore names the behavior
+      pack in its error and says nothing about the resource pack.
+    status: proposed
+    pinned:
+      reason: other
+      notes: it bounds what an adventure's author may conclude from the call succeeding
+    facets: library
+    because:
+      - r-9owgd93o
+      - d-xobjyw2e
 
   # what this increment hands on
   - id: d-c0l4gwx2

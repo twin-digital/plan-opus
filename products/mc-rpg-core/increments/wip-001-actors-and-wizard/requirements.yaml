@@ -92,6 +92,23 @@ requirements:
       - verify: it renders as it does on the original version
     facets: assets-pack
 
+  - id: r-9owgd93o
+    title: the library refuses to act when the actor definitions are absent
+    statement: |
+      where the definitions or assets an actor needs are not present in the world, the library refuses
+      the call and says so, naming what is missing. it never returns a handle to an actor it did not
+      create, and never leaves an adventure to discover the absence from a later failure.
+    rationale: |
+      the two halves of this product are installed separately, so a world running an adventure against
+      a missing or stale assets pack is an ordinary operational state rather than a broken build — and
+      the failure it produces without this is an actor that silently never appears.
+    verification:
+      - do: run an adventure on a world where the product's assets pack is not installed, and have it spawn every actor it uses
+      - verify: each call failed, each failure named the missing pack, and no handle was returned
+      - do: read the adventure's own log or output for that run
+      - verify: the reason is stated there, rather than having to be inferred from a later error
+    facets: library
+
   - id: r-rpcudvbl
     title: a wizard preset
     statement: |
