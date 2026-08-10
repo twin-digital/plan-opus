@@ -13,7 +13,7 @@ decisions:
       classes stay declared with every member throwing NotImplementedError. The engine's refusal to
       answer a registry read during early execution is not modelled: the fakes have no early phase,
       and a lookup answers whenever a test makes it.
-    status: proposed
+    status: accepted
     pinned:
       reason: public-api
     because:
@@ -35,7 +35,7 @@ decisions:
       module-scope `EntityTypes` is a third binding beside `world` and `system`, moving with them on
       install and throwing ShimNotInstalledError while unset. No registry state lives at module
       scope.
-    status: proposed
+    status: accepted
     pinned:
       reason: public-api
       notes: |
@@ -61,7 +61,7 @@ decisions:
       the server rather than through a member `@minecraft/server` does not declare. Both branches
       are arrangeable from the start: a registered type, and a lookup that misses. `getAll` reports
       in registration order.
-    status: proposed
+    status: accepted
     pinned:
       reason: public-api
     because:
@@ -80,7 +80,7 @@ decisions:
       A lookup reproduces the engine's recorded behaviour: a miss returns `undefined` rather than
       throwing or fabricating, a bare identifier means `minecraft:<id>` and nothing else, and
       matching is otherwise exact. The arity and argument-type guards are the engine's.
-    status: proposed
+    status: accepted
     pinned:
       reason: public-api
     because:
@@ -105,7 +105,7 @@ decisions:
       `createEntity` and `createPlayer` do not consult the registry: the engine declares no
       function at all, so these are the library's own and have no engine behaviour to model. The
       package says so where a user of them will read it.
-    status: proposed
+    status: accepted
     pinned:
       reason: other
       notes: |
@@ -152,7 +152,7 @@ decisions:
       normalizes on entry and is stored and reported in the canonical prefixed form. Registering an
       id already registered throws rather than replacing the entry, which would strand an
       `EntityType` a test already holds.
-    status: proposed
+    status: delegated
     pinned:
       reason: public-api
     because:
@@ -170,7 +170,7 @@ decisions:
     statement: |
       `Dimension.spawnEntity` accepts an `EntityType` wherever it accepts an id, reading the type's
       `id` and nothing else. `createEntity` continues to take a `typeId` string.
-    status: proposed
+    status: accepted
     pinned:
       reason: public-api
     because:
@@ -189,7 +189,7 @@ decisions:
       Four presets ship: `withVanillaDimensions`, `withVanillaEntityTypes`, `withVanillaWorld` —
       which supplies those two and nothing else — and `asSpawnedEntity`, which is per-entity and
       stands outside the composite. Widening the composite is a supersession of this decision.
-    status: proposed
+    status: accepted
     pinned:
       reason: public-api
       notes: |
@@ -239,7 +239,7 @@ decisions:
       them; code reaching the engine through the module import reaches the same objects by the
       surface the package supplies. The design and the package call it the fake server, or the
       server where nothing else could be meant.
-    status: proposed
+    status: accepted
     supersedes: d-gjzbiyl6
     because:
       - r-qklf4op9
@@ -256,7 +256,7 @@ decisions:
     statement: |
       an auto-assigned entity id is a decimal string issued sequentially from 1 per server and never
       reissued
-    status: proposed
+    status: delegated
     supersedes: d-ow40nqqi
     because:
       - d-4009wvxs
@@ -271,7 +271,7 @@ decisions:
       the root barrel exports `currentServer(): FakeServer`, returning the fake server the bindings
       point at and throwing ShimNotInstalledError when they are unset. It is how a test on the
       default static-import path reaches the server the free functions take
-    status: proposed
+    status: accepted
     supersedes: d-u52w8eim
     pinned:
       reason: public-api
