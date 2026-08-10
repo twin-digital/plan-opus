@@ -1,77 +1,72 @@
 version: "3"
 decisions:
-  # how the product is split, and how each half reaches an adventure
   - id: d-6jlj0rl2
     title: a library package and an assets-pack package, neither holding the other's content
-    statement: |
-      the product ships two packages. one is a Node library holding no pack, and is what an adventure
+    statement: >
+      the product ships two packages. one is a Node library holding no pack, and is what an
+      adventure
+
       imports for code. the other holds a behavior pack and a resource pack, declares no script
+
       module, and is what an adventure depends on for the actor entity definitions and their assets.
+
       neither package holds any of the other's content.
     status: proposed
     pinned:
       reason: public-api
-      notes: which package an adventure imports and which it declares a manifest dependency on, and that the split exists at all
-    scope: [library, assets-pack]
+      notes: which package an adventure imports and which it declares a manifest dependency on, and that
+        the split exists at all
+    scope:
+      - library
+      - assets-pack
     because:
       - r-e8p2oto6
       - r-cyd08e6q
       - f:an-entity-type-resolves-for-a-script-in-any-other-loaded-pack
-
   - id: d-knzip5zc
     title: code travels as an npm dependency, assets as a manifest uuid dependency
-    statement: |
+    statement: >
       an adventure takes the library as an ordinary development dependency of its package, bundled
+
       into the adventure's own script at build time. it takes the assets pack as an entry in its
+
       behavior pack manifest's `dependencies`, naming that pack's header uuid and version. there is
-      exactly one route for each: the library ships no pack to depend on, and the assets pack ships no
+
+      exactly one route for each: the library ships no pack to depend on, and the assets pack ships
+      no
+
       script to import.
     status: proposed
     pinned:
       reason: public-api
       notes: what an adventure's package manifest and pack manifest must each declare to use the product
-    scope: [library, assets-pack]
+    scope:
+      - library
+      - assets-pack
     because:
       - r-e8p2oto6
       - d-6jlj0rl2
       - f:pack-dependency-entries-name-a-uuid-or-a-module-name-plus-a-version
       - f:a-script-module-does-not-resolve-across-packs
       - f:a-declared-pack-dependency-activates-the-depended-on-pack
-
-  - id: d-7uvpewdk
-    title: the assets pack is installed once and never bundled into an adventure's archive
-    statement: |
-      the assets pack is distributed and installed as an addon in its own right, and no adventure's
-      release archive contains a copy of it. every adventure sharing a world shares the one
-      installation.
-    status: proposed
-    pinned:
-      reason: other
-      notes: what has to be installed on a server, and in how many pieces, before an adventure runs
-    scope: assets-pack
-    because:
-      - d-knzip5zc
-      - f:pack-dependency-entries-name-a-uuid-or-a-module-name-plus-a-version
-      - f:a-declared-pack-dependency-activates-the-depended-on-pack
-      - f:a-worlds-activation-lists-name-the-packs-it-runs
-
-  # what an actor is
   - id: d-gzoqebyy
     title: an actor is a custom entity, never the game's NPC entity
-    statement: |
-      no actor is the game's `minecraft:npc` entity, and the product delivers nothing through the NPC
+    statement: >
+      no actor is the game's `minecraft:npc` entity, and the product delivers nothing through the
+      NPC
+
       dialogue system. an actor is an entity this product defines.
     status: proposed
     pinned:
       reason: other
-      notes: what a click on an actor does, and which game modes a world running an adventure may be in, both change if this is reversed
+      notes: what a click on an actor does, and which game modes a world running an adventure may be in,
+        both change if this is reversed
     scope: assets-pack
     because:
       - r-wqwub3zz
       - f:npc-dialogue-needs-survival-or-adventure-mode
       - f:an-npc-is-edited-and-despawned-by-ordinary-clicks
       - f:the-npc-scripting-component-is-pre-release
-
   - id: d-ipgh0g2d
     title: one entity identifier per preset, over one shared set of components
     statement: |
@@ -82,13 +77,15 @@ decisions:
     status: proposed
     pinned:
       reason: public-api
-      notes: an actor's identifier is visible in a world — in a target selector, and in what the server logs about the entity
-    scope: [library, assets-pack]
+      notes: an actor's identifier is visible in a world — in a target selector, and in what the server
+        logs about the entity
+    scope:
+      - library
+      - assets-pack
     because:
       - r-lna5xlfe
       - d-6jlj0rl2
       - f:a-client-entity-definition-is-keyed-by-the-entity-identifier
-
   - id: d-w0smdozf
     title: what the shared actor components establish
     statement: |
@@ -100,7 +97,8 @@ decisions:
     status: proposed
     pinned:
       reason: other
-      notes: what a player sees an actor do, and whether an actor can be placed from the creative menu at all
+      notes: what a player sees an actor do, and whether an actor can be placed from the creative menu at
+        all
     scope: assets-pack
     because:
       - r-wqwub3zz
@@ -108,26 +106,32 @@ decisions:
       - r-8ih6ab2r
       - f:damage-sensor-can-stop-received-damage-being-applied
       - f:behavior-look-at-player-rotates-the-head-toward-a-nearby-player
-
-  # where an actor's appearance comes from
   - id: d-lyvjq8l1
     title: assets are vendored from a pinned revision and re-identified before they are committed
-    statement: |
-      every model, texture, animation, and animation controller an actor renders from is committed in
+    statement: >
+      every model, texture, animation, and animation controller an actor renders from is committed
+      in
+
       the assets pack under this product's own identifiers and paths. what is taken from the game's
+
       own packs is taken from one pinned revision of `Mojang/bedrock-samples`, re-identified out of
+
       the vanilla identifier namespaces before it is committed, and refreshed only by a deliberate
-      change to that pin. no vanilla identifier or path appears in a shipped client entity definition,
+
+      change to that pin. no vanilla identifier or path appears in a shipped client entity
+      definition,
+
       render controller, or animation controller.
     status: proposed
     pinned:
       reason: other
-      notes: an actor's appearance is what a player sees, and the re-identification is what stops it moving under a game update
+      notes: an actor's appearance is what a player sees, and the re-identification is what stops it
+        moving under a game update
     scope: assets-pack
     because:
       - r-pngblab3
       - f:mojang-publishes-the-vanilla-packs-with-all-rights-reserved-under-the-eula
-
+      - f:a-resource-packs-internal-asset-names-are-global-to-the-pack-stack
   - id: d-3ggbl0kl
     title: the wizard preset is vendored from the evoker, without its material
     statement: |
@@ -143,8 +147,6 @@ decisions:
       - r-rpcudvbl
       - d-lyvjq8l1
       - f:the-evoker-client-entity-names-its-geometry-texture-material-and-animations
-
-  # the surface an adventure calls
   - id: d-5lutr7ok
     title: the spawn call takes a preset name and returns a handle
     statement: |
@@ -160,15 +162,21 @@ decisions:
       - r-lna5xlfe
       - d-knzip5zc
       - d-ipgh0g2d
-
   - id: d-xobjyw2e
     title: every entry point checks its actor's entity type is registered, and throws naming the pack
-    statement: |
+    statement: >
       every library entry point that acts on an actor checks first that the entity type its preset
+
       names is registered in the world, by looking the identifier up rather than by attempting the
+
       action and interpreting what comes back. where it is not registered the call throws an error
-      this product defines, naming the preset, the identifier, and the pack that supplies it. the check
-      is per call rather than once at startup, since a pack's presence is a property of the world the
+
+      this product defines, naming the preset, the identifier, and the pack that supplies it. the
+      check
+
+      is per call rather than once at startup, since a pack's presence is a property of the world
+      the
+
       call is running against.
     status: proposed
     pinned:
@@ -181,40 +189,31 @@ decisions:
       - f:an-entity-type-can-be-looked-up-by-identifier-without-spawning
       - f:an-unsatisfiable-pack-dependency-is-not-enforced-at-load
       - f:an-entity-type-resolves-for-a-script-in-any-other-loaded-pack
-
-  - id: d-e4lx5lti
-    title: the check covers the behavior pack; a missing resource pack is not detectable
-    statement: |
-      what the check establishes is that the actor's *definitions* are present. it does not establish
-      that the resource pack carrying the actor's appearance is, and the library does not claim to: a
-      world holding the behavior pack alone spawns actors that behave correctly and render as whatever
-      a client does with an entity it has no definition for. the library therefore names the behavior
-      pack in its error and says nothing about the resource pack.
-    status: proposed
-    pinned:
-      reason: other
-      notes: it bounds what an adventure's author may conclude from the call succeeding
-    scope: library
-    because:
-      - r-9owgd93o
-      - d-xobjyw2e
-
   - id: d-bcybwddk
     title: the check covers the definitions only, and the library asserts nothing about appearance
-    statement: |
+    statement: >
       the check the library runs before acting has one rung: the entity type the preset names is
-      registered in the world, or it is not, and where it is not the call throws naming the preset, the
+
+      registered in the world, or it is not, and where it is not the call throws naming the preset,
+      the
+
       identifier, and the pack that supplies it.
 
+
       the library performs no runtime check of the resource pack and reports nothing about it. no
+
       counting of the world's pack stack, no inference from what an entity's dimensions read, and no
-      error or success path that states or implies an actor will render. a call that succeeds means the
-      actor exists and behaves; whether a player sees it is outside what the library observes or claims.
+
+      error or success path that states or implies an actor will render. a call that succeeds means
+      the
+
+      actor exists and behaves; whether a player sees it is outside what the library observes or
+      claims.
     status: proposed
     pinned:
       reason: public-api
-      notes: what a successful call is evidence of, which is narrower than it looks and is what an adventure's author will otherwise assume
-    supersedes: d-e4lx5lti
+      notes: what a successful call is evidence of, which is narrower than it looks and is what an
+        adventure's author will otherwise assume
     scope: library
     because:
       - r-9owgd93o
@@ -222,75 +221,149 @@ decisions:
       - f:the-active-client-pack-stack-is-countable-from-a-script
       - f:an-entitys-server-side-size-does-not-reflect-its-resource-pack
       - f:a-resource-pack-cannot-carry-anything-a-script-can-reach
-
   - id: d-hybkhum6
     title: an adventure's release archive bundles the assets pack, so an install is one file
-    statement: |
-      an adventure's release archive contains this product's packs alongside its own, so installing an
-      adventure is installing one archive and nothing else. no separate installation of the assets pack is
-      required, and several adventures installed together each carrying a copy is the expected state rather
+    statement: >
+      an adventure's release archive contains this product's packs alongside its own, so installing
+      an
+
+      adventure is installing one archive and nothing else. no separate installation of the assets
+      pack is
+
+      required, and several adventures installed together each carrying a copy is the expected state
+      rather
+
       than a fault.
     status: proposed
     pinned:
       reason: other
       notes: what an operator installs, and how many pieces they must keep in step
-    supersedes: d-7uvpewdk
-    scope: [library, assets-pack]
+    scope:
+      - library
+      - assets-pack
     because:
       - r-e8p2oto6
       - d-knzip5zc
       - f:duplicate-pack-copies-are-deduplicated-and-the-activation-pin-selects
       - f:release-archives-follow-pack-content
+  - id: d-i8pjw2on
+    title: every name the assets pack declares is namespaced by its major version
+    statement: >
+      the assets pack's uuid and every name it declares carry its major version: the actor entity
 
-  - id: d-38ehbk8j
-    title: the assets pack states its version as an entity type, and the library asserts it
-    statement: |
-      the assets pack defines one entity type whose identifier carries the pack's own version, and the
-      library — which knows the version it was built against — checks that identifier before acting. where
-      it does not resolve, the call throws naming the version the library expects and the fact that a
-      different one is present.
+      identifiers, and each internal asset name too — geometry, texture paths, materials, render
 
-      this is what makes the version an adventure runs against observable at all: the pack's declared
-      version is not readable from a script, and a world that cannot satisfy the version its activation
-      list names loads a different one without saying so.
+      controllers, animations, and animation controllers. the library, bundled into an adventure,
+      resolves
+
+      its own calls through the same namespace.
+
+
+      so two adventures built against the same major carry an identical pack, which a server
+      deduplicates
+
+      to one with no effect on either, and two adventures built against different majors carry packs
+      that
+
+      share no uuid and no name and coexist without contending. a world may hold one pack per major
+      in use
+
+      and no more.
+
+
+      the namespace is exhaustive over name kinds rather than confined to the entity identifier,
+      because a
+
+      resource pack's internal names are resolved across the whole pack stack and not within their
+      own
+
+      pack. a partial namespace would let one adventure's actor render with another's geometry.
     status: proposed
     pinned:
       reason: public-api
-      notes: the identifier is a contract between the two packages and changes with every version of the assets pack
-    scope: [library, assets-pack]
+      notes: every identifier an adventure names, and the property that two majors coexist — reversing it
+        reintroduces version contention between adventures
+    scope:
+      - library
+      - assets-pack
     because:
       - r-pop72yk6
-      - d-xobjyw2e
+      - r-6q7adtpo
       - d-hybkhum6
+      - d-ipgh0g2d
       - f:duplicate-pack-copies-are-deduplicated-and-the-activation-pin-selects
-      - f:an-entity-type-can-be-looked-up-by-identifier-without-spawning
-      - f:an-entity-type-resolves-for-a-script-in-any-other-loaded-pack
+      - f:a-client-entity-definition-is-keyed-by-the-entity-identifier
+      - f:a-resource-packs-internal-asset-names-are-global-to-the-pack-stack
+  - id: d-5f011w0o
+    title: within a major the assets pack only adds, and the build refuses a release that removes
+    statement: >
+      within one major version the assets pack never withdraws or repurposes a name an adventure can
 
+      reference: an actor entity identifier present in a release is present in every later release
+      of that
+
+      major, naming the same character. appearance may change freely — a texture, a model, a
+      re-vendored
+
+      animation — since none of that is a name an adventure holds.
+
+
+      the build enforces it rather than the discipline: a release compares the set of actor
+      identifiers it
+
+      exposes against the previous release of the same major, and fails where any has disappeared or
+      been
+
+      renamed. a withdrawal is how a new major begins.
+    status: proposed
+    pinned:
+      reason: other
+      notes: it is what makes two adventures on one major safe to share a pack, so relaxing it silently
+        reintroduces the failure the namespace was chosen to avoid
+    scope: assets-pack
+    because:
+      - r-6q7adtpo
+      - d-i8pjw2on
+      - d-xobjyw2e
+      - f:duplicate-pack-copies-are-deduplicated-and-the-activation-pin-selects
   - id: d-ro5pj8er
     title: pack pairing is enforced at build time, which is the only place identity is checkable
-    statement: |
-      the pairing of this product's two packs is established where identity can be checked at all: the
-      release archive is verified to hold both of them at agreeing versions, and a build producing one
-      without the other fails. this is the whole of the guarantee that an actor's appearance ships with
-      its definitions — nothing at run time contributes to it, because nothing at run time can tell this
+    statement: >
+      the pairing of this product's two packs is established where identity can be checked at all:
+      the
+
+      release archive is verified to hold both of them at agreeing versions, and a build producing
+      one
+
+      without the other fails. this is the whole of the guarantee that an actor's appearance ships
+      with
+
+      its definitions — nothing at run time contributes to it, because nothing at run time can tell
+      this
+
       product's resource pack from any other's.
     status: proposed
     pinned:
       reason: other
-      notes: an actor whose appearance definition never arrives is invisible and cannot be found by pointing at it, so this build check is the only thing between an adventure and a character no player can perceive
-    scope: [library, assets-pack]
+      notes: an actor whose appearance definition never arrives is invisible and cannot be found by
+        pointing at it, so this build check is the only thing between an adventure and a character
+        no player can perceive
+    scope:
+      - library
+      - assets-pack
     because:
       - r-9owgd93o
       - d-bcybwddk
       - f:the-active-client-pack-stack-is-countable-from-a-script
       - f:what-a-client-renders-for-a-broken-appearance-definition
-
-  # what this increment hands on
   - id: d-c0l4gwx2
     title: how an actor converses is deferred
-    statement: |
-      how an adventure holds a conversation with an actor — what the player is shown, where the words
+    statement: >
+      how an adventure holds a conversation with an actor — what the player is shown, where the
+      words
+
       live, and who authors them — is deferred to a later increment of this product. the actors this
+
       increment defines are spawned, placed, named, looked at, and removed; they do not speak.
     status: deferred
     scope: library

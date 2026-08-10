@@ -191,20 +191,35 @@ together then each hold a copy, and that is safe: a pool holding several directo
 uuid loads one of them silently — no error, one stack entry, and naming the uuid twice in a world's
 activation list is absorbed too.
 
-Which copy loads is chosen by the version the activation list names, not by which is highest. That much is
-deterministic. What is not safe is the case a pin cannot satisfy: asked for a version no copy in the pool
-is, the server loads a different one and says nothing. So the hazard bundling introduces is not a
-collision, it is a silent substitution — and the way a substituted assets pack presents is the invisible,
-unfindable actor above.
+Which copy loads is chosen by the version the activation list names, not by which version is highest.
+That much is deterministic. What is not is a pin the pool cannot satisfy: asked for a version no copy is,
+the server loads a different one and says nothing — a silent substitution, and a substituted assets pack
+presents as the invisible unfindable actor above.
 
-`d-38ehbk8j` closes that: the assets pack states its own version as an entity identifier, and the library,
-which knows what it was built against, looks that identifier up before acting. The pack's declared version
-is not readable from a script, so an identifier is what makes it observable — and this is the one identity
-check the product has, rather than mere presence. `r-pop72yk6` is the owner's fiat behind it.
+So the question is not how to detect a substitution but how to stop two adventures ever contending for one
+pack. `d-i8pjw2on` does that by putting the pack's **major version** into its uuid and into every name it
+declares. Two adventures on one major then carry an identical pack, which the server deduplicates with no
+effect on either, and two adventures on different majors carry packs sharing no uuid and no name at all.
+Contention cannot arise, so `r-pop72yk6` — adventures built at different times coexisting, with nobody
+choosing between them — holds by construction rather than by anyone's care.
 
-Note what it does and does not reach. It establishes that the *definitions* are the expected version. It
-says nothing about the resource pack, which no script can see at all — the two ship in one archive and the
-build enforces the pairing (`d-ro5pj8er`), so a correct definitions version is strong evidence about the
+The namespace has to cover every name kind, not just the entity identifier, because a resource pack's
+internal names resolve across the whole pack stack rather than within their own pack. Namespace half of
+them and two adventures' packs collide on the rest, which renders one adventure's actor with another's
+geometry — a subtler fault than a missing pack, and a harder one to see.
+
+Sharing within a major is only safe if a later release never withdraws what an earlier adventure names, so
+`d-5f011w0o` holds the assets pack to adding within a major and has the build refuse a release that
+removes. The compatibility surface this constrains is small: the set of actor identifiers, and nothing
+else. Textures, models and animations are internal, so appearance may be fixed and improved freely — what
+may not change is which characters exist and what they are.
+
+That also settles what the runtime check needs to be. `d-xobjyw2e` already asks whether the specific entity
+type a preset names resolves, which is the capability an adventure actually depends on; under an
+additive-only major that question is both necessary and sufficient, and it beats asking after a version.
+
+What none of it reaches is the resource pack, which no script can see. The two packs ship in one archive
+and the build enforces the pairing (`d-ro5pj8er`), so correct definitions are strong evidence about
 appearance without being proof of it.
 
 ## What a resource-pack dependency does and does not do

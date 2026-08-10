@@ -122,3 +122,33 @@ facts:
         where: Server side, captured — the actors and the active resource pack
         quote: |
           [2026-08-10 05:12:20:870 WARN] [Scripting] RENDERCHECK spawned rptest:no_client at -1,-60,4
+
+  - id: a-resource-packs-internal-asset-names-are-global-to-the-pack-stack
+    claim: |
+      The names a resource pack declares for its own assets are not private to it. Two packs declaring the
+      same geometry identifier with different geometry produced one shape for both entities that named it —
+      including for the entity whose own client definition sat in the pack that lost — and two packs
+      declaring the same texture path with different images produced one image for every entity that named
+      it. Texture paths behave no differently from identifiers in this. So a definition is shared by
+      whichever consumers name it, and which of several competing definitions they get is decided outside
+      any of the packs involved. A pack cannot rely on its own asset names being its own, and two packs
+      built from a common source must carry distinct names to render distinctly.
+    backing: tested
+    caveat: |
+      A visual observation by one person on one Bedrock client, not a measurement. The winner was the pack
+      listed first in the world's resource activation list, but this run varies no ordering and so
+      establishes only that one definition wins rather than what decides which. Untested for materials,
+      render controllers, animations, and animation controllers, whose names are declared the same way and
+      are assumed to behave alike.
+    sources:
+      - run: asset-collision-check
+        where: Client side, as observed — all four actors
+        quote: |
+          - "tex pack two" - magenta cube
+          - "tex pack one" - magenta cube
+          - "geo pack two" - magenta pillar
+          - "geo pack one" - magenta pillar
+      - run: asset-collision-check
+        where: Server side, captured — the four actors existed
+        quote: |
+          [2026-08-10 06:13:48:878 WARN] [Scripting] COLLIDE spawned collide:geo_b
