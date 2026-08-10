@@ -123,4 +123,24 @@ Each is invisible to an adventure and free for a reimplementation to re-make.
 
 ## What the draft did
 
-Pending the owner's answers on 1–3, since 4 and 6 and the scope fix in 13 all move depending on them.
+The owner ruled 1–3, and the draft acted:
+
+- **1, materials** → `q-ac8gcffb`. Carried to the owner as an open question rather than resolved, since
+  amending `r-pngblab3` is owner fiat. The increment cannot publish while it stands.
+- **2, enforcement** → `d-lgaqtx4c` defers both checks to `mc-dev-kit`, with `b-88k6uu2b` (an archive must
+  refuse an incomplete addon) and `b-f9kytnzy` (a pack build needs an extension point) captured there.
+- **3, evidence** → `d-2qxdv80k` adds `nodejs/minecraft/rpg-core-example` and the `example` component.
+- **4** → `d-ro5pj8er` restated: no archive ships one half without the other, since version agreement was
+  true by construction and verified nothing.
+- **5** → `d-3or6phg1`: the behavior half declares its own resource half, and that is the uuid an adventure
+  names.
+- **7** → `d-w0smdozf` extended to six properties, three of which are met by what the definition omits.
+- **13** → both preset adoptions scoped: `minecraft-addon` to `assets-pack` and `example`,
+  `nodejs-library` to `library`.
+
+Still open, and the next Clarify round's work: **6** the namespace's literal form, its `1.0.0` floor and
+per-major uuid rotation; **8** actor lifecycle — reaching a persisted actor, and idempotent placement;
+**9** where the preset registry lives; **10** the default name's home; **11** the revision pin's record;
+**12** whether `d-ny9lcyjg` bounds the behavior half too. Items 14–18 are outside this product and are
+reported rather than resolved — the test-lib registry gap is the one that most wants an owner's eye, since
+it leaves the product's most load-bearing decision without a sanctioned unit test.
