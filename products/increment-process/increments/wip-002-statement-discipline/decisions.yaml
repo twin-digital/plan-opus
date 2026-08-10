@@ -9,7 +9,7 @@ decisions:
       field is named `commentary` because `notes` already means two other things in this product
       — a pin's notes and the owner's session notes. `/design-process/requirement@2` and
       `/design-process/decision@3` carry the field.
-    status: proposed
+    status: accepted
     because:
       - r-m8cwwkt3
     pinned:
@@ -23,7 +23,7 @@ decisions:
       sources and is shown to the owner at ratify. An entry whose statement needs its
       commentary to be built correctly is an authoring defect, and this exclusion is what
       surfaces it.
-    status: proposed
+    status: accepted
     because:
       - r-q0969r5a
       - d-oqiw2ggm
@@ -38,7 +38,7 @@ decisions:
       finding, and a `when`, `then`, or `otherwise` clause over twenty-five. Commentary is
       unbudgeted — it is the drain. Published sources in earlier dialects are not read against
       the budget.
-    status: proposed
+    status: delegated
     because:
       - r-0ls6xch4
       - d-oqiw2ggm
@@ -53,7 +53,7 @@ decisions:
       governing. A list needs at least two cases; one case is a sentence. Requirements carry
       none: a requirement with branches is carve-outs, which authoring already routes to
       decisions. `/design-process/decision@3` carries the field.
-    status: proposed
+    status: accepted
     because:
       - r-0ls6xch4
       - d-kjeqksd8
@@ -68,7 +68,7 @@ decisions:
       decision to hold it? A statement failing it enters as a decision; carve-outs and
       qualified absolutes move the same way. `rationale` is retired — a reversal warning is
       commentary's job — and `/design-process/requirement@2` carries no such field.
-    status: proposed
+    status: accepted
     supersedes: d-t6dutbjw
     because:
       - d-oqiw2ggm
@@ -94,7 +94,7 @@ decisions:
       Clarify. Once Clarify classifies every choice and the resulting foundations land in the
       draft, the census is discarded: nothing persists in the tree, where unreviewed readings
       would accrete as shadow requirements.
-    status: proposed
+    status: accepted
     supersedes: d-blant5zn
     because:
       - d-uupj1stg
@@ -106,7 +106,7 @@ decisions:
       the list a wave builds to drive its own composition — the document kind's claim list, the
       code kind's test plan, a survey's census — is an input to the work, not a deliverable: it
       is kept outside the tree and discarded when the phase ends.
-    status: proposed
+    status: accepted
     supersedes: d-euwmthl9
     because:
       - d-isj45jqi
@@ -120,7 +120,7 @@ decisions:
       evidence demonstrates the statement read literally. Where how a claim is checked is the
       owner's business, a conformance case carries it — owner-vetted, tied to the claim, filed
       with the implementation that covers it.
-    status: proposed
+    status: accepted
     supersedes: d-bj3se96r
     because:
       - r-0ls6xch4
@@ -135,7 +135,7 @@ decisions:
       `components:`, `presets:`, and `model:` — state-shaped entries folding by id, ratified
       with the increment that declares them; a definition is binding and one line.
       `/design-process/requirements@3` carries the block.
-    status: proposed
+    status: accepted
     because:
       - r-uc90eb7v
     pinned:
@@ -148,7 +148,7 @@ decisions:
       a natural written form the slug cannot carry — capitalization or punctuation — an
       optional component scope, and a status of active or retired. There is no aliases field:
       one term, one written form.
-    status: proposed
+    status: accepted
     because:
       - d-amueiyj2
     pinned:
@@ -161,7 +161,7 @@ decisions:
       resolved by normalization: case-insensitive, hyphen and space interchangeable, `display`
       matched where declared. Slugs are unique across the product's closure, and a collision
       with an adopted term is a validator finding.
-    status: proposed
+    status: accepted
     because:
       - r-uc90eb7v
       - d-amueiyj2
@@ -175,7 +175,7 @@ decisions:
       new term and retires the old with `superseded_by`, since a definition is imported into
       the meaning of every statement using it. Retirement is refused while an in-force
       foundation uses the term, unless `superseded_by` resolves it.
-    status: proposed
+    status: accepted
     because:
       - d-0435v8sr
     pinned:
@@ -188,7 +188,7 @@ decisions:
       requirement's terms resolve against the declaring product's fold, never the applying
       product's. Sharing is opt-in: two products may define one word locally and diverge, as
       applied presets may drift.
-    status: proposed
+    status: delegated
     because:
       - r-uc90eb7v
       - d-amueiyj2
@@ -219,7 +219,7 @@ decisions:
       depends on it, or when a consumer would notice the change; when in doubt, propose pinned,
       with `notes` only where the named reason's application is unclear. `revisit_when` is
       retired: `/design-process/decision@3` carries no such field.
-    status: proposed
+    status: accepted
     supersedes: d-m8217jow
     pinned:
       reason: data-format
@@ -231,7 +231,7 @@ decisions:
       the authoring document offers the EARS sentence templates as guidance for requirement
       statements — a trial, reviewer-applied and never a validator rule; a statement fitting no
       template is not a finding.
-    status: proposed
+    status: accepted
     because:
       - r-0ls6xch4
     pinned: false
