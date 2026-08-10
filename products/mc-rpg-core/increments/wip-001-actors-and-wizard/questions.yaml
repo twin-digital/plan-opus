@@ -15,37 +15,38 @@ questions:
       public-api, and the decision the product's failure behaviour rests on — turns on
       `EntityTypes.get` returning
 
-      an entity type or `undefined`. The shared test lib cannot express either branch:
+      an entity type or `undefined`. The shared test lib cannot express either branch: its registry
+      classes are
+
+      declared and throw, and `createServer()` hands every bundle the same static fake, so there is
+      no per-bundle
+
+      state to register a type into and any reassignment leaks across test files.
 
 
-      - its README lists the eight registry classes under out-of-scope surfaces, "declared in full
-      and throwing",
-        and `src/generated/fakes/EntityTypes.ts` has `get()` throw `NotImplementedError`;
-      - `createServer()` hands back the *same static* `FakeEntityTypes` for every bundle, so there
-      is no
-        per-bundle state a test could register a type into, and any test-time reassignment leaks into every other
-        test file.
+      Of the three routes — an injected seam in the library's public surface, reassigning the
+      static, or the shared
 
-      So the registered branch cannot be arranged and the unregistered branch cannot be
-      distinguished from the
+      lib modelling registration — the third is the only one that does not read as the double
+      r-hear6pun forbids,
 
-      lib's own refusal. The three routes each cost something the fold does not authorise:
+      and it is a change in another product.
 
 
-      - **take the registry through an injected seam** — changes the library's public surface, and a
-      seam whose
-        only purpose is the test arguably *is* the hand-rolled double r-hear6pun forbids;
-      - **reassign the static in tests** — leaks across bundles, and reads as the forbidden double;
+      **the answer is in flight.** mc-test-lib's increment 007 takes it up: registration becomes a
+      free function
 
-      - **have mc-test-lib model entity-type registration** — the honest fix, and a change in
-      another product's
-        package that this increment cannot make.
+      against a registry that starts empty, and the registry belongs to the bundle rather than a
+      static, so both
 
-      The call is which of those the product takes, or whether this product carries a declared
-      exception to
+      branches are arrangeable and nothing leaks. That draft states it closes this question on the
+      third route,
 
-      r-hear6pun for the registry surface. Amending an adopted preset requirement, or exempting a
-      product from
+      with no exception to r-hear6pun and no change to this product's public surface.
 
-      one, is owner fiat.
+
+      So this question is not a choice left to make. It is removed when mc-test-lib 007 publishes
+      and the shared
+
+      lib carries the capability — which is also why this draft lands after that one.
     answer: requirement

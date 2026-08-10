@@ -165,3 +165,27 @@ general licence, so a second such case earns its own amendment.
 
 Items 14–18 remain outside this product. The test-lib registry gap is now `q-sf1l1ypo`, with the capability
 captured against `mc-test-lib`; the rest are reported and unresolved.
+
+## Waiting on mc-test-lib 007
+
+`q-sf1l1ypo` is answered rather than open: mc-test-lib's increment 007 makes entity-type registration a free
+function against a per-bundle registry that starts empty, so both branches of the check are arrangeable and
+`r-hear6pun` is satisfiable with no exception and no change to this product's surface. This draft therefore
+lands after that one, and three things follow when it publishes:
+
+1. **Remove `q-sf1l1ypo`** — no longer relevant rather than answered by a foundation here, which is the
+   removal the process allows without a record.
+2. **Cite `f:entity-type-lookup-agrees-with-spawnability` on `d-xobjyw2e`.** It measures that across six ids
+   a lookup hit spawns and a lookup miss throws — which is the premise `d-xobjyw2e` rests on and currently
+   asserts without evidence. The decision reads better for citing it than for arguing it.
+3. **Weigh an early-execution clause on `d-xobjyw2e`.** Their `entity-type-registry-refuses-early-execution`
+   records that `get` and `getAll` throw `ReferenceError` at module evaluation and inside
+   `system.beforeEvents.startup`, answering only by `worldLoad`. `d-xobjyw2e` puts the check on *every* entry
+   point, so a call made at module scope fails on the engine's refusal rather than on the error this product
+   defines — and the author sees a `ReferenceError` about a registry instead of being told the pack is
+   missing. Spawning that early was already impossible, so nothing is broken; what is at stake is whether the
+   decision should say so rather than leave it to be discovered.
+
+Their `entity-type-bare-id-means-the-minecraft-namespace` is worth reading too and changes nothing here:
+`d-2zclv5ol` makes every actor identifier namespaced, so the bare-id case never arises.
+
