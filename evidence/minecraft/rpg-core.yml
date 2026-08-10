@@ -16,3 +16,18 @@ runs:
       before each scenario. Each scenario runs against a freshly generated world on the same volume. No
       Minecraft client is involved, so nothing here observes rendering. Observations are this server
       version's behaviour and would need re-running against another.
+
+  - id: rp-detection-probe
+    command: node evidence/minecraft/rpg-core/rp-detection-probe/probe.mjs
+    output: evidence/minecraft/rpg-core/rp-detection-probe/OUTPUT.txt
+    ran_at: 2026-08-10
+    environment: |
+      The same containerised Bedrock 1.26.43.1 harness as `cross-pack-probe`, holding one behavior pack
+      constant while varying only the resource-pack side: no resource pack, a resource pack staged and
+      activated, and a resource pack staged but left out of the activation list. Both pack pools are
+      emptied per scenario. The behavior pack reports every server-side signal that might vary with the
+      resource pack — entity bounding boxes and head locations, `getPackSettings`, `getPackStructureIds`,
+      script events, and the result of running `packstack` — through console.warn into the server
+      console, and the probe additionally reads the same commands' printed output through the server's
+      own console, which a script cannot see. No Minecraft client is involved, so anything requiring a
+      player-type selector is out of its reach.

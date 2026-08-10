@@ -496,3 +496,110 @@ facts:
         quote: |
           * Packs installed in a folder for a world are only available when that world is running on the server.
           * Packs installed in the top level folders are available on _any_ world being run on the server.
+
+  - id: the-active-client-pack-stack-is-countable-from-a-script
+    claim: |
+      A script can learn how many packs are in the world's client pack stack, and therefore whether any
+      resource pack is active at all, by running the `packstack` command and reading its result count.
+      `packstack` prints the client or server pack stack to chat, needs no cheats, and is at permission
+      level Any. Run as `packstack client` through `Dimension.runCommand`, its `successCount` tracked the
+      client stack exactly across three worlds differing only in their resource packs: 1 with no resource
+      pack, 2 with one activated, and 1 again with the same pack present in the pool but left out of the
+      activation list. The identities are printed rather than returned — from the server console the same
+      command names each pack, and `verbose` adds UUIDs — so a script gets the count and nothing else.
+      Presence is therefore observable from a script and identity is not.
+    backing: tested
+    caveat: |
+      That `successCount` carries the number of stack entries is not documented — the command is
+      documented as printing, and the count is an observed behaviour that a future version could change.
+      The baseline of 1 for the vanilla texture pack is likewise observed rather than stated. And
+      `exclude-vanilla` does not yield a clean zero: it parses only positionally after `verbose`, and
+      `packstack client verbose exclude-vanilla` returned 1 for a world with one custom resource pack and
+      1 for a world with none, so it cannot be used to count custom packs directly. A script reading the
+      count learns that *a* resource pack is active, never that it is a particular one.
+    sources:
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/commands/commands/packstack
+        where: the command description and its permission table
+        quote: |
+          Prints client or server pack stack to chat
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/commands/commands/packstack
+        where: Usage
+        quote: |
+          ### `/packstack <stackType: stackType> [verbose: verbose] [exclude-vanilla: exclude-vanilla]`
+      - run: rp-detection-probe
+        where: scenario ctrl — no resource pack in the pool
+        quote: |
+          [2026-08-10 04:16:09:860 WARN] [Scripting] PROBE bp cmd-packstack_client=ok successCount=1
+      - run: rp-detection-probe
+        where: scenario withrp — one resource pack staged and activated
+        quote: |
+          [2026-08-10 04:17:13:868 WARN] [Scripting] PROBE bp cmd-packstack_client=ok successCount=2
+      - run: rp-detection-probe
+        where: scenario poolonly — the resource pack present in the pool but not activated
+        quote: |
+          [2026-08-10 04:18:17:763 WARN] [Scripting] PROBE bp cmd-packstack_client=ok successCount=1
+      - run: rp-detection-probe
+        where: scenario withrp — exclude-vanilla does not isolate the custom packs
+        quote: |
+          [2026-08-10 04:17:13:868 WARN] [Scripting] PROBE bp cmd-packstack_client_verbose_exclude-vanilla=ok successCount=1
+
+  - id: an-entitys-server-side-size-does-not-reflect-its-resource-pack
+    claim: |
+      An entity's dimensions as the server reports them come from its behavior definition, not from the
+      geometry a resource pack draws it with. `minecraft:collision_box` is a behavior-pack component that
+      sets the width and height of the entity's collision box, and the client entity definition has no
+      collision, hitbox, or size field at all. Measured: an entity declaring a 0.6 by 1.9 collision box
+      reported the same bounding-box extent and the same head-location offset whether or not a resource
+      pack was active whose geometry for it was a 320-block cube, and an entity declaring no collision box
+      reported the engine default rather than anything the resource pack implied. So a bounding box cannot
+      be used to detect a resource pack.
+    backing: tested
+    caveat: |
+      `hasComponent('minecraft:collision_box')` reads false even on the entity whose definition declares
+      one, so the component is not a route to these values either.
+    sources:
+      - run: rp-detection-probe
+        where: scenario ctrl — the boxed and unboxed entities with no resource pack active
+        quote: |
+          [2026-08-10 04:16:09:859 WARN] [Scripting] PROBE bp boxed-aabb={"extent":{"z":0.3000001907348633,"y":0.9500007629394531,"x":0.3000001907348633},"center":{"z":8.300000190734863,"y":70.94999694824219,"x":8.300000190734863}}
+      - run: rp-detection-probe
+        where: scenario withrp — the same entity with a resource pack active whose geometry is a 320-block cube
+        quote: |
+          [2026-08-10 04:17:13:868 WARN] [Scripting] PROBE bp boxed-aabb={"extent":{"z":0.3000001907348633,"y":0.9500007629394531,"x":0.3000001907348633},"center":{"z":8,"y":70.94999694824219,"x":8}}
+      - run: rp-detection-probe
+        where: scenario withrp — head location and the component test
+        quote: |
+          [2026-08-10 04:17:13:868 WARN] [Scripting] PROBE bp boxed-headLocation-dy=1.6150
+          [2026-08-10 04:17:13:868 WARN] [Scripting] PROBE bp boxed-hasCollisionBoxComponent=false
+
+  - id: a-resource-pack-cannot-carry-anything-a-script-can-reach
+    claim: |
+      A resource pack cannot smuggle a marker into the server's reach. A pack declaring `resources`
+      alongside `script` and `data` modules and listed in a world's resource activation list does not load
+      at all: it never appears in the client pack stack, its script never evaluates, and the entity type
+      its data half defines does not resolve. `getPackStructureIds` returns behavior-pack structures only —
+      a byte-identical `.mcstructure` placed in a resource pack is never enumerated and cannot be fetched.
+      `getPackSettings` returns an empty object. And a resource-pack animation timeline cannot run a
+      command: in resource packs timelines run Molang only, where a behavior animation's timeline may run
+      Molang, commands, or entity events — a timeline firing `/scriptevent` from a resource pack delivered
+      nothing to a subscriber. So the "ship a detectable canary inside the resource pack" approach does not
+      exist.
+    backing: tested
+    sources:
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/animationsreference/examples/animationgettingstarted
+        where: timelines — what they may run in each pack kind
+        quote: |
+          In resource packs, timelines can only be used to run Molang code. In behavior animations, you can use this to run Molang code, commands, or trigger entity events.
+      - run: rp-detection-probe
+        where: scenario withrp — the resource pack's data half does not register its entity type
+        quote: |
+          [2026-08-10 04:17:13:868 WARN] [Scripting] PROBE bp entityTypes-probe:rp_only_entity=undefined
+      - run: rp-detection-probe
+        where: scenario withrp — structures and pack settings see nothing of the resource pack
+        quote: |
+          [2026-08-10 04:17:13:867 WARN] [Scripting] PROBE bp packSettings={}
+          [2026-08-10 04:17:13:867 WARN] [Scripting] PROBE bp packStructureIds=probe:bp_struct
+      - run: rp-detection-probe
+        where: scenario withrp — the resource pack's structure cannot be fetched
+        quote: |
+          [2026-08-10 04:17:13:867 WARN] [Scripting] PROBE bp structure-get-rp=undefined

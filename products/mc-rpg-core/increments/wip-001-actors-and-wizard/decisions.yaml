@@ -199,6 +199,53 @@ decisions:
       - r-9owgd93o
       - d-xobjyw2e
 
+  - id: d-bcybwddk
+    title: the check has two rungs — the definitions exactly, and a resource pack by count
+    statement: |
+      the check the library runs before acting has two rungs, and reports them apart.
+
+      the first is exact: the entity type the preset names is registered, or it is not, and where it is
+      not the call throws naming the preset, the identifier, and the behavior pack that supplies it.
+
+      the second is a presence test only: the world's client pack stack holds more than the vanilla
+      texture pack alone. where it does not, no resource pack is active and the call throws naming the
+      resource pack. where it does, the library has established that *a* resource pack is active and
+      never that it is this product's — the count is all a script can read, so identity is not checked
+      and no error claims it was. a failure of the second rung is reported as a distinct condition from
+      a failure of the first, so an adventure's author reads which half is missing.
+
+      the second rung is defensive about its own mechanism: the count it rests on is an observed
+      behaviour of a command documented only as printing, so a call that fails or answers unexpectedly
+      leaves the rung unverified rather than failing the spawn.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: which failures an adventure meets, and what a successful call is and is not evidence of
+    supersedes: d-e4lx5lti
+    facets: library
+    because:
+      - r-9owgd93o
+      - d-xobjyw2e
+      - f:the-active-client-pack-stack-is-countable-from-a-script
+      - f:an-entitys-server-side-size-does-not-reflect-its-resource-pack
+      - f:a-resource-pack-cannot-carry-anything-a-script-can-reach
+
+  - id: d-ro5pj8er
+    title: pack pairing is enforced where identity can be checked — at build time
+    statement: |
+      because a running world cannot tell whose resource pack is active, the pairing of the two packs is
+      established where identity is checkable: the release archive is verified to hold both this
+      product's packs at agreeing versions, and a build producing one without the other fails. the
+      runtime rung catches an absent resource pack; this catches a mispackaged or mismatched one, which
+      the runtime rung cannot distinguish from a correct install.
+    status: proposed
+    pinned: false
+    facets: [library, assets-pack]
+    because:
+      - r-9owgd93o
+      - d-bcybwddk
+      - f:the-active-client-pack-stack-is-countable-from-a-script
+
   # what this increment hands on
   - id: d-c0l4gwx2
     title: how an actor converses is deferred

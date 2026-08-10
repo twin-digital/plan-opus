@@ -124,9 +124,42 @@ throwing, so the check needs no spawn attempt and no location made ticking first
 on every entry point rather than once at startup, because pack presence is a property of the world the
 call runs against, not of the process.
 
-The check reaches the behavior pack only. `@minecraft/server` exposes no way to observe whether a
-*resource* pack is active — the script API is server-side and pack delivery to a client is not in it —
-so a world holding the behavior pack alone spawns actors that behave correctly and render as whatever
-the client does with an entity it has no definition for. `d-e4lx5lti` states that limit rather than
-implying the check covers more than it does. If an API for it ever appears, the limit is worth
-revisiting; nothing here depends on its absence being permanent.
+The API surface reaches the behavior pack only: `@minecraft/server` has no pack-presence member at all,
+which is what `d-e4lx5lti` recorded. The `rp-detection-probe` run then found the exception, one level
+down from the API — so `d-bcybwddk` supersedes it.
+
+## The resource pack is detectable, by count and not by name
+
+`packstack` prints the client or server pack stack to chat, needs no cheats, and sits at permission
+level Any. Run through `runCommand` as `packstack client`, its `successCount` tracked the client stack
+exactly across three worlds differing only in their resource packs — 1 with none, 2 with one activated,
+1 again with the same pack in the pool but unlisted. The identities go to chat, which no script reads,
+so what comes back is a number.
+
+That makes the second rung of the check a presence test and nothing more. It catches the failure that
+actually happens — behavior pack installed, resource pack not — and it cannot tell this product's pack
+from anyone else's, so `d-bcybwddk` says so rather than letting a passing check imply more. The rung is
+also defensive about itself: the count is an observed behaviour of a command documented only as
+*printing*, so a call that answers unexpectedly leaves the rung unverified rather than refusing a spawn
+that would have worked.
+
+Identity is checkable where the packs are built rather than where they run, which is `d-ro5pj8er`.
+
+Three avenues that looked plausible and are closed, so nobody re-opens them:
+
+- **The bounding box does not know.** An entity's server-side extent and head location come from its
+  behavior definition; with a resource pack active whose geometry for it was a 320-block cube, every
+  measurement was unchanged. `minecraft:collision_box` is a behavior-pack component and the client
+  entity definition has no size field at all. (`hasComponent('minecraft:collision_box')` also reads
+  false on an entity that declares one, so that is not a route either.)
+- **A resource pack cannot carry a canary.** A pack declaring `resources` beside `script` and `data`
+  and listed as a resource pack does not load at all — no stack entry, no script evaluation, and its
+  entity type does not resolve. `getPackStructureIds` sees behavior-pack structures only, and an
+  identical `.mcstructure` in a resource pack is never enumerated.
+- **A resource-pack animation cannot fire a command.** In resource packs timelines run Molang only; a
+  behavior animation's timeline is the one that may run commands or entity events.
+
+Two things remain untested here for want of a client: whether `/playsound` or `/fog` fail differently
+for a resource-pack-supplied identifier than for a bogus one — both refuse at the selector before
+reaching the identifier when no player is connected — and whether `packstack client` can be aimed at
+one player rather than reporting the world's stack. Neither is needed for the rung as designed.
