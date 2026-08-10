@@ -19,7 +19,7 @@ decisions:
       reason: public-api
 
   - id: d-5amonj40
-    title: a throttled push is an outcome, not a failure
+    title: a suppressed push is an outcome, not a failure
     statement: |
       the user sets a minimum interval per notification kind. An operator whose kind was delivered
       inside that interval sends nothing, completes, and records on its own run the suppression,
@@ -35,11 +35,11 @@ decisions:
       reason: public-api
 
   - id: d-6ptxams7
-    title: the throttle is the user's, and the caps still bind under it
+    title: the cooldown is the user's, and the caps still bind under it
     statement: |
-      a notification kind's interval is a throttle the user sets, changes, and removes at will. It
+      a notification kind's interval is a cooldown the user sets, changes, and removes at will. It
       is not a cap: the seeded caps on the push resource bind underneath and stay beyond the user's
-      reach. A push the throttle suppresses reaches no resource, so it spends no cap.
+      reach. A push the cooldown suppresses reaches no resource, so it spends no cap.
     commentary: |
       Removing an interval exposes the caps rather than uncapping anything.
     status: proposed
@@ -51,16 +51,16 @@ decisions:
     pinned:
       reason: other
       notes: |
-        it fixes which of the two mechanisms the user may weaken, and a throttle that spent a cap
+        it fixes which of the two mechanisms the user may weaken, and a cooldown that spent a cap
         would let a burst exhaust the backstop it was added to protect
 
-  # From the survey census: the throttle setting's shape and records.
+  # From the survey census: the cooldown setting's shape and records.
 
   - id: d-k3wq81vn
     title: a kind's interval is the user's setting, keyed by the kind's name
     statement: |
       a notification kind's interval is a setting of the user's, keyed by the kind's name and
-      shared across every pipeline: operators naming one kind share one throttle wherever they
+      shared across every pipeline: operators naming one kind share one cooldown wherever they
       live. The setting outlives the operators naming its kind, and an operator's unnamed
       own-kind carries no interval until the user names one.
     status: proposed
@@ -86,11 +86,11 @@ decisions:
       reason: data-format
 
   - id: d-w2fzk9bd
-    title: a throttle change is recorded like any configuration change
+    title: a cooldown change is recorded like any configuration change
     statement: |
       setting, changing, or removing a kind's interval is an accepted configuration change: it
       writes a history entry as a cap change does — before and after, the action, when, and
-      which user — and the throttle joins the change log's entity vocabulary.
+      which user — and the cooldown joins the change log's entity vocabulary.
     status: proposed
     because:
       - r-k6gh82fx
@@ -102,9 +102,9 @@ decisions:
   - id: d-t6mhv3aq
     title: the interval is whole seconds, present or absent
     statement: |
-      a throttle interval is stored as a whole number of seconds, at least one, with no ceiling.
-      Removing the throttle deletes the setting; no stored setting means unthrottled, and zero
-      is not stored.
+      a cooldown interval is stored as a whole number of seconds, at least one, with no ceiling.
+      Removing the cooldown deletes the setting; a kind with no setting has no cooldown, and
+      zero is not stored.
     status: proposed
     because:
       - d-5amonj40
