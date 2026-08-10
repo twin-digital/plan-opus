@@ -61,13 +61,13 @@ decisions:
       reason: data-format
 
   - id: d-vax1016k
-    title: a model entry retires like everything else
+    title: a model entry names its contract, is pending, or is retired
     statement: |
-      a model entry's `status` is `bound` (the default), `unbound`, or `retired` with a reason
-      — entries of `name`, one `schema:` or `surface:` reference where bound, an optional
-      `description`, folding by name; the entity name stays the design's word for the thing.
-      `/design-process/requirements@3` carries the enum, and sources already written stay
-      readable in the dialect they declare.
+      a model entry names its entity and one `schema:` or `surface:` contract. An entry may
+      instead be `status: pending` — the entity is part of the design's vocabulary, its shape
+      not yet settled — or `status: retired` with a reason. Entries fold by name, and the
+      entity name stays the design's word for the thing. `/design-process/requirements@3`
+      carries the enum; sources already written keep `bound` and `unbound` in their dialect.
     status: proposed
     supersedes: d-pe4j25wq
     because:
@@ -141,10 +141,11 @@ decisions:
       reason: public-api
 
   - id: d-3kow7q0r
-    title: one increment may not both apply and retire a preset
+    title: one increment declares a name once
     statement: |
-      a single increment's presets block declaring one name both applied and retired is a
-      validator failure — the folded state would otherwise depend on entry order.
+      a source declaring the same preset, component, term, or model entity twice in one
+      increment is a validator failure — the folded state would otherwise depend on entry
+      order. Applying and retiring one preset in a single increment is the same failure.
     status: proposed
     supersedes: d-a8hiceqo
     pinned: false

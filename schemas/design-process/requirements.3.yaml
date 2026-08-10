@@ -40,16 +40,13 @@ properties:
         description:
           type: string
         status:
-          enum: [bound, unbound, retired]
-          description: bound when absent
+          enum: [pending, retired]
+          description: absent when the entry names its contract
         reason:
           type: string
           description: the retirement's reason, required when retired
       allOf:
         - if:
-            properties:
-              status:
-                enum: [unbound, retired]
             required: [status]
           then:
             not:
