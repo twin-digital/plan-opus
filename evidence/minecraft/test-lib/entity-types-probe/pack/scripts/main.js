@@ -136,6 +136,11 @@ const runArgumentGuards = () => {
     ["null", () => EntityTypes.get(null)],
     ["number", () => EntityTypes.get(42)],
     ["object", () => EntityTypes.get({ id: "minecraft:sheep" })],
+    ["boolean", () => EntityTypes.get(true)],
+    ["symbol", () => EntityTypes.get(Symbol("minecraft:sheep"))],
+    ["array", () => EntityTypes.get(["minecraft:sheep"])],
+    ["function", () => EntityTypes.get(() => "minecraft:sheep")],
+    ["string-object", () => EntityTypes.get(new String("minecraft:sheep"))],
     ["getall-one-argument", () => EntityTypes.getAll("minecraft:sheep")],
   ];
   for (const [name, fn] of cases) {

@@ -14,11 +14,13 @@ registered in this world" has to read.
 | pack | `mc-test-lib entity-type registry probes` 0.1.0, uuid `3f8a5c21-9d47-4e63-b0a2-6c1e8f4d7b39` |
 | harness | `run.mjs` against this directory's compose stack, headless — no client attached |
 | trigger | `scriptevent etreg:registry` from the server console |
-| ran | 2026-08-10, three passes, no `PROBE CRASHED` line |
+| ran | 2026-08-10, four passes, no `PROBE CRASHED` line |
 
 The pack carries a data module defining `mctest:probe_dummy`, so a pack-defined type is measured
-beside the vanilla ones. Every reading below reproduced identically across all three passes; the
-spawn set is from the third, the first two having run before the probe loaded its own ticking area.
+beside the vanilla ones. Every reading below reproduced identically across all four passes; the
+spawn set is from the third pass on, the first two having run before the probe loaded its own
+ticking area; the fourth added the boolean, symbol, array, function and boxed-`String` argument
+cases.
 
 ## What the registry reports
 
@@ -128,11 +130,25 @@ present with no distinction from a vanilla one.
 [etreg] guard :: case=null threw InvalidArgumentError: Invalid type passed to argument [0]. Expected type: string
 [etreg] guard :: case=number threw TypeError: Native type conversion failed. Function argument [0] expected type: string
 [etreg] guard :: case=object threw TypeError: Object did not have a native handle. Function argument [0] expected type: string
+[etreg] guard :: case=boolean threw TypeError: Native type conversion failed. Function argument [0] expected type: string
+[etreg] guard :: case=symbol threw TypeError: Native type conversion failed. Function argument [0] expected type: string
+[etreg] guard :: case=array threw TypeError: Native type conversion failed. Function argument [0] expected type: string
+[etreg] guard :: case=function threw TypeError: Native type conversion failed. Function argument [0] expected type: string
+[etreg] guard :: case=string-object threw TypeError: Object has an invalid native handle. Function argument [0] expected type: string
 [etreg] guard :: case=getall-one-argument threw TypeError: Incorrect number of arguments to function. Expected 0, received 1
 ```
 
-Arity is `TypeError`; `undefined` and `null` are `InvalidArgumentError`; a wrong-typed value is a
-`TypeError` whose wording varies with the value's kind.
+Arity is `TypeError`. A present but wrong-typed argument splits four ways:
+
+| argument | error |
+|---|---|
+| `undefined`, `null` | `InvalidArgumentError: Invalid type passed to argument [0].` |
+| number, boolean, symbol, array, function | `TypeError: Native type conversion failed.` |
+| plain object | `TypeError: Object did not have a native handle.` |
+| boxed `String` | `TypeError: Object has an invalid native handle.` |
+
+The split does not follow `typeof`: an array and a function are objects and take the conversion
+wording, while an object literal does not.
 
 ### The registry agrees with what will spawn
 
@@ -165,4 +181,4 @@ spawnability across the cases measured.
 
 ## Raw log
 
-The final pass, delivery order, is `RUN.txt` beside this file. `OUTPUT.txt` holds all three.
+The final pass, delivery order, is `RUN.txt` beside this file. `OUTPUT.txt` holds the last run.

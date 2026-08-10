@@ -3087,9 +3087,13 @@ facts:
       `EntityTypes.get` guards its argument in two distinct ways. Wrong arity is a `TypeError`
       naming the counts — `get()` and `get(a, b)` both throw
       `Incorrect number of arguments to function`, and `getAll(a)` likewise. A present but
-      wrong-typed argument varies: `undefined` and `null` throw `InvalidArgumentError`
-      (`Invalid type passed to argument [0]. Expected type: string`), while a number or an object
-      throws `TypeError` with wording that depends on the value's kind.
+      wrong-typed argument splits four ways: `undefined` and `null` throw `InvalidArgumentError`
+      (`Invalid type passed to argument [0]. Expected type: string`), while everything else throws
+      `TypeError` under one of three wordings — `Native type conversion failed.` for a number,
+      boolean, symbol, array or function, `Object did not have a native handle.` for a plain object,
+      and `Object has an invalid native handle.` for a boxed `String`. The split does not follow
+      `typeof`: an array and a function are objects and take the conversion wording, while an object
+      literal does not.
     backing: tested
     sources:
       - run: entity-type-registry-probe
@@ -3104,6 +3108,18 @@ facts:
         where: "`guard` — a number as the argument"
         quote: |
           [etreg] guard :: case=number threw TypeError: Native type conversion failed. Function argument [0] expected type: string
+      - run: entity-type-registry-probe
+        where: "`guard` — an array as the argument"
+        quote: |
+          [etreg] guard :: case=array threw TypeError: Native type conversion failed. Function argument [0] expected type: string
+      - run: entity-type-registry-probe
+        where: "`guard` — a plain object as the argument"
+        quote: |
+          [etreg] guard :: case=object threw TypeError: Object did not have a native handle. Function argument [0] expected type: string
+      - run: entity-type-registry-probe
+        where: "`guard` — a boxed String as the argument"
+        quote: |
+          [etreg] guard :: case=string-object threw TypeError: Object has an invalid native handle. Function argument [0] expected type: string
       - run: entity-type-registry-probe
         where: "`guard` — an argument to getAll"
         quote: |

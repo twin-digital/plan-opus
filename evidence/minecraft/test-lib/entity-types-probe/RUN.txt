@@ -27,6 +27,11 @@
 [etreg] guard :: case=null threw InvalidArgumentError: Invalid type passed to argument [0]. Expected type: string
 [etreg] guard :: case=number threw TypeError: Native type conversion failed. Function argument [0] expected type: string
 [etreg] guard :: case=object threw TypeError: Object did not have a native handle. Function argument [0] expected type: string
+[etreg] guard :: case=boolean threw TypeError: Native type conversion failed. Function argument [0] expected type: string
+[etreg] guard :: case=symbol threw TypeError: Native type conversion failed. Function argument [0] expected type: string
+[etreg] guard :: case=array threw TypeError: Native type conversion failed. Function argument [0] expected type: string
+[etreg] guard :: case=function threw TypeError: Native type conversion failed. Function argument [0] expected type: string
+[etreg] guard :: case=string-object threw TypeError: Object has an invalid native handle. Function argument [0] expected type: string
 [etreg] guard :: case=getall-one-argument threw TypeError: Incorrect number of arguments to function. Expected 0, received 1
 [etreg] shape :: subject=minecraft:sheep returned object<EntityType>
 [etreg] shape :: subject=minecraft:sheep ctor=EntityType members=[localizationKey(own,value)=string:"entity.sheep.name" id(own,value)=string:"minecraft:sheep" id(proto1,value)=undefined localizationKey(proto1,value)=undefined]
@@ -46,7 +51,7 @@
 [etreg] getall :: non-minecraft-namespaces=[mctest:probe_dummy]
 [etreg] spawn :: tickingarea returned object<CommandResult> successCount=0
 [etreg] spawn :: tickingarea-list successCount=1
-[etreg] spawn :: platform returned object<CommandResult> successCount=1
+[etreg] spawn :: platform returned object<CommandResult> successCount=0
 [etreg] spawn :: case=pack-defined id=mctest:probe_dummy lookup returned object<EntityType> spawn returned object<Entity> typeId=string:"mctest:probe_dummy"
 [etreg] spawn :: case=vanilla id=minecraft:sheep lookup returned object<EntityType> spawn returned object<Entity> typeId=string:"minecraft:sheep"
 [etreg] spawn :: case=absent-namespaced id=mctest:nothing_registers_this lookup returned undefined spawn threw InvalidArgumentError: Invalid value passed to argument [0]. 'mctest:nothing_registers_this' is not a valid entity type. typeId=string:"n/a"

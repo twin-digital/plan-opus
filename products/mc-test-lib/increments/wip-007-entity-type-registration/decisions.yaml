@@ -98,29 +98,30 @@ decisions:
     facets: fakes
 
   - id: d-dub2g4kr
-    title: creating an entity consults the registry
+    title: the registry gates spawning, not the control plane
     statement: |
-      Creating a fake entity resolves its type through the bundle's registry and throws
+      `Dimension.spawnEntity` resolves its type through the bundle's registry and throws
       InvalidArgumentError naming the identifier where nothing registers it, as the engine does.
-      The registry starts empty, so a test arranges the types it creates — through a preset for the
-      vanilla set, and by registration for a pack's own.
+      `createEntity` and `createPlayer` do not consult the registry: they are control-plane
+      functions the engine has no counterpart for, so there is no engine behaviour for them to
+      model.
     status: proposed
     pinned:
       reason: other
       notes: |
-        A consumer-visible behaviour rather than a surface: a suite creating an entity of a type it
-        never registered is refused.
+        A consumer-visible behaviour rather than a surface: a suite spawning an unregistered type
+        through the engine surface is refused.
     because:
       - f:entity-type-lookup-agrees-with-spawnability
-      - f:entity-type-lookup-argument-guards
-      - d-1g2k3g56
+      - d-a0jmbtbh
       - r-0lbj68w9
+      - r-5mlc26io
       - r-62r76czb
     revisit_when:
-      - arranging the registry costs more preamble than the misspelt-identifier bug it catches is
-        worth, the vanilla preset having stopped covering what tests create
-      - a pack legitimately creates entities of types no world registers, so agreeing with the
-        engine here refuses a test the engine would not
+      - packs come to reach the fakes only through the control plane, so gating the engine surface
+        alone catches no misspelt identifier that reaches a test
+      - a control-plane creation of an unregistered type is found masking a bug the engine would
+        have surfaced, so the asymmetry costs more than the free arrangement is worth
     facets: fakes
 
   - id: d-m6ryo7ea
@@ -186,8 +187,7 @@ decisions:
     statement: |
       Four presets ship: `withVanillaDimensions`, `withVanillaEntityTypes`, `withVanillaWorld` —
       which supplies those two and nothing else — and `asSpawnedEntity`, which is per-entity and
-      stands outside the composite. The vanilla entity-type ids come from `@minecraft/vanilla-data`
-      rather than hand-authored. Widening the composite is a supersession of this decision.
+      stands outside the composite. Widening the composite is a supersession of this decision.
     status: proposed
     pinned:
       reason: public-api
@@ -202,4 +202,30 @@ decisions:
     revisit_when:
       - a third server-scoped vanilla preset ships and the composite's fixed membership makes every
         consumer opt into it by name, so the composite saves nothing
+    facets: fakes
+
+  - id: d-a0jmbtbh
+    title: the vanilla preset registers ids only, in its source's order
+    statement: |
+      `withVanillaEntityTypes` registers the entity-type ids `@minecraft/vanilla-data` carries, in
+      that source's order, and supplies no `localizationKey` — the engine's keys are pinned by no
+      source the library reads. It skips an id already registered, so it composes with a test's own
+      registrations rather than colliding with the duplicate refusal.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: |
+        The list is `@minecraft/vanilla-data`'s, which is corroborated by the observed count and not
+        compared id-for-id with it; the package states which it is.
+    because:
+      - d-1g2k3g56
+      - d-gr7gky6j
+      - d-m6ryo7ea
+      - r-b92y0kb7
+      - r-8r8gf6b7
+    revisit_when:
+      - an id-for-id comparison finds `@minecraft/vanilla-data`'s list and a world's registry
+        disagreeing, so the preset misdescribes the vanilla set it names
+      - tests routinely register a localization key over every vanilla type they touch, so
+        supplying none costs more preamble than the unpinned value would misstate
     facets: fakes
