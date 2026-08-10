@@ -152,11 +152,9 @@ decisions:
   - id: d-ekoz1t47
     title: an adoption's scope is the adopter's
     statement: |
-      a `scope:` is written in one place only: the adopting product's own `presets:` entry, and
-      it names that product's components — a preset, having no components, has nothing its own
-      entries could scope. The scope covers every requirement the adoption brings in,
-      transitively. Where two adoptions reach one preset at different scopes, its requirements
-      apply to both subtrees.
+      a preset entry's `scope:` names components of the product declaring the entry. Every
+      requirement the preset brings in — its own, and those of presets it names in turn —
+      applies to that scope; a preset brought in twice, at two scopes, applies at both.
     status: proposed
     because:
       - d-ue31prqs
