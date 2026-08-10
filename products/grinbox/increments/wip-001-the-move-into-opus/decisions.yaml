@@ -4,28 +4,25 @@ version: "2"
 
 decisions:
   - id: d-6ct1o00j
-    title: the deployment fetches a versioned bundle the workspace releases
+    title: each package releases its own artifact, and the deployment fetches both
     statement: |
-      opus builds grinbox into one self-contained bundle — the daemon's and the browser
-      application's compiled output, plus a production manifest and lockfile pruned to the
-      daemon's own dependencies — and attaches it to the release the workspace's own
-      release-assets hook publishes for `@grinbox/server`, beside the checksum file that hook
-      writes. The infrastructure repository names a version and fetches that asset by URL,
-      verifying it against that checksum, rather than copying a source tree out of a checkout.
-      One bundle rather than two, because the daemon serves the interface out of its own process
-      and so needs its assets on its own filesystem.
+      opus releases two artifacts: the daemon's, holding its compiled output, a production
+      manifest and lockfile pruned to its own dependencies, the launch wrapper and the unit; and
+      the browser application's, holding its built assets. Each is attached to its own package's
+      release, beside the checksum the workspace's release-assets hook writes. The infrastructure
+      repository names one version, fetches both by URL, and verifies each against its checksum,
+      rather than copying a source tree out of a checkout.
     status: proposed
     because:
       - d-riyvvlx5
       - d-mq7vdduz
       - d-cjjd5c0w
-      - r-zpdecb2z
-      - d-ti7vexo3
+      - d-vx1pxkyz
     pinned:
       reason: data-format
       notes: |
-        it is the seam between the two repositories: the infrastructure repository reads the
-        bundle's layout, and the daemon's launch resolves paths inside it
+        it is the seam between the two repositories: the infrastructure repository fetches these
+        artifacts by name and unpacks them, and neither repository holds both halves of it
 
   - id: d-qrxtbcei
     title: the shared package declares the vocabulary, and the routes declare the envelopes
@@ -44,41 +41,44 @@ decisions:
     pinned: false
 
   - id: d-p77q4tob
-    title: the bundle's layout, and how the daemon finds the interface in it
+    title: where each artifact unpacks, and how the daemon finds the interface
     statement: |
-      the bundle unpacks to a fixed tree: `server/` holding the daemon's compiled output and its
-      entry point, `web/` holding the browser application's built assets, `bin/` holding the
-      launch wrapper, `systemd/` holding the unit, and a production manifest and lockfile at the
-      root. The daemon resolves the interface's assets as `web/` beside the directory its own
-      entry point sits in, and an environment variable overrides that. Both halves are built from
-      one commit, since the interface's asset names are content-hashed.
+      the two artifacts unpack into one tree: the daemon's gives `server/` holding its compiled
+      output and entry point, `bin/` holding the launch wrapper, `systemd/` holding the unit, and
+      a production manifest and lockfile at the root; the browser application's gives `web/`
+      beside them. The daemon resolves the interface's assets as `web/` beside the directory its
+      own entry point sits in, and an environment variable overrides that, so a deployment may
+      put the interface elsewhere and say so.
     status: proposed
     because:
       - d-6ct1o00j
       - r-zpdecb2z
+      - d-ti7vexo3
     pinned:
       reason: data-format
       notes: |
-        the infrastructure repository unpacks this tree and its unit names paths inside it, so
-        the layout is read by a repository that cannot see the code that writes it
+        the infrastructure repository unpacks both artifacts into this tree and its unit names
+        paths inside it, so the layout is read by a repository that cannot see the code that
+        writes it
 
   - id: d-vx1pxkyz
     title: the three packages carry one version
     statement: |
-      the three grinbox packages version in lockstep, so a change to any of them releases all
-      three at the same number and the deployment names one version for the application. The
-      bundle rides on the daemon's release, and the browser application is half of what it holds —
-      a change to the browser application alone must therefore still produce a release.
+      the three grinbox packages version in lockstep: releasing any one releases all three at the
+      same number, so the deployment names a single version for the whole application and nobody
+      pairs artifacts by hand. The grouping binds these three and nothing else — a release
+      touching no grinbox package is unaffected by it.
     status: proposed
     because:
-      - d-6ct1o00j
       - d-cjjd5c0w
       - d-txqxjxvp
+      - d-5l0wqcj0
     pinned:
       reason: other
       notes: |
-        the version the deployment names is the whole application's, and a change to the browser
-        application that released nothing would silently strand it
+        the browser application is compiled against the daemon's own route definitions, so a
+        deployment running two independently chosen versions has no guarantee they agree and
+        nothing would check it
 
   # What the daemon does that nothing in the fold accounted for, found by reading the code
   # against the design while porting it.
@@ -154,6 +154,7 @@ decisions:
     status: proposed
     because:
       - r-ieyj1wkn
+      - r-ovi02v1m
       - d-a1pf497w
       - d-ti7vexo3
     pinned:
@@ -170,8 +171,8 @@ decisions:
       minted with the correlation token, never leaves the daemon, and is discarded with it.
     status: proposed
     because:
+      - r-ovi02v1m
       - d-a1pf497w
-      - d-xe41okh9
     pinned:
       reason: other
       notes: |
@@ -206,6 +207,7 @@ decisions:
       no entry, being nobody's action.
     status: proposed
     because:
+      - r-k6gh82fx
       - d-obzpbcml
       - d-8yht1ei9
       - d-qv5l66ya
