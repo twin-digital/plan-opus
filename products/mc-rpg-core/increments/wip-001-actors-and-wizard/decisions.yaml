@@ -355,10 +355,10 @@ decisions:
   - id: d-ny9lcyjg
     title: the assets pack declares only content whose names can be namespaced
     statement: >
-      the assets pack confines itself to content kinds that name what they declare, so the namespace
-      reaches all
+      the assets pack — both halves — confines itself to content kinds that name what they declare,
+      so the
 
-      of it.
+      namespace reaches all of it.
     status: proposed
     pinned:
       reason: other
@@ -370,24 +370,28 @@ decisions:
       - d-i8pjw2on
       - f:a-resource-packs-internal-asset-names-are-global-to-the-pack-stack
     commentary: >
-      the exclusion is precautionary. that the named kinds collide by name is measured; that the
+      the resource half's kinds worked through: declarable are entity definitions, geometry,
+      textures, materials,
 
-      whole-file kinds resolve by override or merge instead is read off how a resource pack supplies
-      them and is
+      render controllers, animations, animation controllers, particles, fogs and attachables; barred
+      are
 
-      not measured here. excluding them costs the product nothing it needs, so the cheaper posture
-      is to stay out
+      `blocks.json`, `sounds.json`, `biomes_client.json`, the `texts` files and the `ui` tree. the
+      behavior half
 
-      rather than to establish the behaviour first.
+      is governed by the same test rather than by that list, which is why the rule is stated over
+      kinds and not
+
+      over an enumeration.
 
 
       the whole-file kinds hold no name to qualify, so two majors supplying one contend over the
-      file itself and the
+      file itself and
 
-      namespace cannot separate them. an actor needs none of them. a preset that comes to need one
-      is a change to
+      the namespace cannot separate them. an actor needs none of them. a preset that comes to need
+      one is a change
 
-      this decision, not a detail of the preset.
+      to this decision, not a detail of the preset.
 
 
       the exclusion is precautionary. that the named kinds collide by name is measured; that the
@@ -397,11 +401,9 @@ decisions:
       measured here.
     cases:
       - when: a kind names its entries
-        then: the pack may declare it — entity definitions, geometry, textures, materials, render
-          controllers, animations, animation controllers, particles, fogs, attachables
+        then: the pack may declare it
       - when: a kind is supplied as a whole file
-        then: the pack declares nothing in it — `blocks.json`, `sounds.json`, `biomes_client.json`, the
-          `texts` files, the `ui` tree
+        then: the pack declares nothing in it
   - id: d-ro5pj8er
     title: an archive never ships one half of the product without the other
     statement: >
@@ -548,3 +550,210 @@ decisions:
       which names the
 
       resource half — and the pool's fact tests one hop only.
+  - id: d-2zclv5ol
+    title: the namespace is the token `rpg<major>`, and the build reads the major from the package
+    statement: >
+      the namespace is `rpg<major>`: an actor's identifier is `rpg<major>:<preset>`, and every
+      internal asset name
+
+      carries `rpg<major>` as a segment. the build reads the major from the package's own version,
+      so a name and
+
+      the version it claims cannot disagree unnoticed.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: the literal strings an adventure names and an operator sees in a selector or a server log
+    scope:
+      - library
+      - assets-pack
+    because:
+      - r-pop72yk6
+      - d-i8pjw2on
+    commentary: >
+      reading the major from `package.json` rather than from a constant in the pack is what makes
+      the lint a check
+
+      rather than a second place to keep in step: a major changeset landing without the rename fails
+      the build
+
+      instead of shipping a pack whose names claim the previous major.
+  - id: d-orqkexpm
+    title: the assets pack never ships below 1.0.0, and each major carries fresh uuids
+    statement: >
+      the assets pack's first release is 1.0.0 and it never publishes a `0.x` version. each major
+      carries a pair of
+
+      uuids minted for it, recorded in the pack's own source.
+    status: proposed
+    pinned:
+      reason: other
+      notes: a 0.x release would put every breaking change in one namespace, so adventures on incompatible
+        versions would contend instead of coexisting
+    scope: assets-pack
+    because:
+      - r-pop72yk6
+      - d-i8pjw2on
+      - d-2zclv5ol
+    commentary: >
+      under semver a `0.x` package breaks compatibly on a *minor*, so a namespace derived from the
+      major would name
+
+      one namespace across every breaking change and r-pop72yk6's coexistence would not hold. the
+      floor is what
+
+      makes major-derived isolation mean anything.
+
+
+      a uuid cannot spell a version, so per-major rotation is the only buildable reading of
+      d-i8pjw2on's "the
+
+      assets pack's uuid ... carries the namespace". the kit reports a duplicate uuid across the
+      workspace, so a
+
+      reused one fails loudly — a forgotten rotation does not, which is why the pair is recorded in
+      source.
+  - id: d-9uu20w3r
+    title: an actor may be given a durable name, and placement by that name is idempotent
+    statement: >
+      an adventure may give an actor a durable name of its own when it creates it. placing an actor
+      under a name
+
+      that is already in the world returns the actor already there rather than a second one, and the
+      library
+
+      resolves a handle from that name in a later session.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: it is how an adventure reaches an actor at all after a restart, and the difference between
+        one wizard and one per restart
+    scope: library
+    because:
+      - r-8ih6ab2r
+      - r-e8p2oto6
+      - d-5lutr7ok
+    commentary: >
+      two holes compose into a trap without this. a handle does not survive a world reload, and the
+      fold offered no
+
+      lookup, so r-8ih6ab2r's "until the adventure that spawned it removes it" was unimplementable.
+      and because an
+
+      actor persists while the only verb was spawn, an adventure spawning on world load — the
+      obvious adventure —
+
+      accumulated one actor per restart.
+
+
+      leaving both to adventures would have made r-e8p2oto6's "its own story, its triggers, and its
+      logic" quietly
+
+      include actor-lifecycle bookkeeping. how the name is carried is the implementer's.
+  - id: d-icz8rnnw
+    title: the preset registry lives in the library, and the assets pack builds from it
+    statement: >
+      the preset registry is the library's, and the assets pack takes it as a build-time dependency
+      to produce its
+
+      entity definitions from. at run time neither package reads the other.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: which package a reimplementation must put the registry in, and the direction of the
+        dependency between the two
+    scope:
+      - library
+      - assets-pack
+    because:
+      - r-lna5xlfe
+      - d-ipgh0g2d
+      - d-6jlj0rl2
+      - d-lgaqtx4c
+    commentary: >
+      d-ipgh0g2d requires one registry feeding both halves and d-6jlj0rl2 forbids either package
+      holding the
+
+      other's content; a build-time dependency is neither package holding the other's content, so
+      the library is
+
+      the home and no third package is needed for it.
+
+
+      the generation step itself is a kit capability the fold does not have — d-lgaqtx4c defers it.
+      until then the
+
+      definitions are committed, and d-2zclv5ol's mechanical identifier form is what makes drift
+      visible by
+
+      inspection rather than only by a check.
+  - id: d-bfdql5tx
+    title: a preset's default name is a library string, applied when the actor is created
+    statement: >
+      a preset's default name is carried by the library and applied to the actor as it is created.
+      the assets pack
+
+      holds no name for any actor, and a name is not translated.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: what a player reads above an actor, and that it is one string rather than a localisable
+        resource
+    scope:
+      - library
+      - assets-pack
+    because:
+      - r-lna5xlfe
+      - r-e8p2oto6
+      - d-ny9lcyjg
+      - d-w0smdozf
+    commentary: >
+      the natural home for an entity's default name is the resource pack's `texts` files, which
+      d-ny9lcyjg bars as a
+
+      whole-file kind — so the name cannot live in the pack, and d-w0smdozf gives every actor the
+      same components,
+
+      so it cannot come from those either. that leaves the library, which is also the only half that
+      knows which
+
+      preset was asked for.
+
+
+      two consequences worth stating rather than leaving to be discovered: a name is not
+      localisable, and on the
+
+      client observed for f:what-a-client-renders-for-a-broken-appearance-definition a name appears
+      only while a
+
+      player hovers over the actor, never passively.
+  - id: d-cb9jl02i
+    title: the vendoring records its source, revision, and the path of every file taken
+    statement: >
+      the assets pack commits a record of where its vendored assets came from: the repository, the
+      exact revision,
+
+      and the path each file was taken from. re-vendoring is a change to that record.
+    status: proposed
+    pinned:
+      reason: data-format
+      notes: the record is what makes a re-vendoring reproducible and what a reader checks an asset's
+        provenance against
+    scope: assets-pack
+    because:
+      - r-pngblab3
+      - d-lyvjq8l1
+      - f:mojang-publishes-the-vanilla-packs-with-all-rights-reserved-under-the-eula
+    commentary: >
+      d-lyvjq8l1 says "a pinned revision" and named no source, no revision, and no record — and the
+      only urls in
+
+      the pool point at `main`, which pins nothing. since d-5f011w0o frees appearance to change
+      within a major,
+
+      re-vendoring is expected more than once, and without a record the second one cannot be told
+      from the first.
+
+
+      it also answers the provenance question the licence raises: what was taken, from where, at
+      which revision.

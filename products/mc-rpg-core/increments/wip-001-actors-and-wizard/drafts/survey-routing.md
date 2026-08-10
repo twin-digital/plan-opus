@@ -138,9 +138,23 @@ The owner ruled 1–3, and the draft acted:
 - **13** → both preset adoptions scoped: `minecraft-addon` to `assets-pack` and `example`,
   `nodejs-library` to `library`.
 
-Still open, and the next Clarify round's work: **6** the namespace's literal form, its `1.0.0` floor and
-per-major uuid rotation; **8** actor lifecycle — reaching a persisted actor, and idempotent placement;
-**9** where the preset registry lives; **10** the default name's home; **11** the revision pin's record;
-**12** whether `d-ny9lcyjg` bounds the behavior half too. Items 14–18 are outside this product and are
-reported rather than resolved — the test-lib registry gap is the one that most wants an owner's eye, since
-it leaves the product's most load-bearing decision without a sanctioned unit test.
+All six of the remaining gaps are closed:
+
+- **6, the namespace** → `d-2zclv5ol` fixes the form as `rpg<major>` and has the build read the major from
+  the package's own version, so a name and the version it claims cannot disagree unnoticed. `d-orqkexpm`
+  sets the `1.0.0` floor and per-major uuids: at `0.x` semver breaks on a minor, so one namespace would span
+  every breaking change and `r-pop72yk6` would not hold.
+- **8, actor lifecycle** → `d-9uu20w3r`. A durable name, idempotent placement under it, and resolution from
+  it in a later session. Without it `r-8ih6ab2r`'s final clause was unimplementable and the obvious
+  adventure accumulated one actor per restart.
+- **9, the registry** → `d-icz8rnnw`. It lives in the library; the pack builds from it. A build-time
+  dependency is neither package holding the other's content, so no third home is needed.
+- **10, the default name** → `d-bfdql5tx`. A library string applied at creation, since `texts` is barred and
+  the shared component set cannot carry a per-preset value.
+- **11, the revision pin** → `d-cb9jl02i`. Repository, revision, and the path of every file taken, committed
+  beside the assets.
+- **12, the kinds bound** → `d-ny9lcyjg` restated over both halves, with the resource half's enumeration
+  moved to commentary so the rule is the test and not the list.
+
+Items 14–18 remain outside this product. The test-lib registry gap is now `q-sf1l1ypo`, with the capability
+captured against `mc-test-lib`; the rest are reported and unresolved.

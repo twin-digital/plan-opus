@@ -29,3 +29,52 @@ questions:
 
       not the agent's to do.
     answer: requirement
+  - id: q-sf1l1ypo
+    question: >
+      how is d-xobjyw2e's check unit-tested, when r-hear6pun forbids the only doubles that would let
+      it be?
+
+
+      r-hear6pun, adopted from minecraft-addon@4, requires a pack's unit tests stand up
+      `@minecraft/server` with
+
+      `@twin-digital/minecraft-test-lib` "rather than a hand-rolled double or a module mock".
+      d-xobjyw2e — pinned
+
+      public-api, and the decision the product's failure behaviour rests on — turns on
+      `EntityTypes.get` returning
+
+      an entity type or `undefined`. The shared test lib cannot express either branch:
+
+
+      - its README lists the eight registry classes under out-of-scope surfaces, "declared in full
+      and throwing",
+        and `src/generated/fakes/EntityTypes.ts` has `get()` throw `NotImplementedError`;
+      - `createServer()` hands back the *same static* `FakeEntityTypes` for every bundle, so there
+      is no
+        per-bundle state a test could register a type into, and any test-time reassignment leaks into every other
+        test file.
+
+      So the registered branch cannot be arranged and the unregistered branch cannot be
+      distinguished from the
+
+      lib's own refusal. The three routes each cost something the fold does not authorise:
+
+
+      - **take the registry through an injected seam** — changes the library's public surface, and a
+      seam whose
+        only purpose is the test arguably *is* the hand-rolled double r-hear6pun forbids;
+      - **reassign the static in tests** — leaks across bundles, and reads as the forbidden double;
+
+      - **have mc-test-lib model entity-type registration** — the honest fix, and a change in
+      another product's
+        package that this increment cannot make.
+
+      The call is which of those the product takes, or whether this product carries a declared
+      exception to
+
+      r-hear6pun for the registry surface. Amending an adopted preset requirement, or exempting a
+      product from
+
+      one, is owner fiat.
+    answer: requirement
