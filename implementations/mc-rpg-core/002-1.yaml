@@ -41,7 +41,7 @@ coverage:
         note: the preset name is the whole of what a caller supplies for identity and default name
       - kind: code-test
         ref:
-          - src/internal.test.ts
+          - src/actor.test.ts
         note: spawns an entity of the preset identifier and applies the preset default name
       - kind: manual-check
         ref:
@@ -86,7 +86,7 @@ coverage:
         note: persistent, no despawn path, gravity disabled so the placed position holds
       - kind: code-test
         ref:
-          - src/internal.test.ts
+          - src/actor.test.ts
         note: the library resolves a handle through the world record alone, with no in-process state
       - kind: manual-check
         ref:
@@ -116,11 +116,9 @@ coverage:
       - kind: code-test
         ref:
           - src/actor.test.ts
-          - src/internal.test.ts
         note: >
-          a failed call has spawned and recorded nothing; the engine's refusal propagates
-          untranslated. The undefined-lookup throw itself has no code-test route — the shipped
-          test-lib fakes cannot return undefined from EntityTypes.get
+          a failed call has spawned and recorded nothing, and the not-registered refusal is thrown
+          from a real catalog lookup naming what is missing
       - kind: manual-check
         ref:
           - README.md
@@ -131,7 +129,7 @@ coverage:
     covered_by:
       - kind: attestation
         ref:
-          - src/internal.ts
+          - src/actor.ts
           - behavior_pack/manifest.json
         note: >
           identifiers, asset names, durable-name keys, and pack uuids all carry the per-major
@@ -176,7 +174,7 @@ coverage:
           plugin and fakes; no hand-rolled double or module mock anywhere
       - kind: code-test
         ref:
-          - src/internal.test.ts
+          - src/actor.test.ts
           - src/adventure.test.ts
         note: the library and example suites run entirely through the shared test lib
   - claim: r-cyd08e6q # packs are built by the dev kit
@@ -332,7 +330,6 @@ coverage:
         note: the settled signature (d-o9lynydc)
       - kind: code-test
         ref:
-          - src/internal.test.ts
           - src/actor.test.ts
         note: place, default and overridden names, and the handle's fields exercised
   - claim: d-xobjyw2e # every entry point checks registration and throws naming the pack
@@ -340,18 +337,19 @@ coverage:
       - kind: attestation
         ref:
           - src/catalog.ts
-          - src/internal.ts
+          - src/actor.ts
         note: spawn, find-with-record, and remove all check first
       - kind: code-test
         ref:
           - src/actor.test.ts
-          - src/internal.test.ts
           - src/errors.test.ts
         note: >
-          check-first ordering on all three entry points; the engine's refusal propagates
-          untranslated; the error names preset, identifier, and pack. Without a code-test route
-          (shipped fakes cannot register entity types): the registered-proceeds branch, the
-          not-registered throw from a real lookup, and the genuine early-execution refusal
+          through the public entry point on all three verbs: a registered entity type lets the call
+          proceed, an unregistered one throws ActorDefinitionsMissingError from a real catalog
+          lookup naming preset, identifier, and pack, and a failed call has spawned and recorded
+          nothing. Only the early-execution engine refusal has no code-test route — the fakes have
+          no pre-worldLoad phase; it is attested (no handler surrounds the lookup) and exercised in
+          the example's world
       - kind: manual-check
         ref:
           - README.md
@@ -372,7 +370,7 @@ coverage:
       - kind: attestation
         ref:
           - behavior_pack/manifest.json
-          - src/internal.ts
+          - src/actor.ts
         note: pack uuids are the major's own; the library resolves calls and world records through the namespace
       - kind: code-test
         ref:
@@ -454,11 +452,11 @@ coverage:
     covered_by:
       - kind: attestation
         ref:
-          - src/internal.ts
+          - src/actor.ts
         note: the durable-name record, resolution, and release implemented
       - kind: code-test
         ref:
-          - src/internal.test.ts
+          - src/actor.test.ts
           - src/adventure.test.ts
         note: >
           same-id placement returns the same actor unchanged; resolution from hand-built world
@@ -488,7 +486,7 @@ coverage:
         note: the assets pack holds no name for any actor; the library applies the string at creation
       - kind: code-test
         ref:
-          - src/internal.test.ts
+          - src/actor.test.ts
           - src/registry.test.ts
         note: the default name is applied as the actor is created; the string is non-empty
       - kind: manual-check
@@ -528,7 +526,6 @@ coverage:
         note: the settled signature as shipped
       - kind: code-test
         ref:
-          - src/internal.test.ts
           - src/actor.test.ts
   - claim: d-lt24vke1 # ActorDefinitionsMissingError
     covered_by:
@@ -582,10 +579,10 @@ coverage:
     covered_by:
       - kind: attestation
         ref:
-          - src/internal.ts
+          - src/actor.ts
       - kind: code-test
         ref:
-          - src/internal.test.ts
+          - src/actor.test.ts
         note: >
           the rpg:actor.<id> key and its JSON record round-trip; an unreadable record reads as
           absent; removal deletes it
@@ -593,11 +590,11 @@ coverage:
     covered_by:
       - kind: code-test
         ref:
-          - src/internal.test.ts
+          - src/actor.test.ts
         note: existing actor returned unchanged (override not applied); stale record respawns and overwrites
       - kind: attestation
         ref:
-          - src/internal.ts
+          - src/actor.ts
       - kind: manual-check
         ref:
           - README.md
@@ -606,10 +603,10 @@ coverage:
     covered_by:
       - kind: code-test
         ref:
-          - src/internal.test.ts
+          - src/actor.test.ts
       - kind: attestation
         ref:
-          - src/internal.ts
+          - src/actor.ts
   - claim: d-clemw9ag # riding and particle references not carried
     covered_by:
       - kind: attestation
