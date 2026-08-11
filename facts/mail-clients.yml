@@ -1,6 +1,7 @@
-version: "2"
+version: "3"
 facts:
   - id: f-k2mw7qx4
+    title: style blocks survive only some mail clients
     claim: |
       mail-client support for the <style> element is partial and conditional — Gmail drops blocks
       outside the head and drops them entirely for non-Google accounts in its apps, and Outlook for
@@ -29,6 +30,7 @@ facts:
           Buggy. <style> elements need to be declared before their rules are used.
 
   - id: f-p9jt3vn8
+    title: external stylesheets are not loaded by mail clients
     claim: |
       the <link> element is unsupported in nearly every mail client — Gmail, Outlook for Windows,
       Outlook.com, and Yahoo among them — so a stylesheet referenced rather than carried never
@@ -44,6 +46,7 @@ facts:
           14.29% supported
 
   - id: f-c5rb8wm2
+    title: Outlook blocks remote images by default
     claim: |
       Outlook blocks automatic download of remote images by default, so an image referenced from
       the internet does not render in a delivered mail until the reader acts
@@ -56,6 +59,7 @@ facts:
           Internet.
 
   - id: f-d6zk4hy9
+    title: dark-mode clients restyle message backgrounds
     claim: |
       a client reading in dark mode changes the message's background colours itself — Outlook
       darkens the reading pane and changes the message background unless the user opts out — so
