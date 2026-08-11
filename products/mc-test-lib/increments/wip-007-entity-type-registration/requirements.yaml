@@ -13,19 +13,19 @@ components:
     description: the import-level shim that stands the fakes in for a direct `@minecraft/server` module import in a test runner
 
 # Extracted from the fold rather than coined here: each of these is leaned on across increments and
-# defined nowhere. `registry` and `module registry` are separated because the bare word was carrying
-# both senses in force at once.
+# defined nowhere. `type catalog` is not called `registry` because the engine reserves `*Registry`
+# for classes you register custom content into, which these are not.
 terms:
   - id: fake-server
-    definition: what `createServer` returns — the `world`, `system` and registry classes holding every piece of state one test arranges
+    definition: what `createServer` returns — the `world`, `system` and type catalogs holding every piece of state one test arranges
     status: active
 
   - id: control-plane
     definition: the package's exported free functions, through which a test arranges and inspects what the engine's own surface cannot express
     status: active
 
-  - id: registry
-    definition: an engine class resolving an identifier to a type, `EntityTypes` and the seven declared beside it
+  - id: type-catalog
+    definition: an engine class resolving an identifier to a type object, `EntityTypes` and the seven declared beside it — never a `*Registry`, which is written to
     status: active
 
   - id: module-registry

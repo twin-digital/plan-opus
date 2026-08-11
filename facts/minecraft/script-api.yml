@@ -2904,23 +2904,23 @@ facts:
       defined.
     backing: tested
     sources:
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`get` — an unregistered namespaced id"
         quote: |
           [etreg] get :: case=absent-namespaced argument="mctest:nothing_registers_this" returned undefined .id n/a
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`get` — an unregistered id in the minecraft namespace"
         quote: |
           [etreg] get :: case=absent-minecraft-namespace argument="minecraft:nothing_registers_this" returned undefined .id n/a
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`get` — the empty string"
         quote: |
           [etreg] get :: case=empty-string argument="" returned undefined .id n/a
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`get` — a registered id with surrounding whitespace"
         quote: |
           [etreg] get :: case=whitespace argument=" minecraft:sheep " returned undefined .id n/a
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`get` — a registered id with a case difference"
         quote: |
           [etreg] get :: case=case-mismatch argument="minecraft:Sheep" returned undefined .id n/a
@@ -2935,54 +2935,54 @@ facts:
       throws — the assumption is literal, not a fallback search.
     backing: tested
     sources:
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`get` — the prefixed vanilla id"
         quote: |
           [etreg] get :: case=registered-vanilla-prefixed argument="minecraft:sheep" returned object<EntityType> .id returned string:"minecraft:sheep"
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`get` — the bare vanilla id"
         quote: |
           [etreg] get :: case=registered-vanilla-bare argument="sheep" returned object<EntityType> .id returned string:"minecraft:sheep"
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`shape` — the bare and prefixed lookups compared by identity"
         quote: |
           [etreg] shape :: identity-bare-vs-prefixed same-object=true bare=object<EntityType>
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`get` — the bare form of a pack-defined id"
         quote: |
           [etreg] get :: case=pack-defined-bare argument="probe_dummy" returned undefined .id n/a
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`spawn` — the namespace the bare form actually looked for"
         quote: |
           [etreg] spawn :: case=bare-pack-defined id=probe_dummy lookup returned undefined spawn threw InvalidArgumentError: Invalid value passed to argument [0]. 'minecraft:probe_dummy' is not a valid entity type. typeId=string:"n/a"
 
-  - id: entity-type-registry-refuses-early-execution
+  - id: entity-type-catalog-refuses-early-execution
     claim: |
       `EntityTypes` answers no read during early execution. Both `get` and `getAll` throw
       `ReferenceError: Native function [EntityTypes::get] cannot be used in early execution.` when
       called at a pack module's evaluation and again inside a `system.beforeEvents.startup`
       handler; by `world.afterEvents.worldLoad` both answer normally. So a pack cannot resolve an
-      entity type from its startup code at all — the only place a registry read can happen is after
+      entity type from its startup code at all — the only place a catalog read can happen is after
       world load.
     backing: tested
     sources:
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`at-module-eval` — get at module evaluation"
         quote: |
           [etreg] at-module-eval :: case=vanilla threw ReferenceError: Native function [EntityTypes::get] cannot be used in early execution.
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`at-module-eval` — getAll at module evaluation"
         quote: |
           [etreg] at-module-eval :: case=all threw ReferenceError: Native function [EntityTypes::getAll] cannot be used in early execution.
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`at-event` — get inside a system.beforeEvents.startup handler"
         quote: |
           [etreg] at-event :: case=startup threw ReferenceError: Native function [EntityTypes::get] cannot be used in early execution.
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`at-event` — get after world load"
         quote: |
           [etreg] at-event :: case=worldLoad returned object<EntityType>
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`at-event` — getAll after world load"
         quote: |
           [etreg] at-event :: case=worldLoadAll returned object<Array> length=129
@@ -2996,11 +2996,11 @@ facts:
       (`entity.mctest:probe_dummy.name`), so it is not derivable from the id by one rule.
     backing: tested
     sources:
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`shape` — the full member list of a vanilla type"
         quote: |
           [etreg] shape :: subject=minecraft:sheep ctor=EntityType members=[localizationKey(own,value)=string:"entity.sheep.name" id(own,value)=string:"minecraft:sheep" id(proto1,value)=undefined localizationKey(proto1,value)=undefined]
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`shape` — the full member list of a pack-defined type"
         quote: |
           [etreg] shape :: subject=mctest:probe_dummy ctor=EntityType members=[localizationKey(own,value)=string:"entity.mctest:probe_dummy.name" id(own,value)=string:"mctest:probe_dummy" id(proto1,value)=undefined localizationKey(proto1,value)=undefined]
@@ -3014,20 +3014,20 @@ facts:
       returns is not.
     backing: tested
     sources:
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`shape` — two get calls compared by identity"
         quote: |
           [etreg] shape :: identity-across-calls same-object=true
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`getall` — a getAll entry against what get returns"
         quote: |
           [etreg] getall :: entry-identity-matches-get=true
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`getall` — two getAll calls compared"
         quote: |
           [etreg] getall :: same-array-across-calls=false same-entry-objects=true
 
-  - id: entity-type-registry-holds-pack-defined-types
+  - id: entity-type-catalog-holds-pack-defined-types
     claim: |
       `EntityTypes.getAll` returns vanilla and pack-defined types together, with no member marking
       which is which — a type a behaviour pack defines is present and indistinguishable from a
@@ -3035,24 +3035,24 @@ facts:
       and none repeats. The count is the installed content's, not a constant: 129 entries on a world
       with one content pack installed.
     caveat: |
-      The registry is read-only from script — nothing in `@minecraft/server` registers a type — so
+      The catalog is read-only from script — nothing in `@minecraft/server` registers a type — so
       when an entry appears was measured across the load points a pack has, not across a mid-session
       registration.
     backing: tested
     sources:
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`getall` — the count and array-ness"
         quote: |
           [etreg] getall :: count=129 is-array=true
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`getall` — whether the pack-defined type is present"
         quote: |
           [etreg] getall :: contains-pack-defined=true
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`getall` — the namespaces present beyond minecraft"
         quote: |
           [etreg] getall :: non-minecraft-namespaces=[mctest:probe_dummy]
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`getall` — unprefixed and duplicate ids"
         quote: |
           [etreg] getall :: unprefixed-ids=0
@@ -3066,18 +3066,18 @@ facts:
       the bare forms included, so a `get` that returns a value is a sound pre-check for a spawn that
       will succeed.
     caveat: |
-      Six identifiers were checked, not all 129 the registry held.
+      Six identifiers were checked, not all 129 the catalog held.
     backing: tested
     sources:
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`spawn` — a pack-defined type"
         quote: |
           [etreg] spawn :: case=pack-defined id=mctest:probe_dummy lookup returned object<EntityType> spawn returned object<Entity> typeId=string:"mctest:probe_dummy"
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`spawn` — an unregistered namespaced id"
         quote: |
           [etreg] spawn :: case=absent-namespaced id=mctest:nothing_registers_this lookup returned undefined spawn threw InvalidArgumentError: Invalid value passed to argument [0]. 'mctest:nothing_registers_this' is not a valid entity type. typeId=string:"n/a"
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`spawn` — the bare form of a vanilla type"
         quote: |
           [etreg] spawn :: case=bare-vanilla id=sheep lookup returned object<EntityType> spawn returned object<Entity> typeId=string:"minecraft:sheep"
@@ -3096,31 +3096,31 @@ facts:
       literal does not.
     backing: tested
     sources:
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`guard` — no argument"
         quote: |
           [etreg] guard :: case=no-argument threw TypeError: Incorrect number of arguments to function. Expected 1, received 0
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`guard` — undefined as the argument"
         quote: |
           [etreg] guard :: case=undefined threw InvalidArgumentError: Invalid type passed to argument [0]. Expected type: string
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`guard` — a number as the argument"
         quote: |
           [etreg] guard :: case=number threw TypeError: Native type conversion failed. Function argument [0] expected type: string
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`guard` — an array as the argument"
         quote: |
           [etreg] guard :: case=array threw TypeError: Native type conversion failed. Function argument [0] expected type: string
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`guard` — a plain object as the argument"
         quote: |
           [etreg] guard :: case=object threw TypeError: Object did not have a native handle. Function argument [0] expected type: string
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`guard` — a boxed String as the argument"
         quote: |
           [etreg] guard :: case=string-object threw TypeError: Object has an invalid native handle. Function argument [0] expected type: string
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`guard` — an argument to getAll"
         quote: |
           [etreg] guard :: case=getall-one-argument threw TypeError: Incorrect number of arguments to function. Expected 0, received 1
@@ -3129,7 +3129,7 @@ facts:
     claim: |
       An `EntityType`'s `localizationKey` follows one rule from its identifier, with no exceptions:
       it is `entity.<id>.name`, with a leading `minecraft:` stripped and any other namespace kept.
-      Checked against every entry the registry held — 129 types, vanilla and pack-defined together —
+      Checked against every entry the catalog held — 129 types, vanilla and pack-defined together —
       the derived key matched the engine's for all of them, and no read threw. So a vanilla type
       reads `entity.sheep.name` and a pack-defined one `entity.mctest:probe_dummy.name`, both from
       the same rule.
@@ -3138,15 +3138,15 @@ facts:
       rests on that pack's single type.
     backing: tested
     sources:
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`localization` — the derived key against every registry entry"
         quote: |
           [etreg] localization :: checked=129 mismatches=0 read-threw=0
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`shape` — a vanilla type's key, namespace stripped"
         quote: |
           [etreg] shape :: subject=minecraft:sheep ctor=EntityType members=[localizationKey(own,value)=string:"entity.sheep.name" id(own,value)=string:"minecraft:sheep" id(proto1,value)=undefined localizationKey(proto1,value)=undefined]
-      - run: entity-type-registry-probe
+      - run: entity-type-catalog-probe
         where: "`shape` — a pack-defined type's key, namespace kept"
         quote: |
           [etreg] shape :: subject=mctest:probe_dummy ctor=EntityType members=[localizationKey(own,value)=string:"entity.mctest:probe_dummy.name" id(own,value)=string:"mctest:probe_dummy" id(proto1,value)=undefined localizationKey(proto1,value)=undefined]
