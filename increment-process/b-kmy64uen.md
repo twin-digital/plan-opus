@@ -4,8 +4,6 @@ tags:
   - design-validator
 ---
 
-# Facts should carry a title, as requirements and decisions do
-
 A fact carries no title, so nothing names it but its id and its claim body. Requirements and
 decisions both carry an optional `title` — `requirement@2` and `decision@3` each declare
 `id`, `title`, `statement` — and the projection renders them as `### <id> — <title>`. A fact's
@@ -31,10 +29,25 @@ Two things adjacent to it, worth ruling with it or explicitly not:
 
 - **The claim is not a title.** A claim is a paragraph and often several, since it carries what was
   measured. It cannot be a heading, and truncating it would cut mid-sentence.
-- **`f:f-` reads badly.** The citation prefix `f:` sits in front of an id that already begins `f-`,
-  so every fact citation doubles the letter. Requirements and decisions have no prefix — they are
-  cited bare as `r-0lbj68w9` and `d-uky2xju6`. Whether the `f:` prefix is still earning its keep now
-  that fact ids are self-identifying is a separate question this raises rather than settles.
+- **`f:f-` is a transitional artifact.** The validator's `checkCitation` dispatches on the
+  citation's shape, against two patterns and one prefix:
+
+  ```js
+  const CLAIM_ID    = /^[rd]-[0-9a-z]{8}$/;
+  const QUESTION_ID = /^q-[0-9a-z]{8}$/;
+
+  if (QUESTION_ID.test(citation))      → nothing rests on an open question
+  else if (CLAIM_ID.test(citation))    → resolve against this product's claims
+  else if (citation.startsWith('f:'))  → strip it, resolve against the facts pool
+  else                                 → citation-form: not a requirement, decision, or f:<fact>
+  ```
+
+  There is no `FACT_ID` pattern. Under slug ids the prefix was the only thing that could route a
+  citation to `facts/`, since a bare slug matches neither pattern and falls to the `else`. `fact@2`
+  made ids self-identifying and nothing updated the dispatch, so the prefix now doubles the letter
+  and a bare `f-o9dbstfj` is still rejected. Adding `FACT_ID = /^f-[0-9a-z]{8}$/` to the chain
+  would let fact citations be bare, as `q-` already is — distinguished by pattern, no prefix. Worth
+  ruling with the title or explicitly not; it is the same migration either way.
 
 Workaround in use meanwhile, in `facts/minecraft/script-api.yml`: the old slug kept as a trailing
 YAML comment on the id, `- id: f-o9dbstfj # entity-type-lookup-misses-return-undefined`. Nothing
