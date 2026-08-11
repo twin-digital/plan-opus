@@ -109,3 +109,24 @@ runs:
       current is out of its reach. Component semantics are this version's; the two AI-driven vanilla
       references (villager, shulker) move under their own goals and vary between runs, while every
       custom variant's numbers repeated exactly across consecutive runs.
+  - id: run-40cmv8ds
+    command: node evidence/minecraft/rpg-core/piston-displacement-probe/probe.mjs
+    output: evidence/minecraft/rpg-core/piston-displacement-probe/OUTPUT.txt
+    ran_at: 2026-08-11
+    environment: |
+      The same containerised Bedrock 1.26.43.1 harness as the other runs here, on a flat creative world
+      generated fresh on its own volume, with no Minecraft client involved. One behavior pack declares
+      nineteen entity variants, each a different component hypothesis about resisting displacement, and
+      the pack's script gives all nineteen plus eight vanilla entities the same piston stimulus, one
+      subject per lane, in two rounds: a piston arm extending into the block the subject stands in, then
+      a piston pushing the block the subject stands on. Pistons are placed and powered with `setblock`
+      commands the script runs. A calibration round fires one piston per `facing_direction` value in an
+      empty scratch arena first and reports which neighbour the arm reached, so the aim of the
+      measurement lanes is established by the same run rather than assumed; every lane additionally
+      reports the block found where its arm should be, so a piston that never extended cannot be read as
+      a subject that resisted. Positions are the script API's `entity.location`, read once before
+      powering and twice after (3s and 6s), and reported through console.warn, which needs
+      content-log-console-output-enabled. Vanilla mobs with working AI wander during the window, so their
+      drift is an upper bound rather than the piston's contribution alone; the custom variants have no
+      movement goals and do not. Nothing here observes whether a subject that resisted is still solid to
+      a player, which no headless run can see.

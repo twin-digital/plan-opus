@@ -259,3 +259,110 @@ facts:
       - run: run-4xy5say4
         where: the dropped-item positive control
         quote: "[2026-08-11 15:59:34:829 WARN] [Scripting] PROBE water SUMMARY v_item id=minecraft:item start=3.5000/70.0000/228.5000 end=8.1997/70.0000/228.1250 dx=4.6997 dy=0.0000 dz=-0.3750 dxz=4.7147 drifted=YES rose=no note=positive control: a dropped item, no AI of any kind"
+  - id: f-1mbwecmv
+    title: nothing in the pushable, knockback or movement components stops a piston arm pushing an entity
+    claim: |
+      A piston arm extending into a custom entity's block moves it 0.800 blocks on Bedrock 1.26.43.1,
+      and no component that reads as if it should stop that does. Measured one hypothesis per entity
+      against the same stimulus: `minecraft:pushable` with `is_pushable` and `is_pushable_by_piston`
+      both false, the same with only the piston flag false, `minecraft:knockback_resistance` at 1,
+      `minecraft:push_through` at 0, `minecraft:physics` with `has_gravity: false`, and
+      `minecraft:physics` with `push_towards_closest_space: false` each moved exactly as far as an
+      entity carrying only `minecraft:physics` and a collision box — 0.800 blocks. So did the whole
+      mc-rpg-core actor set together (pushable false, knockback resistance 1, movement 0 with
+      `movement.basic` and `navigation.walk`, water_movement drag 0). An AI goal that pins position
+      does not help either: `minecraft:home` with `behavior.go_home` and a working walk speed moved the
+      same 0.800 and did not walk back within six seconds. Neither did any of the eight vanilla
+      entities measured as-is resist — armor stand 0.750, npc 0.800, shulker 1.000, boat 1.000, ender
+      crystal 1.500 — so there is no vanilla entity to copy for this.
+    backing: tested
+    caveat: |
+      What the piston arm does not reach is a separate matter from being pushable by an entity: the
+      run does not measure player shoving, water, or minecarts, and `is_pushable: false` may well
+      govern those. Vanilla mobs with working AI wander during the measurement window, so the pig,
+      zombie and iron golem figures are upper bounds; the still subjects above are not affected.
+    sources:
+      - run: run-40cmv8ds
+        where: RESULTS A — the mc-rpg-core set, against the no-suppressor control on the same stimulus
+        quote: |
+          [2026-08-11 16:03:48:968 WARN] [Scripting] PISTON A current :: before=1.500,1.000,0.500 after3s=2.300,1.000,0.500 after6s=2.300,1.000,0.500 drift_h=0.800 drift_y=0.000 moved=YES stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: the mc-rpg-core actor set
+          [2026-08-11 16:03:48:968 WARN] [Scripting] PISTON A bare :: before=1.500,1.000,4.500 after3s=2.300,1.000,4.500 after6s=2.300,1.000,4.500 drift_h=0.800 drift_y=0.000 moved=YES stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: physics + box only, no pushable component
+      - run: run-40cmv8ds
+        where: RESULTS A — pushable false on its own
+        quote: |
+          [2026-08-11 16:03:48:968 WARN] [Scripting] PISTON A pushable_false :: before=1.500,1.000,8.500 after3s=2.300,1.000,8.500 after6s=2.300,1.000,8.500 drift_h=0.800 drift_y=0.000 moved=YES stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: pushable{is_pushable:false,is_pushable_by_piston:false} alone
+      - run: run-40cmv8ds
+        where: RESULTS A — knockback_resistance 1 on its own
+        quote: |
+          [2026-08-11 16:03:48:968 WARN] [Scripting] PISTON A kbr :: before=1.500,1.000,16.500 after3s=2.300,1.000,16.500 after6s=2.300,1.000,16.500 drift_h=0.800 drift_y=0.000 moved=YES stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: knockback_resistance{value:1} alone
+  - id: f-vcnueu1q
+    title: an entity the world cannot collide with is the only kind a piston arm leaves alone
+    claim: |
+      Taking collision away is what makes a custom entity immune to a piston arm on Bedrock 1.26.43.1,
+      and it is the only thing measured that does. An entity with no `minecraft:physics` component at
+      all, and an entity with `minecraft:physics {has_collision: false, has_gravity: false}`, both read
+      drift 0.000 through an arm extension that pushed every other subject 0.800 — including the
+      mc-rpg-core actor set once those two flags are added to it. Half the treatment is not enough and
+      is not usable on its own: `has_collision: false` with gravity still on falls out of the world,
+      reaching y = -96.521 within five seconds of spawning and going invalid before the piston fires.
+      Shrinking the collision box to 0.01 x 0.01 while keeping physics leaves 0.005 of drift, so the
+      box governs how much of the arm's push lands rather than whether it lands.
+    backing: tested
+    caveat: |
+      Nothing here observes what such an entity is like to stand next to: whether an entity without
+      collision is still solid to a player, still stands on the ground rather than hanging where it was
+      spawned, or still renders and can be interacted with, is not measured by a headless run and is
+      the question to settle before adopting this. Nor does it cover being displaced by a piston that
+      moves the block underneath [[f:f-c1hoepxs]].
+    sources:
+      - run: run-40cmv8ds
+        where: RESULTS A — no minecraft:physics component
+        quote: |
+          [2026-08-11 16:03:48:968 WARN] [Scripting] PISTON A nophysics :: before=1.500,1.000,40.500 after3s=1.500,1.000,40.500 after6s=1.500,1.000,40.500 drift_h=0.000 drift_y=0.000 moved=no stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: no minecraft:physics component at all
+      - run: run-40cmv8ds
+        where: RESULTS A — the mc-rpg-core set with collision and gravity both off
+        quote: |
+          [2026-08-11 16:03:48:969 WARN] [Scripting] PISTON A current_nograv_nocollide :: before=1.500,1.000,60.500 after3s=1.500,1.000,60.500 after6s=1.500,1.000,60.500 drift_h=0.000 drift_y=0.000 moved=no stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: the mc-rpg-core set + physics{has_collision:false,has_gravity:false}
+      - run: run-40cmv8ds
+        where: RESULTS A — collision off with gravity left on
+        quote: |
+          [2026-08-11 16:03:48:968 WARN] [Scripting] PISTON A nocollide :: before=1.500,-96.521,28.500 after3s=gone after6s=gone drift_h=NaN drift_y=NaN moved=? stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: physics{has_collision:false}
+      - run: run-40cmv8ds
+        where: RESULTS A — the shrunken collision box with physics kept
+        quote: |
+          [2026-08-11 16:03:48:968 WARN] [Scripting] PISTON A tinybox :: before=1.500,1.000,48.500 after3s=1.505,1.000,48.500 after6s=1.505,1.000,48.500 drift_h=0.005 drift_y=0.000 moved=no stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: collision_box 0.01 x 0.01, physics on
+  - id: f-c1hoepxs
+    title: a piston moving the block underneath carries every entity, whatever its definition says
+    claim: |
+      An entity standing on a block a piston pushes sideways travels with the block, and no entity
+      definition prevents it. All twenty-seven subjects measured on Bedrock 1.26.43.1 — nineteen
+      component hypotheses and eight vanilla entities — were displaced, and the floor for a custom
+      entity is exactly the block's own travel: the configurations that a piston arm cannot touch at
+      all, no `minecraft:physics` component and `has_collision: false` with `has_gravity: false`, still
+      moved 1.000 blocks, arriving one block along at the same height. Vanilla is no better: an ender
+      crystal moved the same 1.000. The subjects that do collide with the world fared worse, shoved
+      1.800 and dropped a block as the moving stone pushed past them. So on this stimulus the entity's
+      components are not the lever — the block is.
+    backing: tested
+    caveat: |
+      One geometry: a single stone block pushed one block sideways with the subject centred on it and
+      empty space to travel into. It does not separate whether the engine translates the entity with
+      the block or the moving block's own collision carries it, and it does not cover a piston pulling
+      a block out from under an entity, slime and honey blocks, or a stack of pushed blocks.
+    sources:
+      - run: run-40cmv8ds
+        where: RESULTS B — no minecraft:physics component, the configuration a piston arm cannot move
+        quote: |
+          [2026-08-11 16:04:01:974 WARN] [Scripting] PISTON B nophysics :: before=40.500,2.000,40.500 after3s=41.500,2.000,40.500 after6s=41.500,2.000,40.500 drift_h=1.000 drift_y=0.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: no minecraft:physics component at all
+      - run: run-40cmv8ds
+        where: RESULTS B — every suppressing component at once
+        quote: |
+          [2026-08-11 16:04:01:974 WARN] [Scripting] PISTON B kitchen_sink :: before=40.500,2.000,64.500 after3s=41.500,2.000,64.500 after6s=41.500,2.000,64.500 drift_h=1.000 drift_y=0.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: every suppressor at once: no physics, pushable false, kbr 1, push_through 0, tiny box, movement 0
+      - run: run-40cmv8ds
+        where: RESULTS B — a vanilla ender crystal
+        quote: |
+          [2026-08-11 16:04:01:974 WARN] [Scripting] PISTON B vanilla_ender_crystal :: before=40.500,2.000,96.500 after3s=41.500,2.000,96.500 after6s=41.500,2.000,96.500 drift_h=1.000 drift_y=0.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: vanilla, as-is
+      - run: run-40cmv8ds
+        where: RESULTS B — the mc-rpg-core actor set as shipped
+        quote: |
+          [2026-08-11 16:04:01:973 WARN] [Scripting] PISTON B current :: before=40.500,2.000,0.500 after3s=42.300,1.000,0.500 after6s=42.300,1.000,0.500 drift_h=1.800 drift_y=-1.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: the mc-rpg-core actor set
