@@ -1,0 +1,80 @@
+version: "3"
+
+decisions:
+  - id: d-grcdd4ov
+    scope: triage
+    title: the archive action takes a delay
+    statement: |
+      the archive action takes an optional delay — a duration. With none it archives during the
+      triage it runs in. With one, the triage records a pending archive due the delay past the
+      message's take-in, and grinbox performs it when it comes due. Which mail waits is the
+      gate's business, like any other action's firing.
+    commentary: |
+      The briefly-useful class is already expressible — a tagger marks it, the gate reads it —
+      so what changes is one field on the action rather than a new operator type with its own
+      selection mechanism. The delay runs from take-in, not from the triage that recorded it, so a
+      re-triage does not move the due moment, and a delay already elapsed when the triage
+      settles comes due at once.
+    status: proposed
+    because:
+      - r-cwc01n0t
+      - d-yjd4ag9q
+      - d-cgosh169
+    pinned:
+      reason: public-api
+      notes: |
+        the stored configuration shape of the archive action, which every saved pipeline carries
+
+  - id: d-0tajzoy7
+    scope: triage
+    title: the pending archive is the latest triage's
+    statement: |
+      a message holds at most one pending archive: the one its latest settled triage recorded. A
+      re-triage that records none cancels it, and one that records another replaces it. When it
+      comes due, grinbox archives a message still present in the inbox and does nothing to one
+      that already left; the archive is recorded on the run that concluded it.
+    commentary: |
+      The outcome reads back like any other. What the user did meanwhile shows up as standing: a
+      message they archived or trashed themselves is already gone, and the due archive finds
+      nothing to do. A restore after the archive fired stands — the per-message cap keeps a
+      later triage from repeating the effect.
+    status: proposed
+    because:
+      - d-grcdd4ov
+      - d-urdglhb6
+      - d-jr86qq8b
+      - r-k6gh82fx
+      - r-zagpfz75
+    pinned:
+      reason: other
+      notes: |
+        re-triaging is the one way a user stops a pending archive, and that lever exists only
+        while the latest triage's conclusion is what stands
+
+  - id: d-gzv0jty7
+    title: one heartbeat drives every scheduler
+    statement: |
+      the poll, digest, and pending-archive schedulers wake on one heartbeat — a minute by
+      default, set by the deployment — and act on whatever is due: an account's elapsed
+      interval, an edition's passed cue, a pending archive past its moment. Nothing else wakes
+      on its own timer, and nothing is scheduled per account, edition, or message.
+    commentary: |
+      A heartbeat arriving mid-cycle does nothing, as before. User-visible latency is the
+      account's interval plus up to one heartbeat for arrivals, and
+      up to one heartbeat past due for the rest. A due moment grinbox slept through is still due
+      on return — the sweep acts late rather than never, and no per-cue collapse arises because
+      a pending archive has one moment, not a recurrence. The superseded entry counted two
+      schedulers; everything it ruled about those two is restated unchanged.
+    status: proposed
+    supersedes: d-q4ty6zpm
+    because:
+      - r-0lg2c2e4
+      - d-nq4fk2xr
+      - d-6vnf59rv
+      - d-81ouxrpi
+      - d-grcdd4ov
+    pinned:
+      reason: other
+      notes: |
+        the arrival latency the product promises is the account's interval plus this heartbeat,
+        so the ceiling on the per-account interval alone does not bound it
