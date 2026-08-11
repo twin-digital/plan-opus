@@ -1,0 +1,1382 @@
+version: "1"
+product: mc-test-lib
+target: 8
+built_at: 2026-08-11
+packages:
+  - path: nodejs/minecraft/test-lib
+    version: 0.4.0
+coverage:
+  - claim: r-0lbj68w9
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/damage.test.ts
+          - src/guard.test.ts
+          - src/effect-names.test.ts
+          - src/effects.test.ts
+          - src/subscribe-filter.test.ts
+          - src/entity-types.test.ts
+        note: >
+          the recorded quirks reproduce — the 21-tick corpse, the per-surface cancelled-call returns,
+          plain-Error guards carrying the engine's internal field names, display names transcribed byte for
+          byte, the measured effect-expiry boundary, and the observed subscribe-filter readings including
+          the bare entityTypes id that matches nothing, and the catalog lookup's literal minecraft:
+          assumption with its exact-match misses
+      - kind: attestation
+        ref:
+          - README.md
+          - src/guard-data.json
+        note: >
+          performed the procedure: sampled corpse invalidation, cancelled-call returns, the non-uniform
+          guards, the expiry boundary and the filter fields against the observations recorded behind them —
+          each fake reproduces the observation, none a smoothed approximation
+  - claim: r-8r8gf6b7
+    covered_by:
+      - kind: attestation
+        ref:
+          - README.md
+          - src/effect-names.ts
+          - src/subscribe-filter.ts
+          - src/effects.ts
+          - src/entity-types.ts
+        note: >
+          performed the procedure: sampled engine claims — each rests on the pinned 2.8.0 declarations or a
+          named observation; the shim section's derived-version statement names 2.8.0 and the sibling stub's
+          header names the version it derived from; every simplification is marked "the library's own" in
+          the README's own rows
+      - kind: code-test
+        ref: src/package.test.ts
+        note: pins the library's-own-rulings list so it cannot grow quietly
+  - claim: r-ovyzy5ey
+    covered_by:
+      - kind: code-test
+        ref: src/package.test.ts
+        note: >
+          parses the shipped README and asserts a verdicted row per behaviour, no unknown rows, ids issued
+          once, and a dedicated divergence section per divergence row
+      - kind: attestation
+        ref: README.md
+        note: >
+          each row modelled, not modelled, or divergence, with every divergence detailed in the README
+          itself; seven rows join for the type catalog and two change what they say while keeping their ids
+  - claim: r-dyu1bb04
+    covered_by:
+      - kind: code-test
+        ref: src/events.test.ts
+        note: the handler runs inside the causing call, before the statement after it, with no tick advance
+      - kind: attestation
+        ref: src/events.ts
+  - claim: r-1a9mpjev
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/events.test.ts
+          - src/damage.test.ts
+        note: >
+          the handler runs ahead of the gated action; a cancelled applyDamage and addEffect change no state
+          and raise no after-events
+      - kind: attestation
+        ref:
+          - src/events.ts
+          - src/components.ts
+  - claim: r-b01oxjf9
+    covered_by:
+      - kind: code-test
+        ref: src/scheduler.test.ts
+        note: nothing runs until advanceTicks; a flushed microtask still finds tick 0 and zero calls
+      - kind: attestation
+        ref: src/scheduler.ts
+        note: >
+          performed the procedure: scheduled run, runTimeout and runInterval, let real time pass — nothing
+          ran; advanceTicks ran them; no timer primitive or await appears in shipped source
+  - claim: r-4dt4f8zn
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/damage.test.ts
+          - src/components.test.ts
+        note: assertions are on resulting state throughout; no spy or call-log machinery anywhere in the suite
+      - kind: attestation
+        ref: src/runtime/state.ts
+  - claim: r-62r76czb
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/entity.test.ts
+          - src/components.test.ts
+          - src/shim/surface.test.ts
+          - src/vitest/plugin.test.ts
+          - src/entity-types.test.ts
+        note: >
+          an unsupplied read throws UnsetValueError, an unimplemented member NotImplementedError, an absent
+          component reads undefined; on the shim, an unimplemented class refuses construction and a sibling
+          stub's members throw rather than answering
+      - kind: attestation
+        ref:
+          - src/errors.ts
+          - src/runtime/member.ts
+  - claim: r-dsjwpahw
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/guard.test.ts
+          - src/damage.test.ts
+        note: >
+          invalidate flips a reference the test already holds, mid-test and mid-event; the guards are
+          per-member and non-uniform
+      - kind: attestation
+        ref:
+          - src/runtime/member.ts
+          - src/guard-data.json
+  - claim: r-28cg0y2h
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/package.test.ts
+          - src/surface.test.ts
+        note: >
+          compile-time cases assign each fake where the real declared type is expected with no cast; every
+          declared member behaves or throws, never undefined
+      - kind: attestation
+        ref:
+          - tools/generate.ts
+          - src/runtime/member.ts
+  - claim: r-5mlc26io
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/surface.test.ts
+          - src/package.test.ts
+          - src/entity-types.test.ts
+        note: >
+          own and prototype members are exactly the declared set; construction, invalidation, emission, the
+          reads the real surface lacks, and the two shim controls are exported free functions rather than
+          members
+      - kind: attestation
+        ref:
+          - src/index.ts
+          - src/runtime/member.ts
+          - src/shim/bindings.ts
+  - claim: r-2trs9aai
+    covered_by:
+      - kind: code-test
+        ref: src/package.test.ts
+        note: >
+          no runtime dependencies; vitest is an optional peer and no shipped file outside src/vitest/
+          imports a runner — asserted by walking the source
+      - kind: attestation
+        ref: package.json
+        note: the fakes are plain classes with ordinary prototypes, so a caller's spy wraps them like any object
+  - claim: r-qak2scbs
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/surface.test.ts
+          - src/presets.test.ts
+          - src/entity-types.test.ts
+        note: a fresh bundle holds no dimensions, players, objectives or properties; a fresh entity's collections
+          are empty
+      - kind: attestation
+        ref:
+          - src/create-server.ts
+          - src/entity.ts
+  - claim: r-b92y0kb7
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/presets.test.ts
+          - src/presets.test.ts
+        note: nothing preset-supplied exists before an explicit call; the presets compose and never overwrite a
+          caller's value
+      - kind: attestation
+        ref: src/presets.ts
+  - claim: r-nmkxdrga
+    covered_by:
+      - kind: code-test
+        ref: src/entity.test.ts
+        note: an omitted id is auto-assigned unique and opaque, a supplied one is used, a duplicate refused
+      - kind: attestation
+        ref: src/entity.ts
+  - claim: r-rnnnz98l
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/components.test.ts
+          - src/damage.test.ts
+        note: add and remove reshape a live entity mid-test, even from inside a before-event handler
+      - kind: attestation
+        ref: src/components.ts
+  - claim: r-v1r7n10i
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/components.test.ts
+          - src/query.test.ts
+          - src/effects.test.ts
+          - src/entity-types.test.ts
+        note: bare ids read back minecraft:-prefixed on entity types, components, query criteria and effects
+      - kind: attestation
+        ref: src/ids.ts
+        note: >
+          the one surface that does not normalize is a subscribe filter's entityTypes, because the engine
+          matches a bare id there against nothing — d-z49lg2ft records it and the README carries it
+  - claim: r-94keu5iz
+    covered_by:
+      - kind: code-test
+        ref: src/persisted.test.ts
+        note: dynamic properties and scoreboard state round-trip on the world and on entities
+      - kind: attestation
+        ref: src/persisted.ts
+  - claim: r-lawr69rs
+    covered_by:
+      - kind: code-test
+        ref: src/output.test.ts
+        note: messages, titles, subtitles and action bars to a player and to the world are recorded and read back
+      - kind: attestation
+        ref: src/output.ts
+  - claim: r-vzz9rnrc
+    covered_by:
+      - kind: code-test
+        ref:
+          - consumer/pack.ts
+          - consumer/default-path.test.ts
+        note: >
+          a fixture pack importing an enum member, two classes and both singletons loads and reacts under
+          the plugin alone — no edit to the pack, no consumer-written stub, no install call
+      - kind: manual-check
+        ref: products/mc-test-lib/increments/005/artifacts/tarball-install-check
+        note: >
+          followed the documented install against an npm pack tarball in a scratch consumer: the same pack
+          loaded and reacted, 9 assertions green
+  - claim: r-29dlrp9r
+    covered_by:
+      - kind: code-test
+        ref: src/shim/surface.test.ts
+        note: >
+          the test re-derives the declared enum, class and constant names from index.d.ts by a different
+          route from the generator's and asserts the shim carries each, member for member on a sampled enum,
+          with every enum frozen; SERVER_VERSION equals the installed package's own
+      - kind: attestation
+        ref: tools/generate.ts
+        note: values come from the TypeScript checker's own constant values; none is hand-authored
+  - claim: r-956kxrsc
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/shim/surface.test.ts
+          - consumer/default-path.test.ts
+        note: >
+          true for the corresponding fake and false for a plain object, with no member named; the exported
+          class is the fake's own prototype; no exported class carries a Symbol.hasInstance own symbol,
+          checked across all 439; and the same answers hold across the alias for the class a consumer
+          imports from @minecraft/server
+      - kind: attestation
+        ref:
+          - tools/generate.ts
+          - src/generated/shim/surface.ts
+  - claim: r-rpm1k57j
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/shim/bindings.test.ts
+          - consumer/load-pack.test.ts
+        note: >
+          installed fakes are what the module-import route sees; a fresh module-registry generation and an
+          explicit unset each start from what they installed, nothing carried over
+      - kind: attestation
+        ref: src/shim/bindings.ts
+  - claim: r-9z0icbhi
+    covered_by:
+      - kind: code-test
+        ref: src/shim/surface.test.ts
+        note: every export is an enum object, a numeric constant, a class, or one of the two bindings
+      - kind: attestation
+        ref:
+          - src/shim/index.ts
+          - src/generated/shim/surface.ts
+        note: >
+          the surface imports only the fake classes and the library's error classes; every behaviour a test
+          observes runs in the fakes the bindings point at
+  - claim: r-4bgnaff8
+    covered_by:
+      - kind: code-test
+        ref:
+          - consumer/default-path.test.ts
+          - consumer/load-pack.test.ts
+        note: >
+          the consumer suite is inside the package's own tsc --noEmit and carries no cast and no any at the
+          seam — world, system, Player and Entity come from the real declarations and the fakes are
+          assignable to them unaided
+  - claim: r-3dgnq0sp
+    covered_by:
+      - kind: code-test
+        ref: src/package.test.ts
+        note: the aliased surface, the fakes and the runner tooling all ship from this manifest
+      - kind: attestation
+        ref: package.json
+  - claim: r-uobnqsfg
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/vitest/plugin.test.ts
+          - vitest.consumer.config.ts
+        note: >
+          the plugin contributes both the aliases and the setup entry, and the files it points at exist; the
+          consumer config is plugins: [minecraftTestLib()] and nothing else
+      - kind: manual-check
+        ref: products/mc-test-lib/increments/005/artifacts/tarball-install-check
+        note: >
+          followed the README's install section in a scratch project: one config entry, no setup file
+          written, suites green
+  - claim: r-qklf4op9
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/surface.test.ts
+          - src/package.test.ts
+        note: >
+          the package suite's 926 tests are injection-shaped — createServer and hand-off, nothing installed
+          — and all pass with the shim shipped in the same package
+      - kind: attestation
+        ref: src/index.ts
+  - claim: r-qayd22z2
+    covered_by:
+      - kind: code-test
+        ref: src/package.test.ts
+        note: >
+          two bundles in one process stay isolated across every subsystem; the only module-level mutable
+          state is the two bindings a test installs, and no fake's state lives there
+      - kind: attestation
+        ref:
+          - src/create-server.ts
+          - src/shim/bindings.ts
+  - claim: r-w2ud6qa9
+    covered_by:
+      - kind: code-test
+        ref: src/vitest/plugin.test.ts
+        note: >
+          the plugin aliases @minecraft/server-ui to a shipped file under the same one entry; the stub's
+          enums answer with declared values, its classes throw NotImplementedError, and its declared error
+          classes are real Error subclasses
+      - kind: attestation
+        ref:
+          - tools/generate.ts
+          - src/vitest/paths.ts
+  - claim: r-6oj56on1
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/package.test.ts
+          - src/shim/surface.test.ts
+        note: >
+          no @minecraft/server peer range in the manifest; SERVER_VERSION is 2.8.0 and no shipped source
+          compares it or warns on it
+      - kind: attestation
+        ref:
+          - package.json
+          - tools/generate.ts
+          - README.md
+  - claim: d-khn6zzgj
+    covered_by:
+      - kind: code-test
+        ref: src/components.test.ts
+        note: the other 61 components carry exactly typeId, isValid and entity; every other member throws
+      - kind: attestation
+        ref: src/components.ts
+  - claim: d-1z8ovey4
+    covered_by:
+      - kind: code-test
+        ref: src/events.test.ts
+        note: >
+          every declared signal on both containers subscribes and unsubscribes; a catch-all sees exactly the
+          five after-events and the three before-events; emit drives any other signal
+      - kind: attestation
+        ref: src/events.ts
+  - claim: d-zv2x5luo
+    covered_by:
+      - kind: code-test
+        ref: src/guard.test.ts
+        note: the table's shape and per-member assignments are pinned, and the guards behave as the table states
+      - kind: attestation
+        ref:
+          - src/guard-data.json
+          - tools/generate.ts
+  - claim: d-sbml8eor
+    covered_by:
+      - kind: code-test
+        ref: src/effects.test.ts
+        note: one per advanced tick and never otherwise; the decay lands before that tick's callbacks
+      - kind: attestation
+        ref:
+          - src/effects.ts
+          - src/scheduler.ts
+  - claim: d-gw0c8usd
+    covered_by:
+      - kind: code-test
+        ref: src/package.test.ts
+        note: >
+          every row's kebab-case id is issued once and keys the row; subject and verdict checked per id.
+          Four rows changed what they say this increment and kept their ids
+      - kind: attestation
+        ref: README.md
+  - claim: d-dk3rf1w8
+    covered_by:
+      - kind: code-test
+        ref: src/effect-names.test.ts
+        note: an unregistered custom type throws UnsetValueError from displayName alone; a registered base resolves
+      - kind: attestation
+        ref: src/effects.ts
+  - claim: d-d2v43iqn
+    covered_by:
+      - kind: code-test
+        ref: src/entity.test.ts
+        note: a bare id throws InvalidArgumentError and records nothing; prefixed calls are recorded in order
+      - kind: attestation
+        ref: src/entity.ts
+  - claim: d-ie8qhnr2
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/entity.test.ts
+          - src/events.test.ts
+        note: before and after entityRemove around one detach and nothing else
+      - kind: attestation
+        ref: src/entity.ts
+  - claim: d-7mkz86s2
+    covered_by:
+      - kind: code-test
+        ref: src/damage.test.ts
+        note: the exact requested amount lands and the cause reads projectile
+      - kind: attestation
+        ref: src/components.ts
+  - claim: d-y8oeiw5p
+    covered_by:
+      - kind: code-test
+        ref: src/entity.test.ts
+        note: the location reads back exactly as supplied and is unchanged across a 20-tick advance
+      - kind: attestation
+        ref: src/entity.ts
+  - claim: d-qz2aoixe
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/entity.test.ts
+          - src/surface.test.ts
+        note: an unmodelled member sits on the prototype and throws naming Class.member
+      - kind: attestation
+        ref: src/runtime/member.ts
+  - claim: d-soaea8n2
+    covered_by:
+      - kind: code-test
+        ref: src/scheduler.test.ts
+      - kind: attestation
+        ref: src/create-server.ts
+  - claim: d-2qq6agnx
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/components.test.ts
+          - src/persisted.test.ts
+        note: >
+          an absent component, an unset dynamic property, an unknown objective and a scoreless participant
+          each read undefined
+      - kind: attestation
+        ref: src/persisted.ts
+  - claim: d-fgib2fcb
+    covered_by:
+      - kind: code-test
+        ref: src/damage.test.ts
+        note: returns false with zero events across the whole cascade and the entity still valid
+      - kind: attestation
+        ref: src/components.ts
+  - claim: d-dbv8udc6
+    covered_by:
+      - kind: code-test
+        ref: src/damage.test.ts
+        note: dies at effectiveMin exactly, survives one above, and a non-zero minimum is honoured
+      - kind: attestation
+        ref: src/components.ts
+  - claim: d-6bnub7bw
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/query.test.ts
+          - src/subscribe-filter.test.ts
+        note: >
+          creation order holds; the six honoured fields filter on the lookups, on matches, and now through a
+          subscribe filter's entityFilter; each of the other eighteen throws naming itself
+      - kind: attestation
+        ref: src/query.ts
+  - claim: d-rjnyvnzm
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/damage.test.ts
+          - src/effects.test.ts
+        note: a cancelled applyDamage returns true with nothing lost; a cancelled addEffect returns undefined
+      - kind: attestation
+        ref:
+          - src/components.ts
+          - src/effects.ts
+  - claim: d-mclpuv0u
+    covered_by:
+      - kind: code-test
+        ref: src/effect-names.test.ts
+        note: the 37 verbatim bases resolve with no setup and the observed numeral mapping computes over the
+          amplifier
+      - kind: attestation
+        ref: src/effect-names.ts
+  - claim: d-tzww1yuv
+    covered_by:
+      - kind: code-test
+        ref: src/surface.test.ts
+        note: the emitted Entity carries every member the declarations give it
+      - kind: attestation
+        ref:
+          - tools/generate.ts
+          - src/generated/manifests.ts
+          - .gitignore
+        note: >
+          performed the procedure: the generator reads the pinned index.d.ts and the committed guard data
+          and emits implements-declaring classes; git tracks manifests.ts and ignores the emitted fakes and
+          the emitted shim surface
+  - claim: d-72iyl1su
+    covered_by:
+      - kind: code-test
+        ref: src/components.test.ts
+      - kind: attestation
+        ref: src/ids.ts
+        note: >
+          the as-const array is checked both ways at compile time — satisfies the derived union, and an
+          AssertNever over the remainder fails the build on a missing id
+  - claim: d-990n6j2l
+    covered_by:
+      - kind: code-test
+        ref: src/components.test.ts
+        note: state on a non-attribute id throws InvalidArgumentError attaching nothing
+      - kind: attestation
+        ref: src/components.ts
+  - claim: d-dodefnml
+    covered_by:
+      - kind: code-test
+        ref: src/scheduler.test.ts
+        note: every intervening tick's callbacks run in scheduling order with currentTick already stepped
+      - kind: attestation
+        ref: src/scheduler.ts
+  - claim: d-u8u72i58
+    covered_by:
+      - kind: code-test
+        ref: src/output.test.ts
+        note: records are kind and value, the four kinds exactly, options present only where the member carried one
+      - kind: attestation
+        ref:
+          - src/runtime/state.ts
+          - src/output.ts
+  - claim: d-pvnu83vf
+    covered_by:
+      - kind: code-test
+        ref: src/events.test.ts
+        note: a throw reaches neither the caller nor the other subscribers nor the rest of the cascade
+      - kind: attestation
+        ref: src/events.ts
+  - claim: d-ksk6d7ua
+    covered_by:
+      - kind: code-test
+        ref: src/package.test.ts
+        note: >
+          every named function is exported with the claimed signature, and the entry point's whole export
+          set is asserted — the free functions, the two presets, the error classes, the two shim controls,
+          SERVER_VERSION and the attribute id array
+      - kind: attestation
+        ref: src/index.ts
+  - claim: d-vwdg6xle
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/entity.test.ts
+          - src/guard.test.ts
+          - src/surface.test.ts
+        note: >
+          each transition is tested — arity ahead of the guard and of NotImplementedError, in both bound
+          directions, the guard ahead of NotImplementedError, and the undefined versus UnsetValueError split
+          by the declaration's own type
+      - kind: attestation
+        ref:
+          - tools/generate.ts
+          - src/runtime/member.ts
+  - claim: d-w0ebi621
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/damage.test.ts
+          - src/entity.test.ts
+        note: >
+          the corpse stays valid through tick 20 and goes stale on 21; the no-health kill invalidates before
+          entityDie is raised
+      - kind: attestation
+        ref:
+          - src/components.ts
+          - src/scheduler.ts
+  - claim: d-0fmcw6n8
+    covered_by:
+      - kind: code-test
+        ref: src/components.test.ts
+        note: exactly the records they abbreviate, defaultValue left unset by both
+      - kind: attestation
+        ref: src/components.ts
+  - claim: d-k9up7nmc
+    covered_by:
+      - kind: code-test
+        ref: src/events.test.ts
+        note: the catch-all over every signal sees exactly the three; kill() raises none
+      - kind: attestation
+        ref:
+          - src/components.ts
+          - src/entity.ts
+          - src/effects.ts
+  - claim: d-1yoff5vk
+    covered_by:
+      - kind: code-test
+        ref: src/events.test.ts
+        note: >
+          dedupe, re-subscribe moving to the end, snapshot dispatch both ways, the shared payload object and
+          last-write-wins cancel are each asserted — unchanged by the move from a subscriber set to a
+          subscriber map keyed the same way
+      - kind: attestation
+        ref: src/events.ts
+  - claim: d-h2iduynr
+    covered_by:
+      - kind: code-test
+        ref: src/scheduler.test.ts
+        note: >
+          negative and fractional counts throw; sub-tick delays behave as one; a throwing callback
+          propagates unrecorded, its run spent, and a throwing interval advanced to its next period
+      - kind: attestation
+        ref: src/scheduler.ts
+  - claim: d-kfvz7vjc
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/guard.test.ts
+          - src/components.test.ts
+        note: the unmodelled components' and detached handles' guard behaviour is pinned as the tables state it
+      - kind: attestation
+        ref: src/guard-data.json
+        note: each unswept table's $comment records that its split follows the declarations, no sweep behind it
+  - claim: d-6jb4l8ox
+    covered_by:
+      - kind: code-test
+        ref: src/package.test.ts
+        note: a compile-time ts-expect-error case refuses the omission
+      - kind: attestation
+        ref: src/entity.ts
+        note: the runtime re-checks nothing, and a type-unchecked call falls through to the player typeId
+  - claim: d-6wcdebqb
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/effects.test.ts
+          - src/duration-write.test.ts
+        note: >
+          the call argument refuses NaN and both infinities with ArgumentOutOfBoundsError; the before-event
+          field write refuses the same values with the engine's own TypeError, which is the separate path
+          d-7wwr2xtp records
+      - kind: attestation
+        ref:
+          - src/effects.ts
+          - README.md
+  - claim: d-tpckju5u
+    covered_by:
+      - kind: code-test
+        ref: src/damage.test.ts
+        note: consecutive calls each take their full amount
+      - kind: attestation
+        ref:
+          - src/components.ts
+          - README.md
+  - claim: d-d8m2q6iz
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/errors.test.ts
+          - src/package.test.ts
+          - src/shim/surface.test.ts
+        note: >
+          name, fields and message text pinned per class; InvalidEntityError compile-checked assignable to
+          the engine's declaration, and asserted to be the same class object the aliased surface exports
+      - kind: attestation
+        ref:
+          - src/errors.ts
+          - README.md
+  - claim: d-ow872rp7
+    covered_by:
+      - kind: code-test
+        ref: src/presets.test.ts
+        note: the same zeros apply to minecraft:xp_orb
+      - kind: attestation
+        ref:
+          - src/presets.ts
+          - README.md
+  - claim: d-b9j2z2ks
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/surface.test.ts
+          - src/components.test.ts
+          - src/output.test.ts
+        note: >
+          the first surplus argument throws on a zero-arity member and past the maximum of a range, in the
+          engine's one message shape with Expected <n> and Expected <min>-<max>; the throw lands ahead of
+          the validity guard and ahead of NotImplementedError
+      - kind: attestation
+        ref:
+          - src/runtime/member.ts
+          - tools/generate.ts
+        note: the check is emitted into all 1039 generated members from the declared bounds
+  - claim: d-z49lg2ft
+    covered_by:
+      - kind: code-test
+        ref: src/subscribe-filter.test.ts
+        note: >
+          entities as an instance filter, entityTypes prefixed-only with a bare id matching nothing,
+          allowedDamageCauses, entityFilter through the six-field matcher, two fields intersecting, an
+          unfiltered subscriber beside a filtered one still seeing everything, and NotImplementedError
+          naming the field at subscribe — for a field no options type carries and for any options on a
+          signal the fakes do not raise — leaving nothing subscribed
+      - kind: attestation
+        ref:
+          - src/subscribe-filter.ts
+          - src/events.ts
+        note: >
+          the five filterable signals are the four after-events and the entityHurt before-event that declare
+          an options type; entitySpawn, the entityRemove before-event and the effectAdd before-event declare
+          none, so an options argument to any of them is refused
+  - claim: d-n1au8e2s
+    covered_by:
+      - kind: code-test
+        ref: src/effects.test.ts
+        note: >
+          never readable at 0, getEffect undefined, absent from getEffects, the handle as removeEffect
+          leaves one; a subscription over every declared signal sees nothing across the expiry
+      - kind: attestation
+        ref:
+          - src/effects.ts
+          - README.md
+        note: >
+          the behaviour is unchanged by the supersession; its footing moves from the library's own rule to
+          the measured engine boundary, and the README row moves from not modelled to modelled with the
+          observation named
+  - claim: d-7wwr2xtp
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/duration-write.test.ts
+          - src/events.test.ts
+          - src/effects.test.ts
+        note: >
+          2.5 to 2 and 300.7 to 300; 0, -1 and -400 each drop the add so addEffect returns undefined and
+          nothing is attached; 20000001 and 1e8 both clamp to 20000000; NaN and both infinities are refused
+          by the setter itself with the engine's TypeError, leaving the requested duration in place; each
+          case is contrasted against the call argument's own bounds. The other four mutable fields are
+          writable and unread
+      - kind: attestation
+        ref:
+          - src/effects.ts
+          - README.md
+  - claim: d-2mngzzpg
+    covered_by:
+      - kind: code-test
+        ref:
+          - consumer/load-pack.test.ts
+          - src/package.test.ts
+          - src/shim/bindings.test.ts
+        note: >
+          loadPack is the reset-and-dynamic-import path and the package ships no reset, public or internal;
+          a second install within one generation throws on the replace ruling's terms
+      - kind: attestation
+        ref:
+          - src/vitest/index.ts
+          - src/shim/bindings.ts
+  - claim: d-0z0sfc5v
+    covered_by:
+      - kind: code-test
+        ref: src/shim/surface.test.ts
+        note: all 64 enums frozen and the five module-level numeric constants, from the one pass
+      - kind: attestation
+        ref: tools/generate.ts
+  - claim: d-fd8y6nwv
+    covered_by:
+      - kind: code-test
+        ref: src/shim/surface.test.ts
+        note: every one of the 439 declared class names is exported and is a function
+      - kind: attestation
+        ref: src/generated/shim/surface.ts
+  - claim: d-9r5i9qog
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/shim/surface.test.ts
+          - src/vitest/plugin.test.ts
+        note: >
+          a declared Error-ancestry class is a real Error subclass setting its own name and carrying the
+          message it was thrown with, on the aliased surface and on the sibling stub alike; its declared
+          readonly members are left unset
+      - kind: attestation
+        ref: tools/generate.ts
+  - claim: d-uj5gbt9w
+    covered_by:
+      - kind: code-test
+        ref: src/shim/bindings.test.ts
+        note: >
+          six access shapes — property read, method call, call, new, `in`, spread — each throw
+          ShimNotInstalledError naming the binding; the binding itself is neither nullish nor undefined, so
+          it is the access that fails
+      - kind: attestation
+        ref: src/shim/bindings.ts
+  - claim: d-ahlsuc8z
+    covered_by:
+      - kind: code-test
+        ref: src/shim/bindings.test.ts
+        note: both bindings move together; the no-argument call returns them to the unset state
+      - kind: attestation
+        ref: src/shim/bindings.ts
+        note: one exported function, no separate entry point
+  - claim: d-wygo3zhy
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/package.test.ts
+          - src/shim/surface.test.ts
+        note: an exported string, no comparison and no console warning anywhere in shipped source
+      - kind: attestation
+        ref:
+          - README.md
+          - src/generated/shim/version.ts
+        note: the README's install section states 2.8.0 and says explicitly that nothing checks it
+  - claim: d-v6pg1wph
+    covered_by:
+      - kind: code-test
+        ref: src/shim/surface.test.ts
+        note: >
+          the shim's export set is exactly the declared set — nothing extra, SERVER_VERSION deliberately
+          outside it — and an unknown name reads undefined rather than a Proxy answer
+      - kind: attestation
+        ref: src/shim/index.ts
+  - claim: d-c9mjn8o5
+    covered_by:
+      - kind: code-test
+        ref: consumer/load-pack.test.ts
+        note: >
+          the returned server is the one the pack registered against, at tick 0, and each call starts from a
+          world of its own; loadPack is exported from the /vitest subpath
+      - kind: manual-check
+        ref: products/mc-test-lib/increments/005/artifacts/tarball-install-check
+        note: the same five assertions pass against a real node_modules install
+      - kind: attestation
+        ref: src/vitest/index.ts
+        note: the four steps in order, and the only `vi` import in the package
+  - claim: d-03cbb3td
+    covered_by:
+      - kind: code-test
+        ref: consumer/default-path.test.ts
+        note: >
+          the test file holds static imports alone and the pack's module-scope subscriptions and runInterval
+          landed on the setup-installed server; state carries between tests within the file, which is what
+          the file's later tests read
+      - kind: attestation
+        ref: src/vitest/setup.ts
+  - claim: d-fa9h5y34
+    covered_by:
+      - kind: attestation
+        ref: README.md
+        note: >
+          the shim section runs Install, then the default static-import path, then the escape hatch, with
+          loadPack introduced as not an equal alternative to the default and named for the four cases the
+          decision lists
+      - kind: code-test
+        ref:
+          - consumer/default-path.test.ts
+          - consumer/load-pack.test.ts
+        note: both documented paths are exercised as written
+  - claim: d-vfqnezgt
+    covered_by:
+      - kind: code-test
+        ref: src/shim/bindings.test.ts
+        note: >
+          throws on subscribers and on scheduled runs, carrying both counts and the loadPack fix in the
+          message; an explicit unset never throws; a server the package did not build is not inspected; a
+          server with nothing bound to it is replaced without complaint
+      - kind: attestation
+        ref:
+          - src/shim/bindings.ts
+          - README.md
+  - claim: d-bvhynmr8
+    covered_by:
+      - kind: code-test
+        ref: src/package.test.ts
+        note: >
+          the exports map is exactly `.` and `./vitest`; no shim or sibling-stub subpath and no wildcard,
+          and the plugin reaches both by resolved path instead
+      - kind: manual-check
+        ref: products/mc-test-lib/increments/005/artifacts/tarball-install-check
+        note: >
+          the consumer imports only those two specifiers, and the plugin resolved the shim and the setup
+          module inside the installed package with no subpath of their own
+      - kind: attestation
+        ref:
+          - package.json
+          - src/vitest/paths.ts
+  - claim: d-ksotjt7v
+    covered_by:
+      - kind: attestation
+        ref:
+          - src/shim/index.ts
+          - src/shim/bindings.ts
+          - src/vitest/index.ts
+          - tools/generate.ts
+        note: >
+          every named detail is settled in increment 005 — d-ysxt6ihr, d-nb2ms40b, d-639zdanq, d-mnmi8k8p,
+          d-1ykf2oxs, d-u52w8eim and d-b2txf5mv. The presets' invocation shape is unchanged, which
+          d-fkbx974k and r-b92y0kb7 already fix
+  - claim: d-ysxt6ihr
+    covered_by:
+      - kind: code-test
+        ref: src/shim/bindings.test.ts
+        note: >
+          the module's `world` is the identical object the installed bundle carries, both bindings move
+          together on install, and every access shape on the unset function-target Proxy throws
+      - kind: attestation
+        ref: src/shim/bindings.ts
+  - claim: d-nb2ms40b
+    covered_by:
+      - kind: code-test
+        ref: src/shim/surface.test.ts
+        note: >
+          the surface's InvalidEntityError is asserted identical to the class errors.ts exports, and every
+          other Error-ancestry class is a real Error subclass naming itself
+      - kind: attestation
+        ref:
+          - tools/generate.ts
+          - src/errors.ts
+        note: >
+          the generator carries a named table of the overlaps, so a second one is a one-line addition.
+          ArgumentOutOfBoundsError and InvalidArgumentError are @minecraft/common's and are not re-exported
+          by @minecraft/server, so no surface class shadows them
+  - claim: d-639zdanq
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/shim/surface.test.ts
+          - consumer/default-path.test.ts
+        note: >
+          a player is a Player and an Entity; a health component is an EntityHealthComponent, an
+          EntityAttributeComponent, an EntityComponent and a Component; the same holds for the class a
+          consumer imports across the alias
+      - kind: attestation
+        ref:
+          - tools/generate.ts
+          - src/generated/index.ts
+        note: >
+          the generator emits one setPrototypeOf per declared base that is also faked, and Component joins
+          the faked set so the component chain is complete
+  - claim: d-mnmi8k8p
+    covered_by:
+      - kind: code-test
+        ref: src/shim/surface.test.ts
+        note: constructing a declared class the fakes do not implement throws NotImplementedError naming it
+      - kind: attestation
+        ref:
+          - tools/generate.ts
+          - README.md
+  - claim: d-1ykf2oxs
+    covered_by:
+      - kind: code-test
+        ref: src/vitest/plugin.test.ts
+        note: >
+          the server-ui stub's FormCancelationReason carries its declared members and values, its
+          ActionFormData constructor throws NotImplementedError, and FormRejectError is a real Error
+          subclass naming itself
+      - kind: attestation
+        ref: tools/generate.ts
+        note: the stubbed-module list is one array; the stub is generated by the same pass
+  - claim: d-7fcqi5b7
+    covered_by:
+      - kind: code-test
+        ref: src/package.test.ts
+        note: the devDependency resolves through the workspace catalog rather than a literal pin
+      - kind: attestation
+        ref:
+          - package.json
+          - src/generated/shim/server-ui.ts
+        note: >
+          @minecraft/server-ui is pinned at 2.1.0 and the generated stub's header states the version it
+          derived from
+  - claim: d-b2txf5mv
+    covered_by:
+      - kind: code-test
+        ref: src/package.test.ts
+        note: >
+          both controls are on the root barrel's asserted export set, and no shipped file outside
+          src/vitest/ imports a test framework
+      - kind: attestation
+        ref:
+          - src/index.ts
+          - src/vitest/index.ts
+  - claim: d-kxlf8c66
+    covered_by:
+      - kind: code-test
+        ref: consumer/load-pack.test.ts
+        note: >
+          the property, not the key: a fake built by the generation loadPack evaluated is recognised by
+          advanceTicks and createPlayer the file statically imported, across the reset
+      - kind: manual-check
+        ref: products/mc-test-lib/increments/005/artifacts/tarball-install-check
+        note: >
+          the same assertion passes against a real node_modules install, where the alias target resolves by
+          absolute path and the barrel by bare specifier
+      - kind: attestation
+        ref: src/runtime/member.ts
+        note: the mechanism is a registered symbol; a reimplementation may use any key with the property
+  - claim: d-eknfn88y
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/package.test.ts
+          - src/shim/surface.test.ts
+        note: SERVER_VERSION is on the barrel's asserted export set and absent from the aliased surface
+      - kind: attestation
+        ref:
+          - src/index.ts
+          - src/generated/shim/version.ts
+  - claim: d-6c8ghlp2
+    covered_by:
+      - kind: code-test
+        ref: src/vitest/plugin.test.ts
+        note: >
+          the config hook returns the anchored alias entries and one setupFiles entry, all absolute paths
+          that exist, and the @minecraft/server entry is asserted not to match @minecraft/server-ui
+      - kind: manual-check
+        ref: products/mc-test-lib/increments/005/artifacts/tarball-install-check
+        note: the scratch consumer's whole vitest config is that one plugin entry
+      - kind: attestation
+        ref: src/vitest/index.ts
+  - claim: d-t0q6wnfs
+    covered_by:
+      - kind: code-test
+        ref: consumer/load-pack.test.ts
+        note: loadPack is driven through its documented shape, the optional server included
+      - kind: attestation
+        ref: src/vitest/index.ts
+        note: >
+          LoadPackOptions is { server?: FakeServer }, documented for the case a server must differ before
+          the pack evaluates
+  - claim: d-yv1yensc
+    covered_by:
+      - kind: code-test
+        ref: src/package.test.ts
+        note: >
+          peerDependenciesMeta.vitest.optional is true, vitest is not a runtime dependency, and no shipped
+          file outside src/vitest/ imports a runner
+      - kind: manual-check
+        ref: products/mc-test-lib/increments/005/artifacts/tarball-install-check
+        note: the consumer installed the tarball at exit 0 with no peer warning for the package
+      - kind: attestation
+        ref: package.json
+  - claim: r-lqfu2ki9
+    covered_by:
+      - kind: code-test
+        ref: src/package.test.ts
+        note: >
+          the exports map is exactly the root barrel and ./vitest — no wildcard, and no subpath for the
+          aliased surface or the sibling stubs; the barrel's own exports are asserted name by name
+      - kind: attestation
+        ref:
+          - package.json
+          - src/index.ts
+        note: >
+          read the exports map and the barrel: every export is named, none re-exports a whole module, and
+          nothing under src/ resolves from outside
+  - claim: r-brdf1c2g
+    covered_by:
+      - kind: code-test
+        ref: src/package.test.ts
+        note: >
+          "type" is "module" and the "." entry declares import with no require, so no exports path resolves
+          to CommonJS
+      - kind: attestation
+        ref: package.json
+  - claim: r-paoy41od
+    covered_by:
+      - kind: code-test
+        ref: src/package.test.ts
+        note: >
+          the "." entry's types path ends .d.ts and "files" carries dist, which the build fills with the
+          declarations
+      - kind: attestation
+        ref:
+          - src
+          - tsconfig.build.json
+        note: |
+          every source file under src/ is TypeScript, compiled by tsc against the shared build config
+  - claim: r-6r489hbd
+    covered_by:
+      - kind: manual-check
+        ref: package.json
+        note: >
+          engines.node reads 24.x and the build, tests and lint all ran on Node v24.16.0 — the Node LTS
+          current at this implementation
+      - kind: attestation
+        ref: package.json
+  - claim: r-82ck2fax
+    covered_by:
+      - kind: manual-check
+        ref: package.json
+        note: >
+          ran `pnpm repo-kit sync` from the monorepo root against this build; the working tree came back
+          clean, so no shared configuration is hand-written here
+      - kind: attestation
+        ref:
+          - eslint.config.js
+          - tsconfig.json
+          - tsconfig.build.json
+        note: >
+          the bundler, TypeScript, lint and package-script setup are repo-kit output, declared in the
+          monorepo config rather than edited in the package
+  - claim: d-uky2xju6
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/entity-types.test.ts
+          - src/surface.test.ts
+        note: >
+          EntityTypes.get and getAll read a catalog the test arranges and answer whenever the test calls
+          them; the other seven catalogs throw NotImplementedError from all fourteen declared members
+      - kind: attestation
+        ref:
+          - src/entity-types.ts
+          - tools/generate.ts
+        note: >
+          the generator emits a delegating static surface for EntityTypes alone and a throwing one for the
+          rest; nothing reproduces the engine's early-execution refusal, and the README states so as a
+          divergence
+  - claim: d-herh9vjy
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/entity-types.test.ts
+          - src/shim/bindings.test.ts
+        note: >
+          createServer returns a distinct EntityTypes per server sharing no entries; the module-scope
+          binding moves with world and system on install and throws ShimNotInstalledError from every access
+          shape while unset
+      - kind: attestation
+        ref:
+          - src/entity-types.ts
+          - src/create-server.ts
+          - src/shim/bindings.ts
+        note: >
+          the catalog is a per-server subclass carrying that server's state; no catalog state lives at
+          module scope
+  - claim: d-fhq1ng5m
+    covered_by:
+      - kind: code-test
+        ref: src/entity-types.test.ts
+        note: >
+          a new server's catalog is empty, registerEntityType fills it, both a hit and a miss are
+          arrangeable from the first line, and getAll reports in registration order
+      - kind: attestation
+        ref:
+          - src/entity-types.ts
+          - src/index.ts
+        note: >
+          registration is an exported free function over the server; no member @minecraft/server does not
+          declare was added
+  - claim: d-0m25p71q
+    covered_by:
+      - kind: code-test
+        ref: src/entity-types.test.ts
+        note: >
+          a bare identifier resolves as minecraft:<id> and nothing else, a pack-defined type does not answer
+          to its bare name, every miss reads undefined, whitespace and case differences miss, and both arity
+          and the four-way argument-type guard carry the engine's wordings
+      - kind: attestation
+        ref: src/entity-types.ts
+        note: >
+          the recorded readings reproduce; the one place the engine was not measured — an object outside the
+          six shapes — takes the plain-object wording, which the README marks as the library's own
+  - claim: d-dub2g4kr
+    covered_by:
+      - kind: code-test
+        ref: src/entity-types.test.ts
+        note: >
+          spawnEntity resolves through the catalog and throws InvalidArgumentError naming the identifier
+          where nothing registers it, agreeing with EntityTypes.get on the same identifier; createEntity and
+          createPlayer consult nothing
+      - kind: attestation
+        ref:
+          - src/entity.ts
+          - README.md
+        note: >
+          the split follows whether the engine has a counterpart for the call, and the README coverage table
+          carries a row for each side of it
+  - claim: d-m6ryo7ea
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/entity-types.test.ts
+          - src/surface.test.ts
+        note: >
+          an EntityType carries id and localizationKey and nothing else, both own value properties rather
+          than getters; a supplied key reads back, an omitted one derives as entity.<id>.name with a leading
+          minecraft: stripped
+      - kind: attestation
+        ref:
+          - src/entity-types.ts
+          - tools/generate.ts
+        note: >
+          the generator emits both as own data properties, the emission rule the entity fakes already used
+          for typeId and id
+  - claim: d-gr7gky6j
+    covered_by:
+      - kind: code-test
+        ref: src/entity-types.test.ts
+        note: >
+          registerEntityType(server, id, localizationKey?) registers and returns the type, normalizes a bare
+          id to the canonical prefixed form, and throws on an id already registered rather than replacing
+          the entry a test holds
+      - kind: attestation
+        ref: src/entity-types.ts
+  - claim: d-5noauehh
+    covered_by:
+      - kind: code-test
+        ref: src/entity-types.test.ts
+        note: >
+          spawnEntity accepts an EntityType wherever it accepts an id and reads its id and nothing else — a
+          type from another server whose id this one does not register is refused; createEntity still takes
+          a typeId string
+      - kind: attestation
+        ref:
+          - src/entity.ts
+          - src/index.ts
+  - claim: d-1g2k3g56
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/presets.test.ts
+          - src/package.test.ts
+        note: >
+          the barrel exports exactly withVanillaDimensions, withVanillaEntityTypes, withVanillaWorld and
+          asSpawnedEntity, and withVanillaWorld supplies the first two and nothing else — no players,
+          dynamic properties, objectives or ticks
+      - kind: attestation
+        ref:
+          - src/presets.ts
+          - src/index.ts
+  - claim: d-a0jmbtbh
+    covered_by:
+      - kind: code-test
+        ref: src/presets.test.ts
+        note: >
+          the ids registered are @minecraft/vanilla-data's, in that source's order; an id the test
+          registered first is skipped and the test's own type survives, and a second application collides
+          with nothing
+      - kind: attestation
+        ref:
+          - src/presets.ts
+          - tools/generate.ts
+          - README.md
+        note: >
+          the list is taken from @minecraft/vanilla-data at build time, so the package still ships no
+          runtime dependency; the README says which list it is and that a world also carries what its
+          content packs define
+  - claim: d-4009wvxs
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/surface.test.ts
+          - src/package.test.ts
+        note: >
+          createServer returns exactly the ten names the module exports, assignable to a Pick of the module
+          namespace with no cast; the module-import route reaches the same objects the server route does
+      - kind: attestation
+        ref:
+          - src/create-server.ts
+          - README.md
+        note: >
+          the package calls it the fake server or the server throughout — the retired "bundle" is gone from
+          the sources, the README and the docs
+  - claim: d-1en7u7ki
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/entity.test.ts
+          - src/surface.test.ts
+        note: >
+          an auto-assigned id is a decimal string issued sequentially from 1, stepping over any id a caller
+          supplied, and never reissued; each server numbers independently
+      - kind: attestation
+        ref: src/entity.ts
+  - claim: d-0wycxopa
+    covered_by:
+      - kind: code-test
+        ref: src/shim/bindings.test.ts
+        note: >
+          currentServer() returns the server the bindings point at and throws ShimNotInstalledError while
+          they are unset
+      - kind: attestation
+        ref:
+          - src/shim/bindings.ts
+          - src/index.ts
+        note: >
+          the root barrel exports it, which is how a test on the static-import path reaches the server the
+          free functions take
+  - claim: d-pf9sjbgg
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/package.test.ts
+          - src/presets.test.ts
+        note: >
+          the manifest declares no runtime and no optional dependency; the shipped vanilla id list is
+          asserted at 128 ids, every one prefixed and issued once, written out rather than derived so an
+          upstream bump fails here
+      - kind: attestation
+        ref:
+          - tools/generate.ts
+          - src/generated/vanilla.ts
+          - src/generated/manifests.ts
+        note: >
+          every emitted file opens with the source and version it was derived from; the id list and the
+          manifests are committed, so a content or declaration bump reads as a diff of what moved rather
+          than arriving silently
+      - kind: manual-check
+        ref: renovate.json
+        note: >
+          confirmed the guard fires: adding an id to the committed list failed the written-out count, and
+          both derivation sources are held out of the non-major auto-merge batch so a bump reaches a human
+  - claim: d-8qu8tjiz
+    covered_by:
+      - kind: code-test
+        ref: src/package.test.ts
+        note: >
+          no @minecraft/server peer range is declared, and nothing in shipped source reads a consumer's
+          engine pin
+      - kind: manual-check
+        ref: products/mc-test-lib/increments/005/artifacts/tarball-install-check
+        note: >
+          the tarball installed into a consumer carrying its own @minecraft/server pin, exit 0, no peer
+          warning about the engine
+  - claim: d-6a30sc55
+    covered_by:
+      - kind: code-test
+        ref: src/entity-types.test.ts
+        note: >
+          the four engine wordings across the six measured argument shapes, with a plain object taking the
+          plain-object wording
+      - kind: attestation
+        ref:
+          - src/entity-types.ts
+          - README.md
+        note: >
+          the extrapolation past the six measured shapes is marked as the library's own in its divergence
+          section rather than presented as the engine's
