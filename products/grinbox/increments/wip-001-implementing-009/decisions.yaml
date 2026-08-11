@@ -1,0 +1,47 @@
+version: "3"
+
+# Design consequences of implementing grinbox at 009.
+
+decisions:
+  - id: d-7hne81hc
+    scope: notifications
+    title: the suppressed push's stored outcome name
+    statement: |
+      a cooldown-suppressed push records as event type `resource_op_suppressed` in the
+      triage-events attempt vocabulary, beside `resource_op_succeeded`, `resource_op_limited`,
+      and `resource_op_failed`.
+    status: proposed
+    because:
+      - d-e9jslw4x
+    pinned:
+      reason: data-format
+
+  - id: d-l6bbgp05
+    scope: notifications
+    title: the notification kind's and the cooldown setting's stored names
+    statement: |
+      the notify configuration names its kind in an optional `notification_kind` field, and a
+      cooldown setting is stored as the pair `{ kind, interval_seconds }`.
+    status: proposed
+    because:
+      - d-vn2jdxbs
+      - d-k3wq81vn
+      - d-t6mhv3aq
+    pinned:
+      reason: data-format
+
+  - id: d-v173n8f1
+    scope: digests
+    title: the money display form's symbol set and residual layout
+    statement: |
+      grinbox knows symbols for exactly USD ($), EUR (€), GBP (£), and JPY (¥); every other
+      currency renders its ISO code before the amount, separated by a space. Minor-unit
+      exponents follow ISO 4217, and a negative amount's minus sign precedes the symbol or
+      code.
+    status: proposed
+    because:
+      - d-oc073wsp
+      - d-b1ntd8go
+    pinned:
+      reason: other
+      notes: the residual conventions d-oc073wsp leaves open, visible on every delivered amount
