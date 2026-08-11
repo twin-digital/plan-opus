@@ -5,16 +5,18 @@ decisions:
     scope: triage
     title: the archive action takes a delay
     statement: |
-      the archive action takes an optional delay — a duration. With none it archives during the
-      triage it runs in. With one, the triage records a pending archive due the delay past the
-      message's take-in, and grinbox performs it when it comes due. Which mail waits is the
-      gate's business, like any other action's firing.
+      the archive action takes an optional delay: a whole number of seconds, at least one, with
+      no ceiling. With none stored it archives during the triage it runs in. With one, the
+      triage records a pending archive due the delay past the message's take-in, and grinbox
+      performs it when it comes due.
     commentary: |
-      The briefly-useful class is already expressible — a tagger marks it, the gate reads it —
-      so what changes is one field on the action rather than a new operator type with its own
-      selection mechanism. The delay runs from take-in, not from the triage that recorded it, so a
-      re-triage does not move the due moment, and a delay already elapsed when the triage
-      settles comes due at once.
+      Which mail waits is the gate's business, like any other action's firing. The briefly-useful
+      class is already expressible — a tagger marks it, the gate reads it — so what changes is
+      one field on the action rather than a new operator type with its own selection mechanism.
+      The delay runs from take-in, not from the triage that recorded it, so a re-triage does not
+      move the due moment, and a delay already elapsed when the triage settles comes due at
+      once. The seconds form mirrors the cooldown interval's; the stored field's name follows at
+      implementation, as the cooldown's did.
     status: proposed
     because:
       - r-cwc01n0t
@@ -31,13 +33,15 @@ decisions:
     statement: |
       a message holds at most one pending archive: the one its latest settled triage recorded. A
       re-triage that records none cancels it, and one that records another replaces it. When it
-      comes due, grinbox archives a message still present in the inbox and does nothing to one
-      that already left; the archive is recorded on the run that concluded it.
+      comes due, grinbox archives a message still in the inbox and touches nothing that already
+      left; either outcome is recorded on the run that concluded it.
     commentary: |
       The outcome reads back like any other. What the user did meanwhile shows up as standing: a
       message they archived or trashed themselves is already gone, and the due archive finds
-      nothing to do. A restore after the archive fired stands — the per-message cap keeps a
-      later triage from repeating the effect.
+      nothing to do — recorded as that, not as an archive. A restore after the archive fired
+      stands: r-zagpfz75 bars repeating the effect, whatever mechanism the implementation
+      carries it with. The outcomes' stored names follow at implementation, as the
+      suppression's did.
     status: proposed
     because:
       - d-grcdd4ov
@@ -50,6 +54,59 @@ decisions:
       notes: |
         re-triaging is the one way a user stops a pending archive, and that lever exists only
         while the latest triage's conclusion is what stands
+
+  - id: d-p0ea1t8q
+    scope: interface
+    title: a pending archive is visible where the message is
+    statement: |
+      a message's read surfaces carry its pending archive while it stands — the due moment and
+      the triage that recorded it — so what a re-triage would cancel is visible before it fires.
+    commentary: |
+      The list surfaces stay as they are: the filter vocabulary d-r5wc2qnj pins gains nothing,
+      since a pending archive is per-message state, not a standing. The route envelope carrying
+      it is the daemon's, per d-a4yrn8sw.
+    status: proposed
+    because:
+      - d-0tajzoy7
+      - r-k6gh82fx
+      - d-6wgxtdn8
+    pinned:
+      reason: public-api
+
+  - id: d-41v9yqvh
+    scope: triage
+    title: a pending archive at its edges
+    statement: |
+      at its edges — several recorded by one triage, a denied or failed call, configuration
+      turned off or deleted — a pending archive behaves by case, and re-triage stays the one
+      cancel throughout.
+    cases:
+      - when: one triage records more than one pending archive
+        then: the earliest due is the one the message holds
+      - when: a limit denies the due call
+        then: the archive stays due, and the next heartbeat tries again
+      - when: the due call fails past its operation's retries
+        then: it concludes failed on its run, and the retry is a re-triage
+      - when: its pipeline is not active on the account
+        then: nothing performs; it fires late where the pipeline returns while it still stands
+      - when: its pipeline or its account is deleted
+        then: it never performs, and what was recorded stays readable
+    commentary: |
+      The limit-denied branch is what keeps r-cwc01n0t from being defeated by a busy window — a
+      denial is an outcome, not a conclusion, and the window frees. The inactive-pipeline branch
+      reads deactivation as d-s2kf8vjq reads deletion: the work stops; it differs in that the
+      pipeline can return.
+    status: proposed
+    because:
+      - d-0tajzoy7
+      - d-j8wm2qfx
+      - d-0tebpjex
+      - d-s2kf8vjq
+      - r-cwc01n0t
+    pinned:
+      reason: other
+      notes: |
+        mail staying in or leaving the inbox at these edges is behaviour the user sees
 
   - id: d-gzv0jty7
     title: one heartbeat drives every scheduler
