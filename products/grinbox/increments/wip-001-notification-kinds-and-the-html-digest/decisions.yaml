@@ -3,14 +3,14 @@ version: "3"
 decisions:
   - id: d-vn2jdxbs
     scope: notifications
-    title: a notify operator declares the notification kind it sends
+    title: a notify operator may name the notification kind it sends
     statement: |
-      every notify operator carries a notification kind — a short name the user chooses — and
-      every push it sends belongs to it. Operators may share one, which is how the user groups
-      pushes that should not pile up. An operator naming none is its own kind.
+      a notify operator may name a notification kind — a short name the user chooses — and every
+      push it sends then belongs to that kind. Operators may share one, which is how the user
+      groups pushes that should not pile up. An operator naming none stands alone: nothing groups
+      its pushes with any other operator's.
     commentary: |
-      An operator naming none being its own kind is what lets a configuration stored before kinds
-      existed keep sending exactly as it did.
+      A configuration stored before kinds existed names none and keeps sending exactly as it did.
     status: proposed
     because:
       - r-lph86tsg
@@ -66,9 +66,9 @@ decisions:
     statement: |
       a notification kind's interval is a setting of the user's, keyed by the kind's name and
       shared across every pipeline: operators naming one kind share one cooldown wherever they
-      live. The setting outlives the operators naming its kind, and an operator's unnamed
-      own-kind carries no interval until the user names one.
-    status: accepted
+      live. The setting outlives the operators naming its kind, and an operator naming no kind
+      has no cooldown until the user names one.
+    status: proposed
     because:
       - r-lph86tsg
       - d-vn2jdxbs
