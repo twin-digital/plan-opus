@@ -13,7 +13,7 @@ decisions:
       `pool-version-immutable` against r-2fytqadu. Every facts file on main declares
       `version: "1"`, so nothing in the pool is disturbed; the two drafts in flight that declare
       `"2"` opt into `@3` by changing one line.
-    status: proposed
+    status: accepted
     because:
       - r-fipf2016
     pinned:
@@ -28,7 +28,7 @@ decisions:
     commentary: |
       The prefix was the only thing that could route a citation to the pool while ids were
       slugs. Generated `f-` ids identify themselves, so `f:f-o9dbstfj` doubles the letter.
-    status: proposed
+    status: accepted
     because:
       - d-vkudjo4x
     pinned:
@@ -45,7 +45,7 @@ decisions:
       A dangling citation is already a merge-gate finding and the session is not where it is
       reported, so the bare id is the whole of that handling. The claim's first line stays the
       fallback because the pool's 232 merged facts carry no title and never will.
-    status: proposed
+    status: accepted
     supersedes: d-mhlya385
     because:
       - r-fipf2016
@@ -64,11 +64,46 @@ decisions:
       ratifies sits, and a row that must hold a title, an id, a closure, and a staged ruling has
       no room left. A product that declares no components — most of them, `increment-process`
       included — has no scoped entries, so the pane it renders is the one it renders today.
-    status: proposed
+    status: accepted
     because:
       - r-ax84j1s2
       - d-hl3l8df0
       - d-9qbjzflc
+    pinned: false
+
+  - id: d-f2h4xeee
+    title: the pane renders a decision's cases
+    statement: |
+      The detail pane renders a decision's cases directly beneath the statement they qualify,
+      one item per case in source order — `- when <when>: <then>`, and `- otherwise: <text>`
+      for a terminal one — the form the projection already prints. The block is omitted where
+      the decision carries none. `/design-process/ratify-screen@5` carries it.
+    commentary: |
+      A decision's cases are normative with its statement and the first matching one governs, so
+      a sitting that shows the statement alone rules on part of what the decision settles. No
+      version of the screen has named the field, so the session renders nothing for it today.
+      The projection's form is reused, so a decision reads the same in `show` and in the pane.
+    status: proposed
+    because:
+      - r-ax84j1s2
+      - d-qv81x173
+    pinned: false
+
+  - id: d-mqjazdn5
+    title: the ruling queue is not worked by scope
+    statement: |
+      The ruling queue is neither grouped nor filtered by scope: it holds what the draft
+      carries, in one order, and naming the scope on each entry is what tells the owner which
+      component they are ruling under.
+    commentary: |
+      Ruled for the present. The scope display has not yet been worked on a draft carrying
+      components, and what would reopen this is a sitting over one — grinbox's five components
+      and ~55 scoped foundations — where reading a single queue is what costs the owner the
+      time.
+    status: accepted
+    because:
+      - d-8abusqwe
+      - d-let447tx
     pinned: false
 
   - id: d-4w9xp2lb
@@ -82,7 +117,7 @@ decisions:
       marking it retired — so neither a new id nor a title can be written onto one, and a
       migration would be a supersede-and-retire wave that reopens every citing product. The
       pool reads in two dialects for as long as those facts stand.
-    status: proposed
+    status: tolerated
     because:
       - r-wgtyrh2r
       - d-cjfu33uc
