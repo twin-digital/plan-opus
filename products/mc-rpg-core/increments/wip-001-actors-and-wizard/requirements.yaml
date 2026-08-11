@@ -80,16 +80,6 @@ requirements:
       the adventure that spawned it removes it — across a server restart, and whether or not a player
       is nearby.
     scope: assets-pack
-  - id: r-pngblab3
-    title: an actor's appearance does not depend on the game's own assets
-    statement: |
-      an actor's appearance and animation are carried by this product, and resolve to no model,
-      texture, animation, material, or identifier that the game ships. a Minecraft version change
-      does not alter how an actor looks.
-    scope: assets-pack
-    commentary: |
-      the game's asset identifiers are not a compatibility surface: an actor that names them can
-      change appearance, or stop rendering, on a version bump, with no build failure to announce it.
   - id: r-qi348761
     title: an actor's appearance does not depend on the game's own assets, materials excepted
     statement: |
@@ -112,7 +102,6 @@ requirements:
     informed_by:
       - f:f-8it4axjv
     scope: assets-pack
-    supersedes: r-pngblab3
   - id: r-9owgd93o
     title: the library refuses to act when an actor's definitions are absent
     statement: |
