@@ -28,7 +28,7 @@ decisions:
       the kind, and the push it deferred to. The triage settles as it would have.
     commentary: |
       A user asking why no push arrived reads the answer off the message rather than inferring it.
-    status: proposed
+    status: accepted
     because:
       - r-lph86tsg
       - d-j8wm2qfx
@@ -46,7 +46,7 @@ decisions:
       limit.
     commentary: |
       Removing an interval exposes the limits rather than loosening any bound.
-    status: proposed
+    status: accepted
     because:
       - r-lph86tsg
       - r-w6kq2mfp
@@ -68,7 +68,7 @@ decisions:
       shared across every pipeline: operators naming one kind share one cooldown wherever they
       live. The setting outlives the operators naming its kind, and an operator's unnamed
       own-kind carries no interval until the user names one.
-    status: proposed
+    status: accepted
     because:
       - r-lph86tsg
       - d-vn2jdxbs
@@ -84,7 +84,7 @@ decisions:
       a notification kind's name is a non-empty line of text, trimmed of surrounding whitespace
       and otherwise stored as typed. Two operators share a kind exactly when their stored names
       match character for character.
-    status: proposed
+    status: accepted
     because:
       - d-vn2jdxbs
       - r-lph86tsg
@@ -98,7 +98,7 @@ decisions:
       setting, changing, or removing a kind's interval is an accepted configuration change: it
       writes a history entry as a limit change does — before and after, the action, when, and
       which user — and the cooldown joins the change log's entity vocabulary.
-    status: proposed
+    status: accepted
     because:
       - r-k6gh82fx
       - d-u7pn5wqk
@@ -113,7 +113,7 @@ decisions:
       a cooldown interval is stored as a whole number of seconds, at least one, with no ceiling.
       Removing the cooldown deletes the setting; a kind with no setting has no cooldown, and
       zero is not stored.
-    status: proposed
+    status: accepted
     because:
       - d-5amonj40
       - d-6ptxams7
@@ -129,7 +129,7 @@ decisions:
       succeeded, failed, and skipped by limit. The record carries the notification kind and the
       identifier of the run whose push it deferred to, which the interface resolves to that
       run's triage.
-    status: proposed
+    status: accepted
     because:
       - d-5amonj40
       - r-k6gh82fx
@@ -145,7 +145,7 @@ decisions:
       a digest is delivered as one mail carrying two renditions of the same content: a plain-text
       one and a rich one. The recipient's client chooses which it shows, and a client that renders
       no formatting shows the text rendition whole.
-    status: proposed
+    status: accepted
     because:
       - r-m7y9ocdu
       - d-n3zj7ywp
@@ -159,7 +159,7 @@ decisions:
       the operation that sends mail takes a required plain-text body and an optional rich
       rendition of the same content. That rendition belongs to the operation every mail backend
       implements and every caller writes against, not to one backend.
-    status: proposed
+    status: accepted
     because:
       - r-m7y9ocdu
       - d-1oqjgi9m
@@ -175,7 +175,7 @@ decisions:
       a backend declares that it sends mail and nothing about which renditions it carries. Handing
       the send operation a rich rendition is always permitted where sending is declared, and a
       backend that cannot offer alternatives sends the plain text alone rather than failing.
-    status: proposed
+    status: accepted
     because:
       - d-rd986rrt
       - d-f9tj4wnr
@@ -189,7 +189,7 @@ decisions:
       the comparison that marks an item runs once and is unchanged; how the mark reads is each
       rendition's own. The plain-text rendition suffixes the item, and the rich rendition styles
       it instead.
-    status: proposed
+    status: accepted
     because:
       - d-5pdw87zm
       - d-1oqjgi9m
@@ -204,7 +204,7 @@ decisions:
       the rich rendition carries its presentation on its own elements, references no external
       asset, and sets neither a page background nor a body text colour. What it does colour is
       translucent, so the mail reads on a light or a dark background.
-    status: proposed
+    status: accepted
     because:
       - r-m7y9ocdu
       - d-1oqjgi9m
@@ -224,7 +224,7 @@ decisions:
       the only markup in the rich rendition is what grinbox itself authors. Template literals,
       model-written prose, and message-derived text all reach the recipient as the characters
       they are, in both renditions.
-    status: proposed
+    status: accepted
     because:
       - r-8sg01qdd
       - d-zkb393z9
@@ -242,7 +242,7 @@ decisions:
       a digest renders an extracted money tag in display form. The normalized stored form stays
       what grinbox keeps and what a section's threshold compares, and no display form is written
       to state.
-    status: proposed
+    status: accepted
     because:
       - r-735kq72h
       - d-dmwaark1
@@ -257,7 +257,7 @@ decisions:
       a tag renders in display form when the pipeline's enabled operators type its key as an
       extracted money output. A tag under such a key whose stored value is not money renders
       verbatim, as does every other tag.
-    status: proposed
+    status: accepted
     because:
       - r-735kq72h
       - d-x8rw5jvq
@@ -279,7 +279,7 @@ decisions:
       - when: grinbox knows a symbol for the currency
         then: the symbol denotes the currency in the display form
       - otherwise: the ISO code renders beside the amount
-    status: proposed
+    status: tolerated
     because:
       - r-735kq72h
       - d-dmwaark1
@@ -294,7 +294,7 @@ decisions:
       the display form places a known symbol before the amount, groups thousands with commas,
       marks the decimal with a period, and leads a negative amount with a minus sign — one
       convention in every digest, whatever the machine's locale.
-    status: proposed
+    status: tolerated
     because:
       - r-735kq72h
       - d-oc073wsp
@@ -309,7 +309,7 @@ decisions:
       the interface renders an extracted money value in display form wherever it shows the
       tag's value, by the same rules the digest follows. What the user types when configuring —
       a threshold — stays in the stored form the wire already fixes.
-    status: proposed
+    status: accepted
     because:
       - r-735kq72h
       - d-oc073wsp
@@ -356,7 +356,7 @@ decisions:
       whose cue passed. Nothing is scheduled per account or edition; user-visible latency is
       the account's interval plus up to one heartbeat. A heartbeat arriving mid-cycle does
       nothing.
-    status: proposed
+    status: accepted
     supersedes: d-ey4o63h1
     because:
       - r-0lg2c2e4
@@ -376,7 +376,7 @@ decisions:
       the watermark advances when an occurrence completes and at no other time, so a failed or
       abandoned occurrence's span is absorbed into the next one — the next occurrence covers
       the union rather than resuming after the gap.
-    status: proposed
+    status: accepted
     supersedes: d-jbqvsnox
     because:
       - r-f7dk3qzm
@@ -391,7 +391,7 @@ decisions:
       one occurrence over a long backlog does not produce an unreadable mail. What the bound
       cuts is counted as an overflow and reported with everything else the occurrence covered
       but did not show.
-    status: proposed
+    status: accepted
     supersedes: d-z0gmsbkl
     because:
       - r-vd9mu8od
@@ -404,7 +404,7 @@ decisions:
     statement: |
       where an occurrence's item bound cuts, what it shows is the oldest mail in the span and
       what it counts as overflow is the newest.
-    status: proposed
+    status: delegated
     supersedes: d-n75x2w30
     because:
       - d-t9bp6wnz
@@ -417,7 +417,7 @@ decisions:
       an edition's first occurrence covers mail taken in since the edition was created, not the
       account's held history. Mail that arrived before the edition existed is never digested by
       it.
-    status: proposed
+    status: accepted
     supersedes: d-85ee8586
     because:
       - d-h8tq5wnm
@@ -431,7 +431,7 @@ decisions:
     statement: |
       grinbox ships an action that runs on a schedule rather than per message, collating what it
       covers into one mail to the user. What it collates and how is the digest increment's.
-    status: proposed
+    status: accepted
     supersedes: d-qcsxvo18
     because:
       - d-5n8oyi8c
