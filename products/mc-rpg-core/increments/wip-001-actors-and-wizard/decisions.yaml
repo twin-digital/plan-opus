@@ -7,7 +7,7 @@ decisions:
       imports for code. the other holds a behavior pack and a resource pack, declares no script
       module, and is what an adventure depends on for the actor entity definitions and their assets.
       neither package holds any of the other's content.
-    status: proposed
+    status: accepted
     pinned:
       reason: public-api
       notes: which package an adventure imports and which it declares a manifest dependency on, and that the split exists at all
@@ -24,7 +24,7 @@ decisions:
       an adventure takes the library as a development dependency of its package, bundled into its own script at
       build time, and takes the assets pack as a `dependencies` entry in its behavior pack manifest naming that
       pack's uuid and version.
-    status: proposed
+    status: accepted
     pinned:
       reason: public-api
       notes: what an adventure's package manifest and pack manifest must each declare to use the product
@@ -45,7 +45,7 @@ decisions:
     statement: |
       no actor is the game's `minecraft:npc` entity, and the product delivers nothing through the NPC
       dialogue system. an actor is an entity this product defines.
-    status: proposed
+    status: accepted
     pinned:
       reason: other
       notes: what a click on an actor does, and which game modes a world running an adventure may be in, both change if this is reversed
@@ -62,7 +62,7 @@ decisions:
       identifier and its own client entity definition. the identifiers the library names and the
       entity definitions the assets pack holds are produced from one preset registry, so the two
       cannot come to disagree.
-    status: proposed
+    status: accepted
     pinned:
       reason: public-api
       notes: an actor's identifier is visible in a world — in a target selector, and in what the server logs about the entity
@@ -79,7 +79,7 @@ decisions:
       an actor refuses damage from every cause; is summonable by identifier with no spawn egg, so it never appears
       in the creative menu; cannot be displaced by anything in play; survives a restart and a chunk unload with no
       player near; cannot be renamed by a player; and watches a nearby player continuously.
-    status: proposed
+    status: accepted
     pinned:
       reason: other
       notes: what a player sees an actor do, and whether an actor can be placed from the creative menu at all
@@ -105,7 +105,7 @@ decisions:
       every model, texture, animation, and animation controller an actor renders from is committed in the assets
       pack under this product's own names. apart from the material an actor is drawn with, no vanilla name or path
       appears in a shipped client entity definition, render controller, or animation controller.
-    status: proposed
+    status: accepted
     pinned:
       reason: other
       notes: an actor's appearance is what a player sees, and the re-identification is what stops it moving under a game update
@@ -124,7 +124,7 @@ decisions:
       the wizard preset's appearance is vendored from the game's evoker — its geometry, its texture,
       and its animations — re-identified into this product's namespace. the evoker's material is the
       one thing not vendored: the preset names a stock entity material instead.
-    status: proposed
+    status: accepted
     pinned:
       reason: other
       notes: the wizard's face, which a player meets directly and would notice changing
@@ -145,7 +145,7 @@ decisions:
       the library's spawn call takes the name of a preset, the place to put the actor, and options
       that may override the actor's default name; it returns a handle to the actor it created. the
       call's exact signature is not fixed here.
-    status: proposed
+    status: delegated
     pinned:
       reason: public-api
       notes: the one call every adventure makes
@@ -159,7 +159,7 @@ decisions:
     statement: |
       every library entry point acting on an actor first looks up whether the entity type its preset names is
       registered in the world, rather than attempting the action and reading what comes back.
-    status: proposed
+    status: delegated
     pinned:
       reason: public-api
       notes: the error an adventure's author meets, and the guarantee that no call half-succeeds
@@ -197,7 +197,7 @@ decisions:
       the library checks an actor's definitions and nothing else. it performs no runtime check of the resource
       pack and reports nothing about it: no counting of the world's pack stack, no inference from an entity's
       dimensions, and no path that implies an actor will render.
-    status: proposed
+    status: accepted
     pinned:
       reason: public-api
       notes: what a successful call is evidence of, which is narrower than it looks and is what an adventure's author will otherwise assume
@@ -220,7 +220,7 @@ decisions:
       adventure is installing one archive and nothing else. no separate installation of the assets pack is
       required, and several adventures installed together each carrying a copy is the expected state rather
       than a fault.
-    status: proposed
+    status: accepted
     pinned:
       reason: other
       notes: what an operator installs, and how many pieces they must keep in step
@@ -271,7 +271,7 @@ decisions:
       within one major the assets pack never withdraws or repurposes a name an adventure can reference. appearance
       may change freely — a texture, a model, a re-vendored animation — since none of that is a name an adventure
       holds.
-    status: proposed
+    status: accepted
     pinned:
       reason: other
       notes: it is what makes two adventures on one major safe to share a pack, so relaxing it silently reintroduces the failure the namespace was chosen to avoid
@@ -297,7 +297,7 @@ decisions:
     statement: |
       the assets pack — both halves — confines itself to content kinds that name what they declare, so the
       namespace reaches all of it.
-    status: proposed
+    status: delegated
     pinned:
       reason: other
       notes: it bounds what the product can ever offer a preset, and relaxing it quietly reintroduces contention between majors that d-i8pjw2on cannot reach
@@ -329,7 +329,7 @@ decisions:
     statement: |
       no release archive carrying this product ships an actor's definitions without its appearance, or the
       reverse. an archive missing either half is refused rather than published.
-    status: proposed
+    status: accepted
     pinned:
       reason: other
       notes: an actor whose appearance definition never arrives is invisible and cannot be found by pointing at it, so this build check is the only thing between an adventure and a character no player can perceive
@@ -381,7 +381,7 @@ decisions:
       the product ships a third package: an adventure built on the other two, which spawns every actor the product
       offers. it is what demonstrates the product's run-time claims, and what an adventure's author reads as the
       worked example.
-    status: proposed
+    status: delegated
     pinned:
       reason: other
       notes: it is the only package of the product that runs a script in a world, so every run-time claim depends on it existing
@@ -403,7 +403,7 @@ decisions:
     statement: |
       the assets pack's behavior manifest names its own resource half in `dependencies`, so an adventure declaring
       one uuid gets both halves. the uuid an adventure names is the behavior half's.
-    status: proposed
+    status: accepted
     pinned:
       reason: public-api
       notes: the uuid every adventure hard-codes, and the reason one entry activates both halves
@@ -444,7 +444,7 @@ decisions:
     statement: |
       the assets pack's first release is 1.0.0 and it never publishes a `0.x` version. each major carries a pair of
       uuids minted for it, recorded in the pack's own source.
-    status: proposed
+    status: accepted
     pinned:
       reason: other
       notes: a 0.x release would put every breaking change in one namespace, so adventures on incompatible versions would contend instead of coexisting
@@ -467,7 +467,7 @@ decisions:
       an adventure may give an actor a durable name of its own when it creates it. placing an actor under a name
       that is already in the world returns the actor already there rather than a second one, and the library
       resolves a handle from that name in a later session.
-    status: proposed
+    status: delegated
     pinned:
       reason: public-api
       notes: it is how an adventure reaches an actor at all after a restart, and the difference between one wizard and one per restart
@@ -489,7 +489,7 @@ decisions:
     statement: |
       the preset registry is the library's, and the assets pack takes it as a build-time dependency to produce its
       entity definitions from. at run time neither package reads the other.
-    status: proposed
+    status: accepted
     pinned:
       reason: public-api
       notes: which package a reimplementation must put the registry in, and the direction of the dependency between the two
@@ -514,7 +514,7 @@ decisions:
     statement: |
       a preset's default name is carried by the library and applied to the actor as it is created. the assets pack
       holds no name for any actor, and a name is not translated.
-    status: proposed
+    status: delegated
     pinned:
       reason: public-api
       notes: what a player reads above an actor, and that it is one string rather than a localisable resource
@@ -540,7 +540,7 @@ decisions:
     statement: |
       the assets pack commits a record of where its vendored assets came from: the repository, the exact revision,
       and the path each file was taken from. re-vendoring is a change to that record.
-    status: proposed
+    status: delegated
     pinned:
       reason: data-format
       notes: the record is what makes a re-vendoring reproducible and what a reader checks an asset's provenance against
