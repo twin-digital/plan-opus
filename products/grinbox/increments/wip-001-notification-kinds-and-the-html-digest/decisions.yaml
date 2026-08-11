@@ -11,7 +11,7 @@ decisions:
       its pushes with any other operator's.
     commentary: |
       A configuration stored before kinds existed names none and keeps sending exactly as it did.
-    status: proposed
+    status: accepted
     because:
       - r-lph86tsg
       - d-oectpw7n
@@ -68,7 +68,7 @@ decisions:
       shared across every pipeline: operators naming one kind share one cooldown wherever they
       live. The setting outlives the operators naming its kind, and an operator naming no kind
       has no cooldown until the user names one.
-    status: proposed
+    status: accepted
     because:
       - r-lph86tsg
       - d-vn2jdxbs
@@ -328,7 +328,7 @@ decisions:
       where grinbox was down across several of an edition's cues, it fires once on return, for
       the most recent cue due, and the older ones never fire. Their coverage is not lost: the
       unadvanced watermark folds it into the one that does fire.
-    status: proposed
+    status: accepted
     supersedes: d-prxzi4zt
     because:
       - d-v8qm4kfw
@@ -342,7 +342,7 @@ decisions:
       an occurrence is claimed by recording it before any work is done, and the record is
       unique per edition, account, and cue. Nothing can claim a cue twice, so nothing can send
       twice.
-    status: proposed
+    status: accepted
     supersedes: d-svanshcm
     because:
       - r-j2wn9xtb
@@ -451,7 +451,7 @@ decisions:
       against succeeded or failed — and the operator chooses what to make of it, most treating
       it as a clean no-op. Every attempt, whichever way it went, is recorded against the run
       that made it.
-    status: proposed
+    status: delegated
     supersedes: d-coeyvi2n
     because:
       - d-isyan49o
@@ -468,7 +468,7 @@ decisions:
       removed or loosened by anyone. A user adds limits on top — stricter, or on an operation
       not yet limited — and may remove what they added, leaving the seeded limit standing.
       Where several limits bind one operation, the first to deny denies.
-    status: proposed
+    status: accepted
     supersedes: d-qv5l66ya
     because:
       - r-q8vm3xtk
@@ -487,7 +487,7 @@ decisions:
       that failed, the retries belong to the operation that spent the limit and do not spend it
       again. The operations that reach the user are not retried at all, so this multiplies no
       effect the user would see.
-    status: proposed
+    status: accepted
     supersedes: d-eqwrgoyv
     because:
       - r-q8vm3xtk
@@ -506,7 +506,7 @@ decisions:
       identity, and grinbox bootstraps the single user it serves at first start. Nothing
       authenticates anyone, and the scoping exists so that authenticating someone later is an
       addition rather than a reshaping of everything stored.
-    status: proposed
+    status: accepted
     supersedes: d-obzpbcml
     because:
       - r-ovi02v1m
@@ -524,7 +524,7 @@ decisions:
       what the interface reports about volume, cost, failures, and limits is computed from the
       per-triage records grinbox already keeps. There is no separate store of measurements and
       nothing is recorded twice.
-    status: proposed
+    status: delegated
     supersedes: d-4t7lf4wd
     because:
       - d-dbjiycvl
@@ -539,7 +539,7 @@ decisions:
       model writes from the already-rendered items. Prose is the whole of a model's part in an
       occurrence: it cannot add, remove, or alter an item, and a passage that fails or is
       skipped by its limit is dropped, and the occurrence proceeds.
-    status: proposed
+    status: accepted
     supersedes: d-c3dofuyf
     because:
       - r-i55lgsq8
@@ -557,7 +557,7 @@ decisions:
     commentary: |
       Renewing an authorization is a change grinbox makes itself. The seeded rows are the single
       user and the backstop limits.
-    status: proposed
+    status: delegated
     supersedes: d-5xsm1hc6
     because:
       - r-k6gh82fx
@@ -583,7 +583,7 @@ decisions:
         then: the accounts running it are released, and then poll nothing
       - when: an operator still names a credential
         then: the credential cannot be deleted until the operator stops naming it
-    status: proposed
+    status: delegated
     supersedes: d-yf30pvpd
     because:
       - r-k6gh82fx
@@ -603,7 +603,7 @@ decisions:
       in the shared package both tiers import. The request and response envelopes are declared by
       the daemon's route definitions, and the browser application reads them by inference from
       those routes.
-    status: proposed
+    status: delegated
     supersedes: d-qrxtbcei
     because:
       - d-5l0wqcj0
@@ -618,7 +618,7 @@ decisions:
       against it, while windowed limits bind as they do anywhere. Where a limit denies the send
       itself, the occurrence fails rather than being the clean no-op a denied per-message action
       is. A span holding nothing to report completes without sending.
-    status: proposed
+    status: accepted
     supersedes: d-dmylyoqs
     because:
       - d-isyan49o
@@ -634,7 +634,7 @@ decisions:
       values, produced by an ordinary rule-based tagger. Editions claim values of that tag with
       their sections, and the tag's fallback value means the message is never digested. Adding a
       value is editing a configuration, not shipping code.
-    status: proposed
+    status: delegated
     supersedes: d-fg96l5uu
     because:
       - d-w4hn8qpv
@@ -652,7 +652,7 @@ decisions:
       no two editions of a pipeline may claim the same value of the slotting tag, checked when
       an edition is saved. With spans disjoint by construction and claimed values
       disjoint by validation, a message cannot reach two digests.
-    status: proposed
+    status: delegated
     supersedes: d-nfsr4h6f
     because:
       - r-j2wn9xtb
@@ -668,7 +668,7 @@ decisions:
       enumerating candidates, fetching metadata, applying a category, reporting thread placement,
       and taking the whole-mailbox snapshot the reconcile reads. The resource backends carry what
       an operator's declared operations reach: archiving, fetching a body, and sending mail.
-    status: proposed
+    status: accepted
     supersedes: d-7a8aoi4z
     because:
       - r-etj0gluz
@@ -684,7 +684,7 @@ decisions:
       a backend need not implement every mail operation — one that can read a mailbox but not
       send is an ordinary case — and which operations a backend supports is declared rather than
       discovered when an operation fails.
-    status: proposed
+    status: delegated
     supersedes: d-z5opt8rp
     because:
       - d-q2hx8vlm
@@ -705,7 +705,7 @@ decisions:
         then: it takes up to two further attempts at a fixed wait
       - when: the call sends a notification or sends mail, or its operation has no policy of its own
         then: it is never retried
-    status: proposed
+    status: delegated
     supersedes: d-q5j1ig1f
     because:
       - d-g3xc9rmv
@@ -728,7 +728,7 @@ decisions:
         then: it is produced whenever the operator runs
       - when: the tag is declared as an extraction of a typed value — text, money, or a date — normalized by grinbox
         then: a value that fails normalization drops the tag
-    status: proposed
+    status: delegated
     supersedes: d-04s2n18o
     because:
       - d-eme4ratv
@@ -745,7 +745,7 @@ decisions:
       grinbox ships a tagger whose output is derived deterministically, with no model call, by
       evaluating rules the user writes against the message and the tags earlier operators
       produced.
-    status: proposed
+    status: accepted
     supersedes: d-imlec3nt
     because:
       - d-5n8oyi8c
@@ -759,7 +759,7 @@ decisions:
     statement: |
       a rule matches by an expression over the tags earlier operators produced and any field of
       the message, read and evaluated by grinbox's own expression reader.
-    status: proposed
+    status: accepted
     supersedes: d-oq267pmh
     because:
       - r-dk3vq6tp
@@ -777,7 +777,7 @@ decisions:
       category name, a digest line — is written in one placeholder grammar over the message's
       own fields and the tags earlier operators produced. The tags a template names are inputs
       of the operator that renders it, which is what orders it after their producers.
-    status: proposed
+    status: accepted
     supersedes: d-cnjkypbb
     because:
       - d-52lhql7t
@@ -795,7 +795,7 @@ decisions:
       an edition is an ordinary operator instance whose configuration carries the schedule it
       fires on, and each occurrence delivers a digest. A pipeline may carry several editions,
       differing only in configuration, and nothing about a second edition is a second mechanism.
-    status: proposed
+    status: delegated
     supersedes: d-ocqvnmfm
     because:
       - d-5n8oyi8c
@@ -812,7 +812,7 @@ decisions:
       it — is made when the message is triaged, by ordinary operators. The occurrence that
       builds a digest makes none: it selects, groups, renders, and sends. This keeps accounting
       for every covered message a property of the code.
-    status: proposed
+    status: delegated
     supersedes: d-r8iz7u3q
     because:
       - r-i55lgsq8
@@ -830,7 +830,7 @@ decisions:
       an edition fires once per account its pipeline is active on, covering that account's mail
       and sending through it to the address the account belongs to. A pipeline active on several
       accounts digests each mailbox separately.
-    status: proposed
+    status: accepted
     supersedes: d-wf49d4jb
     because:
       - d-k9zb4mtw
@@ -845,7 +845,7 @@ decisions:
       occurrence and up to the moment this one was claimed. It is measured over when grinbox
       took the message in rather than when the mail was sent, so late-arriving mail is
       digested in the span it actually arrived in.
-    status: proposed
+    status: accepted
     supersedes: d-jsnfvo0m
     because:
       - r-j2wn9xtb
@@ -864,7 +864,7 @@ decisions:
       configuration in force at that moment; every operator run in the triage executes against
       that capture. Editing an operator therefore never changes a triage already in flight, and
       a historical outcome resolves to the exact configuration that produced it.
-    status: proposed
+    status: accepted
     supersedes: d-nr71oscu
     because:
       - r-zagpfz75
@@ -883,7 +883,7 @@ decisions:
       ordered by when the mail was received, newest first with a stable tiebreak, and filtered
       by account, pipeline, standing, tag, date, and a substring search over sender and subject.
       The page reports the total so a caller can size what it did not fetch.
-    status: proposed
+    status: accepted
     supersedes: d-mu0k7nbu
     because:
       - d-1uo9p5wq
