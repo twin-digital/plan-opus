@@ -184,6 +184,44 @@ decisions:
       - d-lyvjq8l1
       - d-w0smdozf
       - r-qi348761
+  - id: d-uq70bkcx
+    title: what the shared actor components establish, and where the engine stops
+    statement: |
+      an actor refuses damage from every cause; is summonable by identifier with no spawn egg, so it
+      never appears in the creative menu; cannot be renamed by a player; watches a nearby player
+      continuously; survives a restart and a chunk unload with no player near; falls under gravity;
+      and carries every control the pack format offers against being pushed.
+    cases:
+      - when: a player, a mob, or a piston arm pushes an actor
+        then: the push is refused as far as the components reach — a piston arm still moves it
+      - when: a piston carries the block an actor stands on, or a current reaches it
+        then: the actor moves; no component prevents either
+    status: proposed
+    supersedes: d-w0smdozf
+    pinned:
+      reason: other
+      notes: what a player sees an actor do, and what an adventure may rely on an actor's position surviving
+    scope: assets-pack
+    because:
+      - r-0fmfslpl
+      - r-rytfox4t
+      - r-apu8m7vz
+      - f:f-1mbwecmv
+      - f:f-vcnueu1q
+      - f:f-c1hoepxs
+      - f:f-5ci71l13
+      - f:f-wyefuxpy
+    commentary: |
+      the components carried are knockback resistance, `pushable` refused for entities and pistons,
+      a zeroed movement system, and a water drag factor — every dial the 1.21.130 format documents.
+      the sweep behind the cases measured 27 component sets against a piston and 20 against a
+      current: the only configurations that survive a piston arm have no collision at all, which
+      costs an actor its footing, and no configuration at all survives a carried block or a current.
+      vanilla's own armor stands and NPCs move under both.
+
+      gravity is deliberate. an actor left hovering where the ground was broken reads as a bug, so an
+      actor falls; a character that must hold a position in the air is a run-time lock an adventure
+      opts into, not a component.
   - id: d-kxl9ej80
     title: an adventure and the assets pack install as an archive each
     statement: |

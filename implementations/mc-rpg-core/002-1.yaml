@@ -49,20 +49,22 @@ coverage:
         note: >
           executed headless (rpg-core-example): the story supplied preset names and placement only;
           named, complete actors appeared
-  - claim: r-wqwub3zz # a player in creative cannot alter or remove an actor
+  - claim: r-0fmfslpl # a player in creative cannot edit, rename, remove, or harm an actor
     covered_by:
       - kind: attestation
         ref:
           - behavior_pack/entities/wizard.json
         note: >
-          damage refused from every cause, knockback resistance 1 and pushable false, no nameable
-          component, no spawn egg
+          damage refused from every cause, no nameable component, no spawn egg, and pushable refused
+          for both entities and pistons so no player shoves an actor by hand
       - kind: manual-check
         ref:
           - README.md
         note: >
-          server-observable half executed (damage command refused for all actors); the in-creative
-          player interactions (name tag, push, click) are recorded steps needing a game client
+          executed on a client 2026-08-11: a name tag does not rename an actor, an attack does not
+          harm it, and walking into one does not shift it; damage refusal also verified server-side.
+          gravity and a player's physics contraption may move an actor, which is what this claim
+          admits
   - claim: r-apu8m7vz # an actor faces a player who approaches
     covered_by:
       - kind: attestation
@@ -78,12 +80,14 @@ coverage:
         note: >
           gaze tracking is client-observable only; the example's README records the steps, including
           reporting continuous tracking versus glances
-  - claim: r-8ih6ab2r # an actor outlives a restart and leaves only when removed
+  - claim: r-rytfox4t # an actor keeps its place until the adventure removes it
     covered_by:
       - kind: attestation
         ref:
           - behavior_pack/entities/wizard.json
-        note: persistent, no despawn path, gravity disabled so the placed position holds
+        note: >
+          persistent, no despawn path, and no movement goal, so nothing in the world's own running
+          takes an actor from where the adventure put it; it settles onto the ground under it
       - kind: code-test
         ref:
           - src/actor.test.ts
@@ -291,18 +295,29 @@ coverage:
         note: >
           the pack's committed definitions fail its test run when they disagree with the library's
           registry, when an unclaimed definition exists, or when any name lacks the namespace
-  - claim: d-w0smdozf # what the shared actor components establish
+  - claim: d-uq70bkcx # what the components establish, and where the engine stops
     covered_by:
       - kind: attestation
         ref:
           - behavior_pack/entities/wizard.json
         note: >
-          refuses all damage, summonable without a spawn egg, undisplaceable and gravity-free,
-          persistent, not nameable, watches continuously
+          refuses all damage, summonable without a spawn egg, not nameable, watches continuously,
+          persistent, falls under gravity, and carries every documented push control —
+          knockback resistance, pushable refused for entities and pistons, a zeroed movement system,
+          and a water drag factor
+      - kind: code-test
+        ref:
+          - src/registry-consistency.test.ts
+        note: the component set is pinned for every behavior entity, so a re-vendor cannot drop it
       - kind: manual-check
         ref:
           - README.md
-        note: damage refusal and unattended persistence executed headless; player-side steps recorded
+        note: >
+          executed on a client 2026-08-11: damage refused, no rename, no shove by hand, and an actor
+          falls when the ground under it goes. both engine limits the statement's cases admit were
+          observed directly — a piston moves an actor and a current carries it — and the component
+          sweeps behind them are runs run-40cmv8ds (27 sets against a piston) and run-4xy5say4
+          (20 against a current)
   - claim: d-lyvjq8l1 # assets vendored from a pinned revision, re-identified
     covered_by:
       - kind: attestation
