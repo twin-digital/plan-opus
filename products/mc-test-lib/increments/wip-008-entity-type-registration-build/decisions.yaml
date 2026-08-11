@@ -15,7 +15,7 @@ decisions:
       - when: the package's behaviour depends on the emitted values
         then: they are committed and a written-out count guards them, so an upstream bump reads as a diff rather than arriving silently
       - otherwise: they are build output
-    status: proposed
+    status: delegated
     pinned:
       reason: other
       notes: |
@@ -34,7 +34,7 @@ decisions:
     statement: |
       The package declares no `@minecraft/server` peer range, and nothing at install, configuration
       or run time checks a consumer's engine pin against the derived version.
-    status: proposed
+    status: delegated
     pinned:
       reason: other
       notes: |
@@ -60,7 +60,7 @@ decisions:
       - when: the argument is one of the six shapes measured
         then: the wording is the engine's, reproduced
       - otherwise: it is `Object did not have a native handle.`, which nothing observed
-    status: proposed
+    status: delegated
     pinned:
       reason: public-api
       notes: |
