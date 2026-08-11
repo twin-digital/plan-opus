@@ -1,0 +1,70 @@
+version: "3"
+decisions:
+  - id: d-cjfu33uc
+    title: a fact carries a title, on fact@3
+    statement: |
+      `/design-process/fact@3` adds an optional one-line `title` beside the id, with `facts@3`
+      as its container; nothing else changes. A fact is named by its title, and its claim stays
+      the body — it carries what was measured and is never cut down to serve as a name. `@1`
+      and `@2` files keep their dialects.
+    commentary: |
+      The field could not be added to `@2` in place: `/design-process/fact@2` is bound by
+      published increment 035's model, and the gate refuses an edit to a bound pool version —
+      `pool-version-immutable` against r-2fytqadu. Every facts file on main declares
+      `version: "1"`, so nothing in the pool is disturbed; the two drafts in flight that declare
+      `"2"` opt into `@3` by changing one line.
+    status: proposed
+    because:
+      - r-fipf2016
+    pinned:
+      reason: data-format
+
+  - id: d-vzw067yp
+    title: a fact is cited by its bare id
+    statement: |
+      A fact is cited by its id — `f-o9dbstfj` — like a requirement or a decision, the kind
+      read from the prefix. The `f:` form stays accepted, since the pool's slug ids match no
+      pattern without it, and both forms resolve to the same fact.
+    commentary: |
+      The prefix was the only thing that could route a citation to the pool while ids were
+      slugs. Generated `f-` ids identify themselves, so `f:f-o9dbstfj` doubles the letter.
+    status: proposed
+    because:
+      - d-vkudjo4x
+    pinned:
+      reason: data-format
+
+  - id: d-okfuedqn
+    title: a cited id is shown as the title it resolves to
+    statement: |
+      In the ratify session, an entry's citations resolve against the fold and the facts pool,
+      each shown as its title beside its id, the kind read from the id's prefix. One resolving
+      to nothing shows as the id alone; a fact without a title shows its claim's first line; a
+      question's `answer` names a kind and is not resolved.
+    commentary: |
+      A dangling citation is already a merge-gate finding and the session is not where it is
+      reported, so the bare id is the whole of that handling. The claim's first line stays the
+      fallback because the pool's 232 merged facts carry no title and never will.
+    status: proposed
+    supersedes: d-mhlya385
+    because:
+      - r-fipf2016
+      - d-cjfu33uc
+    pinned: false
+
+  - id: d-4w9xp2lb
+    title: the facts pool is not migrated
+    statement: |
+      The facts pool is not migrated: files stay in the dialect they declare, keeping their ids
+      and their `f:` citations. A fact takes a title by being written in `@3`, so titles arrive
+      with new facts rather than by relabelling merged ones.
+    commentary: |
+      232 facts across 22 files declare `@1`. A merged fact is frozen — the one edit allowed is
+      marking it retired — so neither a new id nor a title can be written onto one, and a
+      migration would be a supersede-and-retire wave that reopens every citing product. The
+      pool reads in two dialects for as long as those facts stand.
+    status: proposed
+    because:
+      - r-wgtyrh2r
+      - d-cjfu33uc
+    pinned: false
