@@ -106,22 +106,3 @@ decisions:
       - d-let447tx
     pinned: false
 
-  - id: d-4w9xp2lb
-    title: the facts pool is not migrated
-    statement: |
-      The facts pool is not migrated: files stay in the dialect they declare, keeping their ids
-      and their `f:` citations. A fact takes a title by being written in `@3`, so titles arrive
-      with new facts rather than by relabelling merged ones.
-    commentary: |
-      232 facts across 22 files declare `@1`. A merged fact is frozen — the one edit allowed is
-      marking it retired — so neither a new id nor a title can be written onto one, and a
-      migration would be a supersede-and-retire wave that reopens every citing product. The
-      pool reads in two dialects for as long as those facts stand.
-    status: rejected
-    reason: |
-      it makes explicit an outcome the freeze on merged facts already produces, so the entry
-      rules nothing a reader could not derive from `r-wgtyrh2r`
-    because:
-      - r-wgtyrh2r
-      - d-cjfu33uc
-    pinned: false
