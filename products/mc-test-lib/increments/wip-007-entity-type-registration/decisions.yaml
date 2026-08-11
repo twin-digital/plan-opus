@@ -125,7 +125,7 @@ decisions:
       - when: a registration supplied a `localizationKey`
         then: the type reads back what it supplied
       - otherwise: the key derives from the id by the engine's own rule
-    status: proposed
+    status: delegated
     pinned:
       reason: public-api
     because:
@@ -198,7 +198,7 @@ decisions:
       - when: a test has already registered one of those ids
         then: the preset skips it, composing with the test's own registration rather than colliding with the duplicate refusal
       - otherwise: the id is registered as the source carries it
-    status: proposed
+    status: accepted
     pinned:
       reason: public-api
       notes: |
