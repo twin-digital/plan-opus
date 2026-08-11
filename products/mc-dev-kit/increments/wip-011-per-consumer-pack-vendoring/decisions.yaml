@@ -36,25 +36,29 @@ decisions:
   - id: d-l4wh3cgf
     title: a consumer with no pack of its own gets one
     statement: |
-      a package that vendors a pack of a kind it holds no source pack of is built a pack of that
-      kind from its vendorings alone, carrying a uuid its own source declares.
+      a package that vendors a pack of a kind it holds no source pack of is built one, under a uuid
+      derived from the package's own name. Its author declares nothing for it.
     status: proposed
     pinned:
-      reason: public-api
-      notes: the uuid a vendoring package declares, and the pack a world activates by it
+      reason: data-format
+      notes: the uuid a world activates the pack by
     because:
       - d-82zp77fo
       - r-zcdmh9p6
       - r-293j8n70
-    cases:
-      - when: the package declares a uuid for the synthesized pack
-        then: the pack is built under it
-      - otherwise: the build fails, naming the kind that needs one
+      - r-xcz7nzr6
     commentary: |
-      A uuid cannot be invented for a pack a world will activate by it: the value has to survive
-      every rebuild and every checkout, so it comes from source like any other pack's. The virtual
-      script entry of `d-64tw58t0` is the precedent for the pack existing at all with no source
-      directory behind it.
+      Using a library and holding no assets of one's own is the ordinary case, and it is the one
+      that should ask for the least. A package name is already unique in a workspace and already
+      stable across rebuilds and checkouts, which is everything a uuid a world activates by has to
+      be — so there is nothing here an author could supply that the package does not already say.
+
+      Renaming the package changes the uuid, and a world holding the old one loses the pack. That is
+      the one thing to know about it.
+
+      Deriving here and not for a pack the author already minted a uuid for is the same rule read
+      twice: the identity comes from what the package declares, and it is derived only where the
+      package declares none.
 
   - id: d-27lzrwsu
     title: a pack declares itself vendored, and never deploys on its own
