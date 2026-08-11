@@ -234,7 +234,7 @@ decisions:
       - f:release-archives-follow-pack-content
       - f:a-worlds-activation-lists-name-the-packs-it-runs
   - id: d-i8pjw2on
-    title: every name the assets pack declares is namespaced by its major version
+    title: every name the assets pack declares carries its namespace
     statement: |
       the assets pack's uuid and every name it declares carry the namespace: the actor entity identifiers, and
       each internal asset name too — geometry, texture paths, materials, render controllers, animations, and
@@ -420,11 +420,11 @@ decisions:
       the install story rests on a second dependency hop — an adventure names the behavior half, which names the
       resource half — and the pool's fact tests one hop only.
   - id: d-2zclv5ol
-    title: the namespace is the token `rpg<major>`, and the build reads the major from the package
+    title: the namespace is the bare token at the first major, and carries the major after
     statement: |
-      the namespace is `rpg<major>`: an actor's identifier is `rpg<major>:<preset>`, and every internal asset name
-      carries `rpg<major>` as a segment. the build reads the major from the package's own version, so a name and
-      the version it claims cannot disagree unnoticed.
+      an actor's identifier is `<namespace>:<preset>`, and every internal asset name carries the namespace as a
+      segment. the build reads the major from the package's own version, so a name and the version it claims
+      cannot disagree unnoticed.
     status: proposed
     pinned:
       reason: public-api
@@ -436,9 +436,17 @@ decisions:
       - r-pop72yk6
       - d-i8pjw2on
     commentary: |
+      the first major is the default: an unversioned namespace, with a version appearing only once a second major
+      exists to distinguish. so the common case reads as an ordinary identifier and nothing carries a number until
+      a number means something.
+
       reading the major from `package.json` rather than from a constant in the pack is what makes the lint a check
       rather than a second place to keep in step: a major changeset landing without the rename fails the build
       instead of shipping a pack whose names claim the previous major.
+    cases:
+      - when: the assets pack is at its first major
+        then: the namespace is the bare token `rpg`, carrying no version — `rpg:wizard`, `geometry.rpg.wizard`
+      - otherwise: the namespace carries the major — `rpg2:wizard`, `geometry.rpg2.wizard`
   - id: d-orqkexpm
     title: the assets pack never ships below 1.0.0, and each major carries fresh uuids
     statement: |
@@ -454,11 +462,7 @@ decisions:
       - d-i8pjw2on
       - d-2zclv5ol
     commentary: |
-      under semver a `0.x` package breaks compatibly on a *minor*, so a namespace derived from the major would name
-      one namespace across every breaking change and r-pop72yk6's coexistence would not hold. the floor is what
-      makes major-derived isolation mean anything.
-
-      a uuid cannot spell a version, so per-major rotation is the only buildable reading of d-i8pjw2on's "the
+      a uuid cannot spell a version, so a fresh pair per major is the only buildable reading of d-i8pjw2on's "the
       assets pack's uuid ... carries the namespace". the kit reports a duplicate uuid across the workspace, so a
       reused one fails loudly — a forgotten rotation does not, which is why the pair is recorded in source.
   - id: d-9uu20w3r
