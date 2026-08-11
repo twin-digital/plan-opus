@@ -43,8 +43,9 @@ decisions:
       the triage-events attempt vocabulary gains `pending_archive_recorded`, appended by an
       archive run that recorded a pending archive rather than calling, carrying the due moment
       and the delay; and `pending_archive_skipped`, appended when the moment came and no call
-      was made, carrying the reason. A call that is made records under the existing
-      `resource_op_succeeded`, `resource_op_limited`, and `resource_op_failed`.
+      was made, carrying the reason — `already_departed`, `abandoned`, or `pipeline_inactive`.
+      A call that is made records under the existing `resource_op_succeeded`,
+      `resource_op_limited`, and `resource_op_failed`.
     status: proposed
     because:
       - d-41v9yqvh
@@ -95,6 +96,19 @@ decisions:
       - d-gzv0jty7
       - d-k5nnblfp
       - r-0lg2c2e4
+
+  - id: d-o5vuzr40
+    scope: triage
+    title: a deleted operator abandons its pending archive
+    statement: |
+      a pending archive whose recording operator was deleted never performs, as one whose
+      pipeline or account was deleted never performs. Deleted configuration stops being acted
+      on, and the operator carrying the delay is configuration like the rest.
+    status: proposed
+    because:
+      - d-41v9yqvh
+      - d-s2kf8vjq
+      - d-rq632oul
 
   - id: d-6a4p1edu
     scope: triage
