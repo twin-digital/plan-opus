@@ -1,0 +1,30 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "mc-test-lib entity-type registry probes",
+    "description": "What EntityTypes.get and getAll report for a vanilla type, a pack-defined type, and an id nothing registers. Run /scriptevent etreg:registry and copy the [etreg] lines.",
+    "uuid": "3f8a5c21-9d47-4e63-b0a2-6c1e8f4d7b39",
+    "version": [0, 1, 0],
+    "min_engine_version": [1, 26, 0]
+  },
+  "modules": [
+    {
+      "type": "script",
+      "language": "javascript",
+      "entry": "scripts/main.js",
+      "uuid": "7e2b6d14-af38-4c95-8d70-2a9f5b3e1c48",
+      "version": [0, 1, 0]
+    },
+    {
+      "type": "data",
+      "uuid": "c4d90a76-5b21-4f8e-93ac-1d6e7f082b53",
+      "version": [0, 1, 0]
+    }
+  ],
+  "dependencies": [
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.8.0"
+    }
+  ]
+}

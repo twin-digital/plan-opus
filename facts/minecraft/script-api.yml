@@ -2892,3 +2892,261 @@ facts:
         where: "the `events` object of the vanilla entity definition"
         quote: |
           "events":{"minecraft:from_player":{"add":{"component_groups":["minecraft:player_created"]}},"minecraft:from_village":{"add":{"component_groups":["minecraft:village_created"]}}}}}
+
+  - id: f-o9dbstfj # entity-type-lookup-misses-return-undefined
+    claim: |
+      `EntityTypes.get` reports a type nothing registers by returning `undefined`, never by
+      throwing. It matched exactly on every miss measured — an unregistered namespaced id, an
+      unregistered bare id, an unregistered id in the `minecraft:` namespace, the empty string, a
+      namespace prefix alone, a registered id with surrounding whitespace, and a registered id with
+      a case difference all returned `undefined`. So `undefined` is the only miss signal the
+      surface has: nothing distinguishes a malformed identifier from a well-formed one nobody
+      defined.
+    backing: tested
+    sources:
+      - run: entity-type-catalog-probe
+        where: "`get` — an unregistered namespaced id"
+        quote: |
+          [etreg] get :: case=absent-namespaced argument="mctest:nothing_registers_this" returned undefined .id n/a
+      - run: entity-type-catalog-probe
+        where: "`get` — an unregistered id in the minecraft namespace"
+        quote: |
+          [etreg] get :: case=absent-minecraft-namespace argument="minecraft:nothing_registers_this" returned undefined .id n/a
+      - run: entity-type-catalog-probe
+        where: "`get` — the empty string"
+        quote: |
+          [etreg] get :: case=empty-string argument="" returned undefined .id n/a
+      - run: entity-type-catalog-probe
+        where: "`get` — a registered id with surrounding whitespace"
+        quote: |
+          [etreg] get :: case=whitespace argument=" minecraft:sheep " returned undefined .id n/a
+      - run: entity-type-catalog-probe
+        where: "`get` — a registered id with a case difference"
+        quote: |
+          [etreg] get :: case=case-mismatch argument="minecraft:Sheep" returned undefined .id n/a
+
+  - id: f-i8fx23h0 # entity-type-bare-id-means-the-minecraft-namespace
+    claim: |
+      A bare identifier given to `EntityTypes.get` is resolved as `minecraft:<id>` rather than
+      searched across namespaces. `sheep` and `minecraft:sheep` return the same object, and that
+      object's `id` reads back the canonical prefixed form. A pack-defined type does not answer to
+      its bare name: with `mctest:probe_dummy` registered, `EntityTypes.get('probe_dummy')` returns
+      `undefined`, and `spawnEntity('probe_dummy')` names `'minecraft:probe_dummy'` in the error it
+      throws — the assumption is literal, not a fallback search.
+    backing: tested
+    sources:
+      - run: entity-type-catalog-probe
+        where: "`get` — the prefixed vanilla id"
+        quote: |
+          [etreg] get :: case=registered-vanilla-prefixed argument="minecraft:sheep" returned object<EntityType> .id returned string:"minecraft:sheep"
+      - run: entity-type-catalog-probe
+        where: "`get` — the bare vanilla id"
+        quote: |
+          [etreg] get :: case=registered-vanilla-bare argument="sheep" returned object<EntityType> .id returned string:"minecraft:sheep"
+      - run: entity-type-catalog-probe
+        where: "`shape` — the bare and prefixed lookups compared by identity"
+        quote: |
+          [etreg] shape :: identity-bare-vs-prefixed same-object=true bare=object<EntityType>
+      - run: entity-type-catalog-probe
+        where: "`get` — the bare form of a pack-defined id"
+        quote: |
+          [etreg] get :: case=pack-defined-bare argument="probe_dummy" returned undefined .id n/a
+      - run: entity-type-catalog-probe
+        where: "`spawn` — the namespace the bare form actually looked for"
+        quote: |
+          [etreg] spawn :: case=bare-pack-defined id=probe_dummy lookup returned undefined spawn threw InvalidArgumentError: Invalid value passed to argument [0]. 'minecraft:probe_dummy' is not a valid entity type. typeId=string:"n/a"
+
+  - id: f-rtmfaoba # entity-type-catalog-refuses-early-execution
+    claim: |
+      `EntityTypes` answers no read during early execution. Both `get` and `getAll` throw
+      `ReferenceError: Native function [EntityTypes::get] cannot be used in early execution.` when
+      called at a pack module's evaluation and again inside a `system.beforeEvents.startup`
+      handler; by `world.afterEvents.worldLoad` both answer normally. So a pack cannot resolve an
+      entity type from its startup code at all — the only place a catalog read can happen is after
+      world load.
+    backing: tested
+    sources:
+      - run: entity-type-catalog-probe
+        where: "`at-module-eval` — get at module evaluation"
+        quote: |
+          [etreg] at-module-eval :: case=vanilla threw ReferenceError: Native function [EntityTypes::get] cannot be used in early execution.
+      - run: entity-type-catalog-probe
+        where: "`at-module-eval` — getAll at module evaluation"
+        quote: |
+          [etreg] at-module-eval :: case=all threw ReferenceError: Native function [EntityTypes::getAll] cannot be used in early execution.
+      - run: entity-type-catalog-probe
+        where: "`at-event` — get inside a system.beforeEvents.startup handler"
+        quote: |
+          [etreg] at-event :: case=startup threw ReferenceError: Native function [EntityTypes::get] cannot be used in early execution.
+      - run: entity-type-catalog-probe
+        where: "`at-event` — get after world load"
+        quote: |
+          [etreg] at-event :: case=worldLoad returned object<EntityType>
+      - run: entity-type-catalog-probe
+        where: "`at-event` — getAll after world load"
+        quote: |
+          [etreg] at-event :: case=worldLoadAll returned object<Array> length=129
+
+  - id: f-8orfr0x2 # entity-type-carries-id-and-localization-key
+    claim: |
+      An `EntityType` carries exactly two members, `id` and `localizationKey`, both own value
+      properties on the instance rather than getters, and no methods. `id` is the canonical
+      prefixed identifier. `localizationKey` drops the namespace for a vanilla type
+      (`entity.sheep.name`) and keeps it for a pack-defined one
+      (`entity.mctest:probe_dummy.name`), so it is not derivable from the id by one rule.
+    backing: tested
+    sources:
+      - run: entity-type-catalog-probe
+        where: "`shape` — the full member list of a vanilla type"
+        quote: |
+          [etreg] shape :: subject=minecraft:sheep ctor=EntityType members=[localizationKey(own,value)=string:"entity.sheep.name" id(own,value)=string:"minecraft:sheep" id(proto1,value)=undefined localizationKey(proto1,value)=undefined]
+      - run: entity-type-catalog-probe
+        where: "`shape` — the full member list of a pack-defined type"
+        quote: |
+          [etreg] shape :: subject=mctest:probe_dummy ctor=EntityType members=[localizationKey(own,value)=string:"entity.mctest:probe_dummy.name" id(own,value)=string:"mctest:probe_dummy" id(proto1,value)=undefined localizationKey(proto1,value)=undefined]
+
+  - id: f-86m69stq # entity-type-entries-are-stable-objects
+    claim: |
+      A registry entry is one object the engine keeps, not a value rebuilt per call. Two `get` calls
+      for the same id return the same object; a `getAll` entry is the same object `get` returns; and
+      two `getAll` calls return different arrays holding the same entry objects. So identity
+      comparison on an `EntityType` is meaningful, while identity comparison on the array `getAll`
+      returns is not.
+    backing: tested
+    sources:
+      - run: entity-type-catalog-probe
+        where: "`shape` — two get calls compared by identity"
+        quote: |
+          [etreg] shape :: identity-across-calls same-object=true
+      - run: entity-type-catalog-probe
+        where: "`getall` — a getAll entry against what get returns"
+        quote: |
+          [etreg] getall :: entry-identity-matches-get=true
+      - run: entity-type-catalog-probe
+        where: "`getall` — two getAll calls compared"
+        quote: |
+          [etreg] getall :: same-array-across-calls=false same-entry-objects=true
+
+  - id: f-o8xk7go5 # entity-type-catalog-holds-pack-defined-types
+    claim: |
+      `EntityTypes.getAll` returns vanilla and pack-defined types together, with no member marking
+      which is which — a type a behaviour pack defines is present and indistinguishable from a
+      vanilla one, reachable by `get` on its prefixed id. Every id it returns is namespace-prefixed
+      and none repeats. The count is the installed content's, not a constant: 129 entries on a world
+      with one content pack installed.
+    caveat: |
+      The catalog is read-only from script — nothing in `@minecraft/server` registers a type — so
+      when an entry appears was measured across the load points a pack has, not across a mid-session
+      registration.
+    backing: tested
+    sources:
+      - run: entity-type-catalog-probe
+        where: "`getall` — the count and array-ness"
+        quote: |
+          [etreg] getall :: count=129 is-array=true
+      - run: entity-type-catalog-probe
+        where: "`getall` — whether the pack-defined type is present"
+        quote: |
+          [etreg] getall :: contains-pack-defined=true
+      - run: entity-type-catalog-probe
+        where: "`getall` — the namespaces present beyond minecraft"
+        quote: |
+          [etreg] getall :: non-minecraft-namespaces=[mctest:probe_dummy]
+      - run: entity-type-catalog-probe
+        where: "`getall` — unprefixed and duplicate ids"
+        quote: |
+          [etreg] getall :: unprefixed-ids=0
+
+  - id: f-90p7coes # entity-type-lookup-agrees-with-spawnability
+    claim: |
+      `EntityTypes.get` and `dimension.spawnEntity` agree on the same identifier: across six cases —
+      a vanilla type, a pack-defined type, two unregistered ids, and the bare form of each — a
+      lookup hit spawned and a lookup miss threw
+      `InvalidArgumentError: … is not a valid entity type`. The two surfaces resolve identically,
+      the bare forms included, so a `get` that returns a value is a sound pre-check for a spawn that
+      will succeed.
+    caveat: |
+      Six identifiers were checked, not all 129 the catalog held.
+    backing: tested
+    sources:
+      - run: entity-type-catalog-probe
+        where: "`spawn` — a pack-defined type"
+        quote: |
+          [etreg] spawn :: case=pack-defined id=mctest:probe_dummy lookup returned object<EntityType> spawn returned object<Entity> typeId=string:"mctest:probe_dummy"
+      - run: entity-type-catalog-probe
+        where: "`spawn` — an unregistered namespaced id"
+        quote: |
+          [etreg] spawn :: case=absent-namespaced id=mctest:nothing_registers_this lookup returned undefined spawn threw InvalidArgumentError: Invalid value passed to argument [0]. 'mctest:nothing_registers_this' is not a valid entity type. typeId=string:"n/a"
+      - run: entity-type-catalog-probe
+        where: "`spawn` — the bare form of a vanilla type"
+        quote: |
+          [etreg] spawn :: case=bare-vanilla id=sheep lookup returned object<EntityType> spawn returned object<Entity> typeId=string:"minecraft:sheep"
+
+  - id: f-i8kpwzfk # entity-type-lookup-argument-guards
+    claim: |
+      `EntityTypes.get` guards its argument in two distinct ways. Wrong arity is a `TypeError`
+      naming the counts — `get()` and `get(a, b)` both throw
+      `Incorrect number of arguments to function`, and `getAll(a)` likewise. A present but
+      wrong-typed argument splits four ways: `undefined` and `null` throw `InvalidArgumentError`
+      (`Invalid type passed to argument [0]. Expected type: string`), while everything else throws
+      `TypeError` under one of three wordings — `Native type conversion failed.` for a number,
+      boolean, symbol, array or function, `Object did not have a native handle.` for a plain object,
+      and `Object has an invalid native handle.` for a boxed `String`. The split does not follow
+      `typeof`: an array and a function are objects and take the conversion wording, while an object
+      literal does not.
+    backing: tested
+    sources:
+      - run: entity-type-catalog-probe
+        where: "`guard` — no argument"
+        quote: |
+          [etreg] guard :: case=no-argument threw TypeError: Incorrect number of arguments to function. Expected 1, received 0
+      - run: entity-type-catalog-probe
+        where: "`guard` — undefined as the argument"
+        quote: |
+          [etreg] guard :: case=undefined threw InvalidArgumentError: Invalid type passed to argument [0]. Expected type: string
+      - run: entity-type-catalog-probe
+        where: "`guard` — a number as the argument"
+        quote: |
+          [etreg] guard :: case=number threw TypeError: Native type conversion failed. Function argument [0] expected type: string
+      - run: entity-type-catalog-probe
+        where: "`guard` — an array as the argument"
+        quote: |
+          [etreg] guard :: case=array threw TypeError: Native type conversion failed. Function argument [0] expected type: string
+      - run: entity-type-catalog-probe
+        where: "`guard` — a plain object as the argument"
+        quote: |
+          [etreg] guard :: case=object threw TypeError: Object did not have a native handle. Function argument [0] expected type: string
+      - run: entity-type-catalog-probe
+        where: "`guard` — a boxed String as the argument"
+        quote: |
+          [etreg] guard :: case=string-object threw TypeError: Object has an invalid native handle. Function argument [0] expected type: string
+      - run: entity-type-catalog-probe
+        where: "`guard` — an argument to getAll"
+        quote: |
+          [etreg] guard :: case=getall-one-argument threw TypeError: Incorrect number of arguments to function. Expected 0, received 1
+
+  - id: f-gvmc2wfa # entity-type-localization-key-derives-from-the-id
+    claim: |
+      An `EntityType`'s `localizationKey` follows one rule from its identifier, with no exceptions:
+      it is `entity.<id>.name`, with a leading `minecraft:` stripped and any other namespace kept.
+      Checked against every entry the catalog held — 129 types, vanilla and pack-defined together —
+      the derived key matched the engine's for all of them, and no read threw. So a vanilla type
+      reads `entity.sheep.name` and a pack-defined one `entity.mctest:probe_dummy.name`, both from
+      the same rule.
+    caveat: |
+      Measured on one world with one content pack installed, so the pack-defined side of the rule
+      rests on that pack's single type.
+    backing: tested
+    sources:
+      - run: entity-type-catalog-probe
+        where: "`localization` — the derived key against every registry entry"
+        quote: |
+          [etreg] localization :: checked=129 mismatches=0 read-threw=0
+      - run: entity-type-catalog-probe
+        where: "`shape` — a vanilla type's key, namespace stripped"
+        quote: |
+          [etreg] shape :: subject=minecraft:sheep ctor=EntityType members=[localizationKey(own,value)=string:"entity.sheep.name" id(own,value)=string:"minecraft:sheep" id(proto1,value)=undefined localizationKey(proto1,value)=undefined]
+      - run: entity-type-catalog-probe
+        where: "`shape` — a pack-defined type's key, namespace kept"
+        quote: |
+          [etreg] shape :: subject=mctest:probe_dummy ctor=EntityType members=[localizationKey(own,value)=string:"entity.mctest:probe_dummy.name" id(own,value)=string:"mctest:probe_dummy" id(proto1,value)=undefined localizationKey(proto1,value)=undefined]

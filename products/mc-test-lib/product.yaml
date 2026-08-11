@@ -1,10 +1,5 @@
-version: "1"
+version: "2"
 kind: dev-tooling
 packages:
   - path: nodejs/minecraft/test-lib
     kind: npm-library
-facets:
-  - id: fakes
-    description: the in-memory fakes of the `@minecraft/server` object model and their control plane — the test-double library itself
-  - id: shim
-    description: the import-level shim that stands the fakes in for a direct `@minecraft/server` module import in a test runner

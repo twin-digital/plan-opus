@@ -383,3 +383,19 @@ runs:
       1.26.40.8 — the same image every golem-probe set ran against. The entity definition is read
       off the running container's filesystem; it is the engine build's own data and would differ
       against another.
+
+  - id: entity-type-catalog-probe
+    command: node evidence/minecraft/test-lib/entity-types-probe/run.mjs 1
+    output: evidence/minecraft/test-lib/entity-types-probe/RUN.txt
+    ran_at: 2026-08-10
+    environment: |
+      itzg/minecraft-bedrock-server, Bedrock dedicated 1.26.43.1, @minecraft/server 2.8.0 as a pack
+      manifest dependency with no experiments enabled. entity-types-probe pack 0.1.0, uuid
+      3f8a5c21-9d47-4e63-b0a2-6c1e8f4d7b39, carrying a data module that defines
+      `mctest:probe_dummy`, triggered from the server console as `scriptevent etreg:registry` with
+      no client attached. Five passes, identical readings, no PROBE CRASHED lines; RUN.txt is the
+      fifth, which added the localization set checking a derived key against every registry entry,
+      after a fourth that added the boolean, symbol, array, function and boxed-String argument
+      cases; its spawn set ran with the probe's own ticking area loaded. RESULTS.md beside it
+      reads the log. One content pack is installed, so the 129-entry count is this world's rather
+      than a vanilla constant.
