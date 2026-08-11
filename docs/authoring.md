@@ -1,5 +1,5 @@
 ---
-version: "34"
+version: "36"
 ---
 
 # Authoring
@@ -113,6 +113,9 @@ ballast.
 
 ## Facts and evidence
 
+- A fact's title names the finding in one line — the thing measured and what it came out as —
+  and reads on its own, since a citation shows the title beside the id and nothing more. The claim
+  keeps the numbers, the versions, and the conditions the finding holds under.
 - A documented fact cites the upstream original, with a verbatim quote that states the claim
   the fact makes. A repository transcription is not a source, and a genuine quote beside the
   point fails like a paraphrase.
@@ -156,6 +159,6 @@ is judged exactly as what the increment wrote from scratch.
 | 10 | decision — because | Does every citation carry a real dependency, and every real dependency a citation? |
 | 11 | decision — pinning | Proposed pinned where a public surface, a data format, a dependent product, or a consumer-visible behaviour is fixed — and `notes` only where the named reason's application is unclear? |
 | 12 | model | Entities named in the design's words, described for this design, each referenced by the prose? |
-| 13 | facts | Upstream originals with claim-carrying verbatim quotes, re-runnable runs, the pool searched first, filed by subject, wrong ones superseded? |
+| 13 | facts | A one-line title naming the finding, upstream originals with claim-carrying verbatim quotes, re-runnable runs, the pool searched first, filed by subject, wrong ones superseded? |
 | 14 | draft | Every claim citing a foundation or extracted — no shadow decisions frozen in? |
 | 15 | backlog adoption | Does everything the adopting increment records meet the ordinary bar, the captured item read as raw material rather than moved text — and is the captured item itself left unjudged by these tests? |
