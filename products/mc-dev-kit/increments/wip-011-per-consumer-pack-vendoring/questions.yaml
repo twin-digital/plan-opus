@@ -1,6 +1,17 @@
 version: "1"
 
 questions:
+  - id: q-sywqp93y
+    answer: requirement
+    question: |
+      does a run host a vendored pack? `r-u8cg9vi6` has a run host every pack the kit discovers where
+      no profile narrows it, and `r-zcdmh9p6` makes source-manifest presence the whole membership
+      test — so a vendored pack is discovered, and the requirement hosts it. `d-27lzrwsu` says it
+      never deploys, which is the collision. Hosting it puts its un-namespaced names in the same pack
+      stack as its vendorings, and it has no namespace of its own to build under in any case, so
+      `d-vrq7lc2o` would deploy it as a stub. Amending `r-u8cg9vi6` to except a vendored pack is the
+      owner's call; the alternative is that `d-27lzrwsu` gives way and a vendored pack ships twice.
+
   - id: q-em9yfbqa
     answer: requirement
     question: |
