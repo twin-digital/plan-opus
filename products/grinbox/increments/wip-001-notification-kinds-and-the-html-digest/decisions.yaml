@@ -2,6 +2,7 @@ version: "3"
 
 decisions:
   - id: d-vn2jdxbs
+    scope: notifications
     title: a notify operator declares the notification kind it sends
     statement: |
       every notify operator carries a notification kind — a short name the user chooses — and
@@ -19,6 +20,7 @@ decisions:
       reason: public-api
 
   - id: d-5amonj40
+    scope: notifications
     title: a suppressed push is an outcome, not a failure
     statement: |
       the user sets a minimum interval per notification kind. An operator whose kind was delivered
@@ -35,6 +37,7 @@ decisions:
       reason: public-api
 
   - id: d-6ptxams7
+    scope: notifications
     title: the cooldown is the user's, and the limits still bind under it
     statement: |
       a notification kind's interval is a cooldown the user sets, changes, and removes at will. It
@@ -58,6 +61,7 @@ decisions:
   # From the survey census: the cooldown setting's shape and records.
 
   - id: d-k3wq81vn
+    scope: notifications
     title: a kind's interval is the user's setting, keyed by the kind's name
     statement: |
       a notification kind's interval is a setting of the user's, keyed by the kind's name and
@@ -74,6 +78,7 @@ decisions:
       reason: public-api
 
   - id: d-p8xrn2ce
+    scope: notifications
     title: a kind's name is stored as typed and matched exactly
     statement: |
       a notification kind's name is a non-empty line of text, trimmed of surrounding whitespace
@@ -87,6 +92,7 @@ decisions:
       reason: data-format
 
   - id: d-w2fzk9bd
+    scope: notifications
     title: a cooldown change is recorded like any configuration change
     statement: |
       setting, changing, or removing a kind's interval is an accepted configuration change: it
@@ -101,6 +107,7 @@ decisions:
       reason: data-format
 
   - id: d-t6mhv3aq
+    scope: notifications
     title: the interval is whole seconds, present or absent
     statement: |
       a cooldown interval is stored as a whole number of seconds, at least one, with no ceiling.
@@ -115,6 +122,7 @@ decisions:
       reason: data-format
 
   - id: d-e9jslw4x
+    scope: notifications
     title: a suppression is its own recorded outcome
     statement: |
       a suppressed push records as its own outcome kind in the attempt vocabulary, beside
@@ -131,6 +139,7 @@ decisions:
   # The digest's second rendition, from the unmerged infrastructure #90 and #94.
 
   - id: d-1oqjgi9m
+    scope: digests
     title: a digest is delivered in two renditions in one mail
     statement: |
       a digest is delivered as one mail carrying two renditions of the same content: a plain-text
@@ -144,6 +153,7 @@ decisions:
       reason: data-format
 
   - id: d-rd986rrt
+    scope: backends
     title: the send operation takes an optional second rendition
     statement: |
       the operation that sends mail takes a required plain-text body and an optional rich
@@ -159,6 +169,7 @@ decisions:
       reason: public-api
 
   - id: d-or4jo6s1
+    scope: backends
     title: carrying a rendition is not a capability a backend declares
     statement: |
       a backend declares that it sends mail and nothing about which renditions it carries. Handing
@@ -172,6 +183,7 @@ decisions:
       reason: public-api
 
   - id: d-7pviv01j
+    scope: digests
     title: a marked item is marked in each rendition's own terms
     statement: |
       the comparison that marks an item runs once and is unchanged; how the mark reads is each
@@ -186,6 +198,7 @@ decisions:
       notes: what the user actually sees of a threshold mark, in each rendition
 
   - id: d-zkb393z9
+    scope: digests
     title: the rich rendition is self-contained and imposes no colour scheme
     statement: |
       the rich rendition carries its presentation on its own elements, references no external
@@ -205,6 +218,7 @@ decisions:
         it constrains what any later change to the digest's appearance may reach for
 
   - id: d-h5ycq7rm
+    scope: digests
     title: the rich rendition's markup is grinbox's alone
     statement: |
       the only markup in the rich rendition is what grinbox itself authors. Template literals,
@@ -222,6 +236,7 @@ decisions:
   # Money in display form, from the unmerged infrastructure #93.
 
   - id: d-nj43sz9w
+    scope: digests
     title: the display form is rendered, never stored
     statement: |
       a digest renders an extracted money tag in display form. The normalized stored form stays
@@ -236,6 +251,7 @@ decisions:
       reason: data-format
 
   - id: d-m6ingqyv
+    scope: digests
     title: what renders in display form is what the pipeline declared as money
     statement: |
       a tag renders in display form when the pipeline's enabled operators type its key as an
@@ -253,6 +269,7 @@ decisions:
         declaration and the stored value disagree
 
   - id: d-oc073wsp
+    scope: digests
     title: the display form follows from the ISO currency alone
     statement: |
       an extracted money value's display form follows from its ISO currency alone — the machine's
@@ -271,6 +288,7 @@ decisions:
       notes: the amounts in every delivered digest, and moving the machine does not change them
 
   - id: d-b1ntd8go
+    scope: digests
     title: the display form's conventions are fixed once
     statement: |
       the display form places a known symbol before the amount, groups thousands with commas,
@@ -285,6 +303,7 @@ decisions:
       notes: the residual conventions the ISO-currency rules leave open, visible on every amount
 
   - id: d-u4gpx6ke
+    scope: interface
     title: the interface shows money as the digest does
     statement: |
       the interface renders an extracted money value in display form wherever it shows the
@@ -303,6 +322,7 @@ decisions:
   # The digest-family ruling: the calendar moment is a cue, the executed unit an occurrence.
 
   - id: d-m7gx2vqk
+    scope: digests
     title: missed cues collapse into one
     statement: |
       where grinbox was down across several of an edition's cues, it fires once on return, for
@@ -316,6 +336,7 @@ decisions:
     pinned: false
 
   - id: d-w5jc8rbn
+    scope: digests
     title: claiming the occurrence is what prevents a second send
     statement: |
       an occurrence is claimed by recording it before any work is done, and the record is
@@ -349,6 +370,7 @@ decisions:
         so the ceiling on the per-account interval alone does not bound it
 
   - id: d-v8qm4kfw
+    scope: digests
     title: only a completed occurrence moves the watermark
     statement: |
       the watermark advances when an occurrence completes and at no other time, so a failed or
@@ -362,6 +384,7 @@ decisions:
     pinned: false
 
   - id: d-t9bp6wnz
+    scope: digests
     title: an occurrence bounds how many items it shows
     statement: |
       an occurrence shows at most a bounded number of items, whatever its span holds, so that
@@ -376,6 +399,7 @@ decisions:
     pinned: false
 
   - id: d-c2fh5mxj
+    scope: digests
     title: the item bound keeps the oldest mail in the span
     statement: |
       where an occurrence's item bound cuts, what it shows is the oldest mail in the span and
@@ -387,6 +411,7 @@ decisions:
     pinned: false
 
   - id: d-k6rw9tqv
+    scope: digests
     title: a first occurrence covers from the edition's creation
     statement: |
       an edition's first occurrence covers mail taken in since the edition was created, not the
@@ -401,6 +426,7 @@ decisions:
       reason: data-format
 
   - id: d-n3zj7ywp
+    scope: digests
     title: a digest action
     statement: |
       grinbox ships an action that runs on a schedule rather than per message, collating what it
@@ -492,6 +518,7 @@ decisions:
         state rather than a new surface
 
   - id: d-l9qh3xnw
+    scope: interface
     title: measurements come from the triage records themselves
     statement: |
       what the interface reports about volume, cost, failures, and limits is computed from the
@@ -505,6 +532,7 @@ decisions:
     pinned: false
 
   - id: d-i5vy7bkm
+    scope: digests
     title: prose is the only model involvement, and it cannot touch the items
     statement: |
       a section may carry prose before or after its items — fixed text, or a short passage a
@@ -583,6 +611,7 @@ decisions:
     pinned: false
 
   - id: d-3jzcw7xt
+    scope: digests
     title: a limit-denied send fails the occurrence, and an empty span sends nothing
     statement: |
       an occurrence has no subject message, so per-message limits neither apply to it nor count
@@ -598,6 +627,7 @@ decisions:
     pinned: false
 
   - id: d-8wqk2nvy
+    scope: digests
     title: which edition claims a message is a tag
     statement: |
       a message is slotted into an edition's digest by an ordinary tag with a closed set of
@@ -616,6 +646,7 @@ decisions:
         validated against
 
   - id: d-y7pm3kdz
+    scope: digests
     title: editions of one pipeline claim disjoint values
     statement: |
       no two editions of a pipeline may claim the same value of the slotting tag, checked when
@@ -630,6 +661,7 @@ decisions:
     pinned: false
 
   - id: d-q2hx8vlm
+    scope: backends
     title: a backend is reached through two seams, and the poll seam is five operations
     statement: |
       a mail backend implements two seams. The poll seam carries what the poll path needs —
@@ -646,6 +678,7 @@ decisions:
       notes: the surface a second backend is written against
 
   - id: d-f9tj4wnr
+    scope: backends
     title: a backend implements what it can, and the gap is visible
     statement: |
       a backend need not implement every mail operation — one that can read a mailbox but not
@@ -685,6 +718,7 @@ decisions:
         send is an effect the user sees twice
 
   - id: d-x8rw5jvq
+    scope: triage
     title: an output is a closed enum or a typed extraction
     statement: |
       an operator declares each output tag one of two ways. An extracted output may be absent,
@@ -705,6 +739,7 @@ decisions:
         renders or compares a tag
 
   - id: d-n6qv2hpk
+    scope: triage
     title: a rule-based tagger
     statement: |
       grinbox ships a tagger whose output is derived deterministically, with no model call, by
@@ -719,6 +754,7 @@ decisions:
       reason: public-api
 
   - id: d-c7fs3wlz
+    scope: triage
     title: rules are expressions, evaluated by grinbox's own reader
     statement: |
       a rule matches by an expression over the tags earlier operators produced and any field of
@@ -753,6 +789,7 @@ decisions:
         dependencies derived from them
 
   - id: d-k9zb4mtw
+    scope: digests
     title: an edition is an instance, and its schedule is its cadence
     statement: |
       an edition is an ordinary operator instance whose configuration carries the schedule it
@@ -766,6 +803,9 @@ decisions:
     pinned: false
 
   - id: d-w4hn8qpv
+    scope:
+      - digests
+      - triage
     title: judgement happens at triage, collation at the occurrence
     statement: |
       every judgement about a message — which edition claims it, what is worth pulling out of
@@ -784,6 +824,7 @@ decisions:
         product's central guarantee out of reach
 
   - id: d-p3vd6kxz
+    scope: digests
     title: an edition fires per account, and is sent to that account's owner
     statement: |
       an edition fires once per account its pipeline is active on, covering that account's mail
@@ -797,6 +838,7 @@ decisions:
     pinned: false
 
   - id: d-h8tq5wnm
+    scope: digests
     title: the span is half-open over when mail was taken in
     statement: |
       an occurrence's span runs over the messages grinbox took in after the last completed
@@ -815,6 +857,7 @@ decisions:
         measures re-cuts windows already delivered
 
   - id: d-z6xj9bfw
+    scope: triage
     title: a triage captures the configuration it was enqueued with
     statement: |
       when a triage is enqueued it captures, per operator, the type, the code version, and the
@@ -833,6 +876,7 @@ decisions:
         old outcomes unreadable rather than merely differently computed
 
   - id: d-r5wc2qnj
+    scope: interface
     title: listing messages is paged, ordered newest first, and filtered
     statement: |
       listing messages is paged with caller-supplied page bounds and a bounded page size,

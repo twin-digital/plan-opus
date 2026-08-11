@@ -1,12 +1,26 @@
 version: "3"
 
+components:
+  - id: digests
+    description: the summarizing subsystem — editions, their cues and occurrences, and the digest mail they produce
+  - id: triage
+    description: per-message pipeline execution — operators, their runs, and what a triage records
+  - id: backends
+    description: grinbox's integration with mail backends — the poll seam, the resource backends, and authorization
+  - id: notifications
+    description: pushes and their grouping — notification kinds, cooldowns, and suppression
+  - id: interface
+    description: the surface the user works grinbox through — the browser application and the API it reads
+
 terms:
   - id: notification-kind
+    scope: notifications
     display: notification kind
     definition: |
       what a push is about, named by the user and carried by the operators that send it.
 
   - id: cooldown
+    scope: notifications
     definition: |
       a minimum interval the user sets on a notification kind, suppressing pushes that fall
       inside it.
@@ -17,10 +31,12 @@ terms:
       records against.
 
   - id: cue
+    scope: digests
     definition: |
       a moment an edition's schedule makes due, whether or not grinbox was awake to act on it.
 
   - id: occurrence
+    scope: digests
     definition: |
       one execution of an edition for one account and cue: it selects, renders, and sends, and
       is claimed before any work begins.
@@ -45,20 +61,24 @@ terms:
       the external mail service an account belongs to and authorizes against.
 
   - id: digest
+    scope: digests
     definition: |
       the mail an occurrence sends: one edition's rendering of one span for one account.
 
   - id: edition
+    scope: digests
     definition: |
       an operator instance whose configuration carries the schedule it fires on.
 
   - id: span
+    scope: digests
     definition: |
       the half-open stretch of intake time one occurrence covers: after the last completed
       occurrence, up to when this one was claimed.
 
 requirements:
   - id: r-lph86tsg
+    scope: notifications
     title: a burst of one notification kind costs one push
     statement: |
       the user decides how often a class of push may reach them, and a burst of related mail
@@ -69,6 +89,7 @@ requirements:
       notification depends on.
 
   - id: r-m7y9ocdu
+    scope: digests
     title: a digest reaches the user whatever their client renders
     statement: |
       every item, count, prose passage, and footer a digest carries reaches the user as readable
@@ -78,6 +99,7 @@ requirements:
       unreadable markup has spent its span for nothing.
 
   - id: r-8sg01qdd
+    scope: digests
     title: text taken from a message is never markup
     statement: |
       text a digest takes from a message reaches the user as the characters it is. Nothing a
@@ -87,6 +109,7 @@ requirements:
       configures, and text grinbox did not solicit has weaker standing than that.
 
   - id: r-735kq72h
+    scope: digests
     title: a digest shows money the way a person reads it
     statement: |
       a digest shows an extracted money value in the form a person reads money in, not in the
@@ -99,6 +122,7 @@ requirements:
   # pipeline's configured unit. Each restates its predecessor with no other change.
 
   - id: r-2qw8xj5m
+    scope: triage
     title: one operator's failure does not cost the rest
     statement: |
       where one operator of a message's triage fails, the operators that do not depend on it
@@ -107,6 +131,7 @@ requirements:
     supersedes: r-1698i3qa
 
   - id: r-9fkp4tzv
+    scope: triage
     title: an operator reaches only what it declared
     statement: |
       an operator of a triage can reach outside grinbox only through the operations it declared,
@@ -114,6 +139,7 @@ requirements:
     supersedes: r-p5jm5559
 
   - id: r-c5nm7ryw
+    scope: triage
     title: a configuration that could not run is refused when it is saved
     statement: |
       a triage configuration that could not run — one whose operators depend on something
@@ -123,6 +149,7 @@ requirements:
     supersedes: r-qu9y7wgg
 
   - id: r-dk3vq6tp
+    scope: triage
     title: routing mail never requires a model
     statement: |
       grinbox can route a message without calling a model: what a pipeline decides can be
@@ -130,6 +157,7 @@ requirements:
     supersedes: r-xy0yd2nh
 
   - id: r-hw8gn2fs
+    scope: triage
     title: the whole message is available without asking for it
     statement: |
       every operator of a triage can read any part of the message it is triaging, without
@@ -139,6 +167,7 @@ requirements:
   # The digest-family ruling: the requirements that said delivery, carried into occurrence.
 
   - id: r-j2wn9xtb
+    scope: digests
     title: a message is digested once
     statement: |
       a message appears in at most one digest, whatever a user has configured and however
@@ -146,6 +175,7 @@ requirements:
     supersedes: r-yq13riob
 
   - id: r-f7dk3qzm
+    scope: digests
     title: an undelivered digest costs no coverage
     statement: |
       mail that a digest would have covered had it been delivered is covered by the next
@@ -171,6 +201,7 @@ requirements:
     supersedes: r-zmn2p7lf
 
   - id: r-t4jn8zvw
+    scope: interface
     title: running grinbox takes nothing but grinbox
     statement: |
       everything a user has to do to run grinbox — adding a mailbox, building and changing a
@@ -180,6 +211,7 @@ requirements:
     supersedes: r-bcbvl9g5
 
   - id: r-x3jb6wlq
+    scope: interface
     title: grinbox says what it needs
     statement: |
       the user learns from grinbox's own interface that something needs them — a mailbox whose
