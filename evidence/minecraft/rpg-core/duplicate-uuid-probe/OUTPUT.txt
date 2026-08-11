@@ -1,0 +1,89 @@
+behavior copies share uuid 8e5c0000-0000-4000-8000-000000000001; resource copies share 8e5c0000-0000-4000-8000-000000000002
+
+=== A samever — two behavior dirs, same uuid, same version 1.0.0
+bp pool dirs: bp_a_v1 bp_b_v1 observer   rp pool dirs: (none)
+behavior activation list: [{"pack_id":"8e5c0000-0000-4000-8000-000000000001","version":[1,0,0]},{"pack_id":"8e5c0000-0000-4000-8000-000000000003","version":[1,0,0]}]
+resource activation list: []
+[2026-08-10 05:50:41:998 INFO] Profiler config ('bootstrap.json') load result: success=1, errorMessage=(null)
+[2026-08-10 05:50:42:415 INFO] Pack Stack - [00] dup copy a v1.0.0 (id: 8e5c0000-0000-4000-8000-000000000001, version: 1.0.0) @ development_behavior_packs/bp_a_v1
+[2026-08-10 05:50:42:415 INFO] Pack Stack - [01] observer (id: 8e5c0000-0000-4000-8000-000000000003, version: 1.0.0) @ development_behavior_packs/observer
+[2026-08-10 05:50:46:407 WARN] [Scripting] PROBE entityType-dup:from_a=defined
+[2026-08-10 05:50:46:407 WARN] [Scripting] PROBE entityType-dup:from_b=undefined
+[2026-08-10 05:50:46:407 WARN] [Scripting] PROBE packstack-client-successCount=1
+[2026-08-10 05:50:46:407 WARN] [Scripting] PROBE done
+
+=== B mixedver — same uuid, copy a at 1.0.0 and copy b at 1.1.0, list pins 1.0.0
+bp pool dirs: bp_a_v1 bp_b_v11 observer   rp pool dirs: (none)
+behavior activation list: [{"pack_id":"8e5c0000-0000-4000-8000-000000000001","version":[1,0,0]},{"pack_id":"8e5c0000-0000-4000-8000-000000000003","version":[1,0,0]}]
+resource activation list: []
+[2026-08-10 05:50:58:871 INFO] Profiler config ('bootstrap.json') load result: success=1, errorMessage=(null)
+[2026-08-10 05:50:59:286 INFO] Pack Stack - [00] dup copy a v1.0.0 (id: 8e5c0000-0000-4000-8000-000000000001, version: 1.0.0) @ development_behavior_packs/bp_a_v1
+[2026-08-10 05:50:59:286 INFO] Pack Stack - [01] observer (id: 8e5c0000-0000-4000-8000-000000000003, version: 1.0.0) @ development_behavior_packs/observer
+[2026-08-10 05:51:03:271 WARN] [Scripting] PROBE entityType-dup:from_a=defined
+[2026-08-10 05:51:03:271 WARN] [Scripting] PROBE entityType-dup:from_b=undefined
+[2026-08-10 05:51:03:271 WARN] [Scripting] PROBE packstack-client-successCount=1
+[2026-08-10 05:51:03:271 WARN] [Scripting] PROBE done
+
+=== C listedtwice — identical duplicates, activation list names the uuid twice
+bp pool dirs: bp_a_v1 bp_b_v1 observer   rp pool dirs: (none)
+behavior activation list: [{"pack_id":"8e5c0000-0000-4000-8000-000000000001","version":[1,0,0]},{"pack_id":"8e5c0000-0000-4000-8000-000000000001","version":[1,0,0]},{"pack_id":"8e5c0000-0000-4000-8000-000000000003","version":[1,0,0]}]
+resource activation list: []
+[2026-08-10 05:51:15:988 INFO] Profiler config ('bootstrap.json') load result: success=1, errorMessage=(null)
+[2026-08-10 05:51:16:394 INFO] Pack Stack - [00] dup copy a v1.0.0 (id: 8e5c0000-0000-4000-8000-000000000001, version: 1.0.0) @ development_behavior_packs/bp_a_v1
+[2026-08-10 05:51:16:394 INFO] Pack Stack - [01] observer (id: 8e5c0000-0000-4000-8000-000000000003, version: 1.0.0) @ development_behavior_packs/observer
+[2026-08-10 05:51:20:394 WARN] [Scripting] PROBE entityType-dup:from_a=defined
+[2026-08-10 05:51:20:394 WARN] [Scripting] PROBE entityType-dup:from_b=undefined
+[2026-08-10 05:51:20:394 WARN] [Scripting] PROBE packstack-client-successCount=1
+[2026-08-10 05:51:20:394 WARN] [Scripting] PROBE done
+
+=== D duprp — two resource dirs sharing one uuid and version
+bp pool dirs: bp_a_v1 observer   rp pool dirs: rp_a rp_b
+behavior activation list: [{"pack_id":"8e5c0000-0000-4000-8000-000000000001","version":[1,0,0]},{"pack_id":"8e5c0000-0000-4000-8000-000000000003","version":[1,0,0]}]
+resource activation list: [{"pack_id":"8e5c0000-0000-4000-8000-000000000002","version":[1,0,0]}]
+[2026-08-10 05:51:33:614 INFO] Profiler config ('bootstrap.json') load result: success=1, errorMessage=(null)
+[2026-08-10 05:51:34:011 INFO] Pack Stack - [00] dup copy a v1.0.0 (id: 8e5c0000-0000-4000-8000-000000000001, version: 1.0.0) @ development_behavior_packs/bp_a_v1
+[2026-08-10 05:51:34:011 INFO] Pack Stack - [01] observer (id: 8e5c0000-0000-4000-8000-000000000003, version: 1.0.0) @ development_behavior_packs/observer
+[2026-08-10 05:51:38:192 WARN] [Scripting] PROBE entityType-dup:from_a=defined
+[2026-08-10 05:51:38:192 WARN] [Scripting] PROBE entityType-dup:from_b=undefined
+[2026-08-10 05:51:38:192 WARN] [Scripting] PROBE packstack-client-successCount=2
+[2026-08-10 05:51:38:192 WARN] [Scripting] PROBE done
+
+=== E pinhigher — same pool as B, activation list pins 1.1.0 instead
+bp pool dirs: bp_a_v1 bp_b_v11 observer   rp pool dirs: (none)
+behavior activation list: [{"pack_id":"8e5c0000-0000-4000-8000-000000000001","version":[1,1,0]},{"pack_id":"8e5c0000-0000-4000-8000-000000000003","version":[1,0,0]}]
+resource activation list: []
+[2026-08-10 05:51:52:673 INFO] Profiler config ('bootstrap.json') load result: success=1, errorMessage=(null)
+[2026-08-10 05:51:53:101 INFO] Pack Stack - [00] dup copy b v1.1.0 (id: 8e5c0000-0000-4000-8000-000000000001, version: 1.1.0) @ development_behavior_packs/bp_b_v11
+[2026-08-10 05:51:53:101 INFO] Pack Stack - [01] observer (id: 8e5c0000-0000-4000-8000-000000000003, version: 1.0.0) @ development_behavior_packs/observer
+[2026-08-10 05:51:56:978 WARN] [Scripting] PROBE entityType-dup:from_a=undefined
+[2026-08-10 05:51:56:978 WARN] [Scripting] PROBE entityType-dup:from_b=defined
+[2026-08-10 05:51:56:978 WARN] [Scripting] PROBE packstack-client-successCount=1
+[2026-08-10 05:51:56:978 WARN] [Scripting] PROBE done
+
+=== F tieorder — identical versions, directory names inverted so copy b sorts first
+bp pool dirs: zz_copy_a_v1 aa_copy_b_v1 observer   rp pool dirs: (none)
+behavior activation list: [{"pack_id":"8e5c0000-0000-4000-8000-000000000001","version":[1,0,0]},{"pack_id":"8e5c0000-0000-4000-8000-000000000003","version":[1,0,0]}]
+resource activation list: []
+[2026-08-10 05:52:09:702 INFO] Profiler config ('bootstrap.json') load result: success=1, errorMessage=(null)
+[2026-08-10 05:52:10:093 INFO] Pack Stack - [00] dup copy a v1.0.0 (id: 8e5c0000-0000-4000-8000-000000000001, version: 1.0.0) @ development_behavior_packs/zz_copy_a_v1
+[2026-08-10 05:52:10:093 INFO] Pack Stack - [01] observer (id: 8e5c0000-0000-4000-8000-000000000003, version: 1.0.0) @ development_behavior_packs/observer
+[2026-08-10 05:52:13:977 WARN] [Scripting] PROBE entityType-dup:from_a=defined
+[2026-08-10 05:52:13:977 WARN] [Scripting] PROBE entityType-dup:from_b=undefined
+[2026-08-10 05:52:13:977 WARN] [Scripting] PROBE packstack-client-successCount=1
+[2026-08-10 05:52:13:977 WARN] [Scripting] PROBE done
+
+=== G pinmissing — pool holds 1.0.0 and 1.1.0, activation list pins 1.2.0
+bp pool dirs: bp_a_v1 bp_b_v11 observer   rp pool dirs: (none)
+behavior activation list: [{"pack_id":"8e5c0000-0000-4000-8000-000000000001","version":[1,2,0]},{"pack_id":"8e5c0000-0000-4000-8000-000000000003","version":[1,0,0]}]
+resource activation list: []
+[2026-08-10 05:52:26:677 INFO] Profiler config ('bootstrap.json') load result: success=1, errorMessage=(null)
+[2026-08-10 05:52:27:075 INFO] Pack Stack - [00] dup copy b v1.1.0 (id: 8e5c0000-0000-4000-8000-000000000001, version: 1.1.0) @ development_behavior_packs/bp_b_v11
+[2026-08-10 05:52:27:075 INFO] Pack Stack - [01] observer (id: 8e5c0000-0000-4000-8000-000000000003, version: 1.0.0) @ development_behavior_packs/observer
+[2026-08-10 05:52:30:967 WARN] [Scripting] PROBE entityType-dup:from_a=undefined
+[2026-08-10 05:52:30:967 WARN] [Scripting] PROBE entityType-dup:from_b=defined
+[2026-08-10 05:52:30:967 WARN] [Scripting] PROBE packstack-client-successCount=1
+[2026-08-10 05:52:30:967 WARN] [Scripting] PROBE done
+
+=== teardown
+container and volume removed
+exit=0

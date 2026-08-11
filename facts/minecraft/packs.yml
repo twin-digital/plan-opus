@@ -347,3 +347,343 @@ facts:
                   "version": "1.9.0"
               }
           ],
+
+  - id: an-entity-type-resolves-for-a-script-in-any-other-loaded-pack
+    claim: |
+      An entity type one behavior pack defines is resolvable from a script in a different behavior
+      pack, and a declared manifest dependency is not what makes it so. On Bedrock 1.26.43.1 a
+      consumer pack's script spawned the provider pack's `probe:actor` in three arrangements — the
+      dependency declared with both packs listed active, no dependency declared at all, and the
+      dependency declared with the provider absent from the world's activation list — and all three
+      read identically: `spawnEntity` returned an entity whose `typeId` was `probe:actor`, the
+      dimension then held one of them, a `summon` of the same identifier succeeded, and the count
+      read two. With the provider pack not in the pool at all the same calls fail at the identifier
+      rather than anywhere else. What the resolution turns on is the defining pack being loaded, and
+      nothing else — so an addon may hold its entity definitions in one pack and spawn them from
+      another.
+    backing: tested
+    caveat: |
+      Spawning needs the target location in a loaded, ticking chunk, which on a server with no
+      player connected means a ticking area has to be created first and given time to settle: before
+      that, every arrangement fails alike with a chunk error that says nothing about the identifier.
+      The probe covers behavior packs only; nothing here observes a resource pack, and nothing
+      observes rendering.
+    sources:
+      - run: run-roqepx2c
+        where: scenario q1nodep — the consumer declares no dependency on the provider
+        quote: |
+          [2026-08-10 01:40:18:836 WARN] [Scripting] PROBE q1-nodep spawnEntity=ok
+          [2026-08-10 01:40:18:836 WARN] [Scripting] PROBE q1-nodep spawned-typeId=probe:actor
+          [2026-08-10 01:40:18:836 WARN] [Scripting] PROBE q1-nodep count-after-spawn=1
+          [2026-08-10 01:40:18:836 WARN] [Scripting] PROBE q1-nodep summon-command=ok
+          [2026-08-10 01:40:18:836 WARN] [Scripting] PROBE q1-nodep count-after-summon=2
+      - run: run-roqepx2c
+        where: scenario q1missing — the provider pack is absent from the pool
+        quote: |
+          [2026-08-10 01:41:39:719 WARN] [Scripting] PROBE q1-dep spawnEntity=THREW
+          [2026-08-10 01:41:39:719 WARN] [Scripting] PROBE q1-dep spawnEntity-error=Invalid value passed to argument (0). 'probe:actor' is not a valid entity type.
+          [2026-08-10 01:41:39:719 WARN] [Scripting] PROBE q1-dep count-after-spawn=0
+
+  - id: a-script-module-does-not-resolve-across-packs
+    claim: |
+      No import reaches a module held in another behavior pack. Four static specifier shapes — a
+      pool-relative `../../<uuid>/scripts/lib.js`, a `../../../development_behavior_packs/<uuid>/…`
+      walk, an absolute `/development_behavior_packs/<uuid>/…`, and a bare `probe-provider/lib.js` —
+      each fail at load with `ReferenceError: Import [<specifier>] not found.`, after which the
+      importing pack's entry reports `ran with error` and none of its code runs. A dynamic `import()`
+      of the pool-relative shape is accepted syntactically and its promise rejects with the same
+      message. Every importing pack declared a manifest dependency on the pack holding the module, so
+      a declared dependency opens no module path. Code shared between packs is therefore shared at
+      build time or not at all.
+    backing: tested
+    sources:
+      - run: run-roqepx2c
+        where: scenario q2 — the four static specifier shapes, one per pack
+        quote: |
+          [2026-08-10 01:42:08:139 ERROR] [Scripting] [probe importer rel-pool] ReferenceError: Import [../../4a1f0000-0000-4000-8000-000000000001/scripts/lib.js] not found.
+          [2026-08-10 01:42:08:139 ERROR] [Scripting] [probe importer rel-up] ReferenceError: Import [../../../development_behavior_packs/4a1f0000-0000-4000-8000-000000000001/scripts/lib.js] not found.
+          [2026-08-10 01:42:08:139 ERROR] [Scripting] [probe importer abs-pool] ReferenceError: Import [/development_behavior_packs/4a1f0000-0000-4000-8000-000000000001/scripts/lib.js] not found.
+          [2026-08-10 01:42:08:139 ERROR] [Scripting] [probe importer bare] ReferenceError: Import [probe-provider/lib.js] not found.
+      - run: run-roqepx2c
+        where: scenario q2 — the importing pack's entry after the failed resolution
+        quote: |
+          [2026-08-10 01:42:08:149 ERROR] [Scripting] Plugin [probe importer rel-pool - 1.0.0] - [main.js] ran with error: [ReferenceError: Import [../../4a1f0000-0000-4000-8000-000000000001/scripts/lib.js] not found.]
+      - run: run-roqepx2c
+        where: scenario q2 — the dynamic import's rejection
+        quote: |
+          [2026-08-10 01:42:12:085 WARN] [Scripting] PROBE q2-dynamic dynamic-rejected=Import (../../4a1f0000-0000-4000-8000-000000000001/scripts/lib.js] not found.
+
+  - id: a-declared-pack-dependency-activates-the-depended-on-pack
+    claim: |
+      A behavior pack a world activates brings the packs its manifest depends on into the pack stack
+      with it, without their being listed, and it does so across pack kinds. A world whose behavior
+      activation list named only the consumer loaded the consumer at stack position 00 and the depended-on
+      behavior pack at 01, the latter reaching the stack through the consumer's `dependencies` entry
+      alone, and its own script then evaluated. The pulled-in pack lands after the pack that named it: a
+      world listing both explicitly, provider first, loaded them in that listed order instead. A
+      *resource* pack is pulled in the same way — a behavior pack declaring one by uuid, against an empty
+      resource activation list, produced the same client pack stack count as listing it explicitly. What
+      the depended-on pack must be is present in the server's pool; the world's activation list need not
+      name it.
+    backing: tested
+    caveat: |
+      The depended-on pack has to be present in the server's pack pool for this to happen — a
+      dependency entry does not fetch or install anything
+      [[f:an-unsatisfiable-pack-dependency-is-not-enforced-at-load]].
+    sources:
+      - run: run-roqepx2c
+        where: scenario q1pull — activation list naming only the consumer, and the resulting stack
+        quote: |
+          activation list: [{"pack_id":"4a1f0000-0000-4000-8000-000000000002","version":[1,0,0]}]
+      - run: run-roqepx2c
+        where: scenario q1pull — the stack the unlisted dependency reached
+        quote: |
+          [2026-08-10 01:40:45:777 INFO] Pack Stack - [00] probe consumer dep (id: 4a1f0000-0000-4000-8000-000000000002, version: 1.0.0) @ development_behavior_packs/4a1f0000-0000-4000-8000-000000000002
+          [2026-08-10 01:40:45:777 INFO] Pack Stack - [01] probe provider (id: 4a1f0000-0000-4000-8000-000000000001, version: 1.0.0) @ development_behavior_packs/4a1f0000-0000-4000-8000-000000000001
+      - run: run-roqepx2c
+        where: scenario q1dep — both packs listed, provider first, loaded in the listed order
+        quote: |
+          [2026-08-10 01:39:24:621 INFO] Pack Stack - [00] probe provider (id: 4a1f0000-0000-4000-8000-000000000001, version: 1.0.0) @ development_behavior_packs/4a1f0000-0000-4000-8000-000000000001
+          [2026-08-10 01:39:24:621 INFO] Pack Stack - [01] probe consumer dep (id: 4a1f0000-0000-4000-8000-000000000002, version: 1.0.0) @ development_behavior_packs/4a1f0000-0000-4000-8000-000000000002
+      - run: run-ledb50ji
+        where: scenario C — resource pack in the pool, resource activation list empty
+        quote: |
+          rp-pool: 6c3a0000-0000-4000-8000-000000000002
+          behavior activation list: [{"pack_id":"6c3a0000-0000-4000-8000-000000000001","version":[1,0,0]}]
+          resource activation list: []
+      - run: run-ledb50ji
+        where: scenario C — the unlisted resource pack reached the client stack anyway
+        quote: |
+          [2026-08-10 04:52:57:535 WARN] [Scripting] PROBE bp packstack-client-successCount=2
+      - run: run-ledb50ji
+        where: scenario A — the same count with no resource pack in the pool, for contrast
+        quote: |
+          [2026-08-10 04:52:17:232 WARN] [Scripting] PROBE bp packstack-client-successCount=1
+
+  - id: an-unsatisfiable-pack-dependency-is-not-enforced-at-load
+    claim: |
+      A behavior pack whose manifest depends on a pack that is not present loads and runs regardless,
+      and this holds whichever kind of pack is missing. With a depended-on *behavior* pack absent from
+      the pool, the dependent still entered the stack at position 00, its script evaluated, and its
+      delayed work ran to completion; the only trace of the absence was that the missing pack's entity
+      type would not resolve. With a depended-on *resource* pack absent, the same: the behavior pack
+      loaded, its script evaluated, and its own entity type resolved normally. In neither case did
+      anything refuse the load or log a dependency error. A pack therefore cannot treat its manifest as
+      a guarantee that what it depends on is there, and has to detect the absence itself at run time —
+      and for a resource pack there is nothing it can detect.
+    backing: tested
+    sources:
+      - run: run-roqepx2c
+        where: scenario q1missing — the pool holds only the dependent pack
+        quote: |
+          pool: 4a1f0000-0000-4000-8000-000000000002
+      - run: run-roqepx2c
+        where: scenario q1missing — the dependent pack loaded regardless
+        quote: |
+          [2026-08-10 01:41:25:860 INFO] Pack Stack - [00] probe consumer dep (id: 4a1f0000-0000-4000-8000-000000000002, version: 1.0.0) @ development_behavior_packs/4a1f0000-0000-4000-8000-000000000002
+      - run: run-roqepx2c
+        where: scenario q1missing — its script ran to completion anyway
+        quote: |
+          [2026-08-10 01:41:39:719 WARN] [Scripting] PROBE q1-dep tickingarea=ok
+          [2026-08-10 01:41:39:719 WARN] [Scripting] PROBE q1-dep spawnEntity=THREW
+      - run: run-ledb50ji
+        where: scenario A — the declared resource pack is not in the pool at all
+        quote: |
+          rp-pool:
+          behavior activation list: [{"pack_id":"6c3a0000-0000-4000-8000-000000000001","version":[1,0,0]}]
+          resource activation list: []
+      - run: run-ledb50ji
+        where: scenario A — the behavior pack loaded and ran with its resource-pack dependency missing
+        quote: |
+          [2026-08-10 04:52:17:232 WARN] [Scripting] PROBE bp bp-script-evaluated=true
+          [2026-08-10 04:52:17:232 WARN] [Scripting] PROBE bp entityType-rpdep:actor=defined
+
+  - id: a-worlds-activation-lists-name-the-packs-it-runs
+    claim: |
+      Which packs a world runs is declared by two files in the world's own folder:
+      `world_behavior_packs.json`, holding behavior pack ID and version, and
+      `world_resource_packs.json`, holding the same for resource packs — beside `behavior_packs` and
+      `resource_packs` folders into which the packs activated in that world are copied. A dedicated
+      server also creates `behavior_packs` and `resource_packs` at its own top level, and the two
+      scopes differ in reach: a pack installed under a world is available only while that world is
+      running, and one installed at the top level is available to any world the server runs. Only one
+      world is active at a time, chosen by the `level-name` property.
+    backing: documented
+    sources:
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/createaworldtemplate
+        where: the exported world folder listing — the activation list and history rows
+        quote: |
+          - **world_behavior_packs.json** - Contains behavior pack ID and version
+          - **world_icon.jpeg**
+          - **world_resource_pack_history.json** - Contains information about the resource packs, such as UUIDs
+          - **world_resource_packs.json** - Contains resource pack ID and version
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/bedrockserver/getting-started
+        where: the folders created at first startup
+        quote: |
+          * **worlds:** This is the folder where newly-created worlds will be installed. Worlds will be installed in subfolders of **worlds/** named by the value of the `level-name` property in **server.properties**. While multiple worlds can be installed on the server, only one world is active at a time, set by the `level-name` property.
+          * **behavior_packs:** Behavior packs shared across all worlds on the server should be placed here.
+          * **resource_packs:** Resource packs shared across all worlds on the server should be placed here.
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/bedrockserver/getting-started
+        where: Shared resource and behavior packs
+        quote: |
+          * Packs installed in a folder for a world are only available when that world is running on the server.
+          * Packs installed in the top level folders are available on _any_ world being run on the server.
+
+  - id: the-active-client-pack-stack-is-countable-from-a-script
+    claim: |
+      A script can learn how many packs are in the world's client pack stack, and therefore whether any
+      resource pack is active at all, by running the `packstack` command and reading its result count.
+      `packstack` prints the client or server pack stack to chat, needs no cheats, and is at permission
+      level Any. Run as `packstack client` through `Dimension.runCommand`, its `successCount` tracked the
+      client stack exactly across three worlds differing only in their resource packs: 1 with no resource
+      pack, 2 with one activated, and 1 again with the same pack present in the pool but left out of the
+      activation list. The identities are printed rather than returned — from the server console the same
+      command names each pack, and `verbose` adds UUIDs — so a script gets the count and nothing else.
+      Presence is therefore observable from a script and identity is not.
+    backing: tested
+    caveat: |
+      That `successCount` carries the number of stack entries is not documented — the command is
+      documented as printing, and the count is an observed behaviour that a future version could change.
+      The baseline of 1 for the vanilla texture pack is likewise observed rather than stated. And
+      `exclude-vanilla` does not yield a clean zero: it parses only positionally after `verbose`, and
+      `packstack client verbose exclude-vanilla` returned 1 for a world with one custom resource pack and
+      1 for a world with none, so it cannot be used to count custom packs directly. A script reading the
+      count learns that *a* resource pack is active, never that it is a particular one.
+    sources:
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/commands/commands/packstack
+        where: the command description and its permission table
+        quote: |
+          Prints client or server pack stack to chat
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/commands/commands/packstack
+        where: Usage
+        quote: |
+          ### `/packstack <stackType: stackType> [verbose: verbose] [exclude-vanilla: exclude-vanilla]`
+      - run: run-epfk801h
+        where: scenario ctrl — no resource pack in the pool
+        quote: |
+          [2026-08-10 04:16:09:860 WARN] [Scripting] PROBE bp cmd-packstack_client=ok successCount=1
+      - run: run-epfk801h
+        where: scenario withrp — one resource pack staged and activated
+        quote: |
+          [2026-08-10 04:17:13:868 WARN] [Scripting] PROBE bp cmd-packstack_client=ok successCount=2
+      - run: run-epfk801h
+        where: scenario poolonly — the resource pack present in the pool but not activated
+        quote: |
+          [2026-08-10 04:18:17:763 WARN] [Scripting] PROBE bp cmd-packstack_client=ok successCount=1
+      - run: run-epfk801h
+        where: scenario withrp — exclude-vanilla does not isolate the custom packs
+        quote: |
+          [2026-08-10 04:17:13:868 WARN] [Scripting] PROBE bp cmd-packstack_client_verbose_exclude-vanilla=ok successCount=1
+
+  - id: an-entitys-server-side-size-does-not-reflect-its-resource-pack
+    claim: |
+      An entity's dimensions as the server reports them come from its behavior definition, not from the
+      geometry a resource pack draws it with. `minecraft:collision_box` is a behavior-pack component that
+      sets the width and height of the entity's collision box, and the client entity definition has no
+      collision, hitbox, or size field at all. Measured: an entity declaring a 0.6 by 1.9 collision box
+      reported the same bounding-box extent and the same head-location offset whether or not a resource
+      pack was active whose geometry for it was a 320-block cube, and an entity declaring no collision box
+      reported the engine default rather than anything the resource pack implied. So a bounding box cannot
+      be used to detect a resource pack.
+    backing: tested
+    caveat: |
+      `hasComponent('minecraft:collision_box')` reads false even on the entity whose definition declares
+      one, so the component is not a route to these values either.
+    sources:
+      - run: run-epfk801h
+        where: scenario ctrl — the boxed and unboxed entities with no resource pack active
+        quote: |
+          [2026-08-10 04:16:09:859 WARN] [Scripting] PROBE bp boxed-aabb={"extent":{"z":0.3000001907348633,"y":0.9500007629394531,"x":0.3000001907348633},"center":{"z":8.300000190734863,"y":70.94999694824219,"x":8.300000190734863}}
+      - run: run-epfk801h
+        where: scenario withrp — the same entity with a resource pack active whose geometry is a 320-block cube
+        quote: |
+          [2026-08-10 04:17:13:868 WARN] [Scripting] PROBE bp boxed-aabb={"extent":{"z":0.3000001907348633,"y":0.9500007629394531,"x":0.3000001907348633},"center":{"z":8,"y":70.94999694824219,"x":8}}
+      - run: run-epfk801h
+        where: scenario withrp — head location and the component test
+        quote: |
+          [2026-08-10 04:17:13:868 WARN] [Scripting] PROBE bp boxed-headLocation-dy=1.6150
+          [2026-08-10 04:17:13:868 WARN] [Scripting] PROBE bp boxed-hasCollisionBoxComponent=false
+
+  - id: a-resource-pack-cannot-carry-anything-a-script-can-reach
+    claim: |
+      A resource pack cannot smuggle a marker into the server's reach. A pack declaring `resources`
+      alongside `script` and `data` modules and listed in a world's resource activation list does not load
+      at all: it never appears in the client pack stack, its script never evaluates, and the entity type
+      its data half defines does not resolve. `getPackStructureIds` returns behavior-pack structures only —
+      a byte-identical `.mcstructure` placed in a resource pack is never enumerated and cannot be fetched.
+      `getPackSettings` returns an empty object. And a resource-pack animation timeline cannot run a
+      command: in resource packs timelines run Molang only, where a behavior animation's timeline may run
+      Molang, commands, or entity events — a timeline firing `/scriptevent` from a resource pack delivered
+      nothing to a subscriber. So the "ship a detectable canary inside the resource pack" approach does not
+      exist.
+    backing: tested
+    sources:
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/animationsreference/examples/animationgettingstarted
+        where: timelines — what they may run in each pack kind
+        quote: |
+          In resource packs, timelines can only be used to run Molang code. In behavior animations, you can use this to run Molang code, commands, or trigger entity events.
+      - run: run-epfk801h
+        where: scenario withrp — the resource pack's data half does not register its entity type
+        quote: |
+          [2026-08-10 04:17:13:868 WARN] [Scripting] PROBE bp entityTypes-probe:rp_only_entity=undefined
+      - run: run-epfk801h
+        where: scenario withrp — structures and pack settings see nothing of the resource pack
+        quote: |
+          [2026-08-10 04:17:13:867 WARN] [Scripting] PROBE bp packSettings={}
+          [2026-08-10 04:17:13:867 WARN] [Scripting] PROBE bp packStructureIds=probe:bp_struct
+      - run: run-epfk801h
+        where: scenario withrp — the resource pack's structure cannot be fetched
+        quote: |
+          [2026-08-10 04:17:13:867 WARN] [Scripting] PROBE bp structure-get-rp=undefined
+
+  - id: duplicate-pack-copies-are-deduplicated-and-the-activation-pin-selects
+    claim: |
+      A server's pool may hold several directories declaring the same pack uuid, and this is tolerated
+      silently: one copy loads, the others are ignored, nothing is logged, and the pack appears once in
+      the stack. Naming the same uuid twice in a world's activation list is likewise absorbed — still one
+      stack entry. Two resource-pack directories sharing a uuid behave the same, the client pack stack
+      counting one of them. Which copy loads is chosen by the version the activation list names, not by
+      which version is highest: with copies at 1.0.0 and 1.1.0 in the pool, a list naming 1.0.0 loaded the
+      1.0.0 copy and a list naming 1.1.0 loaded the 1.1.0 copy. A pin no copy satisfies does not fail —
+      naming 1.2.0 against that same pool loaded 1.1.0. So a world silently runs a version other than the
+      one its activation list asks for rather than refusing to load the pack.
+    backing: tested
+    caveat: |
+      Between copies of identical version the choice is not attributable to anything a creator controls:
+      inverting the directory names so the other copy sorted first did not change which one won, and in
+      both ties the first-copied directory won, which is consistent with pool enumeration following
+      creation order rather than name order. That does not matter for genuine duplicates, which are copies
+      of one build, and should not be relied on otherwise. Untested: a pin *below* the lowest version in
+      the pool, and whether the same selection rule governs the client's own import path, where the
+      documented rule — higher version replaces, same or lower ignored — describes importing rather than a
+      server pool [[f:manifest-declares-pack-identity-version-and-module-kinds]].
+    sources:
+      - run: run-vswvt7b3
+        where: scenario A — two behavior directories, one uuid, one version
+        quote: |
+          bp pool dirs: bp_a_v1 bp_b_v1 observer   rp pool dirs: (none)
+      - run: run-vswvt7b3
+        where: scenario A — one stack entry and one copy's content
+        quote: |
+          [2026-08-10 05:50:46:407 WARN] [Scripting] PROBE entityType-dup:from_a=defined
+          [2026-08-10 05:50:46:407 WARN] [Scripting] PROBE entityType-dup:from_b=undefined
+      - run: run-vswvt7b3
+        where: scenario C — the activation list names the uuid twice
+        quote: |
+          behavior activation list: [{"pack_id":"8e5c0000-0000-4000-8000-000000000001","version":[1,0,0]},{"pack_id":"8e5c0000-0000-4000-8000-000000000001","version":[1,0,0]},{"pack_id":"8e5c0000-0000-4000-8000-000000000003","version":[1,0,0]}]
+      - run: run-vswvt7b3
+        where: scenario B — pool holds 1.0.0 and 1.1.0, the list pins 1.0.0
+        quote: |
+          [2026-08-10 05:50:42:415 INFO] Pack Stack - [00] dup copy a v1.0.0 (id: 8e5c0000-0000-4000-8000-000000000001, version: 1.0.0) @ development_behavior_packs/bp_a_v1
+      - run: run-vswvt7b3
+        where: scenario E — the same pool with the list pinning 1.1.0
+        quote: |
+          [2026-08-10 05:51:53:101 INFO] Pack Stack - [00] dup copy b v1.1.0 (id: 8e5c0000-0000-4000-8000-000000000001, version: 1.1.0) @ development_behavior_packs/bp_b_v11
+      - run: run-vswvt7b3
+        where: scenario G — the list pins 1.2.0, which no copy in the pool is
+        quote: |
+          behavior activation list: [{"pack_id":"8e5c0000-0000-4000-8000-000000000001","version":[1,2,0]},{"pack_id":"8e5c0000-0000-4000-8000-000000000003","version":[1,0,0]}]
+      - run: run-vswvt7b3
+        where: scenario F — directory names inverted so the other copy sorts first
+        quote: |
+          bp pool dirs: zz_copy_a_v1 aa_copy_b_v1 observer   rp pool dirs: (none)

@@ -1,0 +1,152 @@
+version: "3"
+facts:
+  - id: f-09o4knzt
+    title: a client entity definition is addressed by the entity identifier
+    claim: |
+      A client entity definition sets an entity's appearance — its materials, textures, and geometry —
+      and is joined to the behavior definition that gives the entity its behaviors by carrying the
+      same `identifier`. One identifier resolves to one appearance definition: where several
+      definition files share an identifier only one of them is loaded, chosen by comparing each
+      definition's `min_engine_version` against the engine version of the top resource pack. So the
+      identifier, not the file, is what an appearance is addressed by.
+    backing: documented
+    caveat: |
+      That one definition may itself hold several textures and geometries, selected by a render
+      controller, is carried by the Materials, Textures, Animations section's "one or more" wording.
+      Whether a render controller can make that selection from an entity property a script sets is
+      not covered by these sources.
+    sources:
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/cliententitydocumentation/cliententitydocumentationintroduction
+        where: Identifier
+        quote: |
+          The identifier is used to register the entity with the server. In the Client Entity Definitions JSON the identifier sets the appearance of the entity (materials, textures, geometry, etc.) The matching identifier in the Entity Behavior JSON in the Behavior Pack is what gives the entity its behaviors.
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/cliententitydocumentation/cliententitydocumentationintroduction
+        where: Min_engine_version
+        quote: |
+          Multiple definition files may use the same identifier, in which case only one of those definitions will be loaded. The definition with the same or closest and not greater `min_engine_version`, as compared to the top resource pack's engine version, will be parsed; all other definitions with the same identifier will not be parsed.
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/cliententitydocumentation/cliententitydocumentationintroduction
+        where: Materials, Textures, Animations
+        quote: |
+          Players can set the materials, texture and geometry used for the entity in this section. Players can set one or more materials, textures, and geometries that can be used by the mob. Players must set user defined names for them. These names are used in the Render Controllers JSON.
+  - id: f-sawr93hu
+    title: damage_sensor can stop received damage being applied
+    claim: |
+      `minecraft:damage_sensor` carries a list of triggers, each with a `deals_damage` choice, and
+      `no` means received damage is not applied to the entity. Two further values separate the damage
+      from its side effects rather than blocking both: `no_but_side_effects_apply` withholds the damage
+      while the attacker's weapon still loses durability and enchantment effects still land, and
+      `no_but_entity_effects_apply` withholds the damage while knockback and enchantments still apply
+      and the entity does not flash red. A trigger may be scoped to one `cause`, which is how vanilla
+      uses it — a bat carries `{"cause":"fall","deals_damage":"no"}`.
+    backing: documented
+    sources:
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/entitycomponents/minecraftcomponent_damage_sensor
+        where: Deals Damage choices — the yes and no rows
+        quote: |
+          | yes | Yes | Received damage is applied to the entity.|
+          | no | No | Received damage is not applied to the entity.|
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/entitycomponents/minecraftcomponent_damage_sensor
+        where: Deals Damage choices — the two partial-block rows
+        quote: |
+          | no_but_side_effects_apply | No But Side Effects Apply | Received damage is not applied to the entity, but the side effects of the attack are. This means that the attacker's weapon loses durability, enchantment side effects are applied, and so on.|
+          | no_but_entity_effects_apply | No But Entity Effects Apply | Damage is not applied to the entity, but knockback and enchantments are still applied and the attacker's weapon is used as normal. The entity does not flash red.|
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/entitycomponents/minecraftcomponent_damage_sensor
+        where: Damage Sensor Properties — the triggers row, its description and Bat example
+        quote: |
+          | triggers (Damage Sensor Trigger) | *not set* | [Triggers](#triggers) item | List of triggers with the events to call when taking specific kinds of damage. | Allay: `[{"deals_damage":"no","on_damage":{"filters":{"all_of":[{"subject":"other","test":"is_family","value":"player"},{"subject":"other","test":"is_owner"}]}}}]`, Bat: `{"cause":"fall","deals_damage":"no"}`
+  - id: f-2profbz0
+    title: behavior.look_at_player turns the head, and only occasionally by default
+    claim: |
+      `minecraft:behavior.look_at_player` compels an entity to look at the player by rotating the head
+      bone pose within a set limit — a head turn, not a body turn or any movement. `look_distance` is
+      the distance in blocks from which the entity will look and defaults to 8; `probability` is the
+      chance of looking at the target, 1.00 being 100%, and defaults to roughly 0.02, so the component
+      left at its defaults produces an occasional glance rather than continuous tracking. From 1.26.0
+      the component's schema is stricter and rejects invalid JSON, with `min_look_time` and
+      `max_look_time` deprecated in favour of a single `look_time` range.
+    backing: documented
+    sources:
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/entitygoals/minecraftbehavior_look_at_player
+        where: the component description
+        quote: |
+          Compels an entity to look at the player by rotating the `head` bone pose within a set limit.
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/entitygoals/minecraftbehavior_look_at_player
+        where: Entity Look At Player Behavior Properties — the look_distance and probability rows
+        quote: |
+          | look_distance | 8 | Decimal number | The distance in blocks from which the entity will look at the nearest entity. | Bogged: `8`, Breeze: `16`, Cave Spider: `6` |
+          | probability | 0.019999999552965164 | Decimal number | The probability of looking at the target. A value of 1.00 is 100%. Value must be <= 1. | Allay: `0.02`, Elder Guardian: `0.01`, Enderman: `8` |
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/entitygoals/minecraftbehavior_look_at_player
+        where: the note under the component description
+        quote: |
+          In 1.26.0 the schema is stricter and rejects invalid JSON. The `min_look_time` and `max_look_time` fields are deprecated and replaced by a single `look_time` range (with `min` and `max`). Existing uses of `min_look_time` / `max_look_time` are upgraded automatically.
+  - id: f-acq14qt1
+    title: a missing appearance renders nothing and cannot be pointed at
+    claim: |
+      How a missing appearance definition presents to a player depends on which part is missing, and the
+      worst case is the silent one. With **no client entity definition at all** — which is what a wholly
+      absent resource pack produces — nothing renders and nothing could be found by looking or by pointing
+      at where the entity stood, though the server had spawned it. With a client entity present naming an
+      **unresolvable geometry**, nothing renders either, but the entity is still there to the client:
+      hovering over its position raises its name tag. With a resolvable geometry and an **unresolvable
+      texture** the failure is loud — the body renders in full, in the black-and-magenta missing-texture
+      pattern, flickering between the two. A complete definition renders correctly. So a resource pack
+      that fails to arrive produces an actor a player cannot see or interact with and receives no
+      indication of, while a resource pack that arrives with a broken texture is unmistakable at a glance.
+    backing: tested
+    caveat: |
+      A visual observation by one person on one Bedrock client, not a measurement, and the name-tag
+      behaviour is that client's: name tags appeared only while the observer hovered over an entity and
+      never passively, so a name tag cannot be relied on to announce an actor a player is not already
+      pointing at. One thing is left open — whether the no-client-entity actor was un-hoverable or merely
+      hard to hover. The observer could not raise its name tag and the server confirms it existed;
+      separating "the client gives it no target volume" from "the volume was small and was missed" needs a
+      further pass. The design conclusion is the same either way.
+    sources:
+      - run: run-1ga99sms
+        where: Client side, as observed — the four actors
+        quote: |
+          full should look right: normal evoker
+
+          'no client entity': nothing there at all, couldnt get the name tag to show up at all
+
+          'bad geometry': completely invisible, but if my mouse hovers in that area the nametag shows up
+
+          'bad texture': humanoid (evoker?) shape, colored in black and magenta (with z-fighting causing the colors to swap)
+      - run: run-1ga99sms
+        where: Client side, as observed — the note on name tags
+        quote: |
+          note for context, nametags are _never_ visible unless i hover over the entity. so for 'no client entity' its either not there, or the hover region is so small i couldnt find it
+      - run: run-1ga99sms
+        where: Server side, captured — the actors and the active resource pack
+        quote: |
+          [2026-08-10 05:12:20:870 WARN] [Scripting] RENDERCHECK spawned rptest:no_client at -1,-60,4
+  - id: f-8bxtf5w7
+    title: a resource pack's own asset names are global to the pack stack
+    claim: |
+      The names a resource pack declares for its own assets are not private to it. Two packs declaring the
+      same geometry identifier with different geometry produced one shape for both entities that named it —
+      including for the entity whose own client definition sat in the pack that lost — and two packs
+      declaring the same texture path with different images produced one image for every entity that named
+      it. Texture paths behave no differently from identifiers in this. So a definition is shared by
+      whichever consumers name it, and which of several competing definitions they get is decided outside
+      any of the packs involved. A pack cannot rely on its own asset names being its own, and two packs
+      built from a common source must carry distinct names to render distinctly.
+    backing: tested
+    caveat: |
+      A visual observation by one person on one Bedrock client, not a measurement. The winner was the pack
+      listed first in the world's resource activation list, but this run varies no ordering and so
+      establishes only that one definition wins rather than what decides which. Untested for materials,
+      render controllers, animations, and animation controllers, whose names are declared the same way and
+      are assumed to behave alike.
+    sources:
+      - run: run-su8j6rdc
+        where: Client side, as observed — all four actors
+        quote: |
+          - "tex pack two" - magenta cube
+          - "tex pack one" - magenta cube
+          - "geo pack two" - magenta pillar
+          - "geo pack one" - magenta pillar
+      - run: run-su8j6rdc
+        where: Server side, captured — the four actors existed
+        quote: |
+          [2026-08-10 06:13:48:878 WARN] [Scripting] COLLIDE spawned collide:geo_b
