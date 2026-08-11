@@ -34,10 +34,13 @@ decisions:
     title: the spawn call is spawnActor, and a handle is looked up with findActor
     statement: |
       the spawn call is `spawnActor(preset, place, options?)`, returning an actor-handle; `place` is
-      a dimension, a location, and an optional rotation; `options` may override the display name or
-      set a durable name. `findActor(id)` resolves a handle from a durable name, or `undefined`. a
-      handle exposes the preset, the entity identifier, the durable name where given, the
-      underlying entity, and `remove()`.
+      a dimension and a location; `options` may override the display name or set a durable name.
+      `findActor(id)` resolves a handle from a durable name, or `undefined`. a handle exposes the
+      preset, the entity identifier, the durable name where given, the underlying entity, and
+      `remove()`.
+    commentary: |
+      a place carries no rotation: an actor faces nearby players by behavior (r-apu8m7vz), so an
+      initial facing would bind nothing a player could keep observing.
     status: delegated
     pinned:
       reason: public-api
@@ -127,6 +130,60 @@ decisions:
     scope: example
     because:
       - d-2qxdv80k
+  - id: d-cqgi5xms
+    title: a durable name is a namespaced world dynamic property holding a JSON record
+    statement: |
+      a durable name `<id>` is carried as the world dynamic property `rpg:actor.<id>` — the key's
+      namespace token per d-2zclv5ol — whose value is JSON holding the preset, the entity type id,
+      and the engine entity id. `findActor` resolves through that record alone; `remove()` deletes
+      it, freeing the name for a later spawn; an unreadable record reads as absent.
+    status: delegated
+    pinned:
+      reason: data-format
+      notes: the record is world state existing worlds already hold — a reimplementation that cannot read it strands every placed actor
+    scope: library
+    because:
+      - d-9uu20w3r
+      - r-8ih6ab2r
+      - r-pop72yk6
+      - d-i8pjw2on
+  - id: d-gja1pnav
+    title: what placement under an already-held durable name does
+    statement: |
+      spawnActor under a durable name the world already holds resolves the record before anything
+      else.
+    cases:
+      - when: the record's actor still resolves
+        then: the call returns that actor unchanged — a display-name override in the options is not applied
+      - when: the record's actor no longer resolves
+        then: the record is stale — a fresh actor is spawned and the record overwritten
+    status: delegated
+    scope: library
+    because:
+      - d-9uu20w3r
+  - id: d-f7o3vg4n
+    title: an absent durable name makes no definitions check
+    statement: |
+      `findActor` of a name no record holds returns `undefined` without a definitions lookup —
+      there is no actor to act on, so the check has no subject. a present record is checked, from
+      its stored preset and type id, before the entity is touched.
+    status: delegated
+    scope: library
+    because:
+      - d-xobjyw2e
+  - id: d-clemw9ag
+    title: the vendored evoker's riding and particle references are not carried
+    statement: |
+      the wizard's client entity and animation controllers carry none of the evoker's riding
+      animations and no particle effects. an actor cannot be displaced onto a mount and casts no
+      spells, and either reference would be a vanilla name in the shipped resource half.
+    status: delegated
+    scope: assets-pack
+    because:
+      - d-3ggbl0kl
+      - d-lyvjq8l1
+      - d-w0smdozf
+      - r-qi348761
   - id: d-kxl9ej80
     title: an adventure and the assets pack install as an archive each
     statement: |
