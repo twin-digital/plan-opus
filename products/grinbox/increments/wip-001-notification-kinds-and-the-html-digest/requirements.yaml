@@ -16,9 +16,14 @@ terms:
       one application of a pipeline to one message: the unit grinbox enqueues, runs, settles, and
       records against.
 
-  - id: delivery
+  - id: cue
     definition: |
-      one firing of an edition for one account and occurrence.
+      a moment an edition's schedule makes due, whether or not grinbox was awake to act on it.
+
+  - id: occurrence
+    definition: |
+      one execution of an edition for one account and cue: it selects, renders, and sends, and
+      is claimed before any work begins.
 
   - id: limit
     definition: |
@@ -41,20 +46,16 @@ terms:
 
   - id: digest
     definition: |
-      the mail a delivery sends: one edition's rendering of one span for one account.
+      the mail an occurrence sends: one edition's rendering of one span for one account.
 
   - id: edition
     definition: |
       an operator instance whose configuration carries the schedule it fires on.
 
-  - id: occurrence
-    definition: |
-      one due moment of an edition's schedule.
-
   - id: span
     definition: |
-      the half-open stretch of intake time one delivery covers: after the last completed
-      delivery, up to when this one was claimed.
+      the half-open stretch of intake time one occurrence covers: after the last completed
+      occurrence, up to when this one was claimed.
 
 requirements:
   - id: r-lph86tsg
@@ -73,7 +74,7 @@ requirements:
       every item, count, prose passage, and footer a digest carries reaches the user as readable
       content, whatever formatting their mail client renders — including none.
     commentary: |
-      The digest is the product's one outbound artifact. A delivery a client degrades into
+      The digest is the product's one outbound artifact. A digest a client degrades into
       unreadable markup has spent its span for nothing.
 
   - id: r-8sg01qdd
@@ -134,6 +135,22 @@ requirements:
       every operator of a triage can read any part of the message it is triaging, without
       having declared which parts it wanted.
     supersedes: r-sfvm6ib3
+
+  # The digest-family ruling: the requirements that said delivery, carried into occurrence.
+
+  - id: r-j2wn9xtb
+    title: a message is digested once
+    statement: |
+      a message appears in at most one digest, whatever a user has configured and however
+      occurrences have failed or been delayed.
+    supersedes: r-yq13riob
+
+  - id: r-f7dk3qzm
+    title: an undelivered digest costs no coverage
+    statement: |
+      mail that a digest would have covered had it been delivered is covered by the next
+      occurrence instead. A failed or missed occurrence narrows nothing.
+    supersedes: r-g6n22sn9
 
   # The limit ruling: the requirements' own statements carried into the settled word.
 

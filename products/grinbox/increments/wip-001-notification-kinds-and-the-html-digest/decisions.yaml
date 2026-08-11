@@ -133,13 +133,13 @@ decisions:
   - id: d-1oqjgi9m
     title: a digest is delivered in two renditions in one mail
     statement: |
-      a digest delivery is one mail carrying two renditions of the same digest: a plain-text one
-      and a rich one. The recipient's client chooses which it shows, and a client that renders no
-      formatting shows the text rendition whole.
+      a digest is delivered as one mail carrying two renditions of the same content: a plain-text
+      one and a rich one. The recipient's client chooses which it shows, and a client that renders
+      no formatting shows the text rendition whole.
     status: proposed
     because:
       - r-m7y9ocdu
-      - d-qcsxvo18
+      - d-n3zj7ywp
     pinned:
       reason: data-format
 
@@ -300,6 +300,118 @@ decisions:
       reason: other
       notes: a consumer-visible change to every surface showing a money tag
 
+  # The digest-family ruling: the calendar moment is a cue, the executed unit an occurrence.
+
+  - id: d-m7gx2vqk
+    title: missed cues collapse into one
+    statement: |
+      where grinbox was down across several of an edition's cues, it fires once on return, for
+      the most recent cue due, and the older ones never fire. Their coverage is not lost: the
+      unadvanced watermark folds it into the one that does fire.
+    status: proposed
+    supersedes: d-prxzi4zt
+    because:
+      - d-v8qm4kfw
+      - r-f7dk3qzm
+    pinned: false
+
+  - id: d-w5jc8rbn
+    title: claiming the occurrence is what prevents a second send
+    statement: |
+      an occurrence is claimed by recording it before any work is done, and the record is
+      unique per edition, account, and cue. Nothing can claim a cue twice, so nothing can send
+      twice.
+    status: proposed
+    supersedes: d-svanshcm
+    because:
+      - r-j2wn9xtb
+    pinned: false
+
+  - id: d-q4ty6zpm
+    title: one heartbeat drives both schedulers
+    statement: |
+      the poll and digest schedulers wake on one heartbeat — a minute by default, set by the
+      deployment — and act on whatever is due: an account whose interval elapsed, an edition
+      whose cue passed. Nothing is scheduled per account or edition; user-visible latency is
+      the account's interval plus up to one heartbeat. A heartbeat arriving mid-cycle does
+      nothing.
+    status: proposed
+    supersedes: d-ey4o63h1
+    because:
+      - r-0lg2c2e4
+      - d-nq4fk2xr
+      - d-6vnf59rv
+      - d-81ouxrpi
+    pinned:
+      reason: other
+      notes: |
+        the arrival latency the product promises is the account's interval plus this heartbeat,
+        so the ceiling on the per-account interval alone does not bound it
+
+  - id: d-v8qm4kfw
+    title: only a completed occurrence moves the watermark
+    statement: |
+      the watermark advances when an occurrence completes and at no other time, so a failed or
+      abandoned occurrence's span is absorbed into the next one — the next occurrence covers
+      the union rather than resuming after the gap.
+    status: proposed
+    supersedes: d-jbqvsnox
+    because:
+      - r-f7dk3qzm
+      - d-h8tq5wnm
+    pinned: false
+
+  - id: d-t9bp6wnz
+    title: an occurrence bounds how many items it shows
+    statement: |
+      an occurrence shows at most a bounded number of items, whatever its span holds, so that
+      one occurrence over a long backlog does not produce an unreadable mail. What the bound
+      cuts is counted as an overflow and reported with everything else the occurrence covered
+      but did not show.
+    status: proposed
+    supersedes: d-z0gmsbkl
+    because:
+      - r-vd9mu8od
+      - d-tm2dbemu
+    pinned: false
+
+  - id: d-c2fh5mxj
+    title: the item bound keeps the oldest mail in the span
+    statement: |
+      where an occurrence's item bound cuts, what it shows is the oldest mail in the span and
+      what it counts as overflow is the newest.
+    status: proposed
+    supersedes: d-n75x2w30
+    because:
+      - d-t9bp6wnz
+    pinned: false
+
+  - id: d-k6rw9tqv
+    title: a first occurrence covers from the edition's creation
+    statement: |
+      an edition's first occurrence covers mail taken in since the edition was created, not the
+      account's held history. Mail that arrived before the edition existed is never digested by
+      it.
+    status: proposed
+    supersedes: d-85ee8586
+    because:
+      - d-h8tq5wnm
+      - d-v8qm4kfw
+    pinned:
+      reason: data-format
+
+  - id: d-n3zj7ywp
+    title: a digest action
+    statement: |
+      grinbox ships an action that runs on a schedule rather than per message, collating what it
+      covers into one mail to the user. What it collates and how is the digest increment's.
+    status: proposed
+    supersedes: d-qcsxvo18
+    because:
+      - d-5n8oyi8c
+    pinned:
+      reason: public-api
+
   # The vocabulary pass: supersessions settling limit, category, provider, operator, digest,
   # window, run, contract, and snapshot. Each restates its predecessor's ruling in the
   # settled vocabulary; none changes what is ruled.
@@ -396,9 +508,9 @@ decisions:
     title: prose is the only model involvement, and it cannot touch the items
     statement: |
       a section may carry prose before or after its items — fixed text, or a short passage a
-      model writes from the already-rendered items. Prose is the whole of a model's part in a
-      delivery: it cannot add, remove, or alter an item, and a passage that fails or is skipped
-      by its limit is dropped, and the delivery proceeds.
+      model writes from the already-rendered items. Prose is the whole of a model's part in an
+      occurrence: it cannot add, remove, or alter an item, and a passage that fails or is
+      skipped by its limit is dropped, and the occurrence proceeds.
     status: proposed
     supersedes: d-c3dofuyf
     because:
@@ -471,11 +583,11 @@ decisions:
     pinned: false
 
   - id: d-3jzcw7xt
-    title: a limit-denied send fails the delivery, and an empty span sends nothing
+    title: a limit-denied send fails the occurrence, and an empty span sends nothing
     statement: |
-      a delivery has no subject message, so per-message limits neither apply to it nor count
+      an occurrence has no subject message, so per-message limits neither apply to it nor count
       against it, while windowed limits bind as they do anywhere. Where a limit denies the send
-      itself, the delivery fails rather than being the clean no-op a denied per-message action
+      itself, the occurrence fails rather than being the clean no-op a denied per-message action
       is. A span holding nothing to report completes without sending.
     status: proposed
     supersedes: d-dmylyoqs
@@ -512,7 +624,7 @@ decisions:
     status: proposed
     supersedes: d-nfsr4h6f
     because:
-      - r-yq13riob
+      - r-j2wn9xtb
       - d-8wqk2nvy
       - d-506swwel
     pinned: false
@@ -644,7 +756,7 @@ decisions:
     title: an edition is an instance, and its schedule is its cadence
     statement: |
       an edition is an ordinary operator instance whose configuration carries the schedule it
-      fires on, and each firing delivers a digest. A pipeline may carry several editions,
+      fires on, and each occurrence delivers a digest. A pipeline may carry several editions,
       differing only in configuration, and nothing about a second edition is a second mechanism.
     status: proposed
     supersedes: d-ocqvnmfm
@@ -654,12 +766,12 @@ decisions:
     pinned: false
 
   - id: d-w4hn8qpv
-    title: judgement happens at triage, collation at delivery
+    title: judgement happens at triage, collation at the occurrence
     statement: |
       every judgement about a message — which edition claims it, what is worth pulling out of
-      it — is made when the message is triaged, by ordinary operators. The delivery that builds
-      a digest makes none: it selects, groups, renders, and sends. This keeps accounting for
-      every covered message a property of the code.
+      it — is made when the message is triaged, by ordinary operators. The occurrence that
+      builds a digest makes none: it selects, groups, renders, and sends. This keeps accounting
+      for every covered message a property of the code.
     status: proposed
     supersedes: d-r8iz7u3q
     because:
@@ -687,15 +799,15 @@ decisions:
   - id: d-h8tq5wnm
     title: the span is half-open over when mail was taken in
     statement: |
-      a delivery's span runs over the messages grinbox took in after the last completed
-      delivery and up to the moment this one was claimed. It is measured over when grinbox
+      an occurrence's span runs over the messages grinbox took in after the last completed
+      occurrence and up to the moment this one was claimed. It is measured over when grinbox
       took the message in rather than when the mail was sent, so late-arriving mail is
       digested in the span it actually arrived in.
     status: proposed
     supersedes: d-jsnfvo0m
     because:
-      - r-yq13riob
-      - r-g6n22sn9
+      - r-j2wn9xtb
+      - r-f7dk3qzm
     pinned:
       reason: data-format
       notes: |
