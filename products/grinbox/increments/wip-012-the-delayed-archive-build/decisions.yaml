@@ -1,0 +1,122 @@
+version: "3"
+
+decisions:
+  - id: d-7f5rbatg
+    scope: triage
+    title: the delayed archive's stored names
+    statement: |
+      the archive configuration names its delay in an optional `delay_seconds` field. A pending
+      archive is a `pending_archives` row carrying the message, the triage and the operator whose
+      run recorded it, the `due_at` moment — the message's take-in plus `delay_seconds`, in unix
+      seconds — and its status. A settled row stays, and at most one row per message stands.
+    status: proposed
+    because:
+      - d-grcdd4ov
+      - d-0tajzoy7
+    pinned:
+      reason: data-format
+      notes: |
+        d-grcdd4ov leaves the stored field's name to implementation, as the cooldown's was left
+        to d-l6bbgp05
+
+  - id: d-rq632oul
+    scope: triage
+    title: what became of a pending archive
+    statement: |
+      a pending archive's status is one of `pending`, `archived`, `already_departed`, `failed`,
+      `cancelled`, `superseded`, or `abandoned` — the standing state, then one name per outcome:
+      performed; the message had already left the inbox; the call failed past its retries; a
+      later settled triage recorded none; another recording replaced it; its pipeline or account
+      was deleted.
+    status: proposed
+    because:
+      - d-41v9yqvh
+      - d-0tajzoy7
+      - d-7f5rbatg
+    pinned:
+      reason: data-format
+
+  - id: d-ymvh4v9a
+    scope: triage
+    title: the delayed archive's triage-event kinds
+    statement: |
+      the triage-events attempt vocabulary gains `pending_archive_recorded`, appended by an
+      archive run that recorded a pending archive rather than calling, carrying the due moment
+      and the delay; and `pending_archive_skipped`, appended when the moment came and no call
+      was made, carrying the reason. A call that is made records under the existing
+      `resource_op_succeeded`, `resource_op_limited`, and `resource_op_failed`.
+    status: proposed
+    because:
+      - d-41v9yqvh
+      - d-e9jslw4x
+      - d-7hne81hc
+    pinned:
+      reason: data-format
+
+  - id: d-qk3xs2eg
+    scope: interface
+    title: the pending archive on the message read surfaces
+    statement: |
+      every message read surface carries a `pending_archive` member: the due moment, the triage
+      that recorded it, and the operator whose run recorded it, or null where none stands. Only
+      a standing pending archive is carried, so the member needs no status of its own.
+    status: proposed
+    because:
+      - d-p0ea1t8q
+      - d-a4yrn8sw
+      - d-7f5rbatg
+    pinned:
+      reason: public-api
+
+  - id: d-egkpzkc5
+    title: the heartbeat's deployment variable
+    statement: |
+      the deployment sets the one heartbeat with `GRINBOX_HEARTBEAT_SECONDS`, a whole number of
+      seconds defaulting to 60. It replaces `GRINBOX_POLL_SCHEDULER_TICK_SECONDS` and
+      `GRINBOX_DIGEST_SCHEDULER_TICK_SECONDS`, which the daemon no longer reads.
+    status: proposed
+    because:
+      - d-gzv0jty7
+      - d-mq7vdduz
+    pinned:
+      reason: public-api
+      notes: |
+        the deployment repository sets it, and a converge against the old names configures
+        nothing
+
+  - id: d-nikfl9qy
+    title: the execution loop is not one of the schedulers
+    statement: |
+      the execution loop's dispatch tick keeps its own timer. What d-gzv0jty7 collapses onto one
+      heartbeat is the three schedulers that decide something is due; the execution loop drains
+      runs already claimed, and putting it on a minute's beat would cost every triage a minute.
+    status: proposed
+    because:
+      - d-gzv0jty7
+      - d-k5nnblfp
+      - r-0lg2c2e4
+
+  - id: d-6a4p1edu
+    scope: triage
+    title: a denied due archive records its denial once
+    statement: |
+      a pending archive a limit denies records `resource_op_limited` on the first beat that
+      meets the denial and not on the beats that follow, while the row stays due. The window
+      frees and the archive performs; the run carries one denial rather than one per beat.
+    status: delegated
+    because:
+      - d-41v9yqvh
+      - d-j8wm2qfx
+
+  - id: d-hgqlouvn
+    scope: triage
+    title: a departed message is read from grinbox's own record
+    statement: |
+      whether a due archive's message has already left the inbox is read from the standing
+      grinbox holds, not from a fresh call to the backend. Where that standing is stale the
+      archive call is made and the backend answers it as the no-op it is.
+    status: delegated
+    because:
+      - d-41v9yqvh
+      - d-jeyg1z1r
+      - d-jr86qq8b
