@@ -167,6 +167,10 @@ coverage:
       - kind: code-test
         ref: nodejs/grinbox/server/src/archive/pending-archive-scheduler.test.ts
       - kind: attestation
+        ref: nodejs/grinbox/shared
+      - kind: code-test
+        ref: nodejs/grinbox/shared/src/schema-invariants.test.ts
+      - kind: attestation
         ref: nodejs/grinbox/web
       - kind: code-test
         ref: nodejs/grinbox/web/src/pages/inbox/inbox.test.tsx
@@ -1628,6 +1632,8 @@ coverage:
         ref: nodejs/grinbox/shared
       - kind: code-test
         ref: nodejs/grinbox/shared/src/schema-invariants.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/shared/src/pending-archive.test.ts
       - kind: attestation
         ref: nodejs/grinbox/web
       - kind: code-test
