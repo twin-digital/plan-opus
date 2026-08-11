@@ -1,0 +1,25 @@
+version: "1"
+
+questions:
+  - id: q-em9yfbqa
+    answer: requirement
+    question: |
+      does vendoring reach a pack that arrives as an installed npm dependency, or only one that is a
+      member of the same workspace? Discovery is workspace-scoped throughout — packages come from the
+      workspace definition, and membership is a source manifest in a workspace package — so a pack in
+      `node_modules` is not in the pack set at all today. The case that makes this pressing is the one
+      the kit exists to serve: a shared pack published to npm and consumed by an adventure in someone
+      else's workspace, which is where per-consumer isolation is worth the most. Everything this
+      increment records holds either way; what changes is where the build looks for a vendored pack's
+      source.
+
+  - id: q-zvn4dqpp
+    answer: fact
+    question: |
+      what becomes of an entity already in a world when the identifier it was spawned under stops
+      resolving? A consumer's namespace is the prefix of every actor identifier it ships, so renaming
+      it — or vendoring a pack that renames content — changes those identifiers for a world that
+      already holds entities under the old ones. Whether they vanish, persist unrendered, or refuse to
+      load decides whether the kit owes an additive-only discipline of the kind an author would
+      otherwise have to keep by hand. It needs a measurement: spawn an entity, rebuild the pack under
+      a changed identifier, reload the world, and see what the world reports.

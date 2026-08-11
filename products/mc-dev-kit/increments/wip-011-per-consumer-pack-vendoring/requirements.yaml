@@ -1,0 +1,64 @@
+version: "3"
+
+terms:
+  - id: vendored-pack
+    display: vendored pack
+    definition: |
+      a workspace pack whose content the build copies into each package that depends on it, rather
+      than shipping it once for those packages to share.
+
+  - id: namespace
+    display: namespace
+    definition: |
+      the token every name a built pack declares carries — the prefix of an entity identifier, and a
+      segment of each internal asset name.
+
+requirements:
+  - id: r-jxzqhhmo
+    title: a pack author chooses their namespace
+    statement: |
+      every name a built pack declares carries a namespace of the pack author's choosing, stated
+      once and written into no name by hand.
+    commentary: |
+      Names are what an author reads in a server log, types into a selector, and hands another
+      author to reference. A namespace the tooling picks is one the author has to look up before
+      they can use their own pack.
+
+  - id: r-293j8n70
+    title: a shared pack is vendored per consumer
+    statement: |
+      a pack several packages depend on can be built into each of them as content of its own, under
+      that consumer's namespace, so no two consumers share a name or a pack identity for it.
+    informed_by:
+      - f:f-8bxtf5w7
+      - f:duplicate-pack-copies-are-deduplicated-and-the-activation-pin-selects
+    commentary: |
+      The isolation this buys is complete: no uuid two consumers contend over, no version one of
+      them has to match, and nothing left for a server operator to reconcile between them.
+
+  - id: r-c9bu8xes
+    title: an incomplete rewrite fails the build
+    statement: |
+      the build carries a name into a consumer's namespace or refuses to build it. Content whose
+      names it cannot rewrite is a build failure naming what it found, never content copied across
+      with its names as they were.
+    informed_by:
+      - f:f-8bxtf5w7
+      - f:f-acq14qt1
+    commentary: |
+      A resource pack's names resolve across the whole pack stack rather than within the pack that
+      declares them, so a rewrite that misses one kind produces one consumer's actor drawn with
+      another's geometry. That reads as a content bug in whichever consumer notices it, and points
+      at neither. A pack that refuses to build points at itself.
+
+  - id: r-tvea5tvf
+    title: a vendored library's own calls resolve unaided
+    statement: |
+      a library shipped alongside a vendored pack resolves its own calls through the consumer's
+      namespace with nothing for the consumer to pass or configure per call.
+    informed_by:
+      - f:a-script-module-does-not-resolve-across-packs
+    commentary: |
+      The library's code is bundled into the consumer already, so it runs under the consumer's
+      names whether or not it knows them. Making the consumer thread a namespace through every call
+      would put the ergonomics cost back where r-jxzqhhmo took it from.

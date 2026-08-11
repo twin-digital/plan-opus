@@ -1,0 +1,262 @@
+version: "3"
+
+decisions:
+  - id: d-82zp77fo
+    title: a vendored pack merges into the consumer's own pack
+    statement: |
+      a consumer's build writes the vendored pack's content into the consumer's own pack of that
+      kind, under the consumer's namespace and its own header uuid. A consumer ships one behavior
+      pack and one resource pack whatever it vendors.
+    status: proposed
+    pinned:
+      reason: data-format
+      notes: the built output tree a consumer ships, and the pack identity a world activates
+    because:
+      - r-293j8n70
+      - r-jxzqhhmo
+      - r-un786n7v
+      - r-xcz7nzr6
+      - f:a-script-module-does-not-resolve-across-packs
+      - f:f-8bxtf5w7
+    commentary: |
+      A shared dependency's code half is bundled into the consumer already — no import reaches a
+      module in another pack, so code crosses at build time or not at all. Merging puts the asset
+      half on the path the code half takes, instead of leaving a dependency half vendored and half
+      shipped beside.
+
+      It is also what lets an author name a vendored asset at all. A hand-written client entity
+      definition is JSON with no build-time constant to reach a namespace with; merged, the
+      namespace the author chose is the one the vendored content carries, so the author writes
+      their own names and the references land.
+
+      One pack leaves one identity, so no uuid is derived from a consumer and none is minted for a
+      vendoring: the output tree keeps its kind-named shape and the workspace gains no pack that no
+      source declares.
+
+  - id: d-l4wh3cgf
+    title: a consumer with no pack of its own gets one
+    statement: |
+      a package that vendors a pack of a kind it holds no source pack of is built a pack of that
+      kind from its vendorings alone, carrying a uuid its own source declares.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: the uuid a vendoring package declares, and the pack a world activates by it
+    because:
+      - d-82zp77fo
+      - r-zcdmh9p6
+      - r-293j8n70
+    cases:
+      - when: the package declares a uuid for the synthesized pack
+        then: the pack is built under it
+      - otherwise: the build fails, naming the kind that needs one
+    commentary: |
+      A uuid cannot be invented for a pack a world will activate by it: the value has to survive
+      every rebuild and every checkout, so it comes from source like any other pack's. The virtual
+      script entry of `d-64tw58t0` is the precedent for the pack existing at all with no source
+      directory behind it.
+
+  - id: d-27lzrwsu
+    title: a pack declares itself vendored, and never deploys on its own
+    statement: |
+      a pack states in its own source that it is vendored. Every package depending on it vendors
+      it, and the pack is neither deployed nor activated as a pack of its own — by the harness, in
+      an archive, or anywhere else the pack set is read.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: the declaration a shared pack's author writes, and the difference between a pack that ships and one that does not
+    because:
+      - r-293j8n70
+      - d-82zp77fo
+      - f:f-8bxtf5w7
+      - f:a-declared-pack-dependency-activates-the-depended-on-pack
+    cases:
+      - when: a pack declares itself vendored
+        then: every consumer merges it, and it reaches no pool and no activation list
+      - otherwise: the dependency resolves as it does today, both packs shipping
+    commentary: |
+      Whether a pack can be vendored is a property of the pack — it has to hold only content whose
+      names the build can rewrite — so the pack is where it is declared, once, rather than in each
+      consumer.
+
+      Deploying it as well as its vendorings would put its unstamped names into the same pack stack
+      as theirs, which is the cross-talk the namespace exists to prevent. It also settles what a
+      declared dependency does: a depended-on pack is pulled into the stack whether or not a world
+      lists it, so leaving it in the pool is enough to activate it.
+
+  - id: d-jdqt63fi
+    title: vendoring reads the vendored pack's source tree
+    statement: |
+      a consumer's build reads the vendored pack's source directory and completes and rewrites it
+      itself. It does not read that package's built output and does not require it to have been
+      built.
+    status: proposed
+    because:
+      - d-82zp77fo
+      - d-s1haiu19
+      - d-vpwz0dps
+    commentary: |
+      A pack package's build produces its own packs and nothing else, so there is no ordering
+      between two packages' builds to lean on. Reading source keeps it that way — and the script
+      half, which is the part that needs building, arrives through the bundler rather than through
+      the vendoring.
+
+  - id: d-zk0c48uy
+    title: the namespace is a build setting
+    statement: |
+      a package states its namespace in the build configuration it already hands the kit, beside
+      its package directory. No field is added to `manifest.json`.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: the setting every consuming package writes
+    because:
+      - r-jxzqhhmo
+      - d-qtq0ccy6
+      - d-1w5rjhg6
+      - r-jl42pzah
+    commentary: |
+      A namespace is something the build consumes and nothing the engine reads, and a manifest is
+      shipped verbatim to the engine. Putting it in the manifest would mean declaring and
+      validating a field that has no meaning there.
+
+  - id: d-8qkamvz7
+    title: an author writes bare names and the build applies the namespace
+    statement: |
+      names in a pack's own source are written bare — `wizard`, `geometry.wizard` — and the build
+      writes the namespace into them. A source name already carrying a namespace is a build
+      failure, not a name passed through.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: the form an author writes every name of their own in
+    because:
+      - r-jxzqhhmo
+      - d-zk0c48uy
+      - f:f-i8fx23h0
+    cases:
+      - when: a source name is bare
+        then: the built name carries the namespace
+      - otherwise: the build fails, naming the file and the name
+    commentary: |
+      One place states the namespace and one thing applies it, so a rename is a one-line change and
+      a source name cannot claim a namespace the setting contradicts.
+
+  - id: d-ni5n2r3c
+    title: only names a pack declares are rewritten
+    statement: |
+      the build rewrites the names a pack declares and the references to them. A reference to a name
+      the pack does not declare — vanilla content, or another pack's — is copied through untouched.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: which of an author's references survive the build as written
+    because:
+      - r-c9bu8xes
+      - d-8qkamvz7
+      - f:f-a7v7ex4x
+      - f:f-z999a7yv
+    cases:
+      - when: a client entity names a geometry its own pack declares
+        then: both the declaration and the reference carry the namespace
+      - when: it names `geometry.evoker.v1.8`, or any material, texture or animation of the vanilla packs
+        then: the reference is written as it was
+    commentary: |
+      An entity's appearance may be assembled from vanilla assets with nothing copied, so a rewrite
+      that touched every name would break every such reference. What separates the two is
+      declaration, which the pack's own content answers.
+
+  - id: d-7aqne91n
+    title: the content kinds a vendored pack may hold
+    statement: |
+      a vendored pack may declare entity identifiers, geometries, textures, materials, render
+      controllers, animations, animation controllers, and the localization entries keyed by an
+      entity identifier — client and behavior halves alike. Content of any other kind in a vendored
+      pack fails the build, naming the file.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: what a shared pack's author may put in a pack, and what a consumer's build will accept
+    because:
+      - r-c9bu8xes
+      - d-27lzrwsu
+      - f:f-8bxtf5w7
+      - f:f-09o4knzt
+      - f:f-gvmc2wfa
+    commentary: |
+      Each of these names what it declares in a form the build can rewrite, and a localization key
+      follows `entity.<id>.name` from the identifier by one rule with no exceptions, so it moves
+      with the identifier.
+
+      The list is what the evidence covers and not what a pack could contain. Items, blocks, loot
+      tables, sounds, particles and the short-name atlases are outside it because nothing here
+      establishes how their names resolve across a pack stack — refusing them is the honest
+      reading, and each is admitted by an increment that brings the evidence.
+
+  - id: d-bhsz9eou
+    title: a namespace is claimed once in a workspace
+    statement: |
+      one namespace is claimed by exactly one package in the workspace. Two packages stating the
+      same one is an error naming the namespace and every claimant, with no claimant preferred.
+    status: proposed
+    because:
+      - r-293j8n70
+      - d-zk0c48uy
+      - f:f-8bxtf5w7
+    commentary: |
+      A shared namespace is a shared name space, so two consumers picking one puts back exactly the
+      contention vendoring removed — and quietly, since each builds fine alone. It is the check
+      `r-xcz7nzr6` already makes on uuids, over the other thing that has to be unique.
+
+  - id: d-1vhwdhk1
+    title: a name collision between vendored and own content fails the build
+    statement: |
+      where a consumer's own content and something it vendors declare the same name, or two of its
+      vendorings do, the build fails and names both declarations.
+    status: proposed
+    because:
+      - d-82zp77fo
+      - d-8qkamvz7
+      - f:f-8bxtf5w7
+    commentary: |
+      Merging puts both under one namespace, where one silently wins and whichever consumer notices
+      sees an actor drawn wrong. Nothing distinguishes the author's intent here, so neither side can
+      be preferred.
+
+  - id: d-xoz6pwt8
+    title: a vendored dependency leaves the built manifest
+    statement: |
+      the completed manifest carries no `dependencies` entry for a pack the build vendored. The
+      entry stays in source, where it is what declares the dependency.
+    status: proposed
+    pinned:
+      reason: data-format
+      notes: the built manifest a world reads
+    because:
+      - d-27lzrwsu
+      - d-82zp77fo
+      - r-wi7qf6to
+      - f:a-declared-pack-dependency-activates-the-depended-on-pack
+    commentary: |
+      There is nothing left to depend on: the content is in the consumer's own pack, and the pack
+      the entry names never reaches a pool. Left in, the entry would name a uuid the world cannot
+      resolve.
+
+  - id: d-zm6pxfrg
+    title: the library's namespace is an injected constant
+    statement: |
+      the build injects the consumer's namespace into the bundle as a constant, and a vendored
+      library reads it to compose the names it calls with.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: how a vendored library reads the namespace it composes names with
+    because:
+      - r-tvea5tvf
+      - d-zk0c48uy
+      - f:a-script-module-does-not-resolve-across-packs
+    commentary: |
+      The library is bundled per consumer already, so the constant is per consumer without anything
+      being asked of the consumer. It is the same value `d-zk0c48uy` puts in the build
+      configuration, reaching the code path rather than the asset path.
