@@ -160,7 +160,7 @@ And gap 1, the materials contradiction, is ruled: `r-qi348761` supersedes `r-png
 excepted, `q-ac8gcffb` is removed, and `d-lyvjq8l1` and `d-3ggbl0kl` are restated against it. The exemption
 turned out to rest on something stronger than the reason first given — the published vanilla pack carries no
 material definitions at all, so naming one the game ships is forced by the format rather than chosen
-(`f:the-vanilla-material-definitions-are-not-published`). It is written for materials alone rather than as a
+(`f:f-8it4axjv`). It is written for materials alone rather than as a
 general licence, so a second such case earns its own amendment.
 
 Items 14–18 remain outside this product. The test-lib registry gap is now `q-sf1l1ypo`, with the capability

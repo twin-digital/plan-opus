@@ -1,9 +1,7 @@
-# Facts about the game's own resource and behavior pack assets — where they are published, what
-# governs their use, and what a pack that reuses them is naming.
-
-version: "1"
+version: "3"
 facts:
-  - id: mojang-publishes-the-vanilla-packs-with-all-rights-reserved-under-the-eula
+  - id: f-ev10b68v
+    title: Mojang publishes the vanilla packs, all rights reserved under the EULA
     claim: |
       Mojang publishes the vanilla packs as a GitHub repository of samples and assets for building
       Bedrock add-ons, so the models, textures, animations, and definitions the game ships are
@@ -28,8 +26,8 @@ facts:
           (c) Mojang AB. All rights reserved.
 
           By downloading the files in this repository, you agree to the [Minecraft End User License Agreement](https://www.minecraft.net/en-us/eula) and that these files are subject to its terms.
-
-  - id: a-custom-client-entity-may-reference-the-vanilla-packs-assets
+  - id: f-a7v7ex4x
+    title: a custom client entity may name the vanilla packs' assets
     claim: |
       A client entity definition may name materials, textures, and geometry that live in the vanilla
       resource pack rather than in the pack declaring the entity, and may name the vanilla pack's
@@ -47,8 +45,8 @@ facts:
         where: Animations
         quote: |
           Allows the player to assign names to reference the long name for animations. These names are used by the animation controller JSON. Players can reference animations from the vanilla Minecraft Resource Pack or create their own. Custom animations should be in the animation folder at the root of the Resource Pack.
-
-  - id: the-evoker-client-entity-names-its-geometry-texture-material-and-animations
+  - id: f-z999a7yv
+    title: the evoker's client entity names its geometry, texture, material and animations
     claim: |
       The vanilla evoker is registered as `minecraft:evocation_illager`, not under its common name. Its
       client entity definition names material `evoker`, texture `textures/entity/illager/evoker`, and
@@ -87,8 +85,8 @@ facts:
                   "celebrating": "animation.humanoid.celebrating",
                   "controller_general": "controller.animation.evoker.general",
                   "controller_move": "controller.animation.villager.move",
-
-  - id: the-vanilla-material-definitions-are-not-published
+  - id: f-8it4axjv
+    title: the vanilla material definitions are not published
     claim: |
       The published vanilla resource pack carries no material definitions. At `Mojang/bedrock-samples` tag
       `v1.21.130.3` the resource pack's top level holds no entry named `materials`, a request for that
@@ -105,20 +103,20 @@ facts:
       Whether they were ever published, or could be obtained another way, is outside what this reads. The
       count and the tag are the state at one revision.
     sources:
-      - run: published-materials-probe
+      - run: run-8xm67ysn
         where: resource_pack top level — the check for a materials entry
         quote: |
           entry named "materials" present: false
-      - run: published-materials-probe
+      - run: run-8xm67ysn
         where: the direct request for resource_pack/materials
         quote: |
           HTTP 404 — no such directory
-      - run: published-materials-probe
+      - run: run-8xm67ysn
         where: the recursive tree walk
         quote: |
           paths in tree: 19806
           paths ending .material: 0
-      - run: published-materials-probe
+      - run: run-8xm67ysn
         where: the material a vendored evoker would have to name
         quote: |
           materials block of evocation_illager.entity.json: "default": "evoker"

@@ -3,44 +3,34 @@ components:
   - id: library
     description: what an adventure imports — the actor presets, the spawn call, and the handle it returns
   - id: assets-pack
-    description: what an adventure depends on — the actor entity definitions and the models, textures,
-      and animations they render from
+    description: what an adventure depends on — the actor entity definitions and the models, textures, and animations they render from
   - id: example
-    description: the adventure built on the other two packages, which spawns every actor and carries the
-      product's run-time evidence
+    description: the adventure built on the other two packages, which spawns every actor and carries the product's run-time evidence
 terms:
   - id: actor
-    definition: >
-      a non-player character this product places in a world: an entity holding a position, a name,
-      and an appearance, which an adventure spawns to stand in for a character.
+    definition: |
+      a non-player character this product places in a world: an entity holding a position, a name, and an appearance, which an adventure spawns to stand in for a character.
   - id: adventure
-    definition: >
-      a pack built on this product carrying one experience — its story, its triggers, and its logic
-      — and none of the actor definitions or their assets.
+    definition: |
+      a pack built on this product carrying one experience — its story, its triggers, and its logic — and none of the actor definitions or their assets.
   - id: preset
-    definition: >
-      a named, complete description of one kind of actor, comprising its appearance and its default
-      name, which an adventure spawns by naming.
+    definition: |
+      a named, complete description of one kind of actor, comprising its appearance and its default name, which an adventure spawns by naming.
   - id: actor-handle
-    definition: >
-      what a spawn call gives an adventure back: the actor it created, and whatever the adventure
-      may do to that actor afterwards.
+    definition: |
+      what a spawn call gives an adventure back: the actor it created, and whatever the adventure may do to that actor afterwards.
   - id: namespace
-    definition: >
-      the prefix, derived from the assets pack's major version, that every name the pack declares
-      carries.
+    definition: |
+      the prefix, derived from the assets pack's major version, that every name the pack declares carries.
   - id: definitions
-    definition: >
-      an actor's entity definitions, carried by the assets pack's behavior half, which a script can
-      observe.
+    definition: |
+      an actor's entity definitions, carried by the assets pack's behavior half, which a script can observe.
   - id: appearance
-    definition: >
-      how an actor is drawn — its model, texture and animation, carried by the assets pack's
-      resource half, which no script can observe.
+    definition: |
+      how an actor is drawn — its model, texture and animation, carried by the assets pack's resource half, which no script can observe.
   - id: pack
-    definition: >
-      a Bedrock behavior pack or resource pack: a directory with a manifest at its root, which the
-      game loads as a unit.
+    definition: |
+      a Bedrock behavior pack or resource pack: a directory with a manifest at its root, which the game loads as a unit.
 presets:
   - name: minecraft-addon
     version: 4
@@ -74,12 +64,9 @@ requirements:
       from where it was placed, or harms it. an actor is changed only by the adventure that spawned
       it.
     scope: assets-pack
-    commentary: >
-      the worlds this product is for are built in creative, where an ordinary click on a character
-      is
-
+    commentary: |
+      the worlds this product is for are built in creative, where an ordinary click on a character is
       an authoring action rather than play; an actor a curious player can rename or delete with one
-
       click is not a character.
   - id: r-apu8m7vz
     title: an actor faces a player who approaches
@@ -88,13 +75,9 @@ requirements:
     scope: assets-pack
   - id: r-8ih6ab2r
     title: an actor outlives a restart and leaves only when removed
-    statement: >
-      an actor stays in the world, at the position it was placed, with its name and appearance,
-      until
-
-      the adventure that spawned it removes it — across a server restart, and whether or not a
-      player
-
+    statement: |
+      an actor stays in the world, at the position it was placed, with its name and appearance, until
+      the adventure that spawned it removes it — across a server restart, and whether or not a player
       is nearby.
     scope: assets-pack
   - id: r-pngblab3
@@ -109,116 +92,65 @@ requirements:
       change appearance, or stop rendering, on a version bump, with no build failure to announce it.
   - id: r-qi348761
     title: an actor's appearance does not depend on the game's own assets, materials excepted
-    statement: >
-      an actor's appearance and animation are carried by this product, and resolve to no model,
-      texture, animation,
-
-      or identifier the game ships. the material an actor is drawn with is excepted. a Minecraft
-      version change does
-
+    statement: |
+      an actor's appearance and animation are carried by this product, and resolve to no model, texture, animation,
+      or identifier the game ships. the material an actor is drawn with is excepted. a Minecraft version change does
       not alter how an actor looks.
-    commentary: >
-      the game's asset identifiers are not a compatibility surface: an actor that names them can
-      change
-
+    commentary: |
+      the game's asset identifiers are not a compatibility surface: an actor that names them can change
       appearance, or stop rendering, on a version bump, with no build failure to announce it.
 
-
-      the material is excepted because the format leaves no alternative, not as a convenience. a
-      client entity must
-
-      name the material it is drawn with, and the published vanilla pack carries no material
-      definitions at all, so
-
-      there is nothing to vendor — naming one the game ships is forced. the exception is written for
-      materials alone
-
-      rather than as a general licence for whatever the format forces next, so a second such case
-      earns its own
-
+      the material is excepted because the format leaves no alternative, not as a convenience. a client entity must
+      name the material it is drawn with, and the published vanilla pack carries no material definitions at all, so
+      there is nothing to vendor — naming one the game ships is forced. the exception is written for materials alone
+      rather than as a general licence for whatever the format forces next, so a second such case earns its own
       amendment.
 
-
-      what the exception costs is bounded: one string rather than the whole appearance, on a flatter
-      and older
-
-      surface than a version-suffixed geometry identifier, and a material that did change would show
-      as a wrongly
-
+      what the exception costs is bounded: one string rather than the whole appearance, on a flatter and older
+      surface than a version-suffixed geometry identifier, and a material that did change would show as a wrongly
       drawn actor rather than an absent one.
     informed_by:
-      - f:the-vanilla-material-definitions-are-not-published
+      - f:f-8it4axjv
     scope: assets-pack
     supersedes: r-pngblab3
   - id: r-9owgd93o
     title: the library refuses to act when an actor's definitions are absent
-    statement: >
-      where an actor's entity definitions are absent from the world, the library refuses the call
-      and names what
-
-      is missing. it returns no handle to an actor it did not create, and claims nothing about
-      whether an actor
-
+    statement: |
+      where an actor's entity definitions are absent from the world, the library refuses the call and names what
+      is missing. it returns no handle to an actor it did not create, and claims nothing about whether an actor
       will render.
     scope: library
-    commentary: >
-      the two halves of this product are installed separately, so a world running an adventure
-      against a
-
+    commentary: |
+      the two halves of this product are installed separately, so a world running an adventure against a
       missing definitions pack is an ordinary operational state rather than a broken build — and the
-
-      failure it produces without this is an actor that silently never appears. the second clause is
-      the
-
-      load-bearing one: a check that appeared to cover appearance, and could not, would be worse
-      than
-
+      failure it produces without this is an actor that silently never appears. the second clause is the
+      load-bearing one: a check that appeared to cover appearance, and could not, would be worse than
       none, because an adventure's author would trust it.
 
-
-      leaving an adventure to discover the absence from a later failure is the shape this rules out.
-      and a check
-
-      that appeared to cover appearance, and could not, would be worse than none, because an author
-      would trust
-
+      leaving an adventure to discover the absence from a later failure is the shape this rules out. and a check
+      that appeared to cover appearance, and could not, would be worse than none, because an author would trust
       it.
   - id: r-pop72yk6
     title: adventures built against different versions of the product coexist in one world
-    statement: >
-      adventures built against different versions of this product can be installed in one world and
-      all of
-
-      them work. no adventure has to be rebuilt, and nobody has to choose between them or reconcile
-      what a
-
+    statement: |
+      adventures built against different versions of this product can be installed in one world and all of
+      them work. no adventure has to be rebuilt, and nobody has to choose between them or reconcile what a
       world holds.
     scope: library
-    commentary: >
-      the audience installs an addon, not a dependency graph. a scheme where two adventures cannot
-      cohabit
-
-      until someone works out which version to keep is a scheme that fails in the hands it is built
-      for —
-
+    commentary: |
+      the audience installs an addon, not a dependency graph. a scheme where two adventures cannot cohabit
+      until someone works out which version to keep is a scheme that fails in the hands it is built for —
       and the way it fails is an actor nobody can see.
   - id: r-6q7adtpo
     title: an adventure keeps working as the product it was built against gains releases
-    statement: >
-      an adventure goes on working, unrebuilt, against later releases of the version of this product
-      it was
-
-      built against. what an adventure names remains available to it, meaning the same character,
-      for as
-
+    statement: |
+      an adventure goes on working, unrebuilt, against later releases of the version of this product it was
+      built against. what an adventure names remains available to it, meaning the same character, for as
       long as that version is current.
     scope: assets-pack
-    commentary: >
-      this is what allows adventures built at different times to share one installed pack rather
-      than each
-
-      needing its own; without it, sharing silently substitutes assets an adventure was never tested
-      with.
+    commentary: |
+      this is what allows adventures built at different times to share one installed pack rather than each
+      needing its own; without it, sharing silently substitutes assets an adventure was never tested with.
   - id: r-rpcudvbl
     title: a wizard preset
     statement: |

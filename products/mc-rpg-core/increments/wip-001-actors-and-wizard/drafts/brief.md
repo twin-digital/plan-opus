@@ -16,18 +16,18 @@ player. Three findings take it off the table.
 
 The worlds this product is for are built in creative mode. In creative, a right-click on an NPC opens
 the editor that sets its name, skin, dialog, and commands, and a left-click despawns it
-(`an-npc-is-edited-and-despawned-by-ordinary-clicks`). So the two clicks a player would use to talk
+(`f-chuoflt8`). So the two clicks a player would use to talk
 to a character are instead the two that rewrite and delete it. A character a child can rename or
 remove by accident is not a character.
 
 The dialogue that would have justified the entity is unreachable from creative anyway: both official
 tutorials send the creator into survival or adventure before the conversation can be had
-(`npc-dialogue-needs-survival-or-adventure-mode`). Adventure mode would restore all of it, and costs
+(`f-6k5bjmre`). Adventure mode would restore all of it, and costs
 creative flight — a poor trade in a dimension you can fall out of.
 
 And the scripting handle on an NPC's own name, skin, and scene is `EntityNpcComponent`, which is
 documented for the experimental moniker alone and carries a pre-release caution
-(`the-npc-scripting-component-is-pre-release`). A product that means to stay on stable script modules
+(`f-oiu8hp0g`). A product that means to stay on stable script modules
 reaches an NPC's properties through no scripting surface at all.
 
 What the entity would have given is reproducible from ordinary components — `damage_sensor` with
@@ -50,7 +50,7 @@ one file rather than two things to keep in step.
 ## Why one identifier per preset
 
 A client entity definition is addressed by identifier, and one identifier resolves to one appearance
-definition (`a-client-entity-definition-is-keyed-by-the-entity-identifier`). Two actors that look
+definition (`f-09o4knzt`). Two actors that look
 different therefore need two identifiers unless a render controller can choose between appearances
 inside a single definition — and whether it can make that choice from an entity property a script
 sets is not something the sources cover.
@@ -66,17 +66,17 @@ not worth blocking on.
 ## Why the assets are vendored rather than referenced
 
 A custom client entity may name the game's own geometry, textures, and animations with nothing copied
-(`a-custom-client-entity-may-reference-the-vanilla-packs-assets`), and for a one-off pack that is the
+(`f-a7v7ex4x`), and for a one-off pack that is the
 right answer. It is the wrong answer here for one reason: those identifiers are not a compatibility
 surface. The evoker alone shows the hazard — it is registered as `minecraft:evocation_illager`, its
 geometry is `geometry.evoker.v1.8`, and neither is spelled from the mob's common name
-(`the-evoker-client-entity-names-its-geometry-texture-material-and-animations`). A rename in a game
+(`f-z999a7yv`). A rename in a game
 update takes the wizard's face away with no build failure to announce it, and the server version is
 pinned and bumped by automation.
 
 Vendoring is available and legitimate: Mojang publishes the vanilla packs as files for exactly this
 purpose, all rights reserved and governed by the EULA
-(`mojang-publishes-the-vanilla-packs-with-all-rights-reserved-under-the-eula`). What that agreement
+(`f-ev10b68v`). What that agreement
 permits for a redistributed asset is not something the fact settles, and is not settled here — for a
 family addon nobody publishes, it does not arise; before anything ships to strangers, it wants
 reading properly.
@@ -88,7 +88,7 @@ names a stock one.
 
 ## What the boundary probe settled
 
-Two questions gated the shape of this increment, and the `cross-pack-probe` run answered both against
+Two questions gated the shape of this increment, and the `run-roqepx2c` run answered both against
 a real 1.26.43.1 server.
 
 **An entity type crosses the boundary.** A consumer pack's script spawned the provider pack's entity,
@@ -155,7 +155,7 @@ Three avenues that looked plausible and are closed, so nobody re-opens them:
 
 ## What a missing appearance actually looks like
 
-The `rp-render-check` run put four actors side by side in front of a real client, identical in behaviour
+The `run-1ga99sms` run put four actors side by side in front of a real client, identical in behaviour
 and differing only in what the resource pack said about their appearance. The results are not symmetric,
 and the asymmetry is the point:
 

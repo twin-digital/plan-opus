@@ -369,7 +369,7 @@ facts:
       The probe covers behavior packs only; nothing here observes a resource pack, and nothing
       observes rendering.
     sources:
-      - run: cross-pack-probe
+      - run: run-roqepx2c
         where: scenario q1nodep — the consumer declares no dependency on the provider
         quote: |
           [2026-08-10 01:40:18:836 WARN] [Scripting] PROBE q1-nodep spawnEntity=ok
@@ -377,7 +377,7 @@ facts:
           [2026-08-10 01:40:18:836 WARN] [Scripting] PROBE q1-nodep count-after-spawn=1
           [2026-08-10 01:40:18:836 WARN] [Scripting] PROBE q1-nodep summon-command=ok
           [2026-08-10 01:40:18:836 WARN] [Scripting] PROBE q1-nodep count-after-summon=2
-      - run: cross-pack-probe
+      - run: run-roqepx2c
         where: scenario q1missing — the provider pack is absent from the pool
         quote: |
           [2026-08-10 01:41:39:719 WARN] [Scripting] PROBE q1-dep spawnEntity=THREW
@@ -397,18 +397,18 @@ facts:
       build time or not at all.
     backing: tested
     sources:
-      - run: cross-pack-probe
+      - run: run-roqepx2c
         where: scenario q2 — the four static specifier shapes, one per pack
         quote: |
           [2026-08-10 01:42:08:139 ERROR] [Scripting] [probe importer rel-pool] ReferenceError: Import [../../4a1f0000-0000-4000-8000-000000000001/scripts/lib.js] not found.
           [2026-08-10 01:42:08:139 ERROR] [Scripting] [probe importer rel-up] ReferenceError: Import [../../../development_behavior_packs/4a1f0000-0000-4000-8000-000000000001/scripts/lib.js] not found.
           [2026-08-10 01:42:08:139 ERROR] [Scripting] [probe importer abs-pool] ReferenceError: Import [/development_behavior_packs/4a1f0000-0000-4000-8000-000000000001/scripts/lib.js] not found.
           [2026-08-10 01:42:08:139 ERROR] [Scripting] [probe importer bare] ReferenceError: Import [probe-provider/lib.js] not found.
-      - run: cross-pack-probe
+      - run: run-roqepx2c
         where: scenario q2 — the importing pack's entry after the failed resolution
         quote: |
           [2026-08-10 01:42:08:149 ERROR] [Scripting] Plugin [probe importer rel-pool - 1.0.0] - [main.js] ran with error: [ReferenceError: Import [../../4a1f0000-0000-4000-8000-000000000001/scripts/lib.js] not found.]
-      - run: cross-pack-probe
+      - run: run-roqepx2c
         where: scenario q2 — the dynamic import's rejection
         quote: |
           [2026-08-10 01:42:12:085 WARN] [Scripting] PROBE q2-dynamic dynamic-rejected=Import (../../4a1f0000-0000-4000-8000-000000000001/scripts/lib.js] not found.
@@ -431,31 +431,31 @@ facts:
       dependency entry does not fetch or install anything
       [[f:an-unsatisfiable-pack-dependency-is-not-enforced-at-load]].
     sources:
-      - run: cross-pack-probe
+      - run: run-roqepx2c
         where: scenario q1pull — activation list naming only the consumer, and the resulting stack
         quote: |
           activation list: [{"pack_id":"4a1f0000-0000-4000-8000-000000000002","version":[1,0,0]}]
-      - run: cross-pack-probe
+      - run: run-roqepx2c
         where: scenario q1pull — the stack the unlisted dependency reached
         quote: |
           [2026-08-10 01:40:45:777 INFO] Pack Stack - [00] probe consumer dep (id: 4a1f0000-0000-4000-8000-000000000002, version: 1.0.0) @ development_behavior_packs/4a1f0000-0000-4000-8000-000000000002
           [2026-08-10 01:40:45:777 INFO] Pack Stack - [01] probe provider (id: 4a1f0000-0000-4000-8000-000000000001, version: 1.0.0) @ development_behavior_packs/4a1f0000-0000-4000-8000-000000000001
-      - run: cross-pack-probe
+      - run: run-roqepx2c
         where: scenario q1dep — both packs listed, provider first, loaded in the listed order
         quote: |
           [2026-08-10 01:39:24:621 INFO] Pack Stack - [00] probe provider (id: 4a1f0000-0000-4000-8000-000000000001, version: 1.0.0) @ development_behavior_packs/4a1f0000-0000-4000-8000-000000000001
           [2026-08-10 01:39:24:621 INFO] Pack Stack - [01] probe consumer dep (id: 4a1f0000-0000-4000-8000-000000000002, version: 1.0.0) @ development_behavior_packs/4a1f0000-0000-4000-8000-000000000002
-      - run: rp-dependency-probe
+      - run: run-ledb50ji
         where: scenario C — resource pack in the pool, resource activation list empty
         quote: |
           rp-pool: 6c3a0000-0000-4000-8000-000000000002
           behavior activation list: [{"pack_id":"6c3a0000-0000-4000-8000-000000000001","version":[1,0,0]}]
           resource activation list: []
-      - run: rp-dependency-probe
+      - run: run-ledb50ji
         where: scenario C — the unlisted resource pack reached the client stack anyway
         quote: |
           [2026-08-10 04:52:57:535 WARN] [Scripting] PROBE bp packstack-client-successCount=2
-      - run: rp-dependency-probe
+      - run: run-ledb50ji
         where: scenario A — the same count with no resource pack in the pool, for contrast
         quote: |
           [2026-08-10 04:52:17:232 WARN] [Scripting] PROBE bp packstack-client-successCount=1
@@ -473,26 +473,26 @@ facts:
       and for a resource pack there is nothing it can detect.
     backing: tested
     sources:
-      - run: cross-pack-probe
+      - run: run-roqepx2c
         where: scenario q1missing — the pool holds only the dependent pack
         quote: |
           pool: 4a1f0000-0000-4000-8000-000000000002
-      - run: cross-pack-probe
+      - run: run-roqepx2c
         where: scenario q1missing — the dependent pack loaded regardless
         quote: |
           [2026-08-10 01:41:25:860 INFO] Pack Stack - [00] probe consumer dep (id: 4a1f0000-0000-4000-8000-000000000002, version: 1.0.0) @ development_behavior_packs/4a1f0000-0000-4000-8000-000000000002
-      - run: cross-pack-probe
+      - run: run-roqepx2c
         where: scenario q1missing — its script ran to completion anyway
         quote: |
           [2026-08-10 01:41:39:719 WARN] [Scripting] PROBE q1-dep tickingarea=ok
           [2026-08-10 01:41:39:719 WARN] [Scripting] PROBE q1-dep spawnEntity=THREW
-      - run: rp-dependency-probe
+      - run: run-ledb50ji
         where: scenario A — the declared resource pack is not in the pool at all
         quote: |
           rp-pool:
           behavior activation list: [{"pack_id":"6c3a0000-0000-4000-8000-000000000001","version":[1,0,0]}]
           resource activation list: []
-      - run: rp-dependency-probe
+      - run: run-ledb50ji
         where: scenario A — the behavior pack loaded and ran with its resource-pack dependency missing
         quote: |
           [2026-08-10 04:52:17:232 WARN] [Scripting] PROBE bp bp-script-evaluated=true
@@ -558,19 +558,19 @@ facts:
         where: Usage
         quote: |
           ### `/packstack <stackType: stackType> [verbose: verbose] [exclude-vanilla: exclude-vanilla]`
-      - run: rp-detection-probe
+      - run: run-epfk801h
         where: scenario ctrl — no resource pack in the pool
         quote: |
           [2026-08-10 04:16:09:860 WARN] [Scripting] PROBE bp cmd-packstack_client=ok successCount=1
-      - run: rp-detection-probe
+      - run: run-epfk801h
         where: scenario withrp — one resource pack staged and activated
         quote: |
           [2026-08-10 04:17:13:868 WARN] [Scripting] PROBE bp cmd-packstack_client=ok successCount=2
-      - run: rp-detection-probe
+      - run: run-epfk801h
         where: scenario poolonly — the resource pack present in the pool but not activated
         quote: |
           [2026-08-10 04:18:17:763 WARN] [Scripting] PROBE bp cmd-packstack_client=ok successCount=1
-      - run: rp-detection-probe
+      - run: run-epfk801h
         where: scenario withrp — exclude-vanilla does not isolate the custom packs
         quote: |
           [2026-08-10 04:17:13:868 WARN] [Scripting] PROBE bp cmd-packstack_client_verbose_exclude-vanilla=ok successCount=1
@@ -590,15 +590,15 @@ facts:
       `hasComponent('minecraft:collision_box')` reads false even on the entity whose definition declares
       one, so the component is not a route to these values either.
     sources:
-      - run: rp-detection-probe
+      - run: run-epfk801h
         where: scenario ctrl — the boxed and unboxed entities with no resource pack active
         quote: |
           [2026-08-10 04:16:09:859 WARN] [Scripting] PROBE bp boxed-aabb={"extent":{"z":0.3000001907348633,"y":0.9500007629394531,"x":0.3000001907348633},"center":{"z":8.300000190734863,"y":70.94999694824219,"x":8.300000190734863}}
-      - run: rp-detection-probe
+      - run: run-epfk801h
         where: scenario withrp — the same entity with a resource pack active whose geometry is a 320-block cube
         quote: |
           [2026-08-10 04:17:13:868 WARN] [Scripting] PROBE bp boxed-aabb={"extent":{"z":0.3000001907348633,"y":0.9500007629394531,"x":0.3000001907348633},"center":{"z":8,"y":70.94999694824219,"x":8}}
-      - run: rp-detection-probe
+      - run: run-epfk801h
         where: scenario withrp — head location and the component test
         quote: |
           [2026-08-10 04:17:13:868 WARN] [Scripting] PROBE bp boxed-headLocation-dy=1.6150
@@ -622,16 +622,16 @@ facts:
         where: timelines — what they may run in each pack kind
         quote: |
           In resource packs, timelines can only be used to run Molang code. In behavior animations, you can use this to run Molang code, commands, or trigger entity events.
-      - run: rp-detection-probe
+      - run: run-epfk801h
         where: scenario withrp — the resource pack's data half does not register its entity type
         quote: |
           [2026-08-10 04:17:13:868 WARN] [Scripting] PROBE bp entityTypes-probe:rp_only_entity=undefined
-      - run: rp-detection-probe
+      - run: run-epfk801h
         where: scenario withrp — structures and pack settings see nothing of the resource pack
         quote: |
           [2026-08-10 04:17:13:867 WARN] [Scripting] PROBE bp packSettings={}
           [2026-08-10 04:17:13:867 WARN] [Scripting] PROBE bp packStructureIds=probe:bp_struct
-      - run: rp-detection-probe
+      - run: run-epfk801h
         where: scenario withrp — the resource pack's structure cannot be fetched
         quote: |
           [2026-08-10 04:17:13:867 WARN] [Scripting] PROBE bp structure-get-rp=undefined
@@ -658,32 +658,32 @@ facts:
       documented rule — higher version replaces, same or lower ignored — describes importing rather than a
       server pool [[f:manifest-declares-pack-identity-version-and-module-kinds]].
     sources:
-      - run: duplicate-uuid-probe
+      - run: run-vswvt7b3
         where: scenario A — two behavior directories, one uuid, one version
         quote: |
           bp pool dirs: bp_a_v1 bp_b_v1 observer   rp pool dirs: (none)
-      - run: duplicate-uuid-probe
+      - run: run-vswvt7b3
         where: scenario A — one stack entry and one copy's content
         quote: |
           [2026-08-10 05:50:46:407 WARN] [Scripting] PROBE entityType-dup:from_a=defined
           [2026-08-10 05:50:46:407 WARN] [Scripting] PROBE entityType-dup:from_b=undefined
-      - run: duplicate-uuid-probe
+      - run: run-vswvt7b3
         where: scenario C — the activation list names the uuid twice
         quote: |
           behavior activation list: [{"pack_id":"8e5c0000-0000-4000-8000-000000000001","version":[1,0,0]},{"pack_id":"8e5c0000-0000-4000-8000-000000000001","version":[1,0,0]},{"pack_id":"8e5c0000-0000-4000-8000-000000000003","version":[1,0,0]}]
-      - run: duplicate-uuid-probe
+      - run: run-vswvt7b3
         where: scenario B — pool holds 1.0.0 and 1.1.0, the list pins 1.0.0
         quote: |
           [2026-08-10 05:50:42:415 INFO] Pack Stack - [00] dup copy a v1.0.0 (id: 8e5c0000-0000-4000-8000-000000000001, version: 1.0.0) @ development_behavior_packs/bp_a_v1
-      - run: duplicate-uuid-probe
+      - run: run-vswvt7b3
         where: scenario E — the same pool with the list pinning 1.1.0
         quote: |
           [2026-08-10 05:51:53:101 INFO] Pack Stack - [00] dup copy b v1.1.0 (id: 8e5c0000-0000-4000-8000-000000000001, version: 1.1.0) @ development_behavior_packs/bp_b_v11
-      - run: duplicate-uuid-probe
+      - run: run-vswvt7b3
         where: scenario G — the list pins 1.2.0, which no copy in the pool is
         quote: |
           behavior activation list: [{"pack_id":"8e5c0000-0000-4000-8000-000000000001","version":[1,2,0]},{"pack_id":"8e5c0000-0000-4000-8000-000000000003","version":[1,0,0]}]
-      - run: duplicate-uuid-probe
+      - run: run-vswvt7b3
         where: scenario F — directory names inverted so the other copy sorts first
         quote: |
           bp pool dirs: zz_copy_a_v1 aa_copy_b_v1 observer   rp pool dirs: (none)

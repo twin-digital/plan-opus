@@ -1,9 +1,7 @@
-# Facts about the game's own NPC entity and its dialogue system — the built-in character
-# machinery any design placing non-player characters has to decide for or against.
-
-version: "1"
+version: "3"
 facts:
-  - id: npc-dialogue-needs-survival-or-adventure-mode
+  - id: f-6k5bjmre
+    title: NPC dialogue is unreachable from creative mode
     claim: |
       An NPC's dialogue is unreachable to a player in Creative mode. Right-clicking an NPC opens the
       NPC editor — the interface that sets its name, skin, dialog, and commands — and both tutorials
@@ -25,8 +23,8 @@ facts:
         where: Run the scene — step 1
         quote: |
           Change the game mode to Survival in Settings.
-
-  - id: an-npc-is-edited-and-despawned-by-ordinary-clicks
+  - id: f-chuoflt8
+    title: an NPC's two ordinary clicks edit it and despawn it
     claim: |
       Both of an NPC's ordinary click interactions are authoring actions rather than play: a
       right-click opens the editor that sets its name, skin, dialog, and commands, and a left-click
@@ -48,8 +46,8 @@ facts:
         where: Spawn an NPC — the paragraph on the built-in dialog feature
         quote: |
           This dialog box has a limit of 307 characters before the text goes off the screen. You can also use color codes to change the color of the text.
-
-  - id: the-npc-scripting-component-is-pre-release
+  - id: f-oiu8hp0g
+    title: the only scripting handle on an NPC is pre-release
     claim: |
       `EntityNpcComponent` — the Script API's only handle on an NPC's name, skin index, and default
       dialogue scene — is documented for the experimental moniker alone and carries a pre-release
@@ -70,8 +68,8 @@ facts:
         where: Constants — componentId
         quote: |
           static read-only componentId = "minecraft:npc";
-
-  - id: dialogue-open-forces-a-scene-from-an-npc-the-player-cannot-reach
+  - id: f-jqsj08fb
+    title: dialogue open forces a scene from an NPC no player can reach
     claim: |
       `dialogue open` forces a dialogue box onto a targeted player without that player interacting
       with the NPC, and the NPC it speaks as need not be visible or reachable — only in a loaded
@@ -83,7 +81,7 @@ facts:
     caveat: |
       Whether the forced box reaches a player who is in Creative mode is not stated by these sources.
       The tutorial that runs a scene changes the game mode to Survival before running the command at
-      all [[f:npc-dialogue-needs-survival-or-adventure-mode]], and nothing found separates the
+      all [[f:f-6k5bjmre]], and nothing found separates the
       command path from the interaction path on this point.
     sources:
       - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/npcdialogue
@@ -98,8 +96,8 @@ facts:
         where: Dialogue change — the closing paragraph
         quote: |
           `/dialogue change` does not display the NPC dialog box as Dialogue Open does, it simply points the NPC to the scene file dialogue that you want the player to see during their next interaction with that NPC.
-
-  - id: an-npc-dialogue-scene-is-static-json-whose-buttons-run-commands
+  - id: f-bnpsqtbo
+    title: an NPC dialogue scene is build-time JSON whose buttons run commands
     claim: |
       A dialogue scene is a build-time JSON object in a behavior pack's `dialogue` folder: a required
       `scene_tag` naming it, and optional `npc_name`, `text`, `on_open_commands`, `on_close_commands`,

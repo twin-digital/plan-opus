@@ -1,9 +1,6 @@
-# The run behind the cross-pack facts: what crosses a behavior-pack boundary — an entity type one
-# pack defines and a script module one pack holds — as seen from a script in a different pack.
-
-version: "1"
+version: "2"
 runs:
-  - id: cross-pack-probe
+  - id: run-roqepx2c
     command: node evidence/minecraft/rpg-core/cross-pack-probe/probe.mjs
     output: evidence/minecraft/rpg-core/cross-pack-probe/OUTPUT.txt
     ran_at: 2026-08-10
@@ -16,8 +13,7 @@ runs:
       before each scenario. Each scenario runs against a freshly generated world on the same volume. No
       Minecraft client is involved, so nothing here observes rendering. Observations are this server
       version's behaviour and would need re-running against another.
-
-  - id: rp-detection-probe
+  - id: run-epfk801h
     command: node evidence/minecraft/rpg-core/rp-detection-probe/probe.mjs
     output: evidence/minecraft/rpg-core/rp-detection-probe/OUTPUT.txt
     ran_at: 2026-08-10
@@ -31,8 +27,7 @@ runs:
       console, and the probe additionally reads the same commands' printed output through the server's
       own console, which a script cannot see. No Minecraft client is involved, so anything requiring a
       player-type selector is out of its reach.
-
-  - id: rp-dependency-probe
+  - id: run-ledb50ji
     command: node evidence/minecraft/rpg-core/rp-dependency-probe/probe.mjs
     output: evidence/minecraft/rpg-core/rp-dependency-probe/OUTPUT.txt
     ran_at: 2026-08-10
@@ -45,8 +40,7 @@ runs:
       own entity type resolves via `EntityTypes.get`, and the client pack stack count — so no spawn is
       attempted and no ticking area is needed. No Minecraft client is involved; nothing here observes
       rendering.
-
-  - id: rp-render-check
+  - id: run-1ga99sms
     command: node evidence/minecraft/rpg-core/rp-render-check/setup.mjs up
     output: evidence/minecraft/rpg-core/rp-render-check/OBSERVATION.md
     ran_at: 2026-08-10
@@ -60,8 +54,7 @@ runs:
       client and reported what each actor looked like, and that report is transcribed verbatim in the
       output file alongside the captured server-side half. A visual observation by one person on one
       client, not a measurement.
-
-  - id: duplicate-uuid-probe
+  - id: run-vswvt7b3
     command: node evidence/minecraft/rpg-core/duplicate-uuid-probe/probe.mjs
     output: evidence/minecraft/rpg-core/duplicate-uuid-probe/OUTPUT.txt
     ran_at: 2026-08-10
@@ -73,8 +66,7 @@ runs:
       copies sit in; a resource-pack pair sharing a uuid is covered too. A separate observer pack with its
       own uuid reports which entity type resolves, and so which copy won, plus the client pack stack count.
       Both pools are emptied per scenario and each scenario runs against its own freshly generated world.
-
-  - id: asset-collision-check
+  - id: run-su8j6rdc
     command: node evidence/minecraft/rpg-core/asset-collision-check/setup.mjs up
     output: evidence/minecraft/rpg-core/asset-collision-check/OBSERVATION.md
     ran_at: 2026-08-10
@@ -88,8 +80,7 @@ runs:
       nothing is fetched. Which definition won is only visible on a client: the owner joined with a real
       Bedrock client and reported what each actor looked like, transcribed verbatim in the output file
       beside the captured server-side half. A visual observation by one person on one client.
-
-  - id: published-materials-probe
+  - id: run-8xm67ysn
     command: node evidence/minecraft/rpg-core/published-materials-probe/probe.mjs
     output: evidence/minecraft/rpg-core/published-materials-probe/OUTPUT.txt
     ran_at: 2026-08-10
