@@ -1,0 +1,25 @@
+version: "3"
+
+decisions:
+  - id: d-6a30sc55
+    title: the unmeasured argument shapes take the plain-object wording
+    statement: |
+      The engine's four-way guard on a wrong-typed identifier is measured for six argument shapes.
+      Every other object takes the plain-object wording, and the package marks that as the library's
+      own rather than the engine's.
+    cases:
+      - when: the argument is one of the six shapes measured
+        then: the wording is the engine's, reproduced
+      - otherwise: it is `Object did not have a native handle.`, which nothing observed
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: |
+        A consumer catching the guard reads the message, so a reimplementation choosing a different
+        wording for a `Date` or a boxed `Number` is a break.
+    because:
+      - d-0m25p71q
+      - f:f-i8kpwzfk
+      - r-8r8gf6b7
+      - r-62r76czb
+    scope: fakes
