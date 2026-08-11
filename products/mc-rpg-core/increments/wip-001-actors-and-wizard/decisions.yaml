@@ -213,7 +213,12 @@ decisions:
       - f:an-entity-type-can-be-looked-up-by-identifier-without-spawning
       - f:an-unsatisfiable-pack-dependency-is-not-enforced-at-load
       - f:an-entity-type-resolves-for-a-script-in-any-other-loaded-pack
+      - f:f-90p7coes
+      - f:f-rtmfaoba
     cases:
+      - when: the world has not finished loading
+        then: the engine refuses the lookup, and the call fails on that refusal rather than on this
+          product's error
       - when: the entity type is registered
         then: the call proceeds
       - when: it is not registered
@@ -224,6 +229,27 @@ decisions:
       the world the
 
       call runs against, not of the process.
+
+
+      the early-execution case is stated rather than translated. the library does not catch the
+      engine's refusal to
+
+      re-throw its own, because an adventure cannot usefully act on an actor before the world loads
+      in any case —
+
+      spawning that early fails on its own account — and a wrapper would only obscure which of the
+      two happened.
+
+      what the case buys is that nobody later "fixes" the phase boundary by moving the check to
+      startup, where it
+
+      cannot run at all.
+
+
+      the pre-check is sound rather than merely convenient: a lookup that returns a value and a
+      spawn that succeeds
+
+      were measured to agree on the same identifier, bare forms included.
   - id: d-bcybwddk
     title: the check covers the definitions only, and the library asserts nothing about appearance
     statement: >
