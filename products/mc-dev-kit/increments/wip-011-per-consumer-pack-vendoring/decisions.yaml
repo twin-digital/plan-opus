@@ -228,6 +228,39 @@ decisions:
       sees an actor drawn wrong. Nothing distinguishes the author's intent here, so neither side can
       be preferred.
 
+  - id: d-hqtqb43i
+    title: what copies unchanged, and what the build writes
+    statement: |
+      a file under a pack's source directory reaches the output unchanged except its
+      `manifest.json`, everything under `scripts/`, any file carrying a name the build rewrites, and
+      any file the consumer's own content and a vendoring both contribute to, whose entries are
+      composed. Dotfiles and unknown extensions copy like the rest.
+    status: proposed
+    pinned:
+      reason: data-format
+      notes: which of an author's files survive the build byte for byte
+    supersedes: d-h91x9nxz
+    because:
+      - r-umoo5i1i
+      - r-imfmv0qc
+      - r-c9bu8xes
+      - d-82zp77fo
+      - d-ni5n2r3c
+    commentary: |
+      This restates the exceptions rather than adding to them, because two of the four are new and
+      the value of the entry is that the list is closed.
+
+      Rewriting a name is already not copying, so the exception is owed to the namespace whether or
+      not anything is vendored. Composing is owed to merging: most pack content is one file per
+      thing, where two packs contributing one path means two declarations of one name — caught
+      before this decision is reached. Where the format keeps one file for the whole pack instead,
+      both packs have entries in it legitimately, and one of them winning would silently drop the
+      other's.
+
+      Every file this touches is in the output tree, which the assembly owns outright. Nothing is
+      written back to a source directory, so no authored file gains generated content and no
+      authored directory gains an ignored file.
+
   - id: d-xoz6pwt8
     title: a vendored dependency leaves the built manifest
     statement: |
