@@ -35,10 +35,9 @@ decisions:
     title: cooldowns are managed as id-addressed settings with the kind fixed at create
     statement: |
       the API manages cooldowns as their own settings collection: listing returns the stored
-      settings beside the kind names enabled notify operators currently send, creating takes a
-      kind and an interval, editing changes only the interval, and deleting removes the setting.
-      The kind is fixed at create — renaming is delete and create — while the setting stays
-      keyed by user and kind.
+      settings beside the kind names enabled notify operators send, creating takes a kind and
+      an interval, editing changes only the interval, and deleting removes the setting. The
+      kind is fixed at create — renaming is delete and create.
     status: proposed
     because:
       - d-k3wq81vn
