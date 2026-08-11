@@ -1,0 +1,135 @@
+version: "3"
+
+decisions:
+  - id: d-grcdd4ov
+    scope: triage
+    title: the archive action takes a delay
+    statement: |
+      the archive action takes an optional delay: a whole number of seconds, at least one, with
+      no ceiling. With none stored it archives during the triage it runs in. With one, the
+      triage records a pending archive due the delay past the message's take-in, and grinbox
+      performs it when it comes due.
+    commentary: |
+      Which mail waits is the gate's business, like any other action's firing. The briefly-useful
+      class is already expressible — a tagger marks it, the gate reads it — so what changes is
+      one field on the action rather than a new operator type with its own selection mechanism.
+      The delay runs from take-in, not from the triage that recorded it, so a re-triage does not
+      move the due moment, and a delay already elapsed when the triage settles comes due at
+      once. The seconds form mirrors the cooldown interval's; the stored field's name follows at
+      implementation, as the cooldown's did.
+    status: accepted
+    because:
+      - r-cwc01n0t
+      - d-yjd4ag9q
+      - d-cgosh169
+    pinned:
+      reason: public-api
+      notes: |
+        the stored configuration shape of the archive action, which every saved pipeline carries
+
+  - id: d-0tajzoy7
+    scope: triage
+    title: the pending archive is the latest triage's
+    statement: |
+      a message holds at most one pending archive: the one its latest settled triage recorded,
+      the earliest due where that triage recorded several. A re-triage that records none cancels
+      it, and one that records another replaces it.
+    commentary: |
+      Two delayed archive operators gated on different classes is an ordinary configuration, so
+      recording several is not a fault to refuse at save. A restore after the archive fired
+      stands: r-zagpfz75 bars repeating the effect, whatever mechanism the implementation
+      carries it with.
+    status: accepted
+    because:
+      - d-grcdd4ov
+      - d-urdglhb6
+      - r-zagpfz75
+    pinned:
+      reason: other
+      notes: |
+        re-triaging is the one way a user stops a pending archive, and that lever exists only
+        while the latest triage's conclusion is what stands
+
+  - id: d-p0ea1t8q
+    scope: interface
+    title: a pending archive is visible where the message is
+    statement: |
+      a message's read surfaces carry its pending archive while it stands — the due moment and
+      the triage that recorded it — so what a re-triage would cancel is visible before it fires.
+    commentary: |
+      The list surfaces stay as they are: the filter vocabulary d-r5wc2qnj pins gains nothing,
+      since a pending archive is per-message state, not a standing. The route envelope carrying
+      it is the daemon's, per d-a4yrn8sw.
+    status: accepted
+    because:
+      - d-0tajzoy7
+      - r-k6gh82fx
+      - d-6wgxtdn8
+    pinned:
+      reason: public-api
+
+  - id: d-41v9yqvh
+    scope: triage
+    title: what a due pending archive does
+    statement: |
+      when a pending archive comes due, what grinbox does turns on the message's standing, the
+      configuration's, and what the call returns.
+    cases:
+      - when: its pipeline or its account is deleted
+        then: it never performs, and what was recorded of it stays readable
+      - when: its pipeline is not active on the account
+        then: nothing performs, and it fires late where the pipeline returns while it still stands
+      - when: the message has already left the inbox
+        then: the mailbox is untouched, and that outcome is recorded on the run that recorded it
+      - when: a limit denies the call
+        then: it stays due, and the next heartbeat tries again
+      - when: the call fails past its operation's retries
+        then: it concludes failed on that run, and the retry is a re-triage
+      - otherwise: the message is archived, and the archive is recorded on the run that recorded it
+    commentary: |
+      The limit-denied branch is what keeps r-cwc01n0t from being defeated by a busy window — a
+      denial is an outcome, not a conclusion, and the window frees. The inactive-pipeline branch
+      reads deactivation as d-s2kf8vjq reads deletion: the work stops; it differs in that the
+      pipeline can return. The outcomes' stored names follow at implementation, as the
+      suppression's did.
+    status: accepted
+    because:
+      - d-0tajzoy7
+      - d-jr86qq8b
+      - r-k6gh82fx
+      - d-j8wm2qfx
+      - d-0tebpjex
+      - d-s2kf8vjq
+      - r-cwc01n0t
+    pinned:
+      reason: other
+      notes: |
+        mail staying in or leaving the inbox at these edges is behaviour the user sees
+
+  - id: d-gzv0jty7
+    title: one heartbeat drives every scheduler
+    statement: |
+      the poll, digest, and pending-archive schedulers wake on one heartbeat — a minute by
+      default, set by the deployment — and act on whatever is due: an account's elapsed
+      interval, an edition's passed cue, a pending archive past its moment. Nothing else wakes
+      on its own timer, and nothing is scheduled per account, edition, or message.
+    commentary: |
+      A heartbeat arriving mid-cycle does nothing, as before. User-visible latency is the
+      account's interval plus up to one heartbeat for arrivals, and
+      up to one heartbeat past due for the rest. A due moment grinbox slept through is still due
+      on return — the sweep acts late rather than never, and no per-cue collapse arises because
+      a pending archive has one moment, not a recurrence. The superseded entry counted two
+      schedulers; everything it ruled about those two is restated unchanged.
+    status: accepted
+    supersedes: d-q4ty6zpm
+    because:
+      - r-0lg2c2e4
+      - d-nq4fk2xr
+      - d-6vnf59rv
+      - d-81ouxrpi
+      - d-grcdd4ov
+    pinned:
+      reason: other
+      notes: |
+        the arrival latency the product promises is the account's interval plus this heartbeat,
+        so the ceiling on the per-account interval alone does not bound it
