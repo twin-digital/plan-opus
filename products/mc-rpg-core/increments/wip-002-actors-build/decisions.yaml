@@ -20,7 +20,7 @@ decisions:
       the stock entity material the wizard's client entity names is `evoker` — the material the
       game's own evoker is drawn with. it is the only vanilla name the shipped resource half
       carries.
-    status: delegated
+    status: accepted
     pinned:
       reason: other
       notes: how the wizard is drawn, and the one vanilla name the resource half ships — a different material re-draws the wizard's face
@@ -41,7 +41,7 @@ decisions:
     commentary: |
       a place carries no rotation: an actor faces nearby players by behavior (r-apu8m7vz), so an
       initial facing would bind nothing a player could keep observing.
-    status: delegated
+    status: accepted
     pinned:
       reason: public-api
     scope: library
@@ -67,7 +67,7 @@ decisions:
     title: the wizard's default name is the string `Wizard`
     statement: |
       the wizard preset's library-carried default name is the string `Wizard`.
-    status: delegated
+    status: accepted
     pinned:
       reason: other
       notes: what a player reads above the actor every adventure spawns unrenamed
@@ -96,20 +96,22 @@ decisions:
     statement: |
       the npm name an adventure imports is `@twin-digital/rpg-core`, published under ISC and
       shipping `dist/` only.
-    status: delegated
+    status: rejected
     pinned:
       reason: public-api
     scope: library
     because:
       - d-knzip5zc
       - d-6jlj0rl2
+    reason: >-
+      rename to @twin-digital/mc-rpg-core
   - id: d-og6f9j6c
     title: the two packages advance majors together, and the library's first release is 1.0.0
     statement: |
       the library and the assets pack advance majors together: the library's first release is
       `1.0.0`, and a namespace change is a new major of both packages. each package therefore reads
       the namespace from its own version's major.
-    status: delegated
+    status: tolerated
     pinned:
       reason: other
       notes: it is how the library's identifiers and the pack's stay one namespace as majors advance
@@ -126,10 +128,12 @@ decisions:
       `@twin-digital/rpg-core-example` is private and never published. it holds one behavior pack
       and no resource pack, its deliverable is the `.mcaddon` its release hook archives, and it
       exposes no importable surface.
-    status: delegated
+    status: rejected
     scope: example
     because:
       - d-2qxdv80k
+    reason: >-
+      rename package to @twin-digital/mc-rpg-core-example
   - id: d-cqgi5xms
     title: a durable name is a namespaced world dynamic property holding a JSON record
     statement: |
@@ -196,7 +200,7 @@ decisions:
         then: the push is refused as far as the components reach — a piston arm still moves it
       - when: a piston carries the block an actor stands on, or a current reaches it
         then: the actor moves; no component prevents either
-    status: proposed
+    status: tolerated
     supersedes: d-w0smdozf
     pinned:
       reason: other
