@@ -31,23 +31,18 @@ decisions:
     scope: triage
     title: the pending archive is the latest triage's
     statement: |
-      a message holds at most one pending archive: the one its latest settled triage recorded. A
-      re-triage that records none cancels it, and one that records another replaces it. When it
-      comes due, grinbox archives a message still in the inbox and touches nothing that already
-      left; either outcome is recorded on the run that concluded it.
+      a message holds at most one pending archive: the one its latest settled triage recorded,
+      the earliest due where that triage recorded several. A re-triage that records none cancels
+      it, and one that records another replaces it.
     commentary: |
-      The outcome reads back like any other. What the user did meanwhile shows up as standing: a
-      message they archived or trashed themselves is already gone, and the due archive finds
-      nothing to do — recorded as that, not as an archive. A restore after the archive fired
+      Two delayed archive operators gated on different classes is an ordinary configuration, so
+      recording several is not a fault to refuse at save. A restore after the archive fired
       stands: r-zagpfz75 bars repeating the effect, whatever mechanism the implementation
-      carries it with. The outcomes' stored names follow at implementation, as the
-      suppression's did.
+      carries it with.
     status: proposed
     because:
       - d-grcdd4ov
       - d-urdglhb6
-      - d-jr86qq8b
-      - r-k6gh82fx
       - r-zagpfz75
     pinned:
       reason: other
@@ -75,30 +70,33 @@ decisions:
 
   - id: d-41v9yqvh
     scope: triage
-    title: a pending archive at its edges
+    title: what a due pending archive does
     statement: |
-      at its edges — several recorded by one triage, a denied or failed call, configuration
-      turned off or deleted — a pending archive behaves by case, and re-triage stays the one
-      cancel throughout.
+      when a pending archive comes due, what grinbox does turns on the message's standing, the
+      configuration's, and what the call returns.
     cases:
-      - when: one triage records more than one pending archive
-        then: the earliest due is the one the message holds
-      - when: a limit denies the due call
-        then: the archive stays due, and the next heartbeat tries again
-      - when: the due call fails past its operation's retries
-        then: it concludes failed on its run, and the retry is a re-triage
-      - when: its pipeline is not active on the account
-        then: nothing performs; it fires late where the pipeline returns while it still stands
       - when: its pipeline or its account is deleted
-        then: it never performs, and what was recorded stays readable
+        then: it never performs, and what was recorded of it stays readable
+      - when: its pipeline is not active on the account
+        then: nothing performs, and it fires late where the pipeline returns while it still stands
+      - when: the message has already left the inbox
+        then: the mailbox is untouched, and that outcome is recorded on the run that recorded it
+      - when: a limit denies the call
+        then: it stays due, and the next heartbeat tries again
+      - when: the call fails past its operation's retries
+        then: it concludes failed on that run, and the retry is a re-triage
+      - otherwise: the message is archived, and the archive is recorded on the run that recorded it
     commentary: |
       The limit-denied branch is what keeps r-cwc01n0t from being defeated by a busy window — a
       denial is an outcome, not a conclusion, and the window frees. The inactive-pipeline branch
       reads deactivation as d-s2kf8vjq reads deletion: the work stops; it differs in that the
-      pipeline can return.
+      pipeline can return. The outcomes' stored names follow at implementation, as the
+      suppression's did.
     status: proposed
     because:
       - d-0tajzoy7
+      - d-jr86qq8b
+      - r-k6gh82fx
       - d-j8wm2qfx
       - d-0tebpjex
       - d-s2kf8vjq
