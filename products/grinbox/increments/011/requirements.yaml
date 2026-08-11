@@ -1,0 +1,21 @@
+version: "3"
+
+terms:
+  - id: pending-archive
+    scope: triage
+    display: pending archive
+    definition: |
+      an archive a triage recorded for later, due a set time after the message was taken in.
+
+requirements:
+  - id: r-cwc01n0t
+    scope: triage
+    title: briefly useful mail leaves the inbox on its own
+    statement: |
+      the user can arrange that mail of a class they define is archived a set time after it
+      arrived rather than when it was triaged, with no action from them at arrival or after.
+    commentary: |
+      Verification codes and day-of delivery notices are wanted the moment they arrive and
+      worthless soon after. Archiving at triage takes them before they are read; leaving them
+      is what piles the inbox with mail nobody will open again. The case that surfaced this:
+      grinbox's own digest mails, re-ingested as ordinary arrivals, wanted while fresh.
