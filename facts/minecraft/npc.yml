@@ -1,0 +1,126 @@
+version: "3"
+facts:
+  - id: f-6k5bjmre
+    title: NPC dialogue is unreachable from creative mode
+    claim: |
+      An NPC's dialogue is unreachable to a player in Creative mode. Right-clicking an NPC opens the
+      NPC editor — the interface that sets its name, skin, dialog, and commands — and both tutorials
+      that build an NPC conversation send the creator out of Creative before the conversation can be
+      had: creating an NPC calls for Creative mode, cheats, and operator permissions, and interacting
+      with the finished NPC calls for Survival or Adventure. A pack that delivers its conversation
+      through NPC dialogue therefore delivers none of it to a player who stays in Creative.
+    backing: documented
+    sources:
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/createnpcs
+        where: Prequisites — the note following the world settings
+        quote: |
+          Later, to interact with your custom NPCs, you will need to switch from **Creative** mode to either **Survival** mode or **Adventure** mode.
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/createnpcs
+        where: Spawn an NPC — step 3
+        quote: |
+          Right-click the NPC to open the NPC interface.
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/npcdialogue
+        where: Run the scene — step 1
+        quote: |
+          Change the game mode to Survival in Settings.
+  - id: f-chuoflt8
+    title: an NPC's two ordinary clicks edit it and despawn it
+    claim: |
+      Both of an NPC's ordinary click interactions are authoring actions rather than play: a
+      right-click opens the editor that sets its name, skin, dialog, and commands, and a left-click
+      despawns it. The name it holds is capped at 32 characters and its dialog box at 307 before the
+      text leaves the screen. An NPC standing in a world whose player holds the permissions the NPC
+      editor needs is therefore renameable and removable by that player, through the same two clicks
+      they would use to talk to it.
+    backing: documented
+    sources:
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/createnpcs
+        where: Spawn an NPC — step 2
+        quote: |
+          Right-click to place an NPC on your desired block. If you misplace an NPC, you can left-click to despawn them.
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/createnpcs
+        where: Spawn an NPC — step 4
+        quote: |
+          Enter a **name** for your NPC. Names are limited to 32 characters. You can use color codes to change the color of the name text.
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/createnpcs
+        where: Spawn an NPC — the paragraph on the built-in dialog feature
+        quote: |
+          This dialog box has a limit of 307 characters before the text goes off the screen. You can also use color codes to change the color of the text.
+  - id: f-oiu8hp0g
+    title: the only scripting handle on an NPC is pre-release
+    claim: |
+      `EntityNpcComponent` — the Script API's only handle on an NPC's name, skin index, and default
+      dialogue scene — is documented for the experimental moniker alone and carries a pre-release
+      caution on the class itself. Its component id is `minecraft:npc`. A pack holding to stable
+      script modules therefore reaches an NPC's own properties through no scripting surface at all,
+      and reaches its dialogue only by running the `dialogue` command.
+    backing: documented
+    sources:
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/entitynpccomponent?view=minecraft-bedrock-experimental
+        where: the page's front matter — monikerRange
+        quote: |
+          monikerRange: "=minecraft-bedrock-experimental"
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/entitynpccomponent?view=minecraft-bedrock-experimental
+        where: the caution above the class description
+        quote: |
+          This class is still in pre-release.  Its signature may change or it may be removed in future releases.
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/entitynpccomponent?view=minecraft-bedrock-experimental
+        where: Constants — componentId
+        quote: |
+          static read-only componentId = "minecraft:npc";
+  - id: f-jqsj08fb
+    title: dialogue open forces a scene from an NPC no player can reach
+    claim: |
+      `dialogue open` forces a dialogue box onto a targeted player without that player interacting
+      with the NPC, and the NPC it speaks as need not be visible or reachable — only in a loaded
+      chunk within ticking distance of the player receiving it, which an NPC stashed underground or
+      somewhere inaccessible satisfies. The dialogue box is therefore separable from any entity a
+      player can click. `dialogue change` is the other half: it opens nothing and instead points an
+      NPC at the scene the player will see on their next interaction with it.
+    backing: documented
+    caveat: |
+      Whether the forced box reaches a player who is in Creative mode is not stated by these sources.
+      The tutorial that runs a scene changes the game mode to Survival before running the command at
+      all [[f:f-6k5bjmre]], and nothing found separates the
+      command path from the interaction path on this point.
+    sources:
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/npcdialogue
+        where: Dialogue open — the opening description
+        quote: |
+          `dialogue open` is used to force open an NPC dialogue box to the targeted player(s). This command can be used on any NPC and doesn't require a behavior pack unless you want the NPC to use an optional scene file for its dialogue.
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/npcdialogue
+        where: Dialogue open — the first of the two primary uses
+        quote: |
+          The first is to initiate an NPC dialogue box without the player interacting directly with the NPC, essentially using the NPC as a 'pop-up' window that doesn't require the player to click the NPC. The NPC in this scenario doesn't have to be visible to the player in the world, but they must be in a loaded chunk and within ticking distance of the player receiving the dialogue. The NPC could be stashed underground or in another inaccessible location.
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/npcdialogue
+        where: Dialogue change — the closing paragraph
+        quote: |
+          `/dialogue change` does not display the NPC dialog box as Dialogue Open does, it simply points the NPC to the scene file dialogue that you want the player to see during their next interaction with that NPC.
+  - id: f-bnpsqtbo
+    title: an NPC dialogue scene is build-time JSON whose buttons run commands
+    claim: |
+      A dialogue scene is a build-time JSON object in a behavior pack's `dialogue` folder: a required
+      `scene_tag` naming it, and optional `npc_name`, `text`, `on_open_commands`, `on_close_commands`,
+      and `buttons` — each button a display `name` and a list of commands the press runs. Branching is
+      a button running `dialogue open` for the next scene, which the documentation calls the basis for
+      all branching paths; there is no conditional button and no scene assembled at run time. A scene
+      acts per-player through `@initiator`, the selector for the player who has the dialogue open and
+      the only place in the game that selector is used.
+    backing: documented
+    sources:
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/npcdialogue
+        where: Scene properties — the scene_tag row
+        quote: |
+          | `scene_tag` | String | *Required*. The name you will use to call this scene in-game. |
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/npcdialogue
+        where: Scene properties — the buttons row
+        quote: |
+          | `buttons` | Object | *Optional*. Include this to create buttons for your NPC. Its properties are `name` and `commands`. The `name` property sets the text that is going to be displayed on your NPC's button. The `commands` property is the commands which will be run in-game when the button is pressed. These are required for NPC buttons to appear on the dialogue. |
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/npcdialogue
+        where: Dialogue open — the second of the two primary uses
+        quote: |
+          The second way `/dialogue open` is used is to create branching dialogue trees using the scene file. By using the `/dialogue open` command inside of an NPCs scene file, the NPC can automatically open the next dialogue box for a player. This is the basis for all dialogue tree branching paths.
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/npcdialogue
+        where: Targeting players — the note
+        quote: |
+          NPC Dialogue is the only place the **@initiator** selector is used.

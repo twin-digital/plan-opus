@@ -1,0 +1,561 @@
+version: "3"
+decisions:
+  - id: d-6jlj0rl2
+    title: a library package and an assets-pack package, neither holding the other's content
+    statement: |
+      the product ships two packages. one is a Node library holding no pack, and is what an adventure
+      imports for code. the other holds a behavior pack and a resource pack, declares no script
+      module, and is what an adventure depends on for the actor entity definitions and their assets.
+      neither package holds any of the other's content.
+    status: accepted
+    pinned:
+      reason: public-api
+      notes: which package an adventure imports and which it declares a manifest dependency on, and that the split exists at all
+    scope:
+      - library
+      - assets-pack
+    because:
+      - r-e8p2oto6
+      - r-cyd08e6q
+      - f:an-entity-type-resolves-for-a-script-in-any-other-loaded-pack
+  - id: d-knzip5zc
+    title: code travels as an npm dependency, assets as a manifest uuid dependency
+    statement: |
+      an adventure takes the library as a development dependency of its package, bundled into its own script at
+      build time, and takes the assets pack as a `dependencies` entry in its behavior pack manifest naming that
+      pack's uuid and version.
+    status: accepted
+    pinned:
+      reason: public-api
+      notes: what an adventure's package manifest and pack manifest must each declare to use the product
+    scope:
+      - library
+      - assets-pack
+    because:
+      - r-e8p2oto6
+      - d-6jlj0rl2
+      - f:pack-dependency-entries-name-a-uuid-or-a-module-name-plus-a-version
+      - f:a-script-module-does-not-resolve-across-packs
+      - f:a-declared-pack-dependency-activates-the-depended-on-pack
+    commentary: |
+      there is exactly one route for each, by construction: the library ships no pack to depend on, and the assets
+      pack ships no script to import.
+  - id: d-gzoqebyy
+    title: an actor is a custom entity, never the game's NPC entity
+    statement: |
+      no actor is the game's `minecraft:npc` entity, and the product delivers nothing through the NPC
+      dialogue system. an actor is an entity this product defines.
+    status: accepted
+    pinned:
+      reason: other
+      notes: what a click on an actor does, and which game modes a world running an adventure may be in, both change if this is reversed
+    scope: assets-pack
+    because:
+      - r-wqwub3zz
+      - f:f-6k5bjmre
+      - f:f-chuoflt8
+      - f:f-oiu8hp0g
+  - id: d-ipgh0g2d
+    title: one entity identifier per preset, over one shared set of components
+    statement: |
+      every actor carries the same behavior-pack components, and each preset has its own entity
+      identifier and its own client entity definition. the identifiers the library names and the
+      entity definitions the assets pack holds are produced from one preset registry, so the two
+      cannot come to disagree.
+    status: accepted
+    pinned:
+      reason: public-api
+      notes: an actor's identifier is visible in a world — in a target selector, and in what the server logs about the entity
+    scope:
+      - library
+      - assets-pack
+    because:
+      - r-lna5xlfe
+      - d-6jlj0rl2
+      - f:f-09o4knzt
+  - id: d-w0smdozf
+    title: what the shared actor components establish
+    statement: |
+      an actor refuses damage from every cause; is summonable by identifier with no spawn egg, so it never appears
+      in the creative menu; cannot be displaced by anything in play; survives a restart and a chunk unload with no
+      player near; cannot be renamed by a player; and watches a nearby player continuously.
+    status: accepted
+    pinned:
+      reason: other
+      notes: what a player sees an actor do, and whether an actor can be placed from the creative menu at all
+    scope: assets-pack
+    because:
+      - r-wqwub3zz
+      - r-apu8m7vz
+      - r-8ih6ab2r
+      - f:f-sawr93hu
+      - f:f-2profbz0
+    commentary: |
+      which components express these, and with what values, is the implementer's — but three of them are met by
+      what the definition does *not* say, and are recorded here so they are not lost. no navigation does not stop a
+      mob being shoved by a player, a piston, water, or a minecart. an entity without a persistence component can
+      be removed by the engine when no player is near. and the bar on renaming is met by omitting
+      `minecraft:nameable`, since in creative a name tag renames any nameable mob.
+
+      continuous watching is against the look-at behaviour's own default, which the pool records as a roughly 0.02
+      probability — an occasional glance.
+  - id: d-lyvjq8l1
+    title: assets are vendored from a pinned revision and re-identified before they are committed
+    statement: |
+      every model, texture, animation, and animation controller an actor renders from is committed in the assets
+      pack under this product's own names. apart from the material an actor is drawn with, no vanilla name or path
+      appears in a shipped client entity definition, render controller, or animation controller.
+    status: accepted
+    pinned:
+      reason: other
+      notes: an actor's appearance is what a player sees, and the re-identification is what stops it moving under a game update
+    scope: assets-pack
+    because:
+      - r-qi348761
+      - f:f-ev10b68v
+      - f:f-8bxtf5w7
+      - f:f-8it4axjv
+    commentary: |
+      what is taken from the game's own packs is taken from one pinned revision of `Mojang/bedrock-samples`,
+      re-identified before it is committed, and refreshed only by a deliberate change to that pin.
+  - id: d-3ggbl0kl
+    title: the wizard preset is vendored from the evoker, without its material
+    statement: |
+      the wizard preset's appearance is vendored from the game's evoker — its geometry, its texture,
+      and its animations — re-identified into this product's namespace. the evoker's material is the
+      one thing not vendored: the preset names a stock entity material instead.
+    status: accepted
+    pinned:
+      reason: other
+      notes: the wizard's face, which a player meets directly and would notice changing
+    scope: assets-pack
+    because:
+      - r-rpcudvbl
+      - r-qi348761
+      - d-lyvjq8l1
+      - f:f-z999a7yv
+      - f:f-8it4axjv
+    commentary: |
+      the material is the one thing not vendored because it cannot be: the published vanilla pack carries no
+      material definitions, so there is nothing to copy, and a client entity must name one. r-qi348761 carries the
+      exception this rests on.
+  - id: d-5lutr7ok
+    title: the spawn call takes a preset name and returns a handle
+    statement: |
+      the library's spawn call takes the name of a preset, the place to put the actor, and options
+      that may override the actor's default name; it returns a handle to the actor it created. the
+      call's exact signature is not fixed here.
+    status: delegated
+    pinned:
+      reason: public-api
+      notes: the one call every adventure makes
+    scope: library
+    because:
+      - r-lna5xlfe
+      - d-knzip5zc
+      - d-ipgh0g2d
+  - id: d-xobjyw2e
+    title: every entry point checks its actor's entity type is registered, and throws naming the pack
+    statement: |
+      every library entry point acting on an actor first looks up whether the entity type its preset names is
+      registered in the world, rather than attempting the action and reading what comes back.
+    status: delegated
+    pinned:
+      reason: public-api
+      notes: the error an adventure's author meets, and the guarantee that no call half-succeeds
+    scope: library
+    because:
+      - r-9owgd93o
+      - d-ipgh0g2d
+      - f:an-entity-type-can-be-looked-up-by-identifier-without-spawning
+      - f:an-unsatisfiable-pack-dependency-is-not-enforced-at-load
+      - f:an-entity-type-resolves-for-a-script-in-any-other-loaded-pack
+      - f:f-90p7coes
+      - f:f-rtmfaoba
+    cases:
+      - when: the world has not finished loading
+        then: the engine refuses the lookup, and the call fails on that refusal rather than on this product's error
+      - when: the entity type is registered
+        then: the call proceeds
+      - when: it is not registered
+        then: the call throws an error this product defines, naming the preset, the identifier, and the pack that supplies it
+    commentary: |
+      the check is per call rather than once at startup, since a pack's presence is a property of the world the
+      call runs against, not of the process.
+
+      the early-execution case is stated rather than translated. the library does not catch the engine's refusal to
+      re-throw its own, because an adventure cannot usefully act on an actor before the world loads in any case —
+      spawning that early fails on its own account — and a wrapper would only obscure which of the two happened.
+      what the case buys is that nobody later "fixes" the phase boundary by moving the check to startup, where it
+      cannot run at all.
+
+      the pre-check is sound rather than merely convenient: a lookup that returns a value and a spawn that succeeds
+      were measured to agree on the same identifier, bare forms included.
+  - id: d-bcybwddk
+    title: the check covers the definitions only, and the library asserts nothing about appearance
+    statement: |
+      the library checks an actor's definitions and nothing else. it performs no runtime check of the resource
+      pack and reports nothing about it: no counting of the world's pack stack, no inference from an entity's
+      dimensions, and no path that implies an actor will render.
+    status: accepted
+    pinned:
+      reason: public-api
+      notes: what a successful call is evidence of, which is narrower than it looks and is what an adventure's author will otherwise assume
+    scope: library
+    because:
+      - r-9owgd93o
+      - d-xobjyw2e
+      - f:the-active-client-pack-stack-is-countable-from-a-script
+      - f:an-entitys-server-side-size-does-not-reflect-its-resource-pack
+      - f:a-resource-pack-cannot-carry-anything-a-script-can-reach
+    commentary: |
+      a call that succeeds means the actor exists and behaves; whether a player sees it is outside what the library
+      observes or claims. counting the pack stack was available and rejected: a count cannot tell this product's
+      resource pack from any other's, so a check resting on it would report a healthy world for an install that is
+      silently wrong.
+  - id: d-hybkhum6
+    title: an adventure's release archive bundles the assets pack, so an install is one file
+    statement: |
+      an adventure's release archive contains this product's packs alongside its own, so installing an
+      adventure is installing one archive and nothing else. no separate installation of the assets pack is
+      required, and several adventures installed together each carrying a copy is the expected state rather
+      than a fault.
+    status: accepted
+    pinned:
+      reason: other
+      notes: what an operator installs, and how many pieces they must keep in step
+    scope:
+      - library
+      - assets-pack
+    because:
+      - r-e8p2oto6
+      - d-knzip5zc
+      - f:duplicate-pack-copies-are-deduplicated-and-the-activation-pin-selects
+      - f:release-archives-follow-pack-content
+      - f:a-worlds-activation-lists-name-the-packs-it-runs
+  - id: d-i8pjw2on
+    title: every name the assets pack declares carries its namespace
+    statement: |
+      the assets pack's uuid and every name it declares carry the namespace: the actor entity identifiers, and
+      each internal asset name too — geometry, texture paths, materials, render controllers, animations, and
+      animation controllers. the library resolves its own calls through the same namespace.
+    status: accepted
+    pinned:
+      reason: public-api
+      notes: every identifier an adventure names, and the property that two majors coexist — reversing it reintroduces version contention between adventures
+    scope:
+      - library
+      - assets-pack
+    because:
+      - r-pop72yk6
+      - r-6q7adtpo
+      - d-hybkhum6
+      - d-ipgh0g2d
+      - f:duplicate-pack-copies-are-deduplicated-and-the-activation-pin-selects
+      - f:f-09o4knzt
+      - f:f-8bxtf5w7
+    cases:
+      - when: two adventures were built against the same major
+        then: they carry an identical pack, which a server deduplicates with no effect on either
+      - when: they were built against different majors
+        then: they carry packs sharing no uuid and no name, which coexist without contending
+    commentary: |
+      so a world holds one pack per major in use and no more, and nothing is left for an operator to reconcile.
+
+      the namespace is exhaustive over name kinds rather than confined to the entity identifier, because a
+      resource pack's internal names resolve across the whole pack stack and not within their own pack. a partial
+      namespace would let one adventure's actor render with another's geometry.
+  - id: d-5f011w0o
+    title: within a major the assets pack only adds, and the build refuses a release that removes
+    statement: |
+      within one major the assets pack never withdraws or repurposes a name an adventure can reference. appearance
+      may change freely — a texture, a model, a re-vendored animation — since none of that is a name an adventure
+      holds.
+    status: accepted
+    pinned:
+      reason: other
+      notes: it is what makes two adventures on one major safe to share a pack, so relaxing it silently reintroduces the failure the namespace was chosen to avoid
+    scope: assets-pack
+    because:
+      - r-6q7adtpo
+      - d-i8pjw2on
+      - d-xobjyw2e
+      - f:duplicate-pack-copies-are-deduplicated-and-the-activation-pin-selects
+    cases:
+      - when: a release of the same major exposes every actor identifier the previous one did
+        then: the release proceeds
+      - when: any has disappeared or been renamed
+        then: the release is refused
+    commentary: |
+      an actor identifier present in a release names the same character in every later release of that major. the
+      build enforces this rather than the discipline: it compares the identifier set a release exposes against the
+      previous release of the same major.
+
+      withdrawing a name is how a new major begins.
+  - id: d-ny9lcyjg
+    title: the assets pack declares only content whose names can be namespaced
+    statement: |
+      the assets pack — both halves — confines itself to content kinds that name what they declare, so the
+      namespace reaches all of it.
+    status: delegated
+    pinned:
+      reason: other
+      notes: it bounds what the product can ever offer a preset, and relaxing it quietly reintroduces contention between majors that d-i8pjw2on cannot reach
+    scope: assets-pack
+    because:
+      - r-pop72yk6
+      - d-i8pjw2on
+      - f:f-8bxtf5w7
+    commentary: |
+      the resource half's kinds worked through: declarable are entity definitions, geometry, textures, materials,
+      render controllers, animations, animation controllers, particles, fogs and attachables; barred are
+      `blocks.json`, `sounds.json`, `biomes_client.json`, the `texts` files and the `ui` tree. the behavior half
+      is governed by the same test rather than by that list, which is why the rule is stated over kinds and not
+      over an enumeration.
+
+      the whole-file kinds hold no name to qualify, so two majors supplying one contend over the file itself and
+      the namespace cannot separate them. an actor needs none of them. a preset that comes to need one is a change
+      to this decision, not a detail of the preset.
+
+      the exclusion is precautionary. that the named kinds collide by name is measured; that the whole-file kinds
+      resolve by override or merge instead is read off how a resource pack supplies them and is not measured here.
+    cases:
+      - when: a kind names its entries
+        then: the pack may declare it
+      - when: a kind is supplied as a whole file
+        then: the pack declares nothing in it
+  - id: d-ro5pj8er
+    title: an archive never ships one half of the product without the other
+    statement: |
+      no release archive carrying this product ships an actor's definitions without its appearance, or the
+      reverse. an archive missing either half is refused rather than published.
+    status: accepted
+    pinned:
+      reason: other
+      notes: an actor whose appearance definition never arrives is invisible and cannot be found by pointing at it, so this build check is the only thing between an adventure and a character no player can perceive
+    scope:
+      - library
+      - assets-pack
+    because:
+      - r-9owgd93o
+      - d-bcybwddk
+      - f:the-active-client-pack-stack-is-countable-from-a-script
+      - f:f-acq14qt1
+    commentary: |
+      this is the whole of the guarantee that an actor's appearance ships with its definitions — nothing at run
+      time contributes to it, because nothing at run time can tell this product's resource pack from any other's.
+
+      what it does not mean is the two halves' version numbers agreeing: the kit completes both from one
+      `package.json`, so they agree by construction and checking it would verify nothing.
+  - id: d-c0l4gwx2
+    title: how an actor converses is deferred
+    statement: |
+      how an adventure holds a conversation with an actor — what the player is shown, where the words
+      live, and who authors them — is deferred to a later increment of this product. the actors this
+      increment defines are spawned, placed, named, looked at, and removed; they do not speak.
+    status: deferred
+    scope: library
+  - id: d-lgaqtx4c
+    title: enforcing the two release checks is deferred to mc-dev-kit
+    statement: |
+      who enforces d-ro5pj8er's archive completeness and d-5f011w0o's identifier withdrawal is deferred to
+      `@twin-digital/mc-dev-kit`. until that product carries them, both hold as stated intent and neither is
+      mechanically enforced.
+    status: deferred
+    scope:
+      - library
+      - assets-pack
+    commentary: |
+      neither check is expressible from inside this product. `mc-pack-archive` reads the output tree and consults
+      nothing else, skipping an empty kind directory and throwing only when no member at all was added — so a
+      package whose resource half failed to build publishes a behavior-only archive silently. and `packBuild`
+      returns a fragment whose `plugins` array is the single plugin performing the whole build, while
+      `tsdown.config.d` fragments shallow-merge, so a second fragment supplying plugins replaces the kit's rather
+      than adding to it. r-cyd08e6q forbids the pack carrying build logic of its own in any case.
+
+      what the kit needs is an extension point for a product's own build-time checks, an archive that refuses an
+      incomplete addon, and somewhere a prior release's identifier set is recorded. captured against that product.
+  - id: d-2qxdv80k
+    title: an example adventure package carries the product's run-time evidence
+    statement: |
+      the product ships a third package: an adventure built on the other two, which spawns every actor the product
+      offers. it is what demonstrates the product's run-time claims, and what an adventure's author reads as the
+      worked example.
+    status: delegated
+    pinned:
+      reason: other
+      notes: it is the only package of the product that runs a script in a world, so every run-time claim depends on it existing
+    scope: example
+    because:
+      - r-e8p2oto6
+      - r-lna5xlfe
+      - d-6jlj0rl2
+      - d-5lutr7ok
+    commentary: |
+      neither other package runs a script in a world — the library is a library and d-6jlj0rl2 has the assets pack
+      declare no script module — so without this package no claim about what an actor does at run time has any
+      route to a demonstration, and r-e8p2oto6, a claim about what an adventure carries, has none at all.
+
+      it is an example rather than a product of its own on purpose: a real adventure is its own product, as
+      village-guard is, and should not be load-bearing for this one's evidence.
+  - id: d-3or6phg1
+    title: the assets pack's behavior half declares its resource half by uuid
+    statement: |
+      the assets pack's behavior manifest names its own resource half in `dependencies`, so an adventure declaring
+      one uuid gets both halves. the uuid an adventure names is the behavior half's.
+    status: accepted
+    pinned:
+      reason: public-api
+      notes: the uuid every adventure hard-codes, and the reason one entry activates both halves
+    scope: assets-pack
+    because:
+      - r-e8p2oto6
+      - d-knzip5zc
+      - f:a-declared-pack-dependency-activates-the-depended-on-pack
+      - f:f-acq14qt1
+    commentary: |
+      without it an adventure naming one uuid activates one pack, and an actor whose appearance never arrived is
+      the invisible, unpointable case. cheap to get right and silent to get wrong.
+
+      the install story rests on a second dependency hop — an adventure names the behavior half, which names the
+      resource half — and the pool's fact tests one hop only.
+  - id: d-2zclv5ol
+    title: the namespace is the bare token at the first major, and carries the major after
+    statement: |
+      an actor's identifier is `<namespace>:<preset>`, and every internal asset name carries the namespace as a
+      segment. the build reads the major from the package's own version, so a name and the version it claims
+      cannot disagree unnoticed.
+    status: accepted
+    pinned:
+      reason: public-api
+      notes: the literal strings an adventure names and an operator sees in a selector or a server log
+    scope:
+      - library
+      - assets-pack
+    because:
+      - r-pop72yk6
+      - d-i8pjw2on
+    commentary: |
+      the first major is the default: an unversioned namespace, with a version appearing only once a second major
+      exists to distinguish. so the common case reads as an ordinary identifier and nothing carries a number until
+      a number means something.
+
+      reading the major from `package.json` rather than from a constant in the pack is what makes the lint a check
+      rather than a second place to keep in step: a major changeset landing without the rename fails the build
+      instead of shipping a pack whose names claim the previous major.
+    cases:
+      - when: the assets pack is at its first major
+        then: the namespace is the bare token `rpg`, carrying no version — `rpg:wizard`, `geometry.rpg.wizard`
+      - otherwise: the namespace carries the major — `rpg2:wizard`, `geometry.rpg2.wizard`
+  - id: d-orqkexpm
+    title: the assets pack never ships below 1.0.0, and each major carries fresh uuids
+    statement: |
+      the assets pack's first release is 1.0.0 and it never publishes a `0.x` version. each major carries a pair of
+      uuids minted for it, recorded in the pack's own source.
+    status: accepted
+    pinned:
+      reason: other
+      notes: a 0.x release would put every breaking change in one namespace, so adventures on incompatible versions would contend instead of coexisting
+    scope: assets-pack
+    because:
+      - r-pop72yk6
+      - d-i8pjw2on
+      - d-2zclv5ol
+    commentary: |
+      a uuid cannot spell a version, so a fresh pair per major is the only buildable reading of d-i8pjw2on's "the
+      assets pack's uuid ... carries the namespace". the kit reports a duplicate uuid across the workspace, so a
+      reused one fails loudly — a forgotten rotation does not, which is why the pair is recorded in source.
+  - id: d-9uu20w3r
+    title: an actor may be given a durable name, and placement by that name is idempotent
+    statement: |
+      an adventure may give an actor a durable name of its own when it creates it. placing an actor under a name
+      that is already in the world returns the actor already there rather than a second one, and the library
+      resolves a handle from that name in a later session.
+    status: delegated
+    pinned:
+      reason: public-api
+      notes: it is how an adventure reaches an actor at all after a restart, and the difference between one wizard and one per restart
+    scope: library
+    because:
+      - r-8ih6ab2r
+      - r-e8p2oto6
+      - d-5lutr7ok
+    commentary: |
+      two holes compose into a trap without this. a handle does not survive a world reload, and the fold offered no
+      lookup, so r-8ih6ab2r's "until the adventure that spawned it removes it" was unimplementable. and because an
+      actor persists while the only verb was spawn, an adventure spawning on world load — the obvious adventure —
+      accumulated one actor per restart.
+
+      leaving both to adventures would have made r-e8p2oto6's "its own story, its triggers, and its logic" quietly
+      include actor-lifecycle bookkeeping. how the name is carried is the implementer's.
+  - id: d-icz8rnnw
+    title: the preset registry lives in the library, and the assets pack builds from it
+    statement: |
+      the preset registry is the library's, and the assets pack takes it as a build-time dependency to produce its
+      entity definitions from. at run time neither package reads the other.
+    status: accepted
+    pinned:
+      reason: public-api
+      notes: which package a reimplementation must put the registry in, and the direction of the dependency between the two
+    scope:
+      - library
+      - assets-pack
+    because:
+      - r-lna5xlfe
+      - d-ipgh0g2d
+      - d-6jlj0rl2
+      - d-lgaqtx4c
+    commentary: |
+      d-ipgh0g2d requires one registry feeding both halves and d-6jlj0rl2 forbids either package holding the
+      other's content; a build-time dependency is neither package holding the other's content, so the library is
+      the home and no third package is needed for it.
+
+      the generation step itself is a kit capability the fold does not have — d-lgaqtx4c defers it. until then the
+      definitions are committed, and d-2zclv5ol's mechanical identifier form is what makes drift visible by
+      inspection rather than only by a check.
+  - id: d-bfdql5tx
+    title: a preset's default name is a library string, applied when the actor is created
+    statement: |
+      a preset's default name is carried by the library and applied to the actor as it is created. the assets pack
+      holds no name for any actor, and a name is not translated.
+    status: delegated
+    pinned:
+      reason: public-api
+      notes: what a player reads above an actor, and that it is one string rather than a localisable resource
+    scope:
+      - library
+      - assets-pack
+    because:
+      - r-lna5xlfe
+      - r-e8p2oto6
+      - d-ny9lcyjg
+      - d-w0smdozf
+    commentary: |
+      the natural home for an entity's default name is the resource pack's `texts` files, which d-ny9lcyjg bars as a
+      whole-file kind — so the name cannot live in the pack, and d-w0smdozf gives every actor the same components,
+      so it cannot come from those either. that leaves the library, which is also the only half that knows which
+      preset was asked for.
+
+      two consequences worth stating rather than leaving to be discovered: a name is not localisable, and on the
+      client observed for f:f-acq14qt1 a name appears only while a
+      player hovers over the actor, never passively.
+  - id: d-cb9jl02i
+    title: the vendoring records its source, revision, and the path of every file taken
+    statement: |
+      the assets pack commits a record of where its vendored assets came from: the repository, the exact revision,
+      and the path each file was taken from. re-vendoring is a change to that record.
+    status: delegated
+    pinned:
+      reason: data-format
+      notes: the record is what makes a re-vendoring reproducible and what a reader checks an asset's provenance against
+    scope: assets-pack
+    because:
+      - r-qi348761
+      - d-lyvjq8l1
+      - f:f-ev10b68v
+    commentary: |
+      d-lyvjq8l1 says "a pinned revision" and named no source, no revision, and no record — and the only urls in
+      the pool point at `main`, which pins nothing. since d-5f011w0o frees appearance to change within a major,
+      re-vendoring is expected more than once, and without a record the second one cannot be told from the first.
+
+      it also answers the provenance question the licence raises: what was taken, from where, at which revision.

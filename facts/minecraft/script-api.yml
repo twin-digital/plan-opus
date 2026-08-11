@@ -2893,6 +2893,34 @@ facts:
         quote: |
           "events":{"minecraft:from_player":{"add":{"component_groups":["minecraft:player_created"]}},"minecraft:from_village":{"add":{"component_groups":["minecraft:village_created"]}}}}}
 
+  - id: an-entity-type-can-be-looked-up-by-identifier-without-spawning
+    claim: |
+      `EntityTypes` reaches every entity type currently available for use within the world, and its
+      stable `get(identifier: string)` returns an `EntityType` or `undefined` rather than throwing —
+      so whether an identifier is registered is answerable directly, with no spawn attempted and no
+      error to catch. `getAll()` returns the whole set. A pack can therefore check that the definitions
+      it depends on are present before it tries to use them, and at a location it has not had to make
+      ticking first.
+    backing: documented
+    caveat: |
+      The plain-string `get` is the stable signature; a generic `EntityIdentifierType` overload of the
+      same name is documented for the experimental moniker and carries a pre-release caution. Nothing
+      here says an entity type resolves only for the pack that defined it — that it resolves for any
+      loaded pack's script is measured separately
+      [[f:an-entity-type-resolves-for-a-script-in-any-other-loaded-pack]].
+    sources:
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/entitytypes
+        where: the class description
+        quote: |
+          Used for accessing all entity types currently available for use within the world.
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/entitytypes
+        where: get — the signature under the minecraft-bedrock-stable moniker
+        quote: |
+          static get(identifier: string): EntityType | undefined
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/entitytypes
+        where: getAll
+        quote: |
+          static getAll(): EntityType[]
   - id: f-o9dbstfj # entity-type-lookup-misses-return-undefined
     claim: |
       `EntityTypes.get` reports a type nothing registers by returning `undefined`, never by

@@ -1,0 +1,112 @@
+docker host: ssh://prod-development-docker
+image: itzg/minecraft-bedrock-server:latest   requested VERSION: 1.26.43.1
+staged packs in /tmp/rpg-crosspack-IBQeOL
+
+=== Q1 — consumer spawns the provider pack entity, dependency declared, both listed active
+level: q1dep
+staged in pool: probe provider | probe consumer dep
+listed active: probe provider | probe consumer dep
+server version: 1.26.43.1
+pool: 4a1f0000-0000-4000-8000-000000000001 4a1f0000-0000-4000-8000-000000000002
+activation list: [{"pack_id":"4a1f0000-0000-4000-8000-000000000001","version":[1,0,0]},{"pack_id":"4a1f0000-0000-4000-8000-000000000002","version":[1,0,0]}]
+[2026-08-10 01:39:24:210 INFO] Profiler config ('bootstrap.json') load result: success=1, errorMessage=(null)
+[2026-08-10 01:39:24:621 INFO] Pack Stack - [00] probe provider (id: 4a1f0000-0000-4000-8000-000000000001, version: 1.0.0) @ development_behavior_packs/4a1f0000-0000-4000-8000-000000000001
+[2026-08-10 01:39:24:621 INFO] Pack Stack - [01] probe consumer dep (id: 4a1f0000-0000-4000-8000-000000000002, version: 1.0.0) @ development_behavior_packs/4a1f0000-0000-4000-8000-000000000002
+[2026-08-10 01:39:28:525 WARN] [Scripting] PROBE provider provider-script-evaluated=true
+[2026-08-10 01:39:28:525 WARN] [Scripting] PROBE provider done
+[2026-08-10 01:39:38:522 WARN] [Scripting] PROBE q1-dep tickingarea=ok
+[2026-08-10 01:39:38:522 WARN] [Scripting] PROBE q1-dep spawnEntity=ok
+[2026-08-10 01:39:38:522 WARN] [Scripting] PROBE q1-dep spawned-typeId=probe:actor
+[2026-08-10 01:39:38:522 WARN] [Scripting] PROBE q1-dep count-after-spawn=1
+[2026-08-10 01:39:38:522 WARN] [Scripting] PROBE q1-dep summon-command=ok
+[2026-08-10 01:39:38:522 WARN] [Scripting] PROBE q1-dep count-after-summon=2
+[2026-08-10 01:39:38:522 WARN] [Scripting] PROBE q1-dep done
+
+=== Q1 control — same, but the consumer declares no dependency
+level: q1nodep
+staged in pool: probe provider | probe consumer nodep
+listed active: probe provider | probe consumer nodep
+server version: 1.26.43.1
+pool: 4a1f0000-0000-4000-8000-000000000001 4a1f0000-0000-4000-8000-000000000003
+activation list: [{"pack_id":"4a1f0000-0000-4000-8000-000000000001","version":[1,0,0]},{"pack_id":"4a1f0000-0000-4000-8000-000000000003","version":[1,0,0]}]
+[2026-08-10 01:40:04:526 INFO] Profiler config ('bootstrap.json') load result: success=1, errorMessage=(null)
+[2026-08-10 01:40:04:958 INFO] Pack Stack - [00] probe provider (id: 4a1f0000-0000-4000-8000-000000000001, version: 1.0.0) @ development_behavior_packs/4a1f0000-0000-4000-8000-000000000001
+[2026-08-10 01:40:04:958 INFO] Pack Stack - [01] probe consumer nodep (id: 4a1f0000-0000-4000-8000-000000000003, version: 1.0.0) @ development_behavior_packs/4a1f0000-0000-4000-8000-000000000003
+[2026-08-10 01:40:08:840 WARN] [Scripting] PROBE provider provider-script-evaluated=true
+[2026-08-10 01:40:08:840 WARN] [Scripting] PROBE provider done
+[2026-08-10 01:40:18:836 WARN] [Scripting] PROBE q1-nodep tickingarea=ok
+[2026-08-10 01:40:18:836 WARN] [Scripting] PROBE q1-nodep spawnEntity=ok
+[2026-08-10 01:40:18:836 WARN] [Scripting] PROBE q1-nodep spawned-typeId=probe:actor
+[2026-08-10 01:40:18:836 WARN] [Scripting] PROBE q1-nodep count-after-spawn=1
+[2026-08-10 01:40:18:836 WARN] [Scripting] PROBE q1-nodep summon-command=ok
+[2026-08-10 01:40:18:836 WARN] [Scripting] PROBE q1-nodep count-after-summon=2
+[2026-08-10 01:40:18:836 WARN] [Scripting] PROBE q1-nodep done
+
+=== Q1 — provider in the pool but absent from the activation list; does the declared dependency pull it in?
+level: q1pull
+staged in pool: probe provider | probe consumer dep
+listed active: probe consumer dep
+server version: 1.26.43.1
+pool: 4a1f0000-0000-4000-8000-000000000001 4a1f0000-0000-4000-8000-000000000002
+activation list: [{"pack_id":"4a1f0000-0000-4000-8000-000000000002","version":[1,0,0]}]
+[2026-08-10 01:40:45:330 INFO] Profiler config ('bootstrap.json') load result: success=1, errorMessage=(null)
+[2026-08-10 01:40:45:777 INFO] Pack Stack - [00] probe consumer dep (id: 4a1f0000-0000-4000-8000-000000000002, version: 1.0.0) @ development_behavior_packs/4a1f0000-0000-4000-8000-000000000002
+[2026-08-10 01:40:45:777 INFO] Pack Stack - [01] probe provider (id: 4a1f0000-0000-4000-8000-000000000001, version: 1.0.0) @ development_behavior_packs/4a1f0000-0000-4000-8000-000000000001
+[2026-08-10 01:40:49:771 WARN] [Scripting] PROBE provider provider-script-evaluated=true
+[2026-08-10 01:40:49:771 WARN] [Scripting] PROBE provider done
+[2026-08-10 01:40:59:706 WARN] [Scripting] PROBE q1-dep tickingarea=ok
+[2026-08-10 01:40:59:706 WARN] [Scripting] PROBE q1-dep spawnEntity=ok
+[2026-08-10 01:40:59:706 WARN] [Scripting] PROBE q1-dep spawned-typeId=probe:actor
+[2026-08-10 01:40:59:706 WARN] [Scripting] PROBE q1-dep count-after-spawn=1
+[2026-08-10 01:40:59:706 WARN] [Scripting] PROBE q1-dep summon-command=ok
+[2026-08-10 01:40:59:706 WARN] [Scripting] PROBE q1-dep count-after-summon=2
+[2026-08-10 01:40:59:706 WARN] [Scripting] PROBE q1-dep done
+
+=== Q1 control — provider not in the pool at all; is the declared dependency enforced?
+level: q1missing
+staged in pool: probe consumer dep
+listed active: probe consumer dep
+server version: 1.26.43.1
+pool: 4a1f0000-0000-4000-8000-000000000002
+activation list: [{"pack_id":"4a1f0000-0000-4000-8000-000000000002","version":[1,0,0]}]
+[2026-08-10 01:41:25:420 INFO] Profiler config ('bootstrap.json') load result: success=1, errorMessage=(null)
+[2026-08-10 01:41:25:860 INFO] Pack Stack - [00] probe consumer dep (id: 4a1f0000-0000-4000-8000-000000000002, version: 1.0.0) @ development_behavior_packs/4a1f0000-0000-4000-8000-000000000002
+[2026-08-10 01:41:39:719 WARN] [Scripting] PROBE q1-dep tickingarea=ok
+[2026-08-10 01:41:39:719 WARN] [Scripting] PROBE q1-dep spawnEntity=THREW
+[2026-08-10 01:41:39:719 WARN] [Scripting] PROBE q1-dep spawnEntity-error=Invalid value passed to argument (0). 'probe:actor' is not a valid entity type.
+[2026-08-10 01:41:39:719 WARN] [Scripting] PROBE q1-dep count-after-spawn=0
+[2026-08-10 01:41:39:719 WARN] [Scripting] PROBE q1-dep summon-command=THREW Error occurred with parsing command params: Syntax error: Unexpected "probe:actor": at "summon >>probe:actor<< 8 70 12"
+[2026-08-10 01:41:39:719 WARN] [Scripting] PROBE q1-dep count-after-summon=0
+[2026-08-10 01:41:39:719 WARN] [Scripting] PROBE q1-dep done
+
+=== Q2 — one cross-pack import specifier per pack
+level: q2
+staged in pool: probe provider | probe importer rel-pool | probe importer rel-up | probe importer abs-pool | probe importer bare | probe importer dynamic
+listed active: probe provider | probe importer rel-pool | probe importer rel-up | probe importer abs-pool | probe importer bare | probe importer dynamic
+server version: 1.26.43.1
+pool: 4a1f0000-0000-4000-8000-000000000001 4a1f0000-0000-4000-8000-000000000011 4a1f0000-0000-4000-8000-000000000012 4a1f0000-0000-4000-8000-000000000013 4a1f0000-0000-4000-8000-000000000014 4a1f0000-0000-4000-8000-000000000015
+activation list: [{"pack_id":"4a1f0000-0000-4000-8000-000000000001","version":[1,0,0]},{"pack_id":"4a1f0000-0000-4000-8000-000000000011","version":[1,0,0]},{"pack_id":"4a1f0000-0000-4000-8000-000000000012","version":[1,0,0]},{"pack_id":"4a1f0000-0000-4000-8000-000000000013","version":[1,0,0]},{"pack_id":"4a1f0000-0000-4000-8000-000000000014","version":[1,0,0]},{"pack_id":"4a1f0000-0000-4000-8000-000000000015","version":[1,0,0]}]
+[2026-08-10 01:42:07:638 INFO] Profiler config ('bootstrap.json') load result: success=1, errorMessage=(null)
+[2026-08-10 01:42:08:068 INFO] Pack Stack - [00] probe provider (id: 4a1f0000-0000-4000-8000-000000000001, version: 1.0.0) @ development_behavior_packs/4a1f0000-0000-4000-8000-000000000001
+[2026-08-10 01:42:08:068 INFO] Pack Stack - [01] probe importer rel-pool (id: 4a1f0000-0000-4000-8000-000000000011, version: 1.0.0) @ development_behavior_packs/4a1f0000-0000-4000-8000-000000000011
+[2026-08-10 01:42:08:068 INFO] Pack Stack - [02] probe importer rel-up (id: 4a1f0000-0000-4000-8000-000000000012, version: 1.0.0) @ development_behavior_packs/4a1f0000-0000-4000-8000-000000000012
+[2026-08-10 01:42:08:068 INFO] Pack Stack - [03] probe importer abs-pool (id: 4a1f0000-0000-4000-8000-000000000013, version: 1.0.0) @ development_behavior_packs/4a1f0000-0000-4000-8000-000000000013
+[2026-08-10 01:42:08:068 INFO] Pack Stack - [04] probe importer bare (id: 4a1f0000-0000-4000-8000-000000000014, version: 1.0.0) @ development_behavior_packs/4a1f0000-0000-4000-8000-000000000014
+[2026-08-10 01:42:08:068 INFO] Pack Stack - [05] probe importer dynamic (id: 4a1f0000-0000-4000-8000-000000000015, version: 1.0.0) @ development_behavior_packs/4a1f0000-0000-4000-8000-000000000015
+[2026-08-10 01:42:08:139 ERROR] [Scripting] [probe importer rel-pool] ReferenceError: Import [../../4a1f0000-0000-4000-8000-000000000001/scripts/lib.js] not found.
+[2026-08-10 01:42:08:139 ERROR] [Scripting] [probe importer rel-up] ReferenceError: Import [../../../development_behavior_packs/4a1f0000-0000-4000-8000-000000000001/scripts/lib.js] not found.
+[2026-08-10 01:42:08:139 ERROR] [Scripting] [probe importer abs-pool] ReferenceError: Import [/development_behavior_packs/4a1f0000-0000-4000-8000-000000000001/scripts/lib.js] not found.
+[2026-08-10 01:42:08:139 ERROR] [Scripting] [probe importer bare] ReferenceError: Import [probe-provider/lib.js] not found.
+[2026-08-10 01:42:08:149 ERROR] [Scripting] Plugin [probe importer rel-pool - 1.0.0] - [main.js] ran with error: [ReferenceError: Import [../../4a1f0000-0000-4000-8000-000000000001/scripts/lib.js] not found.]
+[2026-08-10 01:42:08:149 ERROR] [Scripting] Plugin [probe importer rel-up - 1.0.0] - [main.js] ran with error: [ReferenceError: Import [../../../development_behavior_packs/4a1f0000-0000-4000-8000-000000000001/scripts/lib.js] not found.]
+[2026-08-10 01:42:08:149 ERROR] [Scripting] Plugin [probe importer abs-pool - 1.0.0] - [main.js] ran with error: [ReferenceError: Import [/development_behavior_packs/4a1f0000-0000-4000-8000-000000000001/scripts/lib.js] not found.]
+[2026-08-10 01:42:08:149 ERROR] [Scripting] Plugin [probe importer bare - 1.0.0] - [main.js] ran with error: [ReferenceError: Import [probe-provider/lib.js] not found.]
+[2026-08-10 01:42:12:085 WARN] [Scripting] PROBE provider provider-script-evaluated=true
+[2026-08-10 01:42:12:085 WARN] [Scripting] PROBE provider done
+[2026-08-10 01:42:12:085 WARN] [Scripting] PROBE q2-dynamic specifier=dynamic ../../4a1f0000-0000-4000-8000-000000000001/scripts/lib.js
+[2026-08-10 01:42:12:085 WARN] [Scripting] PROBE q2-dynamic done
+[2026-08-10 01:42:12:085 WARN] [Scripting] PROBE q2-dynamic dynamic-rejected=Import (../../4a1f0000-0000-4000-8000-000000000001/scripts/lib.js] not found.
+
+=== teardown
+  container and volume removed
+exit=0

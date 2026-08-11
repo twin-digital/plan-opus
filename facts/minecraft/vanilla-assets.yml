@@ -1,0 +1,122 @@
+version: "3"
+facts:
+  - id: f-ev10b68v
+    title: Mojang publishes the vanilla packs, all rights reserved under the EULA
+    claim: |
+      Mojang publishes the vanilla packs as a GitHub repository of samples and assets for building
+      Bedrock add-ons, so the models, textures, animations, and definitions the game ships are
+      obtainable as files without extracting them from a client. They carry no open-source grant: the
+      repository's licence reserves all rights and makes downloading the files an agreement to the
+      Minecraft End User License Agreement, with the files subject to its terms. The assets are
+      therefore available for the purpose the repository names, on terms set by the EULA rather than
+      by any licence in the repository.
+    backing: documented
+    caveat: |
+      What the EULA permits for an asset a pack redistributes is not quoted here. This fact records
+      where the assets come from and which agreement governs them — not the scope of that agreement,
+      which is a reading of the EULA and the usage guidelines, neither of them cited.
+    sources:
+      - url: https://github.com/Mojang/bedrock-samples
+        where: the repository description
+        quote: |
+          Samples and assets for building Minecraft: Bedrock Edition add-ons
+      - url: https://raw.githubusercontent.com/Mojang/bedrock-samples/main/LICENSE.md
+        where: the whole file
+        quote: |
+          (c) Mojang AB. All rights reserved.
+
+          By downloading the files in this repository, you agree to the [Minecraft End User License Agreement](https://www.minecraft.net/en-us/eula) and that these files are subject to its terms.
+  - id: f-a7v7ex4x
+    title: a custom client entity may name the vanilla packs' assets
+    claim: |
+      A client entity definition may name materials, textures, and geometry that live in the vanilla
+      resource pack rather than in the pack declaring the entity, and may name the vanilla pack's
+      animations the same way; the alternative in both cases is the creator's own, which sit in the
+      corresponding folder at the resource pack's root. An entity's appearance can therefore be
+      assembled from vanilla assets with nothing copied — and an entity assembled that way holds a
+      dependency on those vanilla identifiers and paths continuing to resolve.
+    backing: documented
+    sources:
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/cliententitydocumentation/cliententitydocumentationintroduction
+        where: Materials, Textures, Animations — the closing sentences
+        quote: |
+          Players can reference materials, textures, and geometry from the vanilla Minecraft Resource Pack or create their own.  Custom materials, textures, and geometry should be in the corresponding folder at the root of the Resource Pack.
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/cliententitydocumentation/cliententitydocumentationintroduction
+        where: Animations
+        quote: |
+          Allows the player to assign names to reference the long name for animations. These names are used by the animation controller JSON. Players can reference animations from the vanilla Minecraft Resource Pack or create their own. Custom animations should be in the animation folder at the root of the Resource Pack.
+  - id: f-z999a7yv
+    title: the evoker's client entity names its geometry, texture, material and animations
+    claim: |
+      The vanilla evoker is registered as `minecraft:evocation_illager`, not under its common name. Its
+      client entity definition names material `evoker`, texture `textures/entity/illager/evoker`, and
+      geometry `geometry.evoker.v1.8`, renders at scale 0.9375, and reaches its animations under
+      `animation.evoker.general`, `animation.evoker.casting`, `animation.common.look_at_target`,
+      `animation.evoker.move`, and `animation.humanoid.celebrating`, driven by
+      `controller.animation.evoker.general` and `controller.animation.villager.move`. A pack reusing or
+      vendoring the evoker's appearance names these identifiers — none of which is spelled from the
+      mob's common name, and one of which carries an engine-version suffix.
+    backing: documented
+    sources:
+      - url: https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/entity/evocation_illager.entity.json
+        where: minecraft:client_entity.description — identifier through animations
+        quote: |
+          "identifier": "minecraft:evocation_illager",
+                "min_engine_version": "1.8.0",
+                "materials": {
+                  "default": "evoker"
+                },
+                "textures": {
+                  "default": "textures/entity/illager/evoker"
+                },
+                "geometry": {
+                  "default": "geometry.evoker.v1.8"
+                },
+                "scripts": {
+                  "scale": "0.9375",
+      - url: https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/entity/evocation_illager.entity.json
+        where: minecraft:client_entity.description.animations
+        quote: |
+          "animations": {
+                  "general": "animation.evoker.general",
+                  "casting": "animation.evoker.casting",
+                  "look_at_target": "animation.common.look_at_target",
+                  "move": "animation.evoker.move",
+                  "celebrating": "animation.humanoid.celebrating",
+                  "controller_general": "controller.animation.evoker.general",
+                  "controller_move": "controller.animation.villager.move",
+  - id: f-8it4axjv
+    title: the vanilla material definitions are not published
+    claim: |
+      The published vanilla resource pack carries no material definitions. At `Mojang/bedrock-samples` tag
+      `v1.21.130.3` the resource pack's top level holds no entry named `materials`, a request for that
+      directory answers 404, and a recursive walk of all 19806 paths in the repository finds zero ending
+      `.material` — while geometry, textures, animations, render controllers, particles, fogs and the client
+      entity definitions are all there. A pack cannot therefore vendor a material from this source, though it
+      can vendor every other part of an entity's appearance. Since a client entity names the material it is
+      drawn with — the evoker's names `evoker` — naming a material the game ships is forced rather than
+      chosen.
+    backing: tested
+    caveat: |
+      This says the definitions are absent from the published pack, not that they are absent from the game:
+      the names resolve at run time, so the engine carries them somewhere the repository does not expose.
+      Whether they were ever published, or could be obtained another way, is outside what this reads. The
+      count and the tag are the state at one revision.
+    sources:
+      - run: run-8xm67ysn
+        where: resource_pack top level — the check for a materials entry
+        quote: |
+          entry named "materials" present: false
+      - run: run-8xm67ysn
+        where: the direct request for resource_pack/materials
+        quote: |
+          HTTP 404 — no such directory
+      - run: run-8xm67ysn
+        where: the recursive tree walk
+        quote: |
+          paths in tree: 19806
+          paths ending .material: 0
+      - run: run-8xm67ysn
+        where: the material a vendored evoker would have to name
+        quote: |
+          materials block of evocation_illager.entity.json: "default": "evoker"
