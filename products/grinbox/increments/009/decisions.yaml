@@ -1,0 +1,895 @@
+version: "3"
+
+decisions:
+  - id: d-vn2jdxbs
+    scope: notifications
+    title: a notify operator may name the notification kind it sends
+    statement: |
+      a notify operator may name a notification kind — a short name the user chooses — and every
+      push it sends then belongs to that kind. Operators may share one, which is how the user
+      groups pushes that should not pile up. An operator naming none stands alone: nothing groups
+      its pushes with any other operator's.
+    commentary: |
+      A configuration stored before kinds existed names none and keeps sending exactly as it did.
+    status: accepted
+    because:
+      - r-lph86tsg
+      - d-oectpw7n
+      - r-5ezt7j0v
+    pinned:
+      reason: public-api
+
+  - id: d-5amonj40
+    scope: notifications
+    title: a suppressed push is an outcome, not a failure
+    statement: |
+      the user sets a minimum interval per notification kind. An operator whose kind was delivered
+      inside that interval sends nothing, completes, and records on its own run the suppression,
+      the kind, and the push it deferred to. The triage settles as it would have.
+    commentary: |
+      A user asking why no push arrived reads the answer off the message rather than inferring it.
+    status: accepted
+    because:
+      - r-lph86tsg
+      - d-j8wm2qfx
+      - r-k6gh82fx
+    pinned:
+      reason: public-api
+
+  - id: d-6ptxams7
+    scope: notifications
+    title: the cooldown is the user's, and the limits still bind under it
+    statement: |
+      a notification kind's interval is a cooldown the user sets, changes, and removes at will. It
+      is not a limit: the seeded limits on the push resource bind underneath and stay beyond the
+      user's reach. A push the cooldown suppresses reaches no resource, so it counts against no
+      limit.
+    commentary: |
+      Removing an interval exposes the limits rather than loosening any bound.
+    status: accepted
+    because:
+      - r-lph86tsg
+      - r-w6kq2mfp
+      - d-b6zt4kpn
+      - d-g3xc9rmv
+    pinned:
+      reason: other
+      notes: |
+        it fixes which of the two mechanisms the user may weaken, and a cooldown that counted
+        against a limit would let a burst exhaust the backstop it was added to protect
+
+  # From the survey census: the cooldown setting's shape and records.
+
+  - id: d-k3wq81vn
+    scope: notifications
+    title: a kind's interval is the user's setting, keyed by the kind's name
+    statement: |
+      a notification kind's interval is a setting of the user's, keyed by the kind's name and
+      shared across every pipeline: operators naming one kind share one cooldown wherever they
+      live. The setting outlives the operators naming its kind, and an operator naming no kind
+      has no cooldown until the user names one.
+    status: accepted
+    because:
+      - r-lph86tsg
+      - d-vn2jdxbs
+      - d-5amonj40
+      - d-e4mw6tzr
+    pinned:
+      reason: public-api
+
+  - id: d-p8xrn2ce
+    scope: notifications
+    title: a kind's name is stored as typed and matched exactly
+    statement: |
+      a notification kind's name is a non-empty line of text, trimmed of surrounding whitespace
+      and otherwise stored as typed. Two operators share a kind exactly when their stored names
+      match character for character.
+    status: accepted
+    because:
+      - d-vn2jdxbs
+      - r-lph86tsg
+    pinned:
+      reason: data-format
+
+  - id: d-w2fzk9bd
+    scope: notifications
+    title: a cooldown change is recorded like any configuration change
+    statement: |
+      setting, changing, or removing a kind's interval is an accepted configuration change: it
+      writes a history entry as a limit change does — before and after, the action, when, and
+      which user — and the cooldown joins the change log's entity vocabulary.
+    status: accepted
+    because:
+      - r-k6gh82fx
+      - d-u7pn5wqk
+      - d-k3wq81vn
+    pinned:
+      reason: data-format
+
+  - id: d-t6mhv3aq
+    scope: notifications
+    title: the interval is whole seconds, present or absent
+    statement: |
+      a cooldown interval is stored as a whole number of seconds, at least one, with no ceiling.
+      Removing the cooldown deletes the setting; a kind with no setting has no cooldown, and
+      zero is not stored.
+    status: accepted
+    because:
+      - d-5amonj40
+      - d-6ptxams7
+      - d-k3wq81vn
+    pinned:
+      reason: data-format
+
+  - id: d-e9jslw4x
+    scope: notifications
+    title: a suppression is its own recorded outcome
+    statement: |
+      a suppressed push records as its own outcome kind in the attempt vocabulary, beside
+      succeeded, failed, and skipped by limit. The record carries the notification kind and the
+      identifier of the run whose push it deferred to, which the interface resolves to that
+      run's triage.
+    status: accepted
+    because:
+      - d-5amonj40
+      - r-k6gh82fx
+    pinned:
+      reason: data-format
+
+  # The digest's second rendition, from the unmerged infrastructure #90 and #94.
+
+  - id: d-1oqjgi9m
+    scope: digests
+    title: a digest is delivered in two renditions in one mail
+    statement: |
+      a digest is delivered as one mail carrying two renditions of the same content: a plain-text
+      one and a rich one. The recipient's client chooses which it shows, and a client that renders
+      no formatting shows the text rendition whole.
+    status: accepted
+    because:
+      - r-m7y9ocdu
+      - d-n3zj7ywp
+    pinned:
+      reason: data-format
+
+  - id: d-rd986rrt
+    scope: backends
+    title: the send operation takes an optional second rendition
+    statement: |
+      the operation that sends mail takes a required plain-text body and an optional rich
+      rendition of the same content. That rendition belongs to the operation every mail backend
+      implements and every caller writes against, not to one backend.
+    status: accepted
+    because:
+      - r-m7y9ocdu
+      - d-1oqjgi9m
+      - d-q2hx8vlm
+      - d-v5zamgjn
+    pinned:
+      reason: public-api
+
+  - id: d-or4jo6s1
+    scope: backends
+    title: carrying a rendition is not a capability a backend declares
+    statement: |
+      a backend declares that it sends mail and nothing about which renditions it carries. Handing
+      the send operation a rich rendition is always permitted where sending is declared, and a
+      backend that cannot offer alternatives sends the plain text alone rather than failing.
+    status: accepted
+    because:
+      - d-rd986rrt
+      - d-f9tj4wnr
+    pinned:
+      reason: public-api
+
+  - id: d-7pviv01j
+    scope: digests
+    title: a marked item is marked in each rendition's own terms
+    statement: |
+      the comparison that marks an item runs once and is unchanged; how the mark reads is each
+      rendition's own. The plain-text rendition suffixes the item, and the rich rendition styles
+      it instead.
+    status: accepted
+    because:
+      - d-5pdw87zm
+      - d-1oqjgi9m
+    pinned:
+      reason: other
+      notes: what the user actually sees of a threshold mark, in each rendition
+
+  - id: d-zkb393z9
+    scope: digests
+    title: the rich rendition is self-contained and imposes no colour scheme
+    statement: |
+      the rich rendition carries its presentation on its own elements, references no external
+      asset, and sets neither a page background nor a body text colour. What it does colour is
+      translucent, so the mail reads on a light or a dark background.
+    status: accepted
+    because:
+      - r-m7y9ocdu
+      - d-1oqjgi9m
+      - f-k2mw7qx4
+      - f-p9jt3vn8
+      - f-c5rb8wm2
+      - f-d6zk4hy9
+    pinned:
+      reason: other
+      notes: |
+        it constrains what any later change to the digest's appearance may reach for
+
+  - id: d-h5ycq7rm
+    scope: digests
+    title: the rich rendition's markup is grinbox's alone
+    statement: |
+      the only markup in the rich rendition is what grinbox itself authors. Template literals,
+      model-written prose, and message-derived text all reach the recipient as the characters
+      they are, in both renditions.
+    status: accepted
+    because:
+      - r-8sg01qdd
+      - d-zkb393z9
+      - d-i5vy7bkm
+    pinned:
+      reason: other
+      notes: it fixes what template text can and cannot do to the delivered markup
+
+  # Money in display form, from the unmerged infrastructure #93.
+
+  - id: d-nj43sz9w
+    scope: digests
+    title: the display form is rendered, never stored
+    statement: |
+      a digest renders an extracted money tag in display form. The normalized stored form stays
+      what grinbox keeps and what a section's threshold compares, and no display form is written
+      to state.
+    status: accepted
+    because:
+      - r-735kq72h
+      - d-dmwaark1
+      - d-5pdw87zm
+    pinned:
+      reason: data-format
+
+  - id: d-m6ingqyv
+    scope: digests
+    title: what renders in display form is what the pipeline declared as money
+    statement: |
+      a tag renders in display form when the pipeline's enabled operators type its key as an
+      extracted money output. A tag under such a key whose stored value is not money renders
+      verbatim, as does every other tag.
+    status: accepted
+    because:
+      - r-735kq72h
+      - d-x8rw5jvq
+      - d-2dqylf0q
+    pinned:
+      reason: other
+      notes: |
+        rendering verbatim rather than blanking or dropping is what the user sees when the
+        declaration and the stored value disagree
+
+  - id: d-oc073wsp
+    scope: digests
+    title: the display form follows from the ISO currency alone
+    statement: |
+      an extracted money value's display form follows from its ISO currency alone — the machine's
+      locale has no part in it. The amount carries no decimals where the currency's minor unit is
+      its whole unit.
+    cases:
+      - when: grinbox knows a symbol for the currency
+        then: the symbol denotes the currency in the display form
+      - otherwise: the ISO code renders beside the amount
+    status: tolerated
+    because:
+      - r-735kq72h
+      - d-dmwaark1
+    pinned:
+      reason: other
+      notes: the amounts in every delivered digest, and moving the machine does not change them
+
+  - id: d-b1ntd8go
+    scope: digests
+    title: the display form's conventions are fixed once
+    statement: |
+      the display form places a known symbol before the amount, groups thousands with commas,
+      marks the decimal with a period, and leads a negative amount with a minus sign — one
+      convention in every digest, whatever the machine's locale.
+    status: tolerated
+    because:
+      - r-735kq72h
+      - d-oc073wsp
+    pinned:
+      reason: other
+      notes: the residual conventions the ISO-currency rules leave open, visible on every amount
+
+  - id: d-u4gpx6ke
+    scope: interface
+    title: the interface shows money as the digest does
+    statement: |
+      the interface renders an extracted money value in display form wherever it shows the
+      tag's value, by the same rules the digest follows. What the user types when configuring —
+      a threshold — stays in the stored form the wire already fixes.
+    status: accepted
+    because:
+      - r-735kq72h
+      - d-oc073wsp
+      - d-m6ingqyv
+      - d-5pdw87zm
+    pinned:
+      reason: other
+      notes: a consumer-visible change to every surface showing a money tag
+
+  # The digest-family ruling: the calendar moment is a cue, the executed unit an occurrence.
+
+  - id: d-m7gx2vqk
+    scope: digests
+    title: missed cues collapse into one
+    statement: |
+      where grinbox was down across several of an edition's cues, it fires once on return, for
+      the most recent cue due, and the older ones never fire. Their coverage is not lost: the
+      unadvanced watermark folds it into the one that does fire.
+    status: accepted
+    supersedes: d-prxzi4zt
+    because:
+      - d-v8qm4kfw
+      - r-f7dk3qzm
+    pinned: false
+
+  - id: d-w5jc8rbn
+    scope: digests
+    title: claiming the occurrence is what prevents a second send
+    statement: |
+      an occurrence is claimed by recording it before any work is done, and the record is
+      unique per edition, account, and cue. Nothing can claim a cue twice, so nothing can send
+      twice.
+    status: accepted
+    supersedes: d-svanshcm
+    because:
+      - r-j2wn9xtb
+    pinned: false
+
+  - id: d-q4ty6zpm
+    title: one heartbeat drives both schedulers
+    statement: |
+      the poll and digest schedulers wake on one heartbeat — a minute by default, set by the
+      deployment — and act on whatever is due: an account whose interval elapsed, an edition
+      whose cue passed. Nothing is scheduled per account or edition; user-visible latency is
+      the account's interval plus up to one heartbeat. A heartbeat arriving mid-cycle does
+      nothing.
+    status: accepted
+    supersedes: d-ey4o63h1
+    because:
+      - r-0lg2c2e4
+      - d-nq4fk2xr
+      - d-6vnf59rv
+      - d-81ouxrpi
+    pinned:
+      reason: other
+      notes: |
+        the arrival latency the product promises is the account's interval plus this heartbeat,
+        so the ceiling on the per-account interval alone does not bound it
+
+  - id: d-v8qm4kfw
+    scope: digests
+    title: only a completed occurrence moves the watermark
+    statement: |
+      the watermark advances when an occurrence completes and at no other time, so a failed or
+      abandoned occurrence's span is absorbed into the next one — the next occurrence covers
+      the union rather than resuming after the gap.
+    status: accepted
+    supersedes: d-jbqvsnox
+    because:
+      - r-f7dk3qzm
+      - d-h8tq5wnm
+    pinned: false
+
+  - id: d-t9bp6wnz
+    scope: digests
+    title: an occurrence bounds how many items it shows
+    statement: |
+      an occurrence shows at most a bounded number of items, whatever its span holds, so that
+      one occurrence over a long backlog does not produce an unreadable mail. What the bound
+      cuts is counted as an overflow and reported with everything else the occurrence covered
+      but did not show.
+    status: accepted
+    supersedes: d-z0gmsbkl
+    because:
+      - r-vd9mu8od
+      - d-tm2dbemu
+    pinned: false
+
+  - id: d-c2fh5mxj
+    scope: digests
+    title: the item bound keeps the oldest mail in the span
+    statement: |
+      where an occurrence's item bound cuts, what it shows is the oldest mail in the span and
+      what it counts as overflow is the newest.
+    status: delegated
+    supersedes: d-n75x2w30
+    because:
+      - d-t9bp6wnz
+    pinned: false
+
+  - id: d-k6rw9tqv
+    scope: digests
+    title: a first occurrence covers from the edition's creation
+    statement: |
+      an edition's first occurrence covers mail taken in since the edition was created, not the
+      account's held history. Mail that arrived before the edition existed is never digested by
+      it.
+    status: accepted
+    supersedes: d-85ee8586
+    because:
+      - d-h8tq5wnm
+      - d-v8qm4kfw
+    pinned:
+      reason: data-format
+
+  - id: d-n3zj7ywp
+    scope: digests
+    title: a digest action
+    statement: |
+      grinbox ships an action that runs on a schedule rather than per message, collating what it
+      covers into one mail to the user. What it collates and how is the digest increment's.
+    status: accepted
+    supersedes: d-qcsxvo18
+    because:
+      - d-5n8oyi8c
+    pinned:
+      reason: public-api
+
+  # The vocabulary pass: supersessions settling limit, category, provider, operator, digest,
+  # window, run, contract, and snapshot. Each restates its predecessor's ruling in the
+  # settled vocabulary; none changes what is ruled.
+
+  # The limit ruling: the entries that said cap, carried into the settled word.
+
+  - id: d-j8wm2qfx
+    title: a limit-denied operation is an outcome, not an error
+    statement: |
+      an operation that a limit denies returns a distinguishable outcome — skipped by limit, as
+      against succeeded or failed — and the operator chooses what to make of it, most treating
+      it as a clean no-op. Every attempt, whichever way it went, is recorded against the run
+      that made it.
+    status: delegated
+    supersedes: d-coeyvi2n
+    because:
+      - d-isyan49o
+      - r-2qw8xj5m
+    pinned:
+      reason: public-api
+      notes: |
+        the shape every operator implementation branches on
+
+  - id: d-b6zt4kpn
+    title: the limits grinbox seeds are the backstop, and the user's are layered over them
+    statement: |
+      grinbox seeds a limit for every operation it limits, and the seeded limits cannot be
+      removed or loosened by anyone. A user adds limits on top — stricter, or on an operation
+      not yet limited — and may remove what they added, leaving the seeded limit standing.
+      Where several limits bind one operation, the first to deny denies.
+    status: accepted
+    supersedes: d-qv5l66ya
+    because:
+      - r-q8vm3xtk
+      - d-isyan49o
+      - r-zagpfz75
+    pinned:
+      reason: other
+      notes: |
+        it is what makes r-q8vm3xtk true, and what r-zagpfz75 rests on — a replay cannot repeat
+        an effect only because the per-message limit it spends is one the user cannot delete
+
+  - id: d-g3xc9rmv
+    title: a limit counts operations, and a retry is part of the operation it retries
+    statement: |
+      a limit counts operations attempted, not calls made. Where grinbox retries an operation
+      that failed, the retries belong to the operation that spent the limit and do not spend it
+      again. The operations that reach the user are not retried at all, so this multiplies no
+      effect the user would see.
+    status: accepted
+    supersedes: d-eqwrgoyv
+    because:
+      - r-q8vm3xtk
+      - d-isyan49o
+      - d-j8wm2qfx
+    pinned:
+      reason: public-api
+      notes: |
+        what a configured number means, and a reimplementation counting calls would deny at a
+        quarter of the configured volume
+
+  - id: d-e4mw6tzr
+    title: everything is scoped to a user, though there is only one
+    statement: |
+      accounts, configurations, limits, and credentials are all recorded against a user
+      identity, and grinbox bootstraps the single user it serves at first start. Nothing
+      authenticates anyone, and the scoping exists so that authenticating someone later is an
+      addition rather than a reshaping of everything stored.
+    status: accepted
+    supersedes: d-obzpbcml
+    because:
+      - r-ovi02v1m
+      - d-dbjiycvl
+    pinned:
+      reason: data-format
+      notes: |
+        every stored record carries it, so introducing it later would be a migration of the whole
+        state rather than a new surface
+
+  - id: d-l9qh3xnw
+    scope: interface
+    title: measurements come from the triage records themselves
+    statement: |
+      what the interface reports about volume, cost, failures, and limits is computed from the
+      per-triage records grinbox already keeps. There is no separate store of measurements and
+      nothing is recorded twice.
+    status: delegated
+    supersedes: d-4t7lf4wd
+    because:
+      - d-dbjiycvl
+      - r-x3jb6wlq
+    pinned: false
+
+  - id: d-i5vy7bkm
+    scope: digests
+    title: prose is the only model involvement, and it cannot touch the items
+    statement: |
+      a section may carry prose before or after its items — fixed text, or a short passage a
+      model writes from the already-rendered items. Prose is the whole of a model's part in an
+      occurrence: it cannot add, remove, or alter an item, and a passage that fails or is
+      skipped by its limit is dropped, and the occurrence proceeds.
+    status: accepted
+    supersedes: d-c3dofuyf
+    because:
+      - r-i55lgsq8
+      - d-w4hn8qpv
+    pinned: false
+
+  - id: d-u7pn5wqk
+    title: every configuration change is recorded, with who made it
+    statement: |
+      each accepted change to an account, pipeline, operator, credential, or limit writes an
+      entry: what it was before and after, which of created, updated, enabled, disabled, or
+      deleted, when, and which user asked — or no user, where grinbox itself made the change.
+      An entry carries no secret material. What grinbox seeds at install writes no entry, being
+      nobody's action.
+    commentary: |
+      Renewing an authorization is a change grinbox makes itself. The seeded rows are the single
+      user and the backstop limits.
+    status: delegated
+    supersedes: d-5xsm1hc6
+    because:
+      - r-k6gh82fx
+      - d-e4mw6tzr
+      - d-8yht1ei9
+      - d-b6zt4kpn
+    pinned:
+      reason: data-format
+      notes: |
+        the stored history the interface reads back, and a later write path added without
+        knowing this leaves a change with no entry
+
+  - id: d-s2kf8vjq
+    title: deleting configuration keeps the history and stops the work
+    statement: |
+      nothing the user deletes leaves the state: an account, pipeline, operator, credential, or
+      limit is marked deleted and stops being acted on, while the messages and triages already
+      recorded stay and stay readable. A deleted name is free to take again.
+    cases:
+      - when: an account is deleted
+        then: its stored credentials are deleted with it
+      - when: a pipeline is deleted
+        then: the accounts running it are released, and then poll nothing
+      - when: an operator still names a credential
+        then: the credential cannot be deleted until the operator stops naming it
+    status: delegated
+    supersedes: d-yf30pvpd
+    because:
+      - r-k6gh82fx
+      - d-yz5n7wmu
+      - d-e4mw6tzr
+    pinned:
+      reason: other
+      notes: |
+        it fixes what a deletion costs the user and what every historical surface can still
+        read afterwards
+
+  - id: d-a4yrn8sw
+    title: the shared package declares the vocabulary, and the routes declare the envelopes
+    statement: |
+      the values inside a request or a response — the closed enums, the operator configurations,
+      the operator contract, the resource and limit registries, the refusal envelope — are declared
+      in the shared package both tiers import. The request and response envelopes are declared by
+      the daemon's route definitions, and the browser application reads them by inference from
+      those routes.
+    status: delegated
+    supersedes: d-qrxtbcei
+    because:
+      - d-5l0wqcj0
+      - d-ti7vexo3
+    pinned: false
+
+  - id: d-3jzcw7xt
+    scope: digests
+    title: a limit-denied send fails the occurrence, and an empty span sends nothing
+    statement: |
+      an occurrence has no subject message, so per-message limits neither apply to it nor count
+      against it, while windowed limits bind as they do anywhere. Where a limit denies the send
+      itself, the occurrence fails rather than being the clean no-op a denied per-message action
+      is. A span holding nothing to report completes without sending.
+    status: accepted
+    supersedes: d-dmylyoqs
+    because:
+      - d-isyan49o
+      - d-j8wm2qfx
+      - r-g6n22sn9
+    pinned: false
+
+  - id: d-8wqk2nvy
+    scope: digests
+    title: which edition claims a message is a tag
+    statement: |
+      a message is slotted into an edition's digest by an ordinary tag with a closed set of
+      values, produced by an ordinary rule-based tagger. Editions claim values of that tag with
+      their sections, and the tag's fallback value means the message is never digested. Adding a
+      value is editing a configuration, not shipping code.
+    status: delegated
+    supersedes: d-fg96l5uu
+    because:
+      - d-w4hn8qpv
+      - d-f5hy6ptl
+    pinned:
+      reason: public-api
+      notes: |
+        the mechanism a user reshapes their digests through, and what section definitions are
+        validated against
+
+  - id: d-y7pm3kdz
+    scope: digests
+    title: editions of one pipeline claim disjoint values
+    statement: |
+      no two editions of a pipeline may claim the same value of the slotting tag, checked when
+      an edition is saved. With spans disjoint by construction and claimed values
+      disjoint by validation, a message cannot reach two digests.
+    status: delegated
+    supersedes: d-nfsr4h6f
+    because:
+      - r-j2wn9xtb
+      - d-8wqk2nvy
+      - d-506swwel
+    pinned: false
+
+  - id: d-q2hx8vlm
+    scope: backends
+    title: a backend is reached through two seams, and the poll seam is five operations
+    statement: |
+      a mail backend implements two seams. The poll seam carries what the poll path needs —
+      enumerating candidates, fetching metadata, applying a category, reporting thread placement,
+      and taking the whole-mailbox snapshot the reconcile reads. The resource backends carry what
+      an operator's declared operations reach: archiving, fetching a body, and sending mail.
+    status: accepted
+    supersedes: d-7a8aoi4z
+    because:
+      - r-etj0gluz
+      - d-v5zamgjn
+    pinned:
+      reason: public-api
+      notes: the surface a second backend is written against
+
+  - id: d-f9tj4wnr
+    scope: backends
+    title: a backend implements what it can, and the gap is visible
+    statement: |
+      a backend need not implement every mail operation — one that can read a mailbox but not
+      send is an ordinary case — and which operations a backend supports is declared rather than
+      discovered when an operation fails.
+    status: delegated
+    supersedes: d-z5opt8rp
+    because:
+      - d-q2hx8vlm
+      - r-etj0gluz
+    pinned: false
+
+  - id: d-m5zk9xcw
+    title: which outside calls grinbox retries
+    statement: |
+      grinbox retries an outside call within the operation that made it, invisibly to the
+      operator that declared it, and on any failure rather than a classified subset. A retry
+      stops at the operator's deadline. The poll path reaches its poll seam without passing
+      through this, so a failed poll waits for the next heartbeat.
+    cases:
+      - when: the call is a read — listing a mailbox, fetching a message's metadata or body, invoking a model
+        then: it takes up to three further attempts with a doubling wait
+      - when: the call is one of the two mailbox writes
+        then: it takes up to two further attempts at a fixed wait
+      - when: the call sends a notification or sends mail, or its operation has no policy of its own
+        then: it is never retried
+    status: delegated
+    supersedes: d-q5j1ig1f
+    because:
+      - d-g3xc9rmv
+      - d-v5zamgjn
+      - d-5xp2tv2d
+    pinned:
+      reason: other
+      notes: |
+        d-g3xc9rmv rests on the operations reaching the user not being retried, and a retried
+        send is an effect the user sees twice
+
+  - id: d-x8rw5jvq
+    scope: triage
+    title: an output is a closed enum or a typed extraction
+    statement: |
+      an operator declares each output tag one of two ways. An extracted output may be absent,
+      so it cannot be what another operator gates on.
+    cases:
+      - when: the tag is declared with a closed set of permitted values
+        then: it is produced whenever the operator runs
+      - when: the tag is declared as an extraction of a typed value — text, money, or a date — normalized by grinbox
+        then: a value that fails normalization drops the tag
+    status: delegated
+    supersedes: d-04s2n18o
+    because:
+      - d-eme4ratv
+    pinned:
+      reason: data-format
+      notes: |
+        the normalized forms are what is stored on every triage and read back by everything that
+        renders or compares a tag
+
+  - id: d-n6qv2hpk
+    scope: triage
+    title: a rule-based tagger
+    statement: |
+      grinbox ships a tagger whose output is derived deterministically, with no model call, by
+      evaluating rules the user writes against the message and the tags earlier operators
+      produced.
+    status: accepted
+    supersedes: d-imlec3nt
+    because:
+      - d-5n8oyi8c
+      - r-dk3vq6tp
+    pinned:
+      reason: public-api
+
+  - id: d-c7fs3wlz
+    scope: triage
+    title: rules are expressions, evaluated by grinbox's own reader
+    statement: |
+      a rule matches by an expression over the tags earlier operators produced and any field of
+      the message, read and evaluated by grinbox's own expression reader.
+    status: accepted
+    supersedes: d-oq267pmh
+    because:
+      - r-dk3vq6tp
+      - r-hw8gn2fs
+      - r-ut5mdtpx
+    pinned:
+      reason: public-api
+      notes: |
+        the language a user writes their rules in
+
+  - id: d-t2gm7ryx
+    title: one placeholder grammar, everywhere text is composed
+    statement: |
+      every piece of text a user configures grinbox to compose — a prompt, a notification, a
+      category name, a digest line — is written in one placeholder grammar over the message's
+      own fields and the tags earlier operators produced. The tags a template names are inputs
+      of the operator that renders it, which is what orders it after their producers.
+    status: accepted
+    supersedes: d-cnjkypbb
+    because:
+      - d-52lhql7t
+      - r-hw8gn2fs
+    pinned:
+      reason: public-api
+      notes: |
+        the grammar every stored template is written in, and the source of the ordering
+        dependencies derived from them
+
+  - id: d-k9zb4mtw
+    scope: digests
+    title: an edition is an instance, and its schedule is its cadence
+    statement: |
+      an edition is an ordinary operator instance whose configuration carries the schedule it
+      fires on, and each occurrence delivers a digest. A pipeline may carry several editions,
+      differing only in configuration, and nothing about a second edition is a second mechanism.
+    status: delegated
+    supersedes: d-ocqvnmfm
+    because:
+      - d-5n8oyi8c
+      - d-w4hn8qpv
+    pinned: false
+
+  - id: d-w4hn8qpv
+    scope:
+      - digests
+      - triage
+    title: judgement happens at triage, collation at the occurrence
+    statement: |
+      every judgement about a message — which edition claims it, what is worth pulling out of
+      it — is made when the message is triaged, by ordinary operators. The occurrence that
+      builds a digest makes none: it selects, groups, renders, and sends. This keeps accounting
+      for every covered message a property of the code.
+    status: delegated
+    supersedes: d-r8iz7u3q
+    because:
+      - r-i55lgsq8
+      - r-vd9mu8od
+    pinned:
+      reason: other
+      notes: |
+        the division everything about the digest follows from, and reversing it would move the
+        product's central guarantee out of reach
+
+  - id: d-p3vd6kxz
+    scope: digests
+    title: an edition fires per account, and is sent to that account's owner
+    statement: |
+      an edition fires once per account its pipeline is active on, covering that account's mail
+      and sending through it to the address the account belongs to. A pipeline active on several
+      accounts digests each mailbox separately.
+    status: accepted
+    supersedes: d-wf49d4jb
+    because:
+      - d-k9zb4mtw
+      - d-yz5n7wmu
+    pinned: false
+
+  - id: d-h8tq5wnm
+    scope: digests
+    title: the span is half-open over when mail was taken in
+    statement: |
+      an occurrence's span runs over the messages grinbox took in after the last completed
+      occurrence and up to the moment this one was claimed. It is measured over when grinbox
+      took the message in rather than when the mail was sent, so late-arriving mail is
+      digested in the span it actually arrived in.
+    status: accepted
+    supersedes: d-jsnfvo0m
+    because:
+      - r-j2wn9xtb
+      - r-f7dk3qzm
+    pinned:
+      reason: data-format
+      notes: |
+        the stored watermark is what every later window is computed from, and a change to what it
+        measures re-cuts windows already delivered
+
+  - id: d-z6xj9bfw
+    scope: triage
+    title: a triage captures the configuration it was enqueued with
+    statement: |
+      when a triage is enqueued it captures, per operator, the type, the code version, and the
+      configuration in force at that moment; every operator run in the triage executes against
+      that capture. Editing an operator therefore never changes a triage already in flight, and
+      a historical outcome resolves to the exact configuration that produced it.
+    status: accepted
+    supersedes: d-nr71oscu
+    because:
+      - r-zagpfz75
+      - d-52lhql7t
+    pinned:
+      reason: data-format
+      notes: |
+        the capture is what every historical triage is read against, and dropping it would make
+        old outcomes unreadable rather than merely differently computed
+
+  - id: d-r5wc2qnj
+    scope: interface
+    title: listing messages is paged, ordered newest first, and filtered
+    statement: |
+      listing messages is paged with caller-supplied page bounds and a bounded page size,
+      ordered by when the mail was received, newest first with a stable tiebreak, and filtered
+      by account, pipeline, standing, tag, date, and a substring search over sender and subject.
+      The page reports the total so a caller can size what it did not fetch.
+    status: accepted
+    supersedes: d-mu0k7nbu
+    because:
+      - d-1uo9p5wq
+      - d-ti7vexo3
+    pinned:
+      reason: public-api
+      notes: |
+        every part of it is observable by any client of the API, and a reimplementation must
+        reproduce the ordering to page consistently
