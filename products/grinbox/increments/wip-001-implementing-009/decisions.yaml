@@ -10,7 +10,7 @@ decisions:
       a cooldown-suppressed push records as event type `resource_op_suppressed` in the
       triage-events attempt vocabulary, beside `resource_op_succeeded`, `resource_op_limited`,
       and `resource_op_failed`.
-    status: proposed
+    status: accepted
     because:
       - d-e9jslw4x
     pinned:
@@ -22,7 +22,7 @@ decisions:
     statement: |
       the notify configuration names its kind in an optional `notification_kind` field, and a
       cooldown setting is stored as the pair `{ kind, interval_seconds }`.
-    status: proposed
+    status: accepted
     because:
       - d-vn2jdxbs
       - d-k3wq81vn
@@ -38,7 +38,7 @@ decisions:
       settings beside the kind names enabled notify operators send, creating takes a kind and
       an interval, editing changes only the interval, and deleting removes the setting. The
       kind is fixed at create — renaming is delete and create.
-    status: proposed
+    status: accepted
     because:
       - d-k3wq81vn
       - d-p8xrn2ce
@@ -54,7 +54,7 @@ decisions:
       currency renders its ISO code before the amount, separated by a space. Minor-unit
       exponents follow ISO 4217, and a negative amount's minus sign precedes the symbol or
       code.
-    status: proposed
+    status: accepted
     because:
       - d-oc073wsp
       - d-b1ntd8go
