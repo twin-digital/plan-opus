@@ -1,5 +1,5 @@
 ---
-version: "34"
+version: "36"
 ---
 
 # The incremental design process
@@ -485,9 +485,9 @@ entries a shown entry cites — its `because`, what it supersedes, what a questi
 to — are resolved against the fold the draft sits on and the repo-wide facts pool, the kind read
 from the id's prefix. An id that resolves to nothing is shown as the id alone, and that is the
 whole of the handling: a dangling citation is already a merge-gate finding, and the session is
-not where it is reported. A fact carries no title, so a cited fact shows the first line of its
-claim; a question's `answer` names the kind its answer routes to rather than an entry, so it is
-shown as that word and is not resolved.
+not where it is reported. A cited fact is shown by its title, with the first line of its claim
+standing in where the fact carries none; a question's `answer` names the kind its answer routes
+to rather than an entry, so it is shown as that word and is not resolved.
 
 #### Ruling, noting, and submitting
 
@@ -1087,12 +1087,18 @@ before a design cites it.
 A `facts/` file is a `facts:` sequence of fact entries; an `evidence/` file is a `runs:`
 sequence of run entries. A fact carries `id`, `claim`, `backing` — `tested`, `documented`, or
 `assumed` — and its `sources`, with an optional `status` of `active` or `retired`; a run
-carries `id`, `command`, `output`, and `ran_at`. `/design-process/fact@2` and `run@2` carry
-generated ids — `f-` and `run-` — and a free-text retirement `reason`; `@1` files keep their
-kebab ids and dialect, and references resolve across both. **The `version:` wrapper is what
-marks a pool file**: other YAML under `evidence/` — a probe's fixtures and inputs — carries
-none and is artifact material, not a run source. Entry shape is the schema pool's to check, so
-the facts pool evolves its shape by the same versioning every other source uses.
+carries `id`, `command`, `output`, and `ran_at`. `/design-process/fact@3` carries an optional
+one-line `title` beside the id — what the fact is named by wherever it is shown, with the claim
+staying the body that holds what was measured. `fact@2` and `run@2` carry generated ids — `f-`
+and `run-` — and a free-text retirement `reason`; `@1` files keep their kebab ids and dialect,
+and references resolve across every dialect. **The `version:` wrapper is what marks a pool
+file**: other YAML under `evidence/` — a probe's fixtures and inputs — carries none and is
+artifact material, not a run source. Entry shape is the schema pool's to check, so the facts
+pool evolves its shape by the same versioning every other source uses.
+
+**A fact is cited by its bare id**, the kind read from the prefix as for a requirement or a
+decision. The `f:` form resolves to the same fact and is the only spelling for a kebab id, which
+matches no pattern without it.
 
 **A merged fact or run is frozen**: once it merges, what it says never changes, and the gate
 refuses any edit to one beyond marking it retired — with its reason, and `superseded_by`
