@@ -1,0 +1,74 @@
+version: "3"
+
+decisions:
+  # d-vjeple9k's statement carried two rules under a title and a rationale about the engine pin
+  # alone. Building the vanilla-id preset needed the second one and had to read the first to find
+  # it, so the two separate here: this pair replaces it, and neither changes what the package does.
+  - id: d-pf9sjbgg
+    title: upstream values are derived at build time
+    statement: |
+      Every value the package takes from an upstream source is read at build time and emitted into
+      the package, so the package declares no runtime dependency and nothing a consumer installs
+      decides what a fake or a preset answers. Each emitted file names the source version it came
+      from.
+    cases:
+      - when: the package's behaviour depends on the emitted values
+        then: they are committed and a written-out count guards them, so an upstream bump reads as a diff rather than arriving silently
+      - otherwise: they are build output
+    status: delegated
+    pinned:
+      reason: other
+      notes: |
+        Consumer-visible install behaviour, and consumer-visible answers: a preset registers the
+        ids this package was built against, never a version resolved in the consumer's own tree.
+    because:
+      - d-wygo3zhy
+      - r-8r8gf6b7
+      - r-29dlrp9r
+    scope:
+      - fakes
+      - shim
+
+  - id: d-8qu8tjiz
+    title: no peer range gates an install
+    statement: |
+      The package declares no `@minecraft/server` peer range, and nothing at install, configuration
+      or run time checks a consumer's engine pin against the derived version.
+    status: delegated
+    pinned:
+      reason: other
+      notes: |
+        Consumer-visible install behaviour — a consumer on a different engine pin never has an
+        install or a run fail over it.
+    supersedes: d-vjeple9k
+    because:
+      - r-uobnqsfg
+      - d-wygo3zhy
+      - d-pf9sjbgg
+      - f:an-unsatisfiable-peer-range-fails-npm-and-warns-pnpm-and-yarn
+    scope:
+      - fakes
+      - shim
+
+  - id: d-6a30sc55
+    title: the unmeasured argument shapes take the plain-object wording
+    statement: |
+      The engine's four-way guard on a wrong-typed identifier is measured for six argument shapes.
+      Every other object takes the plain-object wording, and the package marks that as the library's
+      own rather than the engine's.
+    cases:
+      - when: the argument is one of the six shapes measured
+        then: the wording is the engine's, reproduced
+      - otherwise: it is `Object did not have a native handle.`, which nothing observed
+    status: delegated
+    pinned:
+      reason: public-api
+      notes: |
+        A consumer catching the guard reads the message, so a reimplementation choosing a different
+        wording for a `Date` or a boxed `Number` is a break.
+    because:
+      - d-0m25p71q
+      - f:f-i8kpwzfk
+      - r-8r8gf6b7
+      - r-62r76czb
+    scope: fakes
