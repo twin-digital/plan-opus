@@ -239,7 +239,7 @@ decisions:
       the assets pack's uuid and every name it declares carry the namespace: the actor entity identifiers, and
       each internal asset name too — geometry, texture paths, materials, render controllers, animations, and
       animation controllers. the library resolves its own calls through the same namespace.
-    status: proposed
+    status: accepted
     pinned:
       reason: public-api
       notes: every identifier an adventure names, and the property that two majors coexist — reversing it reintroduces version contention between adventures
@@ -425,7 +425,7 @@ decisions:
       an actor's identifier is `<namespace>:<preset>`, and every internal asset name carries the namespace as a
       segment. the build reads the major from the package's own version, so a name and the version it claims
       cannot disagree unnoticed.
-    status: proposed
+    status: accepted
     pinned:
       reason: public-api
       notes: the literal strings an adventure names and an operator sees in a selector or a server log
