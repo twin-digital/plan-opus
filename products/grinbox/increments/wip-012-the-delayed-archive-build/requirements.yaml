@@ -1,0 +1,14 @@
+version: "3"
+
+terms:
+  - id: heartbeat
+    display: heartbeat
+    definition: |
+      the one timer the daemon schedules on: it wakes on a cadence the deployment sets and acts
+      on whatever has come due.
+
+  - id: execution-loop
+    display: execution loop
+    definition: |
+      the drain that dispatches operator runs from the queue as their inputs become present,
+      bounded by the worker pool.

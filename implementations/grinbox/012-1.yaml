@@ -554,6 +554,16 @@ coverage:
         ref: nodejs/grinbox/server/src/execution/body-fetch.test.ts
       - kind: attestation
         ref: nodejs/grinbox/shared
+  - claim: d-bpj1jclb
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/heartbeat.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/config.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-scheduler.test.ts
   - claim: d-c2fh5mxj
     covered_by:
       - kind: attestation
@@ -756,6 +766,18 @@ coverage:
         ref: nodejs/grinbox/server/src/resources/action-clients.test.ts
       - kind: code-test
         ref: nodejs/grinbox/server/src/http/api/writes.test.ts
+  - claim: d-gj8j4np0
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/providers/gmail-provider.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-cycle.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/e2e-silent-triage.test.ts
   - claim: d-grcdd4ov
     covered_by:
       - kind: attestation
@@ -772,14 +794,6 @@ coverage:
         ref: nodejs/grinbox/web
       - kind: code-test
         ref: nodejs/grinbox/web/src/pages/pipelines/pipelines.test.tsx
-  - claim: d-gzv0jty7
-    covered_by:
-      - kind: attestation
-        ref: nodejs/grinbox/server
-      - kind: code-test
-        ref: nodejs/grinbox/server/src/heartbeat.test.ts
-      - kind: code-test
-        ref: nodejs/grinbox/server/src/config.test.ts
   - claim: d-h5ycq7rm
     covered_by:
       - kind: attestation
@@ -796,6 +810,20 @@ coverage:
         ref: nodejs/grinbox/server/src/digest/digest-scheduler.test.ts
       - kind: code-test
         ref: nodejs/grinbox/server/src/digest/schedule.test.ts
+  - claim: d-hf3gfs9u
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/execution-loop.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/worker.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/classify-inputs.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/recovery.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/triage-enqueue.test.ts
   - claim: d-hgqlouvn
     covered_by:
       - kind: attestation
@@ -882,18 +910,6 @@ coverage:
         ref: nodejs/grinbox/server/src/resources/action-clients.test.ts
       - kind: code-test
         ref: nodejs/grinbox/server/src/http/api/writes.test.ts
-  - claim: d-jeyg1z1r
-    covered_by:
-      - kind: attestation
-        ref: nodejs/grinbox/server
-      - kind: code-test
-        ref: nodejs/grinbox/server/src/providers/gmail-provider.test.ts
-      - kind: code-test
-        ref: nodejs/grinbox/server/src/poll/poll-cycle.test.ts
-      - kind: code-test
-        ref: nodejs/grinbox/server/src/poll/poll-scheduler.test.ts
-      - kind: code-test
-        ref: nodejs/grinbox/server/src/poll/e2e-silent-triage.test.ts
   - claim: d-jr86qq8b
     covered_by:
       - kind: attestation
@@ -932,20 +948,6 @@ coverage:
         ref: nodejs/grinbox/web/src/pages/settings/cooldowns.tsx
       - kind: code-test
         ref: nodejs/grinbox/web/src/pages/settings/cooldowns.test.tsx
-  - claim: d-k5nnblfp
-    covered_by:
-      - kind: attestation
-        ref: nodejs/grinbox/server
-      - kind: code-test
-        ref: nodejs/grinbox/server/src/execution/execution-loop.test.ts
-      - kind: code-test
-        ref: nodejs/grinbox/server/src/execution/worker.test.ts
-      - kind: code-test
-        ref: nodejs/grinbox/server/src/execution/classify-inputs.test.ts
-      - kind: code-test
-        ref: nodejs/grinbox/server/src/execution/recovery.test.ts
-      - kind: code-test
-        ref: nodejs/grinbox/server/src/pipeline/triage-enqueue.test.ts
   - claim: d-k6rw9tqv
     covered_by:
       - kind: attestation

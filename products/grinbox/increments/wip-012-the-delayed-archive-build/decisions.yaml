@@ -85,17 +85,73 @@ decisions:
         the deployment repository sets it, and a converge against the old names configures
         nothing
 
-  - id: d-nikfl9qy
-    title: the execution loop is not one of the schedulers
+  - id: d-bpj1jclb
+    title: one heartbeat wakes on whatever has come due
     statement: |
-      the execution loop's dispatch tick keeps its own timer. What d-gzv0jty7 collapses onto one
-      heartbeat is the three schedulers that decide something is due; the execution loop drains
-      runs already claimed, and putting it on a minute's beat would cost every triage a minute.
+      one heartbeat wakes the poll, digest, and pending-archive sweeps — a minute by default, set
+      by the deployment — acting on what has come due: a poll interval, a reconcile, a cue, a
+      pending archive's moment. Nothing is scheduled per account, edition, or message, and
+      nothing else decides something is due; a queue drain and a deadline are not schedules.
+    commentary: |
+      A heartbeat arriving mid-cycle does nothing. Arrival latency is the account's interval plus
+      up to one heartbeat, and everything else is up to one heartbeat past due; a moment slept
+      through is still due on return. The superseded entry counted the three sweeps but not the
+      reconcile's due-check, and its "nothing else wakes on its own timer" reached the execution
+      loop and the deadlines bounding a call — neither of which decides that anything is due.
     status: proposed
+    supersedes: d-gzv0jty7
     because:
-      - d-gzv0jty7
-      - d-k5nnblfp
       - r-0lg2c2e4
+      - d-nq4fk2xr
+      - d-6vnf59rv
+      - d-81ouxrpi
+      - d-grcdd4ov
+    pinned:
+      reason: other
+      notes: |
+        the arrival latency the product promises is the account's interval plus this heartbeat,
+        so the ceiling on the per-account interval alone does not bound it
+
+  - id: d-hf3gfs9u
+    title: the execution loop drains the run queue, bounded by one pool
+    statement: |
+      operator runs wait in a queue, and the execution loop dispatches every run whose declared
+      inputs are present — at most a fixed number at once, three by default, set by the
+      deployment, taking the longest-waiting first. The loop runs off what the queue holds
+      rather than a cadence; nothing enqueues on a schedule.
+    commentary: |
+      A run becomes eligible the moment its producer settles, so a triage advances at the loop's
+      pace rather than the heartbeat's; what enqueues is a take-in or the user asking. The bound
+      is the process's, not an account's or a pipeline's, so one busy pipeline and every other
+      share it. The superseded entry stated the bound without stating the loop that applies it,
+      which left the fold silent on how a triage advances between operators.
+    status: proposed
+    supersedes: d-k5nnblfp
+    because:
+      - d-81ouxrpi
+      - d-2gyfmt8m
+      - r-0lg2c2e4
+      - r-63vrxr22
+    pinned:
+      reason: other
+      notes: |
+        it is the throughput ceiling behind the arrival-latency promise, and a number the
+        deployment supplies rather than the daemon choosing per install
+
+  - id: d-gj8j4np0
+    scope: backends
+    title: a full reconcile heals what the incremental feed missed
+    statement: |
+      grinbox takes a whole-mailbox snapshot per account and reconciles its record against it,
+      due per account on a cadence the deployment sets — a day by default — and acted on by the
+      heartbeat's poll sweep. The incremental feed notices arrivals; the reconcile corrects
+      drift, and a message's standing may be stale until it runs.
+    status: proposed
+    supersedes: d-jeyg1z1r
+    because:
+      - d-7a8aoi4z
+      - d-8fvu0g4z
+      - d-bpj1jclb
 
   - id: d-o5vuzr40
     scope: triage
