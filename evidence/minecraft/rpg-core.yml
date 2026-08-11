@@ -90,3 +90,22 @@ runs:
       request for its `materials` directory, a recursive tree walk counting every path ending `.material`,
       and the `materials` block of the evoker's own client entity. Pinned rather than read at `main` so the
       reading is reproducible, since the repository moves. Nothing but the public API is involved.
+  - id: run-4xy5say4
+    command: node evidence/minecraft/rpg-core/water-displacement-probe/probe.mjs
+    output: evidence/minecraft/rpg-core/water-displacement-probe/OUTPUT.txt
+    ran_at: 2026-08-11
+    environment: |
+      The same containerised Bedrock 1.26.43.1 harness as the other probes here, on a freshly generated
+      flat creative world. One behavior pack declares 29 entity variants that differ only in components,
+      and its script builds one 1-wide stone channel per variant, writes a water current into it, spawns
+      that variant standing in the current, and samples every subject's location for 400 ticks, reporting
+      through console.warn. Horizontal drift and vertical change are reported separately. A source block
+      placed alone does not spread with no player in the world, so the current is written out block by
+      block as a source plus a descending `flowing_water` gradient, and a trailing empty channel holds a
+      bare source as the control that shows the difference; the block under each subject is read back
+      before any null result is believed. A component-poor custom entity and a dropped item are the
+      positive controls, and five vanilla types ride along as references. What it cannot see: nothing
+      here involves a client, a player, or a piston, and displacement by anything other than a water
+      current is out of its reach. Component semantics are this version's; the two AI-driven vanilla
+      references (villager, shulker) move under their own goals and vary between runs, while every
+      custom variant's numbers repeated exactly across consecutive runs.
