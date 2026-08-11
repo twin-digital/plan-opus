@@ -9,7 +9,7 @@ decisions:
       archive is a `pending_archives` row carrying the message, the triage and the operator whose
       run recorded it, the `due_at` moment — the message's take-in plus `delay_seconds`, in unix
       seconds — and its status. A settled row stays, and at most one row per message stands.
-    status: proposed
+    status: accepted
     because:
       - d-grcdd4ov
       - d-0tajzoy7
@@ -28,7 +28,7 @@ decisions:
       performed; the message had already left the inbox; the call failed past its retries; a
       later settled triage recorded none; another recording replaced it; its pipeline or account
       was deleted.
-    status: proposed
+    status: delegated
     because:
       - d-41v9yqvh
       - d-0tajzoy7
@@ -46,7 +46,7 @@ decisions:
       was made, carrying the reason — `already_departed`, `abandoned`, or `pipeline_inactive`.
       A call that is made records under the existing `resource_op_succeeded`,
       `resource_op_limited`, and `resource_op_failed`.
-    status: proposed
+    status: delegated
     because:
       - d-41v9yqvh
       - d-e9jslw4x
@@ -61,7 +61,7 @@ decisions:
       every message read surface carries a `pending_archive` member: the due moment, the triage
       that recorded it, and the operator whose run recorded it, or null where none stands. Only
       a standing pending archive is carried, so the member needs no status of its own.
-    status: proposed
+    status: accepted
     because:
       - d-p0ea1t8q
       - d-a4yrn8sw
@@ -75,7 +75,7 @@ decisions:
       the deployment sets the one heartbeat with `GRINBOX_HEARTBEAT_SECONDS`, a whole number of
       seconds defaulting to 60. It replaces `GRINBOX_POLL_SCHEDULER_TICK_SECONDS` and
       `GRINBOX_DIGEST_SCHEDULER_TICK_SECONDS`, which the daemon no longer reads.
-    status: proposed
+    status: accepted
     because:
       - d-gzv0jty7
       - d-mq7vdduz
@@ -104,7 +104,7 @@ decisions:
       a pending archive whose recording operator was deleted never performs, as one whose
       pipeline or account was deleted never performs. Deleted configuration stops being acted
       on, and the operator carrying the delay is configuration like the rest.
-    status: proposed
+    status: accepted
     because:
       - d-41v9yqvh
       - d-s2kf8vjq
