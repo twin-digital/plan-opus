@@ -116,6 +116,31 @@ facts:
           The MOVE extension is present in any IMAP implementation that returns "MOVE" as one of
           the supported capabilities to the CAPABILITY command.
 
+  - id: f-12lyvbmp
+    title: Outlook keeps its categories out of an IMAP account entirely
+    claim: |
+      on an IMAP account, Outlook for Windows holds the categories and flags it assigns in its own
+      local data file and writes none of them to the server. It neither stores a category as an
+      IMAP keyword nor shows a keyword another client set, so metadata carried as a keyword is
+      invisible in Outlook; an add-in setting the category itself is what bridges the two.
+    backing: documented
+    caveat: |
+      both sources are long-standing community Outlook references rather than a Microsoft
+      statement, and they agree; the reading is about Outlook's own behaviour, not about any
+      particular server's
+    sources:
+      - url: https://www.slipstick.com/outlook/outlook-categories-flags-and-imap-accounts/
+        where: the opening statement on IMAP accounts
+        quote: |
+          The IMAP protocol doesn't support the Category and Flag properties on messages and
+          assigned categories and flags are not synced back to the IMAP server.
+      - url: https://robert365.com/question/471
+        where: on setting a category programmatically or through an add-in
+        quote: |
+          When you would set the category this way and the IMAP account support IMAP keywords, the
+          categories will also be synced to to the server and thus maintained if you were to
+          reconfigure your IMAP account in Outlook or on another machine.
+
   - id: f-np5bnzew
     title: UIDPLUS is what makes a copy re-findable and an expunge safe
     claim: |

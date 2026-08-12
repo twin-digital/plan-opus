@@ -207,7 +207,9 @@ decisions:
       Keywords are IMAP's durable per-message metadata and the only mechanism a category can be
       carried by. A server admits client-defined ones only where the mailbox says so, and a store
       the server ignores or drops at the end of the session looks like success from the client's
-      side — so declaring the gap is the only way it is visible.
+      side — so declaring the gap is the only way it is visible. What a keyword does not reach is
+      a client that keeps its own metadata locally: Outlook is one, and on an account read there a
+      category is grinbox's record rather than something the user sees on their mail.
     status: proposed
     because:
       - d-hv2uue12
