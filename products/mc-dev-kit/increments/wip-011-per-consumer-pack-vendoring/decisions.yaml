@@ -410,13 +410,13 @@ decisions:
     title: the build inserts a claim type, and the runtime reads the claims at load
     statement: |
       the build adds to every namespaced pack with a behavior half an entity type whose identifier
-      carries the pack's own token. At load the runtime enumerates the declared types and reports
-      any claim in its namespace that is not its own. Its author declares nothing for it.
+      carries the pack's own token. At load the runtime enumerates the declared types and exposes
+      the foreign claims it finds in its namespace as a value the pack can read.
     status: proposed
     scope: [build, runtime]
     pinned:
       reason: public-api
-      notes: an identifier every namespaced pack declares, which any pack and any operator can enumerate
+      notes: an identifier every namespaced pack declares, and the value a pack reads its rivals from
     because:
       - r-293j8n70
       - d-zk0c48uy
@@ -425,8 +425,8 @@ decisions:
       - f:f-1yo29upp
     cases:
       - when: a claim in the pack's namespace carries another pack's token
-        then: the contention is reported, naming the namespace and every claimant
-      - otherwise: nothing is reported
+        then: it appears in that value, and the contention is written to the content log
+      - otherwise: the value is empty and nothing is logged
     commentary: |
       A family answers only for an entity in hand, so `d-wj60379v` cannot speak before something is
       spawned or found. A pack whose types are rarely reached would learn of contention late or
@@ -443,12 +443,19 @@ decisions:
       it asked a pack author to declare something they would never otherwise think about, and the
       build already generates content for a namespaced pack.
 
+      A value rather than a log line, because this decision pins a report an author builds on and
+      nothing can be built on a log line — an adventure that wants to refuse to start, or to name
+      the rival in its own message, needs the claimants in hand. The log happens anyway, so an
+      author who reads nothing still learns of it, and an operator reading a server's output does
+      too.
+
   - id: d-wj60379v
     title: a declared entity carries its pack's family, and the runtime checks it at use
     statement: |
       the build gives every entity type a namespaced pack declares a type family naming that pack,
-      and the runtime checks for it on every entity it hands back — from a spawn, a lookup, a query,
-      any of them. An entity not carrying the pack's own family is reported.
+      and the runtime checks for it on every entity it hands back. A call that answers with one
+      entity raises where that entity lacks the pack's own family; a call that answers with many
+      omits those that lack it.
     status: proposed
     scope: [build, runtime]
     pinned:
@@ -462,11 +469,13 @@ decisions:
       - f:f-o8xk7go5
       - f:f-1yo29upp
     cases:
-      - when: the entity carries the pack's own family
-        then: it is returned as it is
-      - when: it does not, and this call spawned it
+      - when: every entity the call would answer with carries the pack's own family
+        then: they are returned as they are
+      - when: a call answering with one entity spawned it, and it lacks the family
         then: the entity is removed and the call raises
-      - otherwise: the call raises, leaving the entity where it was found
+      - when: a call answers with one entity and it lacks the family
+        then: the call raises, leaving the entity where it was found
+      - otherwise: the foreign entities are left out of the result, which is returned
     commentary: |
       This asks the question that matters. A contended identifier yields one definition, and the
       losing pack cannot see that from the type list, since `EntityTypes.getAll` marks no type with
@@ -487,8 +496,14 @@ decisions:
       Raising rather than returning the entity is the point of asking, since an adventure handed a
       stranger's actor operates on the wrong thing indefinitely. What differs by path is cleanup: an
       entity this call spawned is the call's own side effect and is removed, while one merely found
-      belongs to the world and is left alone. The contention is reported once rather than at every
-      call.
+      belongs to the world and is left alone.
+
+      A query is the other shape and wants the other answer. Raising would discard a correct
+      forty-nine-entity result over one stranger, which is a worse service than the filtering an
+      author would otherwise write themselves; and unlike a single lookup, a query has a true
+      answer left to give. Silence is what the design fights, so the omission is reported through
+      `d-q7mz2qb0`'s value and log rather than swallowed. The contention is reported once, not at
+      every call.
 
       What it does not reach: `d-tnhykfkz` takes geometry and textures out of contention entirely, so
       what is left for this to catch is identifiers.
