@@ -114,10 +114,9 @@ facts:
       being a namespace and a name separated by a colon — as lowercase letters, digits and
       underscores, and reserves the `minecraft` namespace for vanilla content.
 
-      That set is narrower than what the engine accepts. Hyphens and dots are measured to work on
-      every path and are not among the documented characters, so a pack using them relies on
-      behaviour Mojang does not sanction. The documented set is the intersection of what is
-      supported and what is known to work.
+      That set is narrower than both what the engine accepts and what Mojang's own schemas pattern:
+      hyphens and dots are absent from it, while `f-cf3chwvr` shows the schema admitting them and
+      `f-te6cfwkw` shows them working. Lowercase is the point all three agree on.
     backing: documented
     caveat: |
       The page is a tutorial rather than a format reference, so it states the rule as guidance to a
@@ -132,3 +131,35 @@ facts:
         where: Naming — the shape of an id, and the reserved namespace
         quote: |
           This ID consists of a namespace and a name separated by a colon.
+
+  - id: f-cf3chwvr
+    title: Mojang's own schemas pattern an identifier as lowercase, and constrain no entity identifier
+    claim: |
+      Mojang publishes JSON schemas for Bedrock at `Mojang/bedrock-schemas`. Exactly one identifier
+      grammar appears in them, on the biome description: `^[a-z0-9._%+-]+:[a-z0-9._%+-]+$`, beside
+      the note that identifiers should only be lowercase. So dots and hyphens are sanctioned, and
+      uppercase is excluded by the pattern.
+
+      No schema constrains an *entity* identifier. The entity behavior document's `description` is
+      declared as a bare object with no properties, so the schemas neither pattern the field nor
+      require it.
+    backing: documented
+    caveat: |
+      Read at commit `607c1d07`, 2026-08-11. The pattern is the biome identifier's and is applied to
+      no other kind, so treating it as the general grammar is an inference from Mojang using one
+      shape where it wrote one down at all — the measured behaviour in `f-te6cfwkw` is what shows
+      the same characters working for entities. The `%` and `+` the pattern admits are untested
+      anywhere.
+    sources:
+      - url: https://github.com/Mojang/bedrock-schemas/blob/main/schemas/bp/biomes/biome_biome_description.schema.json
+        where: properties.identifier — the pattern and its note
+        quote: |
+          "description": "The name of the Biome, used by other features like the '/locate biome' command. Identifiers should only be lowercase.",
+      - url: https://github.com/Mojang/bedrock-schemas/blob/main/schemas/bp/biomes/biome_biome_description.schema.json
+        where: properties.identifier — the grammar itself
+        quote: |
+          "pattern": "^[a-z0-9._%+-]+:[a-z0-9._%+-]+$"
+      - url: https://github.com/Mojang/bedrock-schemas/blob/main/schemas/bp/entities/entity_actor_document.schema.json
+        where: properties.description — the entity identifier is unconstrained
+        quote: |
+          "description": "Contains the entity's unique identifier and runtime_identifier for spawn egg and other behaviors.",

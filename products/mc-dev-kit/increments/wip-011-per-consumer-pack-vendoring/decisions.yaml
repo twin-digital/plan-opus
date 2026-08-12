@@ -136,15 +136,17 @@ decisions:
       - r-jl42pzah
       - f:f-exoo5ehm
       - f:f-ivsuofva
+      - f:f-cf3chwvr
       - f:f-te6cfwkw
       - f:f-8bxtf5w7
     cases:
-      - when: a namespace the setting names holds anything but lowercase letters, digits or
-          underscores
+      - when: a namespace the setting names holds anything but lowercase letters, digits,
+          underscore, hyphen or dot
         then: the build fails, naming the character
       - when: the setting names a namespace
         then: that is the namespace
-      - otherwise: the namespace is the package's scope and name, transliterated into that set
+      - otherwise: the namespace is the package's scope and name, the `@` dropped and the `/` a
+          hyphen
     commentary: |
       A namespace is something the build consumes and nothing the engine reads, and a manifest is
       shipped verbatim to the engine. Putting it in the manifest would mean declaring and validating
@@ -155,19 +157,19 @@ decisions:
       has no way to do. So the author who thinks about none of this gets the recommended answer, and
       gets it enforced rather than advised.
 
-      The accepted set is the one Mojang documents, not the wider one the engine turns out to
-      tolerate. Hyphens and dots are measured to work everywhere and are not in the documented set,
-      so a pack using them would rest on behaviour nobody has promised — and a namespace is written
-      into every identifier a pack ships, which is the last place to spend unsanctioned latitude.
-      It costs a transliteration in the default and nothing else.
+      The accepted set is a subset of the one Mojang's schemas pattern, taking only what is also
+      measured to work: lowercase letters, digits, underscore, hyphen and dot. Hyphens matter
+      because a package name is full of them, so the default needs no transliteration beyond
+      dropping the scope's `@` and turning its `/` into a hyphen. The `%` and `+` the schema admits
+      are left out — nothing produces them and unneeded latitude has no upside.
 
-      A named namespace is refused rather than transliterated, because the author chose those
-      characters and silently shipping different ones is worse than saying so. The derived default
-      is transliterated because nobody chose it.
+      Uppercase is where all three sources agree and the one worth a build error: the schema's
+      pattern excludes it, Mojang's guidance says lowercase, and it is measured to register and
+      spawn while no query or selector can reach it. npm permits uppercase in legacy names, so a
+      default taken verbatim could produce one.
 
-      Uppercase is the case that proves the caution worth having: an uppercase identifier registers
-      and spawns while no query or selector can reach it, and npm permits uppercase in legacy names,
-      so a default taken verbatim could produce one.
+      A named namespace is refused rather than folded to lowercase, because the author chose those
+      characters and silently shipping different ones is worse than saying so.
 
       The convention also asks for short, on the grounds that an author writes the namespace
       constantly. That does not reach this design: `d-8qkamvz7` has names written bare in sources
