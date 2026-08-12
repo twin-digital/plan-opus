@@ -166,6 +166,43 @@ decisions:
       dependency in every build for a signal about other registrants only. Whether that trade is
       ever worth making is captured to the backlog rather than settled here.
 
+  - id: d-tnhykfkz
+    title: internal asset names are namespaced by the pack's uuid, not by its namespace
+    statement: |
+      the entity identifiers a pack declares carry its namespace. Every other name it declares —
+      geometry, textures, materials, render controllers, animations, animation controllers — carries
+      a token derived from the built pack's own uuid instead.
+    status: proposed
+    pinned:
+      reason: data-format
+      notes: the literal names inside a built pack, and which of them a stranger could ever address
+    because:
+      - r-jxzqhhmo
+      - r-293j8n70
+      - d-zk0c48uy
+      - d-ni5n2r3c
+      - f:f-8bxtf5w7
+      - f:f-09o4knzt
+      - f:f-gvmc2wfa
+    cases:
+      - when: the name is an entity identifier, or a localization key derived from one
+        then: it carries the namespace
+      - otherwise: it carries the uuid token
+    commentary: |
+      An entity identifier is the only name anyone outside the pack addresses — a client entity
+      definition is found by it, a selector and a command name it, and a localization key follows it
+      by one rule. Every other name is reached only from files the build writes, so nothing outside
+      the pack ever spells one and no human types one either.
+
+      That is what makes the two different problems. An identifier wants to be readable and is
+      therefore contendable, and everything else in this increment is about living with that. An
+      internal name wants nothing, so it can take the one token that cannot collide at all. Uuids
+      are already unique per pack and already checked across a workspace.
+
+      So the subtle failure the whole exhaustive rewrite exists to prevent — one consumer's actor
+      drawn with another's geometry — stops being a risk that is managed and becomes one that is
+      absent. What remains contendable is the identifier, which is the loud, nameable case.
+
   - id: d-8qkamvz7
     title: a namespaced pack writes bare names in source
     statement: |
@@ -304,8 +341,8 @@ decisions:
       - f:f-o8xk7go5
     cases:
       - when: a spawned entity carries the pack's own token
-        then: the definition that resolved was the pack's, and nothing is reported
-      - otherwise: the pack reports that the identifier resolved to another definition
+        then: the pack's definition is in what resolved, and nothing is reported
+      - otherwise: the spawn fails, the entity is removed, and the call raises
     commentary: |
       This asks the question that matters. A contended identifier yields one definition, and the
       losing pack cannot see that from the type list, since `EntityTypes.getAll` marks no type with
@@ -316,10 +353,19 @@ decisions:
       the real types, and the question is asked when an adventure spawns an actor and the answer
       matters.
 
-      Two limits worth knowing. It reaches entities, so a contention touching only geometry or
-      textures is invisible to it and remains a build-time concern. And a pack whose behavior half
-      lost while its client entity won is reported by the half that carries the token, not the half
-      that draws the actor.
+      The test is "does it carry mine" rather than "which one does it carry", which holds whether
+      the winning definition replaces the loser outright or the two merge. Under a merge a foreign
+      token sits beside the pack's own and names who else is there, which is a better signal than
+      absence; under replacement the pack's token is simply gone. Either way the pack learns its
+      definition did not arrive intact.
+
+      Failing the spawn rather than returning the entity is the point of asking. An adventure handed
+      a stranger's actor operates on the wrong thing indefinitely, and a contended identifier fails
+      every spawn, so the first one is as good a place to stop as any. The entity is removed because
+      the library spawned it, and the contention is reported once rather than at every call.
+
+      What it does not reach: `d-tnhykfkz` takes geometry and textures out of contention entirely, so
+      what is left for this to catch is identifiers.
 
   - id: d-35ovo8rl
     title: a vendored pack ships its source in its published package
@@ -456,6 +502,37 @@ decisions:
       There is nothing left to depend on: the content is in the consumer's own pack, and the pack
       the entry names never reaches a pool. Left in, the entry would name a uuid the world cannot
       resolve.
+
+  - id: d-4idoxbul
+    title: the kit ships a runtime half, as a subpath of its own package
+    statement: |
+      the kit exports a runtime entry point, `runtime`, holding the code that runs inside a built
+      pack: the identifier helper and the checked spawn. It imports the game modules, which stay
+      external at build, and imports nothing from the kit's Node-side halves.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: a third export beside discovery and the build, and the import a pack's own script writes
+    because:
+      - r-tvea5tvf
+      - d-zm6pxfrg
+      - d-wj60379v
+      - d-wss8fker
+      - d-a8lgrojc
+      - r-2alueo3d
+      - f:a-script-module-does-not-resolve-across-packs
+    commentary: |
+      Every helper this increment asks for is code that runs in the engine, and the kit has shipped
+      none before — discovery and the build both run in Node. Leaving it to consumers means each of
+      them writes the same identifier composition and the same provenance check, and gets the second
+      one subtly wrong, which is how a silent failure comes back.
+
+      A subpath rather than a package, following the build half: nothing new to install, and a pack
+      that already depends on the kit for its build reaches its runtime through the same name. The
+      separation that matters is not the package boundary but the import graph — the runtime half
+      pulls in no Node-side code, so a pack's bundle carries the helpers and nothing else.
+
+      A consumer is free to write its own. What the kit owes is that the obvious thing is there.
 
   - id: d-zm6pxfrg
     title: the namespace reaches code as an injected constant

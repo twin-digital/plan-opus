@@ -25,6 +25,14 @@ questions:
       families back; then have a second pack declare the same identifier with a different token and
       confirm the reading changes when the other definition wins.
 
+      Buried in that second half is the part that matters more: when two behavior packs declare one
+      identifier, does the winner replace the loser wholesale or do the definitions merge? Nothing
+      measures it — `f-8bxtf5w7` covers resource-side names only and does not carry over. Under a
+      merge the entity would hold both families, which is a better signal than absence since it
+      names who else is there. `d-wj60379v` is written to hold either way, asking whether the
+      pack's own token is present rather than which token is; the answer decides what the report can
+      say, not whether the check works.
+
   - id: q-c8zq5pss
     answer: fact
     question: |
