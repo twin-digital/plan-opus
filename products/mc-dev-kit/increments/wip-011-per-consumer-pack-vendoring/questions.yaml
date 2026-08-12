@@ -11,29 +11,3 @@ questions:
       stack as its vendorings, and it has no namespace of its own to build under in any case, so
       `d-vrq7lc2o` would deploy it as a stub. Amending `r-u8cg9vi6` to except a vendored pack is the
       owner's call; the alternative is that `d-27lzrwsu` gives way and a vendored pack ships twice.
-
-  - id: q-c8zq5pss
-    answer: fact
-    question: |
-      what may a namespace be spelled with? Nothing in the pool records the character set an
-      identifier admits, and every recorded example is lowercase letters and underscores —
-      `mctest:probe_dummy`, `minecraft:evocation_illager`, `geometry.evoker.v1.8` — and the community
-      convention is snake_case, which is a signal about the character set without settling it.
-      Package names are full of hyphens, so whether `mc-rpg-core` is a namespace or has to become `mc_rpg_core`
-      decides what `d-zk0c48uy`'s default actually produces, and a length limit would decide whether
-      it is usable at all. It also disposes of reverse-domain namespaces: a dot already separates the
-      segments of an internal asset name, so `com.example.rpg` inside `geometry.<ns>.wizard` may not
-      be parseable even where it is legal. It needs a measurement — build packs whose namespace
-      carries a hyphen, a dot, an uppercase letter, and a long run of characters, and see which load
-      and render.
-
-  - id: q-zvn4dqpp
-    answer: fact
-    question: |
-      what becomes of an entity already in a world when the identifier it was spawned under stops
-      resolving? A consumer's namespace is the prefix of every actor identifier it ships, so renaming
-      it — or vendoring a pack that renames content — changes those identifiers for a world that
-      already holds entities under the old ones. Whether they vanish, persist unrendered, or refuse to
-      load decides whether the kit owes an additive-only discipline of the kind an author would
-      otherwise have to keep by hand. It needs a measurement: spawn an entity, rebuild the pack under
-      a changed identifier, reload the world, and see what the world reports.

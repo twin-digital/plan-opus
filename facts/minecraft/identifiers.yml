@@ -1,0 +1,108 @@
+# How a pack's entity identifiers may be spelled, and what a world does when one stops being
+# declared. Filed by subject: the identifier itself, rather than any product that depends on it.
+version: "3"
+facts:
+  - id: f-te6cfwkw
+    title: an entity identifier takes almost any spelling, but uppercase makes it unaddressable
+    claim: |
+      A behavior-pack entity identifier is not held to the snake_case convention. Hyphens, dots,
+      digits including a leading digit, and namespaces of at least 512 characters all register,
+      spawn, report themselves back through `typeId`, and match an `@e[type=]` selector — on either
+      side of the colon.
+
+      Uppercase is the exception, and it fails without saying so. The type registers with its case
+      intact and `spawnEntity` produces it, but the registry lookup is case-sensitive while every
+      addressing path lowercases its argument, so no spelling reaches the type: `getEntities({type})`
+      finds nothing, `Entity.matches` is false, a selector naming an uppercase namespace is a parse
+      error, and `summon` of an uppercase name resolves to the lowercased identifier instead —
+      producing a different entity where a lowercase twin exists. The engine states the rule in the
+      content log rather than refusing the pack.
+    backing: tested
+    caveat: |
+      Measured for behavior-pack entity identifiers on one dedicated server, Bedrock 1.26.43.1. No
+      length ceiling was found because the probe stopped at 512 characters, not because one was
+      ruled out. The uppercase `summon` was observed with a lowercase twin defined; the no-twin case
+      was not measured. `@` and `/` — the characters an npm scope carries — were not among the
+      spellings tried.
+
+      Nothing here reaches resource-pack asset names. A control pack of deliberately broken resource
+      content produced no server output at all, so a dedicated server does not read resource pack
+      content and the question needs a client session.
+    sources:
+      - run: run-bycb73cr
+        where: bp-only — a hyphenated namespace through the command selector
+        quote: |
+          [nsprobe] bp-only/hyphen :: cmd testfor @e[type=probe-ns:subject] successCount=1
+      - run: run-bycb73cr
+        where: bp-only — a dotted namespace through the command selector
+        quote: |
+          [nsprobe] bp-only/dot :: cmd testfor @e[type=probe.ns:subject] successCount=1
+      - run: run-bycb73cr
+        where: bp-only — a 512-character namespace, and its length
+        quote: |
+          [2026-08-12 04:12:04:339 WARN] [Scripting] [nsprobe] bp-only/len512 :: id=ns512_nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn:subject ns.length=512 id.length=520
+      - run: run-bycb73cr
+        where: bp-only — the same identifier matching its own selector
+        quote: |
+          [nsprobe] bp-only/len512 :: cmd testfor @e[family=fam_len512] successCount=1
+      - run: run-bycb73cr
+        where: bp-only — an uppercase type registers and spawns
+        quote: |
+          [nsprobe] bp-only/upper :: entity.typeId=ProbeNS:subject valid=true
+      - run: run-bycb73cr
+        where: bp-only — and is then unreachable by query
+        quote: |
+          [nsprobe] bp-only/upper :: getEntities({type}).length=0
+      - run: run-bycb73cr
+        where: bp-only — the engine's own statement of the rule
+        quote: |
+          [2026-08-12 04:11:47:479 ERROR] [Commands] enum name: <EntityType> | Keywords in commands need to be lower case. 'ProbeNS:subject' was not registered.
+      - run: run-bycb73cr
+        where: case-follow-up — summon lowercases and lands on a different entity
+        quote: |
+          [nsprobe] case-follow-up/case :: cmd-summoned typeId=probe_ns:subject
+
+  - id: f-8rffdkj5
+    title: a saved entity outlives the withdrawal of its identifier, invisibly and reversibly
+    claim: |
+      When a behavior pack stops declaring an entity identifier a world already holds saved entities
+      of, the world loads with no error and no log line about it, and those entities are simply
+      absent from the running world rather than present in a broken form. They match no type query
+      under the old identifier or the new one, no family or name selector finds them, and
+      `world.getEntity()` on a recorded entity id returns `undefined`.
+
+      Their saved data is not deleted. The chunk is re-saved with them still in it while the
+      identifier is missing, and restoring the identifier brings every one back with the same entity
+      id, name tag and position. A name tag and `minecraft:persistent` change nothing in either
+      direction.
+
+      So withdrawing an identifier is recoverable rather than destructive, and silent either way:
+      nothing tells an author it happened.
+    backing: tested
+    caveat: |
+      Bedrock dedicated 1.26.43.1 with `@minecraft/server` 2.8.0. The withdrawal lasted a single
+      server lifetime with the chunk continuously loaded; whether orphaned records survive many
+      sessions or a later chunk-format rewrite is untested. The pack uuid stayed constant and only
+      the version and the declared identifiers changed — removing the pack from the world's
+      activation list entirely was not tried — and no client ever loaded the world.
+    sources:
+      - run: run-iz4n510f
+        where: p1-declared — five entities present before the withdrawal
+        quote: |
+          [2026-08-12 04:23:17:457 WARN] [Scripting] [probe] p1-declared/census :: dimension.getEntities().length=5
+      - run: run-iz4n510f
+        where: p2-withdrawn — only the vanilla control remains
+        quote: |
+          [2026-08-12 04:23:39:475 WARN] [Scripting] [probe] p2-withdrawn/census :: dimension.getEntities().length=1
+      - run: run-iz4n510f
+        where: p2-withdrawn — a recorded entity id no longer resolves
+        quote: |
+          [2026-08-12 04:23:39:477 WARN] [Scripting] [probe] p2-withdrawn/census :: world.getEntity(-8589934590) [spawned as probe:subject name="NamedSubject"] => undefined
+      - run: run-iz4n510f
+        where: p3-restored — the count returns once the identifier is declared again
+        quote: |
+          [2026-08-12 04:24:07:355 WARN] [Scripting] [probe] p3-restored/census :: dimension.getEntities().length=5
+      - run: run-iz4n510f
+        where: p3-restored — with the same id, name tag and position
+        quote: |
+          [2026-08-12 04:24:07:356 WARN] [Scripting] [probe] p3-restored/census :: entity[2] typeId=probe:subject id=-8589934590 nameTag="NamedSubject" loc=(162.00,100.00,170.50) isValid=true

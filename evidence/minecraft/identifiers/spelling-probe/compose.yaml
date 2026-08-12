@@ -1,0 +1,22 @@
+name: ns-probe
+services:
+  bedrock:
+    image: itzg/minecraft-bedrock-server
+    environment:
+      EULA: "TRUE"
+      LEVEL_NAME: dev
+      SERVER_NAME: ns-probe
+      GAMEMODE: creative
+      DIFFICULTY: hard
+      ALLOW_CHEATS: "true"
+      CONTENT_LOG_FILE_ENABLED: "true"
+      CONTENT_LOG_CONSOLE_OUTPUT_ENABLED: "true"
+      SERVER_PORT: "19232"
+      SERVER_PORT_V6: "19233"
+      LEVEL_SEED: "1"
+    ports:
+      - "19232:19232/udp"
+    volumes:
+      - data:/data
+volumes:
+  data:
