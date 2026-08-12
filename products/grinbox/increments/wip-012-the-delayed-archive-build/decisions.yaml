@@ -98,7 +98,7 @@ decisions:
       through is still due on return. The superseded entry counted the three sweeps but not the
       reconcile's due-check, and its "nothing else wakes on its own timer" reached the execution
       loop and the deadlines bounding a call — neither of which decides that anything is due.
-    status: proposed
+    status: accepted
     supersedes: d-gzv0jty7
     because:
       - r-0lg2c2e4
@@ -125,7 +125,7 @@ decisions:
       is the process's, not an account's or a pipeline's, so one busy pipeline and every other
       share it. The superseded entry stated the bound without stating the loop that applies it,
       which left the fold silent on how a triage advances between operators.
-    status: proposed
+    status: accepted
     supersedes: d-k5nnblfp
     because:
       - d-81ouxrpi
@@ -146,7 +146,7 @@ decisions:
       due per account on a cadence the deployment sets — a day by default — and acted on by the
       heartbeat's poll sweep. The incremental feed notices arrivals; the reconcile corrects
       drift, and a message's standing may be stale until it runs.
-    status: proposed
+    status: delegated
     supersedes: d-jeyg1z1r
     because:
       - d-7a8aoi4z
