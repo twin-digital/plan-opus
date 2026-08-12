@@ -1,0 +1,205 @@
+# custom type_family and same-identifier provenance probe results
+
+Observed output from running the probe packs against a real Bedrock dedicated server. Each
+`[probe] <label>/<subject> :: …` line is what the engine reported. The probes report what the
+engine did; nothing here is an assertion about what it should do.
+
+## Run provenance
+
+| | |
+|---|---|
+| Date | 2026-08-12 |
+| Server | `itzg/minecraft-bedrock-server` (digest `sha256:0723ada81c10d3a9333d551b9ad8f22d666c3728071b6a15808bcef1fd394ab2`), Bedrock dedicated **1.26.43.1** |
+| `@minecraft/server` | **2.8.0** (pack manifest dependency; no experiments enabled) |
+| Script pack | `family provenance probe (script)` 0.1.0, uuid `275486e7-acfd-4bf6-8813-69a70b1840e4` |
+| Pack A | `family provenance probe pack A` 0.1.0, uuid `8f067333-b5a7-4ffc-a000-22416a6b0781` — declares `probe:subject` with `["probe_token_a","probe_shared"]`, health 40, movement 0.11, `minecraft:fire_immune`; and `probe:solo` with `["probe_token_solo"]`, health 20 |
+| Pack B | `family provenance probe pack B` 0.1.0, uuid `0b209d15-808d-4b1e-b543-93ee7eb1c9cf` — declares `probe:subject` with `["probe_token_b","probe_shared"]`, health 60, movement 0.44, `minecraft:is_baby` |
+| Trigger | `scriptevent probe:run <label>` from the server console |
+| Phases | `order-ab-1`, `order-ab-2`, `order-ba-1`, `order-ab-3` — the same world, restarted between phases, with the two data packs swapped in `world_behavior_packs.json` for `order-ba-1` |
+| Coverage | 4/4 phases produced a `complete` line, no `PROBE CRASHED` lines |
+
+`OUTPUT.txt` carries `PHASE order-ab-1 DID NOT COMPLETE`. That is the harness's 600 s deadline,
+not the engine: the first phase's arena needed six build attempts over ten minutes for the chunk
+to load, and the phase's own `order-ab-1 :: complete` line landed at 02:57:32, after the harness
+had already moved on. Every `order-ab-1` reading below is in the log.
+
+## Observed output
+
+Every `[probe]` line the engine emitted across all four phases, in order, from the harness
+transcript. The `--- <label> …` lines record the activation-list order each phase ran under.
+
+```
+--- order-ab-1 world_behavior_packs.json=[{"pack_id":"275486e7-acfd-4bf6-8813-69a70b1840e4","version":[0,1,0]},{"pack_id":"8f067333-b5a7-4ffc-a000-22416a6b0781","version":[0,1,0]},{"pack_id":"0b209d15-808d-4b1e-b543-93ee7eb1c9cf","version":[0,1,0]}] ---
+--- order-ab-2 world_behavior_packs.json=[{"pack_id":"275486e7-acfd-4bf6-8813-69a70b1840e4","version":[0,1,0]},{"pack_id":"8f067333-b5a7-4ffc-a000-22416a6b0781","version":[0,1,0]},{"pack_id":"0b209d15-808d-4b1e-b543-93ee7eb1c9cf","version":[0,1,0]}] ---
+--- order-ba-1 world_behavior_packs.json=[{"pack_id":"275486e7-acfd-4bf6-8813-69a70b1840e4","version":[0,1,0]},{"pack_id":"0b209d15-808d-4b1e-b543-93ee7eb1c9cf","version":[0,1,0]},{"pack_id":"8f067333-b5a7-4ffc-a000-22416a6b0781","version":[0,1,0]}] ---
+--- order-ab-3 world_behavior_packs.json=[{"pack_id":"275486e7-acfd-4bf6-8813-69a70b1840e4","version":[0,1,0]},{"pack_id":"8f067333-b5a7-4ffc-a000-22416a6b0781","version":[0,1,0]},{"pack_id":"0b209d15-808d-4b1e-b543-93ee7eb1c9cf","version":[0,1,0]}] ---
+=== raw [probe] lines, delivery order ===
+[2026-08-12 02:47:17:997 WARN] [Scripting] [probe] boot :: ready
+[2026-08-12 02:47:23:619 WARN] [Scripting] [probe] order-ab-1 :: start
+[2026-08-12 02:57:31:481 WARN] [Scripting] [probe] arena :: built centre=(163,100,170) floor=minecraft:stone attempts=6
+[2026-08-12 02:57:32:230 WARN] [Scripting] [probe] order-ab-1/solo :: typeId=probe:solo
+[2026-08-12 02:57:32:233 WARN] [Scripting] [probe] order-ab-1/solo :: getTypeFamilies=[probe_token_solo]
+[2026-08-12 02:57:32:234 WARN] [Scripting] [probe] order-ab-1/solo :: hasTypeFamily(probe_token_a)=false
+[2026-08-12 02:57:32:234 WARN] [Scripting] [probe] order-ab-1/solo :: hasTypeFamily(probe_token_b)=false
+[2026-08-12 02:57:32:234 WARN] [Scripting] [probe] order-ab-1/solo :: hasTypeFamily(probe_shared)=false
+[2026-08-12 02:57:32:234 WARN] [Scripting] [probe] order-ab-1/solo :: hasTypeFamily(probe_token_solo)=true
+[2026-08-12 02:57:32:234 WARN] [Scripting] [probe] order-ab-1/solo :: matches(families:[probe_token_a])=false
+[2026-08-12 02:57:32:234 WARN] [Scripting] [probe] order-ab-1/solo :: matches(families:[probe_token_b])=false
+[2026-08-12 02:57:32:234 WARN] [Scripting] [probe] order-ab-1/solo :: matches(families:[probe_shared])=false
+[2026-08-12 02:57:32:235 WARN] [Scripting] [probe] order-ab-1/solo :: matches(families:[probe_token_solo])=true
+[2026-08-12 02:57:32:235 WARN] [Scripting] [probe] order-ab-1/solo :: matches(excludeFamilies:[probe_token_b])=true
+[2026-08-12 02:57:32:235 WARN] [Scripting] [probe] order-ab-1/solo :: health.effectiveMax=20 current=20 defaultValue=20
+[2026-08-12 02:57:32:237 WARN] [Scripting] [probe] order-ab-1/solo :: movement.defaultValue=0.699999988079071
+[2026-08-12 02:57:32:237 WARN] [Scripting] [probe] order-ab-1/solo :: fire_immune(A only)=false is_baby(B only)=false
+[2026-08-12 02:57:32:238 WARN] [Scripting] [probe] order-ab-1/solo :: getComponents=[minecraft:health|minecraft:lava_movement|minecraft:movement|minecraft:type_family|minecraft:underwater_movement]
+[2026-08-12 02:57:32:238 WARN] [Scripting] [probe] order-ab-1/subject :: typeId=probe:subject
+[2026-08-12 02:57:32:239 WARN] [Scripting] [probe] order-ab-1/subject :: getTypeFamilies=[probe_token_a|probe_shared]
+[2026-08-12 02:57:32:239 WARN] [Scripting] [probe] order-ab-1/subject :: hasTypeFamily(probe_token_a)=true
+[2026-08-12 02:57:32:239 WARN] [Scripting] [probe] order-ab-1/subject :: hasTypeFamily(probe_token_b)=false
+[2026-08-12 02:57:32:239 WARN] [Scripting] [probe] order-ab-1/subject :: hasTypeFamily(probe_shared)=true
+[2026-08-12 02:57:32:239 WARN] [Scripting] [probe] order-ab-1/subject :: hasTypeFamily(probe_token_solo)=false
+[2026-08-12 02:57:32:239 WARN] [Scripting] [probe] order-ab-1/subject :: matches(families:[probe_token_a])=true
+[2026-08-12 02:57:32:239 WARN] [Scripting] [probe] order-ab-1/subject :: matches(families:[probe_token_b])=false
+[2026-08-12 02:57:32:239 WARN] [Scripting] [probe] order-ab-1/subject :: matches(families:[probe_shared])=true
+[2026-08-12 02:57:32:239 WARN] [Scripting] [probe] order-ab-1/subject :: matches(families:[probe_token_solo])=false
+[2026-08-12 02:57:32:239 WARN] [Scripting] [probe] order-ab-1/subject :: matches(excludeFamilies:[probe_token_b])=true
+[2026-08-12 02:57:32:239 WARN] [Scripting] [probe] order-ab-1/subject :: health.effectiveMax=40 current=40 defaultValue=40
+[2026-08-12 02:57:32:239 WARN] [Scripting] [probe] order-ab-1/subject :: movement.defaultValue=0.10999999940395355
+[2026-08-12 02:57:32:239 WARN] [Scripting] [probe] order-ab-1/subject :: fire_immune(A only)=true is_baby(B only)=false
+[2026-08-12 02:57:32:239 WARN] [Scripting] [probe] order-ab-1/subject :: getComponents=[minecraft:fire_immune|minecraft:health|minecraft:lava_movement|minecraft:movement|minecraft:type_family|minecraft:underwater_movement]
+[2026-08-12 02:57:32:240 WARN] [Scripting] [probe] order-ab-1 :: getEntities(families:[probe_token_a]).length=1
+[2026-08-12 02:57:32:240 WARN] [Scripting] [probe] order-ab-1 :: getEntities(families:[probe_token_b]).length=0
+[2026-08-12 02:57:32:240 WARN] [Scripting] [probe] order-ab-1 :: getEntities(families:[probe_shared]).length=1
+[2026-08-12 02:57:32:240 WARN] [Scripting] [probe] order-ab-1 :: getEntities(families:[probe_token_solo]).length=1
+[2026-08-12 02:57:32:241 WARN] [Scripting] [probe] order-ab-1 :: cmd testfor @e[family=probe_token_a] successCount=1
+[2026-08-12 02:57:32:241 WARN] [Scripting] [probe] order-ab-1 :: cmd testfor @e[family=probe_token_b] successCount=0
+[2026-08-12 02:57:32:241 WARN] [Scripting] [probe] order-ab-1 :: cmd testfor @e[family=probe_shared] successCount=1
+[2026-08-12 02:57:32:241 WARN] [Scripting] [probe] order-ab-1 :: cmd testfor @e[family=probe_token_solo] successCount=1
+[2026-08-12 02:57:32:246 WARN] [Scripting] [probe] order-ab-1 :: complete
+[2026-08-12 02:57:34:695 WARN] [Scripting] [probe] boot :: ready
+[2026-08-12 02:57:40:026 WARN] [Scripting] [probe] order-ab-2 :: start
+[2026-08-12 02:57:40:925 WARN] [Scripting] [probe] arena :: built centre=(163,100,170) floor=minecraft:stone attempts=1
+[2026-08-12 02:57:41:674 WARN] [Scripting] [probe] order-ab-2/solo :: typeId=probe:solo
+[2026-08-12 02:57:41:676 WARN] [Scripting] [probe] order-ab-2/solo :: getTypeFamilies=[probe_token_solo]
+[2026-08-12 02:57:41:676 WARN] [Scripting] [probe] order-ab-2/solo :: hasTypeFamily(probe_token_a)=false
+[2026-08-12 02:57:41:676 WARN] [Scripting] [probe] order-ab-2/solo :: hasTypeFamily(probe_token_b)=false
+[2026-08-12 02:57:41:676 WARN] [Scripting] [probe] order-ab-2/solo :: hasTypeFamily(probe_shared)=false
+[2026-08-12 02:57:41:676 WARN] [Scripting] [probe] order-ab-2/solo :: hasTypeFamily(probe_token_solo)=true
+[2026-08-12 02:57:41:676 WARN] [Scripting] [probe] order-ab-2/solo :: matches(families:[probe_token_a])=false
+[2026-08-12 02:57:41:676 WARN] [Scripting] [probe] order-ab-2/solo :: matches(families:[probe_token_b])=false
+[2026-08-12 02:57:41:677 WARN] [Scripting] [probe] order-ab-2/solo :: matches(families:[probe_shared])=false
+[2026-08-12 02:57:41:677 WARN] [Scripting] [probe] order-ab-2/solo :: matches(families:[probe_token_solo])=true
+[2026-08-12 02:57:41:677 WARN] [Scripting] [probe] order-ab-2/solo :: matches(excludeFamilies:[probe_token_b])=true
+[2026-08-12 02:57:41:678 WARN] [Scripting] [probe] order-ab-2/solo :: health.effectiveMax=20 current=20 defaultValue=20
+[2026-08-12 02:57:41:678 WARN] [Scripting] [probe] order-ab-2/solo :: movement.defaultValue=0.699999988079071
+[2026-08-12 02:57:41:678 WARN] [Scripting] [probe] order-ab-2/solo :: fire_immune(A only)=false is_baby(B only)=false
+[2026-08-12 02:57:41:679 WARN] [Scripting] [probe] order-ab-2/solo :: getComponents=[minecraft:health|minecraft:lava_movement|minecraft:movement|minecraft:type_family|minecraft:underwater_movement]
+[2026-08-12 02:57:41:679 WARN] [Scripting] [probe] order-ab-2/subject :: typeId=probe:subject
+[2026-08-12 02:57:41:679 WARN] [Scripting] [probe] order-ab-2/subject :: getTypeFamilies=[probe_token_a|probe_shared]
+[2026-08-12 02:57:41:679 WARN] [Scripting] [probe] order-ab-2/subject :: hasTypeFamily(probe_token_a)=true
+[2026-08-12 02:57:41:679 WARN] [Scripting] [probe] order-ab-2/subject :: hasTypeFamily(probe_token_b)=false
+[2026-08-12 02:57:41:680 WARN] [Scripting] [probe] order-ab-2/subject :: hasTypeFamily(probe_shared)=true
+[2026-08-12 02:57:41:680 WARN] [Scripting] [probe] order-ab-2/subject :: hasTypeFamily(probe_token_solo)=false
+[2026-08-12 02:57:41:680 WARN] [Scripting] [probe] order-ab-2/subject :: matches(families:[probe_token_a])=true
+[2026-08-12 02:57:41:680 WARN] [Scripting] [probe] order-ab-2/subject :: matches(families:[probe_token_b])=false
+[2026-08-12 02:57:41:680 WARN] [Scripting] [probe] order-ab-2/subject :: matches(families:[probe_shared])=true
+[2026-08-12 02:57:41:680 WARN] [Scripting] [probe] order-ab-2/subject :: matches(families:[probe_token_solo])=false
+[2026-08-12 02:57:41:680 WARN] [Scripting] [probe] order-ab-2/subject :: matches(excludeFamilies:[probe_token_b])=true
+[2026-08-12 02:57:41:680 WARN] [Scripting] [probe] order-ab-2/subject :: health.effectiveMax=40 current=40 defaultValue=40
+[2026-08-12 02:57:41:680 WARN] [Scripting] [probe] order-ab-2/subject :: movement.defaultValue=0.10999999940395355
+[2026-08-12 02:57:41:680 WARN] [Scripting] [probe] order-ab-2/subject :: fire_immune(A only)=true is_baby(B only)=false
+[2026-08-12 02:57:41:680 WARN] [Scripting] [probe] order-ab-2/subject :: getComponents=[minecraft:fire_immune|minecraft:health|minecraft:lava_movement|minecraft:movement|minecraft:type_family|minecraft:underwater_movement]
+[2026-08-12 02:57:41:680 WARN] [Scripting] [probe] order-ab-2 :: getEntities(families:[probe_token_a]).length=1
+[2026-08-12 02:57:41:680 WARN] [Scripting] [probe] order-ab-2 :: getEntities(families:[probe_token_b]).length=0
+[2026-08-12 02:57:41:680 WARN] [Scripting] [probe] order-ab-2 :: getEntities(families:[probe_shared]).length=1
+[2026-08-12 02:57:41:680 WARN] [Scripting] [probe] order-ab-2 :: getEntities(families:[probe_token_solo]).length=1
+[2026-08-12 02:57:41:680 WARN] [Scripting] [probe] order-ab-2 :: cmd testfor @e[family=probe_token_a] successCount=1
+[2026-08-12 02:57:41:680 WARN] [Scripting] [probe] order-ab-2 :: cmd testfor @e[family=probe_token_b] successCount=0
+[2026-08-12 02:57:41:680 WARN] [Scripting] [probe] order-ab-2 :: cmd testfor @e[family=probe_shared] successCount=1
+[2026-08-12 02:57:41:680 WARN] [Scripting] [probe] order-ab-2 :: cmd testfor @e[family=probe_token_solo] successCount=1
+[2026-08-12 02:57:41:680 WARN] [Scripting] [probe] order-ab-2 :: complete
+[2026-08-12 02:57:49:203 WARN] [Scripting] [probe] boot :: ready
+[2026-08-12 02:57:54:348 WARN] [Scripting] [probe] order-ba-1 :: start
+[2026-08-12 02:57:55:296 WARN] [Scripting] [probe] arena :: built centre=(163,100,170) floor=minecraft:stone attempts=1
+[2026-08-12 02:57:56:050 WARN] [Scripting] [probe] order-ba-1/solo :: typeId=probe:solo
+[2026-08-12 02:57:56:053 WARN] [Scripting] [probe] order-ba-1/solo :: getTypeFamilies=[probe_token_solo]
+[2026-08-12 02:57:56:053 WARN] [Scripting] [probe] order-ba-1/solo :: hasTypeFamily(probe_token_a)=false
+[2026-08-12 02:57:56:053 WARN] [Scripting] [probe] order-ba-1/solo :: hasTypeFamily(probe_token_b)=false
+[2026-08-12 02:57:56:054 WARN] [Scripting] [probe] order-ba-1/solo :: hasTypeFamily(probe_shared)=false
+[2026-08-12 02:57:56:054 WARN] [Scripting] [probe] order-ba-1/solo :: hasTypeFamily(probe_token_solo)=true
+[2026-08-12 02:57:56:054 WARN] [Scripting] [probe] order-ba-1/solo :: matches(families:[probe_token_a])=false
+[2026-08-12 02:57:56:055 WARN] [Scripting] [probe] order-ba-1/solo :: matches(families:[probe_token_b])=false
+[2026-08-12 02:57:56:055 WARN] [Scripting] [probe] order-ba-1/solo :: matches(families:[probe_shared])=false
+[2026-08-12 02:57:56:055 WARN] [Scripting] [probe] order-ba-1/solo :: matches(families:[probe_token_solo])=true
+[2026-08-12 02:57:56:055 WARN] [Scripting] [probe] order-ba-1/solo :: matches(excludeFamilies:[probe_token_b])=true
+[2026-08-12 02:57:56:056 WARN] [Scripting] [probe] order-ba-1/solo :: health.effectiveMax=20 current=20 defaultValue=20
+[2026-08-12 02:57:56:057 WARN] [Scripting] [probe] order-ba-1/solo :: movement.defaultValue=0.699999988079071
+[2026-08-12 02:57:56:057 WARN] [Scripting] [probe] order-ba-1/solo :: fire_immune(A only)=false is_baby(B only)=false
+[2026-08-12 02:57:56:059 WARN] [Scripting] [probe] order-ba-1/solo :: getComponents=[minecraft:health|minecraft:lava_movement|minecraft:movement|minecraft:type_family|minecraft:underwater_movement]
+[2026-08-12 02:57:56:059 WARN] [Scripting] [probe] order-ba-1/subject :: typeId=probe:subject
+[2026-08-12 02:57:56:059 WARN] [Scripting] [probe] order-ba-1/subject :: getTypeFamilies=[probe_token_b|probe_shared]
+[2026-08-12 02:57:56:059 WARN] [Scripting] [probe] order-ba-1/subject :: hasTypeFamily(probe_token_a)=false
+[2026-08-12 02:57:56:059 WARN] [Scripting] [probe] order-ba-1/subject :: hasTypeFamily(probe_token_b)=true
+[2026-08-12 02:57:56:059 WARN] [Scripting] [probe] order-ba-1/subject :: hasTypeFamily(probe_shared)=true
+[2026-08-12 02:57:56:059 WARN] [Scripting] [probe] order-ba-1/subject :: hasTypeFamily(probe_token_solo)=false
+[2026-08-12 02:57:56:060 WARN] [Scripting] [probe] order-ba-1/subject :: matches(families:[probe_token_a])=false
+[2026-08-12 02:57:56:060 WARN] [Scripting] [probe] order-ba-1/subject :: matches(families:[probe_token_b])=true
+[2026-08-12 02:57:56:060 WARN] [Scripting] [probe] order-ba-1/subject :: matches(families:[probe_shared])=true
+[2026-08-12 02:57:56:060 WARN] [Scripting] [probe] order-ba-1/subject :: matches(families:[probe_token_solo])=false
+[2026-08-12 02:57:56:060 WARN] [Scripting] [probe] order-ba-1/subject :: matches(excludeFamilies:[probe_token_b])=false
+[2026-08-12 02:57:56:060 WARN] [Scripting] [probe] order-ba-1/subject :: health.effectiveMax=60 current=60 defaultValue=60
+[2026-08-12 02:57:56:060 WARN] [Scripting] [probe] order-ba-1/subject :: movement.defaultValue=0.4399999976158142
+[2026-08-12 02:57:56:060 WARN] [Scripting] [probe] order-ba-1/subject :: fire_immune(A only)=false is_baby(B only)=true
+[2026-08-12 02:57:56:060 WARN] [Scripting] [probe] order-ba-1/subject :: getComponents=[minecraft:health|minecraft:is_baby|minecraft:lava_movement|minecraft:movement|minecraft:type_family|minecraft:underwater_movement]
+[2026-08-12 02:57:56:060 WARN] [Scripting] [probe] order-ba-1 :: getEntities(families:[probe_token_a]).length=0
+[2026-08-12 02:57:56:060 WARN] [Scripting] [probe] order-ba-1 :: getEntities(families:[probe_token_b]).length=1
+[2026-08-12 02:57:56:060 WARN] [Scripting] [probe] order-ba-1 :: getEntities(families:[probe_shared]).length=1
+[2026-08-12 02:57:56:060 WARN] [Scripting] [probe] order-ba-1 :: getEntities(families:[probe_token_solo]).length=1
+[2026-08-12 02:57:56:061 WARN] [Scripting] [probe] order-ba-1 :: cmd testfor @e[family=probe_token_a] successCount=0
+[2026-08-12 02:57:56:061 WARN] [Scripting] [probe] order-ba-1 :: cmd testfor @e[family=probe_token_b] successCount=1
+[2026-08-12 02:57:56:061 WARN] [Scripting] [probe] order-ba-1 :: cmd testfor @e[family=probe_shared] successCount=1
+[2026-08-12 02:57:56:061 WARN] [Scripting] [probe] order-ba-1 :: cmd testfor @e[family=probe_token_solo] successCount=1
+[2026-08-12 02:57:56:061 WARN] [Scripting] [probe] order-ba-1 :: complete
+[2026-08-12 02:58:03:705 WARN] [Scripting] [probe] boot :: ready
+[2026-08-12 02:58:08:798 WARN] [Scripting] [probe] order-ab-3 :: start
+[2026-08-12 02:58:09:752 WARN] [Scripting] [probe] arena :: built centre=(163,100,170) floor=minecraft:stone attempts=1
+[2026-08-12 02:58:10:501 WARN] [Scripting] [probe] order-ab-3/solo :: typeId=probe:solo
+[2026-08-12 02:58:10:503 WARN] [Scripting] [probe] order-ab-3/solo :: getTypeFamilies=[probe_token_solo]
+[2026-08-12 02:58:10:503 WARN] [Scripting] [probe] order-ab-3/solo :: hasTypeFamily(probe_token_a)=false
+[2026-08-12 02:58:10:503 WARN] [Scripting] [probe] order-ab-3/solo :: hasTypeFamily(probe_token_b)=false
+[2026-08-12 02:58:10:503 WARN] [Scripting] [probe] order-ab-3/solo :: hasTypeFamily(probe_shared)=false
+[2026-08-12 02:58:10:503 WARN] [Scripting] [probe] order-ab-3/solo :: hasTypeFamily(probe_token_solo)=true
+[2026-08-12 02:58:10:504 WARN] [Scripting] [probe] order-ab-3/solo :: matches(families:[probe_token_a])=false
+[2026-08-12 02:58:10:504 WARN] [Scripting] [probe] order-ab-3/solo :: matches(families:[probe_token_b])=false
+[2026-08-12 02:58:10:504 WARN] [Scripting] [probe] order-ab-3/solo :: matches(families:[probe_shared])=false
+[2026-08-12 02:58:10:504 WARN] [Scripting] [probe] order-ab-3/solo :: matches(families:[probe_token_solo])=true
+[2026-08-12 02:58:10:504 WARN] [Scripting] [probe] order-ab-3/solo :: matches(excludeFamilies:[probe_token_b])=true
+[2026-08-12 02:58:10:505 WARN] [Scripting] [probe] order-ab-3/solo :: health.effectiveMax=20 current=20 defaultValue=20
+[2026-08-12 02:58:10:505 WARN] [Scripting] [probe] order-ab-3/solo :: movement.defaultValue=0.699999988079071
+[2026-08-12 02:58:10:505 WARN] [Scripting] [probe] order-ab-3/solo :: fire_immune(A only)=false is_baby(B only)=false
+[2026-08-12 02:58:10:507 WARN] [Scripting] [probe] order-ab-3/solo :: getComponents=[minecraft:health|minecraft:lava_movement|minecraft:movement|minecraft:type_family|minecraft:underwater_movement]
+[2026-08-12 02:58:10:507 WARN] [Scripting] [probe] order-ab-3/subject :: typeId=probe:subject
+[2026-08-12 02:58:10:507 WARN] [Scripting] [probe] order-ab-3/subject :: getTypeFamilies=[probe_token_a|probe_shared]
+[2026-08-12 02:58:10:507 WARN] [Scripting] [probe] order-ab-3/subject :: hasTypeFamily(probe_token_a)=true
+[2026-08-12 02:58:10:507 WARN] [Scripting] [probe] order-ab-3/subject :: hasTypeFamily(probe_token_b)=false
+[2026-08-12 02:58:10:507 WARN] [Scripting] [probe] order-ab-3/subject :: hasTypeFamily(probe_shared)=true
+[2026-08-12 02:58:10:507 WARN] [Scripting] [probe] order-ab-3/subject :: hasTypeFamily(probe_token_solo)=false
+[2026-08-12 02:58:10:507 WARN] [Scripting] [probe] order-ab-3/subject :: matches(families:[probe_token_a])=true
+[2026-08-12 02:58:10:507 WARN] [Scripting] [probe] order-ab-3/subject :: matches(families:[probe_token_b])=false
+[2026-08-12 02:58:10:507 WARN] [Scripting] [probe] order-ab-3/subject :: matches(families:[probe_shared])=true
+[2026-08-12 02:58:10:507 WARN] [Scripting] [probe] order-ab-3/subject :: matches(families:[probe_token_solo])=false
+[2026-08-12 02:58:10:507 WARN] [Scripting] [probe] order-ab-3/subject :: matches(excludeFamilies:[probe_token_b])=true
+[2026-08-12 02:58:10:507 WARN] [Scripting] [probe] order-ab-3/subject :: health.effectiveMax=40 current=40 defaultValue=40
+[2026-08-12 02:58:10:507 WARN] [Scripting] [probe] order-ab-3/subject :: movement.defaultValue=0.10999999940395355
+[2026-08-12 02:58:10:507 WARN] [Scripting] [probe] order-ab-3/subject :: fire_immune(A only)=true is_baby(B only)=false
+[2026-08-12 02:58:10:507 WARN] [Scripting] [probe] order-ab-3/subject :: getComponents=[minecraft:fire_immune|minecraft:health|minecraft:lava_movement|minecraft:movement|minecraft:type_family|minecraft:underwater_movement]
+[2026-08-12 02:58:10:507 WARN] [Scripting] [probe] order-ab-3 :: getEntities(families:[probe_token_a]).length=1
+[2026-08-12 02:58:10:507 WARN] [Scripting] [probe] order-ab-3 :: getEntities(families:[probe_token_b]).length=0
+[2026-08-12 02:58:10:507 WARN] [Scripting] [probe] order-ab-3 :: getEntities(families:[probe_shared]).length=1
+[2026-08-12 02:58:10:507 WARN] [Scripting] [probe] order-ab-3 :: getEntities(families:[probe_token_solo]).length=1
+[2026-08-12 02:58:10:508 WARN] [Scripting] [probe] order-ab-3 :: cmd testfor @e[family=probe_token_a] successCount=1
+[2026-08-12 02:58:10:508 WARN] [Scripting] [probe] order-ab-3 :: cmd testfor @e[family=probe_token_b] successCount=0
+[2026-08-12 02:58:10:508 WARN] [Scripting] [probe] order-ab-3 :: cmd testfor @e[family=probe_shared] successCount=1
+[2026-08-12 02:58:10:508 WARN] [Scripting] [probe] order-ab-3 :: cmd testfor @e[family=probe_token_solo] successCount=1
+[2026-08-12 02:58:10:508 WARN] [Scripting] [probe] order-ab-3 :: complete
+```

@@ -20,8 +20,8 @@ decisions:
       - f:a-script-module-does-not-resolve-across-packs
       - f:f-8bxtf5w7
     commentary: |
-      A shared dependency's code half is bundled into the vendoring package already — no import reaches a
-      module in another pack, so code crosses at build time or not at all. Merging puts the asset
+      A shared dependency's code half is bundled into the vendoring package already — no import
+      reaches a module in another pack, so code crosses at build time or not at all. Merging puts the asset
       half on the path the code half takes, instead of leaving a dependency half vendored and half
       shipped beside.
 
@@ -30,8 +30,8 @@ decisions:
       namespace the author chose is the one the vendored content carries, so the author writes
       their own names and the references land.
 
-      One pack leaves one identity, so no uuid is derived from a vendoring package and none is minted for a
-      vendoring: the output tree keeps its kind-named shape and the workspace gains no pack that no
+      One pack leaves one identity, so no uuid is derived from a vendoring package and none minted
+      for a vendoring: the output tree keeps its kind-named shape and the workspace gains no pack that no
       source declares.
 
   - id: d-l4wh3cgf
@@ -95,8 +95,8 @@ decisions:
   - id: d-jdqt63fi
     title: vendoring reads the vendored pack's source tree
     statement: |
-      a vendoring package's build reads the vendored pack's source directory and completes and rewrites it
-      itself. It does not read that package's built output and does not require it to have been
+      a vendoring package's build reads the vendored pack's source directory, completing and
+      rewriting it itself. It does not read that package's built output and does not require it to have been
       built.
     status: proposed
     scope: build
@@ -331,8 +331,8 @@ decisions:
       losing definition is simply the winner's under the same id, and `undefined` is the only miss
       signal the surface has.
 
-      What the type list cannot answer, a spawned entity can: the definition's own content arrives
-      with it, so a family the definition declares is provenance. `d-wj60379v` is that route, and it
+      What the type list cannot answer, a spawned entity can: the winning definition's own content
+      arrives with it, so a family that definition declares is provenance. `d-wj60379v` is that route, and it
       is why this decision is scoped to what the assets themselves can report.
 
   - id: d-wj60379v
@@ -352,6 +352,7 @@ decisions:
       - d-zm6pxfrg
       - f:f-8bxtf5w7
       - f:f-o8xk7go5
+      - f:f-1yo29upp
     cases:
       - when: a spawned entity carries the pack's own family
         then: the pack's definition is in what resolved, and nothing is reported
