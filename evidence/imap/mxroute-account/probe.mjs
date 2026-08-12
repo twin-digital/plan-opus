@@ -16,8 +16,10 @@
 // read, marked, moved, or flagged, and the only thing opening it disturbs is \Recent, the one flag
 // the protocol itself has deprecated.
 //
-// What it prints: findings and a protocol dialogue with the host, the account, and the LOGIN line
-// redacted, so the output can be committed as evidence as it stands.
+// What it prints: findings and a protocol dialogue with the host, the account, the LOGIN line, and
+// the names of the user's own folders redacted — a folder list names the people an account
+// corresponds with, and the design turns on the roles and the shape of the list rather than on the
+// names. The output can be committed as evidence as it stands.
 
 import net from 'node:net'
 import tls from 'node:tls'
@@ -33,13 +35,27 @@ if (!HOST || !USER || !PASS) {
   process.exit(1)
 }
 
-// Nothing identifying the account reaches the output.
-const redact = (line) =>
-  line
+// Two top-level folders rather than a parent and a child, since the server's hierarchy separator
+// is its own business and this probe is not here to guess it.
+const box = 'GrinboxProbe'
+const destination = 'GrinboxProbeMoved'
+
+// Nothing identifying the account reaches the output — not the host, not the login, and not the
+// names of the user's own folders, which name the people they correspond with.
+const ROLES = /\\(Archive|Trash|Junk|Sent|Drafts)\b/
+const NAMED_BY_EVERY_ACCOUNT = new Set(['INBOX', box, destination])
+const redact = (line) => {
+  const scrubbed = line
     .replaceAll(HOST, '<host>')
     .replaceAll(USER, '<user>')
     .replaceAll(PASS, '<password>')
     .replace(/^(C: \w+ LOGIN) .*/, '$1 <user> <password>')
+  const listed = scrubbed.match(/^(S: \* LIST \(([^)]*)\) "[^"]*" )(.+)$/)
+  if (!listed) return scrubbed
+  const name = listed[3].replace(/^"|"$/g, '')
+  const keep = ROLES.test(listed[2]) || NAMED_BY_EVERY_ACCOUNT.has(name)
+  return keep ? scrubbed : `${listed[1]}<folder>`
+}
 
 class Imap {
   #socket
@@ -133,10 +149,6 @@ const login = async () => {
   return imap
 }
 
-// Two top-level mailboxes rather than a parent and a child, since the server's hierarchy
-// separator is its own business and this probe is not here to guess it.
-const box = 'GrinboxProbe'
-const destination = 'GrinboxProbeMoved'
 const keyword = 'grinbox/finance'
 const main = await login()
 
@@ -145,13 +157,36 @@ const capabilities = find(await main.send('CAPABILITY'), /^\* CAPABILITY (.+)$/)
 report('server capabilities', capabilities)
 const has = (extension) => capabilities.split(' ').includes(extension)
 
-// 2. the account's mailboxes, their roles, and the separator the server uses
+// 2. the account's folders, their roles, and the separator the server uses. The names themselves
+// stay out of the output — what the design turns on is the roles, the shape, and the separator.
+const listed = (await main.send('LIST "" "*" RETURN (SPECIAL-USE)'))
+  .map((line) => line.match(/^\* LIST \(([^)]*)\) "([^"]*)" (.+)$/))
+  .filter(Boolean)
+  .map(([, attributes, separator, raw]) => ({
+    attributes,
+    separator,
+    name: raw.replace(/^"|"$/g, ''),
+    role: attributes.match(ROLES)?.[0],
+  }))
+const separator = listed[0]?.separator
+report('the hierarchy separator the server uses', separator ? `"${separator}"` : '(none reported)')
 report(
-  'every mailbox the account holds, with the roles advertised for them',
-  (await main.send('LIST "" "*" RETURN (SPECIAL-USE)'))
-    .filter((line) => /^\* LIST /.test(line))
-    .map((line) => line.replace(/^\* LIST /, ''))
-    .join(' | '),
+  'the folders a role is advertised for',
+  listed.filter((entry) => entry.role).map((entry) => `(${entry.role}) ${entry.name}`).join(' | ') ||
+    '(none)',
+)
+report('how many folders the account holds', String(listed.length))
+report(
+  'the deepest folder nesting',
+  String(Math.max(...listed.map((entry) => entry.name.split(separator).length))),
+)
+const roleNames = listed.filter((entry) => entry.role).map((entry) => entry.name)
+report(
+  'how many of those sit beneath a folder carrying a role',
+  String(
+    listed.filter((entry) => roleNames.some((role) => entry.name.startsWith(`${role}${separator}`)))
+      .length,
+  ),
 )
 report(
   'the namespaces the server reports',
