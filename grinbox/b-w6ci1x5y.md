@@ -1,3 +1,9 @@
+---
+tags:
+  - digests
+  - backends
+---
+
 # Grinbox's own mail should be identifiable by a header
 
 A digest grinbox sends is re-ingested as an ordinary arrival, and a user who wants to act on those
