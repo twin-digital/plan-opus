@@ -1,0 +1,21 @@
+# Runs backing facts about IMAP servers — what a real one does with message identifiers,
+# client-defined keywords, mailbox roles, and moves.
+#
+# A run records one execution and the output it captured. It makes no claim: the output says what
+# happened, the fact that cites it says what that means.
+
+version: "1"
+runs:
+  - id: run-v1gtht29
+    command: node evidence/imap/dovecot-imap-semantics/run.mjs
+    output: evidence/imap/dovecot-imap-semantics/OUTPUT.txt
+    ran_at: 2026-08-12
+    environment: |
+      dovecot 2.4.4 from the `dovecot/dovecot:2.4.4` image, unmodified but for `auth_allow_cleartext`
+      so the probe can LOGIN without TLS, on node 24 in a container on the same docker network. The
+      image's stock configuration is what supplies the account's mailbox set: maildir storage and
+      dovecot's `english` mailbox defaults. The probe works in a mailbox it creates for the run, so
+      nothing carries over between runs, and it appends the messages it then reads — no mail is
+      delivered from outside. The reading turns on the server being an ordinary IMAP server rather
+      than one configured for this test: the only setting changed is the one that admits cleartext
+      login.

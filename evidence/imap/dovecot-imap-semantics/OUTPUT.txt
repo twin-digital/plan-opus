@@ -1,0 +1,131 @@
+=== findings ===
+server capabilities: IMAP4rev1 IMAP4rev2 SASL-IR LOGIN-REFERRALS ID ENABLE IDLE SORT SORT=DISPLAY THREAD=REFERENCES THREAD=REFS THREAD=ORDEREDSUBJECT MULTIAPPEND URL-PARTIAL CATENATE UNSELECT CHILDREN NAMESPACE UIDPLUS LIST-EXTENDED I18NLEVEL=1 CONDSTORE QRESYNC ESEARCH ESORT SEARCHRES WITHIN CONTEXT=SEARCH LIST-STATUS BINARY MOVE REPLACE SNIPPET=FUZZY PREVIEW=FUZZY PREVIEW SPECIAL-USE STATUS=SIZE SAVEDATE COMPRESS=DEFLATE INPROGRESS NOTIFY LITERAL+ UTF8=ACCEPT FILTER=SIEVE
+selected mailbox UIDVALIDITY: 1786510262
+selected mailbox UIDNEXT before any further append: 3
+selected mailbox PERMANENTFLAGS: \Answered \Flagged \Deleted \Seen \Draft \*
+PERMANENTFLAGS admits client-defined keywords: yes, \* is listed
+UIDs assigned to the two appended messages: 1, 2
+flags on the message in the session that set the keyword: \Recent grinbox/finance
+STATUS after a third message was appended: * STATUS GrinboxProbe (MESSAGES 3 UIDNEXT 4 UIDVALIDITY 1786510262)
+every mailbox the account holds, with the roles advertised for them: () "/" GrinboxProbe | (\Drafts) "/" Drafts | (\Junk) "/" Junk | (\Sent) "/" Sent | (\Trash) "/" Trash | () "/" INBOX
+creating a mailbox in the archive role: accepted: CREATE Archive (USE (\Archive))
+every mailbox and role after that create: () "/" Archive | () "/" GrinboxProbe | (\Drafts) "/" Drafts | (\Junk) "/" Junk | (\Sent) "/" Sent | (\Trash) "/" Trash | () "/" INBOX
+UIDVALIDITY in a later session is unchanged: yes, still 1786510262
+flags read back in a later session: grinbox/finance
+the keyword survives a reconnect: yes, grinbox/finance is still set
+COPYUID reported by the move: [COPYUID 1786510263 1 2]
+the moved message is identified afresh by the destination: UID 1 under UIDVALIDITY 1786510262 in the source became UID 2 under UIDVALIDITY 1786510263 in Archive
+UIDs remaining in the source mailbox after the move: 2, 3
+flags on the message after the move: \Recent grinbox/finance
+the keyword survives the move: yes, grinbox/finance is still set
+one fetch enumerates every message in a mailbox with its flags: * 1 FETCH (UID 1 FLAGS (\Recent)) | * 2 FETCH (UID 2 FLAGS (\Recent grinbox/finance))
+
+=== dialogue ===
+S: * OK [CAPABILITY IMAP4rev1 IMAP4rev2 LOGIN-REFERRALS ID ENABLE IDLE SASL-IR LITERAL+ STARTTLS AUTH=PLAIN] Dovecot ready.
+C: a001 LOGIN lab@example.com labpass
+S: a001 OK [CAPABILITY IMAP4rev1 IMAP4rev2 SASL-IR LOGIN-REFERRALS ID ENABLE IDLE SORT SORT=DISPLAY THREAD=REFERENCES THREAD=REFS THREAD=ORDEREDSUBJECT MULTIAPPEND URL-PARTIAL CATENATE UNSELECT CHILDREN NAMESPACE UIDPLUS LIST-EXTENDED I18NLEVEL=1 CONDSTORE QRESYNC ESEARCH ESORT SEARCHRES WITHIN CONTEXT=SEARCH LIST-STATUS BINARY MOVE REPLACE SNIPPET=FUZZY PREVIEW=FUZZY PREVIEW SPECIAL-USE STATUS=SIZE SAVEDATE COMPRESS=DEFLATE INPROGRESS NOTIFY LITERAL+ UTF8=ACCEPT FILTER=SIEVE] Logged in
+C: a002 DELETE GrinboxProbe
+S: a002 NO [NONEXISTENT] Mailbox doesn't exist: GrinboxProbe (0.001 + 0.000 secs).
+C: a003 CREATE GrinboxProbe
+S: a003 OK Create completed (0.014 + 0.000 + 0.013 secs).
+C: a004 APPEND GrinboxProbe {150}
+S: + OK
+C: <150 octets>
+S: a004 OK [APPENDUID 1786510262 1] Append completed (0.014 + 0.001 + 0.012 secs).
+C: a005 APPEND GrinboxProbe {147}
+S: + OK
+C: <147 octets>
+S: a005 OK [APPENDUID 1786510262 2] Append completed (0.026 + 0.001 + 0.024 secs).
+C: a006 SELECT GrinboxProbe
+S: * FLAGS (\Answered \Flagged \Deleted \Seen \Draft)
+S: * OK [PERMANENTFLAGS (\Answered \Flagged \Deleted \Seen \Draft \*)] Flags permitted.
+S: * 2 EXISTS
+S: * 2 RECENT
+S: * OK [UNSEEN 1] First unseen.
+S: * OK [UIDVALIDITY 1786510262] UIDs valid
+S: * OK [UIDNEXT 3] Predicted next UID
+S: a006 OK [READ-WRITE] Select completed (0.001 + 0.000 secs).
+C: a007 CAPABILITY
+S: * CAPABILITY IMAP4rev1 IMAP4rev2 SASL-IR LOGIN-REFERRALS ID ENABLE IDLE SORT SORT=DISPLAY THREAD=REFERENCES THREAD=REFS THREAD=ORDEREDSUBJECT MULTIAPPEND URL-PARTIAL CATENATE UNSELECT CHILDREN NAMESPACE UIDPLUS LIST-EXTENDED I18NLEVEL=1 CONDSTORE QRESYNC ESEARCH ESORT SEARCHRES WITHIN CONTEXT=SEARCH LIST-STATUS BINARY MOVE REPLACE SNIPPET=FUZZY PREVIEW=FUZZY PREVIEW SPECIAL-USE STATUS=SIZE SAVEDATE COMPRESS=DEFLATE INPROGRESS NOTIFY LITERAL+ UTF8=ACCEPT FILTER=SIEVE
+S: a007 OK Capability completed (0.001 + 0.000 secs).
+C: a008 UID SEARCH ALL
+S: * SEARCH 1 2
+S: a008 OK Search completed (0.001 + 0.000 secs).
+C: a009 UID STORE 1 +FLAGS (grinbox/finance)
+S: * FLAGS (\Answered \Flagged \Deleted \Seen \Draft grinbox/finance)
+S: * 1 FETCH (UID 1 FLAGS (\Recent grinbox/finance))
+S: a009 OK Store completed (0.009 + 0.000 + 0.008 secs).
+C: a010 UID FETCH 1 (FLAGS)
+S: * 1 FETCH (UID 1 FLAGS (\Recent grinbox/finance))
+S: a010 OK Fetch completed (0.001 + 0.000 secs).
+C: a011 APPEND GrinboxProbe {150}
+S: + OK
+C: <150 octets>
+S: * 3 EXISTS
+S: * 3 RECENT
+S: a011 OK [APPENDUID 1786510262 3] Append completed (0.018 + 0.001 + 0.017 secs).
+C: a012 STATUS GrinboxProbe (UIDNEXT UIDVALIDITY MESSAGES)
+S: * STATUS GrinboxProbe (MESSAGES 3 UIDNEXT 4 UIDVALIDITY 1786510262)
+S: a012 OK [CLIENTBUG] Status on selected mailbox completed (0.001 + 0.000 secs).
+C: a013 LIST "" "*" RETURN (SPECIAL-USE)
+S: * LIST () "/" GrinboxProbe
+S: * LIST (\Drafts) "/" Drafts
+S: * LIST (\Junk) "/" Junk
+S: * LIST (\Sent) "/" Sent
+S: * LIST (\Trash) "/" Trash
+S: * LIST () "/" INBOX
+S: a013 OK List completed (0.001 + 0.000 secs).
+C: a014 CREATE Archive (USE (\Archive))
+S: a014 OK Create completed (0.013 + 0.000 + 0.012 secs).
+C: a015 LIST "" "*" RETURN (SPECIAL-USE)
+S: * LIST () "/" Archive
+S: * LIST () "/" GrinboxProbe
+S: * LIST (\Drafts) "/" Drafts
+S: * LIST (\Junk) "/" Junk
+S: * LIST (\Sent) "/" Sent
+S: * LIST (\Trash) "/" Trash
+S: * LIST () "/" INBOX
+S: a015 OK List completed (0.001 + 0.000 secs).
+C: a016 APPEND Archive {150}
+S: + OK
+C: <150 octets>
+S: a016 OK [APPENDUID 1786510263 1] Append completed (0.009 + 0.001 + 0.008 secs).
+S: * OK [CAPABILITY IMAP4rev1 IMAP4rev2 LOGIN-REFERRALS ID ENABLE IDLE SASL-IR LITERAL+ STARTTLS AUTH=PLAIN] Dovecot ready.
+C: a001 LOGIN lab@example.com labpass
+S: a001 OK [CAPABILITY IMAP4rev1 IMAP4rev2 SASL-IR LOGIN-REFERRALS ID ENABLE IDLE SORT SORT=DISPLAY THREAD=REFERENCES THREAD=REFS THREAD=ORDEREDSUBJECT MULTIAPPEND URL-PARTIAL CATENATE UNSELECT CHILDREN NAMESPACE UIDPLUS LIST-EXTENDED I18NLEVEL=1 CONDSTORE QRESYNC ESEARCH ESORT SEARCHRES WITHIN CONTEXT=SEARCH LIST-STATUS BINARY MOVE REPLACE SNIPPET=FUZZY PREVIEW=FUZZY PREVIEW SPECIAL-USE STATUS=SIZE SAVEDATE COMPRESS=DEFLATE INPROGRESS NOTIFY LITERAL+ UTF8=ACCEPT FILTER=SIEVE] Logged in
+C: a002 SELECT GrinboxProbe
+S: * FLAGS (\Answered \Flagged \Deleted \Seen \Draft grinbox/finance)
+S: * OK [PERMANENTFLAGS (\Answered \Flagged \Deleted \Seen \Draft grinbox/finance \*)] Flags permitted.
+S: * 3 EXISTS
+S: * 0 RECENT
+S: * OK [UNSEEN 1] First unseen.
+S: * OK [UIDVALIDITY 1786510262] UIDs valid
+S: * OK [UIDNEXT 4] Predicted next UID
+S: a002 OK [READ-WRITE] Select completed (0.001 + 0.000 secs).
+C: a003 UID FETCH 1 (FLAGS)
+S: * 1 FETCH (UID 1 FLAGS (grinbox/finance))
+S: a003 OK Fetch completed (0.001 + 0.000 secs).
+C: a004 UID MOVE 1 Archive
+S: * OK [COPYUID 1786510263 1 2] Moved UIDs.
+S: * 1 EXPUNGE
+S: a004 OK Move completed (0.014 + 0.000 + 0.013 secs).
+C: a005 UID SEARCH ALL
+S: * SEARCH 2 3
+S: a005 OK Search completed (0.001 + 0.000 secs).
+C: a006 SELECT Archive
+S: * OK [CLOSED] Previous mailbox closed.
+S: * FLAGS (\Answered \Flagged \Deleted \Seen \Draft grinbox/finance)
+S: * OK [PERMANENTFLAGS (\Answered \Flagged \Deleted \Seen \Draft grinbox/finance \*)] Flags permitted.
+S: * 2 EXISTS
+S: * 2 RECENT
+S: * OK [UNSEEN 1] First unseen.
+S: * OK [UIDVALIDITY 1786510263] UIDs valid
+S: * OK [UIDNEXT 3] Predicted next UID
+S: a006 OK [READ-WRITE] Select completed (0.001 + 0.000 secs).
+C: a007 UID FETCH 2 (FLAGS)
+S: * 2 FETCH (UID 2 FLAGS (\Recent grinbox/finance))
+S: a007 OK Fetch completed (0.001 + 0.000 secs).
+C: a008 UID FETCH 1:* (UID FLAGS)
+S: * 1 FETCH (UID 1 FLAGS (\Recent))
+S: * 2 FETCH (UID 2 FLAGS (\Recent grinbox/finance))
+S: a008 OK Fetch completed (0.001 + 0.000 secs).

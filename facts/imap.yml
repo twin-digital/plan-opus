@@ -1,0 +1,225 @@
+# Facts about IMAP — what the protocol guarantees about message identity, keywords, and mailbox
+# roles, and what a real server does with them.
+
+version: "3"
+facts:
+  - id: f-ubjw3f0i
+    title: an IMAP message is identified per mailbox, not per account
+    claim: |
+      an IMAP message is identified by the mailbox it is in, that mailbox's UIDVALIDITY, and the
+      message's UID, and that triple names one message on the server permanently. The protocol
+      gives no identifier that follows a message from one mailbox to another.
+    backing: documented
+    sources:
+      - url: https://www.rfc-editor.org/rfc/rfc9051.html#section-2.3.1.1
+        where: Unique Identifier (UID) Message Attribute, the fourth numbered persistence rule
+        quote: |
+          The combination of mailbox name, UIDVALIDITY, and UID must refer to a single, immutable
+          (or expunged) message on that server forever.
+
+  - id: f-xbec6o46
+    title: IMAP UIDs ascend, and UIDNEXT moves only when mail arrives
+    claim: |
+      UIDs are assigned in strictly ascending order within a mailbox, and a mailbox's UIDNEXT
+      changes when and only when messages are added to it. A client holding the highest UID it has
+      seen can therefore ask for everything above it and receive exactly what arrived since.
+    backing: documented
+    sources:
+      - url: https://www.rfc-editor.org/rfc/rfc9051.html#section-2.3.1.1
+        where: Unique Identifier (UID) Message Attribute, the opening paragraph
+        quote: |
+          Unique identifiers are assigned in a strictly ascending fashion in the mailbox; as each
+          message is added to the mailbox, it is assigned a higher UID than those of all message(s)
+          that are already in the mailbox.
+      - url: https://www.rfc-editor.org/rfc/rfc9051.html#section-2.3.1.1
+        where: Unique Identifier (UID) Message Attribute, on the next unique identifier value
+        quote: |
+          the next unique identifier value MUST NOT change unless new messages are added to the
+          mailbox; and second, the next unique identifier value MUST change whenever new messages
+          are added to the mailbox, even if those new messages are subsequently expunged.
+
+  - id: f-4i4xtwwj
+    title: UIDVALIDITY is how a server says stored UIDs are void
+    claim: |
+      where the UIDs a client stored from an earlier session no longer identify the same messages,
+      the server reports a UIDVALIDITY greater than the one that session saw. A client detects that
+      its stored identifiers are void by comparing that value and by nothing else.
+    backing: documented
+    sources:
+      - url: https://www.rfc-editor.org/rfc/rfc9051.html#section-2.3.1.1
+        where: Unique Identifier (UID) Message Attribute, on the unique identifier validity value
+        quote: |
+          If unique identifiers from an earlier session fail to persist in this session, the unique
+          identifier validity value MUST be greater than the one used in the earlier session.
+
+  - id: f-9z8o6n1l
+    title: a client-defined IMAP keyword lasts only where the mailbox admits it
+    claim: |
+      a client may create keywords of its own only in a mailbox whose PERMANENTFLAGS include the
+      special flag \*. Storing a keyword the mailbox does not admit is either ignored or kept for
+      the session alone, and a server that reaches its per-mailbox keyword limit withdraws \* from
+      PERMANENTFLAGS. A client cannot know from a successful STORE alone that the keyword persisted.
+    backing: documented
+    sources:
+      - url: https://www.rfc-editor.org/rfc/rfc9051.html#section-7.1
+        where: the PERMANENTFLAGS response code
+        quote: |
+          The PERMANENTFLAGS list can also include the special flag \*, which indicates that it is
+          possible to create new keywords by attempting to store those keywords in the mailbox. If
+          the client attempts to STORE a flag that is not in the PERMANENTFLAGS list, the server
+          will either ignore the change or store the state change for the remainder of the current
+          session only.
+      - url: https://www.rfc-editor.org/rfc/rfc9051.html#section-7.1
+        where: the PERMANENTFLAGS response code, on reaching a keyword limit
+        quote: |
+          if the server has a limit on the number of different keywords that can be stored in a
+          mailbox and that limit is reached, the server MUST send a new PERMANENTFLAGS response
+          code without the special flag \*.
+
+  - id: f-ymu94ntb
+    title: what an archive mailbox is remains the server's own business
+    claim: |
+      a server may advertise a mailbox in the \Archive role, and what archiving into it means is
+      defined as server-dependent — typically getting messages out of the inbox while keeping them
+      accessible. Nothing requires a server to have such a mailbox or to advertise one.
+    backing: documented
+    sources:
+      - url: https://www.rfc-editor.org/rfc/rfc6154.html#section-2
+        where: New Mailbox Attributes Identifying Special-Use Mailboxes, the \Archive entry
+        quote: |
+          This mailbox is used to archive messages. The meaning of an "archival" mailbox is
+          server-dependent; typically, it will be used to get messages out of the inbox, or
+          otherwise keep them out of the user's way, while still making them accessible.
+
+  - id: f-yawjn42g
+    title: moving a message is an IMAP extension, and the fallback can expunge more than it moved
+    claim: |
+      base IMAP has no move: a client without the MOVE extension moves a message by COPY, STORE
+      \Deleted, and EXPUNGE, and that EXPUNGE also removes any other message in the mailbox already
+      flagged \Deleted. A server has MOVE only where it returns MOVE among its CAPABILITY reply.
+    backing: documented
+    sources:
+      - url: https://www.rfc-editor.org/rfc/rfc6851.html#section-1
+        where: Introduction, on what clients do without the extension
+        quote: |
+          A move function is not provided in the base IMAP specification, so clients have instead
+          had to use a combination of the COPY, STORE, and EXPUNGE commands to perform this very
+          common operation.
+      - url: https://www.rfc-editor.org/rfc/rfc6851.html#section-1
+        where: Introduction, on the shortcomings of that approach
+        quote: |
+          If the source mailbox contains other messages that are flagged for deletion, the third
+          step can have the side effect of expunging more than just the set of moved messages.
+      - url: https://www.rfc-editor.org/rfc/rfc6851.html#section-1
+        where: Introduction, closing paragraph
+        quote: |
+          The MOVE extension is present in any IMAP implementation that returns "MOVE" as one of
+          the supported capabilities to the CAPABILITY command.
+
+  - id: f-np5bnzew
+    title: UIDPLUS is what makes a copy re-findable and an expunge safe
+    claim: |
+      a server advertising UIDPLUS reports, on a copy, the destination mailbox's UIDVALIDITY and
+      the UID the message was given there, and admits an expunge scoped to named UIDs that leaves
+      other messages flagged \Deleted alone. Without it a client cannot learn where its copy landed
+      and must strip and restore other messages' \Deleted flags around an expunge.
+    backing: documented
+    sources:
+      - url: https://www.rfc-editor.org/rfc/rfc4315.html#section-3
+        where: Additional Response Codes, the COPYUID entry
+        quote: |
+          Followed by the UIDVALIDITY of the destination mailbox, a UID set containing the UIDs of
+          the message(s) in the source mailbox that were copied to the destination mailbox and
+          containing the UIDs assigned to the copied message(s) in the destination mailbox,
+          indicates that the message(s) have been copied to the destination mailbox with the stated
+          UID(s).
+      - url: https://www.rfc-editor.org/rfc/rfc4315.html#section-2.1
+        where: the UID EXPUNGE Command
+        quote: |
+          The UID EXPUNGE command permanently removes all messages that both have the \Deleted flag
+          set and have a UID that is included in the specified sequence set from the currently
+          selected mailbox. If a message either does not have the \Deleted flag set or has a UID
+          that is not included in the specified sequence set, it is not affected.
+      - url: https://www.rfc-editor.org/rfc/rfc4315.html#section-2.1
+        where: the UID EXPUNGE Command, on servers without the extension
+        quote: |
+          If the server does not support the UIDPLUS capability, the client should fall back to
+          using the STORE command to temporarily remove the \Deleted flag from messages it does not
+          want to remove, then issuing the EXPUNGE command.
+
+  - id: f-ffnc43ku
+    title: a keyword set on dovecot survives both a reconnect and a move
+    claim: |
+      on a stock dovecot 2.4.4, a mailbox admits client-defined keywords, and a keyword a client
+      stores is read back by a later session that did not set it and is still on the message after
+      the message is moved to another mailbox.
+    backing: tested
+    caveat: |
+      one server, in its default configuration; a server admitting keywords is what the mailbox's
+      PERMANENTFLAGS reports, and another server may report otherwise
+    sources:
+      - run: run-v1gtht29
+        where: the findings, on what the mailbox admits
+        quote: |
+          PERMANENTFLAGS admits client-defined keywords: yes, \* is listed
+      - run: run-v1gtht29
+        where: the findings, on reading the keyword back from another session
+        quote: |
+          the keyword survives a reconnect: yes, grinbox/finance is still set
+      - run: run-v1gtht29
+        where: the findings, on the keyword after the move
+        quote: |
+          the keyword survives the move: yes, grinbox/finance is still set
+
+  - id: f-1hjkefq3
+    title: a moved message is identified afresh by the mailbox it lands in
+    claim: |
+      on a stock dovecot 2.4.4, moving a message to another mailbox gives it a UID assigned by the
+      destination, under that mailbox's own UIDVALIDITY. The identifiers a client stored for the
+      message in its old mailbox name it nowhere after the move.
+    backing: tested
+    sources:
+      - run: run-v1gtht29
+        where: the findings, on what the move reported
+        quote: |
+          the moved message is identified afresh by the destination: UID 1 under UIDVALIDITY 1786510262 in the source became UID 2 under UIDVALIDITY 1786510263 in Archive
+      - run: run-v1gtht29
+        where: the findings, on what the source mailbox still holds
+        quote: |
+          UIDs remaining in the source mailbox after the move: 2, 3
+
+  - id: f-yj818owe
+    title: a stock dovecot account advertises no archive mailbox
+    claim: |
+      a stock dovecot 2.4.4 account advertises roles for Drafts, Junk, Sent, and Trash and has no
+      mailbox in the \Archive role. Creating one with CREATE ... (USE (\Archive)) is accepted, and
+      the mailbox is then listed with no role advertised for it.
+    backing: tested
+    caveat: |
+      the mailbox set is dovecot's `english` defaults, which is what the image ships; a deployment
+      choosing another set, or a hosted provider, advertises its own
+    sources:
+      - run: run-v1gtht29
+        where: the findings, on the roles the account advertises
+        quote: |
+          every mailbox the account holds, with the roles advertised for them: () "/" GrinboxProbe | (\Drafts) "/" Drafts | (\Junk) "/" Junk | (\Sent) "/" Sent | (\Trash) "/" Trash | () "/" INBOX
+      - run: run-v1gtht29
+        where: the findings, on creating one in the archive role
+        quote: |
+          creating a mailbox in the archive role: accepted: CREATE Archive (USE (\Archive))
+      - run: run-v1gtht29
+        where: the findings, on what is advertised afterwards
+        quote: |
+          every mailbox and role after that create: () "/" Archive | () "/" GrinboxProbe | (\Drafts) "/" Drafts | (\Junk) "/" Junk | (\Sent) "/" Sent | (\Trash) "/" Trash | () "/" INBOX
+
+  - id: f-q9yoqzit
+    title: one fetch enumerates a mailbox with every message's flags
+    claim: |
+      a single UID FETCH over the whole mailbox returns every message in it with its UID and its
+      flags, so taking a snapshot of a mailbox costs one command rather than one per message.
+    backing: tested
+    sources:
+      - run: run-v1gtht29
+        where: the findings, on the whole-mailbox fetch
+        quote: |
+          one fetch enumerates every message in a mailbox with its flags: * 1 FETCH (UID 1 FLAGS (\Recent)) | * 2 FETCH (UID 2 FLAGS (\Recent grinbox/finance))

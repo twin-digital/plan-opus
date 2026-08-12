@@ -1,0 +1,344 @@
+version: "3"
+
+decisions:
+  # what an account is
+  - id: d-oevikmal
+    scope: backends
+    title: an account carries the backend it was added with
+    statement: |
+      an account names its backend when the user adds it, and that never changes. A mailbox to be
+      read through another backend is added as another account.
+    commentary: |
+      Everything grinbox stores against an account — its cursor, where each message is, what the
+      server was found to support — is written in the backend's own terms, and none of it survives
+      being reinterpreted by a different one. Making the backend immutable is what lets the rest of
+      the design read those fields without asking which backend wrote them.
+    status: proposed
+    because:
+      - d-q2hx8vlm
+      - d-8fvu0g4z
+    pinned:
+      reason: data-format
+      notes: |
+        every account row carries it, and the fields beside it are only readable through it
+
+  - id: d-ioso3voc
+    scope: backends
+    title: an IMAP account is an address, a login, and a password
+    statement: |
+      adding an IMAP account takes the server's host and port, whether the connection is encrypted
+      from the start or upgraded after connecting, a username, and a password the user obtained
+      from their provider. The password is a credential the user obtained through grinbox and is
+      stored as one.
+    commentary: |
+      This is the whole of what an IMAP server needs to be reachable, and the app password most
+      providers issue for exactly this purpose is what the user pastes. Storing it as a
+      user-obtained credential puts it in the state, encrypted, rather than in the deployment's
+      configuration, which is where the split already puts anything the user obtained.
+    status: proposed
+    because:
+      - r-5wpns28x
+      - d-xe41okh9
+    pinned:
+      reason: data-format
+      notes: the stored shape of an IMAP account, and what the interface asks the user for
+
+  - id: d-fuln110d
+    scope: backends
+    title: a credential the user holds is authorized by logging in, and reaches no public path
+    statement: |
+      where a backend's authorization is a credential the user holds, they give it to grinbox's
+      internal interface and a successful login is the authorization. Where it is a grant the
+      provider issues, the internal interface mints a single-use, short-lived correlation token and
+      the flow completes at one public path, which refuses any request carrying no token grinbox
+      awaits.
+    commentary: |
+      An IMAP password has no consent screen to return from, so the public callback would sit
+      unused in a flow that never leaves the machine. Keeping the public path to the grant case is
+      what keeps the deployment's one exposed path narrow.
+    status: proposed
+    supersedes: d-a1pf497w
+    because:
+      - r-ieyj1wkn
+      - r-ovi02v1m
+      - d-ioso3voc
+    pinned:
+      reason: public-api
+      notes: |
+        the one publicly reachable path grinbox has, and the deployment is configured around it
+
+  - id: d-v4mejzw5
+    scope: backends
+    title: a password the server rejects retires the account; anything else is retried
+    statement: |
+      where an IMAP server rejects grinbox's login for the credential, the account is marked as
+      needing the user's attention and is skipped by polling until they give grinbox a working
+      password. A connection that fails any other way leaves the account as it is and is retried at
+      its next poll.
+    commentary: |
+      The counterpart of what a refused renewal does to a granted authorization: the two failures
+      mean the same thing to the user, which is that grinbox needs them. Separating the credential
+      rejection from the unreachable server is what keeps a night of network trouble from retiring
+      every account the user has.
+    status: proposed
+    because:
+      - r-fzuyjkts
+      - d-v5fyd7xd
+      - d-ioso3voc
+    pinned: false
+
+  # the mailboxes an account works in
+  - id: d-zxvkt95o
+    scope: backends
+    title: the account names the mailboxes grinbox watches
+    statement: |
+      an IMAP account names four mailboxes: its arrival mailbox, and the ones standing for
+      archived, trashed, and spam mail. Grinbox proposes them from the roles the server advertises
+      and from the account's mailbox names, and what the user accepted is what is stored.
+    commentary: |
+      No server has to advertise an archive mailbox and a stock dovecot does not, so a design that
+      discovered the destination would work on some accounts and not others for reasons the user
+      could not see. Asking is also what keeps grinbox out of the business of creating mailboxes in
+      an account someone else arranged.
+    status: proposed
+    because:
+      - r-g1iwlbzs
+      - f-ymu94ntb
+      - f-yj818owe
+      - d-jr86qq8b
+    pinned:
+      reason: data-format
+      notes: four stored per-account mailbox names the interface exposes and the poll path reads
+
+  - id: d-qstpa7y0
+    scope: backends
+    title: an IMAP message's standing is the mailbox it is in
+    statement: |
+      a message in the account's arrival mailbox stands as present, and one in its archived,
+      trashed, or spam mailbox stands as that. A message in none of the four is recorded as
+      archived, and no message on an IMAP account is recorded as deleted.
+    commentary: |
+      A message the user filed into a mailbox of their own has left the inbox and has not been
+      thrown away, which is what archived says. Reporting it deleted would be a claim grinbox
+      cannot support and the more alarming of the two mistakes. Deleted stays in the vocabulary for
+      backends that can tell.
+    status: proposed
+    because:
+      - d-jr86qq8b
+      - d-zxvkt95o
+      - r-ziitim35
+    pinned: false
+
+  # finding a message again
+  - id: d-k4nt8zbu
+    scope: backends
+    title: grinbox holds where an IMAP message is, and what it is
+    statement: |
+      grinbox stores an IMAP message's mailbox, that mailbox's UIDVALIDITY, and its UID as where
+      the message currently is, and its Message-ID header as what identifies it. Where the stored
+      location resolves to nothing, the message is looked for by Message-ID across the account's
+      four mailboxes.
+    commentary: |
+      IMAP identifies a message per mailbox, so the identifiers grinbox stored name nothing once
+      the message moves — whether grinbox moved it or the user did. The header is the only thing
+      that travels with it. A message whose headers carry none is still taken in and triaged; it
+      simply cannot be found again after someone else moves it, and keeps the standing grinbox last
+      recorded until it is seen somewhere.
+    status: proposed
+    because:
+      - f-ubjw3f0i
+      - f-1hjkefq3
+      - d-qstpa7y0
+      - d-zxvkt95o
+    pinned:
+      reason: data-format
+      notes: what every IMAP message row holds, and what the reconcile matches on
+
+  - id: d-cepkyeoa
+    scope: backends
+    title: the cursor is a UID, and a UIDVALIDITY change starts it over
+    statement: |
+      an IMAP account's cursor is its arrival mailbox's UIDVALIDITY together with the highest UID
+      grinbox has taken in, and a poll asks for everything above that UID. Where the mailbox
+      reports another UIDVALIDITY, the cursor names nothing and the next poll takes the bounded
+      recent window a first poll takes.
+    commentary: |
+      Ascending UIDs are what make the incremental poll exact rather than approximate, and
+      UIDVALIDITY is the server's only way of saying the stored ones are void. Re-taking a window
+      already taken in costs nothing: the poll path already recognises what it holds, and matching
+      by Message-ID is what recognises a message whose UID has changed underneath it.
+    status: proposed
+    because:
+      - d-8fvu0g4z
+      - d-sj4u6eyj
+      - f-xbec6o46
+      - f-4i4xtwwj
+      - d-k4nt8zbu
+    pinned: false
+
+  - id: d-p82gksff
+    scope: backends
+    title: grinbox connects to poll and closes the connection after
+    statement: |
+      grinbox opens an IMAP connection when an account's poll comes due and closes it when that
+      poll finishes. It holds no connection open between polls and does not wait on the server to
+      announce an arrival.
+    commentary: |
+      Waiting on the server would mean a connection per account held open for the life of the
+      process, which is a second thing keeping the daemon busy beside the work queue it already
+      has. What the user is promised is triage within minutes of arrival, and the account's own
+      polling interval already carries that.
+    status: proposed
+    because:
+      - d-81ouxrpi
+      - d-nq4fk2xr
+      - r-0lg2c2e4
+    pinned: false
+
+  # what grinbox does to the mailbox
+  - id: d-bl5oamiz
+    scope: backends
+    title: a category is a keyword on the message
+    statement: |
+      applying a category on an IMAP account stores a keyword of that category's name on the
+      message. Where the account's arrival mailbox does not admit client-defined keywords, the
+      account declares it cannot apply categories rather than storing one that will not last.
+    commentary: |
+      Keywords are IMAP's durable per-message metadata and the only mechanism a category can be
+      carried by. A server admits client-defined ones only where the mailbox says so, and a store
+      the server ignores or drops at the end of the session looks like success from the client's
+      side — so declaring the gap is the only way it is visible.
+    status: proposed
+    because:
+      - d-hv2uue12
+      - f-9z8o6n1l
+      - f-ffnc43ku
+      - d-f9tj4wnr
+    pinned:
+      reason: public-api
+      notes: what the user sees on their own mail, and what another client of theirs reads
+
+  - id: d-8v30vkou
+    scope: triage
+    title: a category is named in what a keyword admits
+    statement: |
+      a category's name is letters, digits, hyphens, and underscores. A configuration naming a
+      category any other way is refused when the user saves it.
+    commentary: |
+      An IMAP keyword is an atom, which admits no spaces and no quoting, so a category name grinbox
+      could not carry is one it would have to mangle silently or fail on at triage. Constraining
+      the name once, where the user writes it, is what keeps the same category legible in every
+      backend. It binds what the user next saves and not what is already stored.
+    status: proposed
+    because:
+      - d-bl5oamiz
+      - r-5ezt7j0v
+      - r-c5nm7ryw
+    pinned:
+      reason: public-api
+      notes: the vocabulary the user configures in, and what a stored configuration may hold
+
+  - id: d-8am29x25
+    scope: backends
+    title: archiving is a move, and an account that cannot move safely cannot archive
+    statement: |
+      archiving on an IMAP account moves the message from the arrival mailbox to the account's
+      archived mailbox — by the server's own move where it advertises one, and otherwise by a copy
+      followed by an expunge naming that message's identifier alone. Where the server advertises
+      neither, the account declares it cannot archive.
+    commentary: |
+      The fallback every client used before the move command exists ends in an expunge that also
+      throws away anything else in the mailbox already flagged for deletion — someone else's
+      messages, deleted by someone else's client. An account whose server offers no way to avoid
+      that is one grinbox does not archive on, which is a narrower product and not a lost message.
+    status: proposed
+    because:
+      - r-ziitim35
+      - f-yawjn42g
+      - f-np5bnzew
+      - d-yjd4ag9q
+      - d-zxvkt95o
+      - d-f9tj4wnr
+    pinned:
+      reason: other
+      notes: |
+        what grinbox does to mail the user cannot get back, which is what the archive action's own
+        ruling fixes for every backend
+
+  - id: d-mtgha4ra
+    scope: backends
+    title: grinbox never changes whether a message is read
+    statement: |
+      the IMAP backend reads a message's headers and body without marking it seen, and sets or
+      clears no flag of the user's. The keywords its categories name are the only flags it writes.
+    commentary: |
+      A fetch marks a message read unless the client asks for the peeking form, so a triage that
+      read the body would empty the user's unread count overnight. The general rule this makes
+      concrete for IMAP: grinbox owns what it put there and nothing else on the message.
+    status: proposed
+    because:
+      - r-ziitim35
+      - d-ypmi8g3g
+      - d-nol93aud
+    pinned:
+      reason: other
+      notes: |
+        invisible in the code to anyone who does not know the peeking fetch is a commitment rather
+        than a preference
+
+  - id: d-q96iw28w
+    scope: backends
+    title: thread placement comes from the message's own headers
+    statement: |
+      the IMAP backend reports a message's place in its thread from that message's In-Reply-To and
+      References headers read against the messages grinbox already holds, and asks the server for
+      no threading of its own.
+    commentary: |
+      Server-side threading is an extension, and where a server has it, what it computes is its own
+      business rather than a stated shape. The headers are carried by the message itself, which
+      makes the answer the same on every server, and grinbox is already holding the account's
+      messages to compare against.
+    status: proposed
+    because:
+      - d-q2hx8vlm
+    pinned: false
+
+  # what an IMAP account cannot do
+  - id: d-5h66e3zl
+    scope: backends
+    title: an IMAP account does not send
+    statement: |
+      the IMAP backend declares that it cannot send mail. A digest edition does not run on an IMAP
+      account and no operator sending mail runs on one, and the interface says which accounts those
+      are and why.
+    commentary: |
+      IMAP reads a mailbox; submitting mail is a second protocol with its own address, port, and
+      credential to ask the user for. Pairing the two is held for its own increment, and until then
+      an IMAP account is a mailbox grinbox triages rather than one it writes from.
+    status: proposed
+    because:
+      - d-f9tj4wnr
+      - d-p3vd6kxz
+      - r-x3jb6wlq
+    pinned: false
+
+  - id: d-bzw8qoiy
+    scope: backends
+    title: what an IMAP account supports is read when grinbox logs in
+    statement: |
+      which operations an IMAP account supports is read from the server's capabilities and its
+      arrival mailbox's permanent flags each time grinbox logs in, and stored on the account. That
+      reading is the declaration a backend owes, made per account rather than once per backend.
+    commentary: |
+      Two IMAP servers differ in what they offer, and one server differs from itself after an
+      upgrade or a mailbox change, so a declaration fixed in grinbox's code would be a guess about
+      the user's server. Reading it at login is what makes an account's gaps visible before an
+      operator hits them.
+    status: proposed
+    because:
+      - d-f9tj4wnr
+      - d-bl5oamiz
+      - d-8am29x25
+      - f-9z8o6n1l
+      - f-yawjn42g
+    pinned: false
