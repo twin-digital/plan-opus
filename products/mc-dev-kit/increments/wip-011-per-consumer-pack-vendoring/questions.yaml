@@ -12,12 +12,27 @@ questions:
       `d-vrq7lc2o` would deploy it as a stub. Amending `r-u8cg9vi6` to except a vendored pack is the
       owner's call; the alternative is that `d-27lzrwsu` gives way and a vendored pack ships twice.
 
+  - id: q-30iz7m0l
+    answer: fact
+    question: |
+      does a type family a pack declares read back off an entity it spawned? `d-wj60379v` rests on
+      it, and the pool carries the surrounding pieces but not this one. `minecraft:type_family` is a
+      real component on spawned entities — an `xp_orb` arrives carrying one and a villager's
+      component list holds it — and the engine honours families in behavior filters, as the iron
+      golem's `is_family != creeper` gate shows. What is not recorded is that a *custom* family, one
+      a pack invents rather than one vanilla ships, is readable from script off the entity. The
+      measurement: declare an entity type with a family of an invented token, spawn it, and read the
+      families back; then have a second pack declare the same identifier with a different token and
+      confirm the reading changes when the other definition wins.
+
   - id: q-c8zq5pss
     answer: fact
     question: |
       what may a namespace be spelled with? Nothing in the pool records the character set an
       identifier admits, and every recorded example is lowercase letters and underscores —
-      `mctest:probe_dummy`, `minecraft:evocation_illager`, `geometry.evoker.v1.8`. Package names are
+      `mctest:probe_dummy`, `minecraft:evocation_illager`, `geometry.evoker.v1.8` — and the community
+      convention is snake_case, which is a signal about the character set without settling it.
+      Package names are
       full of hyphens, so whether `mc-rpg-core` is a namespace or has to become `mc_rpg_core`
       decides what `d-zk0c48uy`'s default actually produces, and a length limit would decide whether
       it is usable at all. It also disposes of reverse-domain namespaces: a dot already separates the

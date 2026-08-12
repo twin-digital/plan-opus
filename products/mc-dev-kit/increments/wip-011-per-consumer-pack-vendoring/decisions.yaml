@@ -110,8 +110,8 @@ decisions:
     title: the namespace is an opt-in build setting defaulting to the package name
     statement: |
       a package turns namespacing on in the build configuration it already hands the kit, and gets
-      its own package name, slugged, unless it names something else. A package that vendors must
-      turn it on. No field is added to `manifest.json`.
+      its own full package name, scope included, unless it names something else. A package that
+      vendors must turn it on. No field is added to `manifest.json`.
     status: proposed
     pinned:
       reason: public-api
@@ -122,23 +122,49 @@ decisions:
       - d-qtq0ccy6
       - d-1w5rjhg6
       - r-jl42pzah
+      - f:f-exoo5ehm
+      - f:f-8bxtf5w7
     cases:
       - when: the setting names a namespace
         then: that is the namespace
-      - otherwise: the namespace is the package's name with any scope dropped, in whatever spelling
-          an identifier admits
+      - otherwise: the namespace is the package's scope and name together, in whatever spelling an
+          identifier admits
     commentary: |
       A namespace is something the build consumes and nothing the engine reads, and a manifest is
       shipped verbatim to the engine. Putting it in the manifest would mean declaring and validating
       a field that has no meaning there.
 
-      The default comes from the package name because npm already made the author pick a
-      distinguishing one, so the author who thinks about none of this gets a token no neighbour is
-      likely to hold. The scope is dropped because it roughly doubles the length while removing only
-      the collision between two strangers who independently chose one package name — rarer by far
-      than two people reaching for `rpg`, which is the collision this is actually guarding against.
-      A short name stays available to anyone who wants it, and making it the thing you type rather
-      than the thing you get is the whole of the protection available.
+      A scoped package name is already the shape the community's convention asks for — a creator
+      token combined with a product token — and npm has allocated it, which the convention itself
+      has no way to do. So the author who thinks about none of this gets the recommended answer, and
+      gets it enforced rather than advised.
+
+      The convention also asks for short, on the grounds that an author writes the namespace
+      constantly. That does not reach this design: `d-8qkamvz7` has names written bare in sources
+      and `d-zm6pxfrg` gives code a helper, so a namespace is typed nowhere. Taking the uniqueness
+      half and declining the brevity half is the trade that buys, and a short token stays one
+      override away for anyone who wants it in a selector.
+
+  - id: d-p00wsgxo
+    title: the docs send an author who overrides the default to the registry
+    statement: |
+      the kit's documentation of the namespace setting names the Bedrock-OSS add-on registry as
+      where a chosen namespace is claimed. The build neither reads the registry nor requires an
+      entry in it.
+    status: proposed
+    because:
+      - d-zk0c48uy
+      - d-9s4tdc8z
+      - f:f-5cqzbyqa
+      - f:f-exoo5ehm
+    commentary: |
+      An author who overrides the default is giving up the uniqueness npm supplied, and the registry
+      is the only place the community allocates a short token rather than merely advising one. It
+      belongs in the docs beside the setting that creates the need for it.
+
+      Not in the build: an entry confers nothing in-game, so a check would trade a network
+      dependency in every build for a signal about other registrants only. Whether that trade is
+      ever worth making is captured to the backlog rather than settled here.
 
   - id: d-8qkamvz7
     title: a namespaced pack writes bare names in source
@@ -256,42 +282,44 @@ decisions:
       losing definition is simply the winner's under the same id, and `undefined` is the only miss
       signal the surface has.
 
-      What cannot be asked is "did my content win". `d-wj60379v` asks a different question that can
-      be answered, which is why it exists beside this.
+      What the type list cannot answer, a spawned entity can: the definition's own content arrives
+      with it, so a token the definition declares is provenance. `d-wj60379v` is that route, and it
+      is why this decision is scoped to what the assets themselves can report.
 
   - id: d-wj60379v
-    title: a namespaced behavior pack claims its namespace at load
+    title: a declared entity carries its pack's token, and the library checks it at use
     statement: |
-      a namespaced pack with a behavior half declares a sentinel entity type carrying a token of its
-      own, and reports at load where it finds another pack's sentinel in its namespace.
+      the build stamps every entity type a namespaced pack declares with a type family carrying that
+      pack's own token, and the library checks it on an entity it spawns. An entity that does not
+      carry the token is reported.
     status: proposed
     pinned:
       reason: public-api
-      notes: a type the pack declares and an operator sees, and a report a consumer builds on
+      notes: a family on every declared type, visible to any pack, and a report a consumer builds on
     because:
       - r-293j8n70
       - d-p1i76cgb
-      - d-bhsz9eou
       - d-zm6pxfrg
-      - f:f-o8xk7go5
       - f:f-8bxtf5w7
+      - f:f-o8xk7go5
     cases:
-      - when: a sentinel in the pack's namespace carries a token that is not its own
-        then: the pack reports the contention, naming the namespace and both tokens
-      - otherwise: nothing is reported and the pack runs as it would have
+      - when: a spawned entity carries the pack's own token
+        then: the definition that resolved was the pack's, and nothing is reported
+      - otherwise: the pack reports that the identifier resolved to another definition
     commentary: |
-      Two packs contending for `rpg:wizard` yield one entry, because no id repeats — but their
-      sentinels do not contend, so both load and each pack's enumeration sees the other's. That is
-      the whole mechanism: a declared type, a build-time token, and a scan of `EntityTypes.getAll`.
-      No message crosses packs, so nothing turns on load order or on a subscription being in place
-      before a broadcast.
+      This asks the question that matters. A contended identifier yields one definition, and the
+      losing pack cannot see that from the type list, since `EntityTypes.getAll` marks no type with
+      the pack that defined it. But the definition's own content arrives with the entity, so a token
+      the definition carries is provenance the entity can be asked for.
 
-      A loud failure beats an actor silently drawn with a stranger's geometry, which is otherwise
-      what a contended namespace looks like to everyone.
+      Checking at the point of use is why nothing has to be probed or cleaned up: the family sits on
+      the real types, and the question is asked when an adventure spawns an actor and the answer
+      matters.
 
-      Two limits worth knowing. A pack with no behavior half declares no types and cannot claim. And
-      only packs the kit built carry sentinels, so this finds contention between the kit's own users
-      and not a collision with a hand-written pack.
+      Two limits worth knowing. It reaches entities, so a contention touching only geometry or
+      textures is invisible to it and remains a build-time concern. And a pack whose behavior half
+      lost while its client entity won is reported by the half that carries the token, not the half
+      that draws the actor.
 
   - id: d-35ovo8rl
     title: a vendored pack ships its source in its published package
