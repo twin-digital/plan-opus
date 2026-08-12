@@ -1,5 +1,10 @@
 version: "3"
 
+presets:
+  - name: nodejs-library
+    version: 1
+    scope: [discovery, build, dev-loop]
+
 components:
   - id: discovery
     description: finding, validating, and reporting the workspace's packs — the discovery library
@@ -108,3 +113,24 @@ requirements:
       The library's code is bundled into the vendoring package already, so it runs under that
       package's names whether or not it knows them. Making the author thread a namespace through
       every call would put the ergonomics cost back where r-jxzqhhmo took it from.
+
+  - id: r-l4e55kqu
+    scope: runtime
+    title: the engine-side library is built for the engine
+    statement: |
+      the kit's engine-side library ships as ESM only, written in TypeScript and shipping its own
+      type declarations, built for what the Bedrock script engine runs rather than for Node.
+    informed_by:
+      - f:bedrock-script-engine-accepts-es2022-and-rejects-the-regexp-v-flag
+      - f:bedrock-script-engine-kills-a-module-that-carries-node-shims
+    commentary: |
+      `nodejs-library@1` no longer reaches this component, and three of the four obligations it
+      carried are wanted here anyway — ESM, TypeScript, its own declarations. Only its build target
+      was wrong: the preset's subject is a Node.js library, and this package is one by packaging and
+      not by execution.
+
+      Getting the target wrong is not a lint failure. The engine rejects the ES2024 RegExp `v` flag
+      and a surviving node shim's `node:url` import takes the whole module with it, so a package
+      built to Node rules does not load, and nothing in the build reports it. `d-1w5rjhg6` already
+      records what the engine forces for a pack's own bundle; this holds the library to the same
+      bar.
