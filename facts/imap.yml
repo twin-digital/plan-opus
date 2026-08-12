@@ -172,6 +172,68 @@ facts:
           using the STORE command to temporarily remove the \Deleted flag from messages it does not
           want to remove, then issuing the EXPUNGE command.
 
+  # The three below were established by running evidence/imap/mxroute-account/probe.mjs against a
+  # real account. The output is not in the tree and will not be: a folder listing names the people
+  # an account corresponds with. The owner ran the probe, read what it printed, and attests to what
+  # it showed; the probe is here so the reading can be taken again on any account.
+
+  - id: f-33wb1igd
+    title: a hosted dovecot account offers everything the IMAP backend's fallbacks exist for
+    claim: |
+      a mail account hosted at MXroute — dovecot, IMAP4rev1 — advertises roles for Archive, Junk,
+      Trash, Sent, and Drafts, separates its folder hierarchy with ".", and carries MOVE, UIDPLUS,
+      SPECIAL-USE, CONDSTORE, QRESYNC, and IDLE among its capabilities. Its INBOX admits
+      client-defined keywords, with $Forwarded already in use there.
+    backing: assumed
+    caveat: |
+      attested by the owner from a probe run they read and did not record, so nothing in the
+      repository re-derives it; one hosted account of one provider, at one moment. The contrast
+      with a stock dovecot advertising no archive role is what the claim is wanted for, and that
+      half is tested
+    sources:
+      - description: |
+          Run evidence/imap/mxroute-account/probe.mjs against the account, which reports the
+          server's capabilities, the roles advertised for each folder, the hierarchy separator, and
+          the INBOX's permanent flags. The owner ran it and read the output. It is withheld because
+          the probe's folder findings name the account's correspondents; the probe now summarises
+          rather than lists, so a later run can be recorded.
+
+  - id: f-epuikrwa
+    title: a keyword survives a reconnect and a move on a hosted account
+    claim: |
+      on a mail account hosted at MXroute, a client-defined keyword stored on a message is read
+      back by a later session that did not set it, and is still on the message after a move to
+      another folder — which the server performed with MOVE, reporting the destination folder's own
+      UIDVALIDITY and the UID it assigned there.
+    backing: assumed
+    caveat: |
+      attested by the owner from a probe run they read and did not record; the same finding against
+      a stock dovecot is tested and recorded under f-ffnc43ku and f-1hjkefq3
+    sources:
+      - description: |
+          Run evidence/imap/mxroute-account/probe.mjs against the account. It appends two messages
+          to a folder of its own, sets a keyword on one, reconnects and reads the flags back, moves
+          the message to a second folder of its own, and reads them again. The owner ran it and read
+          the output, which is withheld for the reason f-33wb1igd gives.
+
+  - id: f-31j9vxhp
+    title: a shared IMAP host took eight connections at once and ten logins in a row
+    claim: |
+      a mail account hosted at MXroute accepted eight simultaneous IMAP connections and ten
+      consecutive logins without refusing, delaying, or disconnecting any of them, alongside
+      whatever clients the account already had connected.
+    backing: assumed
+    caveat: |
+      an absence of refusal at the depth probed, not a discovered limit: the probe stopped at eight
+      and ten rather than finding where the host says no, and a shared host may throttle on a
+      window longer than the probe ran
+    sources:
+      - description: |
+          Run evidence/imap/mxroute-account/probe.mjs against the account. It opens connections
+          until eight are held at once, closes them, then logs in and out ten times in a row,
+          reporting how many were accepted and what refused the next. The owner ran it and read the
+          output, which is withheld for the reason f-33wb1igd gives.
+
   - id: f-ffnc43ku
     title: a keyword set on dovecot survives both a reconnect and a move
     claim: |

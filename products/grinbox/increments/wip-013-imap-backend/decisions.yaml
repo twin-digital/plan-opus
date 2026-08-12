@@ -96,15 +96,17 @@ decisions:
       archived, trashed, and spam mail. Grinbox proposes them from the roles the server advertises
       and from the account's folder names, and what the user accepted is what is stored.
     commentary: |
-      No server has to advertise an archive folder and a stock dovecot does not, so a design that
-      discovered the destination would work on some accounts and not others for reasons the user
-      could not see. Asking is also what keeps grinbox out of the business of creating folders in
-      an account someone else arranged.
+      No server has to advertise an archive folder: a stock dovecot does not and a hosted one does,
+      so a design that discovered the destination would work on some accounts and not others for
+      reasons the user could not see. Proposing what the roles say keeps the common case to a
+      confirmation, and asking is what keeps grinbox out of the business of creating folders in an
+      account someone else arranged.
     status: proposed
     because:
       - r-g1iwlbzs
       - f-ymu94ntb
       - f-yj818owe
+      - f-33wb1igd
       - d-jr86qq8b
     pinned:
       reason: data-format
@@ -193,6 +195,7 @@ decisions:
       - d-81ouxrpi
       - d-nq4fk2xr
       - r-0lg2c2e4
+      - f-31j9vxhp
     pinned: false
 
   # what grinbox does to the mailbox
