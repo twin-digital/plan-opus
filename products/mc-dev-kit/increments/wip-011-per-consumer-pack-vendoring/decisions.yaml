@@ -121,15 +121,17 @@ decisions:
   - id: d-zk0c48uy
     title: the namespace is an opt-in build setting defaulting to the package name
     statement: |
-      a package turns namespacing on in the build configuration it already hands the kit, and gets
-      its own full package name, scope included, unless it names something else. A package that
-      vendors must turn it on. No field is added to `manifest.json`.
+      the exported build function takes `packageDir`, required, and `namespace`, optional. Setting
+      `namespace` turns namespacing on; `true` takes the package's own name and a string names one.
+      No field is added to `manifest.json`.
     status: proposed
     scope: build
     pinned:
       reason: public-api
       notes: the setting a package writes, and the names it gets when it writes only the switch
+    supersedes: d-qtq0ccy6
     because:
+      - d-wss8fker
       - r-jxzqhhmo
       - r-293j8n70
       - d-qtq0ccy6
@@ -144,10 +146,13 @@ decisions:
       - when: a namespace the setting names holds anything but lowercase letters, digits,
           underscore, hyphen or dot
         then: the build fails, naming the character
-      - when: the setting names a namespace
+      - when: the `namespace` option is a string
         then: that is the namespace
-      - otherwise: the namespace is the package's scope and name, the `@` dropped and the `/` a
-          hyphen
+      - when: the `namespace` option is `true`
+        then: it is the package's scope and name, the `@` dropped and the `/` a hyphen
+      - when: the `namespace` option is absent and the package vendors anything
+        then: the build fails, naming the dependency whose content needs a namespace
+      - otherwise: nothing is namespaced and names reach the output as the source spells them
     commentary: |
       A namespace is something the build consumes and nothing the engine reads, and a manifest is
       shipped verbatim to the engine. Putting it in the manifest would mean declaring and validating
@@ -315,8 +320,9 @@ decisions:
   - id: d-ni5n2r3c
     title: only names a pack declares are rewritten
     statement: |
-      the build rewrites the names a pack declares and the references to them. A reference to a name
-      the pack does not declare — vanilla content, or another pack's — is copied through untouched.
+      the build rewrites the names a package declares, in both its halves, and the references to
+      them. A reference to a name the package declares nowhere — vanilla content, or another
+      package's — is copied through untouched.
     status: proposed
     scope: build
     pinned:
@@ -328,6 +334,8 @@ decisions:
       - f:f-a7v7ex4x
       - f:f-z999a7yv
     cases:
+      - when: a client entity names an entity identifier the package's behavior half declares
+        then: both carry the namespace, so the two halves still join
       - when: a client entity names a geometry its own pack declares
         then: both the declaration and the reference carry the namespace
       - when: it names `geometry.evoker.v1.8`, or any material, texture or animation of the vanilla packs
@@ -335,7 +343,13 @@ decisions:
     commentary: |
       An entity's appearance may be assembled from vanilla assets with nothing copied, so a rewrite
       that touched every name would break every such reference. What separates the two is
-      declaration, which the pack's own content answers.
+      declaration.
+
+      Declaration is read across the package, not within one pack, because an entity identifier is
+      declared in the behavior half and referenced from the resource half. Scoped to a pack, the
+      client entity's identifier would be a reference to a name its own pack does not declare, pass
+      through unrewritten, and no longer join the behavior definition that was — which renders
+      nothing and points at nobody.
 
   - id: d-7aqne91n
     title: the content kinds a vendored pack may hold
@@ -365,27 +379,6 @@ decisions:
       establishes how their names resolve across a pack stack — refusing them is the honest
       reading, and each is admitted by an increment that brings the evidence.
 
-  - id: d-bhsz9eou
-    title: a namespace is claimed once among the packages a build reads
-    statement: |
-      one namespace is claimed by exactly one of the packages a build reads — the workspace's, and
-      the dependencies it vendors from. Two claiming the same one is an error naming the namespace
-      and every claimant, with no claimant preferred.
-    status: proposed
-    scope: build
-    because:
-      - r-293j8n70
-      - r-dge04upw
-      - d-zk0c48uy
-      - f:f-8bxtf5w7
-    commentary: |
-      A shared namespace is a shared name space, so two packages picking one puts back exactly the
-      contention vendoring removed — and quietly, since each builds fine alone.
-
-      What a build reads is what it can check, and that is short of every pack a world will run.
-      Two strangers who both took `rpg` collide in the world and in no build, which is what makes
-      the default namespace matter more than this check does.
-
   - id: d-p1i76cgb
     title: the build is where contention is caught, and the assets cannot report it
     statement: |
@@ -395,7 +388,6 @@ decisions:
     scope: build
     because:
       - r-293j8n70
-      - d-bhsz9eou
       - d-1vhwdhk1
       - f:f-8bxtf5w7
       - f:a-resource-pack-cannot-carry-anything-a-script-can-reach
@@ -429,7 +421,6 @@ decisions:
       - r-293j8n70
       - d-zk0c48uy
       - d-wj60379v
-      - d-bhsz9eou
       - f:f-o8xk7go5
       - f:f-1yo29upp
     cases:
@@ -570,7 +561,8 @@ decisions:
       a file under a pack's source directory reaches the output unchanged except its
       `manifest.json`, everything under `scripts/`, any file carrying a name the build rewrites, and
       any file more than one of the merged packs contributes entries to, which are composed.
-      Dotfiles and unknown extensions copy like the rest.
+      Dotfiles and unknown extensions in a package's own source copy like the rest; in a vendored
+      tree `d-7aqne91n` governs.
     status: proposed
     scope: build
     pinned:
@@ -587,6 +579,11 @@ decisions:
       This restates the exceptions rather than adding to them, because two of the four are new and
       the value of the entry is that the list is closed.
 
+      A composed file's entries are ordered deterministically from their content rather than from
+      the order the packs were resolved in. Output is written only where the bytes differ, and a
+      watching consumer keys on that, so a composition that reshuffled on an unrelated change would
+      churn every dependent.
+
       Rewriting a name is already not copying, so the exception is owed to the namespace whether or
       not anything is vendored. Composing is owed to merging: most pack content is one file per
       thing, where two packs contributing one path means two declarations of one name — caught
@@ -601,13 +598,10 @@ decisions:
   - id: d-7jn9c702
     title: a vendored pack has no namespace of its own
     statement: |
-      a vendored pack declares no namespace and it is an error for its package to name one, since
-      every name it declares is spelled by whichever package takes it up.
+      a vendored pack has no namespace of its own. Every name it declares is spelled by whichever
+      package takes it up.
     status: proposed
     scope: build
-    pinned:
-      reason: public-api
-      notes: a setting a shared pack's package may not carry
     because:
       - d-27lzrwsu
       - d-zk0c48uy
@@ -624,8 +618,9 @@ decisions:
   - id: d-xoz6pwt8
     title: what a package vendors comes from its dependencies
     statement: |
-      a package vendors the `vendored_pack/` of every package it depends on, workspace sibling or
-      installed. Nothing is listed and no manifest dependency is involved.
+      a package vendors the `vendored_pack/` of every package in its own `dependencies`, workspace
+      sibling or installed, and follows those packages' `dependencies` transitively. Nothing is
+      listed and no manifest dependency is involved.
     status: proposed
     scope: build
     pinned:
@@ -641,6 +636,10 @@ decisions:
       existing pack-dependency mechanism has nothing to point at. The npm dependency is the
       declaration instead, which is what already carries the library half — depend on the package
       and you get both halves, the way depending on a package gets you its code.
+
+      Runtime dependencies only, and transitively, because that is what shipping the pack requires:
+      content reaching a world is a runtime concern, and a shared pack that itself vendors one must
+      arrive whole. A `devDependency` builds the package and does not ship with it.
 
       Nothing to list also means nothing to keep in step. A second place naming which dependencies
       to vendor would drift from the dependency list itself, and the failure would be an asset that
