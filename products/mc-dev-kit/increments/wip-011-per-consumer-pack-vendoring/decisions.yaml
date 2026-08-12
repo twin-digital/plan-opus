@@ -235,10 +235,10 @@ decisions:
       the default namespace matter more than this check does.
 
   - id: d-p1i76cgb
-    title: a name contended for is caught at build time or not at all
+    title: the build is where contention is caught, and the assets cannot report it
     statement: |
-      the kit checks names where it can see them all — at a build — and ships nothing that looks for
-      a contended name at run time.
+      the kit checks names where it can see them all — at a build. No check on the content itself
+      can report contention: a pack cannot tell that a name it declared resolved to someone else's.
     status: proposed
     because:
       - r-293j8n70
@@ -247,17 +247,51 @@ decisions:
       - f:f-8bxtf5w7
       - f:a-resource-pack-cannot-carry-anything-a-script-can-reach
       - f:f-o8xk7go5
+      - f:f-o9dbstfj
     commentary: |
-      Not a preference — the detection does not exist. A resource pack can carry nothing a script
+      Not a preference — that detection does not exist. A resource pack can carry nothing a script
       can reach: it cannot be enumerated, `getPackSettings` reads empty, and a timeline in one
-      cannot fire a scriptevent, so there is no canary to ship. On the behavior side
-      `EntityTypes.getAll` marks no type with the pack that defined it and repeats no id, so a
-      definition that lost is simply absent, and `undefined` is the only miss signal the surface
-      has — indistinguishable from a type nobody ever defined.
+      cannot fire a scriptevent, so there is no canary to ship inside the assets. On the behavior
+      side `EntityTypes.getAll` marks no type with the pack that defined it and repeats no id, so a
+      losing definition is simply the winner's under the same id, and `undefined` is the only miss
+      signal the surface has.
 
-      So the losing pack cannot know it lost and the winning one cannot know it won. Everything the
-      kit can do about contention it does before the pack ships, which is why the default namespace
-      is the one nobody else can hold.
+      What cannot be asked is "did my content win". `d-wj60379v` asks a different question that can
+      be answered, which is why it exists beside this.
+
+  - id: d-wj60379v
+    title: a namespaced behavior pack claims its namespace at load
+    statement: |
+      a namespaced pack with a behavior half declares a sentinel entity type carrying a token of its
+      own, and reports at load where it finds another pack's sentinel in its namespace.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: a type the pack declares and an operator sees, and a report a consumer builds on
+    because:
+      - r-293j8n70
+      - d-p1i76cgb
+      - d-bhsz9eou
+      - d-zm6pxfrg
+      - f:f-o8xk7go5
+      - f:f-8bxtf5w7
+    cases:
+      - when: a sentinel in the pack's namespace carries a token that is not its own
+        then: the pack reports the contention, naming the namespace and both tokens
+      - otherwise: nothing is reported and the pack runs as it would have
+    commentary: |
+      Two packs contending for `rpg:wizard` yield one entry, because no id repeats — but their
+      sentinels do not contend, so both load and each pack's enumeration sees the other's. That is
+      the whole mechanism: a declared type, a build-time token, and a scan of `EntityTypes.getAll`.
+      No message crosses packs, so nothing turns on load order or on a subscription being in place
+      before a broadcast.
+
+      A loud failure beats an actor silently drawn with a stranger's geometry, which is otherwise
+      what a contended namespace looks like to everyone.
+
+      Two limits worth knowing. A pack with no behavior half declares no types and cannot claim. And
+      only packs the kit built carry sentinels, so this finds contention between the kit's own users
+      and not a collision with a hand-written pack.
 
   - id: d-35ovo8rl
     title: a vendored pack ships its source in its published package
