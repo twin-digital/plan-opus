@@ -106,3 +106,29 @@ facts:
         where: p3-restored — with the same id, name tag and position
         quote: |
           [2026-08-12 04:24:07:356 WARN] [Scripting] [probe] p3-restored/census :: entity[2] typeId=probe:subject id=-8589934590 nameTag="NamedSubject" loc=(162.00,100.00,170.50) isValid=true
+
+  - id: f-ivsuofva
+    title: Mojang documents an identifier as lowercase letters, digits and underscores
+    claim: |
+      Mojang's own creator documentation states the character set for an entity identifier — an id
+      being a namespace and a name separated by a colon — as lowercase letters, digits and
+      underscores, and reserves the `minecraft` namespace for vanilla content.
+
+      That set is narrower than what the engine accepts. Hyphens and dots are measured to work on
+      every path and are not among the documented characters, so a pack using them relies on
+      behaviour Mojang does not sanction. The documented set is the intersection of what is
+      supported and what is known to work.
+    backing: documented
+    caveat: |
+      The page is a tutorial rather than a format reference, so it states the rule as guidance to a
+      creator rather than as a validator's grammar; nothing there says the engine rejects anything
+      else, and the measured behaviour in `f-te6cfwkw` shows it does not.
+    sources:
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/introductiontoaddentity?view=minecraft-bedrock-stable
+        where: Naming — the character set
+        quote: |
+          Your own namespace can be a short version of your team name or product name. The ID should only include lower case letters, digits, and underscores.
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/documents/introductiontoaddentity?view=minecraft-bedrock-stable
+        where: Naming — the shape of an id, and the reserved namespace
+        quote: |
+          This ID consists of a namespace and a name separated by a colon.

@@ -63,41 +63,46 @@ decisions:
       package declares none.
 
   - id: d-27lzrwsu
-    title: a pack declares itself vendored, and never deploys on its own
+    title: a vendored pack lives outside the discovered locations
     statement: |
-      a pack states in its own source that it is vendored. Every package depending on it vendors
-      it, and the pack is neither deployed nor activated as a pack of its own — by the harness, in
-      an archive, or anywhere else the pack set is read.
+      a vendored pack's source sits at `vendored_pack/`, holding a kind-named subdirectory per half.
+      It carries no `manifest.json`, so no source manifest of a discovered kind exists and the
+      package bears no pack.
     status: proposed
-    scope: [build, dev-loop]
+    scope: build
     pinned:
       reason: public-api
-      notes: the declaration a shared pack's author writes, and the difference between a pack that ships and one that does not
+      notes: where a shared pack's author puts their content, and what makes it vendored rather than shipped
     because:
       - r-293j8n70
+      - r-zcdmh9p6
       - d-82zp77fo
       - f:f-8bxtf5w7
-      - f:a-declared-pack-dependency-activates-the-depended-on-pack
     cases:
-      - when: a pack declares itself vendored
-        then: every vendoring package merges it, and it reaches no pool and no activation list
-      - otherwise: the dependency resolves as it does today, both packs shipping
+      - when: a package's source holds `vendored_pack/`
+        then: its content is vendored, and the package contributes nothing to the pack set
+      - otherwise: a source manifest at a discovered location makes an ordinary pack, as today
     commentary: |
-      Whether a pack can be vendored is a property of the pack — it has to hold only content whose
-      names the build can rewrite — so the pack is where it is declared, once, rather than in each
-      vendoring package.
+      Location is already the whole membership test: a package bears a pack when its source holds
+      `behavior_pack/manifest.json` or `resource_pack/manifest.json`, and nothing else is consulted.
+      So a vendored pack need not be excluded from anything — put its source somewhere else and it
+      was never a member. Discovery, the harness, the archive and the activation list all keep the
+      rules they have.
 
-      Deploying it as well as its vendorings would put its unstamped names into the same pack stack
-      as theirs, which is the cross-talk the namespace exists to prevent. It also settles what a
-      declared dependency does: a depended-on pack is pulled into the stack whether or not a world
-      lists it, so leaving it in the pool is enough to activate it.
+      This is why it carries no manifest. A manifest's content is a pack's shipping identity: a
+      uuid, a version, its dependencies. A vendored pack ships as nobody's pack and has no identity
+      to declare, so the file would be a form filled in for a purpose that never arrives — and
+      keeping one at a discovered path is exactly what would put it back in the pack set.
+
+      A pack cannot be both vendored and shipped standalone. That follows from the location and is
+      no loss: the two want different names, since a vendored pack's names are spelled by whichever
+      package takes it up.
 
   - id: d-jdqt63fi
     title: vendoring reads the vendored pack's source tree
     statement: |
-      a vendoring package's build reads the vendored pack's source directory, completing and
-      rewriting it itself. It does not read that package's built output and does not require it to have been
-      built.
+      a vendoring package's build reads the vendored pack's `vendored_pack/` tree, completing and
+      rewriting it itself. It does not require the depended-on package to have been built.
     status: proposed
     scope: build
     because:
@@ -109,6 +114,8 @@ decisions:
       between two packages' builds to lean on. Reading source keeps it that way — and the script
       half, which is the part that needs building, arrives through the bundler rather than through
       the vendoring.
+
+      There is no built output to read in any case, since a vendored pack bears no pack.
 
   - id: d-zk0c48uy
     title: the namespace is an opt-in build setting defaulting to the package name
@@ -128,16 +135,16 @@ decisions:
       - d-1w5rjhg6
       - r-jl42pzah
       - f:f-exoo5ehm
+      - f:f-ivsuofva
       - f:f-te6cfwkw
       - f:f-8bxtf5w7
     cases:
-      - when: a namespace, named or derived, holds anything but lowercase letters, digits, hyphen,
-          dot or underscore
+      - when: a namespace the setting names holds anything but lowercase letters, digits or
+          underscores
         then: the build fails, naming the character
       - when: the setting names a namespace
         then: that is the namespace
-      - otherwise: the namespace is the package's scope and name, the `@` dropped and the `/` a
-          hyphen
+      - otherwise: the namespace is the package's scope and name, transliterated into that set
     commentary: |
       A namespace is something the build consumes and nothing the engine reads, and a manifest is
       shipped verbatim to the engine. Putting it in the manifest would mean declaring and validating
@@ -148,16 +155,19 @@ decisions:
       has no way to do. So the author who thinks about none of this gets the recommended answer, and
       gets it enforced rather than advised.
 
-      Hyphens survive, so a package name needs no transliteration. The accepted set is exactly what
-      was measured, and everything outside it is refused rather than tried: an npm scope's `@` and
-      `/` were never among the spellings probed, and a namespace an author types could hold anything
-      at all. Refusing the unmeasured costs an author one build error and a rename; admitting it
-      risks the failure this evidence found.
+      The accepted set is the one Mojang documents, not the wider one the engine turns out to
+      tolerate. Hyphens and dots are measured to work everywhere and are not in the documented set,
+      so a pack using them would rest on behaviour nobody has promised — and a namespace is written
+      into every identifier a pack ships, which is the last place to spend unsanctioned latitude.
+      It costs a transliteration in the default and nothing else.
 
-      That failure is why the check is a refusal and not a fold. An uppercase identifier registers
+      A named namespace is refused rather than transliterated, because the author chose those
+      characters and silently shipping different ones is worse than saying so. The derived default
+      is transliterated because nobody chose it.
+
+      Uppercase is the case that proves the caution worth having: an uppercase identifier registers
       and spawns while no query or selector can reach it, and npm permits uppercase in legacy names,
-      so the derived default could produce one. A namespace that fails silently and unaddressably is
-      worth stopping a build over.
+      so a default taken verbatim could produce one.
 
       The convention also asks for short, on the grounds that an author writes the namespace
       constantly. That does not reach this design: `d-8qkamvz7` has names written bare in sources
@@ -465,8 +475,8 @@ decisions:
   - id: d-35ovo8rl
     title: a vendored pack ships its source in its published package
     statement: |
-      a package holding a vendored pack publishes that pack's source directory, and a vendoring package's
-      build reads it from the installed dependency exactly as from a workspace sibling.
+      a package holding a vendored pack publishes its `vendored_pack/` tree, and a vendoring
+      package's build reads it from an installed dependency exactly as from a workspace sibling.
     status: proposed
     scope: build
     pinned:
@@ -559,50 +569,52 @@ decisions:
       authored directory gains an ignored file.
 
   - id: d-7jn9c702
-    title: a vendored pack has no namespace and no output of its own
+    title: a vendored pack has no namespace of its own
     statement: |
-      a vendored pack declares no namespace and it is an error for its package to name one. Its
-      build validates the pack and emits no pack output, since every name it declares is spelled by
-      whichever package takes it up.
+      a vendored pack declares no namespace and it is an error for its package to name one, since
+      every name it declares is spelled by whichever package takes it up.
     status: proposed
     scope: build
     pinned:
       reason: public-api
-      notes: what a shared pack's own build produces, and a setting its package may not carry
+      notes: a setting a shared pack's package may not carry
     because:
       - d-27lzrwsu
       - d-zk0c48uy
       - d-8qkamvz7
-      - d-jdqt63fi
     commentary: |
-      A namespace is a property of something being built into a pack a world runs, and a vendored
-      pack is never that. Two vendoring packages spell its names two ways, so there is no third spelling for
-      it to hold — which is also why its source names are bare, the same form
-      `d-8qkamvz7` asks of any namespaced pack's own content.
+      A namespace belongs to something built into a pack a world runs, and a vendored pack is never
+      that. Two vendoring packages spell its names two ways, so there is no third spelling for it to
+      hold — which is also why its source names are bare, the same form `d-8qkamvz7` asks of any
+      namespaced pack's own content.
 
-      Emitting nothing is what makes that consistent: a pack whose names have no spelling until a
-      vendoring package picks one has no output that could be correct. It also means a vendored pack has
-      nothing for the harness to find, which bears on `q-sywqp93y` without settling it.
+      That it produces no build output of its own needs no saying: it bears no pack, so there is
+      nothing for a build to produce.
 
   - id: d-xoz6pwt8
-    title: a vendored dependency leaves the built manifest
+    title: what a package vendors comes from its dependencies
     statement: |
-      the completed manifest carries no `dependencies` entry for a pack the build vendored. The
-      entry stays in source, where it is what declares the dependency.
+      a package vendors the `vendored_pack/` of every package it depends on, workspace sibling or
+      installed. Nothing is listed and no manifest dependency is involved.
     status: proposed
     scope: build
     pinned:
-      reason: data-format
-      notes: the built manifest a world reads
+      reason: public-api
+      notes: what makes a dependency's content arrive, and the absence of any list to keep
     because:
       - d-27lzrwsu
       - d-82zp77fo
-      - r-wi7qf6to
-      - f:a-declared-pack-dependency-activates-the-depended-on-pack
+      - r-dge04upw
+      - r-293j8n70
     commentary: |
-      There is nothing left to depend on: the content is in the vendoring package's own pack, and the pack
-      the entry names never reaches a pool. Left in, the entry would name a uuid the world cannot
-      resolve.
+      A vendored pack has no uuid, so a manifest `dependencies` entry cannot name one and the
+      existing pack-dependency mechanism has nothing to point at. The npm dependency is the
+      declaration instead, which is what already carries the library half — depend on the package
+      and you get both halves, the way depending on a package gets you its code.
+
+      Nothing to list also means nothing to keep in step. A second place naming which dependencies
+      to vendor would drift from the dependency list itself, and the failure would be an asset that
+      quietly stopped arriving.
 
   - id: d-4idoxbul
     title: the engine-side half is its own package
