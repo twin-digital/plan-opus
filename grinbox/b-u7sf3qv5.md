@@ -1,3 +1,8 @@
+---
+tags:
+  - digests
+---
+
 # A digest's subject line is hardcoded
 
 `digestSubject()` builds every digest's subject as `<operator name> — <date>`, the date rendered
