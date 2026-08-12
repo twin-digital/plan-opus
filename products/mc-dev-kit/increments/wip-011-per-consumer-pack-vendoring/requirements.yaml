@@ -118,8 +118,9 @@ requirements:
     scope: runtime
     title: the engine-side library is built for the engine
     statement: |
-      the kit's engine-side library ships as ESM only, written in TypeScript and shipping its own
-      type declarations, built for what the Bedrock script engine runs rather than for Node.
+      the kit's engine-side library ships as ESM only, written in TypeScript, shipping its own type
+      declarations, exposing one entry point with no subpath wildcard, and built for what the
+      Bedrock script engine runs rather than for Node.
     informed_by:
       - f:bedrock-script-engine-accepts-es2022-and-rejects-the-regexp-v-flag
       - f:bedrock-script-engine-kills-a-module-that-carries-node-shims
@@ -128,6 +129,12 @@ requirements:
       carried are wanted here anyway — ESM, TypeScript, its own declarations. Only its build target
       was wrong: the preset's subject is a Node.js library, and this package is one by packaging and
       not by execution.
+
+      The single entry point comes from `nodejs-library@2`'s `r-lqfu2ki9`, taken directly rather
+      than by adopting that preset. It is what `d-wss8fker`'s pinned `/build` subpath makes
+      impossible for the kit itself and entirely natural here, and the repository's own package
+      tooling generates a wildcard export block unless a package opts out — so this is a live
+      default to hold against, not a formality.
 
       Getting the target wrong is not a lint failure. The engine rejects the ES2024 RegExp `v` flag
       and a surviving node shim's `node:url` import takes the whole module with it, so a package
