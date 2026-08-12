@@ -1,79 +1,110 @@
 version: "3"
 
+components:
+  - id: discovery
+    description: finding, validating, and reporting the workspace's packs — the discovery library
+  - id: build
+    description: producing a pack's built output — the shared pack-build toolchain
+  - id: dev-loop
+    description: running built packs against a live dev server — the harness and its watch loop
+  - id: runtime
+    description: the kit's engine-side half — code the build puts in a pack's own script bundle
+
 terms:
   - id: vendored-pack
+    scope: build
     display: vendored pack
     definition: |
-      a workspace pack whose content the build copies into each package that depends on it, rather
-      than shipping it once for those packages to share.
+      a pack whose content the build copies into each package depending on it, rather than shipping
+      it once for those packages to share.
+
+  - id: vendoring-package
+    scope: build
+    display: vendoring package
+    definition: |
+      a package that takes up a vendored pack — the package whose namespace, uuid and output tree
+      the merged content becomes part of.
 
   - id: namespace
+    scope: [build, runtime]
     display: namespace
     definition: |
-      the token every name a built pack declares carries — the prefix of an entity identifier, and a
-      segment of each internal asset name.
+      the token a pack's author chooses, which every entity identifier that pack declares carries as
+      its prefix.
+
+  - id: asset-namespace
+    scope: build
+    display: asset namespace
+    definition: |
+      the segment every other name a built pack declares carries, derived from that pack's own uuid.
 
 requirements:
   - id: r-jxzqhhmo
+    scope: build
     title: a pack author may choose a namespace
     statement: |
-      where a pack declares a namespace, every name it declares carries it, written into no name by
-      hand. A pack declaring none builds as it always has.
+      where a pack declares a namespace, every identifier it declares carries it, written into no
+      name by hand.
     commentary: |
-      Names are what an author reads in a server log, types into a selector, and hands another
+      Identifiers are what an author reads in a server log, types into a selector, and hands another
       author to reference. A namespace the tooling picks is one the author has to look up before
       they can use their own pack.
 
-      Namespacing is what vendoring needs, and packs that vendor nothing are most of them. Making it
-      the condition of building at all would rewrite every existing pack's names for a property
-      those packs have no use for.
+      Namespacing is what vendoring needs, and packs that vendor nothing are most of them, so this
+      reaches only a pack that asks for it. Making it the condition of building at all would rewrite
+      every existing pack's names for a property those packs have no use for; `d-8qkamvz7` is where
+      a pack that declares no namespace is held to what it builds today.
 
   - id: r-293j8n70
+    scope: build
     title: a shared pack is vendored per consumer
     statement: |
       a pack several packages depend on can be built into each of them as content of its own, under
-      that consumer's namespace, so no two consumers share a name or a pack identity for it.
+      that package's namespace, so no two of them share a name or a pack identity for it.
     informed_by:
       - f:f-8bxtf5w7
       - f:duplicate-pack-copies-are-deduplicated-and-the-activation-pin-selects
     commentary: |
-      The isolation this buys is complete: no uuid two consumers contend over, no version one of
-      them has to match, and nothing left for a server operator to reconcile between them.
+      The isolation this buys is complete: no uuid two vendoring packages contend over, no version
+      one of them has to match, and nothing left for a server operator to reconcile between them.
 
   - id: r-dge04upw
+    scope: build
     title: a shared pack may be published
     statement: |
-      a pack a consumer vendors may reach that consumer as an installed dependency, and need not
-      share a workspace with it.
+      a vendored pack may reach a vendoring package as an installed dependency, and need not share a
+      workspace with it.
     commentary: |
       Sharing a pack between packages one author controls is the small half of the problem. The
       whole point of a shared pack is that someone else uses it, and per-consumer isolation is worth
-      most exactly where the consumers are strangers to each other. A vendoring that reached only
-      workspace siblings would serve the case that needs it least.
+      most exactly where the two sides are strangers. A vendoring that reached only workspace
+      siblings would serve the case that needs it least.
 
   - id: r-c9bu8xes
+    scope: build
     title: an incomplete rewrite fails the build
     statement: |
-      the build carries a name into a consumer's namespace or refuses to build it. Content whose
-      names it cannot rewrite is a build failure naming what it found, never content copied across
-      with its names as they were.
+      the build carries every name it copies into its new spelling or refuses to build. Content
+      whose names it cannot rewrite is a build failure naming what it found, never content copied
+      across with its names as they were.
     informed_by:
       - f:f-8bxtf5w7
       - f:f-acq14qt1
     commentary: |
       A resource pack's names resolve across the whole pack stack rather than within the pack that
-      declares them, so a rewrite that misses one kind produces one consumer's actor drawn with
-      another's geometry. That reads as a content bug in whichever consumer notices it, and points
-      at neither. A pack that refuses to build points at itself.
+      declares them, so a rewrite that misses one kind produces one actor drawn with another's
+      geometry. That reads as a content bug in whichever pack notices it, and points at neither. A
+      pack that refuses to build points at itself.
 
   - id: r-tvea5tvf
+    scope: runtime
     title: a vendored library's own calls resolve unaided
     statement: |
-      a library shipped alongside a vendored pack resolves its own calls through the consumer's
-      namespace with nothing for the consumer to pass or configure per call.
+      a library shipped alongside a vendored pack resolves its own calls through the vendoring
+      package's namespace, with nothing for that package to pass or configure per call.
     informed_by:
       - f:a-script-module-does-not-resolve-across-packs
     commentary: |
-      The library's code is bundled into the consumer already, so it runs under the consumer's
-      names whether or not it knows them. Making the consumer thread a namespace through every call
-      would put the ergonomics cost back where r-jxzqhhmo took it from.
+      The library's code is bundled into the vendoring package already, so it runs under that
+      package's names whether or not it knows them. Making the author thread a namespace through
+      every call would put the ergonomics cost back where r-jxzqhhmo took it from.

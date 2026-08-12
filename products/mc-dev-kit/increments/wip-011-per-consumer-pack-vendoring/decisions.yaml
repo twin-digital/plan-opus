@@ -2,15 +2,16 @@ version: "3"
 
 decisions:
   - id: d-82zp77fo
-    title: a vendored pack merges into the consumer's own pack
+    title: a vendored pack merges into the vendoring package's own pack
     statement: |
-      a consumer's build writes the vendored pack's content into the consumer's own pack of that
-      kind, under the consumer's namespace and its own header uuid. A consumer ships one behavior
-      pack and one resource pack whatever it vendors.
+      a vendored pack's content is written into the vendoring package's own pack of that kind, under
+      that package's namespace and its own header uuid. A vendoring package ships one behavior pack
+      and one resource pack whatever it vendors.
     status: proposed
+    scope: build
     pinned:
       reason: data-format
-      notes: the built output tree a consumer ships, and the pack identity a world activates
+      notes: the built output tree a vendoring package ships, and the pack identity a world activates
     because:
       - r-293j8n70
       - r-jxzqhhmo
@@ -19,7 +20,7 @@ decisions:
       - f:a-script-module-does-not-resolve-across-packs
       - f:f-8bxtf5w7
     commentary: |
-      A shared dependency's code half is bundled into the consumer already — no import reaches a
+      A shared dependency's code half is bundled into the vendoring package already — no import reaches a
       module in another pack, so code crosses at build time or not at all. Merging puts the asset
       half on the path the code half takes, instead of leaving a dependency half vendored and half
       shipped beside.
@@ -29,16 +30,17 @@ decisions:
       namespace the author chose is the one the vendored content carries, so the author writes
       their own names and the references land.
 
-      One pack leaves one identity, so no uuid is derived from a consumer and none is minted for a
+      One pack leaves one identity, so no uuid is derived from a vendoring package and none is minted for a
       vendoring: the output tree keeps its kind-named shape and the workspace gains no pack that no
       source declares.
 
   - id: d-l4wh3cgf
-    title: a consumer with no pack of its own gets one
+    title: a vendoring package with no pack of its own gets one
     statement: |
       a package that vendors a pack of a kind it holds no source pack of is built one, under a uuid
       derived from the package's own name. Its author declares nothing for it.
     status: proposed
+    scope: build
     pinned:
       reason: data-format
       notes: the uuid a world activates the pack by
@@ -67,6 +69,7 @@ decisions:
       it, and the pack is neither deployed nor activated as a pack of its own — by the harness, in
       an archive, or anywhere else the pack set is read.
     status: proposed
+    scope: [build, dev-loop]
     pinned:
       reason: public-api
       notes: the declaration a shared pack's author writes, and the difference between a pack that ships and one that does not
@@ -77,12 +80,12 @@ decisions:
       - f:a-declared-pack-dependency-activates-the-depended-on-pack
     cases:
       - when: a pack declares itself vendored
-        then: every consumer merges it, and it reaches no pool and no activation list
+        then: every vendoring package merges it, and it reaches no pool and no activation list
       - otherwise: the dependency resolves as it does today, both packs shipping
     commentary: |
       Whether a pack can be vendored is a property of the pack — it has to hold only content whose
       names the build can rewrite — so the pack is where it is declared, once, rather than in each
-      consumer.
+      vendoring package.
 
       Deploying it as well as its vendorings would put its unstamped names into the same pack stack
       as theirs, which is the cross-talk the namespace exists to prevent. It also settles what a
@@ -92,10 +95,11 @@ decisions:
   - id: d-jdqt63fi
     title: vendoring reads the vendored pack's source tree
     statement: |
-      a consumer's build reads the vendored pack's source directory and completes and rewrites it
+      a vendoring package's build reads the vendored pack's source directory and completes and rewrites it
       itself. It does not read that package's built output and does not require it to have been
       built.
     status: proposed
+    scope: build
     because:
       - d-82zp77fo
       - d-s1haiu19
@@ -113,6 +117,7 @@ decisions:
       its own full package name, scope included, unless it names something else. A package that
       vendors must turn it on. No field is added to `manifest.json`.
     status: proposed
+    scope: build
     pinned:
       reason: public-api
       notes: the setting a package writes, and the names it gets when it writes only the switch
@@ -142,7 +147,7 @@ decisions:
       The convention also asks for short, on the grounds that an author writes the namespace
       constantly. That does not reach this design: `d-8qkamvz7` has names written bare in sources
       and `d-zm6pxfrg` gives code a helper, so a namespace is typed nowhere. Taking the uniqueness
-      half and declining the brevity half is the trade that buys, and a short token stays one
+      half and declining the brevity half is the trade that buys, and a short namespace stays one
       override away for anyone who wants it in a selector.
 
   - id: d-p00wsgxo
@@ -152,6 +157,7 @@ decisions:
       where a chosen namespace is claimed. The build neither reads the registry nor requires an
       entry in it.
     status: proposed
+    scope: build
     because:
       - d-zk0c48uy
       - d-9s4tdc8z
@@ -171,8 +177,9 @@ decisions:
     statement: |
       the entity identifiers a pack declares carry its namespace. Every other name it declares —
       geometry, textures, materials, render controllers, animations, animation controllers — carries
-      a token derived from the built pack's own uuid instead.
+      the built pack's asset namespace instead.
     status: proposed
+    scope: build
     pinned:
       reason: data-format
       notes: the literal names inside a built pack, and which of them a stranger could ever address
@@ -187,7 +194,7 @@ decisions:
     cases:
       - when: the name is an entity identifier, or a localization key derived from one
         then: it carries the namespace
-      - otherwise: it carries the uuid token
+      - otherwise: it carries the asset namespace
     commentary: |
       An entity identifier is the only name anyone outside the pack addresses — a client entity
       definition is found by it, a selector and a command name it, and a localization key follows it
@@ -196,10 +203,10 @@ decisions:
 
       That is what makes the two different problems. An identifier wants to be readable and is
       therefore contendable, and everything else in this increment is about living with that. An
-      internal name wants nothing, so it can take the one token that cannot collide at all. Uuids
-      are already unique per pack and already checked across a workspace.
+      an internal name wants nothing, so its namespace can be the one thing that cannot collide at
+      all. Uuids are already unique per pack and already checked across a workspace.
 
-      So the subtle failure the whole exhaustive rewrite exists to prevent — one consumer's actor
+      So the subtle failure the whole exhaustive rewrite exists to prevent — one package's actor
       drawn with another's geometry — stops being a risk that is managed and becomes one that is
       absent. What remains contendable is the identifier, which is the loud, nameable case.
 
@@ -209,6 +216,7 @@ decisions:
       in a pack with namespacing on, names are written bare in source — `wizard`,
       `geometry.wizard` — and the build writes the namespace into them.
     status: proposed
+    scope: build
     pinned:
       reason: public-api
       notes: the form an author writes every name of their own in, once they turn namespacing on
@@ -232,6 +240,7 @@ decisions:
       the build rewrites the names a pack declares and the references to them. A reference to a name
       the pack does not declare — vanilla content, or another pack's — is copied through untouched.
     status: proposed
+    scope: build
     pinned:
       reason: public-api
       notes: which of an author's references survive the build as written
@@ -258,9 +267,10 @@ decisions:
       entity identifier — client and behavior halves alike. Content of any other kind in a vendored
       pack fails the build, naming the file.
     status: proposed
+    scope: build
     pinned:
       reason: public-api
-      notes: what a shared pack's author may put in a pack, and what a consumer's build will accept
+      notes: what a shared pack's author may put in a pack, and what a vendoring build will accept
     because:
       - r-c9bu8xes
       - d-27lzrwsu
@@ -284,6 +294,7 @@ decisions:
       the dependencies it vendors from. Two claiming the same one is an error naming the namespace
       and every claimant, with no claimant preferred.
     status: proposed
+    scope: build
     because:
       - r-293j8n70
       - r-dge04upw
@@ -303,6 +314,7 @@ decisions:
       the kit checks names where it can see them all — at a build. No check on the content itself
       can report contention: a pack cannot tell that a name it declared resolved to someone else's.
     status: proposed
+    scope: build
     because:
       - r-293j8n70
       - d-bhsz9eou
@@ -320,19 +332,20 @@ decisions:
       signal the surface has.
 
       What the type list cannot answer, a spawned entity can: the definition's own content arrives
-      with it, so a token the definition declares is provenance. `d-wj60379v` is that route, and it
+      with it, so a family the definition declares is provenance. `d-wj60379v` is that route, and it
       is why this decision is scoped to what the assets themselves can report.
 
   - id: d-wj60379v
-    title: a declared entity carries its pack's token, and the library checks it at use
+    title: a declared entity carries its pack's family, and the runtime checks it at use
     statement: |
-      the build stamps every entity type a namespaced pack declares with a type family carrying that
-      pack's own token, and the library checks it on an entity it spawns. An entity that does not
-      carry the token is reported.
+      the build gives every entity type a namespaced pack declares a type family naming that pack,
+      and the runtime checks for it on an entity it spawns. An entity not carrying the pack's own
+      family is reported.
     status: proposed
+    scope: [build, runtime]
     pinned:
       reason: public-api
-      notes: a family on every declared type, visible to any pack, and a report a consumer builds on
+      notes: a family on every declared type, visible to any pack, and a report a pack author builds on
     because:
       - r-293j8n70
       - d-p1i76cgb
@@ -340,7 +353,7 @@ decisions:
       - f:f-8bxtf5w7
       - f:f-o8xk7go5
     cases:
-      - when: a spawned entity carries the pack's own token
+      - when: a spawned entity carries the pack's own family
         then: the pack's definition is in what resolved, and nothing is reported
       - otherwise: the spawn fails, the entity is removed, and the call raises
     commentary: |
@@ -370,9 +383,10 @@ decisions:
   - id: d-35ovo8rl
     title: a vendored pack ships its source in its published package
     statement: |
-      a package holding a vendored pack publishes that pack's source directory, and a consumer's
+      a package holding a vendored pack publishes that pack's source directory, and a vendoring package's
       build reads it from the installed dependency exactly as from a workspace sibling.
     status: proposed
+    scope: build
     pinned:
       reason: public-api
       notes: what a shared pack's package must contain for anyone to vendor it
@@ -387,12 +401,13 @@ decisions:
       the code: what a dependency offers is what it published.
 
   - id: d-uq46uunx
-    title: a consumer installs as one file
+    title: a vendoring package installs as one file
     statement: |
-      the archive a consuming package builds holds everything a world needs from that consumer,
-      vendored content included. Installing a consumer is one file and one action, whatever it
+      the archive a vendoring package builds holds everything a world needs from that package,
+      vendored content included. Installing a vendoring package is one file and one action, whatever it
       depends on.
     status: proposed
+    scope: build
     pinned:
       reason: public-api
       notes: what an operator installs, and what another product may build a release story on
@@ -407,22 +422,23 @@ decisions:
       up a one-file install when it found the archive carried only its own packs can have it back,
       and should not have to re-derive that from two decisions and an archive rule.
 
-      Nothing about the archive changes. The vendored content is in the consumer's own output tree
+      Nothing about the archive changes. The vendored content is in the vendoring package's own output tree
       by the time the archive is cut, so what already ships one mcaddon per package now ships one
       that is complete.
 
   - id: d-1vhwdhk1
     title: a name collision between vendored and own content fails the build
     statement: |
-      where a consumer's own content and something it vendors declare the same name, or two of its
+      where a vendoring package's own content and something it vendors declare the same name, or two of its
       vendorings do, the build fails and names both declarations.
     status: proposed
+    scope: build
     because:
       - d-82zp77fo
       - d-8qkamvz7
       - f:f-8bxtf5w7
     commentary: |
-      Merging puts both under one namespace, where one silently wins and whichever consumer notices
+      Merging puts both under one namespace, where one silently wins and whichever author notices
       sees an actor drawn wrong. Nothing distinguishes the author's intent here, so neither side can
       be preferred.
 
@@ -434,6 +450,7 @@ decisions:
       any file more than one of the merged packs contributes entries to, which are composed.
       Dotfiles and unknown extensions copy like the rest.
     status: proposed
+    scope: build
     pinned:
       reason: data-format
       notes: which of an author's files survive the build byte for byte
@@ -464,8 +481,9 @@ decisions:
     statement: |
       a vendored pack declares no namespace and it is an error for its package to name one. Its
       build validates the pack and emits no pack output, since every name it declares is spelled by
-      whichever consumer takes it up.
+      whichever package takes it up.
     status: proposed
+    scope: build
     pinned:
       reason: public-api
       notes: what a shared pack's own build produces, and a setting its package may not carry
@@ -476,12 +494,12 @@ decisions:
       - d-jdqt63fi
     commentary: |
       A namespace is a property of something being built into a pack a world runs, and a vendored
-      pack is never that. Two consumers spell its names two ways, so there is no third spelling for
+      pack is never that. Two vendoring packages spell its names two ways, so there is no third spelling for
       it to hold — which is also why its source names are bare, the same form
       `d-8qkamvz7` asks of any namespaced pack's own content.
 
       Emitting nothing is what makes that consistent: a pack whose names have no spelling until a
-      consumer picks one has no output that could be correct. It also means a vendored pack has
+      vendoring package picks one has no output that could be correct. It also means a vendored pack has
       nothing for the harness to find, which bears on `q-sywqp93y` without settling it.
 
   - id: d-xoz6pwt8
@@ -490,6 +508,7 @@ decisions:
       the completed manifest carries no `dependencies` entry for a pack the build vendored. The
       entry stays in source, where it is what declares the dependency.
     status: proposed
+    scope: build
     pinned:
       reason: data-format
       notes: the built manifest a world reads
@@ -499,48 +518,56 @@ decisions:
       - r-wi7qf6to
       - f:a-declared-pack-dependency-activates-the-depended-on-pack
     commentary: |
-      There is nothing left to depend on: the content is in the consumer's own pack, and the pack
+      There is nothing left to depend on: the content is in the vendoring package's own pack, and the pack
       the entry names never reaches a pool. Left in, the entry would name a uuid the world cannot
       resolve.
 
   - id: d-4idoxbul
-    title: the kit ships a runtime half, as a subpath of its own package
+    title: the engine-side half is its own package
     statement: |
-      the kit exports a runtime entry point, `runtime`, holding the code that runs inside a built
-      pack: the identifier helper and the checked spawn. It imports the game modules, which stay
-      external at build, and imports nothing from the kit's Node-side halves.
+      the kit's engine-side code ships as `@twin-digital/mc-pack-runtime`, a package of its own
+      holding the identifier helper and the checked spawn. A pack takes it as an ordinary
+      dependency; `@twin-digital/mc-dev-kit` stays a development one and depends on it.
     status: proposed
+    scope: runtime
     pinned:
       reason: public-api
-      notes: a third export beside discovery and the build, and the import a pack's own script writes
+      notes: a second package a pack author installs, and which of the two is a runtime dependency
     because:
       - r-tvea5tvf
       - d-zm6pxfrg
       - d-wj60379v
-      - d-wss8fker
-      - d-a8lgrojc
+      - d-zyo6kku9
       - r-2alueo3d
       - f:a-script-module-does-not-resolve-across-packs
+      - f:tsdown-externalises-a-packages-declared-dependencies-by-default
     commentary: |
       Every helper this increment asks for is code that runs in the engine, and the kit has shipped
-      none before — discovery and the build both run in Node. Leaving it to consumers means each of
-      them writes the same identifier composition and the same provenance check, and gets the second
-      one subtly wrong, which is how a silent failure comes back.
+      none before — discovery and the build both run in Node. Leaving it to pack authors means each
+      of them writes the same identifier composition and the same provenance check, and gets the
+      second one subtly wrong, which is how a silent failure comes back.
 
-      A subpath rather than a package, following the build half: nothing new to install, and a pack
-      that already depends on the kit for its build reaches its runtime through the same name. The
-      separation that matters is not the package boundary but the import graph — the runtime half
-      pulls in no Node-side code, so a pack's bundle carries the helpers and nothing else.
+      Two packages rather than one with two entry points, because the two halves differ in the
+      thing a dependency list exists to record. The kit is a development dependency that runs in
+      Node and never ships; the runtime is a real dependency that runs in the engine and lands in
+      every bundle. One package would put a build tool in a pack's production dependencies and make
+      the split a matter of which import a bundler happened to reach. The harness is already a
+      package beside the library rather than an export of it, which is the same cut.
 
-      A consumer is free to write its own. What the kit owes is that the obvious thing is there.
+      The kit depends on the runtime because the build writes the namespace constant the runtime
+      reads, so one of them has to hold that contract and the reader is the natural owner.
+
+      A pack author is free to write their own. What the kit owes is that the obvious thing is
+      there.
 
   - id: d-zm6pxfrg
     title: the namespace reaches code as an injected constant
     statement: |
-      the build injects the consumer's namespace into the bundle as a constant, and the kit exposes
+      the build injects the vendoring package's namespace into the bundle as a constant, and the kit exposes
       it as a helper spelling a bare name into a full identifier. A vendored library and the
-      consumer's own code reach it the same way.
+      vendoring package's own code reach it the same way.
     status: proposed
+    scope: [build, runtime]
     pinned:
       reason: public-api
       notes: how any code in the bundle spells an identifier the build chose the namespace for
@@ -551,12 +578,12 @@ decisions:
       - f:a-script-module-does-not-resolve-across-packs
       - f:f-i8fx23h0
     commentary: |
-      The bundle is per consumer already, so the constant is per consumer without anything being
-      asked of the consumer. It is the same value `d-zk0c48uy` puts in the build configuration,
+      The bundle is per vendoring package already, so the constant is too, without anything being
+      asked of that package. It is the same value `d-zk0c48uy` puts in the build configuration,
       reaching the code path rather than the asset path.
 
       The helper is what keeps a long namespace from being a cost in code. A bare identifier does
       not resolve — the engine reads it as `minecraft:` and searches no further — so code must spell
       the full one, and `id('wizard')` is the author writing the same bare name they write in a
-      source file. Without it the consumer's own code is the one place the namespace would have to
+      source file. Without it the vendoring package's own code is the one place the namespace would have to
       be typed out.
