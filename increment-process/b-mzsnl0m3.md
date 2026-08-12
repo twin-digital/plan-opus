@@ -1,3 +1,9 @@
+---
+tags:
+  - tooling
+  - design-validator
+---
+
 # An in-force entry may cite a closed decision, and nothing says so
 
 `citation-resolves` checks only that a cited id is **declared** by some increment
