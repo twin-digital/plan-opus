@@ -4,6 +4,8 @@ presets:
   - name: nodejs-library
     version: 1
     scope: [discovery, build, dev-loop]
+  - name: monorepo-package
+    version: 1
 
 components:
   - id: discovery
@@ -134,7 +136,8 @@ requirements:
       than by adopting that preset. It is what `d-wss8fker`'s pinned `/build` subpath makes
       impossible for the kit itself and entirely natural here, and the repository's own package
       tooling generates a wildcard export block unless a package opts out — so this is a live
-      default to hold against, not a formality.
+      default to hold against, not a formality. `r-82ck2fax` is where that opt-out belongs: with
+      the monorepo's declarative configuration, not in the package.
 
       Getting the target wrong is not a lint failure. The engine rejects the ES2024 RegExp `v` flag
       and a surviving node shim's `node:url` import takes the whole module with it, so a package
