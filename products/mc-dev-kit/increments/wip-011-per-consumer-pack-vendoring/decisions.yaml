@@ -35,32 +35,30 @@ decisions:
       source declares.
 
   - id: d-l4wh3cgf
-    title: a vendoring package with no pack of its own gets one
+    title: a vendoring package declares its own pack of the kind it vendors
     statement: |
-      a package that vendors a pack of a kind it holds no source pack of is built one, under a uuid
-      derived from the package's own name. Its author declares nothing for it.
+      a package vendoring content of a kind must hold its own source manifest of that kind. The
+      build fails otherwise, naming the manifest to add.
     status: proposed
     scope: build
     pinned:
-      reason: data-format
-      notes: the uuid a world activates the pack by
+      reason: public-api
+      notes: what an author must write before a dependency's content can arrive
     because:
       - d-82zp77fo
       - r-zcdmh9p6
       - r-293j8n70
       - r-xcz7nzr6
     commentary: |
-      Using a library and holding no assets of one's own is the ordinary case, and it is the one
-      that should ask for the least. A package name is already unique in a workspace and already
-      stable across rebuilds and checkouts, which is everything a uuid a world activates by has to
-      be — so there is nothing here an author could supply that the package does not already say.
+      A pack a world activates needs an identity, and source-manifest presence is the whole
+      membership test — so a pack the build minted from nothing would sit in an output tree that
+      discovery never reports, which is to say it would be built, archived, and never deployed. The
+      manifest is what makes it a pack at all.
 
-      Renaming the package changes the uuid, and a world holding the old one loses the pack. That is
-      the one thing to know about it.
-
-      Deriving here and not for a pack the author already minted a uuid for is the same rule read
-      twice: the identity comes from what the package declares, and it is derived only where the
-      package declares none.
+      It costs an author who holds no assets of their own a short manifest with a uuid they mint, in
+      exchange for an identity nothing has to derive, a uuid the workspace-wide uniqueness check can
+      see, and a pack the harness deploys like any other. Deriving one from the package name would
+      also have moved silently when the package was renamed.
 
   - id: d-27lzrwsu
     title: a vendored pack lives outside the discovered locations
@@ -80,7 +78,7 @@ decisions:
       - f:f-8bxtf5w7
     cases:
       - when: a package's source holds `vendored_pack/`
-        then: its content is vendored, and the package contributes nothing to the pack set
+        then: that directory's content is vendored and adds nothing to the pack set
       - otherwise: a source manifest at a discovered location makes an ordinary pack, as today
     commentary: |
       Location is already the whole membership test: a package bears a pack when its source holds
@@ -94,9 +92,12 @@ decisions:
       to declare, so the file would be a form filled in for a purpose that never arrives — and
       keeping one at a discovered path is exactly what would put it back in the pack set.
 
-      A pack cannot be both vendored and shipped standalone. That follows from the location and is
-      no loss: the two want different names, since a vendored pack's names are spelled by whichever
-      package takes it up.
+      What is vendored is the directory, not the package. A package may hold `vendored_pack/`
+      alongside a pack of its own and be both a shared dependency and a pack that ships; the two
+      trees are read by different things and neither shadows the other.
+
+      One tree cannot be both, though, and that is no loss: a vendored pack's names are spelled by
+      whichever package takes it up, so it has no spelling of its own to ship under.
 
   - id: d-jdqt63fi
     title: vendoring reads the vendored pack's source tree
@@ -199,6 +200,33 @@ decisions:
       worth a gate: the build cannot see a world, so the only thing it could compare is one build
       against another, which mc-rpg-core does by hand for its own reasons and which is a discipline
       a pack may adopt without the kit imposing it.
+
+  - id: d-jibcuv16
+    title: the watch set reaches the vendored trees a build reads
+    statement: |
+      the watch inputs a build registers include the `vendored_pack/` tree of every dependency it
+      vendors, beside the package's own pack sources, its source manifests, its `package.json`, and
+      the `package.json` of each workspace package its manifest names.
+    status: proposed
+    scope: build
+    supersedes: d-095jgny3
+    because:
+      - r-v8jjhds5
+      - r-cekp2mcb
+      - r-wi7qf6to
+      - d-jdqt63fi
+      - f:a-rolldown-plugin-can-declare-extra-watch-inputs
+    commentary: |
+      Restated rather than extended because the set is the whole of what triggers a rebuild, and a
+      reader needs one list.
+
+      Vendoring makes a dependency's source an input to every dependent's build, and an input the
+      watch set does not name is an edit that never reaches a running world. That would break the
+      edit-to-live loop precisely for shared content — the content most likely to be under active
+      work, since it is what several packs are being written against at once.
+
+      Directories are registered rather than their files, as before, so an asset added to a vendored
+      tree triggers a rebuild like one added to a pack's own.
 
   - id: d-p00wsgxo
     title: the docs send an author who overrides the default to the registry
