@@ -125,16 +125,20 @@ decisions:
     cases:
       - when: the setting names a namespace
         then: that is the namespace
-      - otherwise: the namespace is the package's own name, slugged into what an identifier may hold
+      - otherwise: the namespace is the package's name with any scope dropped, in whatever spelling
+          an identifier admits
     commentary: |
       A namespace is something the build consumes and nothing the engine reads, and a manifest is
       shipped verbatim to the engine. Putting it in the manifest would mean declaring and validating
       a field that has no meaning there.
 
-      The default is the package name because it is already unique across the registry, so the
-      author who thinks about none of this gets the safe answer. A short name like `rpg` is
-      available to anyone who wants it and is a claim on a token strangers may also want; making it
-      the thing you type rather than the thing you get is the whole of the protection available.
+      The default comes from the package name because npm already made the author pick a
+      distinguishing one, so the author who thinks about none of this gets a token no neighbour is
+      likely to hold. The scope is dropped because it roughly doubles the length while removing only
+      the collision between two strangers who independently chose one package name — rarer by far
+      than two people reaching for `rpg`, which is the collision this is actually guarding against.
+      A short name stays available to anyone who wants it, and making it the thing you type rather
+      than the thing you get is the whole of the protection available.
 
   - id: d-8qkamvz7
     title: a namespaced pack writes bare names in source
@@ -319,8 +323,8 @@ decisions:
     statement: |
       a file under a pack's source directory reaches the output unchanged except its
       `manifest.json`, everything under `scripts/`, any file carrying a name the build rewrites, and
-      any file the consumer's own content and a vendoring both contribute to, whose entries are
-      composed. Dotfiles and unknown extensions copy like the rest.
+      any file more than one of the merged packs contributes entries to, which are composed.
+      Dotfiles and unknown extensions copy like the rest.
     status: proposed
     pinned:
       reason: data-format
@@ -347,6 +351,31 @@ decisions:
       written back to a source directory, so no authored file gains generated content and no
       authored directory gains an ignored file.
 
+  - id: d-7jn9c702
+    title: a vendored pack has no namespace and no output of its own
+    statement: |
+      a vendored pack declares no namespace and it is an error for its package to name one. Its
+      build validates the pack and emits no pack output, since every name it declares is spelled by
+      whichever consumer takes it up.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: what a shared pack's own build produces, and a setting its package may not carry
+    because:
+      - d-27lzrwsu
+      - d-zk0c48uy
+      - d-8qkamvz7
+      - d-jdqt63fi
+    commentary: |
+      A namespace is a property of something being built into a pack a world runs, and a vendored
+      pack is never that. Two consumers spell its names two ways, so there is no third spelling for
+      it to hold — which is also why its source names are bare, the same form
+      `d-8qkamvz7` asks of any namespaced pack's own content.
+
+      Emitting nothing is what makes that consistent: a pack whose names have no spelling until a
+      consumer picks one has no output that could be correct. It also means a vendored pack has
+      nothing for the harness to find, which bears on `q-sywqp93y` without settling it.
+
   - id: d-xoz6pwt8
     title: a vendored dependency leaves the built manifest
     statement: |
@@ -367,19 +396,28 @@ decisions:
       resolve.
 
   - id: d-zm6pxfrg
-    title: the library's namespace is an injected constant
+    title: the namespace reaches code as an injected constant
     statement: |
-      the build injects the consumer's namespace into the bundle as a constant, and a vendored
-      library reads it to compose the names it calls with.
+      the build injects the consumer's namespace into the bundle as a constant, and the kit exposes
+      it as a helper spelling a bare name into a full identifier. A vendored library and the
+      consumer's own code reach it the same way.
     status: proposed
     pinned:
       reason: public-api
-      notes: how a vendored library reads the namespace it composes names with
+      notes: how any code in the bundle spells an identifier the build chose the namespace for
     because:
       - r-tvea5tvf
+      - r-jxzqhhmo
       - d-zk0c48uy
       - f:a-script-module-does-not-resolve-across-packs
+      - f:f-i8fx23h0
     commentary: |
-      The library is bundled per consumer already, so the constant is per consumer without anything
-      being asked of the consumer. It is the same value `d-zk0c48uy` puts in the build
-      configuration, reaching the code path rather than the asset path.
+      The bundle is per consumer already, so the constant is per consumer without anything being
+      asked of the consumer. It is the same value `d-zk0c48uy` puts in the build configuration,
+      reaching the code path rather than the asset path.
+
+      The helper is what keeps a long namespace from being a cost in code. A bare identifier does
+      not resolve — the engine reads it as `minecraft:` and searches no further — so code must spell
+      the full one, and `id('wizard')` is the author writing the same bare name they write in a
+      source file. Without it the consumer's own code is the one place the namespace would have to
+      be typed out.
