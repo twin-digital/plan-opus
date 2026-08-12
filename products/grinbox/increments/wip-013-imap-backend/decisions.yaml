@@ -242,12 +242,12 @@ decisions:
 
   - id: d-8am29x25
     scope: backends
-    title: archiving is a move, and an account that cannot move safely cannot archive
+    title: moving a message needs a safe move, and an account without one cannot archive or file
     statement: |
-      archiving on an IMAP account moves the message from the arrival mailbox to the account's
-      archived mailbox — by the server's own move where it advertises one, and otherwise by a copy
-      followed by an expunge naming that message's identifier alone. Where the server advertises
-      neither, the account declares it cannot archive.
+      archiving and filing on an IMAP account both move the message out of the arrival mailbox — by
+      the server's own move where it advertises one, and otherwise by a copy followed by an expunge
+      naming that message's identifier alone. Where the server advertises neither, the account
+      declares it can do neither.
     commentary: |
       The fallback every client used before the move command exists ends in an expunge that also
       throws away anything else in the mailbox already flagged for deletion — someone else's
@@ -259,6 +259,7 @@ decisions:
       - f-yawjn42g
       - f-np5bnzew
       - d-yjd4ag9q
+      - d-jj2mymbi
       - d-zxvkt95o
       - d-f9tj4wnr
     pinned:
@@ -304,6 +305,108 @@ decisions:
     because:
       - d-q2hx8vlm
     pinned: false
+
+  # putting a message somewhere the user can see it
+  - id: d-jj2mymbi
+    scope: triage
+    title: a file action
+    statement: |
+      grinbox ships an action that moves the message into a mailbox of the user's account, named in
+      the action's own configuration. Where the account has no mailbox of that name, the operation
+      fails, and grinbox creates none.
+    commentary: |
+      A mailbox is what every mail client shows, and metadata carried any other way is invisible in
+      a client that keeps its own — which is most of them, Outlook among them. This is the action a
+      user reaches for when the point is to see the outcome in the mail client they already read
+      their mail in, and it is the only mechanism grinbox has that reaches one.
+
+      Failing on an account without the mailbox is the consequence of not creating mailboxes: a
+      pipeline may be active on several accounts, and whether a mailbox of some name exists on each
+      is not a thing the save-time check can see. The failure is an ordinary operator failure and
+      settles the triage partial.
+    status: proposed
+    because:
+      - d-5n8oyi8c
+      - r-g1iwlbzs
+      - f-12lyvbmp
+      - d-16geyxco
+    pinned:
+      reason: public-api
+      notes: an operator type the user configures against, and the stored shape of that operator
+
+  - id: d-x3aqw6up
+    scope: backends
+    title: filing is a resource operation the backend carries
+    statement: |
+      a mail backend implements two seams. The poll seam carries what the poll path needs —
+      enumerating candidates, fetching metadata, applying a category, reporting thread placement,
+      and taking the whole-mailbox snapshot the reconcile reads. The resource backends carry what
+      an operator's declared operations reach: archiving, filing into a named mailbox, fetching a
+      body, and sending mail.
+    commentary: |
+      Filing reaches outside grinbox and belongs where the other mail operations are, so that a
+      backend which cannot carry it declares that the way it declares every other gap. The seam is
+      otherwise unchanged.
+    status: proposed
+    supersedes: d-q2hx8vlm
+    because:
+      - r-etj0gluz
+      - d-v5zamgjn
+      - d-jj2mymbi
+    pinned:
+      reason: public-api
+      notes: the surface a second backend is written against
+
+  - id: d-93swk5rr
+    title: the actions add, and archiving and filing move the message
+    statement: |
+      applying a category adds one grinbox-owned marker to the message and touches nothing else.
+      Archiving takes the message out of the inbox and filing puts it in a mailbox the user named;
+      each keeps every other marker, leaves the message findable, and is recorded by grinbox as
+      where the message went. No built-in action deletes a message.
+    commentary: |
+      What grinbox does to mail the user cannot get back is what this fixes, and filing joins
+      archiving as a thing that moves a message rather than one that adds to it. Neither loses the
+      message, which is the guarantee the entry exists to hold.
+    status: proposed
+    supersedes: d-ypmi8g3g
+    because:
+      - r-ziitim35
+      - d-5n8oyi8c
+      - d-jj2mymbi
+    pinned:
+      reason: other
+      notes: what grinbox does to mail the user cannot get back is exactly what this fixes
+
+  - id: d-b4yifc70
+    title: which outside calls grinbox retries
+    statement: |
+      grinbox retries an outside call within the operation that made it, invisibly to the operator
+      that declared it, and on any failure rather than a classified subset. A retry stops at the
+      operator's deadline. The poll path reaches its poll seam without passing through this, so a
+      failed poll waits for the next heartbeat.
+    cases:
+      - when: the call is a read — listing a mailbox, fetching a message's metadata or body, invoking a model
+        then: it takes up to three further attempts with a doubling wait
+      - when: the call writes to the mailbox
+        then: it takes up to two further attempts at a fixed wait
+      - when: the call sends a notification or sends mail, or its operation has no policy of its own
+        then: it is never retried
+    commentary: |
+      Unchanged but for the mailbox-write case, which named the two writes there were and now names
+      the kind, so that filing is covered by what already governs archiving and applying a category.
+    status: proposed
+    supersedes: d-m5zk9xcw
+    because:
+      - d-g3xc9rmv
+      - d-v5zamgjn
+      - d-5xp2tv2d
+      - d-jj2mymbi
+    pinned:
+      reason: other
+      notes: |
+        a retried send is an effect the user sees twice, and what rests on this rests on the
+        reaching-the-user case not being retried
 
   # what an IMAP account cannot do
   - id: d-5h66e3zl
