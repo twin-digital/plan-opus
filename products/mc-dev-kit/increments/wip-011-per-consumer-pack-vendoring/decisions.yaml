@@ -107,39 +107,51 @@ decisions:
       the vendoring.
 
   - id: d-zk0c48uy
-    title: the namespace is a build setting
+    title: the namespace is an opt-in build setting defaulting to the package name
     statement: |
-      a package states its namespace in the build configuration it already hands the kit, beside
-      its package directory. No field is added to `manifest.json`.
+      a package turns namespacing on in the build configuration it already hands the kit, and gets
+      its own package name, slugged, unless it names something else. A package that vendors must
+      turn it on. No field is added to `manifest.json`.
     status: proposed
     pinned:
       reason: public-api
-      notes: the setting every consuming package writes
+      notes: the setting a package writes, and the names it gets when it writes only the switch
     because:
       - r-jxzqhhmo
+      - r-293j8n70
       - d-qtq0ccy6
       - d-1w5rjhg6
       - r-jl42pzah
+    cases:
+      - when: the setting names a namespace
+        then: that is the namespace
+      - otherwise: the namespace is the package's own name, slugged into what an identifier may hold
     commentary: |
       A namespace is something the build consumes and nothing the engine reads, and a manifest is
-      shipped verbatim to the engine. Putting it in the manifest would mean declaring and
-      validating a field that has no meaning there.
+      shipped verbatim to the engine. Putting it in the manifest would mean declaring and validating
+      a field that has no meaning there.
+
+      The default is the package name because it is already unique across the registry, so the
+      author who thinks about none of this gets the safe answer. A short name like `rpg` is
+      available to anyone who wants it and is a claim on a token strangers may also want; making it
+      the thing you type rather than the thing you get is the whole of the protection available.
 
   - id: d-8qkamvz7
-    title: an author writes bare names and the build applies the namespace
+    title: a namespaced pack writes bare names in source
     statement: |
-      names in a pack's own source are written bare — `wizard`, `geometry.wizard` — and the build
-      writes the namespace into them. A source name already carrying a namespace is a build
-      failure, not a name passed through.
+      in a pack with namespacing on, names are written bare in source — `wizard`,
+      `geometry.wizard` — and the build writes the namespace into them.
     status: proposed
     pinned:
       reason: public-api
-      notes: the form an author writes every name of their own in
+      notes: the form an author writes every name of their own in, once they turn namespacing on
     because:
       - r-jxzqhhmo
       - d-zk0c48uy
       - f:f-i8fx23h0
     cases:
+      - when: namespacing is off
+        then: names reach the output as the source spells them
       - when: a source name is bare
         then: the built name carries the namespace
       - otherwise: the build fails, naming the file and the name
@@ -199,19 +211,93 @@ decisions:
       reading, and each is admitted by an increment that brings the evidence.
 
   - id: d-bhsz9eou
-    title: a namespace is claimed once in a workspace
+    title: a namespace is claimed once among the packages a build reads
     statement: |
-      one namespace is claimed by exactly one package in the workspace. Two packages stating the
-      same one is an error naming the namespace and every claimant, with no claimant preferred.
+      one namespace is claimed by exactly one of the packages a build reads — the workspace's, and
+      the dependencies it vendors from. Two claiming the same one is an error naming the namespace
+      and every claimant, with no claimant preferred.
     status: proposed
     because:
       - r-293j8n70
+      - r-dge04upw
       - d-zk0c48uy
       - f:f-8bxtf5w7
     commentary: |
-      A shared namespace is a shared name space, so two consumers picking one puts back exactly the
-      contention vendoring removed — and quietly, since each builds fine alone. It is the check
-      `r-xcz7nzr6` already makes on uuids, over the other thing that has to be unique.
+      A shared namespace is a shared name space, so two packages picking one puts back exactly the
+      contention vendoring removed — and quietly, since each builds fine alone.
+
+      What a build reads is what it can check, and that is short of every pack a world will run.
+      Two strangers who both took `rpg` collide in the world and in no build, which is what makes
+      the default namespace matter more than this check does.
+
+  - id: d-p1i76cgb
+    title: a name contended for is caught at build time or not at all
+    statement: |
+      the kit checks names where it can see them all — at a build — and ships nothing that looks for
+      a contended name at run time.
+    status: proposed
+    because:
+      - r-293j8n70
+      - d-bhsz9eou
+      - d-1vhwdhk1
+      - f:f-8bxtf5w7
+      - f:a-resource-pack-cannot-carry-anything-a-script-can-reach
+      - f:f-o8xk7go5
+    commentary: |
+      Not a preference — the detection does not exist. A resource pack can carry nothing a script
+      can reach: it cannot be enumerated, `getPackSettings` reads empty, and a timeline in one
+      cannot fire a scriptevent, so there is no canary to ship. On the behavior side
+      `EntityTypes.getAll` marks no type with the pack that defined it and repeats no id, so a
+      definition that lost is simply absent, and `undefined` is the only miss signal the surface
+      has — indistinguishable from a type nobody ever defined.
+
+      So the losing pack cannot know it lost and the winning one cannot know it won. Everything the
+      kit can do about contention it does before the pack ships, which is why the default namespace
+      is the one nobody else can hold.
+
+  - id: d-35ovo8rl
+    title: a vendored pack ships its source in its published package
+    statement: |
+      a package holding a vendored pack publishes that pack's source directory, and a consumer's
+      build reads it from the installed dependency exactly as from a workspace sibling.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: what a shared pack's package must contain for anyone to vendor it
+    because:
+      - r-dge04upw
+      - d-jdqt63fi
+      - d-27lzrwsu
+      - f:npm-install-fetches-a-package-and-its-dependencies
+    commentary: |
+      Vendoring reads source, so the source has to be in the tarball — a pack that publishes only
+      its built output cannot be vendored by anyone. It is the assets answering to the same rule as
+      the code: what a dependency offers is what it published.
+
+  - id: d-uq46uunx
+    title: a consumer installs as one file
+    statement: |
+      the archive a consuming package builds holds everything a world needs from that consumer,
+      vendored content included. Installing a consumer is one file and one action, whatever it
+      depends on.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: what an operator installs, and what another product may build a release story on
+    because:
+      - d-82zp77fo
+      - d-xoz6pwt8
+      - d-6ewrh1g3
+      - r-phxrb6qn
+    commentary: |
+      It follows from merging plus an archive cut from the package's own output tree, and it is
+      stated because it is the outcome anyone downstream actually plans against. A product that gave
+      up a one-file install when it found the archive carried only its own packs can have it back,
+      and should not have to re-derive that from two decisions and an archive rule.
+
+      Nothing about the archive changes. The vendored content is in the consumer's own output tree
+      by the time the archive is cut, so what already ships one mcaddon per package now ships one
+      that is complete.
 
   - id: d-1vhwdhk1
     title: a name collision between vendored and own content fails the build

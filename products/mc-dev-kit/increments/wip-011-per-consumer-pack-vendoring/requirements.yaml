@@ -15,14 +15,18 @@ terms:
 
 requirements:
   - id: r-jxzqhhmo
-    title: a pack author chooses their namespace
+    title: a pack author may choose a namespace
     statement: |
-      every name a built pack declares carries a namespace of the pack author's choosing, stated
-      once and written into no name by hand.
+      where a pack declares a namespace, every name it declares carries it, written into no name by
+      hand. A pack declaring none builds as it always has.
     commentary: |
       Names are what an author reads in a server log, types into a selector, and hands another
       author to reference. A namespace the tooling picks is one the author has to look up before
       they can use their own pack.
+
+      Namespacing is what vendoring needs, and packs that vendor nothing are most of them. Making it
+      the condition of building at all would rewrite every existing pack's names for a property
+      those packs have no use for.
 
   - id: r-293j8n70
     title: a shared pack is vendored per consumer
@@ -35,6 +39,17 @@ requirements:
     commentary: |
       The isolation this buys is complete: no uuid two consumers contend over, no version one of
       them has to match, and nothing left for a server operator to reconcile between them.
+
+  - id: r-dge04upw
+    title: a shared pack may be published
+    statement: |
+      a pack a consumer vendors may reach that consumer as an installed dependency, and need not
+      share a workspace with it.
+    commentary: |
+      Sharing a pack between packages one author controls is the small half of the problem. The
+      whole point of a shared pack is that someone else uses it, and per-consumer isolation is worth
+      most exactly where the consumers are strangers to each other. A vendoring that reached only
+      workspace siblings would serve the case that needs it least.
 
   - id: r-c9bu8xes
     title: an incomplete rewrite fails the build

@@ -12,18 +12,6 @@ questions:
       `d-vrq7lc2o` would deploy it as a stub. Amending `r-u8cg9vi6` to except a vendored pack is the
       owner's call; the alternative is that `d-27lzrwsu` gives way and a vendored pack ships twice.
 
-  - id: q-em9yfbqa
-    answer: requirement
-    question: |
-      does vendoring reach a pack that arrives as an installed npm dependency, or only one that is a
-      member of the same workspace? Discovery is workspace-scoped throughout — packages come from the
-      workspace definition, and membership is a source manifest in a workspace package — so a pack in
-      `node_modules` is not in the pack set at all today. The case that makes this pressing is the one
-      the kit exists to serve: a shared pack published to npm and consumed by an adventure in someone
-      else's workspace, which is where per-consumer isolation is worth the most. Everything this
-      increment records holds either way; what changes is where the build looks for a vendored pack's
-      source.
-
   - id: q-zvn4dqpp
     answer: fact
     question: |
