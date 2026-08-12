@@ -1,0 +1,192 @@
+version: "3"
+
+decisions:
+  - id: d-7f5rbatg
+    scope: triage
+    title: the delayed archive's stored names
+    statement: |
+      the archive configuration names its delay in an optional `delay_seconds` field. A pending
+      archive is a `pending_archives` row carrying the message, the triage and the operator whose
+      run recorded it, the `due_at` moment — the message's take-in plus `delay_seconds`, in unix
+      seconds — and its status. A settled row stays, and at most one row per message stands.
+    status: accepted
+    because:
+      - d-grcdd4ov
+      - d-0tajzoy7
+    pinned:
+      reason: data-format
+      notes: |
+        d-grcdd4ov leaves the stored field's name to implementation, as the cooldown's was left
+        to d-l6bbgp05
+
+  - id: d-rq632oul
+    scope: triage
+    title: what became of a pending archive
+    statement: |
+      a pending archive's status is one of `pending`, `archived`, `already_departed`, `failed`,
+      `cancelled`, `superseded`, or `abandoned` — the standing state, then one name per outcome:
+      performed; the message had already left the inbox; the call failed past its retries; a
+      later settled triage recorded none; another recording replaced it; its pipeline or account
+      was deleted.
+    status: delegated
+    because:
+      - d-41v9yqvh
+      - d-0tajzoy7
+      - d-7f5rbatg
+    pinned:
+      reason: data-format
+
+  - id: d-ymvh4v9a
+    scope: triage
+    title: the delayed archive's triage-event kinds
+    statement: |
+      the triage-events attempt vocabulary gains `pending_archive_recorded`, appended by an
+      archive run that recorded a pending archive rather than calling, carrying the due moment
+      and the delay; and `pending_archive_skipped`, appended when the moment came and no call
+      was made, carrying the reason — `already_departed`, `abandoned`, or `pipeline_inactive`.
+      A call that is made records under the existing `resource_op_succeeded`,
+      `resource_op_limited`, and `resource_op_failed`.
+    status: delegated
+    because:
+      - d-41v9yqvh
+      - d-e9jslw4x
+      - d-7hne81hc
+    pinned:
+      reason: data-format
+
+  - id: d-qk3xs2eg
+    scope: interface
+    title: the pending archive on the message read surfaces
+    statement: |
+      every message read surface carries a `pending_archive` member: the due moment, the triage
+      that recorded it, and the operator whose run recorded it, or null where none stands. Only
+      a standing pending archive is carried, so the member needs no status of its own.
+    status: accepted
+    because:
+      - d-p0ea1t8q
+      - d-a4yrn8sw
+      - d-7f5rbatg
+    pinned:
+      reason: public-api
+
+  - id: d-egkpzkc5
+    title: the heartbeat's deployment variable
+    statement: |
+      the deployment sets the one heartbeat with `GRINBOX_HEARTBEAT_SECONDS`, a whole number of
+      seconds defaulting to 60. It replaces `GRINBOX_POLL_SCHEDULER_TICK_SECONDS` and
+      `GRINBOX_DIGEST_SCHEDULER_TICK_SECONDS`, which the daemon no longer reads.
+    status: accepted
+    because:
+      - d-gzv0jty7
+      - d-mq7vdduz
+    pinned:
+      reason: public-api
+      notes: |
+        the deployment repository sets it, and a converge against the old names configures
+        nothing
+
+  - id: d-bpj1jclb
+    title: one heartbeat wakes on whatever has come due
+    statement: |
+      one heartbeat wakes the poll, digest, and pending-archive sweeps — a minute by default, set
+      by the deployment — acting on what has come due: a poll interval, a reconcile, a cue, a
+      pending archive's moment. Nothing is scheduled per account, edition, or message, and
+      nothing else decides something is due; a queue drain and a deadline are not schedules.
+    commentary: |
+      A heartbeat arriving mid-cycle does nothing. Arrival latency is the account's interval plus
+      up to one heartbeat, and everything else is up to one heartbeat past due; a moment slept
+      through is still due on return. The superseded entry counted the three sweeps but not the
+      reconcile's due-check, and its "nothing else wakes on its own timer" reached the execution
+      loop and the deadlines bounding a call — neither of which decides that anything is due.
+    status: accepted
+    supersedes: d-gzv0jty7
+    because:
+      - r-0lg2c2e4
+      - d-nq4fk2xr
+      - d-6vnf59rv
+      - d-81ouxrpi
+      - d-grcdd4ov
+    pinned:
+      reason: other
+      notes: |
+        the arrival latency the product promises is the account's interval plus this heartbeat,
+        so the ceiling on the per-account interval alone does not bound it
+
+  - id: d-hf3gfs9u
+    title: the execution loop drains the run queue, bounded by one pool
+    statement: |
+      operator runs wait in a queue, and the execution loop dispatches every run whose declared
+      inputs are present — at most a fixed number at once, three by default, set by the
+      deployment, taking the longest-waiting first. The loop runs off what the queue holds
+      rather than a cadence; nothing enqueues on a schedule.
+    commentary: |
+      A run becomes eligible the moment its producer settles, so a triage advances at the loop's
+      pace rather than the heartbeat's; what enqueues is a take-in or the user asking. The bound
+      is the process's, not an account's or a pipeline's, so one busy pipeline and every other
+      share it. The superseded entry stated the bound without stating the loop that applies it,
+      which left the fold silent on how a triage advances between operators.
+    status: accepted
+    supersedes: d-k5nnblfp
+    because:
+      - d-81ouxrpi
+      - d-2gyfmt8m
+      - r-0lg2c2e4
+      - r-63vrxr22
+    pinned:
+      reason: other
+      notes: |
+        it is the throughput ceiling behind the arrival-latency promise, and a number the
+        deployment supplies rather than the daemon choosing per install
+
+  - id: d-gj8j4np0
+    scope: backends
+    title: a full reconcile heals what the incremental feed missed
+    statement: |
+      grinbox takes a whole-mailbox snapshot per account and reconciles its record against it,
+      due per account on a cadence the deployment sets — a day by default — and acted on by the
+      heartbeat's poll sweep. The incremental feed notices arrivals; the reconcile corrects
+      drift, and a message's standing may be stale until it runs.
+    status: delegated
+    supersedes: d-jeyg1z1r
+    because:
+      - d-7a8aoi4z
+      - d-8fvu0g4z
+      - d-bpj1jclb
+
+  - id: d-o5vuzr40
+    scope: triage
+    title: a deleted operator abandons its pending archive
+    statement: |
+      a pending archive whose recording operator was deleted never performs, as one whose
+      pipeline or account was deleted never performs. Deleted configuration stops being acted
+      on, and the operator carrying the delay is configuration like the rest.
+    status: accepted
+    because:
+      - d-41v9yqvh
+      - d-s2kf8vjq
+      - d-rq632oul
+
+  - id: d-6a4p1edu
+    scope: triage
+    title: a denied due archive records its denial once
+    statement: |
+      a pending archive a limit denies records `resource_op_limited` on the first beat that
+      meets the denial and not on the beats that follow, while the row stays due. The window
+      frees and the archive performs; the run carries one denial rather than one per beat.
+    status: delegated
+    because:
+      - d-41v9yqvh
+      - d-j8wm2qfx
+
+  - id: d-hgqlouvn
+    scope: triage
+    title: a departed message is read from grinbox's own record
+    statement: |
+      whether a due archive's message has already left the inbox is read from the standing
+      grinbox holds, not from a fresh call to the backend. Where that standing is stale the
+      archive call is made and the backend answers it as the no-op it is.
+    status: delegated
+    because:
+      - d-41v9yqvh
+      - d-jeyg1z1r
+      - d-jr86qq8b
