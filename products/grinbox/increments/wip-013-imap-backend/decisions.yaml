@@ -87,18 +87,18 @@ decisions:
       - d-ioso3voc
     pinned: false
 
-  # the mailboxes an account works in
+  # the folders an account works in
   - id: d-zxvkt95o
     scope: backends
-    title: the account names the mailboxes grinbox watches
+    title: the account names the folders grinbox watches
     statement: |
-      an IMAP account names four mailboxes: its arrival mailbox, and the ones standing for
+      an IMAP account names four folders: its arrival folder, and the ones standing for
       archived, trashed, and spam mail. Grinbox proposes them from the roles the server advertises
-      and from the account's mailbox names, and what the user accepted is what is stored.
+      and from the account's folder names, and what the user accepted is what is stored.
     commentary: |
-      No server has to advertise an archive mailbox and a stock dovecot does not, so a design that
+      No server has to advertise an archive folder and a stock dovecot does not, so a design that
       discovered the destination would work on some accounts and not others for reasons the user
-      could not see. Asking is also what keeps grinbox out of the business of creating mailboxes in
+      could not see. Asking is also what keeps grinbox out of the business of creating folders in
       an account someone else arranged.
     status: proposed
     because:
@@ -108,17 +108,17 @@ decisions:
       - d-jr86qq8b
     pinned:
       reason: data-format
-      notes: four stored per-account mailbox names the interface exposes and the poll path reads
+      notes: four stored per-account folder names the interface exposes and the poll path reads
 
   - id: d-qstpa7y0
     scope: backends
-    title: an IMAP message's standing is the mailbox it is in
+    title: an IMAP message's standing is the folder it is in
     statement: |
-      a message in the account's arrival mailbox stands as present, and one in its archived,
-      trashed, or spam mailbox stands as that. A message in none of the four is recorded as
+      a message in the account's arrival folder stands as present, and one in its archived,
+      trashed, or spam folder stands as that. A message in none of the four is recorded as
       archived, and no message on an IMAP account is recorded as deleted.
     commentary: |
-      A message the user filed into a mailbox of their own has left the inbox and has not been
+      A message the user filed into a folder of their own has left the inbox and has not been
       thrown away, which is what archived says. Reporting it deleted would be a claim grinbox
       cannot support and the more alarming of the two mistakes. Deleted stays in the vocabulary for
       backends that can tell.
@@ -134,12 +134,12 @@ decisions:
     scope: backends
     title: grinbox holds where an IMAP message is, and what it is
     statement: |
-      grinbox stores an IMAP message's mailbox, that mailbox's UIDVALIDITY, and its UID as where
+      grinbox stores an IMAP message's folder, that folder's UIDVALIDITY, and its UID as where
       the message currently is, and its Message-ID header as what identifies it. Where the stored
       location resolves to nothing, the message is looked for by Message-ID across the account's
-      four mailboxes.
+      four folders.
     commentary: |
-      IMAP identifies a message per mailbox, so the identifiers grinbox stored name nothing once
+      IMAP identifies a message per folder, so the identifiers grinbox stored name nothing once
       the message moves — whether grinbox moved it or the user did. The header is the only thing
       that travels with it. A message whose headers carry none is still taken in and triaged; it
       simply cannot be found again after someone else moves it, and keeps the standing grinbox last
@@ -158,8 +158,8 @@ decisions:
     scope: backends
     title: the cursor is a UID, and a UIDVALIDITY change starts it over
     statement: |
-      an IMAP account's cursor is its arrival mailbox's UIDVALIDITY together with the highest UID
-      grinbox has taken in, and a poll asks for everything above that UID. Where the mailbox
+      an IMAP account's cursor is its arrival folder's UIDVALIDITY together with the highest UID
+      grinbox has taken in, and a poll asks for everything above that UID. Where the folder
       reports another UIDVALIDITY, the cursor names nothing and the next poll takes the bounded
       recent window a first poll takes.
     commentary: |
@@ -201,11 +201,11 @@ decisions:
     title: a category is a keyword on the message
     statement: |
       applying a category on an IMAP account stores a keyword of that category's name on the
-      message. Where the account's arrival mailbox does not admit client-defined keywords, the
+      message. Where the account's arrival folder does not admit client-defined keywords, the
       account declares it cannot apply categories rather than storing one that will not last.
     commentary: |
       Keywords are IMAP's durable per-message metadata and the only mechanism a category can be
-      carried by. A server admits client-defined ones only where the mailbox says so, and a store
+      carried by. A server admits client-defined ones only where the folder says so, and a store
       the server ignores or drops at the end of the session looks like success from the client's
       side — so declaring the gap is the only way it is visible. What a keyword does not reach is
       a client that keeps its own metadata locally: Outlook is one, and on an account read there a
@@ -244,13 +244,13 @@ decisions:
     scope: backends
     title: moving a message needs a safe move, and an account without one cannot archive or file
     statement: |
-      archiving and filing on an IMAP account both move the message out of the arrival mailbox — by
+      archiving and filing on an IMAP account both move the message out of the arrival folder — by
       the server's own move where it advertises one, and otherwise by a copy followed by an expunge
       naming that message's identifier alone. Where the server advertises neither, the account
       declares it can do neither.
     commentary: |
       The fallback every client used before the move command exists ends in an expunge that also
-      throws away anything else in the mailbox already flagged for deletion — someone else's
+      throws away anything else in the folder already flagged for deletion — someone else's
       messages, deleted by someone else's client. An account whose server offers no way to avoid
       that is one grinbox does not archive on, which is a narrower product and not a lost message.
     status: proposed
@@ -311,17 +311,17 @@ decisions:
     scope: triage
     title: a file action
     statement: |
-      grinbox ships an action that moves the message into a mailbox of the user's account, named in
-      the action's own configuration. Where the account has no mailbox of that name, the operation
+      grinbox ships an action that moves the message into a folder of the user's account, named in
+      the action's own configuration. Where the account has no folder of that name, the operation
       fails, and grinbox creates none.
     commentary: |
-      A mailbox is what every mail client shows, and metadata carried any other way is invisible in
+      A folder is what every mail client shows, and metadata carried any other way is invisible in
       a client that keeps its own — which is most of them, Outlook among them. This is the action a
       user reaches for when the point is to see the outcome in the mail client they already read
       their mail in, and it is the only mechanism grinbox has that reaches one.
 
-      Failing on an account without the mailbox is the consequence of not creating mailboxes: a
-      pipeline may be active on several accounts, and whether a mailbox of some name exists on each
+      Failing on an account without the folder is the consequence of not creating folders: a
+      pipeline may be active on several accounts, and whether a folder of some name exists on each
       is not a thing the save-time check can see. The failure is an ordinary operator failure and
       settles the triage partial.
     status: proposed
@@ -341,7 +341,7 @@ decisions:
       a mail backend implements two seams. The poll seam carries what the poll path needs —
       enumerating candidates, fetching metadata, applying a category, reporting thread placement,
       and taking the whole-mailbox snapshot the reconcile reads. The resource backends carry what
-      an operator's declared operations reach: archiving, filing into a named mailbox, fetching a
+      an operator's declared operations reach: archiving, filing into a named folder, fetching a
       body, and sending mail.
     commentary: |
       Filing reaches outside grinbox and belongs where the other mail operations are, so that a
@@ -361,7 +361,7 @@ decisions:
     title: the actions add, and archiving and filing move the message
     statement: |
       applying a category adds one grinbox-owned marker to the message and touches nothing else.
-      Archiving takes the message out of the inbox and filing puts it in a mailbox the user named;
+      Archiving takes the message out of the inbox and filing puts it in a folder the user named;
       each keeps every other marker, leaves the message findable, and is recorded by grinbox as
       where the message went. No built-in action deletes a message.
     commentary: |
@@ -432,11 +432,11 @@ decisions:
     title: what an IMAP account supports is read when grinbox logs in
     statement: |
       which operations an IMAP account supports is read from the server's capabilities and its
-      arrival mailbox's permanent flags each time grinbox logs in, and stored on the account. That
+      arrival folder's permanent flags each time grinbox logs in, and stored on the account. That
       reading is the declaration a backend owes, made per account rather than once per backend.
     commentary: |
       Two IMAP servers differ in what they offer, and one server differs from itself after an
-      upgrade or a mailbox change, so a declaration fixed in grinbox's code would be a guess about
+      upgrade or a folder change, so a declaration fixed in grinbox's code would be a guess about
       the user's server. Reading it at login is what makes an account's gaps visible before an
       operator hits them.
     status: proposed

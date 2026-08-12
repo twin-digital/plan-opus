@@ -1,11 +1,15 @@
 version: "3"
 
 terms:
-  - id: arrival-mailbox
-    scope: backends
-    display: arrival mailbox
+  - id: folder
     definition: |
-      the mailbox of an account that new mail is delivered into.
+      a named container of messages within an account.
+
+  - id: arrival-folder
+    scope: backends
+    display: arrival folder
+    definition: |
+      the folder of an account that new mail is delivered into.
 
 requirements:
   - id: r-5wpns28x
@@ -23,11 +27,11 @@ requirements:
   - id: r-g1iwlbzs
     title: the shape of the user's mailbox is theirs
     statement: |
-      grinbox creates, renames, and deletes no mailbox in the user's account. Where what grinbox
+      grinbox creates, renames, and deletes no folder in the user's account. Where what grinbox
       does must put a message somewhere other than where it found it, the user names where.
     commentary: |
       A mail account is a place the user lives, arranged the way they arranged it, and a tool that
       tidies it on their behalf has taken a liberty they did not offer. This is the sibling of
       "nothing grinbox does to a mailbox loses mail": that one governs the messages, this one the
       containers. It bites on IMAP, where getting a message out of the inbox means moving it into
-      some other mailbox and no server has to have one to move it to.
+      some other folder and no server has to have one to move it to.
