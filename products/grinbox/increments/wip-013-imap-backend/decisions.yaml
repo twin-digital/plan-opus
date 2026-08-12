@@ -71,10 +71,10 @@ decisions:
     scope: backends
     title: a password the server rejects retires the account; anything else is retried
     statement: |
-      where an IMAP server rejects grinbox's login for the credential, the account is marked as
-      needing the user's attention and is skipped by polling until they give grinbox a working
-      password. A connection that fails any other way leaves the account as it is and is retried at
-      its next poll.
+      where an IMAP server refuses grinbox's login and says the credential is what it refused, the
+      account is marked as needing the user's attention and is skipped by polling until they give
+      grinbox a working password. Every other failure to reach or open the account leaves it as it
+      is and is retried at its next poll.
     commentary: |
       The counterpart of what a refused renewal does to a granted authorization: the two failures
       mean the same thing to the user, which is that grinbox needs them. Separating the credential
@@ -85,6 +85,25 @@ decisions:
       - r-fzuyjkts
       - d-v5fyd7xd
       - d-ioso3voc
+      - f-x53bztdj
+    pinned: false
+
+  - id: d-r3ogwkv7
+    scope: backends
+    title: giving grinbox a working password means giving it the whole connection
+    statement: |
+      an account needing the user's attention is repaired by the user restating everything an IMAP
+      account is configured with, not the password alone. Its backend still cannot change.
+    commentary: |
+      A provider that moved hosts, changed port, or renamed the mailbox leaves a user whose only
+      lever is the password with no way back, and no shell to fix it from. The backend stays fixed
+      because everything stored against the account is written in its terms.
+    status: proposed
+    because:
+      - d-v4mejzw5
+      - d-ioso3voc
+      - d-oevikmal
+      - r-t4jn8zvw
     pinned: false
 
   # the folders an account works in
@@ -94,7 +113,8 @@ decisions:
     statement: |
       an IMAP account names four folders: its arrival folder, and the ones standing for
       archived, trashed, and spam mail. Grinbox proposes them from the roles the server advertises
-      and from the account's folder names, and what the user accepted is what is stored.
+      and from the account's folder names, and what the user accepted is what is stored. No two of
+      them name one folder.
     commentary: |
       No server has to advertise an archive folder: a stock dovecot does not and a hosted one does,
       so a design that discovered the destination would work on some accounts and not others for
@@ -131,6 +151,45 @@ decisions:
       - r-ziitim35
     pinned: false
 
+  - id: d-8jc4taom
+    scope: backends
+    title: an account begins when its folders are accepted
+    statement: |
+      an IMAP account exists once the user has accepted its four folders. A login that succeeded
+      while the user was still adding the account leaves nothing behind, and grinbox holds the
+      password no longer than the adding takes.
+    commentary: |
+      The folders cannot be proposed until a login has succeeded, so adding an account is two
+      steps whatever the interface looks like. Storing the account at the first step would leave an
+      abandoned add sitting in the account list, polled or not, which is a state nobody asked for
+      and the user would have to clean up.
+    status: proposed
+    because:
+      - d-zxvkt95o
+      - d-fuln110d
+      - d-ioso3voc
+    pinned: false
+
+  - id: d-8pdx8qsd
+    scope: backends
+    title: a folder can be re-pointed, and what grinbox recorded stands
+    statement: |
+      the user may name a different folder for any of an account's four roles at any time. What
+      grinbox already recorded about a message keeps the standing it had, and the new folders are
+      what the next poll and the next reconcile read.
+    commentary: |
+      A user who reorganizes their mail has to be able to say so, and the alternative — deleting
+      and re-adding the account — loses every record grinbox holds of it. Re-pointing does not
+      rewrite history: a message archived into the old folder was archived, and the reconcile finds
+      it where it is or records it archived for sitting in none of the four.
+    status: proposed
+    because:
+      - d-zxvkt95o
+      - d-qstpa7y0
+      - d-k4nt8zbu
+      - r-t4jn8zvw
+    pinned: false
+
   # finding a message again
   - id: d-k4nt8zbu
     scope: backends
@@ -139,7 +198,7 @@ decisions:
       grinbox stores an IMAP message's folder, that folder's UIDVALIDITY, and its UID as where
       the message currently is, and its Message-ID header as what identifies it. Where the stored
       location resolves to nothing, the message is looked for by Message-ID across the account's
-      four folders.
+      four folders, and is found only where exactly one message carries it.
     commentary: |
       IMAP identifies a message per folder, so the identifiers grinbox stored name nothing once
       the message moves — whether grinbox moved it or the user did. The header is the only thing
@@ -198,6 +257,69 @@ decisions:
       - f-31j9vxhp
     pinned: false
 
+  - id: d-cd0jnrdj
+    scope: backends
+    title: the snapshot the reconcile reads reports a standing, not a presence
+    statement: |
+      the poll seam's whole-mailbox snapshot reports each message it finds with the standing that
+      message has, and every backend produces it. A message the snapshot does not name is one the
+      backend did not find.
+    commentary: |
+      Five standings cannot be inferred from a list of what is in the inbox: that supports present
+      and archived and nothing else. This is the one place the IMAP backend reaches a sibling — the
+      Gmail backend answers the same operation, and its own two-state reading now says so rather
+      than being read into a bare list by the caller.
+    status: proposed
+    because:
+      - d-qstpa7y0
+      - d-x3aqw6up
+      - d-gj8j4np0
+      - d-jr86qq8b
+    pinned:
+      reason: public-api
+      notes: |
+        the shape every backend returns from the snapshot operation, and what the reconcile reads
+
+  - id: d-lru4i8rp
+    scope: backends
+    title: a server's certificate is verified, and nothing waives it
+    statement: |
+      grinbox verifies the certificate an IMAP server presents, and refuses an account whose
+      server it cannot verify. Nothing the user configures waives the check.
+    commentary: |
+      The alternative is a stored per-account waiver, which is a security downgrade the user is
+      asked to evaluate at the moment they least can — while adding an account that is not working
+      yet. A self-hosted mailbox whose certificate does not verify is a mailbox grinbox does not
+      poll, and the remedy is on the server, where certificates are free.
+    status: proposed
+    because:
+      - d-ioso3voc
+      - r-5wpns28x
+      - r-p2djwgjn
+    pinned:
+      reason: other
+      notes: |
+        which accounts can be added at all, and the one place a user might expect a knob and finds
+        none
+
+  - id: d-v55lpt3t
+    scope: backends
+    title: an account is worked one connection at a time
+    statement: |
+      grinbox holds at most one connection open to an IMAP account at once, whatever work is
+      waiting. Work for that account that arrives while the connection is busy waits for it.
+    commentary: |
+      A shared host counts connections per account and the user's own mail client already holds
+      some, so a triage loop running several messages at once could reach a limit that has nothing
+      to do with grinbox and looks to the user like the account breaking. One at a time costs
+      throughput on an account with a lot arriving at once, which is the cheaper failure.
+    status: proposed
+    because:
+      - d-p82gksff
+      - d-hf3gfs9u
+      - f-31j9vxhp
+    pinned: false
+
   # what grinbox does to the mailbox
   - id: d-bl5oamiz
     scope: backends
@@ -227,21 +349,48 @@ decisions:
     scope: triage
     title: a category is named in what a keyword admits
     statement: |
-      a category's name is letters, digits, hyphens, and underscores. A configuration naming a
-      category any other way is refused when the user saves it.
+      a category a triage applies contains none of "(", ")", "{", space, a control character, "%",
+      "*", a double quote, "\", or "]", and is not empty.
     commentary: |
-      An IMAP keyword is an atom, which admits no spaces and no quoting, so a category name grinbox
-      could not carry is one it would have to mangle silently or fail on at triage. Constraining
-      the name once, where the user writes it, is what keeps the same category legible in every
-      backend. It binds what the user next saves and not what is already stored.
+      Exactly what an IMAP keyword admits and no tighter: everything else stays legal, "/" included,
+      so the nested form the interface already suggests keeps working. A category grinbox could not
+      carry is one it would have to mangle silently or fail on, and mangling what the user sees on
+      their own mail is the worse of the two.
     status: proposed
     because:
       - d-bl5oamiz
-      - r-5ezt7j0v
-      - r-c5nm7ryw
+      - f-xltd4r4v
     pinned:
       reason: public-api
       notes: the vocabulary the user configures in, and what a stored configuration may hold
+
+  - id: d-mbh2pthe
+    scope: triage
+    title: a category's template is checked as far as it is knowable, its result when it renders
+    statement: |
+      a category is composed from a template, so what the user saves is checked for the characters
+      the template's own text carries, and what a triage renders is checked before it is applied.
+    cases:
+      - when: the template's own text carries a character a category may not
+        then: the save is refused, naming it
+      - when: rendering the template produces a category a keyword cannot carry
+        then: the operator fails, and the triage settles partial as it does for any operator failure
+    commentary: |
+      A template's result is not knowable when it is saved, since the tags it reads have not been
+      produced, so the save-time check reaches the literal text and no further and the rest is
+      caught where it becomes knowable. Refusing at save what could never render is what
+      r-c5nm7ryw asks for; failing at triage on a value only that one message produced is not a
+      configuration fault and does not retroactively break a stored pipeline.
+    status: proposed
+    because:
+      - d-8v30vkou
+      - d-t2gm7ryx
+      - r-c5nm7ryw
+      - r-5ezt7j0v
+      - d-16geyxco
+    pinned:
+      reason: public-api
+      notes: when a save is refused and when a triage fails instead, both of which the user meets
 
   - id: d-8am29x25
     scope: backends
@@ -314,9 +463,9 @@ decisions:
     scope: triage
     title: a file action
     statement: |
-      grinbox ships an action that moves the message into a folder of the user's account, named in
-      the action's own configuration. Where the account has no folder of that name, the operation
-      fails, and grinbox creates none.
+      grinbox ships an action that moves the message into a folder of the user's account, named
+      literally in the action's own configuration rather than composed from the message. Where the
+      account has no folder of that name, the operation fails, and grinbox creates none.
     commentary: |
       A folder is what every mail client shows, and metadata carried any other way is invisible in
       a client that keeps its own — which is most of them, Outlook among them. This is the action a
@@ -327,6 +476,11 @@ decisions:
       pipeline may be active on several accounts, and whether a folder of some name exists on each
       is not a thing the save-time check can see. The failure is an ordinary operator failure and
       settles the triage partial.
+
+      The folder is literal where every other text the user configures is a template, which is the
+      one place this action departs from the placeholder grammar. Composing a destination is how a
+      tool ends up creating folders it was told not to create, and a template's result is not
+      knowable until the message that produces it arrives.
     status: proposed
     because:
       - d-5n8oyi8c
@@ -411,12 +565,85 @@ decisions:
         a retried send is an effect the user sees twice, and what rests on this rests on the
         reaching-the-user case not being retried
 
+  - id: d-k8va629q
+    scope: backends
+    title: a folder is named as the user wrote it
+    statement: |
+      a folder name the user gave grinbox is matched against the names the server lists, character
+      for character. Grinbox reads no hierarchy into it and translates no separator.
+    commentary: |
+      Servers separate hierarchy differently — "." on one of the accounts probed and "/" on the
+      other — so a name grinbox took apart and put back together would mean different folders on
+      different servers. Matching what the user wrote against what the server lists is the only
+      rule that means one thing everywhere, and it pairs with grinbox creating no folder: an
+      unmatched name is a name that is not there.
+    status: proposed
+    because:
+      - f-33wb1igd
+      - f-yj818owe
+      - d-jj2mymbi
+      - d-zxvkt95o
+      - r-g1iwlbzs
+    pinned:
+      reason: public-api
+      notes: what the user types into a file action and into the four folder fields
+
+  - id: d-qzxvoph1
+    scope: triage
+    title: an operation an account cannot carry is reported, and never refused at save
+    statement: |
+      a configuration is not refused for naming an operation some account cannot carry. Grinbox
+      reports which accounts cannot carry it before the user relies on it, and the operator fails
+      on those accounts when it runs.
+    commentary: |
+      A pipeline runs on several accounts and which accounts it runs on changes after the save, so
+      refusing would either block a configuration valid for the account the user cares about or
+      break a stored one when an account is later activated. r-c5nm7ryw names the faults it wants
+      refused — an input nothing produces, a cycle, two operators claiming one output — and a
+      capability gap is not among them; it is a property of an account rather than of the
+      configuration. Filing already works this way, and this puts archiving, categorizing, and
+      sending on the same footing.
+    status: proposed
+    because:
+      - d-jj2mymbi
+      - d-f9tj4wnr
+      - d-bzw8qoiy
+      - r-x3jb6wlq
+      - d-16geyxco
+    pinned:
+      reason: other
+      notes: |
+        whether the user meets the gap when saving or when mail arrives, which is the whole of how
+        it feels to configure a mixed set of accounts
+
+  - id: d-y3uh9ofx
+    scope: triage
+    title: a field the backend does not supply is empty, and a thread counts what grinbox holds
+    statement: |
+      where a backend supplies no preview of a message, the snippet a configuration reads is
+      empty rather than derived from the body. A thread's message count is the number of messages
+      grinbox holds in that thread for that account.
+    commentary: |
+      Deriving a snippet would fetch a body the configuration never asked for, which is the one
+      thing the lazy fetch exists to avoid. The count is what grinbox can answer for any backend,
+      and on a thread older than the account's first poll it is smaller than the provider's — a
+      rule counting on it is counting what grinbox has seen, which is what it could honestly mean
+      either way.
+    status: proposed
+    because:
+      - d-q96iw28w
+      - d-nol93aud
+      - d-t2gm7ryx
+    pinned:
+      reason: public-api
+      notes: two fields of the vocabulary a user writes rules against
+
   # what an IMAP account cannot do
   - id: d-5h66e3zl
     scope: backends
     title: an IMAP account does not send
     statement: |
-      the IMAP backend declares that it cannot send mail. A digest edition does not run on an IMAP
+      the IMAP backend declares that it cannot send mail. An edition claims no occurrence for an IMAP
       account and no operator sending mail runs on one, and the interface says which accounts those
       are and why.
     commentary: |
@@ -435,8 +662,9 @@ decisions:
     title: what an IMAP account supports is read when grinbox logs in
     statement: |
       which operations an IMAP account supports is read from the server's capabilities and its
-      arrival folder's permanent flags each time grinbox logs in, and stored on the account. That
-      reading is the declaration a backend owes, made per account rather than once per backend.
+      arrival folder's permanent flags each time grinbox polls the account, and stored on the
+      account. Everything else grinbox does reads what was stored. That reading is the declaration
+      a backend owes, made per account rather than once per backend.
     commentary: |
       Two IMAP servers differ in what they offer, and one server differs from itself after an
       upgrade or a folder change, so a declaration fixed in grinbox's code would be a guess about

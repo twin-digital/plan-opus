@@ -76,6 +76,48 @@ facts:
           mailbox and that limit is reached, the server MUST send a new PERMANENTFLAGS response
           code without the special flag \*.
 
+  - id: f-xltd4r4v
+    title: an IMAP keyword is an atom, which bars eight characters and admits the rest
+    claim: |
+      a client-defined IMAP keyword is an atom: one or more characters that are not "(", ")", "{",
+      space, a control character, "%", "*", a double quote, "\", or "]". Everything else a
+      keyboard produces is admitted, "/" and "." and "-" and "_" among them, and a keyword cannot
+      be empty.
+    backing: documented
+    sources:
+      - url: https://www.rfc-editor.org/rfc/rfc9051.html#section-9
+        where: Formal Syntax — the flag-keyword production
+        quote: |
+          flag-keyword    = "$MDNSent" / "$Forwarded" / "$Junk" / "$NotJunk" / "$Phishing" / atom
+      - url: https://www.rfc-editor.org/rfc/rfc9051.html#section-9
+        where: Formal Syntax — the atom productions
+        quote: |
+          atom            = 1*ATOM-CHAR
+          ATOM-CHAR       = <any CHAR except atom-specials>
+          atom-specials   = "(" / ")" / "{" / SP / CTL / list-wildcards / quoted-specials / resp-specials
+
+  - id: f-x53bztdj
+    title: IMAP has a response code for a login not worth retrying, and one for a login that is
+    claim: |
+      a server refusing a login may say AUTHENTICATIONFAILED, which tells the client the same
+      credential will not work later, or UNAVAILABLE, which says a subsystem the server
+      authenticates against is temporarily down. Both are optional: a server may refuse with a
+      bare NO carrying no code at all, which a client cannot tell apart from either.
+    backing: documented
+    sources:
+      - url: https://www.rfc-editor.org/rfc/rfc5530.html#section-3
+        where: the AUTHENTICATIONFAILED response code
+        quote: |
+          This is the same as not sending any response code, except that when a client sees
+          AUTHENTICATIONFAILED, it knows that the problem wasn't, e.g., UNAVAILABLE, so there's no
+          point in trying the same login/password again later.
+      - url: https://www.rfc-editor.org/rfc/rfc5530.html#section-3
+        where: the UNAVAILABLE response code
+        quote: |
+          Temporary failure because a subsystem is down. For example, an IMAP server that uses a
+          Lightweight Directory Access Protocol (LDAP) or Radius server for authentication might
+          use this response code when the LDAP/Radius server is down.
+
   - id: f-ymu94ntb
     title: what an archive mailbox is remains the server's own business
     claim: |
