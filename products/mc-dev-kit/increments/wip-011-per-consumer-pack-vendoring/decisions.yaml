@@ -131,8 +131,9 @@ decisions:
       - f:f-te6cfwkw
       - f:f-8bxtf5w7
     cases:
-      - when: a namespace in hand carries an uppercase letter, named or derived
-        then: the build fails, naming it
+      - when: a namespace, named or derived, holds anything but lowercase letters, digits, hyphen,
+          dot or underscore
+        then: the build fails, naming the character
       - when: the setting names a namespace
         then: that is the namespace
       - otherwise: the namespace is the package's scope and name, the `@` dropped and the `/` a
@@ -147,10 +148,16 @@ decisions:
       has no way to do. So the author who thinks about none of this gets the recommended answer, and
       gets it enforced rather than advised.
 
-      Hyphens survive, so a package name needs no transliteration — and uppercase is refused rather
-      than folded, because an uppercase identifier registers and spawns while no query or selector
-      can reach it. npm permits uppercase in legacy names, so the default could produce one; a
-      namespace that fails silently and unaddressably is the one outcome worth a build error.
+      Hyphens survive, so a package name needs no transliteration. The accepted set is exactly what
+      was measured, and everything outside it is refused rather than tried: an npm scope's `@` and
+      `/` were never among the spellings probed, and a namespace an author types could hold anything
+      at all. Refusing the unmeasured costs an author one build error and a rename; admitting it
+      risks the failure this evidence found.
+
+      That failure is why the check is a refusal and not a fold. An uppercase identifier registers
+      and spawns while no query or selector can reach it, and npm permits uppercase in legacy names,
+      so the derived default could produce one. A namespace that fails silently and unaddressably is
+      worth stopping a build over.
 
       The convention also asks for short, on the grounds that an author writes the namespace
       constantly. That does not reach this design: `d-8qkamvz7` has names written bare in sources
