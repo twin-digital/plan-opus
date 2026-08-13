@@ -1,0 +1,71 @@
+version: "3"
+
+# Three increment-1 revisit conditions fired together, all on the same subject: mc-dev-kit's
+# provenance check reads an entity's type families, and against the fakes it cannot — the component
+# throws, no state seeds a family, and the query fields throw. Only `minecraft:type_family` is
+# reopened; the rest of each ruling stands as written.
+decisions:
+
+  - id: d-93kihgso
+    title: the type_family component behaves
+    statement: |
+      `minecraft:type_family` joins the modelled surface. An entity's families are tokens a test
+      seeds through the control plane; `getTypeFamilies` returns them and `hasTypeFamily` answers
+      membership. A family is not an identifier and takes no `minecraft:` prefix. Every other
+      component outside the attribute-shaped seven still carries only typeId, isValid and entity.
+    cases:
+      - when: the entity carries no `minecraft:type_family` component
+        then: getComponent reads undefined as any absent component does, and a family filter matches the entity on nothing
+      - otherwise: the component reads back the tokens the test seeded, in the order it supplied them
+    status: proposed
+    pinned:
+      reason: public-api
+    because:
+      - f:f-axuk7u0y
+      - r-0lbj68w9
+    supersedes: d-khn6zzgj
+    scope: fakes
+
+  - id: d-55ux0ngf
+    title: component state carries per-component shapes
+    statement: |
+      `addComponent`'s state argument is shaped by the component it adds: the four attribute
+      numbers for the seven attribute-shaped ids, and the list of family tokens for
+      `minecraft:type_family`. Nothing derives families from a registered entity type — an entity
+      carries the families a test gave it and no others.
+    cases:
+      - when: the id is attribute-shaped
+        then: state is the four numbers, or a shorthand — a single number, or a [min, max] pair — and an omitted number is left unset
+      - when: the id is `minecraft:type_family` and no state is supplied
+        then: the component is added carrying no families
+      - otherwise: a state argument is rejected with InvalidArgumentError
+    status: proposed
+    pinned:
+      reason: public-api
+    because:
+      - f:f-axuk7u0y
+      - r-rnnnz98l
+      - r-qak2scbs
+    supersedes: d-990n6j2l
+    scope: fakes
+
+  - id: d-piyaaywf
+    title: entity lookups honour the family fields
+    statement: |
+      The world and dimension entity lookups return what is registered in creation order, and an
+      EntityQueryOptions argument — to a lookup or to `entity.matches` — is honoured on type, tags,
+      name, excludeTypes, excludeTags, excludeNames, families and excludeFamilies, each of the other
+      sixteen fields throwing NotImplementedError that names it.
+    cases:
+      - when: the query names `families`
+        then: an entity matches only while carrying every token listed
+      - when: the query names `excludeFamilies`
+        then: an entity carrying any token listed is excluded
+    status: proposed
+    pinned:
+      reason: public-api
+    because:
+      - f:f-zma0fhxw
+      - r-0lbj68w9
+    supersedes: d-6bnub7bw
+    scope: fakes
