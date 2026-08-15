@@ -337,7 +337,7 @@ decisions:
       side — so declaring the gap is the only way it is visible. What a keyword does not reach is
       a client that keeps its own metadata locally: Outlook is one, and on an account read there a
       category is grinbox's record rather than something the user sees on their mail.
-    status: proposed
+    status: accepted
     because:
       - d-hv2uue12
       - f-9z8o6n1l
@@ -371,19 +371,24 @@ decisions:
     title: a category's template is checked as far as it is knowable, its result when it renders
     statement: |
       a category is composed from a template, so what the user saves is checked for the characters
-      the template's own text carries, and what a triage renders is checked before it is applied.
+      the template's own text carries, and what a triage renders is made carriable before it is
+      applied.
     cases:
       - when: the template's own text carries a character a category may not
         then: the save is refused, naming it
-      - when: rendering the template produces a category a keyword cannot carry
-        then: the operator fails, and the triage settles partial as it does for any operator failure
+      - when: rendering the template produces a character a keyword cannot carry
+        then: each such character becomes an underscore, the category is applied, and the run records what was applied
     commentary: |
       A template's result is not knowable when it is saved, since the tags it reads have not been
-      produced, so the save-time check reaches the literal text and no further and the rest is
-      caught where it becomes knowable. Refusing at save what could never render is what
-      r-c5nm7ryw asks for; failing at triage on a value only that one message produced is not a
-      configuration fault and does not retroactively break a stored pipeline.
-    status: proposed
+      produced, so the save-time check reaches the literal text and no further. What renders is
+      substituted rather than refused because the alternative leaves the message uncategorized over
+      a character, and a user who never opens the application would never learn why. Recording what
+      was applied is what keeps the substitution from being silent: the run says what went on the
+      message, so a category that arrived looking unfamiliar is explainable.
+
+      Two categories can substitute to one — "Acme Corp" and "Acme_Corp" both land as "Acme_Corp" —
+      which is the price of applying something rather than nothing.
+    status: accepted
     because:
       - d-8v30vkou
       - d-t2gm7ryx
@@ -407,7 +412,7 @@ decisions:
       throws away anything else in the folder already flagged for deletion — someone else's
       messages, deleted by someone else's client. An account whose server offers no way to avoid
       that is one grinbox does not archive on, which is a narrower product and not a lost message.
-    status: proposed
+    status: accepted
     because:
       - r-ziitim35
       - f-yawjn42g
@@ -483,12 +488,39 @@ decisions:
       one place this action departs from the placeholder grammar. Composing a destination is how a
       tool ends up creating folders it was told not to create, and a template's result is not
       knowable until the message that produces it arrives.
-    status: proposed
+    status: accepted
     because:
       - d-5n8oyi8c
       - r-g1iwlbzs
       - f-12lyvbmp
       - d-16geyxco
+    pinned:
+      reason: public-api
+      notes: an operator type the user configures against, and the stored shape of that operator
+
+  - id: d-hj9nac5f
+    scope: triage
+    title: a set-aside action, which categorizes where it can and files where it cannot
+    statement: |
+      grinbox ships an action carrying both a category and a folder. On an account that can apply
+      categories it applies the category; on one that cannot but can file, it files into the
+      folder; on an account that can do neither it fails.
+    commentary: |
+      The one action a user configures for mail they want marked for later, on every account they
+      have. Two operators gated identically would be the alternative, and it asks the user to know
+      which of their accounts supports what — the thing the backend seam exists to spare them.
+
+      It carries both because neither can be derived from the other: a folder is not a category's
+      name, and the user is the only one who knows where filed mail belongs. The order is fixed
+      rather than configured, since categorizing leaves the message where it is and filing moves
+      it, and the less invasive one is the one to prefer where both are available.
+    status: proposed
+    because:
+      - r-blqzjemx
+      - d-5n8oyi8c
+      - d-bnw0na3n
+      - d-jj2mymbi
+      - d-bzw8qoiy
     pinned:
       reason: public-api
       notes: an operator type the user configures against, and the stored shape of that operator
@@ -594,9 +626,9 @@ decisions:
     scope: triage
     title: an operation an account cannot carry is reported, and never refused at save
     statement: |
-      a configuration is not refused for naming an operation some account cannot carry. Grinbox
-      reports which accounts cannot carry it before the user relies on it, and the operator fails
-      on those accounts when it runs.
+      a configuration is not refused for naming an operation some account cannot carry. Saving the
+      pipeline and activating it on an account each warn, naming the accounts that cannot carry it,
+      and the operator fails on those accounts when it runs.
     commentary: |
       A pipeline runs on several accounts and which accounts it runs on changes after the save, so
       refusing would either block a configuration valid for the account the user cares about or
@@ -605,7 +637,12 @@ decisions:
       capability gap is not among them; it is a property of an account rather than of the
       configuration. Filing already works this way, and this puts archiving, categorizing, and
       sending on the same footing.
-    status: proposed
+
+      Refusing could not be complete in any case: a server withdraws its willingness to keep new
+      keywords when its folder reaches a limit, with nobody editing anything, so a save-time gate
+      would promise more than it can hold. The warning is what gives the user the early signal at
+      the moment they are editing, and the run-time failure is what stays honest afterwards.
+    status: accepted
     because:
       - d-jj2mymbi
       - d-f9tj4wnr
