@@ -1,0 +1,57 @@
+version: "3"
+
+# Building 009's per-component state shape left three consumer-visible choices open: how the shape
+# reaches a caller's compiler, whether a seeded list aliases the entity, and what an empty family
+# list asks for.
+decisions:
+
+  - id: d-k2kd15tq
+    title: the component state types are exported and resolve per id
+    statement: |
+      `ComponentSpec<T>` resolves to the state that component id takes — the attribute shape on the
+      seven, the family tokens on `minecraft:type_family`, and nothing elsewhere — and it, the two
+      shapes it resolves to, and the construction map's type are exported. A state argument the id
+      does not take is a compile error as well as the ruled throw.
+    cases:
+      - when: the id carries no state
+        then: its only legal value in the construction map is `undefined`, which attaches the component carrying nothing
+      - otherwise: the state must carry that id's shape to compile and to run
+    status: delegated
+    pinned:
+      reason: public-api
+    because:
+      - d-55ux0ngf
+      - d-sdw7qzuv
+      - r-28cg0y2h
+    scope: fakes
+
+  - id: d-18q4l0xi
+    title: seeded family lists are copied
+    statement: |
+      The tokens a test seeds are copied as the component attaches, and `getTypeFamilies` answers
+      with a fresh array each call. Neither the list the caller passed nor one it read back aliases
+      the entity's families.
+    status: delegated
+    pinned:
+      reason: public-api
+    because:
+      - d-93kihgso
+      - r-4dt4f8zn
+    scope: fakes
+
+  - id: d-x2b3gorw
+    title: an empty family list constrains nothing
+    statement: |
+      `families: []` keeps every entity and `excludeFamilies: []` drops none: each field asks about
+      the tokens it lists, and neither lists any.
+    cases:
+      - when: the query names a token and the entity carries no type-family component
+        then: it has no tokens, so `families` drops it and `excludeFamilies` keeps it
+      - otherwise: the entity's seeded tokens answer
+    status: delegated
+    pinned:
+      reason: public-api
+    because:
+      - d-piyaaywf
+      - d-93kihgso
+    scope: fakes
