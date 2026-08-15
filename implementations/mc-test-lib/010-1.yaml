@@ -1,6 +1,6 @@
 version: "1"
 product: mc-test-lib
-target: 9
+target: 10
 built_at: 2026-08-15
 packages:
   - path: nodejs/minecraft/test-lib
@@ -1434,3 +1434,38 @@ coverage:
         note: >
           the extrapolation past the six measured shapes is marked as the library's own in its divergence
           section rather than presented as the engine's
+  - claim: d-k2kd15tq
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/package.test.ts
+          - src/components.test.ts
+        note: >
+          the compile-time cases hold addComponent and construction to the state each id takes, so a wrong
+          shape and a state on a stateless id both fail typecheck; the runtime throw and the stateless
+          entry's undefined value are asserted beside them
+      - kind: attestation
+        ref:
+          - src/index.ts
+          - src/components.ts
+        note: >
+          the four type names are exported from the barrel and ComponentSpec resolves per id — the attribute
+          shape on the seven, the family tokens on type_family, never elsewhere
+  - claim: d-18q4l0xi
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/components.test.ts
+          - src/entity.test.ts
+        note: >
+          mutating the array the test passed does not change what the entity reports, and mutating what
+          getTypeFamilies returned does not either — on the addComponent path and the construction map alike
+      - kind: attestation
+        ref: src/components.ts
+  - claim: d-x2b3gorw
+    covered_by:
+      - kind: code-test
+        ref: src/query.test.ts
+        note: an empty families array keeps every entity and an empty excludeFamilies drops none
+      - kind: attestation
+        ref: src/query.ts
