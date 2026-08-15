@@ -1,21 +1,20 @@
-# Compose a per-package resource pack from shared asset libraries
+# Selective import from vendored packs
 
-Instead of depending on whole resource *packs*, a package could depend on asset *libraries* — workspace
-packages that are just collections of geometry, textures, animations and controllers — and have the build
-compose exactly the assets that package needs into its own single resource pack.
+The vendoring built at 012 merges a dependency's whole `vendored_pack/` tree. Selective import
+narrows that: the `vendor` block already keys per dependency (`{ prefix }`), and an `include`
+list beside it would name the entities and assets to merge, defaulting to everything.
 
-Compared with depending on a whole shared pack this ships no unused assets, and each consumer's pack is
-its own with its own uuid, so there is no shared pack to contend over.
+What 012 settled that this builds on, unchanged: per-consumer merging under composed entity ids
+(`<ns>:<prefix>.<name>`), asset names by library token + content hash, explicit closure with the
+dangling-reference diagnosis. Excluding an item a merged reference needs should fail exactly like
+an un-merged supplier does today — the diagnosis machinery extends rather than duplicates.
 
 Two open pieces:
 
-- **Namespacing still applies.** Two consumers composing the same asset from one library land the same
-  internal name in two packs, and those names resolve across the whole pack stack. Namespacing the names
-  by the library's version makes colliding definitions byte-identical and therefore harmless, which is the
-  scheme mc-rpg-core adopted for its shared pack.
-- **Inferring the asset set.** Ideally the build determines which assets a package needs rather than the
-  author declaring them — derivable in principle from the package's own registry of what it references,
-  but a real static-analysis job. Declaring them explicitly is the fallback and is what an early version
-  should do.
+- **The unit of selection.** Entities pull their client definitions, geometry, textures, and
+  localization entries with them; whether `include` names entities (closure computed) or files
+  (explicit, dumber) is the design's first fork.
+- **Inferring the set.** Deriving what a package actually references instead of declaring it is
+  a static-analysis job; explicit declaration is the fallback an early version should take.
 
-Earns nothing until asset volume hurts; recorded so the shape is not re-derived.
+Earns nothing until vendored asset volume hurts; recorded so the shape is not re-derived.
