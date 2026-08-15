@@ -102,3 +102,93 @@ decisions:
       - d-q7mz2qb0
       - d-y86n5etq
       - f-rtmfaoba
+
+  - id: d-sycw8wo2
+    title: the asset namespace is mcdk_ plus the half's uuid hex
+    statement: |
+      a built pack half's asset namespace is `mcdk_` plus that half's completed header uuid with
+      the hyphens dropped, written in each name kind's own structure: `geometry.<token>.<name>`,
+      `controller.render.<token>.<name>`, `animation.<token>.<name>`,
+      `controller.animation.<token>.<name>`, `<token>_<name>` for materials, and
+      `textures/<token>/<original path>` for textures, whose file moves with its name.
+    status: proposed
+    scope: [build]
+    pinned:
+      reason: data-format
+      notes: the literal names inside every built namespaced pack
+    because:
+      - d-tnhykfkz
+      - r-xcz7nzr6
+      - f-8bxtf5w7
+    commentary: |
+      The uuid is already the pack's workspace-unique identity, so no second allocation is
+      needed, and the same shared pack vendored twice lands under two distinct tokens for free.
+      Dots and colons are avoided where they carry engine semantics — material parents, geometry
+      inheritance.
+
+  - id: d-3bmgnb25
+    title: what a namespaced pack's own source may hold
+    statement: |
+      with namespacing on, a package's own pack holds the modeled content kinds, `scripts/`, and
+      its manifest freely; every other file copies unchanged unless it could carry an
+      engine-readable name. Namespacing off keeps the copy-everything behavior.
+    cases:
+      - when: the file is one of d-7aqne91n's content kinds or a `.lang` file, sits under `scripts/`, or is the manifest
+        then: it is read, rewritten, bundled or composed as the build defines
+      - when: the file is `.json`, `.material`, `.lang` or `.mcfunction` outside the modeled locations
+        then: the build fails naming the file
+      - otherwise: the file copies unchanged, dotfiles and unknown extensions included
+    status: proposed
+    scope: [build]
+    pinned:
+      reason: public-api
+      notes: what an author may put in a pack once they set the namespace option
+    because:
+      - r-c9bu8xes
+      - d-8qkamvz7
+      - d-hqtqb43i
+      - d-7aqne91n
+    commentary: |
+      Those four extensions are where engine-readable names live — a function can summon an
+      entity by id — so copying one unexamined would ship a name the build cannot carry into its
+      new spelling. An author turning namespacing on gives up functions, spawn rules, items and
+      the like until the rewriter models them.
+
+  - id: d-l12ch4vq
+    title: the reference positions the rewrite reaches
+    statement: |
+      references are rewritten in the schema positions where the joined-halves guarantee lives: a
+      client entity's description identifier and its geometry, texture, material, animation and
+      render-controller names; a behavior entity's identifier and animation names; a material's
+      parent; geometry identifiers in both declaration forms; and the two localization key forms.
+      A declared name anywhere else copies as written.
+    status: proposed
+    scope: [build]
+    pinned:
+      reason: public-api
+      notes: which of an author's references survive the build rewritten
+    because:
+      - d-ni5n2r3c
+      - r-c9bu8xes
+      - f-gvmc2wfa
+    commentary: |
+      A string in an arbitrary component position — a summon trigger naming the pack's own
+      entity, say — is indistinguishable from data, so it is not recognized as a reference and
+      an author must not expect the rewrite there.
+
+  - id: d-pc2nrqxj
+    title: only .lang files compose; any other shared path fails
+    statement: |
+      where merged packs contribute one output path, `.lang` files are composed — the own pack's
+      entries first, then each vendored pack's in name order — and any other shared path fails
+      the build naming both contributing files. Vendored files otherwise keep their
+      source-relative paths, textures excepted, whose path moves with their name.
+    status: proposed
+    scope: [build]
+    pinned:
+      reason: data-format
+      notes: which files survive merging and how a shared localization file is assembled
+    because:
+      - d-hqtqb43i
+      - d-82zp77fo
+      - r-c9bu8xes
