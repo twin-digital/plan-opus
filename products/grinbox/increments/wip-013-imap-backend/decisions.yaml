@@ -427,6 +427,33 @@ decisions:
         what grinbox does to mail the user cannot get back, which is what the archive action's own
         ruling fixes for every backend
 
+  - id: d-661z414c
+    scope: backends
+    title: an archive moves a message only out of the arrival folder
+    statement: |
+      a due archive moves the message only where it is still in the account's arrival folder. A
+      message found anywhere else is left where it is and recorded as having already departed.
+    commentary: |
+      On a backend where archiving means removing a marker, an archive of a message already
+      archived is genuinely nothing, which is what d-hgqlouvn rests on when it reads a possibly
+      stale standing rather than asking the server. On IMAP archiving is a move, and a move is
+      never nothing: a message the user filed into a folder of their own, found again by its
+      Message-ID because the standing grinbox held was a day out of date, would be taken out of
+      where they put it and dropped in the archive folder. The no-op d-hgqlouvn assumes has to be
+      made one here rather than found.
+    status: proposed
+    because:
+      - d-hgqlouvn
+      - d-8am29x25
+      - d-k4nt8zbu
+      - r-g1iwlbzs
+      - r-ziitim35
+    pinned:
+      reason: other
+      notes: |
+        what grinbox does to a message the user moved themselves, which is invisible in the code
+        to anyone who does not know the stale-standing path can reach it
+
   - id: d-mtgha4ra
     scope: backends
     title: grinbox never changes whether a message is read
