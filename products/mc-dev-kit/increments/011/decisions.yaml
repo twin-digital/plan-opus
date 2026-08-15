@@ -1,0 +1,743 @@
+version: "3"
+
+decisions:
+  - id: d-82zp77fo
+    title: a vendored pack merges into the vendoring package's own pack
+    statement: |
+      a vendored pack's content is written into the vendoring package's own pack of that kind, under
+      that package's namespace and its own header uuid. A vendoring package ships one behavior pack
+      and one resource pack whatever it vendors.
+    status: accepted
+    scope: build
+    pinned:
+      reason: data-format
+      notes: the built output tree a vendoring package ships, and the pack identity a world activates
+    because:
+      - r-293j8n70
+      - r-jxzqhhmo
+      - r-un786n7v
+      - r-xcz7nzr6
+      - f:a-script-module-does-not-resolve-across-packs
+      - f-8bxtf5w7
+    commentary: |
+      A shared dependency's code half is bundled into the vendoring package already — no import
+      reaches a module in another pack, so code crosses at build time or not at all. Merging puts the asset
+      half on the path the code half takes, instead of leaving a dependency half vendored and half
+      shipped beside.
+
+      It is also what lets an author name a vendored asset at all. A hand-written client entity
+      definition is JSON with no build-time constant to reach a namespace with; merged, the
+      namespace the author chose is the one the vendored content carries, so the author writes
+      their own names and the references land.
+
+      One pack leaves one identity, so no uuid is derived from a vendoring package and none minted
+      for a vendoring: the output tree keeps its kind-named shape and the workspace gains no pack that no
+      source declares.
+
+  - id: d-l4wh3cgf
+    title: a vendoring package declares its own pack of the kind it vendors
+    statement: |
+      a package vendoring content of a kind must hold its own source manifest of that kind. The
+      build fails otherwise, naming the manifest to add.
+    status: accepted
+    scope: build
+    pinned:
+      reason: public-api
+      notes: what an author must write before a dependency's content can arrive
+    because:
+      - d-82zp77fo
+      - r-zcdmh9p6
+      - r-293j8n70
+      - r-xcz7nzr6
+    commentary: |
+      A pack a world activates needs an identity, and source-manifest presence is the whole
+      membership test — so a pack the build minted from nothing would sit in an output tree that
+      discovery never reports, which is to say it would be built, archived, and never deployed. The
+      manifest is what makes it a pack at all.
+
+      It costs an author who holds no assets of their own a short manifest with a uuid they mint, in
+      exchange for an identity nothing has to derive, a uuid the workspace-wide uniqueness check can
+      see, and a pack the harness deploys like any other. Deriving one from the package name would
+      also have moved silently when the package was renamed.
+
+  - id: d-27lzrwsu
+    title: a vendored pack lives outside the discovered locations
+    statement: |
+      a vendored pack's source sits at `vendored_pack/`, holding a kind-named subdirectory per half.
+      It carries no `manifest.json`, so no source manifest of a discovered kind exists and the
+      package bears no pack.
+    status: accepted
+    scope: build
+    pinned:
+      reason: public-api
+      notes: where a shared pack's author puts their content, and what makes it vendored rather than shipped
+    because:
+      - r-293j8n70
+      - r-zcdmh9p6
+      - d-82zp77fo
+      - f-8bxtf5w7
+    cases:
+      - when: a package's source holds `vendored_pack/`
+        then: that directory's content is vendored and adds nothing to the pack set
+      - otherwise: a source manifest at a discovered location makes an ordinary pack, as today
+    commentary: |
+      Location is already the whole membership test: a package bears a pack when its source holds
+      `behavior_pack/manifest.json` or `resource_pack/manifest.json`, and nothing else is consulted.
+      So a vendored pack need not be excluded from anything — put its source somewhere else and it
+      was never a member. Discovery, the harness, the archive and the activation list all keep the
+      rules they have.
+
+      This is why it carries no manifest. A manifest's content is a pack's shipping identity: a
+      uuid, a version, its dependencies. A vendored pack ships as nobody's pack and has no identity
+      to declare, so the file would be a form filled in for a purpose that never arrives — and
+      keeping one at a discovered path is exactly what would put it back in the pack set.
+
+      What is vendored is the directory, not the package. A package may hold `vendored_pack/`
+      alongside a pack of its own and be both a shared dependency and a pack that ships; the two
+      trees are read by different things and neither shadows the other.
+
+      One tree cannot be both, though, and that is no loss: a vendored pack's names are spelled by
+      whichever package takes it up, so it has no spelling of its own to ship under.
+
+  - id: d-jdqt63fi
+    title: vendoring reads the vendored pack's source tree
+    statement: |
+      a vendoring package's build reads the vendored pack's `vendored_pack/` tree, completing and
+      rewriting it itself. It does not require the depended-on package to have been built.
+    status: accepted
+    scope: build
+    because:
+      - d-82zp77fo
+      - d-s1haiu19
+      - d-vpwz0dps
+    commentary: |
+      A pack package's build produces its own packs and nothing else, so there is no ordering
+      between two packages' builds to lean on. Reading source keeps it that way — and the script
+      half, which is the part that needs building, arrives through the bundler rather than through
+      the vendoring.
+
+      There is no built output to read in any case, since a vendored pack bears no pack.
+
+  - id: d-zk0c48uy
+    title: the namespace is an opt-in build setting defaulting to the package name
+    statement: |
+      the exported build function takes `packageDir`, required, and `namespace`, optional. Setting
+      `namespace` turns namespacing on; `true` takes the package's own name and a string names one.
+      No field is added to `manifest.json`.
+    status: accepted
+    scope: build
+    pinned:
+      reason: public-api
+      notes: the setting a package writes, and the names it gets when it writes only the switch
+    supersedes: d-qtq0ccy6
+    because:
+      - d-wss8fker
+      - r-jxzqhhmo
+      - r-293j8n70
+      - d-qtq0ccy6
+      - d-1w5rjhg6
+      - r-jl42pzah
+      - f-exoo5ehm
+      - f-ivsuofva
+      - f-cf3chwvr
+      - f-te6cfwkw
+      - f-8bxtf5w7
+    cases:
+      - when: a namespace the setting names holds anything but lowercase letters, digits,
+          underscore, hyphen or dot
+        then: the build fails, naming the character
+      - when: the `namespace` option is a string
+        then: that is the namespace
+      - when: the `namespace` option is `true`
+        then: it is the package's scope and name, the `@` dropped and the `/` a hyphen
+      - when: the `namespace` option is absent and the package vendors anything
+        then: the build fails, naming the dependency whose content needs a namespace
+      - otherwise: nothing is namespaced and names reach the output as the source spells them
+    commentary: |
+      A namespace is something the build consumes and nothing the engine reads, and a manifest is
+      shipped verbatim to the engine. Putting it in the manifest would mean declaring and validating
+      a field that has no meaning there.
+
+      A scoped package name is already the shape the community's convention asks for — a creator
+      token combined with a product token — and npm has allocated it, which the convention itself
+      has no way to do. So the author who thinks about none of this gets the recommended answer, and
+      gets it enforced rather than advised.
+
+      The accepted set is a subset of the one Mojang's schemas pattern, taking only what is also
+      measured to work: lowercase letters, digits, underscore, hyphen and dot. Hyphens matter
+      because a package name is full of them, so the default needs no transliteration beyond
+      dropping the scope's `@` and turning its `/` into a hyphen. The `%` and `+` the schema admits
+      are left out — nothing produces them and unneeded latitude has no upside.
+
+      Uppercase is where all three sources agree and the one worth a build error: the schema's
+      pattern excludes it, Mojang's guidance says lowercase, and it is measured to register and
+      spawn while no query or selector can reach it. npm permits uppercase in legacy names, so a
+      default taken verbatim could produce one.
+
+      A named namespace is refused rather than folded to lowercase, because the author chose those
+      characters and silently shipping different ones is worse than saying so.
+
+      The convention also asks for short, on the grounds that an author writes the namespace
+      constantly. That does not reach this design: `d-8qkamvz7` has names written bare in sources
+      and `d-zm6pxfrg` gives code a helper, so a namespace is typed nowhere. Taking the uniqueness
+      half and declining the brevity half is the trade that buys, and a short namespace stays one
+      override away for anyone who wants it in a selector.
+
+  - id: d-krzv5w4t
+    title: the kit does not police identifier withdrawal, and says what a rename costs
+    statement: |
+      the kit holds a pack to no additive-only discipline: it neither refuses nor warns on a build
+      that stops declaring an identifier a previous build declared.
+    status: rejected
+    reason: |
+      the exclusion should not need stating; it exists only as an artefact of earlier revisions of this design
+    scope: build
+    because:
+      - r-jxzqhhmo
+      - d-zk0c48uy
+      - f-8rffdkj5
+    commentary: |
+      Withdrawing an identifier does not destroy anything. A world's saved entities of that type
+      survive in the chunk, and restoring the identifier brings every one back with the same entity
+      id, name tag and position — so a rename is recoverable, and a discipline enforced to prevent
+      data loss would be enforcing against a loss that does not occur.
+
+      What it does do is make them vanish from the running world, with nothing logged and no broken
+      entity to notice, for as long as the identifier is missing. That is worth documenting and not
+      worth a gate: the build cannot see a world, so the only thing it could compare is one build
+      against another, which mc-rpg-core does by hand for its own reasons and which is a discipline
+      a pack may adopt without the kit imposing it.
+
+  - id: d-jibcuv16
+    title: the watch set reaches the vendored trees a build reads
+    statement: |
+      the watch inputs a build registers include the `vendored_pack/` tree of every dependency it
+      vendors, beside the package's own pack sources, its source manifests, its `package.json`, and
+      the `package.json` of each workspace package its manifest names.
+    status: accepted
+    scope: build
+    supersedes: d-095jgny3
+    because:
+      - r-v8jjhds5
+      - r-cekp2mcb
+      - r-wi7qf6to
+      - d-jdqt63fi
+      - f:a-rolldown-plugin-can-declare-extra-watch-inputs
+    commentary: |
+      Restated rather than extended because the set is the whole of what triggers a rebuild, and a
+      reader needs one list.
+
+      Vendoring makes a dependency's source an input to every dependent's build, and an input the
+      watch set does not name is an edit that never reaches a running world. That would break the
+      edit-to-live loop precisely for shared content — the content most likely to be under active
+      work, since it is what several packs are being written against at once.
+
+      Directories are registered rather than their files, as before, so an asset added to a vendored
+      tree triggers a rebuild like one added to a pack's own.
+
+  - id: d-p00wsgxo
+    title: the docs send an author who overrides the default to the registry
+    statement: |
+      the kit's documentation of the namespace setting names the Bedrock-OSS add-on registry as
+      where a chosen namespace is claimed. The build neither reads the registry nor requires an
+      entry in it.
+    status: tolerated
+    scope: build
+    because:
+      - d-zk0c48uy
+      - d-9s4tdc8z
+      - f-5cqzbyqa
+      - f-exoo5ehm
+    commentary: |
+      An author who overrides the default is giving up the uniqueness npm supplied, and the registry
+      is the only place the community allocates a short token rather than merely advising one. It
+      belongs in the docs beside the setting that creates the need for it.
+
+      Not in the build: an entry confers nothing in-game, so a check would trade a network
+      dependency in every build for a signal about other registrants only. Whether that trade is
+      ever worth making is captured to the backlog rather than settled here.
+
+  - id: d-tnhykfkz
+    title: internal asset names are namespaced by the pack's uuid, not by its namespace
+    statement: |
+      the entity identifiers a pack declares carry its namespace. Every other name it declares —
+      geometry, textures, materials, render controllers, animations, animation controllers — carries
+      the built pack's asset namespace instead.
+    status: accepted
+    scope: build
+    pinned:
+      reason: data-format
+      notes: the literal names inside a built pack, and which of them a stranger could ever address
+    because:
+      - r-jxzqhhmo
+      - r-293j8n70
+      - d-zk0c48uy
+      - d-ni5n2r3c
+      - f-8bxtf5w7
+      - f-09o4knzt
+      - f-gvmc2wfa
+    cases:
+      - when: the name is an entity identifier, or a localization key derived from one
+        then: it carries the namespace
+      - otherwise: it carries the asset namespace
+    commentary: |
+      An entity identifier is the only name anyone outside the pack addresses — a client entity
+      definition is found by it, a selector and a command name it, and a localization key follows it
+      by one rule. Every other name is reached only from files the build writes, so nothing outside
+      the pack ever spells one and no human types one either.
+
+      That is what makes the two different problems. An identifier wants to be readable and is
+      therefore contendable, and everything else in this increment is about living with that. An
+      an internal name wants nothing, so its namespace can be the one thing that cannot collide at
+      all. Uuids are already unique per pack and already checked across a workspace.
+
+      So the subtle failure the whole exhaustive rewrite exists to prevent — one package's actor
+      drawn with another's geometry — stops being a risk that is managed and becomes one that is
+      absent. What remains contendable is the identifier, which is the loud, nameable case.
+
+  - id: d-8qkamvz7
+    title: a namespaced pack writes bare names in its content
+    statement: |
+      in a pack with namespacing on, names are written bare in its content files — `wizard`,
+      `geometry.wizard` — and the build writes the namespace into them. Script sources are not
+      rewritten.
+    status: accepted
+    scope: build
+    pinned:
+      reason: public-api
+      notes: the form an author writes every name of their own in, once they turn namespacing on
+    because:
+      - r-jxzqhhmo
+      - d-zk0c48uy
+      - f-i8fx23h0
+    cases:
+      - when: namespacing is off
+        then: names reach the output as the source spells them
+      - when: a source name is bare
+        then: the built name carries the namespace
+      - otherwise: the build fails, naming the file and the name
+    commentary: |
+      One place states the namespace and one thing applies it, so a rename is a one-line change and
+      a source name cannot claim a namespace the setting contradicts.
+
+      Content only. Script sources reach their names through `d-zm6pxfrg`'s helper at run time, so
+      there is nothing in them for the build to rewrite and no bare name in code for it to fail on
+      — rewriting strings in code would be guessing at which of them were identifiers.
+
+  - id: d-ni5n2r3c
+    title: only names a pack declares are rewritten
+    statement: |
+      the build rewrites the names a package declares, in both its halves of pack content, and the
+      references to them. A reference to a name the package declares nowhere — vanilla content, or
+      another package's — is copied through untouched.
+    status: delegated
+    scope: build
+    pinned:
+      reason: public-api
+      notes: which of an author's references survive the build as written
+    because:
+      - r-c9bu8xes
+      - d-8qkamvz7
+      - f-a7v7ex4x
+      - f-z999a7yv
+    cases:
+      - when: a client entity names an entity identifier the package's behavior half declares
+        then: both carry the namespace, so the two halves still join
+      - when: a client entity names a geometry its own pack declares
+        then: both the declaration and the reference carry the namespace
+      - when: it names `geometry.evoker.v1.8`, or any material, texture or animation of the vanilla packs
+        then: the reference is written as it was
+    commentary: |
+      An entity's appearance may be assembled from vanilla assets with nothing copied, so a rewrite
+      that touched every name would break every such reference. What separates the two is
+      declaration.
+
+      Declaration is read across the package, not within one pack, because an entity identifier is
+      declared in the behavior half and referenced from the resource half. Scoped to a pack, the
+      client entity's identifier would be a reference to a name its own pack does not declare, pass
+      through unrewritten, and no longer join the behavior definition that was — which renders
+      nothing and points at nobody.
+
+  - id: d-7aqne91n
+    title: the content kinds a vendored pack may hold
+    statement: |
+      a vendored pack may declare entity identifiers, geometries, textures, materials, render
+      controllers, animations, animation controllers, and the localization entries keyed by an
+      entity identifier — client and behavior halves alike. Content of any other kind in a vendored
+      pack fails the build, naming the file.
+    status: accepted
+    scope: build
+    pinned:
+      reason: public-api
+      notes: what a shared pack's author may put in a pack, and what a vendoring build will accept
+    because:
+      - r-c9bu8xes
+      - d-27lzrwsu
+      - f-8bxtf5w7
+      - f-09o4knzt
+      - f-gvmc2wfa
+    commentary: |
+      Each of these names what it declares in a form the build can rewrite, and a localization key
+      follows `entity.<id>.name` from the identifier by one rule with no exceptions, so it moves
+      with the identifier.
+
+      The list is what the evidence covers and not what a pack could contain. Items, blocks, loot
+      tables, sounds, particles and the short-name atlases are outside it because nothing here
+      establishes how their names resolve across a pack stack — refusing them is the honest
+      reading, and each is admitted by an increment that brings the evidence.
+
+  - id: d-p1i76cgb
+    title: the build is where contention is caught, and the assets cannot report it
+    statement: |
+      the kit checks names where it can see them all — at a build. No check on the content itself
+      can report contention: a pack cannot tell that a name it declared resolved to someone else's.
+    status: accepted
+    scope: build
+    because:
+      - r-293j8n70
+      - d-1vhwdhk1
+      - f-8bxtf5w7
+      - f:a-resource-pack-cannot-carry-anything-a-script-can-reach
+      - f-o8xk7go5
+      - f-o9dbstfj
+    commentary: |
+      Not a preference — that detection does not exist. A resource pack can carry nothing a script
+      can reach: it cannot be enumerated, `getPackSettings` reads empty, and a timeline in one
+      cannot fire a scriptevent, so there is no canary to ship inside the assets. On the behavior
+      side `EntityTypes.getAll` marks no type with the pack that defined it and repeats no id, so a
+      losing definition is simply the winner's under the same id, and `undefined` is the only miss
+      signal the surface has.
+
+      What the type list cannot answer, a spawned entity can: the winning definition's own content
+      arrives with it, so a family that definition declares is provenance. `d-wj60379v` is that
+      route, and `d-q7mz2qb0` covers what it cannot reach before an entity exists. `d-wj60379v` is that route, and it
+      is why this decision is scoped to what the assets themselves can report.
+
+  - id: d-q7mz2qb0
+    title: the build inserts a claim type, and the runtime reads the claims at load
+    statement: |
+      the build adds to every namespaced pack with a behavior half an entity type whose identifier
+      carries the pack's own token. At load the runtime enumerates the declared types and exposes
+      the foreign claims it finds in its namespace as a value the pack can read.
+    status: delegated
+    scope: [build, runtime]
+    pinned:
+      reason: public-api
+      notes: an identifier every namespaced pack declares, and the value a pack reads its rivals from
+    because:
+      - r-293j8n70
+      - d-zk0c48uy
+      - d-wj60379v
+      - f-o8xk7go5
+      - f-1yo29upp
+    cases:
+      - when: a claim in the pack's namespace carries another pack's token
+        then: it appears in that value, and the contention is written to the content log
+      - otherwise: the value is empty and nothing is logged
+    commentary: |
+      A family answers only for an entity in hand, so `d-wj60379v` cannot speak before something is
+      spawned or found. A pack whose types are rarely reached would learn of contention late or
+      never, and nobody could ask a world which packs claim a namespace. A claim identifier is
+      readable without an entity: `EntityTypes.getAll` returns pack-defined types and repeats no id,
+      so two packs' claims coexist and each sees the other's.
+
+      Why an identifier and not a family here, having chosen a family for the other check: a family
+      reads only off a spawned entity, and an identifier reads off the type list. The two checks
+      want different questions answered — who is in this namespace, and is this entity mine — and
+      each takes the surface that answers its own without spawning anything to find out.
+
+      The build inserts it rather than the author writing it. The cost of the earlier form was that
+      it asked a pack author to declare something they would never otherwise think about, and the
+      build already generates content for a namespaced pack.
+
+      A value rather than a log line, because this decision pins a report an author builds on and
+      nothing can be built on a log line — an adventure that wants to refuse to start, or to name
+      the rival in its own message, needs the claimants in hand. The log happens anyway, so an
+      author who reads nothing still learns of it, and an operator reading a server's output does
+      too.
+
+  - id: d-wj60379v
+    title: a declared entity carries its pack's family, and the runtime checks it at use
+    statement: |
+      the build gives every entity type a namespaced pack declares a type family naming that pack,
+      and the runtime checks for it on every entity it hands back. A call that answers with one
+      entity raises where that entity lacks the pack's own family; a call that answers with many
+      omits those that lack it.
+    status: delegated
+    scope: [build, runtime]
+    pinned:
+      reason: public-api
+      notes: a family on every declared type, visible to any pack, and a report a pack author builds on
+    because:
+      - r-293j8n70
+      - d-p1i76cgb
+      - d-zm6pxfrg
+      - f-8bxtf5w7
+      - f-o8xk7go5
+      - f-1yo29upp
+      - f-a4ibml4h
+    cases:
+      - when: the pack declares no namespace, so the build stamped no family
+        then: every entity is returned unchecked
+      - when: every entity the call would answer with carries the pack's own family
+        then: they are returned as they are
+      - when: a call answering with one entity spawned it, and it lacks the family
+        then: the entity is removed and the call raises
+      - when: a call answers with one entity and it lacks the family
+        then: the call raises, leaving the entity where it was found
+      - otherwise: the foreign entities are left out of the result, which is returned
+    commentary: |
+      This asks the question that matters. A contended identifier yields one definition, and the
+      losing pack cannot see that from the type list, since `EntityTypes.getAll` marks no type with
+      the pack that defined it. But the winning definition's own content arrives with the entity, so
+      a family that definition declares is provenance the entity can be asked for.
+
+      Every path, not the spawn alone. A lookup resolves an entity placed in an earlier session, and
+      a world's pack order can change between sessions, so the identifier that meant one thing when
+      the actor was placed can mean another when it is found again. Checking only where the runtime
+      creates an entity would leave the oldest actors — the ones a rename is most likely to have
+      overtaken — the least checked.
+
+      The test is "does it carry mine" rather than "which one does it carry", and it has to be: the
+      winning definition replaces the other outright, so a losing pack's family is simply gone and
+      nothing in the reading names who took it. What the pack learns is that its own definition did
+      not resolve, which is the part worth acting on.
+
+      Raising rather than returning the entity is the point of asking, since an adventure handed a
+      stranger's actor operates on the wrong thing indefinitely. What differs by path is cleanup: an
+      entity this call spawned is the call's own side effect and is removed, while one merely found
+      belongs to the world and is left alone.
+
+      An unnamespaced pack passes everything by rule, not by an empty filter. A check that pushed
+      the family down into the engine's own query would spell it `families: [<the pack's>]`, and an
+      empty list there asks nothing and keeps every entity — so the no-namespace case and a case
+      where the family simply failed to arrive would look identical and both pass silently. Stating
+      it makes the first deliberate and leaves the second detectable.
+
+      A query is the other shape and wants the other answer. Raising would discard a correct
+      forty-nine-entity result over one stranger, which is a worse service than the filtering an
+      author would otherwise write themselves; and unlike a single lookup, a query has a true
+      answer left to give. Silence is what the design fights, so the omission is reported through
+      `d-q7mz2qb0`'s value and log rather than swallowed. The contention is reported once, not at
+      every call.
+
+      What it does not reach: `d-tnhykfkz` takes geometry and textures out of contention entirely, so
+      what is left for this to catch is identifiers.
+
+  - id: d-35ovo8rl
+    title: a vendored pack ships its source in its published package
+    statement: |
+      a package holding a vendored pack publishes its `vendored_pack/` tree, and a vendoring
+      package's build reads it from an installed dependency exactly as from a workspace sibling.
+    status: accepted
+    scope: build
+    pinned:
+      reason: public-api
+      notes: what a shared pack's package must contain for anyone to vendor it
+    because:
+      - r-dge04upw
+      - d-jdqt63fi
+      - d-27lzrwsu
+      - f:npm-install-fetches-a-package-and-its-dependencies
+    commentary: |
+      Vendoring reads source, so the source has to be in the tarball — a pack that publishes only
+      its built output cannot be vendored by anyone. It is the assets answering to the same rule as
+      the code: what a dependency offers is what it published.
+
+  - id: d-uq46uunx
+    title: a vendoring package installs as one file
+    statement: |
+      the archive a vendoring package builds holds everything a world needs from that package,
+      vendored content included. Installing a vendoring package is one file and one action, whatever it
+      depends on.
+    status: accepted
+    scope: build
+    pinned:
+      reason: public-api
+      notes: what an operator installs, and what another product may build a release story on
+    because:
+      - d-82zp77fo
+      - d-xoz6pwt8
+      - d-6ewrh1g3
+      - r-phxrb6qn
+    commentary: |
+      It follows from merging plus an archive cut from the package's own output tree, and it is
+      stated because it is the outcome anyone downstream actually plans against. A product that gave
+      up a one-file install when it found the archive carried only its own packs can have it back,
+      and should not have to re-derive that from two decisions and an archive rule.
+
+      Nothing about the archive changes. The vendored content is in the vendoring package's own output tree
+      by the time the archive is cut, so what already ships one mcaddon per package now ships one
+      that is complete.
+
+  - id: d-1vhwdhk1
+    title: a name collision between vendored and own content fails the build
+    statement: |
+      where a vendoring package's own content and something it vendors declare the same name, or two of its
+      vendorings do, the build fails and names both declarations.
+    status: accepted
+    scope: build
+    because:
+      - d-82zp77fo
+      - d-8qkamvz7
+      - f-8bxtf5w7
+    commentary: |
+      Merging puts both under one namespace, where one silently wins and whichever author notices
+      sees an actor drawn wrong. Nothing distinguishes the author's intent here, so neither side can
+      be preferred.
+
+  - id: d-hqtqb43i
+    title: what copies unchanged, and what the build writes
+    statement: |
+      a file under a pack's source directory reaches the output unchanged except its
+      `manifest.json`, everything under `scripts/`, any file carrying a name the build rewrites, and
+      any file more than one of the merged packs contributes entries to, which are composed.
+      Dotfiles and unknown extensions in a package's own source copy like the rest; in a vendored
+      tree `d-7aqne91n` governs.
+    status: delegated
+    scope: build
+    pinned:
+      reason: data-format
+      notes: which of an author's files survive the build byte for byte
+    supersedes: d-h91x9nxz
+    because:
+      - r-umoo5i1i
+      - r-imfmv0qc
+      - r-c9bu8xes
+      - d-82zp77fo
+      - d-ni5n2r3c
+    commentary: |
+      This restates the exceptions rather than adding to them, because two of the four are new and
+      the value of the entry is that the list is closed.
+
+      A composed file's entries are ordered deterministically from their content rather than from
+      the order the packs were resolved in. Output is written only where the bytes differ, and a
+      watching consumer keys on that, so a composition that reshuffled on an unrelated change would
+      churn every dependent.
+
+      Rewriting a name is already not copying, so the exception is owed to the namespace whether or
+      not anything is vendored. Composing is owed to merging: most pack content is one file per
+      thing, where two packs contributing one path means two declarations of one name — caught
+      before this decision is reached. Where the format keeps one file for the whole pack instead,
+      both packs have entries in it legitimately, and one of them winning would silently drop the
+      other's.
+
+      Every file this touches is in the output tree, which the assembly owns outright. Nothing is
+      written back to a source directory, so no authored file gains generated content and no
+      authored directory gains an ignored file.
+
+  - id: d-7jn9c702
+    title: a vendored pack has no namespace of its own
+    statement: |
+      a vendored pack has no namespace of its own. Every name it declares is spelled by whichever
+      package takes it up.
+    status: accepted
+    scope: build
+    because:
+      - d-27lzrwsu
+      - d-zk0c48uy
+      - d-8qkamvz7
+    commentary: |
+      A namespace belongs to something built into a pack a world runs, and a vendored pack is never
+      that. Two vendoring packages spell its names two ways, so there is no third spelling for it to
+      hold — which is also why its source names are bare, the same form `d-8qkamvz7` asks of any
+      namespaced pack's own content.
+
+      That it produces no build output of its own needs no saying: it bears no pack, so there is
+      nothing for a build to produce.
+
+  - id: d-xoz6pwt8
+    title: what a package vendors comes from its dependencies
+    statement: |
+      a package vendors the `vendored_pack/` of every package in its own `dependencies`, workspace
+      sibling or installed, and follows those packages' `dependencies` transitively. Nothing is
+      listed and no manifest dependency is involved.
+    status: delegated
+    scope: build
+    pinned:
+      reason: public-api
+      notes: what makes a dependency's content arrive, and the absence of any list to keep
+    because:
+      - d-27lzrwsu
+      - d-82zp77fo
+      - r-dge04upw
+      - r-293j8n70
+    commentary: |
+      A vendored pack has no uuid, so a manifest `dependencies` entry cannot name one and the
+      existing pack-dependency mechanism has nothing to point at. The npm dependency is the
+      declaration instead, which is what already carries the library half — depend on the package
+      and you get both halves, the way depending on a package gets you its code.
+
+      Runtime dependencies only, and transitively, because that is what shipping the pack requires:
+      content reaching a world is a runtime concern, and a shared pack that itself vendors one must
+      arrive whole. A `devDependency` builds the package and does not ship with it.
+
+      Nothing to list also means nothing to keep in step. A second place naming which dependencies
+      to vendor would drift from the dependency list itself, and the failure would be an asset that
+      quietly stopped arriving.
+
+  - id: d-4idoxbul
+    title: the engine-side half is its own package
+    statement: |
+      the kit's engine-side code ships as `@twin-digital/mc-pack-runtime`, a package of its own
+      holding the identifier helper and the checked spawn. A pack takes it as an ordinary
+      dependency; `@twin-digital/mc-dev-kit` stays a development one and depends on it.
+    status: accepted
+    scope: runtime
+    pinned:
+      reason: public-api
+      notes: a second package a pack author installs, and which of the two is a runtime dependency
+    because:
+      - r-tvea5tvf
+      - d-zm6pxfrg
+      - d-wj60379v
+      - d-zyo6kku9
+      - r-2alueo3d
+      - f:a-script-module-does-not-resolve-across-packs
+      - f:tsdown-externalises-a-packages-declared-dependencies-by-default
+    commentary: |
+      Every helper this increment asks for is code that runs in the engine, and the kit has shipped
+      none before — discovery and the build both run in Node. Leaving it to pack authors means each
+      of them writes the same identifier composition and the same provenance check, and gets the
+      second one subtly wrong, which is how a silent failure comes back.
+
+      Two packages rather than one with two entry points, because the two halves differ in the
+      thing a dependency list exists to record. The kit is a development dependency that runs in
+      Node and never ships; the runtime is a real dependency that runs in the engine and lands in
+      every bundle. One package would put a build tool in a pack's production dependencies and make
+      the split a matter of which import a bundler happened to reach. The harness is already a
+      package beside the library rather than an export of it, which is the same cut.
+
+      The kit depends on the runtime because the build writes the namespace constant the runtime
+      reads, so one of them has to hold that contract and the reader is the natural owner.
+
+      A pack author is free to write their own. What the kit owes is that the obvious thing is
+      there.
+
+  - id: d-zm6pxfrg
+    title: the namespace reaches code as an injected constant
+    statement: |
+      the build injects the vendoring package's namespace into the bundle as a constant, and the kit exposes
+      it as a helper spelling a bare name into a full identifier. A vendored library and the
+      vendoring package's own code reach it the same way.
+    status: delegated
+    scope: [build, runtime]
+    pinned:
+      reason: public-api
+      notes: how any code in the bundle spells an identifier the build chose the namespace for
+    because:
+      - r-tvea5tvf
+      - r-jxzqhhmo
+      - d-zk0c48uy
+      - f:a-script-module-does-not-resolve-across-packs
+      - f-i8fx23h0
+    commentary: |
+      The bundle is per vendoring package already, so the constant is too, without anything being
+      asked of that package. It is the same value `d-zk0c48uy` puts in the build configuration,
+      reaching the code path rather than the asset path.
+
+      The helper is what keeps a long namespace from being a cost in code. A bare identifier does
+      not resolve — the engine reads it as `minecraft:` and searches no further — so code must spell
+      the full one, and `id('wizard')` is the author writing the same bare name they write in a
+      source file. Without it the vendoring package's own code is the one place the namespace would have to
+      be typed out.

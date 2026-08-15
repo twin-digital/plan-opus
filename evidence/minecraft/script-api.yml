@@ -399,3 +399,17 @@ runs:
       cases; its spawn set ran with the probe's own ticking area loaded. RESULTS.md beside it
       reads the log. One content pack is installed, so the 129-entry count is this world's rather
       than a vanilla constant.
+
+  - id: query-empty-array-probe
+    command: node evidence/minecraft/script-api/query-empty-probe/run.mjs 1
+    output: evidence/minecraft/script-api/query-empty-probe/OUTPUT.txt
+    ran_at: 2026-08-15
+    environment: |
+      itzg/minecraft-bedrock-server, Bedrock dedicated 1.26.44.3, @minecraft/server 2.8.0 as a pack
+      manifest dependency with no experiments enabled. query-empty-probe pack 0.1.0, uuid
+      bfcb5c57-2edb-4356-a548-8f931e35c8b1, triggered from the server console as
+      `scriptevent qprobe:empty` with no client attached. Three subjects on a built arena — a
+      tagged sheep, an untagged cow and an armor stand — read through `entity.matches` and through
+      `dimension.getEntities`, thirteen cases each, single run against a destroyed and rebuilt volume,
+      no PROBE CRASHED lines. The token cases are the live controls: `families: ['sheep']` and
+      `tags: ['alpha']` each keep one subject, `excludeFamilies: ['mob']` keeps none.
