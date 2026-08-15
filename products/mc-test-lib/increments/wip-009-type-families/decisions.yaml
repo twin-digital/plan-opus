@@ -31,8 +31,7 @@ decisions:
     statement: |
       `addComponent`'s state argument is shaped by the component it adds: the four attribute
       numbers for the seven attribute-shaped ids, and the list of family tokens for
-      `minecraft:type_family`. Nothing derives families from a registered entity type — an entity
-      carries the families a test gave it and no others.
+      `minecraft:type_family`.
     cases:
       - when: the id is attribute-shaped
         then: state is the four numbers, or a shorthand — a single number, or a [min, max] pair — and an omitted number is left unset
@@ -45,8 +44,25 @@ decisions:
     because:
       - f:f-axuk7u0y
       - r-rnnnz98l
-      - r-qak2scbs
     supersedes: d-990n6j2l
+    scope: fakes
+
+  # The alternative is a families list on a registered entity type, which construction would copy
+  # onto each entity of that type. `EntityType` declares only `id` and `localizationKey`, so it
+  # would take control-plane state on the catalog — a surface worth adding once a test creates
+  # enough entities of one type for per-entity seeding to be the cost.
+  - id: d-dapvwjwi
+    title: families are seeded per entity
+    statement: |
+      A fake entity's families are the tokens a test seeded on that entity. Nothing derives them
+      from its typeId or from a registered entity type, and the library ships no table of the
+      families vanilla types carry.
+    status: proposed
+    pinned:
+      reason: public-api
+    because:
+      - r-qak2scbs
+      - r-b92y0kb7
     scope: fakes
 
   - id: d-piyaaywf
