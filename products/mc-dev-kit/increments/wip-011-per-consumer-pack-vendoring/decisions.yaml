@@ -7,7 +7,7 @@ decisions:
       a vendored pack's content is written into the vendoring package's own pack of that kind, under
       that package's namespace and its own header uuid. A vendoring package ships one behavior pack
       and one resource pack whatever it vendors.
-    status: proposed
+    status: accepted
     scope: build
     pinned:
       reason: data-format
@@ -18,7 +18,7 @@ decisions:
       - r-un786n7v
       - r-xcz7nzr6
       - f:a-script-module-does-not-resolve-across-packs
-      - f:f-8bxtf5w7
+      - f-8bxtf5w7
     commentary: |
       A shared dependency's code half is bundled into the vendoring package already — no import
       reaches a module in another pack, so code crosses at build time or not at all. Merging puts the asset
@@ -39,7 +39,7 @@ decisions:
     statement: |
       a package vendoring content of a kind must hold its own source manifest of that kind. The
       build fails otherwise, naming the manifest to add.
-    status: proposed
+    status: accepted
     scope: build
     pinned:
       reason: public-api
@@ -66,7 +66,7 @@ decisions:
       a vendored pack's source sits at `vendored_pack/`, holding a kind-named subdirectory per half.
       It carries no `manifest.json`, so no source manifest of a discovered kind exists and the
       package bears no pack.
-    status: proposed
+    status: accepted
     scope: build
     pinned:
       reason: public-api
@@ -75,7 +75,7 @@ decisions:
       - r-293j8n70
       - r-zcdmh9p6
       - d-82zp77fo
-      - f:f-8bxtf5w7
+      - f-8bxtf5w7
     cases:
       - when: a package's source holds `vendored_pack/`
         then: that directory's content is vendored and adds nothing to the pack set
@@ -104,7 +104,7 @@ decisions:
     statement: |
       a vendoring package's build reads the vendored pack's `vendored_pack/` tree, completing and
       rewriting it itself. It does not require the depended-on package to have been built.
-    status: proposed
+    status: accepted
     scope: build
     because:
       - d-82zp77fo
@@ -124,7 +124,7 @@ decisions:
       the exported build function takes `packageDir`, required, and `namespace`, optional. Setting
       `namespace` turns namespacing on; `true` takes the package's own name and a string names one.
       No field is added to `manifest.json`.
-    status: proposed
+    status: accepted
     scope: build
     pinned:
       reason: public-api
@@ -137,11 +137,11 @@ decisions:
       - d-qtq0ccy6
       - d-1w5rjhg6
       - r-jl42pzah
-      - f:f-exoo5ehm
-      - f:f-ivsuofva
-      - f:f-cf3chwvr
-      - f:f-te6cfwkw
-      - f:f-8bxtf5w7
+      - f-exoo5ehm
+      - f-ivsuofva
+      - f-cf3chwvr
+      - f-te6cfwkw
+      - f-8bxtf5w7
     cases:
       - when: a namespace the setting names holds anything but lowercase letters, digits,
           underscore, hyphen or dot
@@ -188,12 +188,14 @@ decisions:
     statement: |
       the kit holds a pack to no additive-only discipline: it neither refuses nor warns on a build
       that stops declaring an identifier a previous build declared.
-    status: proposed
+    status: rejected
+    reason: |
+      the exclusion should not need stating; it exists only as an artefact of earlier revisions of this design
     scope: build
     because:
       - r-jxzqhhmo
       - d-zk0c48uy
-      - f:f-8rffdkj5
+      - f-8rffdkj5
     commentary: |
       Withdrawing an identifier does not destroy anything. A world's saved entities of that type
       survive in the chunk, and restoring the identifier brings every one back with the same entity
@@ -212,7 +214,7 @@ decisions:
       the watch inputs a build registers include the `vendored_pack/` tree of every dependency it
       vendors, beside the package's own pack sources, its source manifests, its `package.json`, and
       the `package.json` of each workspace package its manifest names.
-    status: proposed
+    status: accepted
     scope: build
     supersedes: d-095jgny3
     because:
@@ -239,13 +241,13 @@ decisions:
       the kit's documentation of the namespace setting names the Bedrock-OSS add-on registry as
       where a chosen namespace is claimed. The build neither reads the registry nor requires an
       entry in it.
-    status: proposed
+    status: tolerated
     scope: build
     because:
       - d-zk0c48uy
       - d-9s4tdc8z
-      - f:f-5cqzbyqa
-      - f:f-exoo5ehm
+      - f-5cqzbyqa
+      - f-exoo5ehm
     commentary: |
       An author who overrides the default is giving up the uniqueness npm supplied, and the registry
       is the only place the community allocates a short token rather than merely advising one. It
@@ -261,7 +263,7 @@ decisions:
       the entity identifiers a pack declares carry its namespace. Every other name it declares —
       geometry, textures, materials, render controllers, animations, animation controllers — carries
       the built pack's asset namespace instead.
-    status: proposed
+    status: accepted
     scope: build
     pinned:
       reason: data-format
@@ -271,9 +273,9 @@ decisions:
       - r-293j8n70
       - d-zk0c48uy
       - d-ni5n2r3c
-      - f:f-8bxtf5w7
-      - f:f-09o4knzt
-      - f:f-gvmc2wfa
+      - f-8bxtf5w7
+      - f-09o4knzt
+      - f-gvmc2wfa
     cases:
       - when: the name is an entity identifier, or a localization key derived from one
         then: it carries the namespace
@@ -294,11 +296,12 @@ decisions:
       absent. What remains contendable is the identifier, which is the loud, nameable case.
 
   - id: d-8qkamvz7
-    title: a namespaced pack writes bare names in source
+    title: a namespaced pack writes bare names in its content
     statement: |
-      in a pack with namespacing on, names are written bare in source — `wizard`,
-      `geometry.wizard` — and the build writes the namespace into them.
-    status: proposed
+      in a pack with namespacing on, names are written bare in its content files — `wizard`,
+      `geometry.wizard` — and the build writes the namespace into them. Script sources are not
+      rewritten.
+    status: accepted
     scope: build
     pinned:
       reason: public-api
@@ -306,7 +309,7 @@ decisions:
     because:
       - r-jxzqhhmo
       - d-zk0c48uy
-      - f:f-i8fx23h0
+      - f-i8fx23h0
     cases:
       - when: namespacing is off
         then: names reach the output as the source spells them
@@ -317,13 +320,17 @@ decisions:
       One place states the namespace and one thing applies it, so a rename is a one-line change and
       a source name cannot claim a namespace the setting contradicts.
 
+      Content only. Script sources reach their names through `d-zm6pxfrg`'s helper at run time, so
+      there is nothing in them for the build to rewrite and no bare name in code for it to fail on
+      — rewriting strings in code would be guessing at which of them were identifiers.
+
   - id: d-ni5n2r3c
     title: only names a pack declares are rewritten
     statement: |
-      the build rewrites the names a package declares, in both its halves, and the references to
-      them. A reference to a name the package declares nowhere — vanilla content, or another
-      package's — is copied through untouched.
-    status: proposed
+      the build rewrites the names a package declares, in both its halves of pack content, and the
+      references to them. A reference to a name the package declares nowhere — vanilla content, or
+      another package's — is copied through untouched.
+    status: delegated
     scope: build
     pinned:
       reason: public-api
@@ -331,8 +338,8 @@ decisions:
     because:
       - r-c9bu8xes
       - d-8qkamvz7
-      - f:f-a7v7ex4x
-      - f:f-z999a7yv
+      - f-a7v7ex4x
+      - f-z999a7yv
     cases:
       - when: a client entity names an entity identifier the package's behavior half declares
         then: both carry the namespace, so the two halves still join
@@ -358,7 +365,7 @@ decisions:
       controllers, animations, animation controllers, and the localization entries keyed by an
       entity identifier — client and behavior halves alike. Content of any other kind in a vendored
       pack fails the build, naming the file.
-    status: proposed
+    status: accepted
     scope: build
     pinned:
       reason: public-api
@@ -366,9 +373,9 @@ decisions:
     because:
       - r-c9bu8xes
       - d-27lzrwsu
-      - f:f-8bxtf5w7
-      - f:f-09o4knzt
-      - f:f-gvmc2wfa
+      - f-8bxtf5w7
+      - f-09o4knzt
+      - f-gvmc2wfa
     commentary: |
       Each of these names what it declares in a form the build can rewrite, and a localization key
       follows `entity.<id>.name` from the identifier by one rule with no exceptions, so it moves
@@ -384,15 +391,15 @@ decisions:
     statement: |
       the kit checks names where it can see them all — at a build. No check on the content itself
       can report contention: a pack cannot tell that a name it declared resolved to someone else's.
-    status: proposed
+    status: accepted
     scope: build
     because:
       - r-293j8n70
       - d-1vhwdhk1
-      - f:f-8bxtf5w7
+      - f-8bxtf5w7
       - f:a-resource-pack-cannot-carry-anything-a-script-can-reach
-      - f:f-o8xk7go5
-      - f:f-o9dbstfj
+      - f-o8xk7go5
+      - f-o9dbstfj
     commentary: |
       Not a preference — that detection does not exist. A resource pack can carry nothing a script
       can reach: it cannot be enumerated, `getPackSettings` reads empty, and a timeline in one
@@ -412,7 +419,7 @@ decisions:
       the build adds to every namespaced pack with a behavior half an entity type whose identifier
       carries the pack's own token. At load the runtime enumerates the declared types and exposes
       the foreign claims it finds in its namespace as a value the pack can read.
-    status: proposed
+    status: delegated
     scope: [build, runtime]
     pinned:
       reason: public-api
@@ -421,8 +428,8 @@ decisions:
       - r-293j8n70
       - d-zk0c48uy
       - d-wj60379v
-      - f:f-o8xk7go5
-      - f:f-1yo29upp
+      - f-o8xk7go5
+      - f-1yo29upp
     cases:
       - when: a claim in the pack's namespace carries another pack's token
         then: it appears in that value, and the contention is written to the content log
@@ -456,7 +463,7 @@ decisions:
       and the runtime checks for it on every entity it hands back. A call that answers with one
       entity raises where that entity lacks the pack's own family; a call that answers with many
       omits those that lack it.
-    status: proposed
+    status: delegated
     scope: [build, runtime]
     pinned:
       reason: public-api
@@ -465,10 +472,10 @@ decisions:
       - r-293j8n70
       - d-p1i76cgb
       - d-zm6pxfrg
-      - f:f-8bxtf5w7
-      - f:f-o8xk7go5
-      - f:f-1yo29upp
-      - f:f-a4ibml4h
+      - f-8bxtf5w7
+      - f-o8xk7go5
+      - f-1yo29upp
+      - f-a4ibml4h
     cases:
       - when: the pack declares no namespace, so the build stamped no family
         then: every entity is returned unchecked
@@ -522,7 +529,7 @@ decisions:
     statement: |
       a package holding a vendored pack publishes its `vendored_pack/` tree, and a vendoring
       package's build reads it from an installed dependency exactly as from a workspace sibling.
-    status: proposed
+    status: accepted
     scope: build
     pinned:
       reason: public-api
@@ -543,7 +550,7 @@ decisions:
       the archive a vendoring package builds holds everything a world needs from that package,
       vendored content included. Installing a vendoring package is one file and one action, whatever it
       depends on.
-    status: proposed
+    status: accepted
     scope: build
     pinned:
       reason: public-api
@@ -568,12 +575,12 @@ decisions:
     statement: |
       where a vendoring package's own content and something it vendors declare the same name, or two of its
       vendorings do, the build fails and names both declarations.
-    status: proposed
+    status: accepted
     scope: build
     because:
       - d-82zp77fo
       - d-8qkamvz7
-      - f:f-8bxtf5w7
+      - f-8bxtf5w7
     commentary: |
       Merging puts both under one namespace, where one silently wins and whichever author notices
       sees an actor drawn wrong. Nothing distinguishes the author's intent here, so neither side can
@@ -587,7 +594,7 @@ decisions:
       any file more than one of the merged packs contributes entries to, which are composed.
       Dotfiles and unknown extensions in a package's own source copy like the rest; in a vendored
       tree `d-7aqne91n` governs.
-    status: proposed
+    status: delegated
     scope: build
     pinned:
       reason: data-format
@@ -624,7 +631,7 @@ decisions:
     statement: |
       a vendored pack has no namespace of its own. Every name it declares is spelled by whichever
       package takes it up.
-    status: proposed
+    status: accepted
     scope: build
     because:
       - d-27lzrwsu
@@ -645,7 +652,7 @@ decisions:
       a package vendors the `vendored_pack/` of every package in its own `dependencies`, workspace
       sibling or installed, and follows those packages' `dependencies` transitively. Nothing is
       listed and no manifest dependency is involved.
-    status: proposed
+    status: delegated
     scope: build
     pinned:
       reason: public-api
@@ -675,7 +682,7 @@ decisions:
       the kit's engine-side code ships as `@twin-digital/mc-pack-runtime`, a package of its own
       holding the identifier helper and the checked spawn. A pack takes it as an ordinary
       dependency; `@twin-digital/mc-dev-kit` stays a development one and depends on it.
-    status: proposed
+    status: accepted
     scope: runtime
     pinned:
       reason: public-api
@@ -713,7 +720,7 @@ decisions:
       the build injects the vendoring package's namespace into the bundle as a constant, and the kit exposes
       it as a helper spelling a bare name into a full identifier. A vendored library and the
       vendoring package's own code reach it the same way.
-    status: proposed
+    status: delegated
     scope: [build, runtime]
     pinned:
       reason: public-api
@@ -723,7 +730,7 @@ decisions:
       - r-jxzqhhmo
       - d-zk0c48uy
       - f:a-script-module-does-not-resolve-across-packs
-      - f:f-i8fx23h0
+      - f-i8fx23h0
     commentary: |
       The bundle is per vendoring package already, so the constant is too, without anything being
       asked of that package. It is the same value `d-zk0c48uy` puts in the build configuration,
