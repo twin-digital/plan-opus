@@ -468,7 +468,10 @@ decisions:
       - f:f-8bxtf5w7
       - f:f-o8xk7go5
       - f:f-1yo29upp
+      - f:f-a4ibml4h
     cases:
+      - when: the pack declares no namespace, so the build stamped no family
+        then: every entity is returned unchecked
       - when: every entity the call would answer with carries the pack's own family
         then: they are returned as they are
       - when: a call answering with one entity spawned it, and it lacks the family
@@ -497,6 +500,12 @@ decisions:
       stranger's actor operates on the wrong thing indefinitely. What differs by path is cleanup: an
       entity this call spawned is the call's own side effect and is removed, while one merely found
       belongs to the world and is left alone.
+
+      An unnamespaced pack passes everything by rule, not by an empty filter. A check that pushed
+      the family down into the engine's own query would spell it `families: [<the pack's>]`, and an
+      empty list there asks nothing and keeps every entity — so the no-namespace case and a case
+      where the family simply failed to arrive would look identical and both pass silently. Stating
+      it makes the first deliberate and leaves the second detectable.
 
       A query is the other shape and wants the other answer. Raising would discard a correct
       forty-nine-entity result over one stranger, which is a worse service than the filtering an
