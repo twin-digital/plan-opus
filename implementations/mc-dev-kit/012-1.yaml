@@ -1884,16 +1884,16 @@ coverage:
           - src/build.ts
         note: the README namespacing section and the option TSDoc both link the registry
 
-  - claim: d-tnhykfkz # internal asset names are namespaced by the pack's uuid
+  - claim: d-l45sm4ja # own names carry the pack namespace; vendored assets a library token and hash
     covered_by:
       - kind: code-test
         ref: src/internal/pack-build.test.ts
-        note: entity identifiers and their localization keys get the namespace; geometry, textures, materials, render controllers and animations get the uuid-derived asset namespace
+        note: own asset names carry the pack namespace as their token; a vendored asset is named by its library token and content hash, deterministically across rebuilds; a parent edit renames the child through the Merkle fold
       - kind: attestation
         ref:
           - src/internal/formats.ts
           - src/internal/merge-plan.ts
-        note: entity ids and their entity.<id>.name / item.spawn_egg.entity.<id>.name keys carry the namespace; everything else the asset namespace, per half
+        note: entity ids and their entity.<id>.name / item.spawn_egg.entity.<id>.name keys carry the namespace; own assets the namespace token; vendored assets <libToken>-<16-hex sha256>
 
   - claim: d-8qkamvz7 # a namespaced pack writes bare names in its content
     covered_by:
@@ -1908,10 +1908,10 @@ coverage:
     covered_by:
       - kind: code-test
         ref: src/internal/pack-build.test.ts
-        note: a declared name and every reference to it are rewritten so the two halves still join; references to vanilla geometry, texture and material names copy as written
+        note: a declared name and every reference to it are rewritten so the two halves still join; references to vanilla geometry, texture and material names copy as written; an own reference to a name both own and vendored content declare resolves to the own declaration
       - kind: attestation
         ref: src/internal/merge-plan.ts
-        note: reference rewriting is by lookup in the declared-name maps; misses copy through untouched
+        note: reference rewriting goes through the per-file resolver implementing the two-step scope rule; misses copy through untouched
 
   - claim: d-7aqne91n # the content kinds a vendored pack may hold
     covered_by:
@@ -1922,14 +1922,14 @@ coverage:
         ref: src/internal/merge-plan.ts
         note: the vendored classification is the closed list; vendored .lang entries not keyed by an entity identifier fail naming file and key
 
-  - claim: d-1vhwdhk1 # a name collision between vendored and own content fails the build
+  - claim: d-i4oeiclv # entity collisions fail; asset references resolve per scope
     covered_by:
       - kind: code-test
         ref: src/internal/pack-build.test.ts
-        note: own-vs-vendored and vendoring-vs-vendoring collisions each fail naming both declarations
+        note: own-vs-vendored and vendoring-vs-vendoring entity-identifier collisions each fail naming both declarations; two vendorings may declare one bare asset name, each built under its own token; an own reference to a name only several vendorings declare fails naming every candidate
       - kind: attestation
         ref: src/internal/merge-plan.ts
-        note: collision keys are per name category; entity names collide pack-wide, asset names per half
+        note: checkEntityCollisions fails cross-pack entity names; asset contention became per-scope resolution with ambiguity failure and a within-vendoring duplicate check
 
   - claim: d-p1i76cgb # the build is where contention is caught
     covered_by:
@@ -1973,10 +1973,10 @@ coverage:
     covered_by:
       - kind: code-test
         ref: src/internal/pack-build.test.ts
-        note: verbatim copy with namespacing off, manifest and scripts never copied, rewritten-name files written, and the .lang composition case
+        note: verbatim copy with namespacing off, manifest and scripts never copied, rewritten-name files written, the .lang composition case, and vendored definition files landing under token-prefixed basenames
       - kind: attestation
         ref: src/internal/merge-plan.ts
-        note: a modeled file the rewrite left untouched keeps its source bytes; dotfiles and unknown extensions in own source copy like the rest
+        note: a modeled file the rewrite left untouched keeps its source bytes; dotfiles and unknown extensions in own source copy like the rest; prefixedBasename places vendored definition files
 
   - claim: d-7jn9c702 # a vendored pack has no namespace of its own
     covered_by:
@@ -2158,14 +2158,14 @@ coverage:
         ref: src/claims.ts
         note: the enumeration runs off world.afterEvents.worldLoad; the value is a snapshot of the most recent load
 
-  - claim: d-sycw8wo2 # the asset namespace is mcdk_ plus the half's uuid hex
+  - claim: d-sycw8wo2 # the asset token structures and the vendored content hash
     covered_by:
       - kind: code-test
         ref: src/internal/pack-build.test.ts
-        note: asset names carry mcdk_ plus the half's uuid hex in each name kind's own structure, textures moving with their names
+        note: tokens written in each name kind's own structure, textures moving with their names; the vendored hash is deterministic across rebuilds, asserted by rebuilding; the Merkle fold and the two-files-one-name failure each have a case
       - kind: attestation
         ref: src/internal/formats.ts
-        note: the derivation is one function from the completed header uuid
+        note: vendoredAssetToken and VENDORED_HASH_LENGTH sit behind single constants; own tokens are the pack namespace
 
   - claim: d-3bmgnb25 # what a namespaced pack's own source may hold
     covered_by:

@@ -103,28 +103,83 @@ decisions:
       - d-y86n5etq
       - f-rtmfaoba
 
-  - id: d-sycw8wo2
-    title: the asset namespace is mcdk_ plus the half's uuid hex
+  - id: d-l45sm4ja
+    title: own names carry the pack namespace; vendored assets a library token and hash
     statement: |
-      a built pack half's asset namespace is `mcdk_` plus that half's completed header uuid with
-      the hyphens dropped, written in each name kind's own structure: `geometry.<token>.<name>`,
-      `controller.render.<token>.<name>`, `animation.<token>.<name>`,
-      `controller.animation.<token>.<name>`, `<token>_<name>` for materials, and
-      `textures/<token>/<original path>` for textures, whose file moves with its name.
+      the entity identifiers a pack declares carry its namespace, and so do its own asset names,
+      as their token. A vendored asset's name carries its library's token and a content hash
+      instead, so an identical name is identical bytes: consumers share names exactly where
+      content is unchanged, and an upgrade renames exactly the assets that changed.
     status: proposed
     scope: [build]
     pinned:
       reason: data-format
-      notes: the literal names inside every built namespaced pack
+      notes: the literal names inside a built pack, and the property that a shared name is a shared definition
+    supersedes: d-tnhykfkz
     because:
-      - d-tnhykfkz
-      - r-xcz7nzr6
+      - r-jxzqhhmo
+      - r-293j8n70
+      - d-82zp77fo
+      - d-zk0c48uy
       - f-8bxtf5w7
+      - f-1yo29upp
     commentary: |
-      The uuid is already the pack's workspace-unique identity, so no second allocation is
-      needed, and the same shared pack vendored twice lands under two distinct tokens for free.
-      Dots and colons are avoided where they carry engine semantics — material parents, geometry
-      inheritance.
+      Winner-takes-all resolution is decided by activation order, not version (f-1yo29upp), so
+      any name shared between packs holding different bytes drifts arbitrarily per world. Hashing
+      makes sharing exact: a shared name cannot resolve to anything but the bytes every sharer
+      built with. Own assets need no hash — they change under the author's own hand, and hashing
+      them would rename on every tweak, forcing a dev-loop restart per save.
+
+  - id: d-sycw8wo2
+    title: the asset token structures and the vendored content hash
+    statement: |
+      a token is written into each name kind's structure: `geometry.<token>.<name>`,
+      `controller.render.<token>.<name>`, `animation.<token>.<name>`,
+      `controller.animation.<token>.<name>`, `<token>_<name>` for materials, and
+      `textures/<token>/<path>` for textures, whose file moves with its name. A vendored token is
+      `<packToken>-<hash>`: sixteen hex digits of sha256 over the declaring file's bytes and the
+      sorted final names it references. A vendored definition file's output basename carries the
+      packToken.
+    cases:
+      - when: one vendored pack declares an asset name in two files
+        then: the build fails naming both files — two hashes would leave references nothing to pick
+      - when: a vendored material names a vendored parent
+        then: the parent's final name folds into the hash, recursively; a cycle fails the build naming the file
+      - otherwise: a file's hash is its bytes alone, and every declaration in the file shares it
+    status: proposed
+    scope: [build]
+    pinned:
+      reason: data-format
+      notes: the literal names inside every built namespaced pack, and what makes them deterministic across rebuilds
+    because:
+      - d-l45sm4ja
+      - d-hqtqb43i
+      - f-8bxtf5w7
+
+  - id: d-i4oeiclv
+    title: entity collisions fail; asset references resolve per scope
+    statement: |
+      an entity identifier declared by a vendoring package's own content and something it
+      vendors, or by two of its vendorings, fails the build naming both declarations. An asset
+      reference resolves first against the declarations of the pack whose file wrote it, then
+      across the other merged packs when exactly one declares the name.
+    cases:
+      - when: an own reference names an asset that own and vendored content both declare
+        then: it resolves to the own declaration
+      - when: it names an asset that only several vendorings declare
+        then: the build fails naming every candidate declaration and its file
+      - otherwise: a name no merged pack declares is copied through as written
+    status: proposed
+    scope: [build]
+    pinned:
+      reason: public-api
+      notes: which declaration an author's reference lands on, and the collision that remains a failure
+    supersedes: d-1vhwdhk1
+    because:
+      - d-l45sm4ja
+      - d-ni5n2r3c
+      - r-c9bu8xes
+      - d-82zp77fo
 
   - id: d-3bmgnb25
     title: what a namespaced pack's own source may hold
