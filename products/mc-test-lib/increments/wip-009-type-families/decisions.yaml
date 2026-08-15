@@ -47,22 +47,39 @@ decisions:
     supersedes: d-990n6j2l
     scope: fakes
 
-  # The alternative is a families list on a registered entity type, which construction would copy
-  # onto each entity of that type. `EntityType` declares only `id` and `localizationKey`, so it
-  # would take control-plane state on the catalog — a surface worth adding once a test creates
-  # enough entities of one type for per-entity seeding to be the cost.
+  # The divergence lets a test build two entities sharing a typeId and differing in families, which
+  # the engine cannot produce. It bites a pack whose code leans on the invariant — a provenance
+  # check caching "typeId X is ours" after one lookup passes here and is wrong in the engine. That
+  # pattern appearing in a pack is what reopens this, by moving families onto the registered type.
   - id: d-dapvwjwi
-    title: families are seeded per entity
+    title: families are seeded per entity, diverging from the engine
     statement: |
-      A fake entity's families are the tokens a test seeded on that entity. Nothing derives them
-      from its typeId or from a registered entity type, and the library ships no table of the
-      families vanilla types carry.
+      A fake entity's families are the tokens a test seeded on that entity — the library's own
+      model, marked as such, not the engine's, where a type's definition fixes them for every
+      entity of that type. Nothing derives them from a typeId or a registered entity type, and no
+      table of vanilla families ships.
     status: proposed
     pinned:
       reason: public-api
     because:
+      - f:f-axuk7u0y
+      - r-8r8gf6b7
       - r-qak2scbs
       - r-b92y0kb7
+    scope: fakes
+
+  - id: d-sdw7qzuv
+    title: construction takes components
+    statement: |
+      `createEntity` and `createPlayer` take a `components` option, a map from component id to the
+      state `addComponent` takes for that id. Construction adds exactly those and is otherwise
+      identical to calling `addComponent` for each entry.
+    status: proposed
+    pinned:
+      reason: public-api
+    because:
+      - d-ksk6d7ua
+      - d-55ux0ngf
     scope: fakes
 
   - id: d-piyaaywf
