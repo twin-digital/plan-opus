@@ -1,0 +1,59 @@
+# slash-in-identifier spelling probe
+
+--- slash world_behavior_packs.json=[{"pack_id":"206d4ca1-7780-484b-86cb-e3eef0f98766","version":[0,1,0]}] ---
+
+server=1.26.44.3 bp=206d4ca1-7780-484b-86cb-e3eef0f98766
+
+=== raw [slprobe] lines, delivery order ===
+[2026-08-15 21:55:49:490 WARN] [Scripting] [slprobe] boot :: ready cases=3
+[2026-08-15 21:55:54:055 WARN] [Scripting] [slprobe] slash :: start
+[2026-08-15 21:56:00:045 WARN] [Scripting] [slprobe] arena :: built centre=(163,100,170) floor=minecraft:stone attempts=6
+[2026-08-15 21:56:00:295 WARN] [Scripting] [slprobe] slash/types :: total=131 non-vanilla=3
+[2026-08-15 21:56:00:295 WARN] [Scripting] [slprobe] slash/types :: registered=my-rpg/spellfx:probe length=20
+[2026-08-15 21:56:00:295 WARN] [Scripting] [slprobe] slash/types :: registered=my-rpg:spellfx/probe length=20
+[2026-08-15 21:56:00:295 WARN] [Scripting] [slprobe] slash/types :: registered=my_rpg_spellfx:probe length=20
+[2026-08-15 21:56:00:295 WARN] [Scripting] [slprobe] slash/ctl_underscore :: id=my_rpg_spellfx:probe
+[2026-08-15 21:56:00:295 WARN] [Scripting] [slprobe] slash/ctl_underscore :: EntityTypes.get -> type id=my_rpg_spellfx:probe
+[2026-08-15 21:56:00:296 WARN] [Scripting] [slprobe] slash/ctl_underscore :: spawnEntity -> ok
+[2026-08-15 21:56:00:544 WARN] [Scripting] [slprobe] slash/ctl_underscore :: entity.typeId=my_rpg_spellfx:probe valid=true
+[2026-08-15 21:56:00:545 WARN] [Scripting] [slprobe] slash/ctl_underscore :: matches(type)=true
+[2026-08-15 21:56:00:545 WARN] [Scripting] [slprobe] slash/ctl_underscore :: hasTypeFamily(fam_ctl_underscore)=true
+[2026-08-15 21:56:00:545 WARN] [Scripting] [slprobe] slash/ctl_underscore :: getEntities({type}).length=1
+[2026-08-15 21:56:00:545 WARN] [Scripting] [slprobe] slash/ctl_underscore :: getEntities({families:[fam_ctl_underscore]}) typeIds=[my_rpg_spellfx:probe]
+[2026-08-15 21:56:00:545 WARN] [Scripting] [slprobe] slash/ctl_underscore :: cmd testfor @e[type=my_rpg_spellfx:probe] successCount=1
+[2026-08-15 21:56:00:545 WARN] [Scripting] [slprobe] slash/ctl_underscore :: cmd testfor @e[family=fam_ctl_underscore] successCount=1
+[2026-08-15 21:56:00:645 WARN] [Scripting] [slprobe] slash/ctl_underscore :: cmd summon my_rpg_spellfx:probe successCount=1
+[2026-08-15 21:56:00:895 WARN] [Scripting] [slprobe] slash/ctl_underscore :: after-summon getEntities({type}).length=1
+[2026-08-15 21:56:00:895 WARN] [Scripting] [slprobe] slash/ctl_underscore :: after-summon present typeId=my_rpg_spellfx:probe
+[2026-08-15 21:56:00:990 WARN] [Scripting] [slprobe] slash/ctl_underscore :: end
+[2026-08-15 21:56:00:990 WARN] [Scripting] [slprobe] slash/ns_slash :: id=my-rpg/spellfx:probe
+[2026-08-15 21:56:00:990 WARN] [Scripting] [slprobe] slash/ns_slash :: EntityTypes.get -> type id=my-rpg/spellfx:probe
+[2026-08-15 21:56:00:990 WARN] [Scripting] [slprobe] slash/ns_slash :: spawnEntity -> ok
+[2026-08-15 21:56:01:240 WARN] [Scripting] [slprobe] slash/ns_slash :: entity.typeId=my-rpg/spellfx:probe valid=true
+[2026-08-15 21:56:01:240 WARN] [Scripting] [slprobe] slash/ns_slash :: matches(type)=true
+[2026-08-15 21:56:01:240 WARN] [Scripting] [slprobe] slash/ns_slash :: hasTypeFamily(fam_ns_slash)=true
+[2026-08-15 21:56:01:240 WARN] [Scripting] [slprobe] slash/ns_slash :: getEntities({type}).length=1
+[2026-08-15 21:56:01:240 WARN] [Scripting] [slprobe] slash/ns_slash :: getEntities({families:[fam_ns_slash]}) typeIds=[my-rpg/spellfx:probe]
+[2026-08-15 21:56:01:240 WARN] [Scripting] [slprobe] slash/ns_slash :: cmd testfor @e[type=my-rpg/spellfx:probe] successCount=threw CommandError: Error occurred with parsing command params: Syntax error: Unexpected "my-rpg": at "r @e[type=>>my-rpg<</spellfx:p"
+[2026-08-15 21:56:01:240 WARN] [Scripting] [slprobe] slash/ns_slash :: cmd testfor @e[family=fam_ns_slash] successCount=1
+[2026-08-15 21:56:01:345 WARN] [Scripting] [slprobe] slash/ns_slash :: cmd summon my-rpg/spellfx:probe successCount=threw CommandError: Error occurred with parsing command params: Syntax error: Unexpected "my-rpg": at "summon >>my-rpg<</spellfx:p"
+[2026-08-15 21:56:01:594 WARN] [Scripting] [slprobe] slash/ns_slash :: after-summon getEntities({type}).length=0
+[2026-08-15 21:56:01:690 WARN] [Scripting] [slprobe] slash/ns_slash :: end
+[2026-08-15 21:56:01:690 WARN] [Scripting] [slprobe] slash/name_slash :: id=my-rpg:spellfx/probe
+[2026-08-15 21:56:01:690 WARN] [Scripting] [slprobe] slash/name_slash :: EntityTypes.get -> type id=my-rpg:spellfx/probe
+[2026-08-15 21:56:01:690 WARN] [Scripting] [slprobe] slash/name_slash :: spawnEntity -> ok
+[2026-08-15 21:56:01:940 WARN] [Scripting] [slprobe] slash/name_slash :: entity.typeId=my-rpg:spellfx/probe valid=true
+[2026-08-15 21:56:01:940 WARN] [Scripting] [slprobe] slash/name_slash :: matches(type)=true
+[2026-08-15 21:56:01:940 WARN] [Scripting] [slprobe] slash/name_slash :: hasTypeFamily(fam_name_slash)=true
+[2026-08-15 21:56:01:940 WARN] [Scripting] [slprobe] slash/name_slash :: getEntities({type}).length=1
+[2026-08-15 21:56:01:940 WARN] [Scripting] [slprobe] slash/name_slash :: getEntities({families:[fam_name_slash]}) typeIds=[my-rpg:spellfx/probe]
+[2026-08-15 21:56:01:940 WARN] [Scripting] [slprobe] slash/name_slash :: cmd testfor @e[type=my-rpg:spellfx/probe] successCount=threw CommandError: Error occurred with parsing command params: Syntax error: Unexpected "my-rpg:spellfx": at "r @e[type=>>my-rpg:spellfx<</probe]"
+[2026-08-15 21:56:01:940 WARN] [Scripting] [slprobe] slash/name_slash :: cmd testfor @e[family=fam_name_slash] successCount=1
+[2026-08-15 21:56:02:044 WARN] [Scripting] [slprobe] slash/name_slash :: cmd summon my-rpg:spellfx/probe successCount=threw CommandError: Error occurred with parsing command params: Syntax error: Unexpected "my-rpg:spellfx": at "summon >>my-rpg:spellfx<</probe 163"
+[2026-08-15 21:56:02:295 WARN] [Scripting] [slprobe] slash/name_slash :: after-summon getEntities({type}).length=0
+[2026-08-15 21:56:02:395 WARN] [Scripting] [slprobe] slash/name_slash :: end
+[2026-08-15 21:56:02:395 WARN] [Scripting] [slprobe] slash :: complete
+
+=== other content-log lines mentioning a probe identifier ===
+
+=== end ===

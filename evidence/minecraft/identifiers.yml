@@ -60,3 +60,24 @@ runs:
       world; p3-restored back at v0.1.0 censuses again. Each phase also attempts spawnEntity for all
       four identifiers. The cow control's position differs in every phase, which is what establishes
       the chunk was live and re-written while the two types were undeclared.
+  - id: run-ciee1o5z
+    command: node run.mjs
+    output: evidence/minecraft/identifiers/slash-spelling-probe/OUTPUT.txt
+    ran_at: 2026-08-15
+    environment: |
+      Run in evidence/minecraft/identifiers/slash-spelling-probe against
+      itzg/minecraft-bedrock-server (digest
+      sha256:0723ada81c10d3a9333d551b9ad8f22d666c3728071b6a15808bcef1fd394ab2), Bedrock dedicated
+      1.26.44.3, @minecraft/server 2.8.0 as a pack manifest dependency with no experiments enabled.
+
+      One behavior pack, uuid 206d4ca1-7780-484b-86cb-e3eef0f98766 v0.1.0, declares three entity
+      definitions: a slash in the namespace half (`my-rpg/spellfx:probe`), a slash in the name half
+      (`my-rpg:spellfx/probe`), and an underscore control (`my_rpg_spellfx:probe`), each also
+      carrying its own family token so the entity stays reachable by @e[family=] where type
+      addressing fails. One phase, triggered from the console as `scriptevent slprobe:run slash`,
+      reads each identifier back through EntityTypes.getAll and EntityTypes.get, spawnEntity plus
+      the spawned entity's typeId, Entity.matches({type}), getEntities({type}), and the testfor and
+      summon commands via Dimension.runCommand. The phase produced its `complete` line, no PROBE
+      CRASHED lines, and the content-log filter at the end of OUTPUT.txt matched no warnings or
+      errors. OUTPUT.txt is the captured transcript the sources cite; RESULTS.md beside it is a
+      reading of the same lines.
