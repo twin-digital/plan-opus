@@ -17,7 +17,7 @@ decisions:
       - when: the entity carries no `minecraft:type_family` component
         then: getComponent reads undefined as any absent component does, and a family filter matches the entity on nothing
       - otherwise: the component reads back the tokens the test seeded, in the order it supplied them
-    status: proposed
+    status: accepted
     pinned:
       reason: public-api
     because:
@@ -38,7 +38,7 @@ decisions:
       - when: the id is `minecraft:type_family` and no state is supplied
         then: the component is added carrying no families
       - otherwise: a state argument is rejected with InvalidArgumentError
-    status: proposed
+    status: accepted
     pinned:
       reason: public-api
     because:
@@ -58,7 +58,7 @@ decisions:
       model, marked as such, not the engine's, where a type's definition fixes them for every
       entity of that type. Nothing derives them from a typeId or a registered entity type, and no
       table of vanilla families ships.
-    status: proposed
+    status: tolerated
     pinned:
       reason: public-api
     because:
@@ -74,7 +74,7 @@ decisions:
       `createEntity` and `createPlayer` take a `components` option, a map from component id to the
       state `addComponent` takes for that id. Construction adds exactly those and is otherwise
       identical to calling `addComponent` for each entry.
-    status: proposed
+    status: accepted
     pinned:
       reason: public-api
     because:
@@ -94,7 +94,7 @@ decisions:
         then: an entity matches only while carrying every token listed
       - when: the query names `excludeFamilies`
         then: an entity carrying any token listed is excluded
-    status: proposed
+    status: accepted
     pinned:
       reason: public-api
     because:
