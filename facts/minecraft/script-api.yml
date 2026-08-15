@@ -3178,3 +3178,97 @@ facts:
         where: "`shape` — a pack-defined type's key, namespace kept"
         quote: |
           [etreg] shape :: subject=mctest:probe_dummy ctor=EntityType members=[localizationKey(own,value)=string:"entity.mctest:probe_dummy.name" id(own,value)=string:"mctest:probe_dummy" id(proto1,value)=undefined localizationKey(proto1,value)=undefined]
+
+  - id: f-axuk7u0y
+    claim: |
+      `@minecraft/server` 2.8.0 declares `EntityTypeFamilyComponent` under the component id
+      `minecraft:type_family`, carrying two members: `getTypeFamilies(): string[]` and
+      `hasTypeFamily(typeFamily: string): boolean`. Both are reads — the reference documents no
+      member that adds or removes a family, so a script observes an entity's families and cannot
+      change them.
+    backing: documented
+    sources:
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/entitytypefamilycomponent
+        where: Methods, and Constants — componentId
+        quote: |
+          ## Methods
+
+          - getTypeFamilies
+          - hasTypeFamily
+
+          ### **getTypeFamilies**
+
+          `getTypeFamilies(): string[]`
+
+          **Returns***string*[]
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/entitytypefamilycomponent
+        where: hasTypeFamily, and the componentId constant
+        quote: |
+          ### **hasTypeFamily**
+
+          `hasTypeFamily(typeFamily: string): boolean`
+
+          #### **Parameters**
+
+          - **typeFamily**: *string*
+
+          **Returns***boolean*
+
+          ## Constants
+
+          ### **componentId**
+
+          `static read-only componentId = "minecraft:type_family";`
+
+  - id: f-zma0fhxw
+    claim: |
+      The two family fields of `EntityFilter` are not each other's mirror. `families` includes an
+      entity matching **all** of the tokens listed, so several tokens conjoin; `excludeFamilies`
+      excludes one matching **one or more** of them, so several tokens disjoin. A query naming both
+      therefore asks for every included token and none of the excluded ones.
+    backing: documented
+    sources:
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/entityfilter
+        where: Properties — families
+        quote: |
+          ### **families**
+
+          `families?: string[];`
+
+          If specified, includes entities that match all of the specified families.
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/entityfilter
+        where: Properties — excludeFamilies
+        quote: |
+          ### **excludeFamilies**
+
+          `excludeFamilies?: string[];`
+
+          Excludes entities that match one or more of the specified families.
+
+  - id: f-a4ibml4h
+    claim: |
+      An empty array asks nothing of an `EntityFilter` list field: `families: []`,
+      `excludeFamilies: []`, `tags: []` and `excludeTags: []` each keep every entity, on
+      `entity.matches` and on the dimension lookup alike. So an included field is satisfied by
+      listing no token, and an excluding field rejects on none — a field carrying an empty array
+      filters exactly as if it had been left off.
+    backing: tested
+    sources:
+      - run: query-empty-array-probe
+        where: "`empty` — the lookup under `families: []`"
+        quote: "[2026-08-15 04:32:57:025 WARN] [Scripting] [qprobe] empty :: lookup case=families-empty count=3 types=minecraft:armor_stand|minecraft:cow|minecraft:sheep"
+      - run: query-empty-array-probe
+        where: "`empty` — the lookup under `excludeFamilies: []`"
+        quote: "[2026-08-15 04:32:57:025 WARN] [Scripting] [qprobe] empty :: lookup case=excludeFamilies-empty count=3 types=minecraft:armor_stand|minecraft:cow|minecraft:sheep"
+      - run: query-empty-array-probe
+        where: "`empty` — the lookup under `tags: []`"
+        quote: "[2026-08-15 04:32:57:025 WARN] [Scripting] [qprobe] empty :: lookup case=tags-empty count=3 types=minecraft:armor_stand|minecraft:cow|minecraft:sheep"
+      - run: query-empty-array-probe
+        where: "`empty` — the lookup under `excludeTags: []`"
+        quote: "[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: lookup case=excludeTags-empty count=3 types=minecraft:armor_stand|minecraft:cow|minecraft:sheep"
+      - run: query-empty-array-probe
+        where: "`empty` — the control under `families: ['sheep']`, one of three subjects kept"
+        quote: "[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: lookup case=families-token-discriminating count=1 types=minecraft:sheep"
+      - run: query-empty-array-probe
+        where: "`empty` — the control under `excludeFamilies: ['mob']`, no subject kept"
+        quote: "[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: lookup case=excludeFamilies-token count=0 types=none"
