@@ -1,0 +1,104 @@
+version: "3"
+
+# The implement-011 companion: the concrete spellings the vendoring build and the engine-side
+# runtime share, and the choices building them forced. The two format decisions rest on
+# f-5acfquxr, probed for this implementation.
+decisions:
+  - id: d-jej5f2em
+    title: the injected constant is a frozen global holding the namespace and the pack token
+    statement: |
+      for a namespaced pack the build assigns
+      `globalThis.__MC_PACK_RUNTIME__ = Object.freeze({ namespace, packToken })` ahead of every
+      module in the bundle — `packToken` the package's npm name with the `@` dropped and the `/`
+      a hyphen. With namespacing off nothing is assigned, and every runtime read sees the global
+      absent.
+    status: proposed
+    scope: [build, runtime]
+    pinned:
+      reason: public-api
+      notes: the spelling every built bundle carries, shared by both halves and any reimplementation
+    because:
+      - d-zm6pxfrg
+      - r-tvea5tvf
+      - d-zk0c48uy
+
+  - id: d-vwyuhb7e
+    title: the stamped family is mcdk_pack_ plus the pack token
+    statement: |
+      the type family the build stamps on every entity type a namespaced pack declares is
+      `mcdk_pack_<packToken>` — the pack token rather than the namespace, so two packs
+      contending for one namespace still tell apart. `packFamily()` exposes the token for an
+      author's own filters.
+    commentary: |
+      A contended identifier resolves to one whole definition, and the loser's family is what
+      goes absent (f-1yo29upp) — a namespace-keyed family could not say whose definition won.
+    status: proposed
+    scope: [build, runtime]
+    pinned:
+      reason: public-api
+      notes: a family visible to any pack, built on by authors' selectors and filters
+    because:
+      - d-wj60379v
+      - d-jej5f2em
+      - f-1yo29upp
+      - f-5acfquxr
+
+  - id: d-2dg93d2a
+    title: the claim type is the namespace, mcdk_claim_, and the pack token
+    statement: |
+      the entity type the build adds to a namespaced pack's behavior half is
+      `<namespace>:mcdk_claim_<packToken>`. The runtime reads rivals by enumerating the
+      registered types whose identifier carries its own namespace and the `mcdk_claim_` prefix
+      with another pack's token. The `mcdk_claim_` name space is reserved: a bare name that
+      would land in it fails the build.
+    status: proposed
+    scope: [build, runtime]
+    pinned:
+      reason: public-api
+      notes: an identifier every namespaced pack declares, and the prefix a reader parses
+    because:
+      - d-q7mz2qb0
+      - d-jej5f2em
+      - f-te6cfwkw
+      - f-5acfquxr
+      - f-o8xk7go5
+
+  - id: d-y86n5etq
+    title: the runtime's exported surface
+    statement: |
+      `@twin-digital/mc-pack-runtime` exports, from its one entry point: `packId(name)`,
+      spelling a bare name into the injected namespace and throwing on a prefixed name or a
+      missing namespace; `packNamespace()` and `packFamily()`; the checked `spawnEntity`,
+      `getEntity` and `getEntities`, with `ForeignEntityError`; and `foreignNamespaceClaims()`
+      returning `NamespaceClaim` entries. The checked calls are for the pack's own types.
+    commentary: |
+      `packNamespace()` and `packFamily()` answer undefined with namespacing off. Vanilla and
+      foreign entities are reached through `@minecraft/server` directly — the checked calls
+      guard the pack's own types and nothing else.
+    status: proposed
+    scope: [runtime]
+    pinned:
+      reason: public-api
+      notes: the importable surface of a package consumers install
+    because:
+      - d-4idoxbul
+      - d-zm6pxfrg
+      - d-wj60379v
+      - d-q7mz2qb0
+      - r-l4e55kqu
+      - f-i8fx23h0
+
+  - id: d-nqb3dtxv
+    title: the claim report is empty until the world has loaded
+    statement: |
+      `foreignNamespaceClaims()` answers the most recent world-load enumeration, and before the
+      world has loaded it answers an empty list rather than throwing or enumerating on demand.
+    status: proposed
+    scope: [runtime]
+    pinned:
+      reason: public-api
+      notes: when the value a pack reads its rivals from becomes populated
+    because:
+      - d-q7mz2qb0
+      - d-y86n5etq
+      - f-rtmfaoba
