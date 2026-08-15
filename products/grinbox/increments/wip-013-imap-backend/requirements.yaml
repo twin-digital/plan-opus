@@ -24,6 +24,28 @@ requirements:
       those have in common. What a particular server cannot do — keep a keyword, move a message —
       narrows what grinbox offers on that account rather than refusing the account.
 
+  - id: r-blqzjemx
+    title: one way to set a message aside, whatever the backend can do
+    statement: |
+      the user can configure one thing that marks a message for later on every account they have,
+      and grinbox carries it out the best way each account's backend allows.
+    commentary: |
+      A pipeline runs on accounts of more than one backend, and a user should not have to build two
+      configurations and remember which accounts each one serves. Where the backend keeps
+      per-message metadata that is what is used; where it does not, putting the message somewhere
+      is the nearest thing the user would have chosen themselves.
+
+  - id: r-e40s6olu
+    title: a folder is chosen from the ones that exist
+    statement: |
+      wherever grinbox asks the user to name a folder, it offers the folders the account actually
+      has to choose from.
+    commentary: |
+      Grinbox creates no folder and a name that matches nothing fails when mail arrives, so a free
+      text field is a trap: the user finds out they mistyped when a message does not move, days
+      later. The folders are already listed to propose an account's four, so the same listing
+      serves anywhere a folder is named.
+
   - id: r-g1iwlbzs
     title: the shape of the user's mailbox is theirs
     statement: |

@@ -13,7 +13,7 @@ decisions:
       server was found to support — is written in the backend's own terms, and none of it survives
       being reinterpreted by a different one. Making the backend immutable is what lets the rest of
       the design read those fields without asking which backend wrote them.
-    status: proposed
+    status: delegated
     because:
       - d-q2hx8vlm
       - d-8fvu0g4z
@@ -35,7 +35,7 @@ decisions:
       providers issue for exactly this purpose is what the user pastes. Storing it as a
       user-obtained credential puts it in the state, encrypted, rather than in the deployment's
       configuration, which is where the split already puts anything the user obtained.
-    status: proposed
+    status: accepted
     because:
       - r-5wpns28x
       - d-xe41okh9
@@ -56,7 +56,7 @@ decisions:
       An IMAP password has no consent screen to return from, so the public callback would sit
       unused in a flow that never leaves the machine. Keeping the public path to the grant case is
       what keeps the deployment's one exposed path narrow.
-    status: proposed
+    status: accepted
     supersedes: d-a1pf497w
     because:
       - r-ieyj1wkn
@@ -69,18 +69,20 @@ decisions:
 
   - id: d-v4mejzw5
     scope: backends
-    title: a password the server rejects retires the account; anything else is retried
+    title: a password the server rejects pauses the account until it is fixed
     statement: |
-      where an IMAP server refuses grinbox's login and says the credential is what it refused, the
-      account is marked as needing the user's attention and is skipped by polling until they give
-      grinbox a working password. Every other failure to reach or open the account leaves it as it
-      is and is retried at its next poll.
+      where an IMAP server refuses grinbox's login and says the credential is what it refused,
+      grinbox stops polling the account and reports that it needs the user. Polling resumes when the
+      user gives a working password, and nothing about the account is deleted. Any other failure
+      leaves the account as it is, retried at its next poll.
     commentary: |
       The counterpart of what a refused renewal does to a granted authorization: the two failures
-      mean the same thing to the user, which is that grinbox needs them. Separating the credential
-      rejection from the unreachable server is what keeps a night of network trouble from retiring
-      every account the user has.
-    status: proposed
+      mean the same thing to the user, which is that grinbox needs them. The pause is a pause —
+      the account, its folders, its cursor, and everything grinbox recorded about its mail stay
+      exactly as they were, and a working password puts it straight back to work. Separating the
+      credential rejection from the unreachable server is what keeps a night of network trouble
+      from stopping every account the user has.
+    status: accepted
     because:
       - r-fzuyjkts
       - d-v5fyd7xd
@@ -98,7 +100,7 @@ decisions:
       A provider that moved hosts, changed port, or renamed the mailbox leaves a user whose only
       lever is the password with no way back, and no shell to fix it from. The backend stays fixed
       because everything stored against the account is written in its terms.
-    status: proposed
+    status: delegated
     because:
       - d-v4mejzw5
       - d-ioso3voc
@@ -121,7 +123,7 @@ decisions:
       reasons the user could not see. Proposing what the roles say keeps the common case to a
       confirmation, and asking is what keeps grinbox out of the business of creating folders in an
       account someone else arranged.
-    status: proposed
+    status: delegated
     because:
       - r-g1iwlbzs
       - f-ymu94ntb
@@ -144,7 +146,7 @@ decisions:
       thrown away, which is what archived says. Reporting it deleted would be a claim grinbox
       cannot support and the more alarming of the two mistakes. Deleted stays in the vocabulary for
       backends that can tell.
-    status: proposed
+    status: tolerated
     because:
       - d-jr86qq8b
       - d-zxvkt95o
@@ -163,7 +165,7 @@ decisions:
       steps whatever the interface looks like. Storing the account at the first step would leave an
       abandoned add sitting in the account list, polled or not, which is a state nobody asked for
       and the user would have to clean up.
-    status: proposed
+    status: accepted
     because:
       - d-zxvkt95o
       - d-fuln110d
@@ -249,7 +251,7 @@ decisions:
       process, which is a second thing keeping the daemon busy beside the work queue it already
       has. What the user is promised is triage within minutes of arrival, and the account's own
       polling interval already carries that.
-    status: proposed
+    status: tolerated
     because:
       - d-81ouxrpi
       - d-nq4fk2xr
@@ -291,7 +293,7 @@ decisions:
       asked to evaluate at the moment they least can — while adding an account that is not working
       yet. A self-hosted mailbox whose certificate does not verify is a mailbox grinbox does not
       poll, and the remedy is on the server, where certificates are free.
-    status: proposed
+    status: accepted
     because:
       - d-ioso3voc
       - r-5wpns28x
@@ -313,7 +315,7 @@ decisions:
       some, so a triage loop running several messages at once could reach a limit that has nothing
       to do with grinbox and looks to the user like the account breaking. One at a time costs
       throughput on an account with a lot arriving at once, which is the cheaper failure.
-    status: proposed
+    status: tolerated
     because:
       - d-p82gksff
       - d-hf3gfs9u
@@ -356,7 +358,7 @@ decisions:
       so the nested form the interface already suggests keeps working. A category grinbox could not
       carry is one it would have to mangle silently or fail on, and mangling what the user sees on
       their own mail is the worse of the two.
-    status: proposed
+    status: accepted
     because:
       - d-bl5oamiz
       - f-xltd4r4v
@@ -430,7 +432,7 @@ decisions:
       A fetch marks a message read unless the client asks for the peeking form, so a triage that
       read the body would empty the user's unread count overnight. The general rule this makes
       concrete for IMAP: grinbox owns what it put there and nothing else on the message.
-    status: proposed
+    status: accepted
     because:
       - r-ziitim35
       - d-ypmi8g3g
@@ -453,7 +455,7 @@ decisions:
       business rather than a stated shape. The headers are carried by the message itself, which
       makes the answer the same on every server, and grinbox is already holding the account's
       messages to compare against.
-    status: proposed
+    status: delegated
     because:
       - d-q2hx8vlm
     pinned: false
@@ -504,7 +506,7 @@ decisions:
       Filing reaches outside grinbox and belongs where the other mail operations are, so that a
       backend which cannot carry it declares that the way it declares every other gap. The seam is
       otherwise unchanged.
-    status: proposed
+    status: delegated
     supersedes: d-q2hx8vlm
     because:
       - r-etj0gluz
@@ -525,7 +527,7 @@ decisions:
       What grinbox does to mail the user cannot get back is what this fixes, and filing joins
       archiving as a thing that moves a message rather than one that adds to it. Neither loses the
       message, which is the guarantee the entry exists to hold.
-    status: proposed
+    status: accepted
     supersedes: d-ypmi8g3g
     because:
       - r-ziitim35
@@ -552,7 +554,7 @@ decisions:
     commentary: |
       Unchanged but for the mailbox-write case, which named the two writes there were and now names
       the kind, so that filing is covered by what already governs archiving and applying a category.
-    status: proposed
+    status: delegated
     supersedes: d-m5zk9xcw
     because:
       - d-g3xc9rmv
@@ -577,7 +579,7 @@ decisions:
       different servers. Matching what the user wrote against what the server lists is the only
       rule that means one thing everywhere, and it pairs with grinbox creating no folder: an
       unmatched name is a name that is not there.
-    status: proposed
+    status: accepted
     because:
       - f-33wb1igd
       - f-yj818owe
@@ -650,7 +652,7 @@ decisions:
       IMAP reads a mailbox; submitting mail is a second protocol with its own address, port, and
       credential to ask the user for. Pairing the two is held for its own increment, and until then
       an IMAP account is a mailbox grinbox triages rather than one it writes from.
-    status: proposed
+    status: accepted
     because:
       - d-f9tj4wnr
       - d-p3vd6kxz
@@ -670,7 +672,7 @@ decisions:
       upgrade or a folder change, so a declaration fixed in grinbox's code would be a guess about
       the user's server. Reading it at login is what makes an account's gaps visible before an
       operator hits them.
-    status: proposed
+    status: accepted
     because:
       - d-f9tj4wnr
       - d-bl5oamiz
