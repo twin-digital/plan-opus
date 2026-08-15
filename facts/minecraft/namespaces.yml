@@ -1,0 +1,46 @@
+# How Bedrock add-on namespaces are chosen and kept apart across creators — the community's
+# practice, as distinct from what the engine enforces.
+version: "3"
+facts:
+  - id: f-exoo5ehm
+    title: the Bedrock namespace convention is creator plus product, chosen not allocated
+    claim: |
+      The community's namespace guidance is a convention with nothing enforcing it: pick a token
+      unique to you and to the project, keep it short, and build it from your own name combined with
+      the product's. Generic tokens are named as bad choices — `mob`, `cars`, `content`, `custom`.
+      The shortness advice is justified by how often an author types the namespace. Nothing in the
+      guidance allocates a namespace or checks one, so staying clear of another creator's token
+      rests on each creator following the convention.
+    backing: documented
+    sources:
+      - url: https://github.com/Bedrock-OSS/bedrock-wiki/blob/wiki/docs/concepts/namespaces.md
+        where: Choosing a namespace — on uniqueness
+        quote: |
+          A suitable namespace is unique to you, and unique to the project. Something like `mob` or `cars` or `content` or `custom` would be a **bad** namespace since another developer might come up with the same namespace as you.
+      - url: https://github.com/Bedrock-OSS/bedrock-wiki/blob/wiki/docs/concepts/namespaces.md
+        where: Choosing a namespace — on length
+        quote: |
+          A suitable namespace is short. You will be writing your namespace a **LOT**, so the shorter, the better. `my_amazing_mobs_addon` would be a lousy namespace for this reason.
+      - url: https://github.com/Bedrock-OSS/bedrock-wiki/blob/wiki/docs/concepts/namespaces.md
+        where: Choosing a namespace — the recommendation
+        quote: |
+          It is recommended to use a convenient version of your player/company name, combined with the product name.
+
+  - id: f-5cqzbyqa
+    title: a voluntary registry allocates namespaces and refuses one already claimed
+    claim: |
+      Bedrock-OSS runs an opt-in registry mapping a namespace to the add-on and creator holding it,
+      one JSON file per creator, claimed by pull request. Its build refuses a namespace another
+      entry already holds, so a claim is first-come and enforced at merge — among those who
+      register. It confers nothing in-game: the engine reads no registry, and a pack that never
+      registers may use whatever namespace it likes.
+    backing: documented
+    sources:
+      - url: https://github.com/Bedrock-OSS/add-on-registry
+        where: README — what an entry's key is
+        quote: |
+          - The **key** should be the ID/namespace of your Add-On (the same namespace you use for blocks, entities, etc.).
+      - url: https://github.com/Bedrock-OSS/add-on-registry
+        where: README — the rule on duplicates
+        quote: |
+          - Duplicate keys are not allowed. The build will fail if a namespace is already taken.

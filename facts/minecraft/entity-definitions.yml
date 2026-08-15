@@ -150,3 +150,62 @@ facts:
         where: Server side, captured — the four actors existed
         quote: |
           [2026-08-10 06:13:48:878 WARN] [Scripting] COLLIDE spawned collide:geo_b
+
+  - id: f-1yo29upp
+    title: a pack's own type family reads back, and a contended identifier resolves to one whole definition
+    claim: |
+      A family token a behavior pack invents is a first-class family at run time. An entity spawned
+      from the pack's own definition reports it from the `minecraft:type_family` component's
+      `getTypeFamilies()` and `hasTypeFamily()`, from `Entity.matches({ families })`, from
+      `Dimension.getEntities({ families })`, and from the `@e[family=]` command selector — and
+      reports no family the definition did not declare.
+
+      Where two behavior packs declare one entity identifier, the winning definition replaces the
+      other outright rather than merging with it: the losing pack's family tokens are absent, and so
+      are components only it declared. Measured on `probe:subject`, declared by both packs with
+      different families, health, movement and one exclusive component each — every reading came
+      from one pack's definition and none from the other's.
+
+      The winner is the earlier of the two in the world's behavior activation list, and it is stable
+      across restarts for a fixed order: three runs with pack A ahead resolved to A, and swapping
+      the two resolved to B.
+
+      Nothing in the reading names a pack. `typeId` is the shared identifier either way, so which
+      definition won is inferable only from content the definitions happen to differ in. A pack can
+      therefore tell that its own definition did not resolve — its family is missing — without being
+      able to tell whose did.
+    backing: tested
+    caveat: |
+      The runs vary activation-list order only, so pack version, `min_engine_version` and subpacks
+      are untested as tie-breakers and could outrank list position. `minecraft:is_baby` and
+      `minecraft:fire_immune` are used as markers whose presence is readable, not for their
+      gameplay effects.
+    sources:
+      - run: run-nnkyz02g
+        where: Observed output — an invented family on a type only one pack declares
+        quote: |
+          [2026-08-12 02:57:32:233 WARN] [Scripting] [probe] order-ab-1/solo :: getTypeFamilies=[probe_token_solo]
+      - run: run-nnkyz02g
+        where: Observed output — the same family through the command selector
+        quote: |
+          [2026-08-12 02:57:32:241 WARN] [Scripting] [probe] order-ab-1 :: cmd testfor @e[family=probe_token_solo] successCount=1
+      - run: run-nnkyz02g
+        where: Observed output — pack A ahead, the contended identifier resolving to A
+        quote: |
+          [2026-08-12 02:57:32:239 WARN] [Scripting] [probe] order-ab-1/subject :: getTypeFamilies=[probe_token_a|probe_shared]
+      - run: run-nnkyz02g
+        where: Observed output — pack A ahead, B's exclusive component absent
+        quote: |
+          [2026-08-12 02:57:32:239 WARN] [Scripting] [probe] order-ab-1/subject :: fire_immune(A only)=true is_baby(B only)=false
+      - run: run-nnkyz02g
+        where: Observed output — the two swapped, the same identifier resolving to B
+        quote: |
+          [2026-08-12 02:57:56:059 WARN] [Scripting] [probe] order-ba-1/subject :: getTypeFamilies=[probe_token_b|probe_shared]
+      - run: run-nnkyz02g
+        where: Observed output — the two swapped, A's exclusive component now absent
+        quote: |
+          [2026-08-12 02:57:56:060 WARN] [Scripting] [probe] order-ba-1/subject :: fire_immune(A only)=false is_baby(B only)=true
+      - run: run-nnkyz02g
+        where: Observed output — pack A ahead again after a restart, resolving to A
+        quote: |
+          [2026-08-12 02:58:10:507 WARN] [Scripting] [probe] order-ab-3/subject :: getTypeFamilies=[probe_token_a|probe_shared]

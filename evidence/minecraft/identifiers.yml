@@ -1,0 +1,62 @@
+# Runs backing facts about how a pack's entity identifiers are spelled and what depends on them.
+version: "1"
+runs:
+  - id: run-bycb73cr
+    command: node gen.mjs && node run.mjs && node gen-rp2.mjs && node run2.mjs
+    output: evidence/minecraft/identifiers/spelling-probe/RESULTS-CAPTURED.md
+    ran_at: 2026-08-12
+    environment: |
+      Run in evidence/minecraft/identifiers/spelling-probe against itzg/minecraft-bedrock-server
+      (image buildtime 2026-08-08T17:56:23.215Z, revision 8b8d0883d9542fe982e61753a88e51affaff8cdf),
+      Bedrock dedicated 1.26.43.1, @minecraft/server 2.8.0 as a pack manifest dependency with no
+      experiments enabled.
+
+      One behavior pack, uuid 5f2c1c4e-1d7a-4f3b-9d21-6a7c0f1e2b30 v0.1.0, declares thirteen entity
+      definitions whose identifiers vary one spelling each: underscore as the control, then a
+      hyphen, a dot, uppercase, an embedded digit, a leading digit, namespaces of 64, 200 and 512
+      characters, and a hyphen, a dot, uppercase and 200 characters in the name half. A script
+      triggered by `scriptevent nsprobe:run` reads each back four ways — EntityTypes.get,
+      spawnEntity plus the spawned entity's typeId, getEntities({type}), and the testfor and summon
+      commands.
+
+      Four phases. `bp-only` and `bp-plus-rp` run the same reads without and with a resource pack
+      (uuid 3d8f9b02-6a41-4c55-9f7e-2b0c8d16a4f7 v0.1.0) carrying geometry identifiers of the same
+      spellings, and produced identical output. `case-follow-up` separates the registry from the
+      query paths: EntityTypes.get for six spellings of one identifier, then one live entity queried
+      by three spellings, then the same identifier summoned by command with the resulting entity's
+      typeId read back. `rp-broken-control` activates a resource pack (uuid
+      b41d7e26-3a90-4f18-9c02-5e7d1a638b4c v0.1.0) holding deliberately broken content — a geometry
+      file and a client entity file that are not valid JSON, a geometry with an empty description,
+      and a client entity naming a geometry nothing defines — deployed into both resource_packs and
+      development_resource_packs, to establish whether this server reads resource pack content at
+      all. It reported none of it, which is why nothing here covers resource-pack asset names.
+
+      RESULTS-CAPTURED.md is generated from the raw logs by gen-results.mjs and prints the phase
+      list it wrote, so no phase can be dropped from it; RESULTS.md is the analysis beside it and
+      OUTPUT.txt / OUTPUT2.txt are the harness transcripts.
+
+  - id: run-iz4n510f
+    command: node run.mjs
+    output: evidence/minecraft/identifiers/withdrawal-probe/RESULTS.md
+    ran_at: 2026-08-12
+    environment: |
+      Run in evidence/minecraft/identifiers/withdrawal-probe against itzg/minecraft-bedrock-server
+      (digest sha256:0723ada81c10d3a9333d551b9ad8f22d666c3728071b6a15808bcef1fd394ab2), Bedrock
+      dedicated 1.26.43.1, @minecraft/server 2.8.0 as a pack manifest dependency with no experiments
+      enabled. Creative, difficulty hard, level seed 1; no client ever attached and no player in the
+      world. One persistent world, never destroyed, across three server lifetimes each ended with a
+      `stop` on the server console rather than a kill, so every phase's chunk state was saved.
+
+      A script pack, uuid 09ee7b49-12d6-4cb0-a3a0-283d3b33a3ae v0.1.0, spawns and censuses. A data
+      pack, uuid 02ea60ca-92a8-4e23-9244-be3a9066c911, is swapped between v0.1.0 — declaring
+      `probe:subject` with `minecraft:persistent` and `probe:plain` without — and v0.2.0, declaring
+      the same content as `probe:renamed` and `probe:plain_renamed` and declaring neither original
+      identifier. Five entities sit on a stone arena at the world-spawn column, y=100, inside their
+      own ticking area so the chunk stays loaded and is re-saved every phase: two of each custom
+      type, one of each pair name-tagged, plus a `minecraft:cow` control. Their entity ids are held
+      in a world dynamic property and looked up by id in each later phase.
+
+      Phases: p1-declared at v0.1.0 spawns and censuses; p2-withdrawn at v0.2.0 censuses the same
+      world; p3-restored back at v0.1.0 censuses again. Each phase also attempts spawnEntity for all
+      four identifiers. The cow control's position differs in every phase, which is what establishes
+      the chunk was live and re-written while the two types were undeclared.
