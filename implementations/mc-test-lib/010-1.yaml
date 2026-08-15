@@ -539,8 +539,8 @@ coverage:
         note: >
           creation order holds; the eight honoured fields filter on the lookups, on matches and through a
           subscribe filter's entityFilter; families keeps an entity carrying every token listed and
-          excludeFamilies drops one carrying any; each of the other sixteen throws naming itself, and the
-          count is asserted
+          excludeFamilies drops one carrying any, with an empty array on either asking nothing as the engine
+          was measured to; each of the other sixteen throws naming itself, and the count is asserted
       - kind: attestation
         ref: src/query.ts
   - claim: d-rjnyvnzm
@@ -1462,10 +1462,3 @@ coverage:
           getTypeFamilies returned does not either — on the addComponent path and the construction map alike
       - kind: attestation
         ref: src/components.ts
-  - claim: d-x2b3gorw
-    covered_by:
-      - kind: code-test
-        ref: src/query.test.ts
-        note: an empty families array keeps every entity and an empty excludeFamilies drops none
-      - kind: attestation
-        ref: src/query.ts

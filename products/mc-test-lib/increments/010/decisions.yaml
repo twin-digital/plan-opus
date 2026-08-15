@@ -1,8 +1,8 @@
 version: "3"
 
-# Building 009's per-component state shape left three consumer-visible choices open: how the shape
-# reaches a caller's compiler, whether a seeded list aliases the entity, and what an empty family
-# list asks for.
+# Building 009's per-component state shape left two consumer-visible choices open: how the shape
+# reaches a caller's compiler, and whether a seeded list aliases the entity. What an empty family
+# list asks for was measured instead — f-a4ibml4h — and d-piyaaywf already carries it.
 decisions:
 
   - id: d-k2kd15tq
@@ -39,19 +39,3 @@ decisions:
       - r-4dt4f8zn
     scope: fakes
 
-  - id: d-x2b3gorw
-    title: an empty family list constrains nothing
-    statement: |
-      `families: []` keeps every entity and `excludeFamilies: []` drops none: each field asks about
-      the tokens it lists, and neither lists any.
-    cases:
-      - when: the query names a token and the entity carries no type-family component
-        then: it has no tokens, so `families` drops it and `excludeFamilies` keeps it
-      - otherwise: the entity's seeded tokens answer
-    status: delegated
-    pinned:
-      reason: public-api
-    because:
-      - d-piyaaywf
-      - d-93kihgso
-    scope: fakes
