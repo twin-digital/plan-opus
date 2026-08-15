@@ -8,10 +8,10 @@ decisions:
     title: the injected constant is a frozen global holding the namespace and the pack token
     statement: |
       for a namespaced pack the build assigns
-      `globalThis.__MC_PACK_RUNTIME__ = Object.freeze({ namespace, packToken })` ahead of every
-      module in the bundle — `packToken` the package's npm name with the `@` dropped and the `/`
-      a hyphen. With namespacing off nothing is assigned, and every runtime read sees the global
-      absent.
+      `globalThis.__MC_PACK_RUNTIME__ = Object.freeze({ namespace, packToken, prefixes })` ahead
+      of every module in the bundle — `packToken` the package's npm name with the `@` dropped and
+      the `/` a hyphen, `prefixes` the frozen, sorted prefixes of the merged vendored packs. With
+      namespacing off nothing is assigned, and every runtime read sees the global absent.
     status: proposed
     scope: [build, runtime]
     pinned:
@@ -66,15 +66,21 @@ decisions:
   - id: d-y86n5etq
     title: the runtime's exported surface
     statement: |
-      `@twin-digital/mc-pack-runtime` exports, from its one entry point: `packId(name)`,
-      spelling a bare name into the injected namespace and throwing on a prefixed name or a
-      missing namespace; `packNamespace()` and `packFamily()`; the checked `spawnEntity`,
+      `@twin-digital/mc-pack-runtime` exports, from its one entry point: `packId(name)`, spelling
+      an unnamespaced name — bare, or `<prefix>.<name>` against the injected prefixes — into the
+      pack's namespace; `packNamespace()` and `packFamily()`; the checked `spawnEntity`,
       `getEntity` and `getEntities`, with `ForeignEntityError`; and `foreignNamespaceClaims()`
       returning `NamespaceClaim` entries. The checked calls are for the pack's own types.
+    cases:
+      - when: the name carries a `:`, no namespace was injected, or its first dot-segment is not an injected prefix
+        then: "`packId` throws, the last naming the segment and the known prefixes"
+      - otherwise: only the first segment is validated — `pack1.a.b` is prefix `pack1`, name `a.b`
     commentary: |
       `packNamespace()` and `packFamily()` answer undefined with namespacing off. Vanilla and
       foreign entities are reached through `@minecraft/server` directly — the checked calls
-      guard the pack's own types and nothing else.
+      guard the pack's own types and nothing else. A dotted first segment is always a prefix
+      claim, since bare declarations are dot-free by build rule, so an unknown one is a typo or
+      an un-merged dependency and silent passthrough would spell a nonexistent entity.
     status: proposed
     scope: [runtime]
     pinned:
@@ -156,19 +162,81 @@ decisions:
       - d-hqtqb43i
       - f-8bxtf5w7
 
-  - id: d-i4oeiclv
-    title: entity collisions fail; asset references resolve per scope
+  - id: d-ru4zegfs
+    title: vendored entities carry a consumer-chosen prefix in the name half
     statement: |
-      an entity identifier declared by a vendoring package's own content and something it
-      vendors, or by two of its vendorings, fails the build naming both declarations. An asset
-      reference resolves first against the declarations of the pack whose file wrote it, then
-      across the other merged packs when exactly one declares the name.
+      with namespacing on, own entities build as `<ns>:<name>` and a merged vendored pack's as
+      `<ns>:<prefix>.<name>` — the prefix per dependency from the `vendor` option, defaulting to
+      the unscoped npm name. A bare declaration may not contain a dot, so a composed name's first
+      segment is always the prefix. A vendored module's runtime import arrives bound to its
+      prefix.
+    cases:
+      - when: a prefix holds anything outside lowercase letters, digits, underscore and hyphen, or lands in `mcdk_claim_*`
+        then: the build fails naming what it found
+      - when: two merged dependencies resolve to one prefix
+        then: the build fails naming both; an explicit `vendor` prefix is the fix
+      - when: a vendored module imports the runtime
+        then: its `packId` is bound as `name => packId('<prefix>.' + name)`, so computed names work
+    status: proposed
+    scope: [build, runtime]
+    pinned:
+      reason: public-api
+      notes: the ids a consumer's worlds and commands address, and the option surface that names them
+    because:
+      - d-82zp77fo
+      - d-zk0c48uy
+      - d-zm6pxfrg
+      - r-tvea5tvf
+      - f-te6cfwkw
+      - f-dlia9v1f
+    commentary: |
+      Dots are the separator because they are proven command-safe in the name half while a slash
+      is unwritable in any command (f-dlia9v1f). Localization keys follow the final ids. The
+      family and claim machinery are untouched; a vendored entity's id merely carries the prefix
+      segment.
+
+  - id: d-vi1sct9w
+    title: what merges is the consumer's own dependencies and vendor-block names
+    statement: |
+      a package merges the `vendored_pack/` of the packages in its own `dependencies` and of
+      those its `vendor` block names — a transitive supplier is admitted by either — and of
+      nothing else; `devDependencies` never, and a package reached by several paths merges once.
+      The transitive tree is still read: a dangling reference fails naming the supplier and the
+      fix.
+    cases:
+      - when: a merged pack's reference resolves to no merged declaration and a reachable un-merged vendored pack declares the name
+        then: the build fails naming the referencing file, the name, the supplying package, and the fix
+      - when: a `vendor` name resolves to no package holding a `vendored_pack/` tree
+        then: the build fails naming it
+      - otherwise: a name nothing reachable declares copies through as written
+    status: proposed
+    scope: [build]
+    pinned:
+      reason: public-api
+      notes: what makes a dependency's content arrive, and what a shipped pack can contain unchosen — nothing
+    supersedes: d-xoz6pwt8
+    because:
+      - d-27lzrwsu
+      - d-82zp77fo
+      - r-dge04upw
+      - d-ru4zegfs
+      - r-c9bu8xes
+
+  - id: d-i4oeiclv
+    title: entity ids cannot contend; asset references resolve per scope
+    statement: |
+      composed ids end cross-pack entity contention: own and vendored declarations of one bare
+      name build to distinct ids, and the failure that remains is two merged dependencies
+      resolving to one prefix. An asset reference resolves first against the pack whose file
+      wrote it, then across the other merged packs when exactly one declares the name.
     cases:
       - when: an own reference names an asset that own and vendored content both declare
         then: it resolves to the own declaration
       - when: it names an asset that only several vendorings declare
         then: the build fails naming every candidate declaration and its file
-      - otherwise: a name no merged pack declares is copied through as written
+      - when: an own dotted entity spelling names a merged prefix whose pack declares no such entity
+        then: the build fails naming the file, the spelling, and the dependency
+      - otherwise: a name no merged pack declares copies as written, or fails with the dangling diagnosis where an un-merged supplier declares it
     status: proposed
     scope: [build]
     pinned:
@@ -176,6 +244,7 @@ decisions:
       notes: which declaration an author's reference lands on, and the collision that remains a failure
     supersedes: d-1vhwdhk1
     because:
+      - d-ru4zegfs
       - d-l45sm4ja
       - d-ni5n2r3c
       - r-c9bu8xes

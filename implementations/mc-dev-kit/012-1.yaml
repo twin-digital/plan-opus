@@ -1816,10 +1816,10 @@ coverage:
     covered_by:
       - kind: code-test
         ref: src/internal/pack-build.test.ts
-        note: a dependency's vendored_pack merges under the consumer's namespace and uuid; one behavior and one resource pack whatever is vendored
+        note: a dependency's vendored_pack merges under the consumer's namespace and uuid — the two-consumer case asserts composed ids, scope-pack-1:lib.minion vs scope-pack-2:lib.minion — one behavior and one resource pack whatever is vendored
       - kind: attestation
         ref: src/internal/merge-plan.ts
-        note: vendored halves emit into the own pack's kind-named output under the own completed manifest
+        note: vendored halves emit into the own pack's kind-named output under the own completed manifest; only the id spelling gained the prefix segment
 
   - claim: d-l4wh3cgf # a vendoring package declares its own pack of the kind it vendors
     covered_by:
@@ -1857,12 +1857,12 @@ coverage:
           - src/internal/namespace.test.ts
           - src/internal/pack-build.test.ts
           - src/consumer.test.ts
-        note: every case — a string names it, true derives scope-name with the @ dropped and the / a hyphen, a bad character fails naming it, vendoring without a namespace fails naming the dependency, off means verbatim
+        note: every case — a string names it, true derives scope-name with the @ dropped and the / a hyphen, a bad character fails naming it, vendoring without a namespace fails naming the dependency, off means verbatim; the options now carry vendor beside packageDir and namespace
       - kind: attestation
         ref:
           - src/build.ts
           - src/internal/namespace.ts
-        note: no manifest.json field is read or written for the setting
+        note: no manifest.json field is read or written for the setting; the vendor block is the ruled extension of the option surface
 
   - claim: d-jibcuv16 # the watch set reaches the vendored trees a build reads
     covered_by:
@@ -1926,10 +1926,12 @@ coverage:
     covered_by:
       - kind: code-test
         ref: src/internal/pack-build.test.ts
-        note: own-vs-vendored and vendoring-vs-vendoring entity-identifier collisions each fail naming both declarations; two vendorings may declare one bare asset name, each built under its own token; an own reference to a name only several vendorings declare fails naming every candidate
+        note: own and vendored declarations of one bare entity name coexist as distinct composed ids; two merged dependencies resolving to one prefix fail naming both; two vendorings may declare one bare asset name, each built under its own token; an own reference to a name only several vendorings declare fails naming every candidate
       - kind: attestation
-        ref: src/internal/merge-plan.ts
-        note: checkEntityCollisions fails cross-pack entity names; asset contention became per-scope resolution with ambiguity failure and a within-vendoring duplicate check
+        ref:
+          - src/internal/merge-plan.ts
+          - src/internal/vendored-packs.ts
+        note: cross-pack entity contention is impossible by construction — dot-free bare names, per-pack prefixes — so the check moved to the prefix; asset contention is per-scope resolution with ambiguity failure
 
   - claim: d-p1i76cgb # the build is where contention is caught
     covered_by:
@@ -1951,14 +1953,27 @@ coverage:
         ref: README.md
         note: the vendoring section shows the files entry a publisher adds
 
-  - claim: d-xoz6pwt8 # what a package vendors comes from its dependencies
+  - claim: d-vi1sct9w # what merges is the consumer's own dependencies and vendor-block names
     covered_by:
       - kind: code-test
         ref: src/internal/pack-build.test.ts
-        note: vendors the vendored_pack of every dependency, transitively, and of no devDependency
+        note: own dependencies only merge — no devDependency and no unadmitted transitive supplier; the vendor block admits a transitive supplier; a diamond merges once; a dangling reference fails naming the un-merged supplier and the fix
       - kind: attestation
         ref: src/internal/vendored-packs.ts
-        note: a breadth-first walk over dependencies only; no list, no manifest dependency involved
+        note: admission is own dependencies plus vendor-block names; the transitive tree is walked read-only for diagnosis; visited-set realpath dedupe merges diamonds once
+
+  - claim: d-ru4zegfs # vendored entities carry a consumer-chosen prefix in the name half
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/pack-build.test.ts
+          - src/identifier.test.ts
+        note: mc-dev-kit — default and explicit prefixes, charset and collision failures, dotted-declaration failure, composed consumer references, and the bound runtime import with a computed packId argument; mc-pack-runtime — packId spells composed names through the injected prefixes, throwing on an unknown first segment
+      - kind: attestation
+        ref:
+          - src/internal/vendored-packs.ts
+          - src/internal/pack-build-plugin.ts
+        note: the prefix defaults to the unscoped npm name; the shim re-exports the runtime with packId bound, explicit export winning over the star
 
   - claim: d-uq46uunx # a vendoring package installs as one file
     covered_by:
@@ -2011,7 +2026,7 @@ coverage:
         note: mc-pack-runtime — two callers compiled apart spell the same identifier through the injection alone, nothing passed per call
       - kind: code-test
         ref: src/internal/pack-build.test.ts
-        note: mc-dev-kit — a library with a compiled-in injection read is bundled and the built bundle executed; the call answers the vendoring package's namespace
+        note: mc-dev-kit — a vendored library's compiled-in packId call, its import bound to the library's prefix, is bundled and the built bundle executed; the call answers the vendoring package's namespace and the library's own prefix, nothing passed per call
       - kind: attestation
         ref:
           - src/identifier.ts
@@ -2053,10 +2068,10 @@ coverage:
     covered_by:
       - kind: code-test
         ref: src/internal/pack-build.test.ts
-        note: mc-dev-kit — the namespace is injected into the bundle as a frozen constant ahead of module code, and nothing is assigned when namespacing is off
+        note: mc-dev-kit — the namespace, pack token, and frozen sorted prefixes are injected as one frozen constant ahead of module code, and nothing is assigned when namespacing is off
       - kind: code-test
         ref: src/identifier.test.ts
-        note: mc-pack-runtime — packId spells a bare name into the injected namespace, rejects prefixed names, throws with namespacing off; vendored and vendoring callers reach the injection the same way
+        note: mc-pack-runtime — packId spells bare and composed names into the injected namespace, rejects namespaced names, throws with namespacing off; vendored and vendoring callers reach the injection the same way
       - kind: attestation
         ref:
           - src/internal/pack-build-plugin.ts
@@ -2101,7 +2116,7 @@ coverage:
         ref:
           - src/internal/pack-build.test.ts
           - src/identifier.test.ts
-        note: the kit's bundle tests assert the frozen __MC_PACK_RUNTIME__ assignment ahead of module code and its absence with namespacing off; the runtime's tests read it
+        note: the kit's bundle tests assert the frozen __MC_PACK_RUNTIME__ assignment — namespace, packToken, and the frozen sorted prefixes — ahead of module code and its absence with namespacing off; the runtime's tests read the same shape
       - kind: attestation
         ref:
           - src/internal/formats.ts
@@ -2141,7 +2156,7 @@ coverage:
           - src/identifier.test.ts
           - src/checked.test.ts
           - src/claims.test.ts
-        note: every export exercised through the package surface
+        note: every export exercised through the package surface; packId spells composed names through a known prefix, validates only the first dot-segment, and throws on an unknown one naming it and the known prefixes
       - kind: manual-check
         ref: package.json
         note: npm pack --dry-run shows the one entry point exposing exactly the ruled surface
