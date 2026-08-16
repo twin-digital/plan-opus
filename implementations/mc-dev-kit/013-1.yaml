@@ -687,13 +687,14 @@ coverage:
         ref: src/internal/pack-build.test.ts
         note: every build case resolves its root by ascent from a pnpm-workspace.yaml above the package
 
-  - claim: d-d727qv5z # script sources live in the pack's scripts directory
+  - claim: d-pd9900jm # script sources live in the package's src directory
     covered_by:
       - kind: attestation
-        note: behavior_pack/scripts/main.ts is the entry, and nothing under scripts/ is copied
+        ref: src/internal/pack-build-plugin.ts
+        note: SCRIPT_SOURCE is src/main.ts; the copy step excludes only the source manifest, and a scripts directory under a pack directory fails buildStart
       - kind: code-test
         ref: src/internal/pack-build.test.ts
-        note: dist/behavior_pack/scripts holds only main.js, beside untouched sources in the source tree
+        note: a package whose entry sits at src/main.ts builds to dist/behavior_pack/scripts/main.js and nothing else under that directory; a pack directory holding scripts/ fails the build
 
   - claim: d-oln00v7s # the script output path is set in config and checked against the kit
     covered_by:
