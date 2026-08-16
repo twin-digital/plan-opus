@@ -174,10 +174,10 @@ decisions:
     title: vendored entities carry a consumer-chosen prefix in the name half
     statement: |
       with namespacing on, own entities build as `<ns>:<name>` and a merged vendored pack's as
-      `<ns>:<prefix>.<name>` — the prefix per dependency from the shipping package's
-      `minecraft.vendor` field, else the dependency's shipped `defaultAlias`, else its unscoped
-      name. A bare declaration may not contain a dot, so a composed name's first segment is
-      always the prefix. A vendored module's runtime import arrives bound to its prefix.
+      `<ns>:<prefix>.<name>` — the prefix from the shipping package's `minecraft.vendor` field,
+      else the dependency's shipped `defaultAlias`, else its unscoped name. Bare declarations
+      may not contain a dot, so a composed name's first segment is always the prefix. A vendored
+      module's runtime import arrives bound to its prefix.
     cases:
       - when: a prefix holds anything outside lowercase letters, digits, underscore and hyphen, or lands in `mcdk_claim_*`
         then: the build fails naming what it found
