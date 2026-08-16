@@ -232,11 +232,10 @@ decisions:
   - id: d-i4oeiclv
     title: a reference binds to its own pack's declaration first
     statement: |
-      every rewritten reference binds within the pack whose file carries it first. An asset name
-      not declared there binds to the one merged pack declaring it, several failing the build
-      naming every candidate; an entity spelling reaches another pack only through its dot
-      prefix. What nothing merged declares copies as written, or fails where an un-merged
-      supplier declares it.
+      a prefix-qualified asset reference binds to the pack its prefix names; every other
+      rewritten reference binds within the pack whose file carries it first. An asset name not
+      declared there binds to the one merged pack declaring it, several failing the build naming
+      every candidate; an entity spelling reaches another pack only through its dot prefix.
     cases:
       - when: an own file references an asset name that own and vendored content both declare
         then: it binds to the own declaration
@@ -263,8 +262,46 @@ decisions:
       end entity contention, hashed tokens (d-l45sm4ja) end asset contention — and that is
       precisely what makes references ambiguous where declarations once collided: several packs
       may now declare one bare name, so a reference must bind somewhere. Own-first keeps a pack
-      self-contained under vendoring; cross-pack binding is by uniqueness or not at all; and
-      ambiguity fails rather than guesses, which is r-c9bu8xes's bar.
+      self-contained under vendoring; cross-pack binding is by qualifier (d-piquxs3y) or by
+      uniqueness; and ambiguity fails rather than guesses, which is r-c9bu8xes's bar.
+
+  - id: d-piquxs3y
+    title: the prefix qualifies an asset reference
+    statement: |
+      in the consumer's own content, an asset reference carrying a merged prefix in its
+      qualifier position — the segment after the kind keyword, the first path segment under
+      `textures/`, the first dot-segment of a material name — binds to that dependency's
+      declaration of the remainder; the build rewrites it to the hashed name, and the token
+      never reaches the output.
+    cases:
+      - when: the named dependency declares no such asset
+        then: the build fails naming the file, the spelling, and the dependency
+      - when: an own declaration sits in a merged prefix's qualifier position
+        then: the build fails naming the declaration and the prefix; renaming that prefix in the vendor block is the fix
+      - when: a bare reference is ambiguous among merged declarations
+        then: the failure prints each candidate's qualified spelling as the fix
+      - otherwise: bare references stay legal and resolve unchanged
+    status: proposed
+    scope: [build]
+    pinned:
+      reason: public-api
+      notes: a reference grammar an author writes, and the recourse every ambiguity error prints
+    because:
+      - d-ru4zegfs
+      - d-i4oeiclv
+      - d-l45sm4ja
+      - r-c9bu8xes
+    commentary: |
+      The qualifier is a directing token the rewrite consumes, so engine grammar never
+      constrains it, and the remainder must be the dependency's declared spelling verbatim —
+      `geometry.lib.lib.smoke` reaches lib's own `lib.smoke`, and a partial match is a loud
+      miss, never a guess. A prefix colliding with a vanilla naming family (`evoker`, say)
+      makes vanilla references parse as qualified and fail as misses — loud and fixed by
+      renaming the prefix, which beats maintaining a vanilla allowlist. Vendored content cannot
+      use qualifiers: it cannot know consumer prefixes, so its dotted internal names stay its
+      own and the shadowing check guards own declarations only. A qualified spelling naming an
+      un-merged supplier's default prefix does not bind and falls through to bare resolution —
+      reference an un-admitted supplier barely until it is admitted.
 
   - id: d-3bmgnb25
     title: what a namespaced pack's own source may hold
