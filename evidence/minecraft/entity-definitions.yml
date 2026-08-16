@@ -1,0 +1,34 @@
+# Runs backing facts about entity definitions as a pack stack resolves them.
+version: "1"
+runs:
+  - id: run-nnkyz02g
+    command: node run.mjs
+    output: evidence/minecraft/entity-definitions/family-provenance-probe/RESULTS.md
+    ran_at: 2026-08-12
+    environment: |
+      Run in evidence/minecraft/entity-definitions/family-provenance-probe against
+      itzg/minecraft-bedrock-server (digest
+      sha256:0723ada81c10d3a9333d551b9ad8f22d666c3728071b6a15808bcef1fd394ab2), Bedrock dedicated
+      1.26.43.1, @minecraft/server 2.8.0 as a pack manifest dependency with no experiments enabled.
+
+      Three behavior packs, all at 0.1.0: a script pack, uuid
+      275486e7-acfd-4bf6-8813-69a70b1840e4, holding the probes; pack A, uuid
+      8f067333-b5a7-4ffc-a000-22416a6b0781, declaring `probe:subject` with families
+      ["probe_token_a","probe_shared"], health 40, movement 0.11 and `minecraft:fire_immune`, plus
+      `probe:solo` with ["probe_token_solo"] and health 20; and pack B, uuid
+      0b209d15-808d-4b1e-b543-93ee7eb1c9cf, declaring `probe:subject` with
+      ["probe_token_b","probe_shared"], health 60, movement 0.44 and `minecraft:is_baby`. The two
+      differ in four independently readable properties, so which definition resolved is legible
+      from any of them.
+
+      Four phases against one world, the server restarted between each, triggered from the console
+      as `scriptevent probe:run <label>`: order-ab-1, order-ab-2 and order-ab-3 with pack A ahead of
+      pack B in world_behavior_packs.json, and order-ba-1 with the two swapped. 4/4 phases produced
+      a `complete` line and no phase produced a `PROBE CRASHED` line.
+
+      Two reading notes. OUTPUT.txt is the full harness transcript and holds every phase; RESULTS.md
+      reproduces the same probe lines under one heading, and is the file the sources cite.
+      OUTPUT.txt also carries `PHASE order-ab-1 DID NOT COMPLETE`, which is the harness's own 600 s
+      deadline expiring while that phase's arena chunk loaded over a slow remote Docker connection —
+      the phase's readings and its `complete` line landed after the harness had moved on, and are in
+      the log.

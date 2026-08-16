@@ -1,0 +1,146 @@
+version: "3"
+
+presets:
+  - name: nodejs-library
+    version: 1
+    scope: [discovery, build, dev-loop]
+  - name: monorepo-package
+    version: 1
+
+components:
+  - id: discovery
+    description: finding, validating, and reporting the workspace's packs — the discovery library
+  - id: build
+    description: producing a pack's built output — the shared pack-build toolchain
+  - id: dev-loop
+    description: running built packs against a live dev server — the harness and its watch loop
+  - id: runtime
+    description: the kit's engine-side half — code the build puts in a pack's own script bundle
+
+terms:
+  - id: vendored-pack
+    scope: build
+    display: vendored pack
+    definition: |
+      a pack whose content the build copies into each package depending on it, rather than shipping
+      it once for those packages to share.
+
+  - id: vendoring-package
+    scope: build
+    display: vendoring package
+    definition: |
+      a package that takes up a vendored pack — the package whose namespace, uuid and output tree
+      the merged content becomes part of.
+
+  - id: namespace
+    scope: [build, runtime]
+    display: namespace
+    definition: |
+      the token a pack's author chooses, which every entity identifier that pack declares carries as
+      its prefix.
+
+  - id: asset-namespace
+    scope: build
+    display: asset namespace
+    definition: |
+      the segment every other name a built pack declares carries, derived from that pack's own uuid.
+
+requirements:
+  - id: r-jxzqhhmo
+    scope: build
+    title: a pack author may choose a namespace
+    statement: |
+      where a pack declares a namespace, every identifier it declares carries it, written into no
+      name by hand.
+    commentary: |
+      Identifiers are what an author reads in a server log, types into a selector, and hands another
+      author to reference. A namespace the tooling picks is one the author has to look up before
+      they can use their own pack.
+
+      Namespacing is what vendoring needs, and packs that vendor nothing are most of them, so this
+      reaches only a pack that asks for it. Making it the condition of building at all would rewrite
+      every existing pack's names for a property those packs have no use for; `d-8qkamvz7` is where
+      a pack that declares no namespace is held to what it builds today.
+
+  - id: r-293j8n70
+    scope: build
+    title: a shared pack is vendored per consumer
+    statement: |
+      a pack several packages depend on can be built into each of them as content of its own, under
+      that package's namespace, so no two of them share a name or a pack identity for it.
+    informed_by:
+      - f-8bxtf5w7
+      - f:duplicate-pack-copies-are-deduplicated-and-the-activation-pin-selects
+    commentary: |
+      The isolation this buys is complete: no uuid two vendoring packages contend over, no version
+      one of them has to match, and nothing left for a server operator to reconcile between them.
+
+  - id: r-dge04upw
+    scope: build
+    title: a shared pack may be published
+    statement: |
+      a vendored pack may reach a vendoring package as an installed dependency, and need not share a
+      workspace with it.
+    commentary: |
+      Sharing a pack between packages one author controls is the small half of the problem. The
+      whole point of a shared pack is that someone else uses it, and per-consumer isolation is worth
+      most exactly where the two sides are strangers. A vendoring that reached only workspace
+      siblings would serve the case that needs it least.
+
+  - id: r-c9bu8xes
+    scope: build
+    title: an incomplete rewrite fails the build
+    statement: |
+      the build carries every name it copies into its new spelling or refuses to build. Content
+      whose names it cannot rewrite is a build failure naming what it found, never content copied
+      across with its names as they were.
+    informed_by:
+      - f-8bxtf5w7
+      - f-acq14qt1
+    commentary: |
+      A resource pack's names resolve across the whole pack stack rather than within the pack that
+      declares them, so a rewrite that misses one kind produces one actor drawn with another's
+      geometry. That reads as a content bug in whichever pack notices it, and points at neither. A
+      pack that refuses to build points at itself.
+
+  - id: r-tvea5tvf
+    scope: runtime
+    title: a vendored library's own calls resolve unaided
+    statement: |
+      a library shipped alongside a vendored pack resolves its own calls through the vendoring
+      package's namespace, with nothing for that package to pass or configure per call.
+    informed_by:
+      - f:a-script-module-does-not-resolve-across-packs
+    commentary: |
+      The library's code is bundled into the vendoring package already, so it runs under that
+      package's names whether or not it knows them. Making the author thread a namespace through
+      every call would put the ergonomics cost back where r-jxzqhhmo took it from.
+
+  - id: r-l4e55kqu
+    scope: runtime
+    title: the engine-side library is built for the engine
+    statement: |
+      the kit's engine-side library ships as ESM only, written in TypeScript, shipping its own type
+      declarations, exposing one entry point with no subpath wildcard, and built for what the
+      Bedrock script engine runs rather than for Node.
+    informed_by:
+      - f:bedrock-script-engine-accepts-es2022-and-rejects-the-regexp-v-flag
+      - f:bedrock-script-engine-kills-a-module-that-carries-node-shims
+    commentary: |
+      `nodejs-library@1` no longer reaches this component, and three of the four obligations it
+      carried are wanted here anyway — ESM, TypeScript, its own declarations. Only its build target
+      was wrong: the preset's subject is a Node.js library, and this package is one by packaging and
+      not by execution.
+
+      The single entry point comes from `nodejs-library@2`'s `r-lqfu2ki9`, taken directly rather
+      than by adopting that preset. It is what `d-wss8fker`'s pinned `/build` subpath makes
+      impossible for the kit itself and entirely natural here, and the repository's own package
+      tooling generates a wildcard export block unless a package opts out — so this is a live
+      default to hold against, not a formality. `r-82ck2fax` is where that opt-out belongs: with
+      the monorepo's declarative configuration, not in the package.
+
+      Getting the target wrong is not a lint failure. The engine rejects the ES2024 RegExp `v` flag
+      and a surviving node shim's `node:url` import takes the whole module with it, so a package
+      built to Node rules does not load, and nothing in the build reports it. `d-1w5rjhg6` already
+      records what the engine forces for a pack's own bundle; this holds the library to the same
+      bar.
