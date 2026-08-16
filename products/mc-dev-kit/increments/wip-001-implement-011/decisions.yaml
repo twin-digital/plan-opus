@@ -95,19 +95,26 @@ decisions:
       - f-i8fx23h0
 
   - id: d-nqb3dtxv
-    title: the claim report is empty until the world has loaded
+    title: the claim report throws until the world has loaded
     statement: |
-      `foreignNamespaceClaims()` answers the most recent world-load enumeration, and before the
-      world has loaded it answers an empty list rather than throwing or enumerating on demand.
+      `foreignNamespaceClaims()` answers the most recent world-load enumeration, and called
+      before one has happened it throws naming the boundary — never an empty list, which would
+      read as "no rivals" while nothing is known yet.
     status: proposed
     scope: [runtime]
     pinned:
       reason: public-api
-      notes: when the value a pack reads its rivals from becomes populated
+      notes: when the value a pack reads its rivals from becomes readable, and what a too-early read does
     because:
       - d-q7mz2qb0
       - d-y86n5etq
       - f-rtmfaoba
+    commentary: |
+      An empty answer before load is a silent false negative — a check appearing to cover what
+      it cannot. The engine itself refuses catalog reads in early execution (f-rtmfaoba), so the
+      boundary is real and the throw surfaces it. Undefined would also distinguish the states;
+      the package's other guards throw on misuse, and one signaling style is worth keeping.
+      Enumerating on demand is not available — the catalog answers nothing before world load.
 
   - id: d-l45sm4ja
     title: own names carry the pack namespace; vendored assets a library token and hash

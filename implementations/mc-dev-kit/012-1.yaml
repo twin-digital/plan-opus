@@ -2164,14 +2164,16 @@ coverage:
         ref: src/index.ts
         note: named exports only, nothing else reachable
 
-  - claim: d-nqb3dtxv # the claim report is empty until the world has loaded
+  - claim: d-nqb3dtxv # the claim report throws until the world has loaded
     covered_by:
       - kind: code-test
-        ref: src/claims.test.ts
-        note: before a world-load event the report answers an empty list rather than throwing or enumerating on demand
+        ref:
+          - src/claims.preload.test.ts
+          - src/claims.test.ts
+        note: before any world-load enumeration the report throws naming the boundary — namespacing off included, since pre-load that is exactly as unknowable as "no rivals"; after one it answers the snapshot
       - kind: attestation
         ref: src/claims.ts
-        note: the enumeration runs off world.afterEvents.worldLoad; the value is a snapshot of the most recent load
+        note: the enumeration runs off world.afterEvents.worldLoad; the value is a snapshot of the most recent load, and no pre-load answer exists to give
 
   - claim: d-sycw8wo2 # the asset token structures and the vendored content hash
     covered_by:
