@@ -320,3 +320,65 @@ facts:
           where no namespace was injected, since the engine would read a bare name as `minecraft:<name>`
           and a silent wrong-namespace lookup is the bug this helper exists to prevent. A pack built
           with namespacing off spells its identifiers in full and has no bare names to spell.
+
+  - id: a-packages-own-tsdown-fragment-shallow-merges-over-the-generated-one
+    claim: |
+      A package's bundle config is the shared base composed with every `*.ts` file in a sibling
+      `tsdown.config.d/` directory, each default-exporting a partial config, applied in filename
+      order and shallow-merged so a top-level key replaces the base's wholesale. The directory is
+      the sanctioned per-package override channel, and repo-kit's `minecraft-pack` recipe writes
+      exactly one file into it. So a package adding a second fragment whose name sorts after
+      `minecraft-pack.ts` replaces every top-level key that fragment set — `plugins` among them —
+      without editing anything the config manager writes.
+    backing: documented
+    sources:
+      - url: https://github.com/twin-digital/opus/blob/fa6362c71fe5d48eaef5af14c30d9c0402d61b6a/nodejs/devtools/tsdown-config/src/index.ts
+        where: defineBundleConfig — the doc comment stating the override channel and its merge rule
+        quote: |
+          Overrides live next to the calling `tsdown.config.ts` in a `tsdown.config.d/`
+          directory: each `*.ts` file default-exports a partial config, applied in
+          filename order and **shallow-merged** over the base (a top-level key replaces
+          the base's wholesale — so if you override a nested key like `inputOptions`,
+          re-include what you still need from the base).
+      - url: https://github.com/twin-digital/opus/blob/fa6362c71fe5d48eaef5af14c30d9c0402d61b6a/nodejs/devtools/tsdown-config/src/index.ts
+        where: defineBundleConfig — the composition itself
+        quote: |
+          const files = readdirSync(fileURLToPath(overridesDir))
+            .filter((file) => file.endsWith('.ts'))
+            .sort()
+          for (const file of files) {
+            const fragment = (await import(new URL(file, overridesDir).href)) as {
+              default: Partial<UserConfig>
+            }
+            config = { ...config, ...fragment.default }
+          }
+
+  - id: the-pack-builds-namespace-is-a-code-option-not-a-package-json-field
+    claim: |
+      `packBuild`'s `namespace` is a code option — `boolean | string`, `true` deriving the
+      namespace from the package's own name and a string naming one directly — and nothing reads
+      it from `package.json`. The only per-package settings the kit reads from the `minecraft`
+      block are `vendor` and `defaultAlias`, both of which are prefixes rather than namespaces: a
+      vendored pack has no namespace of its own, and the namespace under which its content ships
+      is always the vendoring package's. Left unset nothing is namespaced, except that a package
+      vendoring anything requires one.
+    backing: documented
+    sources:
+      - url: https://github.com/twin-digital/opus/blob/fa6362c71fe5d48eaef5af14c30d9c0402d61b6a/nodejs/minecraft/mc-dev-kit/src/build.ts
+        where: PackBuildOptions.namespace — the doc comment on the option
+        quote: |
+          Turns namespacing on: every identifier the package's packs declare is built carrying the
+          namespace, written into no name by hand. `true` derives the namespace from the package's own
+          name — the `@` dropped and the `/` a hyphen — and a string names one directly. A namespace
+          holds only lowercase letters, digits, underscore, hyphen and dot; anything else fails the
+          build naming the character. Left unset, nothing is namespaced and names reach the output as
+          the source spells them — unless the package vendors anything, which needs a namespace and
+          fails the build without one.
+      - url: https://github.com/twin-digital/opus/blob/fa6362c71fe5d48eaef5af14c30d9c0402d61b6a/nodejs/minecraft/mc-dev-kit/src/build.ts
+        where: PackBuildOptions — the option's type, taking no package.json route
+        quote: |
+          namespace?: boolean | string
+      - url: https://github.com/twin-digital/opus/blob/fa6362c71fe5d48eaef5af14c30d9c0402d61b6a/nodejs/minecraft/mc-dev-kit/src/internal/vendored-packs.ts
+        where: defaultAliasOf — the only package.json read, and it is a token
+        quote: |
+          /** The `minecraft.defaultAlias` a package ships: the default token others get for it. */

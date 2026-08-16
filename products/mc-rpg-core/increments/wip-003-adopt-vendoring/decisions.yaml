@@ -409,23 +409,30 @@ decisions:
       d-bcybwddk says the library cannot detect.
 
   - id: d-i9d989zl
-    title: the example's namespacing is declared as a config exception, not hand-edited
+    title: the example turns namespacing on through its own build override fragment
     statement: |
-      the example turns namespacing on through an exception declared where the monorepo's
-      configuration lives, not by editing the generated build fragment. until the generator can
-      emit the setting, the exception is how this product gets it.
+      the example carries a `tsdown.config.d/` fragment of its own, sorting after the generated
+      one and calling the kit's build with namespacing on. it edits no generated file and adds no
+      build logic: the fragment calls the same function the generated one does, with the setting
+      the generated one cannot express.
     status: proposed
     scope: example
     because:
       - d-tctmdf5z
       - r-82ck2fax
       - r-cyd08e6q
+      - f:a-packages-own-tsdown-fragment-shallow-merges-over-the-generated-one
+      - f:the-pack-builds-namespace-is-a-code-option-not-a-package-json-field
     commentary: |
-      the generator writes `packBuild({ packageDir })` verbatim for every package holding a pack
-      manifest and offers no namespace input, while r-82ck2fax forbids editing what it writes and
-      names a declared exception as the route. every namespaced pack will want the setting, so the
-      generator growing an input is the better end state — that is a change to another product,
-      and this decision is what unblocks the example without waiting on it.
+      the namespace is a code option with no `package.json` route, and the config manager writes
+      the build fragment verbatim for every package holding a pack manifest, with no per-package
+      input. the override directory is the sanctioned channel for exactly this, so the fragment is
+      not an exception to r-82ck2fax but the mechanism it leaves open.
+
+      it reads like a trick — two calls to the same builder, the later winning by filename order —
+      and it is one. what removes it is the kit reading the namespace from the `minecraft` block
+      beside `vendor` and `defaultAlias`, where its two sibling settings already live. that is
+      another product's change, and this product does not wait on it.
 
   - id: d-f2mk1u7n
     title: the vendored tree is validated at a consumer's build, not at this package's
