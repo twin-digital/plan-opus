@@ -205,11 +205,11 @@ decisions:
   - id: d-vi1sct9w
     title: what merges is the consumer's own dependencies and vendor-block names
     statement: |
-      a package merges the `vendored_pack/` of the packages in its own `dependencies` and of
-      those its `vendor` block names — a transitive supplier is admitted by either — and of
-      nothing else; `devDependencies` never, and a package reached by several paths merges once.
-      The transitive tree is still read: a dangling reference fails naming the supplier and the
-      fix.
+      a package merges the `vendored_pack/` of two sets of packages and no others: those in its
+      own `dependencies`, and those named as keys of its `vendor` option — either route admits a
+      transitive supplier. `devDependencies` never merge, and a package reached by several paths
+      merges once. The transitive tree is still read: a dangling reference fails naming the
+      supplier and the fix.
     cases:
       - when: a merged pack's reference resolves to no merged declaration and a reachable un-merged vendored pack declares the name
         then: the build fails naming the referencing file, the name, the supplying package, and the fix
