@@ -230,20 +230,22 @@ decisions:
       - r-c9bu8xes
 
   - id: d-i4oeiclv
-    title: a reference binds to its own pack's declaration first
+    title: own references bind own or qualified; vendored references by uniqueness
     statement: |
-      a prefix-qualified asset reference binds to the pack its prefix names; every other
-      rewritten reference binds within the pack whose file carries it first. An asset name not
-      declared there binds to the one merged pack declaring it, several failing the build naming
-      every candidate; an entity spelling reaches another pack only through its dot prefix.
+      an asset reference in the consumer's own content binds to an own declaration or through
+      its qualifier, and nothing else: a bare spelling merged packs declare fails the build
+      printing each declarer's qualified spelling. A reference written by vendored content —
+      which can know no prefix — binds own-scope first, then the one merged pack declaring the
+      name.
     cases:
-      - when: an own file references an asset name that own and vendored content both declare
-        then: it binds to the own declaration
-      - when: an asset reference misses its own pack and several merged packs declare the name
+      - when: an own bare spelling matches an own declaration
+        then: it binds there, whatever merged packs declare
+      - when: an own bare spelling matches nothing own and nothing merged
+        then: d-vi1sct9w's dangling diagnosis where an un-merged supplier declares it, and copy-as-written otherwise
+      - when: a vendored reference finds several merged declarers, the consumer's own included
         then: the build fails naming every candidate declaration and its file
-      - when: an own file's dotted entity spelling names a merged prefix whose pack declares no such entity
+      - when: an own dotted entity spelling names a merged prefix whose pack declares no such entity
         then: the build fails naming the file, the spelling, and the dependency
-      - otherwise: a name nothing merged declares copies as written, or fails with d-vi1sct9w's dangling diagnosis where an un-merged supplier declares it
     status: proposed
     scope: [build]
     pinned:
@@ -254,16 +256,22 @@ decisions:
       - d-ru4zegfs
       - d-l45sm4ja
       - d-ni5n2r3c
+      - d-piquxs3y
       - r-c9bu8xes
       - d-82zp77fo
     commentary: |
       This is the rule d-1vhwdhk1's collision check becomes, which is why the supersession sits
       here. The naming decisions dissolved the collisions themselves — composed ids (d-ru4zegfs)
       end entity contention, hashed tokens (d-l45sm4ja) end asset contention — and that is
-      precisely what makes references ambiguous where declarations once collided: several packs
-      may now declare one bare name, so a reference must bind somewhere. Own-first keeps a pack
-      self-contained under vendoring; cross-pack binding is by qualifier (d-piquxs3y) or by
-      uniqueness; and ambiguity fails rather than guesses, which is r-c9bu8xes's bar.
+      precisely what makes references ambiguous where declarations once collided.
+
+      A merged dependency never receives an unqualified binding from consumer content: bare
+      means yours or vanilla, prefixed means theirs. So adding a dependency can never change
+      what an own reference means, a later own declaration captures nothing, and a merged
+      declarer cannot silently shadow a vanilla reference of the same spelling — the bare-
+      matches-merged failure converts both silent readings into a printed fix. Vendored content
+      keeps the uniqueness rule because it has no qualifier to write, and ambiguity there fails
+      rather than guesses, which is r-c9bu8xes's bar.
 
   - id: d-piquxs3y
     title: the prefix qualifies an asset reference
@@ -278,9 +286,9 @@ decisions:
         then: the build fails naming the file, the spelling, and the dependency
       - when: an own declaration sits in a merged prefix's qualifier position
         then: the build fails naming the declaration and the prefix; renaming that prefix in the vendor block is the fix
-      - when: a bare reference is ambiguous among merged declarations
-        then: the failure prints each candidate's qualified spelling as the fix
-      - otherwise: bare references stay legal and resolve unchanged
+      - when: an own bare spelling names an asset merged packs declare
+        then: the failure prints each declarer's qualified spelling as the fix
+      - otherwise: an own bare reference means an own declaration or vanilla; vendored content resolves internally without qualifiers
     status: proposed
     scope: [build]
     pinned:
@@ -300,12 +308,12 @@ decisions:
       renaming the prefix, which beats maintaining a vanilla allowlist. Vendored content cannot
       use qualifiers: it cannot know consumer prefixes, so its dotted internal names stay its
       own and the shadowing check guards own declarations only. A qualified spelling naming an
-      un-merged supplier's default prefix does not bind and falls through to bare resolution —
-      reference an un-admitted supplier barely until it is admitted. The guess is not extended
-      there deliberately: a dotted asset spelling is vanilla-legal, so a wrong guess would
-      instruct an admission that rewrites a vanilla reference. An author wanting removal
-      protection configures the prefix explicitly — a vendor entry whose package goes missing
-      already fails loudly.
+      un-merged supplier's default prefix does not bind and falls through to bare resolution,
+      where the dangling diagnosis names the admission; once admitted, the qualified spelling is
+      the reference. The guess is not extended to qualified spellings deliberately: a dotted
+      asset spelling is vanilla-legal, so a wrong guess would instruct an admission that
+      rewrites a vanilla reference. An author wanting removal protection configures the prefix
+      explicitly — a vendor entry whose package goes missing already fails loudly.
 
   - id: d-3bmgnb25
     title: what a namespaced pack's own source may hold

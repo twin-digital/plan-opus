@@ -1923,16 +1923,16 @@ coverage:
         ref: src/internal/merge-plan.ts
         note: the vendored classification is the closed list; vendored .lang entries not keyed by an entity identifier fail naming file and key
 
-  - claim: d-i4oeiclv # a reference binds to its own pack's declaration first
+  - claim: d-i4oeiclv # own references bind own or qualified; vendored references by uniqueness
     covered_by:
       - kind: code-test
         ref: src/internal/pack-build.test.ts
-        note: a qualified reference binds ahead of the bare steps; own and vendored declarations of one bare entity name coexist as distinct composed ids; two merged dependencies resolving to one prefix fail naming both; two vendorings may declare one bare asset name, each built under its own token; an own reference to a name only several vendorings declare fails naming every candidate
+        note: an own bare reference binds own or fails — a bare spelling merged packs declare fails printing each declarer's qualified spelling, one declarer or several; vendored cross-pack references still bind by unique declarer and still fail as ambiguous, the consumer's own declarations counted among the candidates; own and vendored declarations of one bare entity name coexist as distinct composed ids
       - kind: attestation
         ref:
           - src/internal/merge-plan.ts
           - src/internal/vendored-packs.ts
-        note: cross-pack entity contention is impossible by construction — dot-free bare names, per-pack prefixes — so the check moved to the prefix; asset contention is per-scope resolution with ambiguity failure
+        note: resolveDeclaration's own-content branch is own then qualified only, the unique-declarer fallback surviving solely on the vendored-referencer path; cross-pack entity contention is impossible by construction, so the check moved to the prefix
 
   - claim: d-piquxs3y # the prefix qualifies an asset reference
     covered_by:
