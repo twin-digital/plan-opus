@@ -425,3 +425,49 @@ facts:
         where: Observed output — pack A ahead again after a restart, resolving to A
         quote: |
           [2026-08-12 02:58:10:507 WARN] [Scripting] [probe] order-ab-3/subject :: getTypeFamilies=[probe_token_a|probe_shared]
+  - id: f-5acfquxr
+    title: hyphenated and dotted family tokens are first-class through every read path
+    claim: |
+      A `minecraft:type_family` token containing hyphens (`mcdk_pack_twin-digital-village-guard`)
+      or dots (`mcdk_pack_dotted.pkg.name`) behaves identically to an underscore-only control
+      through every family read path. The pack loads with no content-log complaint, and the token
+      reads back from `getTypeFamilies()` and `hasTypeFamily()`, from
+      `Entity.matches({ families })`, from `Dimension.getEntities({ families })`, from a scripted
+      `testfor @e[family=]`, and from the `@e[family=]` selector issued at the server console —
+      matching across entity types, not just on one declaring definition. A token declared nowhere
+      matched nothing on any of the same paths, so each path was discriminating, not permissive.
+    backing: tested
+    caveat: |
+      Bedrock dedicated 1.26.44.3 with `@minecraft/server` 2.8.0. Hyphens and dots are the npm-name
+      characters a `mcdk_pack_<packToken>` family can carry once `@` is dropped and `/` becomes a
+      hyphen; `@` and `/` themselves, uppercase, and token length were not tried. Uppercase made an
+      entity identifier silently unaddressable (`f-te6cfwkw`) and is untested for family tokens.
+    sources:
+      - run: run-xw908twx
+        where: Observed output — the three tokens reading back off one entity
+        quote: |
+          [2026-08-15 16:40:24:069 WARN] [Scripting] [probe] spelling/spelling :: getTypeFamilies=[mcdk_pack_dotted.pkg.name|probe_underscore_token|mcdk_pack_twin-digital-village-guard]
+      - run: run-xw908twx
+        where: Observed output — the hyphenated token through getEntities, both carriers found
+        quote: |
+          [2026-08-15 16:40:24:070 WARN] [Scripting] [probe] spelling :: getEntities(families:[mcdk_pack_twin-digital-village-guard]).length=2
+      - run: run-xw908twx
+        where: Observed output — the dotted token through Entity.matches
+        quote: |
+          [2026-08-15 16:40:24:070 WARN] [Scripting] [probe] spelling/dot :: matches(families:[mcdk_pack_dotted.pkg.name])=true
+      - run: run-xw908twx
+        where: Observed output — the dotted token through the scripted command selector
+        quote: |
+          [2026-08-15 16:40:24:070 WARN] [Scripting] [probe] spelling :: cmd testfor @e[family=mcdk_pack_dotted.pkg.name] successCount=2
+      - run: run-xw908twx
+        where: Observed output — the hyphenated token matching from the server console
+        quote: |
+          [2026-08-15 16:40:32:169 WARN] [Scripting] [probe] console-selector :: hit mcdk_pack_twin-digital-village-guard
+      - run: run-xw908twx
+        where: Observed output — the dotted token matching from the server console
+        quote: |
+          [2026-08-15 16:40:35:569 WARN] [Scripting] [probe] console-selector :: hit mcdk_pack_dotted.pkg.name
+      - run: run-xw908twx
+        where: Observed output — the undeclared control matching nothing
+        quote: |
+          [2026-08-15 16:40:24:070 WARN] [Scripting] [probe] spelling :: cmd testfor @e[family=probe_absent_token] successCount=0

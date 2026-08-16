@@ -163,3 +163,54 @@ facts:
         where: properties.description — the entity identifier is unconstrained
         quote: |
           "description": "Contains the entity's unique identifier and runtime_identifier for spawn egg and other behaviors.",
+
+  - id: f-dlia9v1f
+    title: a slashed entity identifier is first-class to the script API and unwritable in a command
+    claim: |
+      An entity identifier carrying a slash — in the namespace half (`my-rpg/spellfx:probe`) or the
+      name half (`my-rpg:spellfx/probe`) — registers, spawns, and is fully addressable through the
+      script API: `EntityTypes.get`, `spawnEntity`, `typeId` read back verbatim,
+      `Entity.matches({ type })`, and `getEntities({ type })` all behave as for an underscore
+      control, and the pack loads with no content-log complaint.
+
+      The command layer is where it fails, and it fails loudly rather than silently: both
+      `testfor @e[type=]` and `summon` reject the identifier with a parse error that stops at the
+      slash, in both positions, so no command can so much as name the type — unlike uppercase
+      (`f-te6cfwkw`), where `summon` silently resolved to a lowercased identifier. The entity stays
+      reachable by command only through its family tokens.
+    backing: tested
+    caveat: |
+      Bedrock dedicated 1.26.44.3 with `@minecraft/server` 2.8.0. Commands were issued through
+      `Dimension.runCommand` from a script; the console shares the parser but was not driven
+      separately, and no quoting or escaping of the selector value was tried. Resource-pack asset
+      names are out of reach on a dedicated server, so the client side of a slashed identifier is
+      unmeasured.
+    sources:
+      - run: run-ciee1o5z
+        where: slash — a namespace-half slash registers
+        quote: |
+          [2026-08-15 21:56:00:295 WARN] [Scripting] [slprobe] slash/types :: registered=my-rpg/spellfx:probe length=20
+      - run: run-ciee1o5z
+        where: slash — the spawned entity reads its identifier back verbatim
+        quote: |
+          [2026-08-15 21:56:01:240 WARN] [Scripting] [slprobe] slash/ns_slash :: entity.typeId=my-rpg/spellfx:probe valid=true
+      - run: run-ciee1o5z
+        where: slash — the type query reaches it
+        quote: |
+          [2026-08-15 21:56:01:240 WARN] [Scripting] [slprobe] slash/ns_slash :: getEntities({type}).length=1
+      - run: run-ciee1o5z
+        where: slash — the selector cannot be parsed
+        quote: |
+          [2026-08-15 21:56:01:240 WARN] [Scripting] [slprobe] slash/ns_slash :: cmd testfor @e[type=my-rpg/spellfx:probe] successCount=threw CommandError: Error occurred with parsing command params: Syntax error: Unexpected "my-rpg": at "r @e[type=>>my-rpg<</spellfx:p"
+      - run: run-ciee1o5z
+        where: slash — summon fails the same way
+        quote: |
+          [2026-08-15 21:56:01:345 WARN] [Scripting] [slprobe] slash/ns_slash :: cmd summon my-rpg/spellfx:probe successCount=threw CommandError: Error occurred with parsing command params: Syntax error: Unexpected "my-rpg": at "summon >>my-rpg<</spellfx:p"
+      - run: run-ciee1o5z
+        where: slash — the name-half slash is rejected identically
+        quote: |
+          [2026-08-15 21:56:01:940 WARN] [Scripting] [slprobe] slash/name_slash :: cmd testfor @e[type=my-rpg:spellfx/probe] successCount=threw CommandError: Error occurred with parsing command params: Syntax error: Unexpected "my-rpg:spellfx": at "r @e[type=>>my-rpg:spellfx<</probe]"
+      - run: run-ciee1o5z
+        where: slash — the same entity stays reachable through its family token
+        quote: |
+          [2026-08-15 21:56:01:240 WARN] [Scripting] [slprobe] slash/ns_slash :: cmd testfor @e[family=fam_ns_slash] successCount=1
