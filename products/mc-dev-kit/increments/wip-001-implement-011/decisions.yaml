@@ -250,7 +250,7 @@ decisions:
         then: the build fails naming the file, the spelling, and the dependency
       - when: a token names a package outside the writer's own dependencies
         then: the writing package's fault, failing at any build that reads it
-    status: proposed
+    status: accepted
     scope: [build]
     pinned:
       reason: public-api
@@ -302,7 +302,7 @@ decisions:
       - when: an own bare spelling names an asset merged packs declare
         then: the failure prints each declarer's qualified spelling as the fix
       - otherwise: an own bare reference means an own declaration or vanilla; vendored content resolves internally without qualifiers
-    status: proposed
+    status: accepted
     scope: [build]
     pinned:
       reason: public-api
@@ -344,7 +344,7 @@ decisions:
       - when: a dependency ships `minecraft.defaultAlias` beside its tree
         then: that is its default token in every package's resolution — an explicit prefix still winning
       - otherwise: every direct dependency holding a vendored pack defaults to its shipped `defaultAlias`, else its unscoped name
-    status: proposed
+    status: delegated
     scope: [build]
     pinned:
       reason: public-api
@@ -390,7 +390,7 @@ decisions:
       - when: a token references a supplier that is not installed
         then: reported as such, never parsed as vanilla
       - otherwise: the consumer's build re-validates everything — shipped trees are untrusted, and a workspace sibling may never have built
-    status: proposed
+    status: accepted
     scope: [build]
     pinned:
       reason: public-api
