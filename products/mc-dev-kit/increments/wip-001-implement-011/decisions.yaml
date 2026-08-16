@@ -175,9 +175,9 @@ decisions:
     statement: |
       with namespacing on, own entities build as `<ns>:<name>` and a merged vendored pack's as
       `<ns>:<prefix>.<name>` — the prefix per dependency from the shipping package's
-      `minecraft.vendor` field, defaulting to the unscoped npm name. A bare declaration may not contain a dot, so a composed name's first
-      segment is always the prefix. A vendored module's runtime import arrives bound to its
-      prefix.
+      `minecraft.vendor` field, else the dependency's shipped `defaultAlias`, else its unscoped
+      name. A bare declaration may not contain a dot, so a composed name's first segment is
+      always the prefix. A vendored module's runtime import arrives bound to its prefix.
     cases:
       - when: a prefix holds anything outside lowercase letters, digits, underscore and hyphen, or lands in `mcdk_claim_*`
         then: the build fails naming what it found
@@ -341,7 +341,9 @@ decisions:
         then: its tokens also fix the output entity-id segment `<ns>:<prefix>.<name>` and the injected prefixes
       - when: the package is a vendored library
         then: its entries are source-side aliases; output naming is always the shipping consumer's
-      - otherwise: every direct dependency holding a vendored pack gets the unscoped-name default token
+      - when: a dependency ships `minecraft.defaultAlias` beside its tree
+        then: that is its default token in every package's resolution — an explicit prefix still winning
+      - otherwise: every direct dependency holding a vendored pack defaults to its shipped `defaultAlias`, else its unscoped name
     status: proposed
     scope: [build]
     pinned:
@@ -360,6 +362,19 @@ decisions:
       already read and watched by the build. One location for both roles lets a package that is
       both library and pack-shipper declare its suppliers once. What is build-time-only — the
       namespace — stays in build config; what must ship lives here.
+
+      `defaultAlias` follows the field's rules: token charset and the `mcdk_claim_` reservation,
+      validated at the shipping library's own build and again at every consumer's, where an
+      invalid one fails naming the library and the explicit-prefix fix; on a package holding no
+      vendored tree it is inert, since nothing ever consults it. Changing a shipped
+      `defaultAlias` is a breaking change with a loud edge: references to the old token fail
+      listing the resolved spellings — never rebinding, never silently renaming — and pinning
+      the old token as an explicit prefix restores the build with shipped-world entity ids
+      preserved exactly. The stale-token failure is precise but not an oracle: a genuine vanilla
+      dotted reference whose first segment is unknown and whose remainder coincides with a
+      closure declaration fails loudly too, and short of copying the asset into the own pack
+      there is no spelling for that vanilla name — the known corner of the grammar, loud in
+      every direction.
 
   - id: d-rzcxpj7p
     title: packBuild validates a vendored tree at its author's build

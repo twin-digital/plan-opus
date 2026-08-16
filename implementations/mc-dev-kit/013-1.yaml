@@ -912,7 +912,7 @@ coverage:
         ref:
           - src/internal/pack-build.test.ts
           - src/consumer.test.ts
-        note: the field read for both roles — explicit consumer prefixes, admission, diamond and charset through the field; a library's aliases binding its supplier references; the options surface pinned back to packageDir plus namespace
+        note: the field read for both roles — explicit consumer prefixes, admission, diamond and charset through the field; a library's aliases binding its supplier references; the defaultAlias resolution order with the explicit prefix winning, its two-build validation, and its inertness without a vendored tree; the options surface pinned back to packageDir plus namespace
       - kind: attestation
         ref:
           - src/internal/vendored-packs.ts
@@ -2013,7 +2013,7 @@ coverage:
         ref:
           - src/internal/pack-build.test.ts
           - src/identifier.test.ts
-        note: mc-dev-kit — default and explicit prefixes now read from the shipped minecraft.vendor field, charset and collision failures, dotted-declaration failure, composed consumer references, and the bound runtime import with a computed packId argument; mc-pack-runtime — packId spells composed names through the injected prefixes, throwing on an unknown first segment
+        note: mc-dev-kit — default and explicit prefixes read from the shipped minecraft.vendor field with defaultAlias in the order, charset and collision failures, dotted-declaration failure, composed consumer references, the stale-token loud edge, and the bound runtime import with a computed packId argument; mc-pack-runtime — packId spells composed names through the injected prefixes, throwing on an unknown first segment
       - kind: attestation
         ref:
           - src/internal/vendored-packs.ts
