@@ -1927,12 +1927,32 @@ coverage:
     covered_by:
       - kind: code-test
         ref: src/internal/pack-build.test.ts
-        note: an own bare reference binds own or fails — a bare spelling merged packs declare fails printing each declarer's qualified spelling, one declarer or several; vendored cross-pack references still bind by unique declarer and still fail as ambiguous, the consumer's own declarations counted among the candidates; own and vendored declarations of one bare entity name coexist as distinct composed ids
+        note: an own bare reference binds own or fails — a bare spelling merged packs declare fails printing each declarer's qualified spelling, one declarer or several; a vendored reference resolves within its own pack and its direct suppliers' merged packs, two direct suppliers failing as ambiguous, an out-of-closure declarer failing with the promotion fix, and a name only the consumer declares copying as written; own and vendored declarations of one bare entity name coexist as distinct composed ids
       - kind: attestation
         ref:
           - src/internal/merge-plan.ts
           - src/internal/vendored-packs.ts
-        note: resolveDeclaration's own-content branch is own then qualified only, the unique-declarer fallback surviving solely on the vendored-referencer path; cross-pack entity contention is impossible by construction, so the check moved to the prefix
+        note: resolveDeclaration's own-content branch is own then qualified only; the vendored branch filters candidates to the referencing pack's merged direct suppliers, ordering miss diagnoses admission-first; cross-pack entity contention is impossible by construction, so the check moved to the prefix
+
+  - claim: r-h1p0uyhr # arrival changes nothing
+    covered_by:
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+        note: the day-90 immunity suite — an own bare name never rebinds when merged packs declare it (it fails instead); a vendored reference to a name only the consumer or a sibling dependency declares copies as written unchanged; declaring an own name in a merged prefix's qualifier position fails rather than capturing; a prefix collision fails naming both arrivals
+      - kind: attestation
+        ref:
+          - src/internal/merge-plan.ts
+          - src/internal/vendored-packs.ts
+        note: no resolution path consults anything outside the referencing pack's own world — own declarations plus prefixes for consumer content, the pack and its direct suppliers for vendored content — so an arrival can enter no existing binding
+
+  - claim: r-f1i0d5h2 # a printed fix is safe to apply
+    covered_by:
+      - kind: code-test
+        ref: src/internal/pack-build.test.ts
+        note: every failure case asserts its message — ambiguity prints each declarer's qualified spelling, the prefix collision prints the vendor-block fix, the dangling diagnosis prints the admission line, the out-of-closure miss prints the promotion fix — and the un-merged-prefix guess that could print an unsafe admission is pinned absent
+      - kind: attestation
+        ref: src/internal/merge-plan.ts
+        note: no diagnosis guesses across the vanilla boundary; a printed fix is derived only from declarations actually present in the world the referencing pack can see
 
   - claim: d-piquxs3y # the prefix qualifies an asset reference
     covered_by:

@@ -1,0 +1,29 @@
+version: "3"
+
+# Two requirements the implementation's rulings kept converging on, stated once instead of
+# living as rationale scattered across the decisions they root.
+requirements:
+  - id: r-h1p0uyhr
+    scope: build
+    title: arrival changes nothing
+    statement: |
+      adding a dependency, or declaring a new name of one's own, never changes which declaration
+      any existing reference binds to. A collision a new arrival would cause is a build failure
+      naming it, never a rebinding.
+    commentary: |
+      The property the naming and binding decisions purchase, stated once. Upgrades of a
+      vendored pack's own suppliers sit outside it deliberately: inside a library, vanilla and
+      supplier names share one bare space, so an upgrade rebinding is undecidable at the
+      consumer's build — that edge belongs to the vendored-pack author's check (b-di9a4wpu).
+
+  - id: r-f1i0d5h2
+    scope: build
+    title: a printed fix is safe to apply
+    statement: |
+      a build failure names the file and what it found; a fix the error prints is safe to apply
+      exactly as printed, and the build prints none it cannot make safe.
+    commentary: |
+      Why the ambiguity failure prints qualified spellings and the prefix collision prints the
+      vendor-block line, and why the dangling diagnosis is not extended to qualified spellings
+      naming un-merged suppliers: a guess that misreads a vanilla reference would print an
+      admission that rewrites it — a fix unsafe to apply, which this forbids.

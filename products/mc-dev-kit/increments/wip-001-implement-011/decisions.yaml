@@ -130,6 +130,7 @@ decisions:
       notes: the literal names inside a built pack, and the property that a shared name is a shared definition
     supersedes: d-tnhykfkz
     because:
+      - r-h1p0uyhr
       - r-jxzqhhmo
       - r-293j8n70
       - d-82zp77fo
@@ -190,6 +191,7 @@ decisions:
       reason: public-api
       notes: the ids a consumer's worlds and commands address, and the option surface that names them
     because:
+      - r-h1p0uyhr
       - d-82zp77fo
       - d-zk0c48uy
       - d-zm6pxfrg
@@ -223,6 +225,8 @@ decisions:
       notes: what makes a dependency's content arrive, and what a shipped pack can contain unchosen — nothing
     supersedes: d-xoz6pwt8
     because:
+      - r-f1i0d5h2
+      - r-h1p0uyhr
       - d-27lzrwsu
       - d-82zp77fo
       - r-dge04upw
@@ -232,18 +236,20 @@ decisions:
   - id: d-i4oeiclv
     title: own references bind own or qualified; vendored references by uniqueness
     statement: |
-      an asset reference in the consumer's own files either names something the consumer's own
-      pack declares, or carries a prefix saying which vendored pack it means. An unprefixed
-      name that only vendored packs declare is a build failure, and the failure prints the
-      prefixed form to use. References inside a vendored pack, which cannot carry prefixes,
-      resolve by uniqueness.
+      an asset reference in the consumer's own files either names something its own pack
+      declares, or carries a prefix saying which vendored pack it means. An unprefixed name
+      only vendored packs declare is a build failure printing the prefixed form to use. A
+      reference written inside a vendored pack resolves within that pack and its own direct
+      dependencies' merged packs.
     cases:
       - when: an unprefixed name matches a declaration in the consumer's own pack
         then: it means that declaration, whatever any vendored pack declares
       - when: an unprefixed name matches no declaration anywhere
         then: it is vanilla and copies as written — or fails with d-vi1sct9w's dangling diagnosis where an un-admitted supplier declares it
-      - when: a reference inside a vendored pack matches declarations in several merged packs, the consumer's own included
-        then: the build fails naming every candidate
+      - when: two of a vendored pack's direct suppliers declare a name it references
+        then: the build fails naming every candidate — the library's bug, identical for every consumer
+      - when: a vendored reference names something only packs outside its closure declare
+        then: the build fails naming each declarer and the fix — the library declares that supplier directly
       - when: a prefixed entity reference names an entity that pack does not declare
         then: the build fails naming the file, the reference, and the pack
     status: proposed
@@ -253,6 +259,8 @@ decisions:
       notes: the binding order of every reference in a built pack — nothing else fixes which declaration a reference lands on
     supersedes: d-1vhwdhk1
     because:
+      - r-f1i0d5h2
+      - r-h1p0uyhr
       - d-ru4zegfs
       - d-l45sm4ja
       - d-ni5n2r3c
@@ -269,9 +277,18 @@ decisions:
       an unprefixed binding from the consumer's files, so adding a dependency cannot change
       what any existing reference means, declaring a name later captures nothing, and a
       vendored pack cannot silently shadow a vanilla name the consumer references — the failure
-      with the printed prefixed form replaces both silent readings. Vendored packs resolve by
-      uniqueness because they cannot know the consumer's prefixes, and ambiguity there fails
-      rather than guesses, which is r-c9bu8xes's bar.
+      with the printed prefixed form replaces both silent readings.
+
+      A vendored pack resolves within its own closure because a reference should resolve within
+      the world its author could see: a library's imports resolve against its dependencies, not
+      the consumer's, so nothing the consumer installs or declares reaches a library's
+      references — the consumer's own declarations included, which a vendored reference treats
+      as vanilla and copies past (the rewritten declaration no longer holds the bare spelling,
+      so the copy resolves to true vanilla in-engine). Where a miss has both an un-admitted
+      direct supplier and an out-of-closure declarer, the admission diagnosis wins — the
+      library's own dependency declaration is the stronger signal, and its fix is the
+      consumer's to apply. Vendored material parents hash by the same closure, so a hash can
+      never depend on the consumer's sibling dependencies.
 
   - id: d-piquxs3y
     title: the prefix qualifies an asset reference
@@ -295,6 +312,7 @@ decisions:
       reason: public-api
       notes: a reference grammar an author writes, and the recourse every ambiguity error prints
     because:
+      - r-f1i0d5h2
       - d-ru4zegfs
       - d-i4oeiclv
       - d-l45sm4ja
