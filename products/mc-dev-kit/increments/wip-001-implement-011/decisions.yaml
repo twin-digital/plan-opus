@@ -232,20 +232,20 @@ decisions:
   - id: d-i4oeiclv
     title: own references bind own or qualified; vendored references by uniqueness
     statement: |
-      an asset reference in the consumer's own content binds to an own declaration or through
-      its qualifier, and nothing else: a bare spelling merged packs declare fails the build
-      printing each declarer's qualified spelling. A reference written by vendored content —
-      which can know no prefix — binds own-scope first, then the one merged pack declaring the
-      name.
+      an asset reference in the consumer's own files either names something the consumer's own
+      pack declares, or carries a prefix saying which vendored pack it means. An unprefixed
+      name that only vendored packs declare is a build failure, and the failure prints the
+      prefixed form to use. References inside a vendored pack, which cannot carry prefixes,
+      resolve by uniqueness.
     cases:
-      - when: an own bare spelling matches an own declaration
-        then: it binds there, whatever merged packs declare
-      - when: an own bare spelling matches nothing own and nothing merged
-        then: d-vi1sct9w's dangling diagnosis where an un-merged supplier declares it, and copy-as-written otherwise
-      - when: a vendored reference finds several merged declarers, the consumer's own included
-        then: the build fails naming every candidate declaration and its file
-      - when: an own dotted entity spelling names a merged prefix whose pack declares no such entity
-        then: the build fails naming the file, the spelling, and the dependency
+      - when: an unprefixed name matches a declaration in the consumer's own pack
+        then: it means that declaration, whatever any vendored pack declares
+      - when: an unprefixed name matches no declaration anywhere
+        then: it is vanilla and copies as written — or fails with d-vi1sct9w's dangling diagnosis where an un-admitted supplier declares it
+      - when: a reference inside a vendored pack matches declarations in several merged packs, the consumer's own included
+        then: the build fails naming every candidate
+      - when: a prefixed entity reference names an entity that pack does not declare
+        then: the build fails naming the file, the reference, and the pack
     status: proposed
     scope: [build]
     pinned:
@@ -263,14 +263,14 @@ decisions:
       This is the rule d-1vhwdhk1's collision check becomes, which is why the supersession sits
       here. The naming decisions dissolved the collisions themselves — composed ids (d-ru4zegfs)
       end entity contention, hashed tokens (d-l45sm4ja) end asset contention — and that is
-      precisely what makes references ambiguous where declarations once collided.
+      precisely what makes an unprefixed name ambiguous where declarations once collided.
 
-      A merged dependency never receives an unqualified binding from consumer content: bare
-      means yours or vanilla, prefixed means theirs. So adding a dependency can never change
-      what an own reference means, a later own declaration captures nothing, and a merged
-      declarer cannot silently shadow a vanilla reference of the same spelling — the bare-
-      matches-merged failure converts both silent readings into a printed fix. Vendored content
-      keeps the uniqueness rule because it has no qualifier to write, and ambiguity there fails
+      Unprefixed means yours or vanilla; prefixed means theirs. A vendored pack never receives
+      an unprefixed binding from the consumer's files, so adding a dependency cannot change
+      what any existing reference means, declaring a name later captures nothing, and a
+      vendored pack cannot silently shadow a vanilla name the consumer references — the failure
+      with the printed prefixed form replaces both silent readings. Vendored packs resolve by
+      uniqueness because they cannot know the consumer's prefixes, and ambiguity there fails
       rather than guesses, which is r-c9bu8xes's bar.
 
   - id: d-piquxs3y
@@ -318,12 +318,12 @@ decisions:
   - id: d-3bmgnb25
     title: what a namespaced pack's own source may hold
     statement: |
-      with namespacing on, a package's own pack holds the modeled content kinds, `scripts/`, and
-      its manifest freely; every other file copies unchanged unless it could carry an
-      engine-readable name. Namespacing off keeps the copy-everything behavior.
+      with namespacing on, a package's own pack holds the modeled content kinds and its manifest
+      freely; every other file copies unchanged unless it could carry an engine-readable name.
+      Namespacing off keeps the copy-everything behavior.
     cases:
-      - when: the file is one of d-7aqne91n's content kinds or a `.lang` file, sits under `scripts/`, or is the manifest
-        then: it is read, rewritten, bundled or composed as the build defines
+      - when: the file is one of d-7aqne91n's content kinds or a `.lang` file, or is the manifest
+        then: it is read, rewritten or composed as the build defines
       - when: the file is `.json`, `.material`, `.lang` or `.mcfunction` outside the modeled locations
         then: the build fails naming the file
       - otherwise: the file copies unchanged, dotfiles and unknown extensions included
