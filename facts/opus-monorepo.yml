@@ -161,3 +161,162 @@ facts:
           the kit is never called, so a tree stale with respect to source is archived as it stands. Each
           pack becomes one `.mcpack` member holding the contents of its output directory at the archive
           root, and the `.mcaddon` holds one member per pack whatever the number of packs.
+
+  - id: a-vendored-librarys-runtime-prefix-binds-by-package-directory-containment
+    claim: |
+      The kit binds a vendored library's `packId` to that library's prefix by package-directory
+      containment. Resolving the runtime import, the build finds the merged vendored pack whose
+      package directory holds the importing module — a `startsWith` test on the importer's real
+      path — and only where one is found does it hand that module a runtime whose `packId` is
+      bound to the pack's prefix. A library whose code sits in a different package from the
+      `vendored_pack/` tree its entities come from matches no merged pack, so its `packId('x')`
+      composes the un-prefixed `<namespace>:x` while its entities build as
+      `<namespace>:<prefix>.x`, and every lookup misses. Shipping the library's source and the
+      `vendored_pack/` tree in one package is what makes the binding land.
+    backing: documented
+    sources:
+      - url: https://github.com/twin-digital/opus/blob/fa6362c71fe5d48eaef5af14c30d9c0402d61b6a/nodejs/minecraft/mc-dev-kit/src/internal/pack-build-plugin.ts
+        where: resolveId — the runtime import a vendored module makes
+        quote: |
+          // a vendored library's modules get the runtime with packId bound to the library's prefix,
+          // so its compiled-in calls — computed names included — land in its own entity cell
+          if (id === RUNTIME_PACKAGE && state.namespace !== undefined && importer !== undefined) {
+            const owner = await owningVendoredPack(state.vendored, importer)
+      - url: https://github.com/twin-digital/opus/blob/fa6362c71fe5d48eaef5af14c30d9c0402d61b6a/nodejs/minecraft/mc-dev-kit/src/internal/pack-build-plugin.ts
+        where: owningVendoredPack — the containment test itself
+        quote: |
+          /** The merged vendored pack whose package directory holds `importer`, if any. */
+          async function owningVendoredPack(
+            vendored: readonly VendoredPack[],
+            importer: string,
+          ): Promise<VendoredPack | undefined> {
+            let real: string
+            try {
+              real = await realpath(importer)
+            } catch {
+              return undefined
+            }
+            return vendored.find((pack) => real.startsWith(`${pack.packageDir}${path.sep}`))
+          }
+
+  - id: a-vendored-librarys-prefix-is-the-consumers-then-defaultalias-then-the-npm-name
+    claim: |
+      The token a vendored library's content is spelled under resolves in one order: the shipping
+      package's own explicit `minecraft.vendor` `prefix` entry for that dependency, else the
+      dependency's shipped `minecraft.defaultAlias`, else the dependency's unscoped npm name. For
+      the package whose build ships the packs the token also fixes the output entity-id segment,
+      `<namespace>:<prefix>.<name>`. A token holds lowercase letters, digits, underscore and
+      hyphen and never a dot; two dependencies resolving to one token fail the build naming both,
+      and an explicit `prefix` is the fix. A library changing its `defaultAlias` is a breaking
+      change for its consumers: their token references fail loudly rather than rebinding, and
+      pinning the old token as an explicit `prefix` restores the build and preserves shipped-world
+      entity ids exactly.
+    backing: documented
+    sources:
+      - url: https://github.com/twin-digital/opus/blob/fa6362c71fe5d48eaef5af14c30d9c0402d61b6a/nodejs/minecraft/mc-dev-kit/README.md
+        where: Vendoring shared packs — how a token resolves
+        quote: |
+          explicit `prefix` entry, else the dependency's shipped **`minecraft.defaultAlias`** — a sibling
+          of `vendor` a shared package may declare (`{ "minecraft": { "defaultAlias": "fx" } }`) — else
+          the dependency's unscoped npm name (`@rpg-libs/spell-fx` is written as `spell-fx.*`). A token
+          holds lowercase letters, digits, underscore and hyphen — never a dot, the separator — and two
+          dependencies resolving to one token fail the build naming both, with an explicit prefix as the
+          fix; an invalid `defaultAlias` fails its own package's build, and at a consumer's build fails
+          naming the library with the same fix. A library changing its `defaultAlias` is a **breaking
+          change**: your token references fail loudly, listing the resolved tokens — they never rebind or
+          silently rename — and pinning the old token as an explicit `prefix` entry restores your build
+          and preserves shipped-world entity ids exactly. For the package whose build ships the packs, the token
+          additionally fixes the output entity-id segment, `<namespace>:<prefix>.<name>`; a vendored
+          library's entries are source-side aliases only — the output naming of a supplier's entities is
+          always governed by the shipping consumer's token for that supplier.
+
+  - id: a-vendoring-package-supplies-the-namespace-the-uuids-and-a-manifest-of-every-kind
+    claim: |
+      Vendoring requires a namespace, and it is the vendoring package's: a shared package's
+      content merges into the vendoring package's own pack, under that package's namespace and
+      header uuid, so the same shared pack's entity identifiers get a different spelling and
+      identity in every package that takes it up. The vendoring package must hold its own source
+      manifest of every kind it vendors, and so ships one behavior pack and one resource pack
+      whatever it vendors. The build reads the shared package's `vendored_pack/` source tree
+      directly and the shared package never needs to have been built, and `mc-pack-archive`
+      archives the merged output tree as it stands, vendored content included.
+    backing: documented
+    sources:
+      - url: https://github.com/twin-digital/opus/blob/fa6362c71fe5d48eaef5af14c30d9c0402d61b6a/nodejs/minecraft/mc-dev-kit/README.md
+        where: Vendoring shared packs — what the vendoring package must supply
+        quote: |
+          Vendoring requires a namespace, and the vendoring package must hold its own source manifest of
+          every kind it vendors — the vendored content merges into that pack, under the vendoring package's
+          namespace and header uuid, so each vendoring package ships one behavior pack and one resource pack
+          whatever it vendors, and the same shared pack's entity identifiers get a different spelling and
+          identity in every package that takes it up. The build reads the vendored source tree directly; the
+          depended-on package never needs to have been built. Its `vendored_pack/` tree joins the watch
+          inputs, and the `mc-pack-archive` command archives the merged output tree as it stands, vendored
+          content included.
+
+  - id: a-vendored-pack-may-carry-entity-keyed-localization-and-lang-files-compose
+    claim: |
+      A vendored pack may declare entity definitions, geometries, textures, materials, render
+      controllers, animations, animation controllers, and localization entries keyed by an entity
+      identifier; content of any other kind fails the build naming the file. In a vendored tree
+      the localization restriction is enforced per line: a `.lang` key matching neither
+      `entity.<id>.name` nor `item.spawn_egg.entity.<id>.name` is reported as not being a
+      localization entry keyed by an entity identifier, and the keys that do match are rewritten
+      to follow the composed identifiers the build produced. A `.lang` path more than one merged
+      pack contributes entries to is composed from every contribution rather than one silently
+      winning, and one the build cannot compose fails it naming both contributors.
+    backing: documented
+    sources:
+      - url: https://github.com/twin-digital/opus/blob/fa6362c71fe5d48eaef5af14c30d9c0402d61b6a/nodejs/minecraft/mc-dev-kit/README.md
+        where: Vendoring shared packs — the content kinds and the composed files
+        quote: |
+          A vendored pack may hold entity definitions, geometries, textures, materials, render controllers,
+          animations, animation controllers, and localization entries keyed by an entity identifier; content
+          of any other kind fails the build naming the file.
+      - url: https://github.com/twin-digital/opus/blob/fa6362c71fe5d48eaef5af14c30d9c0402d61b6a/nodejs/minecraft/mc-dev-kit/src/internal/merge-plan.ts
+        where: rewriteLang — the per-line key rule in a vendored tree
+        quote: |
+          const LANG_ENTITY_KEY = /^(entity\.|item\.spawn_egg\.entity\.)(.+)(\.name)$/u
+
+          /** Rewrites a `.lang` file's entity-keyed entries; in a vendored tree any other entry faults. */
+      - url: https://github.com/twin-digital/opus/blob/fa6362c71fe5d48eaef5af14c30d9c0402d61b6a/nodejs/minecraft/mc-dev-kit/README.md
+        where: Vendoring shared packs — composition of a shared file
+        quote: |
+          A file more than one merged pack
+          contributes entries to — `texts/en_US.lang`, say — is composed; one the build cannot compose
+          fails it, naming both contributors.
+
+  - id: mc-pack-runtime-spells-identifiers-and-checks-the-packs-own-family
+    claim: |
+      `@twin-digital/mc-pack-runtime` is the kit's engine-side half, bundled into a pack's own
+      script bundle and reading the namespace, pack token and vendored prefixes the build injects
+      ahead of every module, with nothing passed per call. From one entry point it exports
+      `packId(name)`, spelling a bare or `<prefix>.<name>` name into the pack's namespace;
+      `packNamespace()` and `packFamily()`; checked `spawnEntity`, `getEntity` and `getEntities`
+      that hand back only entities carrying the pack's own type family — a spawn that answers
+      foreign is removed and raises `ForeignEntityError`, a lookup raises it where it stands, and
+      a query leaves foreign entities out; and `foreignNamespaceClaims()`. `packId` throws where
+      the name already carries a `:`, where no namespace was injected, and where its first
+      dot-segment is not an injected prefix.
+    backing: documented
+    sources:
+      - url: https://github.com/twin-digital/opus/blob/fa6362c71fe5d48eaef5af14c30d9c0402d61b6a/nodejs/minecraft/mc-pack-runtime/src/index.ts
+        where: the module doc comment and the entry point's exports
+        quote: |
+          A pack takes it as an ordinary dependency. In a namespaced pack the build injects the pack's
+          namespace and token ahead of every module, and everything here reads that injection with
+          nothing passed per call:
+      - url: https://github.com/twin-digital/opus/blob/fa6362c71fe5d48eaef5af14c30d9c0402d61b6a/nodejs/minecraft/mc-pack-runtime/src/checked.ts
+        where: the module doc comment on the checked calls
+        quote: |
+          The checked entity calls: each hands back only entities carrying this pack's own type family,
+          so a definition a rival pack's content replaced (the engine keeps one whole definition per
+          identifier) is caught at use instead of acting under this pack's name. They are for the pack's
+          own types — a vanilla or foreign entity is reached through `@minecraft/server` directly.
+      - url: https://github.com/twin-digital/opus/blob/fa6362c71fe5d48eaef5af14c30d9c0402d61b6a/nodejs/minecraft/mc-pack-runtime/src/identifier.ts
+        where: packId — what it spells and what it refuses
+        quote: |
+          Throws where the name already carries a `:` — the helper spells unnamespaced names only — and
+          where no namespace was injected, since the engine would read a bare name as `minecraft:<name>`
+          and a silent wrong-namespace lookup is the bug this helper exists to prevent. A pack built
+          with namespacing off spells its identifiers in full and has no bare names to spell.

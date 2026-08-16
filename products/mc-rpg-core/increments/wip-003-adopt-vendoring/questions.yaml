@@ -1,0 +1,46 @@
+version: "1"
+questions:
+  - id: q-9uliqgnt
+    answer: requirement
+    question: |
+      does r-e8p2oto6 still hold once an adventure's build emits the actor content into the
+      adventure's own packs?
+
+      r-e8p2oto6 says an adventure "spawns and uses an actor without carrying an entity definition,
+      a model, a texture, an animation, or a default name for it." under vendoring that stays true
+      of what an author *writes* and stops being true of what the build *emits*: every one of those
+      things ends up inside the adventure's own behavior and resource packs, and inside its
+      archive.
+
+      the same is already true of code — the build inlines the library into the adventure's script
+      and nobody counts that against the requirement — so the narrowed reading is the consistent
+      one. but the requirement is the owner's, and the whole of this increment is written against
+      it, so the reading is theirs to state rather than mine to assume.
+
+      the reading this increment is built to: an adventure's *author* writes no entity definition,
+      model, texture, animation, or default name, and takes one dependency to obtain them. if that
+      is the requirement, it wants restating in those words. if the requirement means the emitted
+      pack too, vendoring cannot be adopted at all and this increment is refused.
+
+  - id: q-r7db9r31
+    answer: fact
+    question: |
+      does a localization entry the pack carries give a player a name they actually read above an
+      actor, and can a name a player reads be translated at all?
+
+      b-ejavoqeh proposes moving a preset's default name out of the library (d-bfdql5tx) and into
+      the vendored pack as an `entity.<id>.name` entry, which the kit now admits and rewrites to
+      follow the composed identifier. both reasons d-bfdql5tx gave for keeping the name in the
+      library have expired: d-ny9lcyjg is superseded by d-nyh4i1x1, and the kit composes a `.lang`
+      file two packs both contribute to rather than letting one win.
+
+      what is missing is a measurement. today the library applies the default name to the actor as
+      it is created, which puts a name plate above it. a `.lang` entry names the *type*, and it is
+      not established that it produces anything a player sees above an unnamed entity — nor that a
+      name plate can carry a translated string at all. if it cannot, moving the name into the pack
+      trades a name every player reads for one most players never see.
+
+      so d-bfdql5tx and d-kklnm4j4 stand unchanged in this increment, with their stated reason
+      expired and their conclusion unmeasured. answering this takes an in-engine session: spawn a
+      pack-defined entity carrying a `.lang` entry and no `nameTag` and see what a player reads,
+      then set a `nameTag` holding a translation key and see whether it resolves.

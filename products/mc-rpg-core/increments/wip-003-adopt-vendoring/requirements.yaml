@@ -1,0 +1,26 @@
+version: "3"
+components:
+  - id: actors
+    description: what an adventure depends on — the presets, the spawn call, and the actor content an adventure's build merges into its own packs
+  - id: library
+    status: retired
+    superseded_by: actors
+    reason: the code and the actor content are one package, and neither part is a component of its own (d-zohkvwu1)
+    description: what an adventure imports — the actor presets, the spawn call, and the handle it returns
+  - id: assets-pack
+    status: retired
+    superseded_by: actors
+    reason: the code and the actor content are one package, and neither part is a component of its own (d-zohkvwu1)
+    description: what an adventure depends on — the actor entity definitions and the models, textures, and animations they render from
+  - id: example
+    description: the adventure built on the actors package, which spawns every actor and carries the product's run-time evidence
+terms:
+  - id: adventure
+    definition: |
+      a pack built on this product carrying one experience — its story, its triggers, and its logic — whose author writes no actor definition, model, texture, animation, or name.
+  - id: namespace
+    definition: |
+      the token an adventure's packs are built under, which every identifier in them carries. the adventure chooses it; this product declares none.
+  - id: prefix
+    definition: |
+      the token an adventure's build spells this product's vendored content under, sitting between the adventure's namespace and a preset's own name.
