@@ -1,7 +1,8 @@
 # The code wave shape
 
-Your kind is `npm-library`, `npm-cli`, or `minecraft-addon`. Four waves, split across the
-phases: **prepare** is Define and Stub, **implement** is Code and Document.
+Your kind is `npm-library`, `npm-cli`, `minecraft-addon`, `node-service`, or `web-app`. Four
+waves, split across the phases: **prepare** is Define and Stub, **implement** is Code and
+Document.
 
 | wave | phase | produces | validated against |
 |---|---|---|---|
@@ -12,6 +13,11 @@ phases: **prepare** is Define and Stub, **implement** is Code and Document.
 
 Prepare may return as soon as the API stubs stand — test authoring can finish inside Code — so
 dependents unblock at the earliest honest moment.
+
+A `node-service` is deployed and operated rather than installed, but the surface it serves is
+what sibling packages compile against: its stubs stand that surface up, and its prepare is no
+more a no-op than a library's. A `web-app` is built and served rather than imported — nothing
+compiles against it, so its prepare stands nothing up and is the no-op.
 
 ## Define
 

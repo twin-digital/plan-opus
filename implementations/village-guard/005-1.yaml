@@ -1,0 +1,333 @@
+version: "1"
+product: village-guard
+target: 5
+built_at: 2026-08-07
+packages:
+  - path: nodejs/minecraft/village-guard
+    version: 0.2.0
+coverage:
+  # ---- requirements, increment 001 ----
+  - claim: r-3otdixl2 # the whole village is protected
+    covered_by:
+      - kind: code-test
+        ref: src/protection.test.ts
+        note: >
+          `describe('the protected set')` — every id in `PROTECTED_TYPE_IDS`, the trader llama among
+          them, survives a lethal hit at full health; a mob created after `installProtection` is
+          protected; and a mob in the overworld, the nether and the end alike
+      - kind: attestation
+        ref: src/protection.ts
+        note: >
+          the pack reads no configuration and offers no exclusion: the protected set is a module
+          constant, and the pack ships no functions, no commands and no dynamic properties
+  - claim: r-9gw909jf # protected villagers are not converted
+    covered_by:
+      - kind: code-test
+        ref: src/protection.test.ts
+        note: >
+          `'does not let the losses accumulate under sustained attack'` — two hundred lethal zombie
+          hits leave the villager valid at full health
+      - kind: manual-check
+        ref: src/protection.ts
+        note: >
+          the pack's own handler, run against Bedrock 1.26.40.8 with a villager penned against four
+          zombies from 0.5 starting health: no conversion in 3/3 runs across 129, 137 and 133 hits,
+          where an unguarded control at the same health was converted every time.
+          `evidence/minecraft/script-api/gap-probe` in the planning repository
+      - kind: attestation
+        ref: src/protection.ts
+        note: >
+          conversion rides on the killing blow, so not dying is not converting. conversion is not on
+          the script API, so the probe counts zombie villagers in the dimension rather than
+          observing the trigger
+  - claim: r-cizmztsh # installable on any vanilla world
+    covered_by:
+      - kind: manual-check
+        ref:
+          - behavior_pack/manifest.json
+          - package.json
+        note: >
+          ran `pnpm release-assets` and unzipped `.release-assets/village-guard-0.1.0.mcaddon`: one
+          `behavior_pack.mcpack` holding `manifest.json` and `scripts/main.js` at its root, and the
+          manifest declares one dependency — `@minecraft/server` — and no pack dependency
+      - kind: attestation
+        ref: behavior_pack/manifest.json
+        note: >
+          the release artifact itself was not installed into a world. what was run is the probe
+          pack, hand-installed into a fresh `itzg/minecraft-bedrock-server` world on this manifest's
+          engine line and loading with protection in force
+  # ---- requirements, increment 002 ----
+  - claim: r-pe87rfqq # protection survives ordinary play
+    covered_by:
+      - kind: code-test
+        ref: src/protection.test.ts
+        note: >
+          `'survives an ordinary %s'` across entityAttack, fire, fireTick, fall, drowning,
+          suffocation and blockExplosion; the sustained-attack test; and `describe('an operator')`
+          for the carve-out the requirement leaves outside
+      - kind: manual-check
+        ref: src/protection.ts
+        note: >
+          drowning and suffocation, which the fakes cannot decide, measured against Bedrock
+          1.26.40.8: both raise the before-event, and the pack's own handler held a villager at full
+          health through 511 drowning and 715 suffocation deliveries with no death fired.
+          `evidence/minecraft/script-api/gap-probe` in the planning repository
+      - kind: attestation
+        ref: src/protection.ts
+        note: >
+          nothing the pack does keeps a wandering trader loaded: it holds no reference to any mob,
+          adds no effect, and takes no tick callback
+  # ---- requirements, increment 004 ----
+  - claim: r-ef113dxi # the pack changes nothing else, and a player's own hit does nothing
+    covered_by:
+      - kind: code-test
+        ref: src/protection.test.ts
+        note: >
+          `describe("a player's own hit")` — melee and projectile both leave health untouched and
+          raise no after-event; `'restores a mob that was already below full health'`; `'still
+          lands, written down to nothing'`; and `'leaves a hit mob carrying no effect, no name tag
+          and no chat output'`
+      - kind: manual-check
+        ref: src/protection.ts
+        note: >
+          that a written-down hit still lands, measured against Bedrock 1.26.40.8 as the peak speed
+          after a zombie's swing: 0.533-0.700 for a zero write against a vanilla control's
+          0.578-0.693, where a cancelled hit reaches 0.194-0.274.
+          `evidence/minecraft/script-api/gap-probe` in the planning repository
+      - kind: attestation
+        ref:
+          - src/protection.ts
+          - ISSUES.md
+        note: >
+          NOT MET for one case, shipped as a known limit the owner accepted: an iron golem a player
+          strikes takes no harm and shows no hurt reaction, and turns hostile anyway. d-qgpu7qp0
+          records why the pack leaves it, and ISSUES.md states it to the installer. everything else
+          holds — the handlers write only `damage`, `cancel` and `resetToMaxValue()` and touch
+          nothing else about a mob. trading, restocking, breeding, gossip and golem spawning are not
+          observable against the fakes and were not observed in an engine. the knockback a zero
+          write leaves is measured; the flinch and the hurt sound render at a client and are not,
+          and the owner ruled that an accepted risk — backlog b-myudtbdv
+      - kind: manual-check
+        ref: src/protection.ts
+        note: >
+          the golem case, measured against Bedrock 1.26.40.8: a cancelled hit from a player-family
+          attacker left the golem at full health and drew 24 strikes back, where a creeper-family
+          attacker dealing real damage drew none.
+          `evidence/minecraft/script-api/golem-probe` in the planning repository
+  # ---- requirements adopted from minecraft-addon and monorepo-package ----
+  - claim: r-hear6pun # packs unit-test with the shared test lib
+    covered_by:
+      - kind: code-test
+        ref: src/protection.test.ts
+        note: >
+          the suite obtains `@minecraft/server` only through `@twin-digital/minecraft-test-lib`'s
+          `createServer()` — no hand-rolled double, no `vi.mock`, no runner alias of its own
+      - kind: attestation
+        ref:
+          - src/entry.test.ts
+          - vitest.config.d/minecraft-test-lib.ts
+        note: >
+          both suites take `@minecraft/server` from the shared lib and write no behaviour by hand.
+          the entry suite reaches the pack's own entry module through the lib's vitest plugin and
+          `loadPack`, which is the install the lib documents for load-time behaviour
+  - claim: r-cyd08e6q # packs are built by the dev kit
+    covered_by:
+      - kind: manual-check
+        ref:
+          - tsdown.config.d/minecraft-pack.ts
+          - tsdown.config.ts
+          - package.json
+        note: >
+          the fragment is `packBuild(...)` and nothing else, merged over repo-kit's generated base;
+          `build` and `watch` are the shared scripts around tsdown and CI's `turbo run build`
+          reaches the same script. ran the build and read `dist/behavior_pack/` — completed manifest
+          and one ESM chunk with `@minecraft/server` left external
+      - kind: attestation
+        ref: tsdown.config.d/minecraft-pack.ts
+        note: the package defines no bundling of its own, and no build route bypasses the kit
+  - claim: r-w2vh7olv # a pack does not deliver itself
+    covered_by:
+      - kind: manual-check
+        ref: package.json
+        note: >
+          `release-assets` is the kit's own `mc-pack-archive`; the package is private and carries no
+          publish, deploy or upload script
+      - kind: attestation
+        ref: package.json
+        note: the pack publishes and deploys nothing directly
+  - claim: r-992moral # packs run against the dev server
+    covered_by:
+      - kind: manual-check
+        ref:
+          - package.json
+          - README.md
+        note: >
+          the one command the README documents — `turbo run dev --filter=@twin-digital/village-guard
+          -- --accept-eula`, from the repository root — run against a tree with every `dist/` in the
+          chain deleted and no server running: turbo built `@twin-digital/mc-dev-kit`,
+          `@twin-digital/mc-dev-server` and the rest, then ran the pack's own `dev`, which brought a
+          Bedrock container up and loaded the world with this pack in its pack stack —
+          `Pack Stack - [00] village-guard`, then `Server started`, with the built script behind it
+          rather than a stub. the pack's scripts are `dev` and `dev:stop`, each the kit's command and
+          nothing else
+      - kind: attestation
+        ref:
+          - package.json
+          - .minecraft.yml
+        note: >
+          nothing was run beside that one command. what the package holds of its own is the
+          harness's own config file — the world's level name, seed and spawn — and no server,
+          container, world or activation implementation
+  - claim: r-82ck2fax # package config is repo-kit managed
+    covered_by:
+      - kind: manual-check
+        ref:
+          - package.json
+          - tsconfig.json
+          - tsconfig.build.json
+          - eslint.config.js
+          - vitest.config.ts
+          - tsdown.config.ts
+          - .nvmrc
+        note: >
+          every one of these is what `pnpm sync` writes; re-running it against the merged tree
+          leaves it clean. the package's one exception — the `package-manifest` rule, which would
+          re-add library `files` and a `./*` export wildcard to a pack that publishes no library
+          surface — is declared in the monorepo's own `.repo-kit.yml`
+      - kind: attestation
+        ref: package.json
+        note: >
+          what is hand-written in the package is its identity, its scripts' pack-specific entries
+          and its two pack-specific dependencies — no bundler, TypeScript, lint or script
+          configuration
+  # ---- decisions, increment 004 ----
+  - claim: d-issr5yjc # village-guard ships as one behavior pack
+    covered_by:
+      - kind: manual-check
+        ref:
+          - package.json
+          - behavior_pack/manifest.json
+        note: >
+          `@twin-digital/village-guard` at `nodejs/minecraft/village-guard`, one behavior pack, and
+          the release artifact is the `.mcaddon` the kit archives
+      - kind: attestation
+        ref: package.json
+        note: >
+          the manifest declares no `exports` and no `files`, so the package exposes no library
+          surface
+  - claim: d-67dkvr3f # a mob's hit is written down to zero, a player's is cancelled, an operator's lands
+    covered_by:
+      - kind: code-test
+        ref: src/protection.test.ts
+        note: >
+          `describe('a hit no player dealt')` — written down to zero, restored, and a mob starting
+          at 0.5 and 0.25 health left alive; `describe("a player's own hit")` — cancelled in melee
+          and by a loosed projectile alike; `describe('an operator')` — `kill()`, `override` and
+          `selfDestruct` all land. the mob carries no effect afterwards, so nothing was made
+          invulnerable
+      - kind: manual-check
+        ref: src/protection.ts
+        note: >
+          the pack's own handler, transcribed into the gap probe and run against Bedrock 1.26.40.8:
+          a villager survived 129, 137 and 133 zombie hits from 0.5 starting health with no death
+          fired, where the same subject under a 0.5 write was converted on the first hit in 3/3
+          runs; and it held at full health through 511 drowning and 715 suffocation deliveries.
+          `evidence/minecraft/script-api/gap-probe` in the planning repository
+      - kind: code-test
+        ref: src/protection.test.ts
+        note: >
+          the zero write specifically: `'still lands, written down to nothing'` reads the delivered
+          damage as 0, and `'leaves a mob at %s health alive, taking nothing'` drives a mob at 0.5
+          and 0.25 health through a lethal zombie hit and finds it valid at full health
+      - kind: attestation
+        ref: src/protection.ts
+        note: >
+          the split reads the hit's `damageSource` and the write is a module constant, so the
+          handler reads nothing off the mob while it runs
+  - claim: d-8b5m52it # the event subscription is the enrollment
+    covered_by:
+      - kind: code-test
+        ref:
+          - src/entry.test.ts
+          - behavior_pack/scripts/main.ts
+        note: >
+          the pack's own entry module is evaluated as the engine evaluates it, through `loadPack`,
+          and the subscriptions it took while evaluating are what the assertions read — so an entry
+          that imported the wrong name or called nothing fails here, where the injection suite would
+          pass unchanged
+      - kind: code-test
+        ref: src/protection.test.ts
+        note: >
+          `'runs nothing on a schedule: an untouched mob keeps whatever health it has'` — two
+          hundred ticks change nothing and raise no event; `'protects a mob that arrives after the
+          subscriptions were taken'`
+      - kind: attestation
+        ref: src/protection.ts
+        note: >
+          `installProtection` is subscriptions and no state: no registry, no dimension scan, no
+          arrival tracking, no periodic sweep. it is called at module scope, so the subscriptions
+          stand while the script evaluates
+  - claim: d-e0a34ilh # the protected set is four vanilla type ids
+    covered_by:
+      - kind: code-test
+        ref: src/protection.test.ts
+        note: >
+          `'is the four vanilla type ids, and nothing else'` asserts `PROTECTED_TYPE_IDS` against the
+          literal list, so adding or dropping a type fails the suite; the parametrised sweep drives
+          each of the four, and `'leaves a mob outside the set to die'` and `'is left alone on a mob
+          outside the set'` show a sheep taking its full damage under a mob's hit and a player's
+      - kind: attestation
+        ref: src/protection.ts
+        note: the set is a module constant of the four prefixed ids, and nothing configures it
+  - claim: d-itt177wv # the manifest declares the versions the design was measured against
+    covered_by:
+      - kind: manual-check
+        ref: behavior_pack/manifest.json
+        note: >
+          the source manifest declares `@minecraft/server` 2.8.0 and a `min_engine_version` on the
+          1.26 line; read again in `dist/behavior_pack/manifest.json` after the kit completed it
+      - kind: attestation
+        ref: package.json
+        note: >
+          the package's `@minecraft/server` devDependency is the monorepo catalogue's 2.8.0, so what
+          the pack compiles against and what its manifest declares are the same version
+  # ---- decisions, increment 005 ----
+  - claim: d-qgpu7qp0 # the pack leaves an iron golem's retaliation alone
+    covered_by:
+      - kind: manual-check
+        ref: ISSUES.md
+        note: >
+          the pack sends no entity event and subscribes no arrival signal, so a golem's targeting is
+          untouched; the probe's numbers and the reason the remedy was not taken are stated in
+          ISSUES.md and linked from the README beside the promise the limit breaks
+      - kind: attestation
+        ref: src/protection.ts
+        note: >
+          `installProtection` is the two `entityHurt` subscriptions and nothing else — no
+          `entitySpawn`, no `entityLoad`, no `triggerEvent`
+  - claim: d-iphqrkzm # the restore is a second subscription, and it splits the hit the same way
+    covered_by:
+      - kind: code-test
+        ref: src/protection.test.ts
+        note: >
+          `'restores a mob that was already below full health'` and the sustained-attack test show
+          the restore; `describe('an operator')` shows the after handler splitting again — `kill()`
+          leaves the mob at zero rather than restored; the player tests show no after-event arriving
+          for a cancelled hit
+      - kind: attestation
+        ref: src/protection.ts
+        note: >
+          the two subscriptions are taken together in `installProtection`, and both call the same
+          `treat` function on the hit
+  - claim: d-9looc2q2 # the manifest's engine floor is the 1.26 line itself
+    covered_by:
+      - kind: manual-check
+        ref: behavior_pack/manifest.json
+        note: >
+          `min_engine_version` reads `[1, 26, 0]` in the source manifest and in the completed one
+          the build writes
+      - kind: attestation
+        ref: behavior_pack/manifest.json
+        note: >
+          the engine's own refusal of an undeclarable `@minecraft/server` 2.8.0 is what gates an
+          unsuitable engine; the floor names the line and narrows nothing further

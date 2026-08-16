@@ -1,0 +1,427 @@
+version: "3"
+facts:
+  - id: f-09o4knzt
+    title: a client entity definition is addressed by the entity identifier
+    claim: |
+      A client entity definition sets an entity's appearance — its materials, textures, and geometry —
+      and is joined to the behavior definition that gives the entity its behaviors by carrying the
+      same `identifier`. One identifier resolves to one appearance definition: where several
+      definition files share an identifier only one of them is loaded, chosen by comparing each
+      definition's `min_engine_version` against the engine version of the top resource pack. So the
+      identifier, not the file, is what an appearance is addressed by.
+    backing: documented
+    caveat: |
+      That one definition may itself hold several textures and geometries, selected by a render
+      controller, is carried by the Materials, Textures, Animations section's "one or more" wording.
+      Whether a render controller can make that selection from an entity property a script sets is
+      not covered by these sources.
+    sources:
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/cliententitydocumentation/cliententitydocumentationintroduction
+        where: Identifier
+        quote: |
+          The identifier is used to register the entity with the server. In the Client Entity Definitions JSON the identifier sets the appearance of the entity (materials, textures, geometry, etc.) The matching identifier in the Entity Behavior JSON in the Behavior Pack is what gives the entity its behaviors.
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/cliententitydocumentation/cliententitydocumentationintroduction
+        where: Min_engine_version
+        quote: |
+          Multiple definition files may use the same identifier, in which case only one of those definitions will be loaded. The definition with the same or closest and not greater `min_engine_version`, as compared to the top resource pack's engine version, will be parsed; all other definitions with the same identifier will not be parsed.
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/cliententitydocumentation/cliententitydocumentationintroduction
+        where: Materials, Textures, Animations
+        quote: |
+          Players can set the materials, texture and geometry used for the entity in this section. Players can set one or more materials, textures, and geometries that can be used by the mob. Players must set user defined names for them. These names are used in the Render Controllers JSON.
+  - id: f-sawr93hu
+    title: damage_sensor can stop received damage being applied
+    claim: |
+      `minecraft:damage_sensor` carries a list of triggers, each with a `deals_damage` choice, and
+      `no` means received damage is not applied to the entity. Two further values separate the damage
+      from its side effects rather than blocking both: `no_but_side_effects_apply` withholds the damage
+      while the attacker's weapon still loses durability and enchantment effects still land, and
+      `no_but_entity_effects_apply` withholds the damage while knockback and enchantments still apply
+      and the entity does not flash red. A trigger may be scoped to one `cause`, which is how vanilla
+      uses it — a bat carries `{"cause":"fall","deals_damage":"no"}`.
+    backing: documented
+    sources:
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/entitycomponents/minecraftcomponent_damage_sensor
+        where: Deals Damage choices — the yes and no rows
+        quote: |
+          | yes | Yes | Received damage is applied to the entity.|
+          | no | No | Received damage is not applied to the entity.|
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/entitycomponents/minecraftcomponent_damage_sensor
+        where: Deals Damage choices — the two partial-block rows
+        quote: |
+          | no_but_side_effects_apply | No But Side Effects Apply | Received damage is not applied to the entity, but the side effects of the attack are. This means that the attacker's weapon loses durability, enchantment side effects are applied, and so on.|
+          | no_but_entity_effects_apply | No But Entity Effects Apply | Damage is not applied to the entity, but knockback and enchantments are still applied and the attacker's weapon is used as normal. The entity does not flash red.|
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/entitycomponents/minecraftcomponent_damage_sensor
+        where: Damage Sensor Properties — the triggers row, its description and Bat example
+        quote: |
+          | triggers (Damage Sensor Trigger) | *not set* | [Triggers](#triggers) item | List of triggers with the events to call when taking specific kinds of damage. | Allay: `[{"deals_damage":"no","on_damage":{"filters":{"all_of":[{"subject":"other","test":"is_family","value":"player"},{"subject":"other","test":"is_owner"}]}}}]`, Bat: `{"cause":"fall","deals_damage":"no"}`
+  - id: f-2profbz0
+    title: behavior.look_at_player turns the head, and only occasionally by default
+    claim: |
+      `minecraft:behavior.look_at_player` compels an entity to look at the player by rotating the head
+      bone pose within a set limit — a head turn, not a body turn or any movement. `look_distance` is
+      the distance in blocks from which the entity will look and defaults to 8; `probability` is the
+      chance of looking at the target, 1.00 being 100%, and defaults to roughly 0.02, so the component
+      left at its defaults produces an occasional glance rather than continuous tracking. From 1.26.0
+      the component's schema is stricter and rejects invalid JSON, with `min_look_time` and
+      `max_look_time` deprecated in favour of a single `look_time` range.
+    backing: documented
+    sources:
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/entitygoals/minecraftbehavior_look_at_player
+        where: the component description
+        quote: |
+          Compels an entity to look at the player by rotating the `head` bone pose within a set limit.
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/entitygoals/minecraftbehavior_look_at_player
+        where: Entity Look At Player Behavior Properties — the look_distance and probability rows
+        quote: |
+          | look_distance | 8 | Decimal number | The distance in blocks from which the entity will look at the nearest entity. | Bogged: `8`, Breeze: `16`, Cave Spider: `6` |
+          | probability | 0.019999999552965164 | Decimal number | The probability of looking at the target. A value of 1.00 is 100%. Value must be <= 1. | Allay: `0.02`, Elder Guardian: `0.01`, Enderman: `8` |
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/entitygoals/minecraftbehavior_look_at_player
+        where: the note under the component description
+        quote: |
+          In 1.26.0 the schema is stricter and rejects invalid JSON. The `min_look_time` and `max_look_time` fields are deprecated and replaced by a single `look_time` range (with `min` and `max`). Existing uses of `min_look_time` / `max_look_time` are upgraded automatically.
+  - id: f-acq14qt1
+    title: a missing appearance renders nothing and cannot be pointed at
+    claim: |
+      How a missing appearance definition presents to a player depends on which part is missing, and the
+      worst case is the silent one. With **no client entity definition at all** — which is what a wholly
+      absent resource pack produces — nothing renders and nothing could be found by looking or by pointing
+      at where the entity stood, though the server had spawned it. With a client entity present naming an
+      **unresolvable geometry**, nothing renders either, but the entity is still there to the client:
+      hovering over its position raises its name tag. With a resolvable geometry and an **unresolvable
+      texture** the failure is loud — the body renders in full, in the black-and-magenta missing-texture
+      pattern, flickering between the two. A complete definition renders correctly. So a resource pack
+      that fails to arrive produces an actor a player cannot see or interact with and receives no
+      indication of, while a resource pack that arrives with a broken texture is unmistakable at a glance.
+    backing: tested
+    caveat: |
+      A visual observation by one person on one Bedrock client, not a measurement, and the name-tag
+      behaviour is that client's: name tags appeared only while the observer hovered over an entity and
+      never passively, so a name tag cannot be relied on to announce an actor a player is not already
+      pointing at. One thing is left open — whether the no-client-entity actor was un-hoverable or merely
+      hard to hover. The observer could not raise its name tag and the server confirms it existed;
+      separating "the client gives it no target volume" from "the volume was small and was missed" needs a
+      further pass. The design conclusion is the same either way.
+    sources:
+      - run: run-1ga99sms
+        where: Client side, as observed — the four actors
+        quote: |
+          full should look right: normal evoker
+
+          'no client entity': nothing there at all, couldnt get the name tag to show up at all
+
+          'bad geometry': completely invisible, but if my mouse hovers in that area the nametag shows up
+
+          'bad texture': humanoid (evoker?) shape, colored in black and magenta (with z-fighting causing the colors to swap)
+      - run: run-1ga99sms
+        where: Client side, as observed — the note on name tags
+        quote: |
+          note for context, nametags are _never_ visible unless i hover over the entity. so for 'no client entity' its either not there, or the hover region is so small i couldnt find it
+      - run: run-1ga99sms
+        where: Server side, captured — the actors and the active resource pack
+        quote: |
+          [2026-08-10 05:12:20:870 WARN] [Scripting] RENDERCHECK spawned rptest:no_client at -1,-60,4
+  - id: f-8bxtf5w7
+    title: a resource pack's own asset names are global to the pack stack
+    claim: |
+      The names a resource pack declares for its own assets are not private to it. Two packs declaring the
+      same geometry identifier with different geometry produced one shape for both entities that named it —
+      including for the entity whose own client definition sat in the pack that lost — and two packs
+      declaring the same texture path with different images produced one image for every entity that named
+      it. Texture paths behave no differently from identifiers in this. So a definition is shared by
+      whichever consumers name it, and which of several competing definitions they get is decided outside
+      any of the packs involved. A pack cannot rely on its own asset names being its own, and two packs
+      built from a common source must carry distinct names to render distinctly.
+    backing: tested
+    caveat: |
+      A visual observation by one person on one Bedrock client, not a measurement. The winner was the pack
+      listed first in the world's resource activation list, but this run varies no ordering and so
+      establishes only that one definition wins rather than what decides which. Untested for materials,
+      render controllers, animations, and animation controllers, whose names are declared the same way and
+      are assumed to behave alike.
+    sources:
+      - run: run-su8j6rdc
+        where: Client side, as observed — all four actors
+        quote: |
+          - "tex pack two" - magenta cube
+          - "tex pack one" - magenta cube
+          - "geo pack two" - magenta pillar
+          - "geo pack one" - magenta pillar
+      - run: run-su8j6rdc
+        where: Server side, captured — the four actors existed
+        quote: |
+          [2026-08-10 06:13:48:878 WARN] [Scripting] COLLIDE spawned collide:geo_b
+  - id: f-5ci71l13
+    title: no entity component set resists a water current on Bedrock 1.26.43.1
+    claim: |
+      A flowing-water current moves a custom entity regardless of its components, and nothing in the
+      component vocabulary blocks it. Twenty-two component sets were placed in an identical current
+      for 400 ticks on 1.26.43.1: `minecraft:pushable` `is_pushable` false, `minecraft:knockback_resistance`
+      at 1, at `{value: 1, max: 1}` and at 100, `minecraft:movement` 0 with and without
+      `movement.basic`/`navigation.walk`, `minecraft:underwater_movement` 0, `minecraft:buoyant` at
+      `base_buoyancy` 1 and 0, a 0.01-by-0.01 `minecraft:collision_box`, `minecraft:physics`
+      `has_gravity` false, and every one of those together. Each drifted 4.5 to 4.95 blocks downstream,
+      within 3% of the component-poor positive control's 4.9533 and of a dropped item's 4.6997. The set
+      mc-rpg-core ships drifted 4.8020 blocks. `minecraft:pushable` governs entity-on-entity and piston
+      pushes, not fluid flow, and knockback resistance does not reach the flow either. The displacement
+      is horizontal only: every subject standing on the floor ended at the y it started at, half-submerged
+      and fully submerged alike, so a current drifts an actor sideways rather than floating it up, and
+      `minecraft:buoyant` changed neither number.
+    backing: tested
+    caveat: |
+      Two component choices did stop horizontal drift, both by destroying the entity instead of anchoring
+      it: `minecraft:physics` `has_collision` false drops it out of the world [[f:f-qpngcyhr]]. The one
+      value that reaches the flow at all is `water_movement`'s `drag_factor`, which scales and reverses
+      the push without cancelling it [[f:f-wyefuxpy]]. Riding a mount was measured too and inherits the
+      mount's drift. Nothing outside the component vocabulary was tested: a script that writes position
+      back each tick was not in scope.
+    sources:
+      - run: run-4xy5say4
+        where: the summary line for the mc-rpg-core component set as shipped
+        quote: "[2026-08-11 15:59:34:829 WARN] [Scripting] PROBE water SUMMARY ctrl id=wp:ctrl start=3.5000/70.0000/6.5000 end=8.3020/70.0000/6.5000 dx=4.8020 dy=0.0000 dz=0.0000 dxz=4.8020 drifted=YES rose=no note=the mc-rpg-core set as shipped"
+      - run: run-4xy5say4
+        where: the summary line for every immobility component applied together
+        quote: "[2026-08-11 15:59:34:829 WARN] [Scripting] PROBE water SUMMARY kitchen id=wp:kitchen start=3.5000/70.0000/186.5000 end=0.3140/70.0000/186.5000 dx=-3.1860 dy=0.0000 dz=0.0000 dxz=3.1860 drifted=YES rose=no note=every immobility component together, no AI, gravity and collision kept"
+      - run: run-4xy5say4
+        where: the summary line for the component-poor positive control
+        quote: "[2026-08-11 15:59:34:829 WARN] [Scripting] PROBE water SUMMARY bare id=wp:bare start=3.5000/70.0000/0.5000 end=8.4533/70.0000/0.5000 dx=4.9533 dy=0.0000 dz=0.0000 dxz=4.9533 drifted=YES rose=no note=positive control: physics + health only"
+      - run: run-4xy5say4
+        where: the summary line for the same set fully submerged
+        quote: "[2026-08-11 15:59:34:829 WARN] [Scripting] PROBE water SUMMARY deepctrl id=wp:deepctrl start=3.5000/70.0000/102.5000 end=7.5159/70.0000/102.5000 dx=4.0159 dy=0.0000 dz=0.0000 dxz=4.0159 drifted=YES rose=no note=the mc-rpg-core set, fully submerged (water at head height too)"
+      - run: run-4xy5say4
+        where: the summary line for buoyant at base_buoyancy 1
+        quote: "[2026-08-11 15:59:34:829 WARN] [Scripting] PROBE water SUMMARY buoyant id=wp:buoyant start=3.5000/70.0000/156.5000 end=8.3020/70.0000/156.5000 dx=4.8020 dy=0.0000 dz=0.0000 dxz=4.8020 drifted=YES rose=no note=plus minecraft:buoyant, base_buoyancy 1"
+  - id: f-wyefuxpy
+    title: water_movement drag_factor scales the current's push and reverses it, but no value cancels it
+    claim: |
+      `minecraft:water_movement`'s `drag_factor` is the one component value that reaches a water current's
+      push on an entity, and it acts as a signed scale on that push rather than as resistance to it.
+      Measured on 1.26.43.1 in one current over 400 ticks, from a start 3.5 blocks downstream of the source
+      in a channel closed at x=0: omitting the component and setting `drag_factor` 0 both give 4.95 and
+      4.80 blocks downstream, 1 gives 5.72, and 1000 gives 27.2 — a larger value is pushed further, not
+      held harder. Negative values push upstream: -1 still ends 2.8 blocks downstream, while -1.05 and
+      every value below it drive the entity back against the closed end, 3.0 to 3.2 blocks upstream of its
+      start. The sign flip lands between -1 and -1.05, and even there the entity is being moved, not held:
+      the same -1.5 entity started 6.5 blocks downstream travels 6.17 blocks back, so the displacement
+      tracks where the current puts it rather than settling anywhere.
+    backing: tested
+    sources:
+      - run: run-4xy5say4
+        where: drag_factor 1000, pushed to the far wall
+        quote: "[2026-08-11 15:59:34:829 WARN] [Scripting] PROBE water SUMMARY drag1k id=wp:drag1k start=3.5000/70.0000/24.5000 end=30.7000/70.0000/24.5000 dx=27.2000 dy=0.0000 dz=0.0000 dxz=27.2000 drifted=YES rose=no note=water_movement drag_factor 1000"
+      - run: run-4xy5say4
+        where: drag_factor -1, still carried downstream
+        quote: "[2026-08-11 15:59:34:829 WARN] [Scripting] PROBE water SUMMARY dragneg id=wp:dragneg start=3.5000/70.0000/30.5000 end=6.3000/70.0000/30.5000 dx=2.8000 dy=0.0000 dz=0.0000 dxz=2.8000 drifted=YES rose=no note=water_movement drag_factor -1"
+      - run: run-4xy5say4
+        where: drag_factor -2, driven upstream to the closed end
+        quote: "[2026-08-11 15:59:34:829 WARN] [Scripting] PROBE water SUMMARY dragn2 id=wp:dragn2 start=3.5000/70.0000/36.5000 end=0.3000/70.0000/36.5000 dx=-3.2000 dy=0.0000 dz=0.0000 dxz=3.2000 drifted=YES rose=no note=water_movement drag_factor -2"
+      - run: run-4xy5say4
+        where: drag_factor -1.5 started further downstream, travelling further back
+        quote: "[2026-08-11 15:59:34:829 WARN] [Scripting] PROBE water SUMMARY dragn15far id=wp:dragn15far start=6.5000/70.0000/114.5000 end=0.3315/70.0000/114.5000 dx=-6.1685 dy=0.0000 dz=0.0000 dxz=6.1685 drifted=YES rose=no note=drag_factor -1.5, placed downstream at x 6.5 instead of 3.5"
+  - id: f-qpngcyhr
+    title: physics has_collision false drops an entity through the world
+    claim: |
+      An entity whose `minecraft:physics` sets `has_collision` false and leaves gravity on has no floor
+      under it: on 1.26.43.1 one spawned standing on stone fell 284.6 blocks in the 400 ticks it was
+      watched, to y -214.6, and became invalid partway through as the engine removed it. Turning gravity
+      off alongside collision does not save it either — that entity was still 39 blocks below its spawn
+      when the window closed — and neither does omitting `minecraft:physics` altogether, which fell the
+      same 39 blocks. So `has_collision: false` is not usable as an immobility measure; the entity that
+      does not drift under it has left the world rather than resisted anything.
+    backing: tested
+    sources:
+      - run: run-4xy5say4
+        where: has_collision false with gravity on
+        quote: "[2026-08-11 15:59:34:829 WARN] [Scripting] PROBE water SUMMARY nocoll id=wp:nocoll start=3.5000/70.0000/144.5000 end=3.5000/-214.6295/144.5000 dx=0.0000 dy=-284.6295 dz=0.0000 dxz=0.0000 drifted=no rose=FELL note=physics has_collision false, gravity on"
+      - run: run-4xy5say4
+        where: no minecraft:physics component at all
+        quote: "[2026-08-11 15:59:34:829 WARN] [Scripting] PROBE water SUMMARY nophys id=wp:nophys start=3.5000/70.0000/132.5000 end=3.7800/30.9326/132.5000 dx=0.2800 dy=-39.0674 dz=0.0000 dxz=0.2800 drifted=YES rose=FELL note=no minecraft:physics component"
+  - id: f-06so7ccc
+    title: armor stands and NPCs are carried by a water current; a boat barely moves
+    claim: |
+      No vanilla entity type measured on 1.26.43.1 stands still in a water current, so there is no vanilla
+      recipe to copy. `minecraft:armor_stand` was carried 4.8833 blocks downstream and `minecraft:npc`
+      4.9533, both within 2% of a component-poor custom entity's 4.9533 and of a dropped item's 4.6997 —
+      neither is anchored against flow. `minecraft:boat` is the only type that largely resisted, moving
+      0.6000 blocks downstream and rising 0.19 as it floated; it is a vehicle with its own surface physics
+      and no behaviour definition a pack can borrow. `minecraft:shulker` and `minecraft:villager_v2` move
+      under their own goals, so their numbers measure their AI rather than the current.
+    backing: tested
+    sources:
+      - run: run-4xy5say4
+        where: the armor stand
+        quote: "[2026-08-11 15:59:34:829 WARN] [Scripting] PROBE water SUMMARY v_armorstand id=minecraft:armor_stand start=3.5000/70.0000/198.5000 end=8.3833/70.0000/198.5000 dx=4.8833 dy=0.0000 dz=0.0000 dxz=4.8833 drifted=YES rose=no note="
+      - run: run-4xy5say4
+        where: the npc
+        quote: "[2026-08-11 15:59:34:829 WARN] [Scripting] PROBE water SUMMARY v_npc id=minecraft:npc start=3.5000/70.0000/210.5000 end=8.4533/70.0000/210.5000 dx=4.9533 dy=0.0000 dz=0.0000 dxz=4.9533 drifted=YES rose=no note="
+      - run: run-4xy5say4
+        where: the boat
+        quote: "[2026-08-11 15:59:34:829 WARN] [Scripting] PROBE water SUMMARY v_boat id=minecraft:boat start=3.7000/70.0000/216.7000 end=4.3000/70.1949/216.3000 dx=0.6000 dy=0.1949 dz=-0.4000 dxz=0.7211 drifted=YES rose=YES note="
+      - run: run-4xy5say4
+        where: the dropped-item positive control
+        quote: "[2026-08-11 15:59:34:829 WARN] [Scripting] PROBE water SUMMARY v_item id=minecraft:item start=3.5000/70.0000/228.5000 end=8.1997/70.0000/228.1250 dx=4.6997 dy=0.0000 dz=-0.3750 dxz=4.7147 drifted=YES rose=no note=positive control: a dropped item, no AI of any kind"
+  - id: f-1mbwecmv
+    title: nothing in the pushable, knockback or movement components stops a piston arm pushing an entity
+    claim: |
+      A piston arm extending into a custom entity's block moves it 0.800 blocks on Bedrock 1.26.43.1,
+      and no component that reads as if it should stop that does. Measured one hypothesis per entity
+      against the same stimulus: `minecraft:pushable` with `is_pushable` and `is_pushable_by_piston`
+      both false, the same with only the piston flag false, `minecraft:knockback_resistance` at 1,
+      `minecraft:push_through` at 0, `minecraft:physics` with `has_gravity: false`, and
+      `minecraft:physics` with `push_towards_closest_space: false` each moved exactly as far as an
+      entity carrying only `minecraft:physics` and a collision box — 0.800 blocks. So did the whole
+      mc-rpg-core actor set together (pushable false, knockback resistance 1, movement 0 with
+      `movement.basic` and `navigation.walk`, water_movement drag 0). An AI goal that pins position
+      does not help either: `minecraft:home` with `behavior.go_home` and a working walk speed moved the
+      same 0.800 and did not walk back within six seconds. Neither did any of the eight vanilla
+      entities measured as-is resist — armor stand 0.750, npc 0.800, shulker 1.000, boat 1.000, ender
+      crystal 1.500 — so there is no vanilla entity to copy for this.
+    backing: tested
+    caveat: |
+      What the piston arm does not reach is a separate matter from being pushable by an entity: the
+      run does not measure player shoving, water, or minecarts, and `is_pushable: false` may well
+      govern those. Vanilla mobs with working AI wander during the measurement window, so the pig,
+      zombie and iron golem figures are upper bounds; the still subjects above are not affected.
+    sources:
+      - run: run-40cmv8ds
+        where: RESULTS A — the mc-rpg-core set, against the no-suppressor control on the same stimulus
+        quote: |
+          [2026-08-11 16:03:48:968 WARN] [Scripting] PISTON A current :: before=1.500,1.000,0.500 after3s=2.300,1.000,0.500 after6s=2.300,1.000,0.500 drift_h=0.800 drift_y=0.000 moved=YES stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: the mc-rpg-core actor set
+          [2026-08-11 16:03:48:968 WARN] [Scripting] PISTON A bare :: before=1.500,1.000,4.500 after3s=2.300,1.000,4.500 after6s=2.300,1.000,4.500 drift_h=0.800 drift_y=0.000 moved=YES stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: physics + box only, no pushable component
+      - run: run-40cmv8ds
+        where: RESULTS A — pushable false on its own
+        quote: |
+          [2026-08-11 16:03:48:968 WARN] [Scripting] PISTON A pushable_false :: before=1.500,1.000,8.500 after3s=2.300,1.000,8.500 after6s=2.300,1.000,8.500 drift_h=0.800 drift_y=0.000 moved=YES stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: pushable{is_pushable:false,is_pushable_by_piston:false} alone
+      - run: run-40cmv8ds
+        where: RESULTS A — knockback_resistance 1 on its own
+        quote: |
+          [2026-08-11 16:03:48:968 WARN] [Scripting] PISTON A kbr :: before=1.500,1.000,16.500 after3s=2.300,1.000,16.500 after6s=2.300,1.000,16.500 drift_h=0.800 drift_y=0.000 moved=YES stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: knockback_resistance{value:1} alone
+  - id: f-vcnueu1q
+    title: an entity the world cannot collide with is the only kind a piston arm leaves alone
+    claim: |
+      Taking collision away is what makes a custom entity immune to a piston arm on Bedrock 1.26.43.1,
+      and it is the only thing measured that does. An entity with no `minecraft:physics` component at
+      all, and an entity with `minecraft:physics {has_collision: false, has_gravity: false}`, both read
+      drift 0.000 through an arm extension that pushed every other subject 0.800 — including the
+      mc-rpg-core actor set once those two flags are added to it. Half the treatment is not enough and
+      is not usable on its own: `has_collision: false` with gravity still on falls out of the world,
+      reaching y = -96.521 within five seconds of spawning and going invalid before the piston fires.
+      Shrinking the collision box to 0.01 x 0.01 while keeping physics leaves 0.005 of drift, so the
+      box governs how much of the arm's push lands rather than whether it lands.
+    backing: tested
+    caveat: |
+      Nothing here observes what such an entity is like to stand next to: whether an entity without
+      collision is still solid to a player, still stands on the ground rather than hanging where it was
+      spawned, or still renders and can be interacted with, is not measured by a headless run and is
+      the question to settle before adopting this. Nor does it cover being displaced by a piston that
+      moves the block underneath [[f:f-c1hoepxs]].
+    sources:
+      - run: run-40cmv8ds
+        where: RESULTS A — no minecraft:physics component
+        quote: |
+          [2026-08-11 16:03:48:968 WARN] [Scripting] PISTON A nophysics :: before=1.500,1.000,40.500 after3s=1.500,1.000,40.500 after6s=1.500,1.000,40.500 drift_h=0.000 drift_y=0.000 moved=no stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: no minecraft:physics component at all
+      - run: run-40cmv8ds
+        where: RESULTS A — the mc-rpg-core set with collision and gravity both off
+        quote: |
+          [2026-08-11 16:03:48:969 WARN] [Scripting] PISTON A current_nograv_nocollide :: before=1.500,1.000,60.500 after3s=1.500,1.000,60.500 after6s=1.500,1.000,60.500 drift_h=0.000 drift_y=0.000 moved=no stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: the mc-rpg-core set + physics{has_collision:false,has_gravity:false}
+      - run: run-40cmv8ds
+        where: RESULTS A — collision off with gravity left on
+        quote: |
+          [2026-08-11 16:03:48:968 WARN] [Scripting] PISTON A nocollide :: before=1.500,-96.521,28.500 after3s=gone after6s=gone drift_h=NaN drift_y=NaN moved=? stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: physics{has_collision:false}
+      - run: run-40cmv8ds
+        where: RESULTS A — the shrunken collision box with physics kept
+        quote: |
+          [2026-08-11 16:03:48:968 WARN] [Scripting] PISTON A tinybox :: before=1.500,1.000,48.500 after3s=1.505,1.000,48.500 after6s=1.505,1.000,48.500 drift_h=0.005 drift_y=0.000 moved=no stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: collision_box 0.01 x 0.01, physics on
+  - id: f-c1hoepxs
+    title: a piston moving the block underneath carries every entity, whatever its definition says
+    claim: |
+      An entity standing on a block a piston pushes sideways travels with the block, and no entity
+      definition prevents it. All twenty-seven subjects measured on Bedrock 1.26.43.1 — nineteen
+      component hypotheses and eight vanilla entities — were displaced, and the floor for a custom
+      entity is exactly the block's own travel: the configurations that a piston arm cannot touch at
+      all, no `minecraft:physics` component and `has_collision: false` with `has_gravity: false`, still
+      moved 1.000 blocks, arriving one block along at the same height. Vanilla is no better: an ender
+      crystal moved the same 1.000. The subjects that do collide with the world fared worse, shoved
+      1.800 and dropped a block as the moving stone pushed past them. So on this stimulus the entity's
+      components are not the lever — the block is.
+    backing: tested
+    caveat: |
+      One geometry: a single stone block pushed one block sideways with the subject centred on it and
+      empty space to travel into. It does not separate whether the engine translates the entity with
+      the block or the moving block's own collision carries it, and it does not cover a piston pulling
+      a block out from under an entity, slime and honey blocks, or a stack of pushed blocks.
+    sources:
+      - run: run-40cmv8ds
+        where: RESULTS B — no minecraft:physics component, the configuration a piston arm cannot move
+        quote: |
+          [2026-08-11 16:04:01:974 WARN] [Scripting] PISTON B nophysics :: before=40.500,2.000,40.500 after3s=41.500,2.000,40.500 after6s=41.500,2.000,40.500 drift_h=1.000 drift_y=0.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: no minecraft:physics component at all
+      - run: run-40cmv8ds
+        where: RESULTS B — every suppressing component at once
+        quote: |
+          [2026-08-11 16:04:01:974 WARN] [Scripting] PISTON B kitchen_sink :: before=40.500,2.000,64.500 after3s=41.500,2.000,64.500 after6s=41.500,2.000,64.500 drift_h=1.000 drift_y=0.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: every suppressor at once: no physics, pushable false, kbr 1, push_through 0, tiny box, movement 0
+      - run: run-40cmv8ds
+        where: RESULTS B — a vanilla ender crystal
+        quote: |
+          [2026-08-11 16:04:01:974 WARN] [Scripting] PISTON B vanilla_ender_crystal :: before=40.500,2.000,96.500 after3s=41.500,2.000,96.500 after6s=41.500,2.000,96.500 drift_h=1.000 drift_y=0.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: vanilla, as-is
+      - run: run-40cmv8ds
+        where: RESULTS B — the mc-rpg-core actor set as shipped
+        quote: |
+          [2026-08-11 16:04:01:973 WARN] [Scripting] PISTON B current :: before=40.500,2.000,0.500 after3s=42.300,1.000,0.500 after6s=42.300,1.000,0.500 drift_h=1.800 drift_y=-1.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: the mc-rpg-core actor set
+
+  - id: f-1yo29upp
+    title: a pack's own type family reads back, and a contended identifier resolves to one whole definition
+    claim: |
+      A family token a behavior pack invents is a first-class family at run time. An entity spawned
+      from the pack's own definition reports it from the `minecraft:type_family` component's
+      `getTypeFamilies()` and `hasTypeFamily()`, from `Entity.matches({ families })`, from
+      `Dimension.getEntities({ families })`, and from the `@e[family=]` command selector — and
+      reports no family the definition did not declare.
+
+      Where two behavior packs declare one entity identifier, the winning definition replaces the
+      other outright rather than merging with it: the losing pack's family tokens are absent, and so
+      are components only it declared. Measured on `probe:subject`, declared by both packs with
+      different families, health, movement and one exclusive component each — every reading came
+      from one pack's definition and none from the other's.
+
+      The winner is the earlier of the two in the world's behavior activation list, and it is stable
+      across restarts for a fixed order: three runs with pack A ahead resolved to A, and swapping
+      the two resolved to B.
+
+      Nothing in the reading names a pack. `typeId` is the shared identifier either way, so which
+      definition won is inferable only from content the definitions happen to differ in. A pack can
+      therefore tell that its own definition did not resolve — its family is missing — without being
+      able to tell whose did.
+    backing: tested
+    caveat: |
+      The runs vary activation-list order only, so pack version, `min_engine_version` and subpacks
+      are untested as tie-breakers and could outrank list position. `minecraft:is_baby` and
+      `minecraft:fire_immune` are used as markers whose presence is readable, not for their
+      gameplay effects.
+    sources:
+      - run: run-nnkyz02g
+        where: Observed output — an invented family on a type only one pack declares
+        quote: |
+          [2026-08-12 02:57:32:233 WARN] [Scripting] [probe] order-ab-1/solo :: getTypeFamilies=[probe_token_solo]
+      - run: run-nnkyz02g
+        where: Observed output — the same family through the command selector
+        quote: |
+          [2026-08-12 02:57:32:241 WARN] [Scripting] [probe] order-ab-1 :: cmd testfor @e[family=probe_token_solo] successCount=1
+      - run: run-nnkyz02g
+        where: Observed output — pack A ahead, the contended identifier resolving to A
+        quote: |
+          [2026-08-12 02:57:32:239 WARN] [Scripting] [probe] order-ab-1/subject :: getTypeFamilies=[probe_token_a|probe_shared]
+      - run: run-nnkyz02g
+        where: Observed output — pack A ahead, B's exclusive component absent
+        quote: |
+          [2026-08-12 02:57:32:239 WARN] [Scripting] [probe] order-ab-1/subject :: fire_immune(A only)=true is_baby(B only)=false
+      - run: run-nnkyz02g
+        where: Observed output — the two swapped, the same identifier resolving to B
+        quote: |
+          [2026-08-12 02:57:56:059 WARN] [Scripting] [probe] order-ba-1/subject :: getTypeFamilies=[probe_token_b|probe_shared]
+      - run: run-nnkyz02g
+        where: Observed output — the two swapped, A's exclusive component now absent
+        quote: |
+          [2026-08-12 02:57:56:060 WARN] [Scripting] [probe] order-ba-1/subject :: fire_immune(A only)=false is_baby(B only)=true
+      - run: run-nnkyz02g
+        where: Observed output — pack A ahead again after a restart, resolving to A
+        quote: |
+          [2026-08-12 02:58:10:507 WARN] [Scripting] [probe] order-ab-3/subject :: getTypeFamilies=[probe_token_a|probe_shared]

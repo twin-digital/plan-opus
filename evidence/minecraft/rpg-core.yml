@@ -1,0 +1,132 @@
+version: "2"
+runs:
+  - id: run-roqepx2c
+    command: node evidence/minecraft/rpg-core/cross-pack-probe/probe.mjs
+    output: evidence/minecraft/rpg-core/cross-pack-probe/OUTPUT.txt
+    ran_at: 2026-08-10
+    environment: |
+      An itzg/minecraft-bedrock-server container running Bedrock dedicated server 1.26.43.1, driven
+      by the script beside this entry over a remote Docker daemon. The probe authors its packs, copies
+      them into the server's development_behavior_packs pool, writes each world's behavior activation
+      list, restarts the server, and captures what the packs' own scripts report through console.warn
+      into the server console, which needs content-log-console-output-enabled set. The pool is emptied
+      before each scenario. Each scenario runs against a freshly generated world on the same volume. No
+      Minecraft client is involved, so nothing here observes rendering. Observations are this server
+      version's behaviour and would need re-running against another.
+  - id: run-epfk801h
+    command: node evidence/minecraft/rpg-core/rp-detection-probe/probe.mjs
+    output: evidence/minecraft/rpg-core/rp-detection-probe/OUTPUT.txt
+    ran_at: 2026-08-10
+    environment: |
+      The same containerised Bedrock 1.26.43.1 harness as `cross-pack-probe`, holding one behavior pack
+      constant while varying only the resource-pack side: no resource pack, a resource pack staged and
+      activated, and a resource pack staged but left out of the activation list. Both pack pools are
+      emptied per scenario. The behavior pack reports every server-side signal that might vary with the
+      resource pack — entity bounding boxes and head locations, `getPackSettings`, `getPackStructureIds`,
+      script events, and the result of running `packstack` — through console.warn into the server
+      console, and the probe additionally reads the same commands' printed output through the server's
+      own console, which a script cannot see. No Minecraft client is involved, so anything requiring a
+      player-type selector is out of its reach.
+  - id: run-ledb50ji
+    command: node evidence/minecraft/rpg-core/rp-dependency-probe/probe.mjs
+    output: evidence/minecraft/rpg-core/rp-dependency-probe/OUTPUT.txt
+    ran_at: 2026-08-10
+    environment: |
+      The same containerised Bedrock 1.26.43.1 harness as the other two runs. One behavior pack, declaring
+      a manifest `dependencies` uuid entry for a resource pack, held byte-identical across three worlds
+      while only the resource side varies: the resource pack absent from the pool, staged and listed
+      active, and staged but absent from the resource activation list. Both pack pools are emptied per
+      scenario. The behavior pack reports through console.warn whether its script evaluated, whether its
+      own entity type resolves via `EntityTypes.get`, and the client pack stack count — so no spawn is
+      attempted and no ticking area is needed. No Minecraft client is involved; nothing here observes
+      rendering.
+  - id: run-1ga99sms
+    command: node evidence/minecraft/rpg-core/rp-render-check/setup.mjs up
+    output: evidence/minecraft/rpg-core/rp-render-check/OBSERVATION.md
+    ran_at: 2026-08-10
+    environment: |
+      A joinable Bedrock 1.26.43.1 server on the same containerised harness, flat creative world, resource
+      pack required and confirmed active in the client pack stack. Four actors identical in behaviour stand
+      in a row, differing only in what the resource pack says about their appearance: a complete client
+      entity, none at all, one naming an unresolvable geometry, and one naming an unresolvable texture. The
+      script's own output — that all four spawned, and which packs the world loaded — is captured in the
+      server console. The rendering half is not machine-readable: the owner joined with a real Bedrock
+      client and reported what each actor looked like, and that report is transcribed verbatim in the
+      output file alongside the captured server-side half. A visual observation by one person on one
+      client, not a measurement.
+  - id: run-vswvt7b3
+    command: node evidence/minecraft/rpg-core/duplicate-uuid-probe/probe.mjs
+    output: evidence/minecraft/rpg-core/duplicate-uuid-probe/OUTPUT.txt
+    ran_at: 2026-08-10
+    environment: |
+      The same containerised Bedrock 1.26.43.1 harness. Two behavior packs declaring one shared uuid but
+      distinguishable content — one defines entity `dup:from_a`, the other `dup:from_b` — are placed in the
+      pool together across seven scenarios that vary the versions each copy declares, the version the
+      world's activation list names, whether the list names the uuid twice, and the directory names the
+      copies sit in; a resource-pack pair sharing a uuid is covered too. A separate observer pack with its
+      own uuid reports which entity type resolves, and so which copy won, plus the client pack stack count.
+      Both pools are emptied per scenario and each scenario runs against its own freshly generated world.
+  - id: run-su8j6rdc
+    command: node evidence/minecraft/rpg-core/asset-collision-check/setup.mjs up
+    output: evidence/minecraft/rpg-core/asset-collision-check/OBSERVATION.md
+    ran_at: 2026-08-10
+    environment: |
+      A joinable Bedrock 1.26.43.1 server on the same containerised harness, flat creative world, both
+      resource packs required and active with pack one listed first. Two resource packs declare the same
+      geometry identifier and the same texture path with different content — a tall pillar against a flat
+      slab, solid magenta against solid green — and four actors from one behavior pack use them, two
+      exercising the shared geometry name and two the shared texture path over uniquely named cubes so the
+      two collisions cannot be confounded. The geometries and the textures are generated by the script, so
+      nothing is fetched. Which definition won is only visible on a client: the owner joined with a real
+      Bedrock client and reported what each actor looked like, transcribed verbatim in the output file
+      beside the captured server-side half. A visual observation by one person on one client.
+  - id: run-8xm67ysn
+    command: node evidence/minecraft/rpg-core/published-materials-probe/probe.mjs
+    output: evidence/minecraft/rpg-core/published-materials-probe/OUTPUT.txt
+    ran_at: 2026-08-10
+    environment: |
+      A read of `Mojang/bedrock-samples` through the GitHub API at the pinned tag `v1.21.130.3`, commit
+      84aa19df535fcf6d044f28bf76f236029bd8407a: the published resource pack's top-level listing, a direct
+      request for its `materials` directory, a recursive tree walk counting every path ending `.material`,
+      and the `materials` block of the evoker's own client entity. Pinned rather than read at `main` so the
+      reading is reproducible, since the repository moves. Nothing but the public API is involved.
+  - id: run-4xy5say4
+    command: node evidence/minecraft/rpg-core/water-displacement-probe/probe.mjs
+    output: evidence/minecraft/rpg-core/water-displacement-probe/OUTPUT.txt
+    ran_at: 2026-08-11
+    environment: |
+      The same containerised Bedrock 1.26.43.1 harness as the other probes here, on a freshly generated
+      flat creative world. One behavior pack declares 29 entity variants that differ only in components,
+      and its script builds one 1-wide stone channel per variant, writes a water current into it, spawns
+      that variant standing in the current, and samples every subject's location for 400 ticks, reporting
+      through console.warn. Horizontal drift and vertical change are reported separately. A source block
+      placed alone does not spread with no player in the world, so the current is written out block by
+      block as a source plus a descending `flowing_water` gradient, and a trailing empty channel holds a
+      bare source as the control that shows the difference; the block under each subject is read back
+      before any null result is believed. A component-poor custom entity and a dropped item are the
+      positive controls, and five vanilla types ride along as references. What it cannot see: nothing
+      here involves a client, a player, or a piston, and displacement by anything other than a water
+      current is out of its reach. Component semantics are this version's; the two AI-driven vanilla
+      references (villager, shulker) move under their own goals and vary between runs, while every
+      custom variant's numbers repeated exactly across consecutive runs.
+  - id: run-40cmv8ds
+    command: node evidence/minecraft/rpg-core/piston-displacement-probe/probe.mjs
+    output: evidence/minecraft/rpg-core/piston-displacement-probe/OUTPUT.txt
+    ran_at: 2026-08-11
+    environment: |
+      The same containerised Bedrock 1.26.43.1 harness as the other runs here, on a flat creative world
+      generated fresh on its own volume, with no Minecraft client involved. One behavior pack declares
+      nineteen entity variants, each a different component hypothesis about resisting displacement, and
+      the pack's script gives all nineteen plus eight vanilla entities the same piston stimulus, one
+      subject per lane, in two rounds: a piston arm extending into the block the subject stands in, then
+      a piston pushing the block the subject stands on. Pistons are placed and powered with `setblock`
+      commands the script runs. A calibration round fires one piston per `facing_direction` value in an
+      empty scratch arena first and reports which neighbour the arm reached, so the aim of the
+      measurement lanes is established by the same run rather than assumed; every lane additionally
+      reports the block found where its arm should be, so a piston that never extended cannot be read as
+      a subject that resisted. Positions are the script API's `entity.location`, read once before
+      powering and twice after (3s and 6s), and reported through console.warn, which needs
+      content-log-console-output-enabled. Vanilla mobs with working AI wander during the window, so their
+      drift is an upper bound rather than the piston's contribution alone; the custom variants have no
+      movement goals and do not. Nothing here observes whether a subject that resisted is still solid to
+      a player, which no headless run can see.

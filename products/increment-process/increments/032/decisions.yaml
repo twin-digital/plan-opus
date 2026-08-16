@@ -1,0 +1,203 @@
+version: "2"
+decisions:
+  # the component vocabulary
+  - id: d-rk99dwty
+    title: components are declared in the requirements source
+    statement: |
+      a product's components are declared in a `components:` block of the requirements source,
+      beside `presets:` and `model:` — state-shaped entries that fold by id, ratified with the
+      increment that declares them. `/design-process/requirements@3` carries the block.
+    status: accepted
+    because:
+      - r-s0j3i7oh
+    pinned:
+      reason: data-format
+
+  - id: d-9qbjzflc
+    title: a component is an id, a description, and optionally a parent
+    statement: |
+      a component entry carries a slug id unique within its product, a one-line description, an
+      optional `parent`, and a `status` of active (the default) or retired. It carries nothing
+      else — no package information and no configuration; what realizes a component is the
+      mapping's business.
+    status: accepted
+    because:
+      - d-rk99dwty
+    pinned:
+      reason: data-format
+
+  - id: d-cgr6q2j1
+    title: ancestry is a parent reference, and ids stay flat
+    statement: |
+      components form a tree rooted at the product, ancestry carried by the `parent` reference;
+      ids are flat slugs, never path-shaped, so re-parenting is the redeclaration of one entry
+      and touches no published foundation. A parent that does not resolve, or a cycle, is a
+      validator finding.
+    status: accepted
+    because:
+      - r-5endqgyi
+      - d-9qbjzflc
+    pinned:
+      reason: data-format
+
+  - id: d-cc3nilxq
+    title: a component amends by redeclaration and retires under a guard
+    statement: |
+      a later increment redeclares a component to change its description or parent, and the fold
+      shows current state. Retirement is refused while any in-force foundation is scoped to the
+      component or a live component names it as parent — unless the retiring entry carries
+      `superseded_by` naming another component, through which the scope references in published
+      sources resolve.
+    status: accepted
+    because:
+      - d-9qbjzflc
+      - d-hl3l8df0
+    pinned:
+      reason: data-format
+
+  - id: d-x3ar9r8q
+    title: the component graph is acyclic
+    statement: |
+      a component never appears among its own ancestors: parent references form a tree rooted
+      at the product, and a declaration or redeclaration that would close a cycle is refused at
+      the increment that declares it.
+    status: accepted
+    because:
+      - d-cgr6q2j1
+    pinned:
+      reason: data-format
+
+  - id: d-uw3ilu6d
+    title: re-parenting is reported, not guarded
+    statement: |
+      a redeclaration changing a component's parent is legal whenever the new parent resolves
+      acyclically. The projection reports the in-force claims whose reach the move changes, and
+      the owner rules the redeclaration with that reach in view; a use-keyed guard would freeze
+      the tree the moment anything is scoped beneath it.
+    status: tolerated
+    because:
+      - r-5endqgyi
+      - d-cgr6q2j1
+    pinned: false
+
+  - id: d-5gz40hdo
+    title: a preset declares no components
+    statement: |
+      a requirement-preset product declares no components, and its own requirements carry no
+      scope — either is a validator finding. The preset entry's scope — the applying product's
+      — is the only scoping a preset's requirement gets; its statement's subject names the kind
+      of thing it binds.
+    status: accepted
+    because:
+      - d-ekoz1t47
+    pinned:
+      reason: data-format
+
+  # scoped foundations
+  - id: d-rplsevuk
+    title: scope names a subtree
+    statement: |
+      a foundation scoped to a component applies to that component and everything beneath it; a
+      foundation carrying no scope applies to the whole product. There is no container-only
+      reading — what a scope denotes does not change when children are added beneath it.
+    status: accepted
+    because:
+      - r-s0j3i7oh
+      - r-5endqgyi
+    pinned:
+      reason: data-format
+
+  - id: d-hl3l8df0
+    title: requirements and decisions carry scope
+    statement: |
+      requirement and decision entries take an optional `scope:` — one component id or a list —
+      resolved against the product's component fold; a scope naming no live component is a
+      validator finding. `/design-process/requirement@2` and `/design-process/decision@3` carry
+      the field.
+    status: accepted
+    because:
+      - r-s0j3i7oh
+      - d-rplsevuk
+    pinned:
+      reason: data-format
+
+  - id: d-ue31prqs
+    title: a preset applies at a scope
+    statement: |
+      a preset entry takes an optional `scope:` — one component id or a list — and the
+      requirements the preset brings in apply at that scope, with the ordinary subtree reading;
+      absent scope applies the preset to the whole product. `/design-process/requirements@3`
+      carries the field.
+    status: accepted
+    because:
+      - r-r3bhwqno
+      - d-rplsevuk
+    pinned:
+      reason: data-format
+
+  - id: d-bz5k3yz7
+    title: packages declare the components they realize
+    statement: |
+      a package entry in `product.yaml` takes an optional `component:` — one id or a list —
+      descriptive and implementer-maintained like the rest of the mapping; absent reads as the
+      product root. Coverage resolution maps a claim's scope through the component tree to the
+      packages declaring those components. `/design-process/product@2` carries the field.
+    status: delegated
+    because:
+      - d-rplsevuk
+      - d-hl3l8df0
+    pinned:
+      reason: data-format
+
+  - id: d-ekoz1t47
+    title: a preset entry's scope is the declaring product's
+    statement: |
+      a preset entry's `scope:` names components of the product declaring the entry. Every
+      requirement the preset brings in — its own, and those of presets it names in turn —
+      applies to that scope; a preset brought in twice, at two scopes, applies at both.
+    status: accepted
+    because:
+      - d-ue31prqs
+      - d-rplsevuk
+      - d-5gz40hdo
+    pinned:
+      reason: data-format
+
+  - id: d-2purxfdw
+    title: scope narrows what answers, never what an agent reads
+    statement: |
+      dispatch hands every implementer the whole fold; a claim's scope decides which packages
+      answer for it, through the component mapping, never which foundations an implementer
+      reads. Survey stays whole-fold: a filter computed from a descriptive mapping would hide
+      exactly the gaps survey exists to find.
+    status: delegated
+    because:
+      - d-bz5k3yz7
+    pinned: false
+
+  - id: d-492sxcc9
+    title: a preset conflict is a double declaration, not a double path
+    statement: |
+      the mechanical conflict the merge gate blocks on is identity collision between two
+      declarations of one requirement id — by an applied preset and the product applying it,
+      or by two presets either brings in. A retired declaration does not count: an id with one
+      declaration in force collides with nothing, so a requirement may move from a product into
+      a preset it applies. An id reached by two paths is one declaration seen twice,
+      deduplicated; semantic conflict between differently-numbered requirements stays with
+      review and the question channel.
+    status: accepted
+    supersedes: d-wlkql151
+    pinned: false
+
+  # facets
+  - id: d-hfbf4eb7
+    title: facets are retired
+    statement: |
+      facets are retired: `requirement@2`, `decision@3`, and `product@2` carry no facets field,
+      and the projection filters and groups by scope instead. Published sources keep the field
+      in the dialect they declare.
+    status: accepted
+    supersedes: d-i8rwe1sv
+    because:
+      - d-hl3l8df0
+    pinned: false

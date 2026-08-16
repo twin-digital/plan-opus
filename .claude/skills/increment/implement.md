@@ -17,7 +17,9 @@ below. Both are the same mechanism, both target an increment, and both write the
   you worked, retarget: read its declared delta and carry on.
 - Read the effective design: `npx design-process show <product>`, then every `requirements.yaml`
   and `decisions.yaml` of the product's increments, in full. The fold binds; `drafts/` are raw
-  material, never normative.
+  material, never normative. Sources may carry `commentary` beside a statement: it binds nothing
+  and is never citable — what an implementation builds from is the statements, and the projection
+  at a published increment carries no commentary at all.
 - **Reading the fold includes the contracts the increment's model binds.** The projection prints a
   model entry's name, reference, and description and none of the contract's content, so an
   implementer working from the projection alone cannot see the shape it is bound to. The pools are
@@ -71,6 +73,10 @@ that declares nothing is not published.
 The package set comes from the fold's decisions and the existing `product.yaml`. Dispatch **one
 implementer per package**, and the package's `kind` selects its wave shape.
 
+**Dispatch hands every implementer the whole fold.** A claim's scope decides which packages
+answer for it, resolved through the component mapping — never which foundations an implementer
+reads.
+
 Every code and tree-consumed kind is the one skill `.claude/skills/implement-package`; name it and
 **pass the kind**, which the implementer routes on. A kind that skill has no wave file for is an
 open question for this implementation — raise it rather than guessing a shape.
@@ -121,8 +127,10 @@ companion increment.
 
 - **The dispatch covers every package the draft fold names**: those `product.yaml` holds and those
   the increment's decisions propose.
-- Each package's survey returns one census. **Concatenate the per-package censuses and return the
-  result to Clarify.** Persistence is the Plan phase's, not yours.
+- Survey stays whole-fold: no scope filter narrows what a surveying implementer reads.
+- Each package's survey returns one census — structured YAML, each entry carrying the choice met,
+  where it arises, and the implementer's reading. **Concatenate the per-package censuses and
+  return the result to Clarify.** The census is transient: nothing persists in the tree.
 
 ## 4. Land
 
@@ -137,8 +145,11 @@ reach in to enforce.
 
 The companion lands by SKILL.md's steps. What a companion's landing adds:
 
-1. **It is ratified as a whole** at its own pull request, rather than entry by entry as a plan
-   draft's Ratify loop rules them.
+1. **Put it to the owner as the plan phase puts a draft** — the pull request opened, everything
+   pushed, the url handed over, and the branch left alone while a sitting is open. What stays
+   whole is the companion's gate, not its review: the merge gate reads `proposed` entries and open
+   questions, so an all-`delegated` companion lands without a per-entry ruling while every entry
+   stays reachable in the ratify session.
 2. **Count its overturns** — entries whose `supersedes` names a plan-ruled decision — and state
    the count in the companion increment's pull request description, where the owner rules at
    ratify.

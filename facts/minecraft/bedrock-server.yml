@@ -575,3 +575,20 @@ facts:
       - run: level-seed-range-probe
         where: leading zeros parsed as decimal
         quote: "  world kept RandomSeed: 7"
+  - id: liquid-does-not-spread-with-no-player-connected
+    claim: |
+      On a Bedrock dedicated server with no player connected, a water source placed by `setblock` inside a
+      ticking area does not spread. Measured on 1.26.43.1 in a carved stone channel covered by a ticking
+      area: the source sat alone at its own block for the 260 ticks it was watched, with air in every cell
+      beside it, while entities in the same chunks ticked normally — one fell 284 blocks and mobs walked
+      under their own goals. A headless probe that needs a current therefore has to write the flow out
+      block by block, a source plus a descending `flowing_water` gradient, which does produce the push a
+      spreading source would have.
+    backing: tested
+    sources:
+      - run: run-4xy5say4
+        where: the spread lane, holding a bare source, 260 ticks after it was placed
+        quote: "[2026-08-11 15:59:27:829 WARN] [Scripting] PROBE water spread-row t=260 0:water/0 1:air/unset 2:air/unset 3:air/unset 4:air/unset 5:air/unset"
+      - run: run-4xy5say4
+        where: a measured lane, whose gradient was written out block by block
+        quote: "[2026-08-11 15:59:15:829 WARN] [Scripting] PROBE water lane0-row t=20 0:water/0 1:water/1 2:water/2 3:water/3 4:water/4 5:water/5 6:water/6 7:water/7 8:air/unset 9:air/unset"

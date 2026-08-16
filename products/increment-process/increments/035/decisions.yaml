@@ -1,0 +1,61 @@
+version: "2"
+decisions:
+  - id: d-cy161btt
+    title: findings and reports share one shape
+    statement: |
+      the check's result type gains a severity — finding, the default, or report — and an
+      optional product naming the product concerned. validateTree returns both, the CLI
+      prints both, and only findings set the nonzero exit.
+    status: delegated
+    because:
+      - d-8y5vmff8
+      - d-dxlllx6y
+    pinned: false
+
+  - id: d-i7cdcz6v
+    title: show grows --commentary and --scope, and --facet retires with facets
+    statement: |
+      the projection takes --commentary, refused whenever --at or --at-ref names a published
+      fold, and --scope <component> with subtree semantics; the --facet flag goes with the
+      facets field.
+    status: delegated
+    because:
+      - d-u5q2wh44
+      - d-hfbf4eb7
+      - d-dxlllx6y
+    pinned: false
+
+  - id: d-zd6y6s1i
+    title: id generates the pool kinds
+    statement: |
+      design-process id accepts f and run beside r, d, and q; the taken-id scan covers
+      facts/ and evidence/, so pool ids join the uniqueness regime.
+    status: delegated
+    because:
+      - d-kqofgshc
+      - r-buek5llj
+      - d-dxlllx6y
+    pinned: false
+
+  - id: d-ghg1khvy
+    title: predating a retirement is read off the increment kind
+    statement: |
+      a retired-fact citation from a published increment is the staleness report; one from a
+      draft increment is an ordinary finding — the mechanical form of citers that predate
+      the retirement, needing no base tree.
+    status: delegated
+    because:
+      - d-hxxlgaw9
+      - d-a3agzjct
+    pinned: false
+
+  - id: d-dqwoto9x
+    title: the fact-retirement debt gate reads the backlog through an injected reader
+    statement: |
+      validateTree takes an optional backlog reader; the check command wires it from the
+      backlog store, tolerating offline, and the gate skips when none is available.
+    status: delegated
+    because:
+      - d-hxxlgaw9
+      - d-dxlllx6y
+    pinned: false

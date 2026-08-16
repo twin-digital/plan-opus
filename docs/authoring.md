@@ -1,15 +1,15 @@
 ---
-version: "26"
+version: "36"
 ---
 
 # Authoring
 
-The content-quality tests for foundations: what makes a statement, a verification procedure, a
-decision, a model entry, or a fact good. The process reference states how the process works and
-what the validator enforces; this document states the tests a reviewer applies where the machine
-stops, and none of it is a validator rule. Technique and orchestration stay with the agent
-skills. Each test binds the writer of what it governs: authors self-check against the closing
-checklist, and the post-Clarify review gate's agents load the same checklist as their rubric.
+The content-quality tests for foundations: what makes a statement, a decision, a model entry, a
+term, or a fact good. The process reference states how the process works and what the validator
+enforces; this document states the tests a reviewer applies where the machine stops, and none of
+it is a validator rule. Technique and orchestration stay with the agent skills. Each test binds
+the writer of what it governs: authors self-check against the closing checklist, and the
+post-Clarify review gate's agents load the same checklist as their rubric.
 
 ---
 
@@ -19,11 +19,31 @@ A requirement's statement is one proposition of owner fiat, in product terms —
 true, naming no mechanism and no observation procedure. The test is reversal: would the owner
 overturn a decision to hold it? A statement failing that test is design work and enters the
 increment as a decision that can be argued with; carve-outs, exceptions, and qualified absolutes
-move the same way.
+move the same way. A warning that casually reversing the requirement would be a mistake belongs
+in commentary, not the statement.
 
-`rationale` appears only where casually reversing the requirement would be a mistake the
-statement alone does not warn of. A rationale arguing that the requirement is correct fails
-whatever else it says.
+A statement fits the budget — sixty words, and twenty-five for a `when`, `then`, or `otherwise`
+clause. Write to it rather than squeeze under it: what overflows drains into commentary, which
+is unbudgeted, and a statement that cannot fit is usually carrying more than one proposition.
+
+As guidance for the statement's shape, the EARS templates — a trial, reviewer-applied, and never
+a validator rule; a statement fitting no template is not a finding:
+
+- **Ubiquitous** — `the <thing> <holds/does X>.`
+- **Event-driven** — `when <trigger>, the <thing> <does X>.`
+- **State-driven** — `while <state>, the <thing> <does X>.`
+- **Unwanted behaviour** — `if <undesired condition>, the <thing> <does X>.`
+- **Optional feature** — `where <feature is present>, the <thing> <does X>.`
+
+## Commentary
+
+A foundation's statement is separate from its commentary, and where the two read differently the
+statement wins. Commentary binds nothing, is never citable, and never resolves a question the
+statement leaves open; what an implementer builds from carries none of it, so an obligation
+written into commentary is an obligation lost. What belongs there: the warning against casual
+reversal, the context a future session needs, the overflow the budget drains. The writer's test
+is subtraction — delete the commentary, and the entry must still bind exactly what the owner
+ruled.
 
 ## Scope
 
@@ -40,28 +60,28 @@ requirement reaches the package in front of it, and it is what a coverage note n
 package carries a claim its siblings do not. The test is the sibling: read the statement against the
 product's other packages, and if it is unclear whether it reaches them, the subject is missing.
 
-## Verification
+## Terms
 
-A requirement's verification is present only where its statement is not self-verifying — where
-it carries a term an observer cannot decide directly. The tests:
+A term the design leans on is defined once, owner-ratified — a one-line binding definition —
+and statements then use the word without restating its definition. Coining a term or changing a
+definition's meaning is an input change the owner rules; a change of meaning mints a new term
+and retires the old, since the definition is imported into every statement using it.
 
-- **Grounded.** Every `verify` asserts about something a preceding `do` surfaced. A `verify`
-  whose content words are all the statement's — "verify the library ships ESM only" — is a
-  restatement, the one forbidden shape.
-- **Performable.** Every `do` is performable today against the product's published surfaces,
-  exercising the requirement's intent rather than its form.
-- **Tested now.** A step performable at authoring time is performed at authoring time; what it
-  surfaces lands as facts cited in `because:` rather than speculation the procedure carries.
-- **Judgement is named.** Where only judgement can verify, the final pair names the judge and
-  the moment.
+The validator gates on declarations only; usage in prose is the reviewer's, reported rather
+than blocked. The tests:
 
-Whatever a verification step names, the owner now expects — a fiat requirement cannot rot,
-because the naming is what makes it normative. That gives the reviewer a two-way diagnostic for
-a step that reaches past the published surface into internals: either it found a missing piece
-of the fiat, which is then stated deliberately, or it overbound an implementation detail, which
-is then rewritten against the surface. Where a product's own tooling does not exist yet, its
-contracts do — bound schemas and surfaces, the repository, the gate — and verification is written
-against those.
+- **Restated.** A statement that re-explains a declared term instead of just using it — the
+  definition is the one place the meaning lives.
+- **Drifted.** Prose using a declared term in a sense its definition does not carry: either the
+  prose or the definition is wrong, and the reviewer names which.
+- **Rival.** Two words in force for one thing, or a declared term shadowed by a synonym — one
+  term, one written form.
+
+And the extraction triggers — when an ordinary word should become a declared term:
+
+- a statement's meaning turns on one particular reading of the word;
+- two or more statements each re-explain the same word;
+- review has debated what the word means.
 
 ## Decisions
 
@@ -70,6 +90,10 @@ against those.
   reimplementation is free to re-make them.
 - **The statement names the choice.** The argument belongs to the increment's drafts, the
   consequences to the reader.
+- **Branching is cases.** Where a ruling branches, it is written as ordered `when`/`then` cases
+  with an optional terminal `otherwise` — normative like the statement, the first matching case
+  governing. A list needs at least two cases; one case is a sentence. A requirement carries no
+  branches: a requirement that wants them is carve-outs, which enter as decisions.
 - **`because:` carries only what the decision rests on** — the requirements it follows from,
   the facts that drove it, the decisions it builds on. The test runs both directions: a
   citation on motivation or illustration is a false signal, and an absent citation on a real
@@ -79,9 +103,6 @@ against those.
   consumer would notice the change — and when in doubt, since an over-pin costs one
   ratification while an under-pin is overturned silently. `notes` appears only where why the
   named reason applies is unclear.
-- **`revisit_when` is rare and deliberate** — a condition the owner sets on purpose — and most
-  decisions carry none: the reasoning that considered alternatives discharges into facts and
-  the frozen draft.
 
 ## Model entries
 
@@ -92,6 +113,9 @@ ballast.
 
 ## Facts and evidence
 
+- A fact's title names the finding in one line — the thing measured and what it came out as —
+  and reads on its own, since a citation shows the title beside the id and nothing more. The claim
+  keeps the numbers, the versions, and the conditions the finding holds under.
 - A documented fact cites the upstream original, with a verbatim quote that states the claim
   the fact makes. A repository transcription is not a source, and a genuine quote beside the
   point fails like a paraphrase.
@@ -124,21 +148,17 @@ is judged exactly as what the increment wrote from scratch.
 | # | judges | the test |
 |---|---|---|
 | 1 | statement | Would the owner overturn a decision to hold it — and is it one proposition of owner fiat, free of mechanism, carve-outs, and observation procedure? |
-| 2 | rationale | Present only where casual reversal is a mistake the statement does not warn of, and nowhere arguing the requirement is correct? |
+| 2 | statement — budget | Within sixty words, each case clause within twenty-five — the overflow drained to commentary rather than compressed into ambiguity? |
 | 3 | statement — scope | Does the statement name the thing it binds — the surface, the mode, the phase, the artifact — unless it genuinely binds everything the product does? |
 | 4 | statement — preset subject | Does a requirement written in a preset name the kind of thing it binds, so that reading it against the product's other packages settles whether it reaches them? |
-| 5 | verification — presence | Absent where the statement is self-verifying; present where a term an observer cannot decide directly needs binding? |
-| 6 | verification — grounding | Does every `verify` assert about what a preceding `do` surfaced, with none restating the statement in its own words? |
-| 7 | verification — surface | Is every `do` performable today against published surfaces, exercising the requirement's intent rather than its form? |
-| 8 | verification — internals | Does any step reaching past the published surface either surface a missing piece of the fiat, then stated deliberately, or get rewritten against the surface — contracts standing in where the product's tooling does not exist yet? |
-| 9 | verification — tested now | Was every step performable at authoring time performed, its findings landed as facts cited in `because:`? |
-| 10 | verification — judgement | Where only judgement can verify, does the final pair name the judge and the moment? |
-| 11 | decision — the bar | Could a consumer observe the outcome, or must a reimplementation preserve it? |
-| 12 | decision — statement | Does it name the choice, with the argument left to the increment's drafts? |
-| 13 | decision — because | Does every citation carry a real dependency, and every real dependency a citation? |
-| 14 | decision — pinning | Proposed pinned where a public surface, a data format, a dependent product, or a consumer-visible behaviour is fixed — and `notes` only where the named reason's application is unclear? |
-| 15 | decision — revisit_when | Rare, deliberate, a condition the owner set on purpose — or absent? |
-| 16 | model | Entities named in the design's words, described for this design, each referenced by the prose? |
-| 17 | facts | Upstream originals with claim-carrying verbatim quotes, re-runnable runs, the pool searched first, filed by subject, wrong ones superseded? |
-| 18 | draft | Every claim citing a foundation or extracted — no shadow decisions frozen in? |
-| 19 | backlog adoption | Does everything the adopting increment records meet the ordinary bar, the captured item read as raw material rather than moved text — and is the captured item itself left unjudged by these tests? |
+| 5 | commentary | Deleted, would the entry still bind exactly what the owner ruled — nothing the product must do or preserve, no answer to a question the statement leaves open? |
+| 6 | terms | Every leaned-on word declared once and then just used — no restated definitions, no drifted usage, no rival vocabulary, and the extraction triggers checked? |
+| 7 | decision — the bar | Could a consumer observe the outcome, or must a reimplementation preserve it? |
+| 8 | decision — statement | Does it name the choice, with the argument left to the increment's drafts? |
+| 9 | decision — cases | Is every branch a `when`/`then` case, at least two where cases appear at all, the single case written as a sentence — and does no requirement carry branches? |
+| 10 | decision — because | Does every citation carry a real dependency, and every real dependency a citation? |
+| 11 | decision — pinning | Proposed pinned where a public surface, a data format, a dependent product, or a consumer-visible behaviour is fixed — and `notes` only where the named reason's application is unclear? |
+| 12 | model | Entities named in the design's words, described for this design, each referenced by the prose? |
+| 13 | facts | A one-line title naming the finding, upstream originals with claim-carrying verbatim quotes, re-runnable runs, the pool searched first, filed by subject, wrong ones superseded? |
+| 14 | draft | Every claim citing a foundation or extracted — no shadow decisions frozen in? |
+| 15 | backlog adoption | Does everything the adopting increment records meet the ordinary bar, the captured item read as raw material rather than moved text — and is the captured item itself left unjudged by these tests? |

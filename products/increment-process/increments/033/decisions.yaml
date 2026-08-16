@@ -1,0 +1,243 @@
+version: "2"
+decisions:
+  # the statement/commentary split
+  - id: d-oqiw2ggm
+    title: entries carry commentary beside the statement
+    statement: |
+      requirement and decision entries take an optional `commentary` field: prose that binds
+      nothing, is never citable, and never resolves a question the statement leaves open. The
+      field is named `commentary` because `notes` already means two other things in this product
+      — a pin's notes and the owner's session notes. `/design-process/requirement@2` and
+      `/design-process/decision@3` carry the field.
+    status: accepted
+    because:
+      - r-m8cwwkt3
+    pinned:
+      reason: data-format
+
+  - id: d-u5q2wh44
+    title: commentary is excluded from the fold's readers by default
+    statement: |
+      the projection omits commentary unless asked for it, and at a published increment refuses
+      the ask — that projection is what implementers build from. Commentary lives in the
+      sources and is shown to the owner at ratify. An entry whose statement needs its
+      commentary to be built correctly is an authoring defect, and this exclusion is what
+      surfaces it.
+    status: accepted
+    because:
+      - r-q0969r5a
+      - d-oqiw2ggm
+    pinned:
+      reason: public-api
+      notes: what the fold hands an implementer is the contract every implementation reads
+
+  - id: d-kjeqksd8
+    title: the statement budget is sixty words, a case clause twenty-five
+    statement: |
+      in the dialects that carry `commentary`, a statement over sixty words is a validator
+      finding, and a `when`, `then`, or `otherwise` clause over twenty-five. Commentary is
+      unbudgeted — it is the drain. Published sources in earlier dialects are not read against
+      the budget.
+    status: delegated
+    because:
+      - r-0ls6xch4
+      - d-oqiw2ggm
+    pinned: false
+
+  # structured branching
+  - id: d-qv81x173
+    title: a decision enumerates its branches as cases
+    statement: |
+      a decision entry takes an optional `cases:` list — ordered `when`/`then` pairs with an
+      optional terminal `otherwise` — normative like the statement, the first matching case
+      governing. A list needs at least two cases; one case is a sentence. Requirements carry
+      none: a requirement with branches is carve-outs, which authoring already routes to
+      decisions. `/design-process/decision@3` carries the field.
+    status: accepted
+    because:
+      - r-0ls6xch4
+      - d-kjeqksd8
+    pinned:
+      reason: data-format
+
+  - id: d-msopc76y
+    title: rationale is retired
+    statement: |
+      a requirement's statement is one proposition of owner fiat, in product terms, naming no
+      mechanism and no observation procedure — the test is reversal: would the owner overturn a
+      decision to hold it? A statement failing it enters as a decision; carve-outs and
+      qualified absolutes move the same way. `rationale` is retired — a reversal warning is
+      commentary's job — and `/design-process/requirement@2` carries no such field.
+    status: accepted
+    supersedes: d-t6dutbjw
+    because:
+      - d-oqiw2ggm
+    pinned:
+      reason: data-format
+
+  - id: d-dbl5f6zb
+    title: conformance-case authoring is deferred to the owner
+    statement: |
+      how a conformance case comes into existence — who writes it, how the owner vets it, where
+      it files — is deferred to the owner, to rule when the first case is needed. Until then
+      implementers cite existing cases and otherwise attest.
+    status: deferred
+    because:
+      - d-8o8o8qo1
+    pinned: false
+
+  - id: d-isj45jqi
+    title: the census is transient
+    statement: |
+      a survey returns one census per package — entries each carrying the choice met, where it
+      arises, and the implementer's reading, as structured YAML the dispatcher concatenates for
+      Clarify. Once Clarify classifies every choice and the resulting foundations land in the
+      draft, the census is discarded: nothing persists in the tree, where unreviewed readings
+      would accrete as shadow requirements.
+    status: accepted
+    supersedes: d-blant5zn
+    because:
+      - d-uupj1stg
+    pinned: false
+
+  - id: d-8v3vev9u
+    title: every working list is transient
+    statement: |
+      the list a wave builds to drive its own composition — the document kind's claim list, the
+      code kind's test plan, a survey's census — is an input to the work, not a deliverable: it
+      is kept outside the tree and discarded when the phase ends.
+    status: accepted
+    supersedes: d-euwmthl9
+    because:
+      - d-isj45jqi
+    pinned: false
+
+  # verification retirement
+  - id: d-8o8o8qo1
+    title: requirements carry no verification procedure
+    statement: |
+      requirement entries in `/design-process/requirement@2` carry no `verification`; coverage
+      evidence demonstrates the statement read literally. Where how a claim is checked is the
+      owner's business, a conformance case carries it — owner-vetted, tied to the claim, filed
+      with the implementation that covers it.
+    status: accepted
+    supersedes: d-bj3se96r
+    because:
+      - r-0ls6xch4
+    pinned:
+      reason: data-format
+
+  # the terms glossary
+  - id: d-amueiyj2
+    title: terms are declared in the requirements source
+    statement: |
+      a product's terms are declared in a `terms:` block of the requirements source, beside
+      `components:`, `presets:`, and `model:` — state-shaped entries folding by id, ratified
+      with the increment that declares them; a definition is binding and one line.
+      `/design-process/requirements@3` carries the block.
+    status: accepted
+    because:
+      - r-uc90eb7v
+    pinned:
+      reason: data-format
+
+  - id: d-0435v8sr
+    title: a term is a slug, a definition, a display form, and a scope
+    statement: |
+      a term entry carries a slug id, a one-line binding definition, an optional `display` for
+      a natural written form the slug cannot carry — capitalization or punctuation — an
+      optional component scope, and a status of active or retired. There is no aliases field:
+      one term, one written form.
+    status: accepted
+    because:
+      - d-amueiyj2
+    pinned:
+      reason: data-format
+
+  - id: d-bgoclt56
+    title: the name is the identity, and prose resolves by normalization
+    statement: |
+      a term's slug is its identity — no opaque id — and statements use the natural form,
+      resolved by normalization: case-insensitive, hyphen and space interchangeable, `display`
+      matched where declared. Slugs are unique across the product's closure, and a collision
+      with an adopted term is a validator finding.
+    status: accepted
+    because:
+      - r-uc90eb7v
+      - d-amueiyj2
+    pinned:
+      reason: data-format
+
+  - id: d-2t3fbn09
+    title: clarify in place; a meaning change is a new term
+    statement: |
+      a later increment redeclares a term to tighten its wording; a change of meaning mints a
+      new term and retires the old with `superseded_by`, since a definition is imported into
+      the meaning of every statement using it. Retirement is refused while an in-force
+      foundation uses the term, unless `superseded_by` resolves it.
+    status: accepted
+    because:
+      - d-0435v8sr
+    pinned:
+      reason: data-format
+
+  - id: d-x9x3fxp4
+    title: terms travel with the preset and resolve at the declaring scope
+    statement: |
+      a preset's requirements use only terms it declares or brings in, and a brought-in
+      requirement's terms resolve against the declaring product's fold, never the applying
+      product's. Sharing is opt-in: two products may define one word locally and diverge, as
+      applied presets may drift.
+    status: delegated
+    because:
+      - r-uc90eb7v
+      - d-amueiyj2
+    pinned:
+      reason: data-format
+
+  - id: d-lb99q03v
+    title: declaration checks gate; usage checks report
+    statement: |
+      the validator gates on declarations — slug collisions in the closure, an unresolved
+      `superseded_by`, a retirement without reason. Usage detection in unmarked prose is
+      heuristic and reports instead: a redefinition's reach, a retirement's apparent users,
+      orphan terms. The reviewer-applied tests and the extraction triggers land in the
+      authoring guidance. The term-retirement guard is the one usage-fed gate: it reads the
+      same matcher, and over-blocking resolves by `superseded_by` or a prose edit, both local
+      to the product.
+    status: delegated
+    because:
+      - d-bgoclt56
+      - d-2t3fbn09
+    pinned: false
+
+  - id: d-lks6pry8
+    title: revisit_when is retired
+    statement: |
+      the agent proposing a decision proposes whether it is pinned, and the owner rules on both
+      together — pinned when it fixes a public surface or a data format, when another product
+      depends on it, or when a consumer would notice the change; when in doubt, propose pinned,
+      with `notes` only where the named reason's application is unclear. `revisit_when` is
+      retired: `/design-process/decision@3` carries no such field.
+    status: accepted
+    supersedes: d-m8217jow
+    pinned:
+      reason: data-format
+
+  # statement form
+  - id: d-pxlmdkz1
+    title: the authoring guidance offers the EARS templates
+    statement: |
+      the authoring document offers the EARS sentence templates as guidance for requirement
+      statements — a trial, reviewer-applied and never a validator rule; a statement fitting no
+      template is not a finding.
+    status: accepted
+    because:
+      - r-0ls6xch4
+    pinned: false
+
+retires:
+  - id: d-pgq1xwf5
+    reason: verification is retired; the field these content tests govern is gone from the current dialect
+  - id: d-iufcotad
+    reason: verification is retired; the field whose naming this binds is gone from the current dialect

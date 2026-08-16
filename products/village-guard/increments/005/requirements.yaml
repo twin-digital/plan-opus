@@ -1,0 +1,16 @@
+version: "1"
+
+requirements:
+  # coverage
+  - id: r-3otdixl2
+    title: the whole village is protected
+    statement: |
+      every villager, wandering trader, trader llama, and iron golem in the world is protected — in
+      every dimension, those present when the pack starts and those that arrive afterwards alike —
+      with no opt-in, no exclusion, and no in-game configuration.
+    verification:
+      - do: install the pack on a world already holding a villager, a wandering trader, a trader llama, and an iron golem, then after it starts spawn one more of each, placing mobs in more than one dimension
+      - do: subject each mob to a harm the pack stops
+      - verify: every one survives — present-at-start and later-arriving alike, in every dimension tried
+      - verify: no opt-in step was performed, and the pack offers no exclusion or in-game configuration
+    amends: r-1nxm8bg4

@@ -2633,3 +2633,642 @@ facts:
           cancelled just stood there". Flinch and sound reach no server log, so no run captures
           them and the owner's report is the evidence.
 
+
+  # Facts from the village-guard gap probe (Bedrock 1.26.40.8, @minecraft/server 2.8.0), recorded in
+  # evidence/minecraft/script-api/gap-probe/RESULTS.md. Headless: the pack reports through
+  # console.warn and the driver reads the container log, so no client attaches. The probe pack
+  # transcribes the shipped pack's own handler, so these read on what village-guard actually does.
+
+  - id: a-clamped-hit-reaching-the-minimum-kills-and-converts
+    claim: |
+      A hit written down in the before-event still kills when the mob's health is at or below what
+      the write leaves, and the death is vanilla's whole death rather than an event: a zombie
+      converts the villager. A villager set to 0.5 health under a 0.5 clamp died on the first hit in
+      3/3 penned runs, each ending with zero villagers and two zombie villagers — the same verdict
+      an unguarded control at the same health reached. A restore in the after-handler does not undo
+      it: the restore ran, and the villager was already gone.
+
+      The boundary is the clamp's own value. At 0.5 health under a 0.5 clamp the death fires; at 1
+      health under the same clamp it does not; at 0.5 and at 0.25 health under a *zero* clamp it does
+      not, and the subject survived 129, 137 and 133 hits across three runs at full health. So a
+      clamp that leaves the mob any health at all is survivable and one that can reach the effective
+      minimum is not, which makes the fatal case reachable for any mob sitting at or below the
+      constant when the pack first sees a hit on it.
+    backing: tested
+    sources:
+      - run: gap-probe-run
+        where: "`sub-clamp` — 0.5 health under a 0.5 clamp, the death the restore hides"
+        quote: "[2026-08-07 01:26:34:371 WARN] [Scripting] [vggap] sub-clamp :: [at-0.5/clamp-0.5] effectiveMin=number:0 health(number:0.5 -> number:20) applyDamage=ok value=boolean:true died=1 subject-alive=true before=[entityAttack@4->clamp] after=[entityAttack@0.5->clamp] verdict=DIED"
+      - run: gap-probe-run
+        where: "`sub-clamp` — the same subject under a zero clamp"
+        quote: "[2026-08-07 01:26:38:370 WARN] [Scripting] [vggap] sub-clamp :: [at-0.5/clamp-0] effectiveMin=number:0 health(number:0.5 -> number:20) applyDamage=ok value=boolean:true died=0 subject-alive=true before=[entityAttack@4->clamp] after=[entityAttack@0->clamp] verdict=SURVIVED"
+      - run: gap-probe-conversion
+        where: "`clamp-death-conversion` — the 0.5 clamp, penned against zombies"
+        quote: "[2026-08-07 01:59:20:780 WARN] [Scripting] [vggap] clamp-death-conversion :: [at-0.5/clamp-0.5] health(number:0.5 -> undefined) hits=1 restores=1 died=1 subject-alive=false villagers-now=0 zombie-villagers-now=2 verdict=CONVERTED"
+
+  - id: a-hit-written-down-to-zero-still-knocks-back
+    claim: |
+      Writing `entityHurt.damage` to zero takes no health and leaves the engine's knockback intact,
+      so a zero write is a clamp rather than a quiet cancel. Measured as the peak speed in the six
+      ticks after a zombie's swing against the resting speed in the four before it, over nine blocks
+      of four lanes: a vanilla control peaked 0.578–0.693, a hit written down to 0.5 peaked
+      0.521–0.687, a hit written down to 0 peaked 0.533–0.700, and a cancelled hit peaked
+      0.194–0.274. The zero lane sits inside the vanilla band and roughly three times above the
+      cancelled one, and lost 0 health in 9/9 blocks.
+
+      This extends [[f:a-clamped-hit-knocks-back-and-a-cancelled-one-does-not]], which measured the
+      same separation for a 0.5 write, to the bottom of the range.
+    caveat: |
+      Nothing here says anything about how often a hit lands. Hit counts ranged from 0 to 69 across
+      the nine blocks with no pattern by lane, so whether a zero write changes the invulnerability
+      window between hits is unmeasured. Flinch and the hurt sound are rendered on the client and
+      reach no server log, so neither is observed here.
+    backing: tested
+    sources:
+      - run: gap-probe-run
+        where: "`zero-clamp` — the vanilla control"
+        quote: "[2026-08-07 00:54:41:191 WARN] [Scripting] [vggap] zero-clamp :: [control] before-events=7 after-events=7 health(number:20 -> undefined) health-lost=undefined subject-alive=false samples=122 peak-speed-overall=0.654 per-hit=[entityAttack@3:rest=0.192->peak=0.654, entityAttack@3:rest=0.162->peak=0.519, entityAttack@3:rest=0.223->peak=0.58, entityAttack@3:rest=0.32->peak=0.542, entityAttack@3:rest=0.186->peak=0.579, entityAttack@3:rest=0.33->peak=0.579, entityAttack@3:rest=0.19->peak=0.192] delivered=[entityAttack@3, entityAttack@3, entityAttack@3, entityAttack@3, entityAttack@3, entityAttack@3, entityAttack@3] verdict=SEE-NUMBERS"
+      - run: gap-probe-run
+        where: "`zero-clamp` — the zero lane, in the same run"
+        quote: "[2026-08-07 00:55:22:991 WARN] [Scripting] [vggap] zero-clamp :: [clamp0] before-events=69 after-events=19 health(number:20 -> number:20) health-lost=number:0 subject-alive=true samples=400 peak-speed-overall=0.651 per-hit=[entityAttack@3:rest=0.073->peak=0.624, entityAttack@3:rest=0.624->peak=0.425, entityAttack@3:rest=0.188->peak=0.605, entityAttack@3:rest=0.605->peak=0.327, entityAttack@3:rest=0.284->peak=0.651, entityAttack@3:rest=0.651->peak=0.348, entityAttack@3:rest=0.16->peak=0.548, entityAttack@3:rest=0.548->peak=0.373] delivered=[entityAttack@3, entityAttack@3, entityAttack@3, entityAttack@3, entityAttack@3, entityAttack@3, entityAttack@3, entityAttack@3] verdict=SEE-NUMBERS"
+      - run: gap-probe-run
+        where: "`zero-clamp` — the cancelled lane, in the same run"
+        quote: "[2026-08-07 00:55:43:891 WARN] [Scripting] [vggap] zero-clamp :: [cancel] before-events=33 after-events=0 health(number:20 -> number:20) health-lost=number:0 subject-alive=true samples=400 peak-speed-overall=0.269 per-hit=[entityAttack@3:rest=0.108->peak=0.096, entityAttack@3:rest=0.108->peak=0.096, entityAttack@3:rest=0.056->peak=0.2, entityAttack@3:rest=0.1->peak=0.231, entityAttack@3:rest=0.14->peak=0.231, entityAttack@3:rest=0.01->peak=0.123, entityAttack@3:rest=0->peak=0, entityAttack@3:rest=0.102->peak=0.008] delivered=[entityAttack@3, entityAttack@3, entityAttack@3, entityAttack@3, entityAttack@3, entityAttack@3, entityAttack@3, entityAttack@3] verdict=SEE-NUMBERS"
+
+  - id: drowning-and-suffocation-raise-the-before-event
+    claim: |
+      `world.beforeEvents.entityHurt` is raised for drowning and for suffocation, each carrying its
+      own `damageSource.cause` — `drowning` and `suffocation` — at 2 damage a tick-group. Both were
+      driven on a villager held in a sealed one-block stone shaft, flooded and capped for the first
+      and with its head block made solid for the second.
+
+      This closes the two routes r-pe87rfqq names that
+      [[f:entity-hurt-before-event-sees-engine-dealt-damage]] left open: its caveat records
+      suffocation as dealing no health in any run, and drowning was never attempted. Both readings
+      were the rig — a villager walks out of an open arena before either route reaches it.
+    backing: tested
+    sources:
+      - run: gap-probe-run
+        where: "`water-and-walls` — drowning, observed without a write"
+        quote: "[2026-08-07 01:27:16:620 WARN] [Scripting] [vggap] water-and-walls :: [drowning/observe] cell-block=string:minecraft:water recentred=0 health(number:20 -> undefined) health-lost=undefined died=1 subject-alive=false before-events=10 after-events=10 delivered=[drowning@2, drowning@2, drowning@2, drowning@2, drowning@2, drowning@2, drowning@2, drowning@2, drowning@2, drowning@2] verdict=BEFORE-EVENT-RAISED"
+      - run: gap-probe-run
+        where: "`water-and-walls` — suffocation, observed without a write"
+        quote: "[2026-08-07 01:28:02:015 WARN] [Scripting] [vggap] water-and-walls :: [suffocation/observe] cell-block=string:minecraft:stone recentred=0 health(number:18 -> undefined) health-lost=undefined died=1 subject-alive=false before-events=10 after-events=10 delivered=[suffocation@2, suffocation@2, suffocation@2, suffocation@2, suffocation@2, suffocation@2, suffocation@2, suffocation@2, suffocation@2, suffocation@2] verdict=BEFORE-EVENT-RAISED"
+
+  - id: a-health-write-and-a-remove-raise-no-hurt-event
+    claim: |
+      Two removal routes reach no `entityHurt` handler at all. Writing a health component's
+      currentValue to the effective minimum fires `entityDie` with no `entityHurt` before or after
+      it, and `Entity.remove()` fires neither: both left the subject gone with an `entityHurt`
+      subscriber installed and nothing delivered to it. `kill()`, the `/kill` command and an
+      `applyDamage` under cause `override` do raise the before-event — as `selfDestruct@20`,
+      `selfDestruct@20` and `override@100` — so those three are visible to a handler and the first
+      two are indistinguishable from each other there.
+    backing: tested
+    sources:
+      - run: gap-probe-run
+        where: "`operator-removal` — remove(), raising nothing"
+        quote: "[2026-08-07 01:01:31:249 WARN] [Scripting] [vggap] operator-removal :: [remove()] call=ok value=undefined health(number:20 -> undefined) subject-alive=false before=[] after=[] verdict=REMOVED"
+      - run: gap-probe-run
+        where: "`operator-removal` — a health write to the minimum, raising no hurt event"
+        quote: "[2026-08-07 01:01:33:649 WARN] [Scripting] [vggap] operator-removal :: [health-write-to-min] call=ok value=boolean:true health(number:20 -> undefined) subject-alive=false before=[] after=[] verdict=REMOVED"
+      - run: gap-probe-run
+        where: "`operator-removal` — kill() reaching the before-event as selfDestruct"
+        quote: "[2026-08-07 01:01:21:648 WARN] [Scripting] [vggap] operator-removal :: [kill()] call=ok value=boolean:true health(number:20 -> undefined) subject-alive=false before=[selfDestruct@20->pass] after=[selfDestruct@20->pass] verdict=REMOVED"
+
+  - id: a-clamp-and-restore-holds-under-per-tick-damage
+    claim: |
+      A before-handler clamp paired with a `resetToMaxValue()` in the matching after-handler keeps a
+      mob at full health under damage arriving every tick, and the restore call itself is legal from
+      an after-event handler. A villager held in a flooded shaft took 511 delivered before-events in
+      the window and one held inside a solid block took 715; both ended alive at full health with no
+      death fired and nothing thrown, under a 0.5 clamp and a zero clamp alike. Three runs, each on
+      its own volume, are byte-identical.
+
+      Only about a tenth of the delivered before-events are matched by an after-event — 51 restores
+      against 511 and 715 hits — and the health still holds, so the restore does not have to answer
+      every delivery to keep the mob at full.
+    caveat: |
+      This says the clamp-and-restore pair holds, not that a mob survives. A mob already at or below
+      the clamp dies to the first hit whatever the restore does, which
+      [[f:a-clamped-hit-reaching-the-minimum-kills-and-converts]] records.
+    backing: tested
+    sources:
+      - run: gap-probe-hazard
+        where: "`shipped-pack-hazard` — drowning under a zero clamp"
+        quote: "[2026-08-07 02:09:45:045 WARN] [Scripting] [vggap] shipped-pack-hazard :: [clamp-0/drowning] teleport=true placed-at=(169.5,100,176.5) hits-seen=511 restores=51 health(number:20 -> number:20) lowest-sampled=number:20 died=0 subject-alive=true threw=0 first-hits=[drowning@2->clamp, drowning@2->clamp, drowning@2->clamp] verdict=SURVIVED-THE-HAZARD"
+      - run: gap-probe-hazard
+        where: "`shipped-pack-hazard` — suffocation under a 0.5 clamp"
+        quote: "[2026-08-07 02:09:02:845 WARN] [Scripting] [vggap] shipped-pack-hazard :: [clamp-0.5/suffocation] teleport=true placed-at=(169.5,100,176.5) hits-seen=715 restores=51 health(number:20 -> number:20) lowest-sampled=number:20 died=0 subject-alive=true threw=0 first-hits=[suffocation@2->clamp, suffocation@1.5->clamp, suffocation@1.5->clamp] verdict=SURVIVED-THE-HAZARD"
+
+  # Facts from the village-guard golem probe (Bedrock 1.26.40.8, @minecraft/server 2.8.0), recorded
+  # in evidence/minecraft/script-api/golem-probe/RESULTS.md. An iron golem carries no anger
+  # component: retaliation is `minecraft:behavior.hurt_by_target`, gated by a family filter.
+
+  - id: cancelling-a-hit-does-not-stop-an-iron-golems-retaliation
+    claim: |
+      An iron golem targets whoever swung at it whether or not the hit was cancelled. A
+      player-family attacker landed 23 hits on a golem whose `entityHurt` event the handler
+      cancelled: the golem ended the window at full health, so the cancel took, and it struck back
+      24 times, first at tick 35. The engine reads the attempt rather than the damage.
+    caveat: |
+      The attacker is a probe entity carrying the named `type_family`, not a client-driven player.
+      What this shows is what the engine does with a hit whose source carries that family; nothing
+      here shows a real player's swing takes the same path.
+    backing: tested
+    sources:
+      - run: golem-probe-aggro
+        where: "`aggro` — a player-family attacker whose hit is cancelled"
+        quote: "[2026-08-07 15:12:23:462 WARN] [Scripting] [vggolem] aggro :: [player/cancel] attacker=vgprobe:swinger_player treat=cancel from_player=null hits-on-golem=23 golem-health=number:100 golem-alive=true attacker-health=number:55 attacker-alive=true closest=0.137 strikes-by-golem=24 first-strike-tick=35 triggers=[] first-hits-on-golem=[entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player] first-strikes=[vgprobe:swinger_player@14, vgprobe:swinger_player@17, vgprobe:swinger_player@18, vgprobe:swinger_player@15] verdict=GOLEM-RETALIATED"
+
+  - id: an-iron-golems-retaliation-is-gated-by-its-family-filter
+    claim: |
+      Whether an iron golem retaliates turns on the attacker's `type_family`, not on the damage
+      taken. Vanilla `iron_golem.json` gates `minecraft:behavior.hurt_by_target` on
+      `entity_types: is_family != creeper`, and the engine honours it: a creeper-family attacker
+      landed 13 uncancelled hits, taking the golem from 100 health to 61, and drew 0 strikes — while
+      a player-family attacker drew 24 with no damage dealt at all.
+    caveat: |
+      The attacker is a probe entity carrying the named `type_family`, not a client-driven player.
+      What this shows is what the engine does with a hit whose source carries that family; nothing
+      here shows a real player's swing takes the same path.
+    backing: tested
+    sources:
+      - run: golem-probe-aggro
+        where: "`aggro` — a creeper-family attacker dealing real damage"
+        quote: "[2026-08-07 15:13:15:662 WARN] [Scripting] [vggolem] aggro :: [creeper/none] attacker=vgprobe:swinger_creeper treat=none from_player=null hits-on-golem=13 golem-health=number:61 golem-alive=true attacker-health=number:400 attacker-alive=true closest=0.037 strikes-by-golem=0 first-strike-tick=-1 triggers=[] first-hits-on-golem=[entityAttack@3<-vgprobe:swinger_creeper, entityAttack@3<-vgprobe:swinger_creeper, entityAttack@3<-vgprobe:swinger_creeper, entityAttack@3<-vgprobe:swinger_creeper] first-strikes=[] verdict=GOLEM-DID-NOT-RETALIATE"
+
+  - id: trigger-event-throws-in-a-before-event-handler
+    claim: |
+      `Entity.triggerEvent` cannot be called from a `beforeEvents` handler: it throws
+      `ReferenceError: Native function [Entity::triggerEvent] cannot be used in restricted
+      execution.` The before-event callback runs with restricted-execution privilege, so an entity
+      event is not a lever available while a hit is being decided.
+    backing: tested
+    sources:
+      - run: golem-probe-fromplayer
+        where: "`fromplayer` — triggering the event from inside the before-event handler"
+        quote: "[2026-08-07 15:16:49:335 WARN] [Scripting] [vggolem] from-player :: [in-handler/player/cancel] attacker=vgprobe:swinger_player treat=cancel from_player=string:first-hit:threw ReferenceError: Native function [Entity::triggerEvent] cannot be used in restricted execution. hits-on-golem=23 golem-health=number:100 golem-alive=true attacker-health=number:81 attacker-alive=true closest=0.083 strikes-by-golem=23 first-strike-tick=40 triggers=[] first-hits-on-golem=[entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player] first-strikes=[vgprobe:swinger_player@21, vgprobe:swinger_player@11, vgprobe:swinger_player@12, vgprobe:swinger_player@20] verdict=GOLEM-RETALIATED"
+
+  - id: from-player-prevents-an-iron-golems-target-but-does-not-clear-one
+    claim: |
+      Sending an iron golem `minecraft:from_player` before it is hit prevents the retaliation
+      entirely — 25 hits from a player-family attacker drew 0 strikes. Sending the same event to a
+      golem that has already taken a hit does not calm it: the strike cadence is a flat 20 ticks and
+      runs straight through the moment the event is applied, 28 strikes in the window with 5 of them
+      before the apply.
+
+      So the event swaps the behaviour's filter for one that excludes the player family; it does not
+      touch a target already chosen. Deferring it a single tick from the first hit is therefore a
+      race, and it loses: three runs of that one shape gave 29 strikes, 0 strikes and 23 strikes.
+    caveat: |
+      The attacker is a probe entity carrying the named `type_family`, not a client-driven player.
+      What this shows is what the engine does with a hit whose source carries that family; nothing
+      here shows a real player's swing takes the same path.
+    backing: tested
+    sources:
+      - run: golem-probe-timing
+        where: "`timing` — the event sent at spawn, ahead of every hit"
+        quote: "[2026-08-07 15:22:02:278 WARN] [Scripting] [vggolem] timing :: [spawn] attacker=vgprobe:swinger_player treat=cancel from_player=string:spawn:ok hits-on-golem=25 golem-health=number:100 golem-alive=true attacker-health=number:400 attacker-alive=true closest=0.01 strikes-by-golem=0 first-strike-tick=-1 strike-ticks=[] triggers=[minecraft:from_player] first-hits-on-golem=[entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player] first-strikes=[] verdict=GOLEM-DID-NOT-RETALIATE"
+      - run: golem-probe-timing
+        where: "`timing` — the same event sent at tick 120 to an already-angry golem"
+        quote: "[2026-08-07 15:24:04:933 WARN] [Scripting] [vggolem] timing :: [apply@120] attacker=vgprobe:swinger_player treat=cancel from_player=string:tick120:ok hits-on-golem=12 golem-health=number:100 golem-alive=true attacker-health=number:7 attacker-alive=true closest=0.053 strikes-by-golem=28 strikes-before-apply=5 first-strike-tick=30 strike-ticks=[30 50 70 90 110 140 160 180 200 220 240 260 280 300 320 340 360 380 400 420 440 460 480 500 520 540 560 580] triggers=[minecraft:from_player] first-hits-on-golem=[entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player] first-strikes=[vgprobe:swinger_player@18, vgprobe:swinger_player@7, vgprobe:swinger_player@19, vgprobe:swinger_player@9] verdict=GOLEM-RETALIATED"
+      - run: golem-probe-timing
+        where: "`timing` — the event deferred one tick from the first hit, losing the race"
+        quote: "[2026-08-07 15:22:33:383 WARN] [Scripting] [vggolem] timing :: [defer-first-hit/a] attacker=vgprobe:swinger_player treat=cancel from_player=string:first-hit:deferred:ok hits-on-golem=9 golem-health=number:100 golem-alive=true attacker-health=number:0 attacker-alive=true closest=0.068 strikes-by-golem=29 first-strike-tick=25 strike-ticks=[25 45 65 85 105 125 150 170 190 210 230 250 270 290 310 330 350 370 390 410 430 450 470 490 510 530 550 570 590] triggers=[minecraft:from_player] first-hits-on-golem=[entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player] first-strikes=[vgprobe:swinger_player@15, vgprobe:swinger_player@12, vgprobe:swinger_player@19, vgprobe:swinger_player@16] verdict=GOLEM-RETALIATED"
+
+  - id: enrolling-a-golem-on-arrival-stops-only-the-player-lane
+    claim: |
+      Sending `minecraft:from_player` to an iron golem as it arrives — through `entitySpawn` and
+      `entityLoad` — stops a player-family attacker drawing any retaliation at all, and leaves every
+      other attacker's alone: an enrolled golem drew 0 strikes from 12 player-family hits, and killed
+      a zombie that struck it. The exclusion the event installs is specific to the player family
+      rather than a general calm.
+    caveat: |
+      The attacker is a probe entity carrying the named `type_family`, not a client-driven player.
+      What this shows is what the engine does with a hit whose source carries that family; nothing
+      here shows a real player's swing takes the same path.
+    backing: tested
+    sources:
+      - run: golem-probe-enrol
+        where: "`enrol` — an enrolled golem under a player-family attacker"
+        quote: "[2026-08-07 15:26:49:399 WARN] [Scripting] [vggolem] enrol :: [enrolled/player/cancel] attacker=vgprobe:swinger_player treat=cancel from_player=null hits-on-golem=12 golem-health=number:100 golem-alive=true attacker-health=number:400 attacker-alive=true closest=0.033 strikes-by-golem=0 first-strike-tick=-1 strike-ticks=[] triggers=[] first-hits-on-golem=[entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player, entityAttack@3<-vgprobe:swinger_player] first-strikes=[] verdict=GOLEM-DID-NOT-RETALIATE"
+      - run: golem-probe-enrol
+        where: "`enrol` — the same enrolled golem against a zombie"
+        quote: "[2026-08-07 15:27:19:849 WARN] [Scripting] [vggolem] enrol :: [enrolled/zombie/clamp0] attacker=minecraft:zombie treat=clamp0 from_player=null hits-on-golem=5 golem-health=number:100 golem-alive=true attacker-health=undefined attacker-alive=false closest=1.026 strikes-by-golem=2 first-strike-tick=15 strike-ticks=[15 35] triggers=[] first-hits-on-golem=[entityAttack@3<-minecraft:zombie, fireTick@1<-none, entityAttack@3<-minecraft:zombie, fireTick@1<-none] first-strikes=[minecraft:zombie@9.824, minecraft:zombie@11.792] verdict=GOLEM-RETALIATED"
+
+  - id: no-village-profession-or-trade-surface-on-a-villager
+    claim: |
+      `@minecraft/server` 2.8.0 exposes nothing about villages. A villager's components are movement,
+      inventory, navigation, health, variant, mark_variant, skin_id, breathable, can_climb and
+      type_family and no more — no village membership, no profession, no trades, no reputation. The
+      three variant integers are the only profession-shaped values reachable, and nothing names the
+      village an entity belongs to, so a village can be observed only through the world's own
+      records or through behaviour.
+    backing: tested
+    sources:
+      - run: village-structures-api
+        where: "`api` — every component a villager carries"
+        quote: |
+          [2026-08-07 18:02:50:988 WARN] [Scripting] [vgvil] api :: villager components=[minecraft:movement,minecraft:movement.basic,minecraft:inventory,minecraft:navigation.walk,minecraft:health,minecraft:variant,minecraft:underwater_movement,minecraft:lava_movement,minecraft:mark_variant,minecraft:is_hidden_when_invisible,minecraft:skin_id,minecraft:breathable,minecraft:can_climb,minecraft:type_family]
+
+  - id: from-player-adds-a-group-and-nothing-removes-it
+    claim: |
+      Vanilla `iron_golem.json` defines exactly two events, and both only add: `minecraft:from_player`
+      adds the component group `minecraft:player_created`, and `minecraft:from_village` adds
+      `minecraft:village_created`. No event removes either group.
+
+      So sending a golem `minecraft:from_player` is a one-way change. A component group is saved with
+      the entity, and the entity carries no event that would take it off again, so a pack that sends
+      the event alters every golem it reaches for as long as that golem exists — including after the
+      pack is removed.
+    caveat: |
+      What is read here is the entity definition. That a component group persists with the saved
+      entity is the engine's documented behaviour for component groups rather than something this
+      reading measures, and no probe here removed a pack and re-inspected a golem afterwards.
+    backing: tested
+    sources:
+      - run: iron-golem-vanilla-events
+        where: "the `events` object of the vanilla entity definition"
+        quote: |
+          "events":{"minecraft:from_player":{"add":{"component_groups":["minecraft:player_created"]}},"minecraft:from_village":{"add":{"component_groups":["minecraft:village_created"]}}}}}
+
+  - id: an-entity-type-can-be-looked-up-by-identifier-without-spawning
+    claim: |
+      `EntityTypes` reaches every entity type currently available for use within the world, and its
+      stable `get(identifier: string)` returns an `EntityType` or `undefined` rather than throwing —
+      so whether an identifier is registered is answerable directly, with no spawn attempted and no
+      error to catch. `getAll()` returns the whole set. A pack can therefore check that the definitions
+      it depends on are present before it tries to use them, and at a location it has not had to make
+      ticking first.
+    backing: documented
+    caveat: |
+      The plain-string `get` is the stable signature; a generic `EntityIdentifierType` overload of the
+      same name is documented for the experimental moniker and carries a pre-release caution. Nothing
+      here says an entity type resolves only for the pack that defined it — that it resolves for any
+      loaded pack's script is measured separately
+      [[f:an-entity-type-resolves-for-a-script-in-any-other-loaded-pack]].
+    sources:
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/entitytypes
+        where: the class description
+        quote: |
+          Used for accessing all entity types currently available for use within the world.
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/entitytypes
+        where: get — the signature under the minecraft-bedrock-stable moniker
+        quote: |
+          static get(identifier: string): EntityType | undefined
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/entitytypes
+        where: getAll
+        quote: |
+          static getAll(): EntityType[]
+  - id: f-o9dbstfj # entity-type-lookup-misses-return-undefined
+    claim: |
+      `EntityTypes.get` reports a type nothing registers by returning `undefined`, never by
+      throwing. It matched exactly on every miss measured — an unregistered namespaced id, an
+      unregistered bare id, an unregistered id in the `minecraft:` namespace, the empty string, a
+      namespace prefix alone, a registered id with surrounding whitespace, and a registered id with
+      a case difference all returned `undefined`. So `undefined` is the only miss signal the
+      surface has: nothing distinguishes a malformed identifier from a well-formed one nobody
+      defined.
+    backing: tested
+    sources:
+      - run: entity-type-catalog-probe
+        where: "`get` — an unregistered namespaced id"
+        quote: |
+          [etreg] get :: case=absent-namespaced argument="mctest:nothing_registers_this" returned undefined .id n/a
+      - run: entity-type-catalog-probe
+        where: "`get` — an unregistered id in the minecraft namespace"
+        quote: |
+          [etreg] get :: case=absent-minecraft-namespace argument="minecraft:nothing_registers_this" returned undefined .id n/a
+      - run: entity-type-catalog-probe
+        where: "`get` — the empty string"
+        quote: |
+          [etreg] get :: case=empty-string argument="" returned undefined .id n/a
+      - run: entity-type-catalog-probe
+        where: "`get` — a registered id with surrounding whitespace"
+        quote: |
+          [etreg] get :: case=whitespace argument=" minecraft:sheep " returned undefined .id n/a
+      - run: entity-type-catalog-probe
+        where: "`get` — a registered id with a case difference"
+        quote: |
+          [etreg] get :: case=case-mismatch argument="minecraft:Sheep" returned undefined .id n/a
+
+  - id: f-i8fx23h0 # entity-type-bare-id-means-the-minecraft-namespace
+    claim: |
+      A bare identifier given to `EntityTypes.get` is resolved as `minecraft:<id>` rather than
+      searched across namespaces. `sheep` and `minecraft:sheep` return the same object, and that
+      object's `id` reads back the canonical prefixed form. A pack-defined type does not answer to
+      its bare name: with `mctest:probe_dummy` registered, `EntityTypes.get('probe_dummy')` returns
+      `undefined`, and `spawnEntity('probe_dummy')` names `'minecraft:probe_dummy'` in the error it
+      throws — the assumption is literal, not a fallback search.
+    backing: tested
+    sources:
+      - run: entity-type-catalog-probe
+        where: "`get` — the prefixed vanilla id"
+        quote: |
+          [etreg] get :: case=registered-vanilla-prefixed argument="minecraft:sheep" returned object<EntityType> .id returned string:"minecraft:sheep"
+      - run: entity-type-catalog-probe
+        where: "`get` — the bare vanilla id"
+        quote: |
+          [etreg] get :: case=registered-vanilla-bare argument="sheep" returned object<EntityType> .id returned string:"minecraft:sheep"
+      - run: entity-type-catalog-probe
+        where: "`shape` — the bare and prefixed lookups compared by identity"
+        quote: |
+          [etreg] shape :: identity-bare-vs-prefixed same-object=true bare=object<EntityType>
+      - run: entity-type-catalog-probe
+        where: "`get` — the bare form of a pack-defined id"
+        quote: |
+          [etreg] get :: case=pack-defined-bare argument="probe_dummy" returned undefined .id n/a
+      - run: entity-type-catalog-probe
+        where: "`spawn` — the namespace the bare form actually looked for"
+        quote: |
+          [etreg] spawn :: case=bare-pack-defined id=probe_dummy lookup returned undefined spawn threw InvalidArgumentError: Invalid value passed to argument [0]. 'minecraft:probe_dummy' is not a valid entity type. typeId=string:"n/a"
+
+  - id: f-rtmfaoba # entity-type-catalog-refuses-early-execution
+    claim: |
+      `EntityTypes` answers no read during early execution. Both `get` and `getAll` throw
+      `ReferenceError: Native function [EntityTypes::get] cannot be used in early execution.` when
+      called at a pack module's evaluation and again inside a `system.beforeEvents.startup`
+      handler; by `world.afterEvents.worldLoad` both answer normally. So a pack cannot resolve an
+      entity type from its startup code at all — the only place a catalog read can happen is after
+      world load.
+    backing: tested
+    sources:
+      - run: entity-type-catalog-probe
+        where: "`at-module-eval` — get at module evaluation"
+        quote: |
+          [etreg] at-module-eval :: case=vanilla threw ReferenceError: Native function [EntityTypes::get] cannot be used in early execution.
+      - run: entity-type-catalog-probe
+        where: "`at-module-eval` — getAll at module evaluation"
+        quote: |
+          [etreg] at-module-eval :: case=all threw ReferenceError: Native function [EntityTypes::getAll] cannot be used in early execution.
+      - run: entity-type-catalog-probe
+        where: "`at-event` — get inside a system.beforeEvents.startup handler"
+        quote: |
+          [etreg] at-event :: case=startup threw ReferenceError: Native function [EntityTypes::get] cannot be used in early execution.
+      - run: entity-type-catalog-probe
+        where: "`at-event` — get after world load"
+        quote: |
+          [etreg] at-event :: case=worldLoad returned object<EntityType>
+      - run: entity-type-catalog-probe
+        where: "`at-event` — getAll after world load"
+        quote: |
+          [etreg] at-event :: case=worldLoadAll returned object<Array> length=129
+
+  - id: f-8orfr0x2 # entity-type-carries-id-and-localization-key
+    claim: |
+      An `EntityType` carries exactly two members, `id` and `localizationKey`, both own value
+      properties on the instance rather than getters, and no methods. `id` is the canonical
+      prefixed identifier. `localizationKey` drops the namespace for a vanilla type
+      (`entity.sheep.name`) and keeps it for a pack-defined one
+      (`entity.mctest:probe_dummy.name`), so it is not derivable from the id by one rule.
+    backing: tested
+    sources:
+      - run: entity-type-catalog-probe
+        where: "`shape` — the full member list of a vanilla type"
+        quote: |
+          [etreg] shape :: subject=minecraft:sheep ctor=EntityType members=[localizationKey(own,value)=string:"entity.sheep.name" id(own,value)=string:"minecraft:sheep" id(proto1,value)=undefined localizationKey(proto1,value)=undefined]
+      - run: entity-type-catalog-probe
+        where: "`shape` — the full member list of a pack-defined type"
+        quote: |
+          [etreg] shape :: subject=mctest:probe_dummy ctor=EntityType members=[localizationKey(own,value)=string:"entity.mctest:probe_dummy.name" id(own,value)=string:"mctest:probe_dummy" id(proto1,value)=undefined localizationKey(proto1,value)=undefined]
+
+  - id: f-86m69stq # entity-type-entries-are-stable-objects
+    claim: |
+      A registry entry is one object the engine keeps, not a value rebuilt per call. Two `get` calls
+      for the same id return the same object; a `getAll` entry is the same object `get` returns; and
+      two `getAll` calls return different arrays holding the same entry objects. So identity
+      comparison on an `EntityType` is meaningful, while identity comparison on the array `getAll`
+      returns is not.
+    backing: tested
+    sources:
+      - run: entity-type-catalog-probe
+        where: "`shape` — two get calls compared by identity"
+        quote: |
+          [etreg] shape :: identity-across-calls same-object=true
+      - run: entity-type-catalog-probe
+        where: "`getall` — a getAll entry against what get returns"
+        quote: |
+          [etreg] getall :: entry-identity-matches-get=true
+      - run: entity-type-catalog-probe
+        where: "`getall` — two getAll calls compared"
+        quote: |
+          [etreg] getall :: same-array-across-calls=false same-entry-objects=true
+
+  - id: f-o8xk7go5 # entity-type-catalog-holds-pack-defined-types
+    claim: |
+      `EntityTypes.getAll` returns vanilla and pack-defined types together, with no member marking
+      which is which — a type a behaviour pack defines is present and indistinguishable from a
+      vanilla one, reachable by `get` on its prefixed id. Every id it returns is namespace-prefixed
+      and none repeats. The count is the installed content's, not a constant: 129 entries on a world
+      with one content pack installed.
+    caveat: |
+      The catalog is read-only from script — nothing in `@minecraft/server` registers a type — so
+      when an entry appears was measured across the load points a pack has, not across a mid-session
+      registration.
+    backing: tested
+    sources:
+      - run: entity-type-catalog-probe
+        where: "`getall` — the count and array-ness"
+        quote: |
+          [etreg] getall :: count=129 is-array=true
+      - run: entity-type-catalog-probe
+        where: "`getall` — whether the pack-defined type is present"
+        quote: |
+          [etreg] getall :: contains-pack-defined=true
+      - run: entity-type-catalog-probe
+        where: "`getall` — the namespaces present beyond minecraft"
+        quote: |
+          [etreg] getall :: non-minecraft-namespaces=[mctest:probe_dummy]
+      - run: entity-type-catalog-probe
+        where: "`getall` — unprefixed and duplicate ids"
+        quote: |
+          [etreg] getall :: unprefixed-ids=0
+
+  - id: f-90p7coes # entity-type-lookup-agrees-with-spawnability
+    claim: |
+      `EntityTypes.get` and `dimension.spawnEntity` agree on the same identifier: across six cases —
+      a vanilla type, a pack-defined type, two unregistered ids, and the bare form of each — a
+      lookup hit spawned and a lookup miss threw
+      `InvalidArgumentError: … is not a valid entity type`. The two surfaces resolve identically,
+      the bare forms included, so a `get` that returns a value is a sound pre-check for a spawn that
+      will succeed.
+    caveat: |
+      Six identifiers were checked, not all 129 the catalog held.
+    backing: tested
+    sources:
+      - run: entity-type-catalog-probe
+        where: "`spawn` — a pack-defined type"
+        quote: |
+          [etreg] spawn :: case=pack-defined id=mctest:probe_dummy lookup returned object<EntityType> spawn returned object<Entity> typeId=string:"mctest:probe_dummy"
+      - run: entity-type-catalog-probe
+        where: "`spawn` — an unregistered namespaced id"
+        quote: |
+          [etreg] spawn :: case=absent-namespaced id=mctest:nothing_registers_this lookup returned undefined spawn threw InvalidArgumentError: Invalid value passed to argument [0]. 'mctest:nothing_registers_this' is not a valid entity type. typeId=string:"n/a"
+      - run: entity-type-catalog-probe
+        where: "`spawn` — the bare form of a vanilla type"
+        quote: |
+          [etreg] spawn :: case=bare-vanilla id=sheep lookup returned object<EntityType> spawn returned object<Entity> typeId=string:"minecraft:sheep"
+
+  - id: f-i8kpwzfk # entity-type-lookup-argument-guards
+    claim: |
+      `EntityTypes.get` guards its argument in two distinct ways. Wrong arity is a `TypeError`
+      naming the counts — `get()` and `get(a, b)` both throw
+      `Incorrect number of arguments to function`, and `getAll(a)` likewise. A present but
+      wrong-typed argument splits four ways: `undefined` and `null` throw `InvalidArgumentError`
+      (`Invalid type passed to argument [0]. Expected type: string`), while everything else throws
+      `TypeError` under one of three wordings — `Native type conversion failed.` for a number,
+      boolean, symbol, array or function, `Object did not have a native handle.` for a plain object,
+      and `Object has an invalid native handle.` for a boxed `String`. The split does not follow
+      `typeof`: an array and a function are objects and take the conversion wording, while an object
+      literal does not.
+    backing: tested
+    sources:
+      - run: entity-type-catalog-probe
+        where: "`guard` — no argument"
+        quote: |
+          [etreg] guard :: case=no-argument threw TypeError: Incorrect number of arguments to function. Expected 1, received 0
+      - run: entity-type-catalog-probe
+        where: "`guard` — undefined as the argument"
+        quote: |
+          [etreg] guard :: case=undefined threw InvalidArgumentError: Invalid type passed to argument [0]. Expected type: string
+      - run: entity-type-catalog-probe
+        where: "`guard` — a number as the argument"
+        quote: |
+          [etreg] guard :: case=number threw TypeError: Native type conversion failed. Function argument [0] expected type: string
+      - run: entity-type-catalog-probe
+        where: "`guard` — an array as the argument"
+        quote: |
+          [etreg] guard :: case=array threw TypeError: Native type conversion failed. Function argument [0] expected type: string
+      - run: entity-type-catalog-probe
+        where: "`guard` — a plain object as the argument"
+        quote: |
+          [etreg] guard :: case=object threw TypeError: Object did not have a native handle. Function argument [0] expected type: string
+      - run: entity-type-catalog-probe
+        where: "`guard` — a boxed String as the argument"
+        quote: |
+          [etreg] guard :: case=string-object threw TypeError: Object has an invalid native handle. Function argument [0] expected type: string
+      - run: entity-type-catalog-probe
+        where: "`guard` — an argument to getAll"
+        quote: |
+          [etreg] guard :: case=getall-one-argument threw TypeError: Incorrect number of arguments to function. Expected 0, received 1
+
+  - id: f-gvmc2wfa # entity-type-localization-key-derives-from-the-id
+    claim: |
+      An `EntityType`'s `localizationKey` follows one rule from its identifier, with no exceptions:
+      it is `entity.<id>.name`, with a leading `minecraft:` stripped and any other namespace kept.
+      Checked against every entry the catalog held — 129 types, vanilla and pack-defined together —
+      the derived key matched the engine's for all of them, and no read threw. So a vanilla type
+      reads `entity.sheep.name` and a pack-defined one `entity.mctest:probe_dummy.name`, both from
+      the same rule.
+    caveat: |
+      Measured on one world with one content pack installed, so the pack-defined side of the rule
+      rests on that pack's single type.
+    backing: tested
+    sources:
+      - run: entity-type-catalog-probe
+        where: "`localization` — the derived key against every registry entry"
+        quote: |
+          [etreg] localization :: checked=129 mismatches=0 read-threw=0
+      - run: entity-type-catalog-probe
+        where: "`shape` — a vanilla type's key, namespace stripped"
+        quote: |
+          [etreg] shape :: subject=minecraft:sheep ctor=EntityType members=[localizationKey(own,value)=string:"entity.sheep.name" id(own,value)=string:"minecraft:sheep" id(proto1,value)=undefined localizationKey(proto1,value)=undefined]
+      - run: entity-type-catalog-probe
+        where: "`shape` — a pack-defined type's key, namespace kept"
+        quote: |
+          [etreg] shape :: subject=mctest:probe_dummy ctor=EntityType members=[localizationKey(own,value)=string:"entity.mctest:probe_dummy.name" id(own,value)=string:"mctest:probe_dummy" id(proto1,value)=undefined localizationKey(proto1,value)=undefined]
+
+  - id: f-axuk7u0y
+    claim: |
+      `@minecraft/server` 2.8.0 declares `EntityTypeFamilyComponent` under the component id
+      `minecraft:type_family`, carrying two members: `getTypeFamilies(): string[]` and
+      `hasTypeFamily(typeFamily: string): boolean`. Both are reads — the reference documents no
+      member that adds or removes a family, so a script observes an entity's families and cannot
+      change them.
+    backing: documented
+    sources:
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/entitytypefamilycomponent
+        where: Methods, and Constants — componentId
+        quote: |
+          ## Methods
+
+          - getTypeFamilies
+          - hasTypeFamily
+
+          ### **getTypeFamilies**
+
+          `getTypeFamilies(): string[]`
+
+          **Returns***string*[]
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/entitytypefamilycomponent
+        where: hasTypeFamily, and the componentId constant
+        quote: |
+          ### **hasTypeFamily**
+
+          `hasTypeFamily(typeFamily: string): boolean`
+
+          #### **Parameters**
+
+          - **typeFamily**: *string*
+
+          **Returns***boolean*
+
+          ## Constants
+
+          ### **componentId**
+
+          `static read-only componentId = "minecraft:type_family";`
+
+  - id: f-zma0fhxw
+    claim: |
+      The two family fields of `EntityFilter` are not each other's mirror. `families` includes an
+      entity matching **all** of the tokens listed, so several tokens conjoin; `excludeFamilies`
+      excludes one matching **one or more** of them, so several tokens disjoin. A query naming both
+      therefore asks for every included token and none of the excluded ones.
+    backing: documented
+    sources:
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/entityfilter
+        where: Properties — families
+        quote: |
+          ### **families**
+
+          `families?: string[];`
+
+          If specified, includes entities that match all of the specified families.
+      - url: https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/entityfilter
+        where: Properties — excludeFamilies
+        quote: |
+          ### **excludeFamilies**
+
+          `excludeFamilies?: string[];`
+
+          Excludes entities that match one or more of the specified families.
+
+  - id: f-a4ibml4h
+    claim: |
+      An empty array asks nothing of an `EntityFilter` list field: `families: []`,
+      `excludeFamilies: []`, `tags: []` and `excludeTags: []` each keep every entity, on
+      `entity.matches` and on the dimension lookup alike. So an included field is satisfied by
+      listing no token, and an excluding field rejects on none — a field carrying an empty array
+      filters exactly as if it had been left off.
+    backing: tested
+    sources:
+      - run: query-empty-array-probe
+        where: "`empty` — the lookup under `families: []`"
+        quote: "[2026-08-15 04:32:57:025 WARN] [Scripting] [qprobe] empty :: lookup case=families-empty count=3 types=minecraft:armor_stand|minecraft:cow|minecraft:sheep"
+      - run: query-empty-array-probe
+        where: "`empty` — the lookup under `excludeFamilies: []`"
+        quote: "[2026-08-15 04:32:57:025 WARN] [Scripting] [qprobe] empty :: lookup case=excludeFamilies-empty count=3 types=minecraft:armor_stand|minecraft:cow|minecraft:sheep"
+      - run: query-empty-array-probe
+        where: "`empty` — the lookup under `tags: []`"
+        quote: "[2026-08-15 04:32:57:025 WARN] [Scripting] [qprobe] empty :: lookup case=tags-empty count=3 types=minecraft:armor_stand|minecraft:cow|minecraft:sheep"
+      - run: query-empty-array-probe
+        where: "`empty` — the lookup under `excludeTags: []`"
+        quote: "[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: lookup case=excludeTags-empty count=3 types=minecraft:armor_stand|minecraft:cow|minecraft:sheep"
+      - run: query-empty-array-probe
+        where: "`empty` — the control under `families: ['sheep']`, one of three subjects kept"
+        quote: "[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: lookup case=families-token-discriminating count=1 types=minecraft:sheep"
+      - run: query-empty-array-probe
+        where: "`empty` — the control under `excludeFamilies: ['mob']`, no subject kept"
+        quote: "[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: lookup case=excludeFamilies-token count=0 types=none"

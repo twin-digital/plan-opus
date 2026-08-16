@@ -28,6 +28,9 @@ const rows = factFiles(FACTS)
 console.log(`# Facts — any product may cite any of these\n`);
 for (const { file, e } of rows) {
   const claim = String(e.claim ?? "").replace(/\s+/g, " ").trim();
-  console.log(`- **${e.id}**  _(${e.backing ?? "unknown backing"}, in ${file})_\n  ${claim}`);
+  // fact@3 carries a title; an untitled entry is named by its claim alone
+  const title = String(e.title ?? "").replace(/\s+/g, " ").trim();
+  const name = title ? `**${e.id}** — ${title}` : `**${e.id}**`;
+  console.log(`- ${name}  _(${e.backing ?? "unknown backing"}, in ${file})_\n  ${claim}`);
 }
 console.log(`\n---\n\n${rows.length} facts.`);

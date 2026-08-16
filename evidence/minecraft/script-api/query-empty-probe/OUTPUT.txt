@@ -1,0 +1,69 @@
+# empty query array probe — 1 run(s)
+server=1.26.44.3 pack=bfcb5c57-2edb-4356-a548-8f931e35c8b1
+
+--- run 1 / set empty ---
+
+=== raw [qprobe] lines, delivery order ===
+[2026-08-15 04:32:47:785 WARN] [Scripting] [qprobe] arena :: ticking area requested at (163,100,170)
+[2026-08-15 04:32:47:785 WARN] [Scripting] [qprobe] boot :: ready sets=empty
+[2026-08-15 04:32:53:554 WARN] [Scripting] [qprobe] empty :: start cases=13
+[2026-08-15 04:32:53:555 WARN] [Scripting] [qprobe] arena :: ticking area requested at (163,100,170)
+[2026-08-15 04:32:54:525 WARN] [Scripting] [qprobe] arena :: built centre=(163,100,170) floor=minecraft:stone attempts=1
+[2026-08-15 04:32:57:025 WARN] [Scripting] [qprobe] empty :: subject=sheep typeId=minecraft:sheep tags=alpha families=mob|sheep
+[2026-08-15 04:32:57:025 WARN] [Scripting] [qprobe] empty :: subject=cow typeId=minecraft:cow tags=none families=cow|mob
+[2026-08-15 04:32:57:025 WARN] [Scripting] [qprobe] empty :: subject=stand typeId=minecraft:armor_stand tags=none families=inanimate|mob|armor_stand
+[2026-08-15 04:32:57:025 WARN] [Scripting] [qprobe] empty :: matches case=control-no-filter subject=sheep result=true
+[2026-08-15 04:32:57:025 WARN] [Scripting] [qprobe] empty :: matches case=control-no-filter subject=cow result=true
+[2026-08-15 04:32:57:025 WARN] [Scripting] [qprobe] empty :: matches case=control-no-filter subject=stand result=true
+[2026-08-15 04:32:57:025 WARN] [Scripting] [qprobe] empty :: lookup case=control-no-filter count=3 types=minecraft:armor_stand|minecraft:cow|minecraft:sheep
+[2026-08-15 04:32:57:025 WARN] [Scripting] [qprobe] empty :: matches case=families-empty subject=sheep result=true
+[2026-08-15 04:32:57:025 WARN] [Scripting] [qprobe] empty :: matches case=families-empty subject=cow result=true
+[2026-08-15 04:32:57:025 WARN] [Scripting] [qprobe] empty :: matches case=families-empty subject=stand result=true
+[2026-08-15 04:32:57:025 WARN] [Scripting] [qprobe] empty :: lookup case=families-empty count=3 types=minecraft:armor_stand|minecraft:cow|minecraft:sheep
+[2026-08-15 04:32:57:025 WARN] [Scripting] [qprobe] empty :: matches case=excludeFamilies-empty subject=sheep result=true
+[2026-08-15 04:32:57:025 WARN] [Scripting] [qprobe] empty :: matches case=excludeFamilies-empty subject=cow result=true
+[2026-08-15 04:32:57:025 WARN] [Scripting] [qprobe] empty :: matches case=excludeFamilies-empty subject=stand result=true
+[2026-08-15 04:32:57:025 WARN] [Scripting] [qprobe] empty :: lookup case=excludeFamilies-empty count=3 types=minecraft:armor_stand|minecraft:cow|minecraft:sheep
+[2026-08-15 04:32:57:025 WARN] [Scripting] [qprobe] empty :: matches case=tags-empty subject=sheep result=true
+[2026-08-15 04:32:57:025 WARN] [Scripting] [qprobe] empty :: matches case=tags-empty subject=cow result=true
+[2026-08-15 04:32:57:025 WARN] [Scripting] [qprobe] empty :: matches case=tags-empty subject=stand result=true
+[2026-08-15 04:32:57:025 WARN] [Scripting] [qprobe] empty :: lookup case=tags-empty count=3 types=minecraft:armor_stand|minecraft:cow|minecraft:sheep
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: matches case=excludeTags-empty subject=sheep result=true
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: matches case=excludeTags-empty subject=cow result=true
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: matches case=excludeTags-empty subject=stand result=true
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: lookup case=excludeTags-empty count=3 types=minecraft:armor_stand|minecraft:cow|minecraft:sheep
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: matches case=families-token subject=sheep result=true
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: matches case=families-token subject=cow result=true
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: matches case=families-token subject=stand result=true
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: lookup case=families-token count=3 types=minecraft:armor_stand|minecraft:cow|minecraft:sheep
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: matches case=families-token-discriminating subject=sheep result=true
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: matches case=families-token-discriminating subject=cow result=false
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: matches case=families-token-discriminating subject=stand result=false
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: lookup case=families-token-discriminating count=1 types=minecraft:sheep
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: matches case=families-two-tokens subject=sheep result=true
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: matches case=families-two-tokens subject=cow result=false
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: matches case=families-two-tokens subject=stand result=false
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: lookup case=families-two-tokens count=1 types=minecraft:sheep
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: matches case=excludeFamilies-token subject=sheep result=false
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: matches case=excludeFamilies-token subject=cow result=false
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: matches case=excludeFamilies-token subject=stand result=false
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: lookup case=excludeFamilies-token count=0 types=none
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: matches case=tags-token subject=sheep result=true
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: matches case=tags-token subject=cow result=false
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: matches case=tags-token subject=stand result=false
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: lookup case=tags-token count=1 types=minecraft:sheep
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: matches case=excludeTags-token subject=sheep result=false
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: matches case=excludeTags-token subject=cow result=true
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: matches case=excludeTags-token subject=stand result=true
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: lookup case=excludeTags-token count=2 types=minecraft:armor_stand|minecraft:cow
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: matches case=families-empty-and-tags-token subject=sheep result=true
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: matches case=families-empty-and-tags-token subject=cow result=false
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: matches case=families-empty-and-tags-token subject=stand result=false
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: lookup case=families-empty-and-tags-token count=1 types=minecraft:sheep
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: matches case=families-and-excludeFamilies-empty subject=sheep result=true
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: matches case=families-and-excludeFamilies-empty subject=cow result=true
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: matches case=families-and-excludeFamilies-empty subject=stand result=true
+[2026-08-15 04:32:57:026 WARN] [Scripting] [qprobe] empty :: lookup case=families-and-excludeFamilies-empty count=3 types=minecraft:armor_stand|minecraft:cow|minecraft:sheep
+[2026-08-15 04:32:57:027 WARN] [Scripting] [qprobe] empty :: complete
+
+=== end ===

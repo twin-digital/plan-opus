@@ -1,5 +1,5 @@
 ---
-version: "26"
+version: "36"
 ---
 
 # The incremental design process
@@ -30,21 +30,25 @@ Everything the owner ratifies is a foundation entry in an increment's sources, a
 has a job, an author, and a lifecycle:
 
 - **Requirements** are owner fiat: what the product must do to be accepted. Captured by the
-  owner and agents at the start of an increment, directly into its requirements source; amended
-  by later entries (`amends`), retired with a reason, adopted in bulk from presets. A
-  requirement may carry a `verification` procedure where its statement is not self-verifying,
-  and `rationale` where a casual reversal would be a mistake the statement does not warn of.
+  owner and agents at the start of an increment, directly into its requirements source;
+  replaced by successor entries (`supersedes`), retired with a reason, applied in bulk from
+  presets. An entry's binding content is its `statement`; `commentary` beside it binds nothing
+  (see *Statements, commentary, and cases*).
 - **Decisions** are the path taken to meet them — each choice a consumer could observe or a
   reimplementation must preserve; choices below that bar live in the code, and a
   reimplementation is free to re-make them. Proposed by whoever does the design work, then
   ruled by the owner. While still proposed and inside its own increment, a decision may be
   removed outright; once in force, it persists, closed only by a successor's `supersedes` or a
   retirement. `because:` records what a decision rests on; `pinned` marks the ones that cannot
-  be freely overturned; `revisit_when` carries the rare, deliberate revisit condition.
+  be freely overturned.
 - **Model entries** bind the contracts the design speaks about — entity name to a pooled schema
   or authored surface at a pinned version, in the `model:` block of the requirements source.
   Written as the shapes settle, ratified with the increment's requirements, folded by entity
   name.
+- **Components and terms** are further blocks of the requirements source — a product's named
+  parts, which foundations scope to, and its defined vocabulary (see *Components and scope* and
+  *Terms*). Like presets and model entries, they are state-shaped: declared and redeclared,
+  with the latest declaration the current state.
 - **Facts** live in the repo-wide `facts/` pool, with the runs and artifacts that establish
   them under `evidence/`: findings about the world, citable from anywhere and validated by
   `design-process check` — the one merge gate — against their pool schemas and the evidence bar,
@@ -77,8 +81,10 @@ and its directory is `wip-<NNN>-<slug>` on its own branch (see *Drafts run in pa
 plain number is what main holds. Wherever this reference writes `products/<product>/`, read the
 product root.
 
-Lifecycle is uniform: **an increment declares changes, and state is the fold** — and nothing
-is ever edited once its increment publishes.
+Lifecycle is uniform: **an increment declares changes, and state is the fold** — and what an
+entry says is never edited once it publishes. One word, `retired`, marks an entry leaving
+force; one relation marks succession; every closure carries a reason (see *Lifecycle — the
+three change regimes*).
 
 ## The process
 
@@ -215,7 +221,6 @@ questions:
       should a preset be able to declare a requirement that applies to only one package of an
       adopting product?
     answer: requirement
-    facets: [schema]
 ```
 
 `answer` names which kind of foundation would answer the question, and its job is routing: a
@@ -305,7 +310,7 @@ to name; `diff`, `where`, and the head side of `conflicts` stay published-only.
 
 ### Dependencies between drafts
 
-A draft depends on another when it builds on it: branching from it and citing, amending, or
+A draft depends on another when it builds on it: branching from it and citing, superseding, or
 retiring its foundations. Nothing is declared — the dependency is git ancestry. A dependent
 draft's tree carries its ancestor's content, and its landing diff shrinks to its own changes
 once the ancestor merges. A dependent draft lands only after the draft it builds on;
@@ -351,6 +356,11 @@ advisory, and nothing publishes over a failing check. The wiring is thin reposit
 configuration: this repository commits a small workflow that installs the tooling packages and
 runs the check, branch protection marks the check required, and the validator logic lives
 entirely in the tooling packages.
+
+**The check's output has two severities.** A **finding** gates any merge and sets the nonzero
+exit; a **report** gates nothing repo-wide. Each names the product it concerns where one does,
+and a report the fact-staleness model scopes to a product is enforced by that product's own
+landing sequence, not by the check's exit (see *The facts pool and its evidence*).
 
 Main therefore holds only published increments, dense and immutable, and the validator refuses
 any edit to one: **a published increment is never unsettled by later work** — drafting
@@ -414,9 +424,10 @@ narrows the list to that product's drafts, and where that leaves one the selecti
 skipped; the product argument is optional throughout, since the draft the diff names carries it.
 Where the diff carries no increment, the session says so and exits.
 
-The session has modes, and what is open decides which are offered. **Ratify** is where a draft
-carrying anything proposed or unanswered opens. **Landing** becomes available exactly when
-nothing is proposed and no question is open, and is entered from the same session.
+The session has modes. **Ratify** is offered for every draft the session opens on, whatever
+statuses that draft's entries hold. **Landing** becomes available exactly when nothing is
+proposed and no question is open, and is entered from the same session — that condition is on
+landing, not on the session opening or on ratify being among the modes it offers.
 
 #### The screen is an authored contract
 
@@ -474,9 +485,9 @@ entries a shown entry cites — its `because`, what it supersedes, what a questi
 to — are resolved against the fold the draft sits on and the repo-wide facts pool, the kind read
 from the id's prefix. An id that resolves to nothing is shown as the id alone, and that is the
 whole of the handling: a dangling citation is already a merge-gate finding, and the session is
-not where it is reported. A fact carries no title, so a cited fact shows the first line of its
-claim; a question's `answer` names the kind its answer routes to rather than an entry, so it is
-shown as that word and is not resolved.
+not where it is reported. A cited fact is shown by its title, with the first line of its claim
+standing in where the fact carries none; a question's `answer` names the kind its answer routes
+to rather than an entry, so it is shown as that word and is not resolved.
 
 #### Ruling, noting, and submitting
 
@@ -536,6 +547,11 @@ not survive folding — a line begun with whitespace, which a folded block would
 the session writes a literal block instead and does not wrap. Round-tripping the value is the
 rule; folding is how it is met in the ordinary case, and the width and the wrapping algorithm
 are the implementer's.
+
+**The session loses no work to a failed GitHub write.** When a write from
+`design-process increment` to GitHub fails — a refused review or a rejected push included — the
+work it carried is kept and shown in the session, ready to retry or to save; nothing the owner
+entered is lost. The push and token handling below are instances of this rule.
 
 **The commit a submit writes tallies what it ruled, and the submit pushes.** The body names each
 status the set took and how many entries took it — `3 accepted, 1 rejected` — in a fixed status
@@ -678,24 +694,55 @@ by minting a deferral. A deferral is not superseded by its answer — the answer
 ordinary decision whose `because:` cites the deferral (see *The companion increment*).
 
 `deferred` joins the status values, and a deferral enters as `deferred` directly — the
-merge ratifies it, like a requirement. `decision@2` carries the widened enum, and a
-decisions source adopts it by naming `version: "2"`.
+merge ratifies it, like a requirement. The decision dialect carries `deferred` in its
+status enum from `/design-process/decision@2` on.
 
 Coverage skips a deferral (see *Proving a claim is met*).
 
-### Lifecycle — declare changes, fold for state
+### Lifecycle — the three change regimes
 
-Requirements, decisions, model entries, and preset adoptions all work the same way: an
-increment declares what changed, and the effective state is the fold across the product's
+An increment declares what changed, and the effective state is the fold across the product's
 increments. The owner reads the effective set, computed; the history is preserved and is not
 what anyone reads.
 
-**A claim is retired either by supersession or on its own.** A superseding entry names what it
-replaces (`supersedes` on a decision, `amends` on a requirement) and carries the reason in its
-own content. A retirement with no successor is a `retires:` entry — one id, one one-line
-`reason` — in the increment source whose file scopes its kind; the reason is the only thing
-distinguishing it from an oversight. When one event retires several claims, the reason repeats,
-keeping every retirement independently greppable and judgeable.
+**Entries change in one of three ways**, by kind:
+
+- **Log entries** — requirements and decisions — never change once published: a later
+  increment writes a successor or a retirement.
+- **State entries** — presets, model entries, components, and terms — are redeclared: the same
+  name written again, and the latest declaration is the current state.
+- **Pool entries** — facts and runs — are frozen where they sit: the one edit is marking one
+  retired (see *The facts pool and its evidence*).
+
+**`retired` is the one closure status**, with a free-text `reason`, wherever an entry leaves
+force by status — uniformly across entity kinds. **Succession is one relation with two
+spellings.** A requirement or decision is replaced by a new entry that names the one it
+replaces: `supersedes`, carrying the reason in its own content — `amends` is retired as a
+spelling, requirement successors writing `supersedes` too. Everything else points the other
+way: the write that marks an entry retired — a redeclaration of the same name for state
+entries, the one permitted edit for facts and runs — names the replacement with
+`superseded_by`. A rejection's reason field is `reason`. A retirement with no successor stays
+a `retires:` entry — one id, one one-line `reason` — in the increment source whose file scopes
+its kind; the reason is the only thing distinguishing it from an oversight, and when one event
+retires several claims the reason repeats, keeping every retirement independently greppable.
+
+**One increment declares a name once.** A source declaring the same preset, component, term,
+or model entity twice in one increment is a validator failure — the folded state would
+otherwise depend on entry order. Applying and retiring one preset in a single increment is the
+same failure.
+
+**A consumer of a changed entity is protected by one of three models, assigned by citation
+geometry.** Version-pinned channels — schemas, surfaces, applied presets — *drift*: the
+consumer moves by explicitly taking the new version. Product-local vocabularies — components,
+terms — *guard*: the retiring increment fixes its own citations. Unpinned cross-product
+citation — facts alone — is *loud staleness*: the corrector acts now, and each citing product
+answers at its own next landing. The model a future entity kind gets is read off this
+assignment.
+
+**A product retires in its own declaration**: `status: retired` with a `reason` in its
+`product.yaml`. A retired product's fold stays readable and its published increments stand;
+applying a retired preset at a new version is a validator finding, and versions already
+applied are untouched.
 
 Within the increment that created it, a decision still `proposed` may be removed outright with
 no record. Once in force, an entry persists and is closed only through these mechanisms, so the
@@ -713,32 +760,30 @@ serially, by the landing rename. What landing checks is overlapping or duplicate
 against the fold at head, and the later of two overlapping drafts recomputes against the head
 that moved (see *Landing claims the number*).
 
-### Statements, and how they are verified
+### Statements, commentary, and cases
 
-A requirement's statement is owner fiat, in product terms. It is **self-verifying** when
-its truth is decidable by direct inspection of what it names, with no interpretive choice —
-then `verification` is omitted, and coverage targets the statement read literally. Where the
-statement carries a term an observer cannot decide directly — an unbounded quantifier, a
-judgement word, an underspecified technical term — `verification` gives one ordered,
-performable procedure that binds the term to observations:
+**A foundation's statement is separate from its commentary**, and commentary never carries
+anything the product must do or preserve; where the two read differently, the statement wins.
+Requirement and decision entries take an optional `commentary` field: prose that binds
+nothing, is never citable, and never resolves a question the statement leaves open. The field
+is named `commentary` because `notes` already means two other things in this product — a pin's
+notes and the owner's session notes. `/design-process/requirement@2` and
+`/design-process/decision@3` carry the field.
 
-```yaml
-- id: r-h97o555y
-  title: consumer suite typechecks
-  statement: |
-    a TypeScript consumer's test suite typechecks with the package installed.
-  verification:
-    - do: compile a consumer suite containing both pack imports and control-surface imports
-    - verify: no error, and no cast at the seam
-```
+**A statement fits a budget the validator checks mechanically.** In the dialects that carry
+`commentary`, a statement over sixty words is a validator finding, and a `when`, `then`, or
+`otherwise` clause over twenty-five. Commentary is unbudgeted — it is the drain. Published
+sources in earlier dialects are not read against the budget.
 
-`do` steps are performed; `verify` steps assert about what a preceding `do` surfaced, and all
-must hold. The first step is a `do`, and a `verify` with no grounding `do` is malformed.
-Steps exercise the requirement's intent through the product's published surfaces.
+**A decision enumerates its branches as cases.** A decision entry takes an optional `cases:`
+list — ordered `when`/`then` pairs with an optional terminal `otherwise` — normative like the
+statement, the first matching case governing. A list needs at least two cases; one case is a
+sentence. Requirements carry none: a requirement with branches is carve-outs, which authoring
+routes to decisions. `/design-process/decision@3` carries the field.
 
-**Decisions carry no verification, and the asymmetry is principled.** A requirement states an
-*end*, so how you would know is a genuinely separate question. A decision states a *means*, and
-its verification would be a restatement.
+What makes a statement good — the statement-form tests, the EARS templates offered for
+requirement statements — is `docs/authoring.md`'s business, reviewer-applied and never a
+validator rule.
 
 ### Schemas pool by identity, and the model binds them
 
@@ -776,12 +821,16 @@ model:
 ```
 
 The entity name is the design's word for the thing, free to differ from the pool entry's name,
-and the description anchors what the entity is in the design. An entry carries one contract
-reference — `schema:` or `surface:`, each written `/<namespace>/<entity>@<version>` — an
-optional `description`, and a `status` of `bound` (the default) or `unbound`, folding by name
-like presets. Model entries are part of the increment's requirements: ratified with it, binding
-on implementers, folded by entity name, with no duplicate entity names in force; wherever prose
-references an entity, its bound contract is the authoritative shape.
+and the description anchors what the entity is in the design. **An entry names its contract or
+is retired**: one contract reference — `schema:` or `surface:`, each written
+`/<namespace>/<entity>@<version>` — and an optional `description`, or `status: retired` with a
+`reason`. There is no shapeless state: an entity whose contract is not yet settled is carried
+by a deferral, like any other unmade choice. Entries fold by name like presets, the entity
+name staying the design's word for the thing, with no duplicate entity names in force;
+wherever prose references an entity, its bound contract is the authoritative shape.
+`/design-process/requirements@3` carries the enum; sources already written keep `bound` and
+`unbound` in their dialect. Model entries are part of the increment's requirements — ratified
+with it, binding on implementers.
 
 The key is `surface:` because the pool it points into is `surfaces/`. Sources already written
 stay readable in the dialect they declare: `/design-process/requirements@1` keeps `api:`, and
@@ -805,8 +854,8 @@ the tooling this process ships is built outside the repository that plans it.
 Every structured file this process defines — `product.yaml`, the increment sources, the
 implementation records, the repo-wide `facts/` and `evidence/` pool files, and any source a
 later increment adds — carries `version`: the pool version of the file's own schema. A
-requirements source with `version: "2"` is interpreted by the pool schema
-`/design-process/requirements@2` — one lookup, no fold. The field is what makes schema evolution
+requirements source with `version: "3"` is interpreted by the pool schema
+`/design-process/requirements@3` — one lookup, no fold. The field is what makes schema evolution
 compatible with immutability: a published file stays readable forever in the dialect it was
 written in, and a format change is an ordinary new pool version that later files opt into.
 Carrying the field means a foundation file is a mapping, not a bare list: `version` sits beside
@@ -815,61 +864,117 @@ holds.
 
 ### Identifiers
 
-Requirement, decision, and question ids are `{prefix}-{8 lowercase base36 characters}` — the
-prefix `r-`, `d-`, or `q-`, the rest random, produced by a CLI generator; the validator
-enforces format and uniqueness, so a collision is a regenerate at creation rather than a latent
-bug. The id is the citation form; `title` carries the human label and may churn freely.
+Generated ids are `{prefix}-{8 lowercase base36 characters}`, the rest random, produced by a
+CLI generator; the validator enforces format and uniqueness, so a collision is a regenerate at
+creation rather than a latent bug. A new entity kind's prefix defaults to three letters, and
+the owner names a different one — minimum one letter — per kind, by how critical the entity
+is. Ratified now: `r-`, `d-`, `q-`, `b-`, `f-` at one letter; `run-` at three. The id is the
+citation form; `title` carries the human label and may churn freely.
 
 Nothing reads structure out of an id. Question ids are
 unique within the increment that raised them — the only scope in which a question exists.
 
 Increments stay plain numbers once published, claimed serially by the landing rename; an
 in-flight draft is identified by its `wip-<NNN>-<slug>` directory name instead. Products and
-presets are named by their directory, and adoption uses that name.
+presets are named by their directory, and adoption uses that name. Components and terms are
+named by their declared slugs, not generated ids (see *Components and scope* and *Terms*).
+
+### Components and scope
+
+**A requirement or decision may name the part of the product it concerns** in a form the
+tooling reads, so which claims reach which part is answerable without interpreting prose. The
+named parts are **components**, declared in a `components:` block of the requirements source,
+beside `presets:`, `model:`, and `terms:` — state-shaped entries that fold by id, ratified
+with the increment that declares them. `/design-process/requirements@3` carries the block.
+
+A component entry carries a slug id unique within its product, a one-line `description`, an
+optional `parent`, and a `status` of `active` (the default) or `retired`. It carries nothing
+else — no package information and no configuration; what realizes a component is the package
+mapping's business (see *A product maps to its packages*). Components form a tree rooted at
+the product, ancestry carried by the `parent` reference; ids are flat slugs, never
+path-shaped, so re-parenting is the redeclaration of one entry and touches no published
+foundation. A parent that does not resolve is a validator finding, and a component never
+appears among its own ancestors: a declaration or redeclaration that would close a cycle is
+refused at the increment that declares it.
+
+A later increment redeclares a component to change its description or parent, and the fold
+shows current state. **Retirement is refused** while any in-force foundation is scoped to the
+component or a live component names it as parent — unless the retiring entry carries
+`superseded_by` naming another component, through which the scope references in published
+sources resolve. **Re-parenting is reported, not guarded**: a redeclaration changing a
+component's parent is legal whenever the new parent resolves acyclically, and the projection
+reports the in-force claims whose reach the move changes, for the owner to rule the
+redeclaration with that reach in view — a use-keyed guard would freeze the tree the moment
+anything is scoped beneath it.
+
+**Scope names a subtree.** A foundation scoped to a component applies to that component and
+everything beneath it; a foundation carrying no scope applies to the whole product. There is
+no container-only reading — what a scope denotes does not change when children are added
+beneath it. So splitting a part of the product into finer parts neither restates nor re-homes
+foundations already in force: growth of the decomposition is additive. Requirement and
+decision entries take an optional `scope:` — one component id or a list — resolved against the
+product's component fold; a scope naming no live component is a validator finding.
+`/design-process/requirement@2` and `/design-process/decision@3` carry the field.
+
+**Facets are retired**: `requirement@2`, `decision@3`, and `product@2` carry no facets field,
+and the projection filters and groups by scope instead. Published sources keep the field in
+the dialect they declare.
 
 ### Requirement presets
 
-No requirement outside a product's own increments binds it; adoption at a pinned version is the
-only way an external requirement takes force. A **requirement preset** is a product that
-defines requirements and builds nothing. It has increments like any other product, and they are
-Plan-only.
+No requirement outside a product's own increments binds it; a preset applied at a pinned
+version is the only way an external requirement takes force. A **requirement preset** is a
+product that defines requirements and builds nothing. It has increments like any other
+product, and they are Plan-only.
 
-A product adopts presets at pinned versions in its requirements source, as a `presets:` block;
-entries are state-shaped and fold by preset name:
+A product applies presets at pinned versions in its requirements source, as a `presets:`
+block; entries are state-shaped and fold by preset name:
 
 ```yaml
 presets:
   - name: nodejs-library
     version: 3
+    scope: server
   - name: minecraft-addon
-    status: dropped
+    status: retired
+    reason: the addon packages moved to their own product
 ```
 
-`status` is `adopted` — the default, normally omitted — or `dropped`; `version` is required
-when adopted and forbidden when dropped. Rules:
+A preset entry is name, version, and a `status` of `applied` — the default, normally omitted —
+or `retired` with its `reason`; `version` is required when applied and forbidden when retired.
+Rules:
 
-- Adopting and dropping are direct owner action — fiat, like adding or removing any other
+- Applying and retiring are direct owner action — fiat, like adding or removing any other
   requirement; the increment that declares the change is the record.
-- A preset is adopted whole. There are no exceptions or partial adoptions.
-- **A preset adopts presets.** A preset's own requirements source carries the same `presets:`
-  block, so it adopts like any other product — the declaration is a property of the requirements
-  source and was never conditioned on the adopting product's kind. Adoption is transitive: a
-  product's requirements are its own, plus those of every preset in the closure its declarations
-  reach.
+- A preset is applied whole. There are no exceptions or partial adoptions.
+- **A preset applies to part of a product.** A preset entry takes an optional `scope:` — one
+  component id or a list, naming components of the product declaring the entry — and every
+  requirement the preset brings in, its own and those of presets it names in turn, applies at
+  that scope with the ordinary subtree reading; absent scope applies the preset to the whole
+  product. A preset brought in twice, at two scopes, applies at both.
+- **A preset declares no components**, and its own requirements carry no scope — either is a
+  validator finding. The preset entry's scope — the applying product's — is the only scoping a
+  preset's requirement gets; its statement's subject names the kind of thing it binds.
+- **A preset applies presets.** A preset's own requirements source carries the same `presets:`
+  block, so it applies them like any other product — the declaration is a property of the
+  requirements source and was never conditioned on the applying product's kind. Application is
+  transitive: a product's requirements are its own, plus those of every preset in the closure
+  its declarations reach.
 - **The closure is a directed acyclic graph.** A cycle is a finding, naming the path that closes
   it. A preset reached by more than one path contributes its requirements once — requirement ids
   are opaque and unique, so one id arriving by two paths is one requirement, and deduplicating by
   id is exact.
-- **Every hop pins.** A preset names the version of each preset it adopts, exactly as a product
+- **Every hop pins.** A preset names the version of each preset it applies, exactly as a product
   does. One preset reached at two different versions within a single closure is a finding rather
   than a resolution — nothing chooses between them.
-- Adopting and dropping the same preset in one increment is an error.
+- Applying and retiring one preset in a single increment is a validator failure — an instance
+  of the one-name-once rule (see *Lifecycle — the three change regimes*).
 
 **A conflict is a double declaration, not a double path.** The mechanical conflict the merge gate
 blocks on is identity collision between two declarations of one requirement id: declared by an
-adopted preset and by the adopting product, or declared by two presets in the closure. A retired
+applied preset and by the product applying it, or declared by two presets in the closure. A retired
 declaration does not count — an id whose only remaining declaration is in force collides with
-nothing, so a requirement may move from a product into a preset the product adopts, retired in
+nothing, so a requirement may move from a product into a preset the product applies, retired in
 the one and declared in the other, without the gate reading the move as a collision. An id
 reached by more than one path through the closure is not a collision: it is one declaration seen
 twice, and deduplication is what handles it. A semantic conflict between differently-numbered
@@ -877,6 +982,42 @@ requirements stays with review and the open-question channel.
 
 Drift is expected and not forced: products may sit on old preset versions indefinitely, and
 nothing obliges an upgrade.
+
+### Terms
+
+**A term the design leans on is defined once, owner-ratified; statements then use the word
+without restating its definition.** Coining a term or changing a definition's meaning is an
+input change the owner rules. A product's terms are declared in a `terms:` block of the
+requirements source, beside `components:`, `presets:`, and `model:` — state-shaped entries
+folding by id, ratified with the increment that declares them; a definition is binding and one
+line. `/design-process/requirements@3` carries the block.
+
+A term entry carries a slug id, a one-line binding `definition`, an optional `display` for a
+natural written form the slug cannot carry — capitalization or punctuation — an optional
+component `scope`, and a `status` of `active` or `retired`. There is no aliases field: one
+term, one written form. **The name is the identity** — no opaque id — and statements use the
+natural form, resolved by normalization: case-insensitive, hyphen and space interchangeable,
+`display` matched where declared. Slugs are unique across the product's closure, and a
+collision with an adopted term is a validator finding.
+
+**Clarify in place; a meaning change is a new term.** A later increment redeclares a term to
+tighten its wording; a change of meaning mints a new term and retires the old with
+`superseded_by`, since a definition is imported into the meaning of every statement using it.
+Retirement is refused while an in-force foundation uses the term, unless `superseded_by`
+resolves it.
+
+**Terms travel with the preset and resolve at the declaring scope.** A preset's requirements
+use only terms it declares or brings in, and a brought-in requirement's terms resolve against
+the declaring product's fold, never the applying product's. Sharing is opt-in: two products
+may define one word locally and diverge, as applied presets may drift.
+
+**Declaration checks gate; usage checks report.** The validator gates on declarations — slug
+collisions in the closure, an unresolved `superseded_by`, a retirement without reason. Usage
+detection in unmarked prose is heuristic and reports instead: a redefinition's reach, a
+retirement's apparent users, orphan terms. The reviewer-applied tests and the extraction
+triggers live in the authoring guidance. The term-retirement guard is the one usage-fed gate:
+it reads the same matcher, and over-blocking resolves by `superseded_by` or a prose edit, both
+local to the product.
 
 ### Projection replaces a written spec document
 
@@ -886,8 +1027,8 @@ the state — declared deltas combined into the effective sets, authoritative wh
 computed — and the **projection** is its rendering for a reader, joined, filtered, and ordered.
 A projected view of a product shows, for one product at one increment:
 
-- the effective requirement set, product-local and adopted, with each adoption's preset and
-  version
+- the effective requirement set, product-local and preset-applied, with each application's
+  preset and version
 - the effective decision set, with status and pinning, ordered by `because:` topology where
   cited rather than by file order — and each decision labelled by ruling, with the abstentions
   counted and the deferrals counted beside them
@@ -896,7 +1037,14 @@ A projected view of a product shows, for one product at one increment:
 - open questions blocking the increment from settling
 - what this increment changed against the fold before it
 
-— the whole of it filterable and groupable by facet, where the product declares them.
+— the whole of it filterable and groupable by scope, where the product declares components.
+
+**What an implementer builds from carries the requirements and decisions in force and none of
+the commentary.** The projection omits commentary unless asked for it, and at a published
+increment refuses the ask — that projection is what implementers build from. Commentary lives
+in the sources and is shown to the owner at ratify. An entry whose statement needs its
+commentary to be built correctly is an authoring defect, and this exclusion is what surfaces
+it.
 
 ### The fold at an increment is the bundle
 
@@ -936,14 +1084,25 @@ fact with no url or a tested one with no run — is a finding that blocks the me
 holds under a single checker, so a fact filed anywhere in the repository is held to its bar
 before a design cites it.
 
-A `facts/` file is `/design-process/facts@1` — a `facts:` sequence of `fact@1` entries; an
-`evidence/` file is `/design-process/runs@1`, a `runs:` sequence of `run@1` entries. A fact
-carries `id`, `claim`, `backing` — `tested`, `documented`, or `assumed` — and its `sources`, with
-an optional `status` of `active` or `retired`; a run carries `id`, `command`, `output`, and
-`ran_at`. **The `version:` wrapper is what marks a pool file**: other YAML under `evidence/` — a
-probe's fixtures and inputs — carries none and is artifact material, not a run source. Entry
-shape is the schema pool's to check, so the facts pool evolves its shape by the same versioning
-every other source uses.
+A `facts/` file is a `facts:` sequence of fact entries; an `evidence/` file is a `runs:`
+sequence of run entries. A fact carries `id`, `claim`, `backing` — `tested`, `documented`, or
+`assumed` — and its `sources`, with an optional `status` of `active` or `retired`; a run
+carries `id`, `command`, `output`, and `ran_at`. `/design-process/fact@3` carries an optional
+one-line `title` beside the id — what the fact is named by wherever it is shown, with the claim
+staying the body that holds what was measured. `fact@2` and `run@2` carry generated ids — `f-`
+and `run-` — and a free-text retirement `reason`; `@1` files keep their kebab ids and dialect,
+and references resolve across every dialect. **The `version:` wrapper is what marks a pool
+file**: other YAML under `evidence/` — a probe's fixtures and inputs — carries none and is
+artifact material, not a run source. Entry shape is the schema pool's to check, so the facts
+pool evolves its shape by the same versioning every other source uses.
+
+**A fact is cited by its bare id**, the kind read from the prefix as for a requirement or a
+decision. The `f:` form resolves to the same fact and is the only spelling for a kebab id, which
+matches no pattern without it.
+
+**A merged fact or run is frozen**: once it merges, what it says never changes, and the gate
+refuses any edit to one beyond marking it retired — with its reason, and `superseded_by`
+naming the replacement where one exists. To say something different, write a new entry.
 
 Beyond entry shape, the checker enforces the rules that make the evidence hold — the checks a
 schema cannot express:
@@ -953,15 +1112,25 @@ schema cannot express:
 - a quote at an in-repo source is verified verbatim, whitespace normalised on both sides; an
   in-repo source path that resolves to no file is itself a finding, and an off-repo url — one
   carrying a scheme — is not read
-- a `run:` source resolves to a live run entry — a retired one may not be cited — belongs only on
-  a tested fact, and the run's recorded output file holds the quote
+- a `run:` source resolves to a live run entry — a retired run may not be cited by an in-force
+  fact, satisfiable in one pool change — belongs only on a tested fact, and the run's recorded
+  output file holds the quote
 - every run entry's recorded output exists in the tree, whether or not a fact cites the run: the
   output is the entry's own claim about the tree, so a dangling one is a finding where it is
   written rather than where it is later cited
 - a url into an `artifacts/` path backs only a tested fact
-- a retired fact or run carries a `reason` from its enumeration, and a superseded fact or run
-  names a `superseded_by` that resolves within the pool and is not itself
+- a retired fact or run carries a free-text `reason`, and a superseded fact or run names a
+  `superseded_by` that resolves within the pool and is not itself
 - entry ids are unique across the whole pool, facts and runs sharing one namespace
+
+**Correcting the facts pool is never blocked by a fact's citers.** Retiring a cited fact is
+never refused: supersede-and-retire lands in one change, and the gate requires that change to
+carry a backlog item per citing product, naming the retired fact, its replacement, and the
+citing entries. An in-force foundation resting on a retired fact is told loudly — a report
+scoped to the citing product, blocking only that product's own next landing, until a
+superseding entry re-bases or revises it (see *Publish is the merge* for the finding/report
+split). An entry declared after the retirement that cites the retired fact is an ordinary
+finding; staleness covers only citers that predate it.
 
 ### Citing what a claim rests on
 
@@ -975,16 +1144,6 @@ schema cannot express:
   requirements are fiat and need none. It exists so that a fact contradicting a requirement can
   be found rather than noticed.
 
-### Facets
-
-A **facet** is an optional label on a requirement or decision — one or a list — drawn from the
-vocabulary the product declares in its `product.yaml`, each an id with a description. A facet
-is a reading aid: the projection groups and filters by it, and no rule reads it. Nothing fences
-by facet, nothing escalates by facet, coverage and pinning ignore it — which is what keeps it
-cheap to assign and cheap to be wrong about.
-
-Facets do not draw component boundaries: where packages meet is decision content.
-
 ### A product maps to its packages
 
 A product spans one or more packages. A product exists exactly when a `product.yaml` sits at its
@@ -992,11 +1151,12 @@ root (see *The foundations*); the mapping carries `path` and `kind` per package,
 optional `repo` — GitHub `owner/repo` form, `twin-digital/opus` when unstated:
 
 ```yaml
-version: "1"
+version: "2"
 kind: process
 packages:
   - path: nodejs/plan/design-process
     kind: npm-cli
+    component: tooling
   - path: docs/process-reference.md
     kind: document
     repo: twin-digital/plan-opus
@@ -1005,6 +1165,15 @@ packages:
 The `path` is the workspace-relative directory or file, and it is also where an implementer
 works; anything else a kind might call for is read from the package at that path rather than
 duplicated, so the mapping cannot drift from what it maps.
+
+**A package entry declares the components it realizes**: an optional `component:` — one id or
+a list — descriptive and implementer-maintained like the rest of the mapping; absent reads as
+the product root. Coverage resolution maps a claim's scope through the component tree to the
+packages declaring those components. **Scope narrows what answers, never what an agent
+reads**: dispatch hands every implementer the whole fold, and a claim's scope decides which
+packages answer for it, through the component mapping, never which foundations an implementer
+reads. Survey stays whole-fold — a filter computed from a descriptive mapping would hide
+exactly the gaps survey exists to find.
 
 Creating, splitting, or moving a package is a decision like any other — proposed and ratified
 in Plan. The mapping
@@ -1016,7 +1185,7 @@ package entries at the same time it changes the implementation files they refere
 Consequences: released versions are per-package; coverage refs resolve through the mapping —
 the package path prefixes a `ref`, and the package's `repo` anchors it to a repository; a
 preset may read against one package of several, with the coverage manifest showing which
-package carries each adopted claim.
+package carries each claim a preset brings in.
 
 **A package need not be code.** For some products the deliverable is a document — a format's
 normative reference, a process description. Such a package takes `kind: document`, a `path`
@@ -1082,7 +1251,8 @@ calls, so dispatch never depends on a kind's waves:
 
 Survey maps to no wave; a shape partitions its waves across prepare and implement.
 
-The shape for code kinds — `npm-library`, `npm-cli`, `minecraft-addon`:
+The shape for code kinds — `npm-library`, `npm-cli`, `minecraft-addon`, `node-service`, and
+`web-app`:
 
 | wave | phase | produces | validated against |
 |---|---|---|---|
@@ -1092,7 +1262,11 @@ The shape for code kinds — `npm-library`, `npm-cli`, `minecraft-addon`:
 | **Document** | implement | READMEs and user-facing documentation | the implementation |
 
 Prepare may return as soon as the API stubs stand, with test authoring finishing inside
-implement, so dependents unblock at the earliest honest moment.
+implement, so dependents unblock at the earliest honest moment. What a code kind stands up in
+prepare is whatever a sibling compiles against: a `node-service` — a long-running process
+deployed and operated rather than installed by a consumer — stands up the surface it serves,
+while a `web-app` — a browser application built and served rather than imported — has nothing
+compiling against it, so its prepare is the no-op the shape already provides for.
 
 The shape for the `document` and `agent-skill` kinds:
 
@@ -1137,15 +1311,20 @@ and record, including overturning unpinned decisions.
 
 The companion increment is the **only channel**: every design change an implementation produces
 lands through it, as an ordinary design increment, and the implementation record carries no
-design content — target, packages, and coverage only. The merge gate reads only `proposed`, so
-a companion increment whose escalations were ruled as they arose lands gated by pull-request
-review and the validation checks rather than by per-entry rulings; ruling a delegated entry up
-— or reversing it — is implement-forward, whenever the owner chooses.
+design content — target, packages, and coverage only. The merge gate reads `proposed` entries
+and open questions, so a companion increment whose escalations were ruled as they arose lands
+gated by pull-request review and the validation checks rather than by per-entry rulings; ruling
+a delegated entry up — or reversing it — is implement-forward, whenever the owner chooses.
 
-At completion the companion increment is ratified as a whole — every decision ruled, every
-question answered or removed — and merges through the ordinary gate. **Only then does the
-implementation publish**: a design with no implementation is a safe state the process
-supports, and an implementation whose backing design has not published is not — so no package
+At completion the orchestrator puts the companion increment to the owner as the Plan phase puts
+a draft: the pull request opened, everything pushed, the url handed over, and the branch left
+alone while a sitting is open. What stays whole is the companion's **gate**, not its review —
+an all-`delegated` companion lands without a per-entry ruling, while every entry stays reachable
+in the ratify session for the owner who wants one.
+
+The companion merges through the ordinary gate, and **only then does the implementation
+publish**: a design with no implementation is a safe state the process supports, and an
+implementation whose backing design has not published is not — so no package
 version releases and no document deliverable goes live before the design increment its
 implementation targets is published. An implementation whose companion increment stayed empty
 simply closes it — an increment that declares nothing is not published.
@@ -1199,9 +1378,10 @@ rare and losing it is cheap.
 **Every claim in force
 carries coverage** — deferred decisions the one exception — and how much of the product rests
 on an agent's word alone is visible without reading the code. A claim is a requirement or a decision: both are assertions about the
-product, and an assertion nothing checks can quietly become false. What a requirement's
-evidence must demonstrate is its verification procedure — or its statement read literally,
-where it carries none.
+product, and an assertion nothing checks can quietly become false. **Requirements carry no
+verification procedure**: coverage evidence demonstrates the statement read literally. Where
+how a claim is checked is the owner's business, a conformance case carries it — owner-vetted,
+tied to the claim, filed with the implementation that covers it.
 
 **Coverage is the implementation's artifact, not the design's.** An implementation produces a
 record in the `implementations/` pool — a repo pool like `evidence/`, one record per
@@ -1251,7 +1431,7 @@ test.
 
 **A manifest names only claims in force at the increment its implementation targeted.** Once
 an implementation targets an increment, every requirement and decision in force there carries
-a coverage entry, adopted preset requirements included — except deferred decisions: no entry
+a coverage entry, applied preset requirements included — except deferred decisions: no entry
 may cover one directly, and a deferral without an answer is not a gap. An answered deferral's
 answer is an ordinary decision and carries ordinary coverage. Completeness is checked against
 the fold at the record's numeric target with draft increments excluded, so a record lands
@@ -1318,7 +1498,7 @@ packages, each scoped so an agent loads only the context its task needs, at
 permanent homes under `docs/` in this repository — this reference and the migration record —
 with instruction to agents shipping as agent-skill packages and `CLAUDE.md` rather than as a
 document. The content-quality tests for foundations — what makes a statement, a
-verification procedure, a decision, or a model entry good — are their own document package at
+decision, or a model entry good — are their own document package at
 `docs/authoring.md`, beside the reference and the migration record: one body of tests binding
 the writer of what each governs, reviewer-applied and never a validator rule.
 
@@ -1350,6 +1530,6 @@ contract, survey, the implementation-detail test, findings and escalation, the t
 list, the narrow scoping of a decision — and nothing kind-specific. Each kind's wave shape is a
 file beside it under `waves/`, linked from `SKILL.md` and read only by an implementer dispatched
 for that kind: `waves/code.md` carries the Define–Stub–Code–Document shape and governs
-`npm-library`, `npm-cli`, and `minecraft-addon`; `waves/document.md` carries the
-Claims–Compose–Check shape and governs `document` and `agent-skill`. Adding a kind is a file
-under `waves/` and its own wave-shape decision.
+`npm-library`, `npm-cli`, `minecraft-addon`, `node-service`, and `web-app`; `waves/document.md`
+carries the Claims–Compose–Check shape and governs `document` and `agent-skill`. Adding a kind
+is a file under `waves/` and its own wave-shape decision.

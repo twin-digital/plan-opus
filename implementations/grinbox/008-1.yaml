@@ -1,0 +1,1732 @@
+version: "1"
+product: grinbox
+target: 8
+built_at: 2026-08-09
+packages:
+  - path: nodejs/grinbox/server
+    version: "0.0.0"
+  - path: nodejs/grinbox/web
+    version: "0.0.0"
+  - path: nodejs/grinbox/shared
+    version: "0.0.0"
+coverage:
+  - claim: d-04s2n18o
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/run.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/registry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/types.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/body-fetch.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+  - claim: d-0t0dnhir
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/execution-loop.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/worker.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/classify-inputs.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/recovery.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/triage-enqueue.test.ts
+  - claim: d-0tebpjex
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/execution-loop.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/worker.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/classify-inputs.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/recovery.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/triage-enqueue.test.ts
+  - claim: d-16geyxco
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/execution-loop.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/worker.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/classify-inputs.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/recovery.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/triage-enqueue.test.ts
+  - claim: d-1uo9p5wq
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/app.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/messages.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/rpc-type.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/dashboard.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/web
+  - claim: d-2asvd71w
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/validation.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/operator-save.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/edit-lock.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/writes.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+  - claim: d-2dqylf0q
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/execution-loop.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/worker.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/classify-inputs.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/recovery.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/triage-enqueue.test.ts
+  - claim: d-2gyfmt8m
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/execution-loop.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/worker.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/classify-inputs.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/recovery.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/triage-enqueue.test.ts
+  - claim: d-3422l6jl
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/validation.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/operator-save.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/edit-lock.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/writes.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/web
+  - claim: d-3rav7te6
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/providers/gmail-provider.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-cycle.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/e2e-silent-triage.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/web
+  - claim: d-4t7lf4wd
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/app.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/messages.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/rpc-type.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/dashboard.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/web
+  - claim: d-506swwel
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/validation.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/operator-save.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/edit-lock.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/writes.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+  - claim: d-52lhql7t
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/run.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/registry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/types.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/body-fetch.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+  - claim: d-5h9ot6s7
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/web/package.json
+      - kind: attestation
+        ref: nodejs/grinbox/server
+  - claim: d-5l0wqcj0
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/app.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/messages.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/rpc-type.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/dashboard.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/web
+  - claim: d-5n8oyi8c
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/run.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/registry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/types.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/body-fetch.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+  - claim: d-5pdw87zm
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-runner.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/schedule.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+      - kind: code-test
+        ref: nodejs/grinbox/shared/src/index.test.ts
+  - claim: d-5xp2tv2d
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/execution-loop.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/worker.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/classify-inputs.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/recovery.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/triage-enqueue.test.ts
+  - claim: d-5xsm1hc6
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/db/migrator.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/db/bootstrap.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/db/seed.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/daemon.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/config.test.ts
+  - claim: d-6ct1o00j
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/web/dist/
+      - kind: attestation
+        ref: nodejs/grinbox/server
+  - claim: d-6fdulczu
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/execution-loop.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/worker.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/classify-inputs.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/recovery.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/triage-enqueue.test.ts
+  - claim: d-6vnf59rv
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-runner.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/schedule.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+      - kind: code-test
+        ref: nodejs/grinbox/shared/src/index.test.ts
+  - claim: d-6wgxtdn8
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/app.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/messages.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/rpc-type.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/dashboard.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/web
+  - claim: d-7a8aoi4z
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/providers/gmail-provider.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-cycle.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/e2e-silent-triage.test.ts
+  - claim: d-81ouxrpi
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/db/migrator.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/db/bootstrap.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/db/seed.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/daemon.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/config.test.ts
+  - claim: d-85ee8586
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-runner.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/schedule.test.ts
+  - claim: d-8fvu0g4z
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/providers/gmail-provider.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-cycle.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/e2e-silent-triage.test.ts
+  - claim: d-8nuuq7y0
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/crypto/encryption.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/token-store.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/flow.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/pkce.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/pending-auth.test.ts
+  - claim: d-8y8i45y2
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/validation.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/operator-save.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/edit-lock.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/writes.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+  - claim: d-8yht1ei9
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/crypto/encryption.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/token-store.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/flow.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/pkce.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/pending-auth.test.ts
+  - claim: d-95wp1n7r
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/run.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/registry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/types.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/body-fetch.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+  - claim: d-9hyzpk7j
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/crypto/encryption.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/token-store.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/flow.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/pkce.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/pending-auth.test.ts
+  - claim: d-a1pf497w
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/crypto/encryption.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/token-store.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/flow.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/pkce.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/pending-auth.test.ts
+  - claim: d-bnw0na3n
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/run.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/registry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/types.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/body-fetch.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+  - claim: d-c3dofuyf
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-runner.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/schedule.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/web/src/pages/pipelines/editors/action-editors.tsx
+  - claim: d-cciox4w5
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+  - claim: d-cgosh169
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/run.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/registry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/types.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/body-fetch.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+  - claim: d-cjjd5c0w
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/shared/package.json
+      - kind: attestation
+        ref: nodejs/grinbox/web/package.json
+      - kind: attestation
+        ref: nodejs/grinbox/server
+  - claim: d-cnjkypbb
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/run.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/registry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/types.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/body-fetch.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+  - claim: d-coeyvi2n
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/limits.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/make-resource-client.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/retry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/action-clients.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/writes.test.ts
+  - claim: d-dbjiycvl
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/db/migrator.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/db/bootstrap.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/db/seed.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/daemon.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/config.test.ts
+  - claim: d-dmwaark1
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/run.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/registry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/types.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/body-fetch.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+  - claim: d-dmylyoqs
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-runner.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/schedule.test.ts
+  - claim: d-drh5k4jx
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/crypto/encryption.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/token-store.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/flow.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/pkce.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/pending-auth.test.ts
+  - claim: d-eme4ratv
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/execution-loop.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/worker.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/classify-inputs.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/recovery.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/triage-enqueue.test.ts
+  - claim: d-eqwrgoyv
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/limits.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/make-resource-client.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/retry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/action-clients.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/writes.test.ts
+  - claim: d-ey4o63h1
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/providers/gmail-provider.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-cycle.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/e2e-silent-triage.test.ts
+  - claim: d-f5hy6ptl
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/run.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/registry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/types.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/body-fetch.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+  - claim: d-fg96l5uu
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-runner.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/schedule.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/shared/src/operators.ts
+  - claim: d-fzl3y2g5
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/db/migrator.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/db/bootstrap.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/db/seed.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/daemon.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/config.test.ts
+  - claim: d-hl6z38i6
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-runner.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/schedule.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+      - kind: code-test
+        ref: nodejs/grinbox/shared/src/index.test.ts
+  - claim: d-hv2uue12
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/providers/gmail-provider.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-cycle.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/e2e-silent-triage.test.ts
+  - claim: d-i6ly6ifk
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/app.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/messages.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/rpc-type.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/dashboard.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+  - claim: d-imlec3nt
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/run.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/registry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/types.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/body-fetch.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+  - claim: d-isyan49o
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/limits.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/make-resource-client.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/retry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/action-clients.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/writes.test.ts
+  - claim: d-jbqvsnox
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-runner.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/schedule.test.ts
+  - claim: d-jeyg1z1r
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/providers/gmail-provider.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-cycle.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/e2e-silent-triage.test.ts
+  - claim: d-jr86qq8b
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/providers/gmail-provider.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-cycle.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/e2e-silent-triage.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+  - claim: d-jsnfvo0m
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-runner.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/schedule.test.ts
+  - claim: d-jxipfcu0
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/shared/package.json
+      - kind: attestation
+        ref: nodejs/grinbox/web/package.json
+      - kind: attestation
+        ref: nodejs/grinbox/server
+  - claim: d-k5nnblfp
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/execution-loop.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/worker.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/classify-inputs.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/recovery.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/triage-enqueue.test.ts
+  - claim: d-kv9ipb56
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/run.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/registry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/types.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/body-fetch.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+  - claim: d-mq7vdduz
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+  - claim: d-mu0k7nbu
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/app.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/messages.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/rpc-type.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/dashboard.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/web
+  - claim: d-n75x2w30
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-runner.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/schedule.test.ts
+  - claim: d-nfsr4h6f
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/validation.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/operator-save.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/edit-lock.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/writes.test.ts
+  - claim: d-nol93aud
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/run.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/registry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/types.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/body-fetch.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+  - claim: d-npq16z9p
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/app.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/messages.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/rpc-type.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/dashboard.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/web
+  - claim: d-nq4fk2xr
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/providers/gmail-provider.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-cycle.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/e2e-silent-triage.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/web
+  - claim: d-nr71oscu
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/app.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/messages.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/rpc-type.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/dashboard.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/web
+  - claim: d-obzpbcml
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/db/migrator.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/db/bootstrap.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/db/seed.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/daemon.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/config.test.ts
+  - claim: d-ocqvnmfm
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-runner.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/schedule.test.ts
+  - claim: d-oectpw7n
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/run.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/registry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/types.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/body-fetch.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+  - claim: d-oq267pmh
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/run.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/registry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/types.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/body-fetch.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+  - claim: d-p77q4tob
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/static.test.ts
+  - claim: d-prxzi4zt
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-runner.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/schedule.test.ts
+  - claim: d-q5j1ig1f
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/limits.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/make-resource-client.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/retry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/action-clients.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/writes.test.ts
+  - claim: d-qcsxvo18
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/run.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/registry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/types.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/body-fetch.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+  - claim: d-qizjjf3n
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+  - claim: d-qrxtbcei
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/app.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/messages.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/rpc-type.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/dashboard.test.ts
+  - claim: d-qv5l66ya
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/limits.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/make-resource-client.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/retry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/action-clients.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/writes.test.ts
+  - claim: d-qwoyio2e
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/providers/gmail-provider.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-cycle.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/e2e-silent-triage.test.ts
+  - claim: d-r8iz7u3q
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-runner.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/schedule.test.ts
+  - claim: d-sj4u6eyj
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/providers/gmail-provider.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-cycle.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/e2e-silent-triage.test.ts
+  - claim: d-svanshcm
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-runner.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/schedule.test.ts
+  - claim: d-svk1emrj
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/validation.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/operator-save.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/edit-lock.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/writes.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+  - claim: d-ti7vexo3
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/app.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/messages.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/rpc-type.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/dashboard.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/web/src/lib/api.ts
+  - claim: d-tm2dbemu
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-runner.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/schedule.test.ts
+  - claim: d-txqxjxvp
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/shared/package.json
+      - kind: attestation
+        ref: nodejs/grinbox/web/package.json
+      - kind: attestation
+        ref: nodejs/grinbox/server
+  - claim: d-ty6fhiss
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/crypto/encryption.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/token-store.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/flow.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/pkce.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/pending-auth.test.ts
+  - claim: d-u2rotm38
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/validation.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/operator-save.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/edit-lock.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/writes.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+  - claim: d-urdglhb6
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/app.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/messages.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/rpc-type.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/dashboard.test.ts
+  - claim: d-v5fyd7xd
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/crypto/encryption.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/token-store.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/flow.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/pkce.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/pending-auth.test.ts
+  - claim: d-v5zamgjn
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/limits.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/make-resource-client.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/retry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/action-clients.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/writes.test.ts
+  - claim: d-vx1pxkyz
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+  - claim: d-wf49d4jb
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-runner.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/schedule.test.ts
+  - claim: d-whkazlor
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/run.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/registry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/types.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/body-fetch.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+  - claim: d-xe41okh9
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/crypto/encryption.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/token-store.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/flow.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/pkce.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/pending-auth.test.ts
+  - claim: d-yf30pvpd
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/db/migrator.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/db/bootstrap.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/db/seed.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/daemon.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/config.test.ts
+  - claim: d-yjd4ag9q
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/run.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/registry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/types.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/body-fetch.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+  - claim: d-ypmi8g3g
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/run.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/registry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/types.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/body-fetch.test.ts
+  - claim: d-yz5n7wmu
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/providers/gmail-provider.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-cycle.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/e2e-silent-triage.test.ts
+  - claim: d-z0gmsbkl
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-runner.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/schedule.test.ts
+  - claim: d-z5opt8rp
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/providers/gmail-provider.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-cycle.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/e2e-silent-triage.test.ts
+  - claim: d-z7b2kksz
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/crypto/encryption.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/token-store.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/flow.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/pkce.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/pending-auth.test.ts
+  - claim: r-0kn0oida
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/crypto/encryption.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/token-store.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/flow.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/pkce.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/pending-auth.test.ts
+  - claim: r-0lg2c2e4
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/execution-loop.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/worker.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/classify-inputs.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/recovery.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/triage-enqueue.test.ts
+  - claim: r-1698i3qa
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/execution-loop.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/worker.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/classify-inputs.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/recovery.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/triage-enqueue.test.ts
+  - claim: r-56o7qts0
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/app.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/messages.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/rpc-type.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/dashboard.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/web
+  - claim: r-5ezt7j0v
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/validation.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/operator-save.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/edit-lock.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/writes.test.ts
+  - claim: r-63vrxr22
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/execution-loop.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/worker.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/classify-inputs.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/recovery.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/triage-enqueue.test.ts
+  - claim: r-6r489hbd
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+      - kind: manual-check
+        ref: nodejs/grinbox/shared/package.json engines.node
+  - claim: r-82ck2fax
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+      - kind: manual-check
+        ref: nodejs/grinbox/shared/pnpm sync leaves the tree clean
+  - claim: r-a2qxqnwk
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/app.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/messages.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/rpc-type.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/dashboard.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/web
+  - claim: r-bcbvl9g5
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/app.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/messages.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/rpc-type.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/dashboard.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/web
+  - claim: r-brdf1c2g
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+      - kind: manual-check
+        ref: nodejs/grinbox/shared/package.json
+  - claim: r-etj0gluz
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/providers/gmail-provider.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-cycle.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/e2e-silent-triage.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+  - claim: r-fzuyjkts
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/crypto/encryption.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/token-store.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/flow.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/pkce.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/pending-auth.test.ts
+  - claim: r-g6n22sn9
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-runner.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/schedule.test.ts
+  - claim: r-i55lgsq8
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-runner.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/schedule.test.ts
+  - claim: r-ieyj1wkn
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/crypto/encryption.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/token-store.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/flow.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/pkce.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/pending-auth.test.ts
+  - claim: r-jje7gb9a
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-runner.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/schedule.test.ts
+  - claim: r-jp85k5ma
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/db/migrator.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/db/bootstrap.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/db/seed.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/daemon.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/config.test.ts
+  - claim: r-k6gh82fx
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/app.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/messages.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/rpc-type.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/dashboard.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/web
+  - claim: r-ls4dvyj7
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/providers/gmail-provider.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-cycle.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/poll-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/poll/e2e-silent-triage.test.ts
+  - claim: r-ovi02v1m
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+  - claim: r-p2djwgjn
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/crypto/encryption.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/token-store.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/flow.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/pkce.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/oauth/pending-auth.test.ts
+  - claim: r-p5jm5559
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/limits.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/make-resource-client.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/retry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/action-clients.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/writes.test.ts
+  - claim: r-paoy41od
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+      - kind: manual-check
+        ref: nodejs/grinbox/shared/dist/*.d.ts
+  - claim: r-qu9y7wgg
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/validation.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/operator-save.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/pipeline/edit-lock.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/writes.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/web
+  - claim: r-sfvm6ib3
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/run.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/registry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/types.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/body-fetch.test.ts
+  - claim: r-ut5mdtpx
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/run.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/registry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/types.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/body-fetch.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/shared
+  - claim: r-vd9mu8od
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-runner.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/schedule.test.ts
+  - claim: r-xy0yd2nh
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/run.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/registry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/types.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/body-fetch.test.ts
+  - claim: r-y8wc6ldk
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/web/package.json
+      - kind: attestation
+        ref: nodejs/grinbox/server
+  - claim: r-yq13riob
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-runner.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/digest-scheduler.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/digest/schedule.test.ts
+  - claim: r-zagpfz75
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/limits.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/make-resource-client.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/retry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/action-clients.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/writes.test.ts
+  - claim: r-ziitim35
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/run.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/registry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/operators/types.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/execution/body-fetch.test.ts
+  - claim: r-zmn2p7lf
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/limits.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/make-resource-client.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/retry.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/resources/action-clients.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/writes.test.ts
+  - claim: r-zpdecb2z
+    covered_by:
+      - kind: attestation
+        ref: nodejs/grinbox/server
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/app.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/messages.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/rpc-type.test.ts
+      - kind: code-test
+        ref: nodejs/grinbox/server/src/http/api/dashboard.test.ts
+      - kind: attestation
+        ref: nodejs/grinbox/web

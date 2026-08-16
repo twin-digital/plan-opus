@@ -72,7 +72,9 @@ happens:
 
 - **facts** — what research finds, at the evidence bar: a documented upstream citation with a
   verbatim quote, or a test you ran with its artifacts and a recorded run under `evidence/`.
-  Search `node bin/foundations.mjs --facts` and cite what exists before recording.
+  Search `node bin/foundations.mjs --facts` and cite what exists before recording. A merged
+  fact or run is frozen — correcting one is supersede-and-retire, under the debt contract
+  `docs/process-reference.md` states at the facts pool.
 - **open questions** — `questions.yaml`, for an unknown you cannot answer, routed by `answer`
   (fact, decision, or requirement); raising one is a form of answering now, and beats a guess.
 - **decisions** — the big-picture calls that follow from the requirements, entering `proposed`.
@@ -82,6 +84,8 @@ happens:
   it and it stands in force as the license its answer cites; a question routed to a decision may
   close by minting one, and a deferral is not superseded by its answer.
 - **contracts** — the shapes the design speaks about, bound through the model as they settle.
+- **components and terms** — declared in the requirements source where the design needs them,
+  ratified with the increment; `docs/process-reference.md` carries their rules.
 
 **Plan fixes the public shape only.** Structure below the package surface is the implementer's;
 pre-deciding internal names and boundaries from the plan tier manufactures churn. Files under the
@@ -107,8 +111,9 @@ loop.
   **implementation detail**, by the test `docs/process-reference.md` carries at *Every choice is
   accounted for*. A choice that is none of the three is a gap, and the gaps route back into
   Clarify.
-- A census the draft acted on persists at `drafts/survey-census.yaml` in the draft directory that
-  ran it; one acted on in no way is discarded.
+- The census is transient. It returns as structured YAML — per-package entries the dispatcher
+  concatenated — and once every choice is classified and the resulting foundations land in the
+  draft's sources, discard it: nothing persists in the tree.
 
 ## 5. Ratify — the loop
 

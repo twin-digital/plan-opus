@@ -93,3 +93,176 @@ facts:
           villager registered nothing visible is the ground for assuming it registered nothing
           invisible either.
 
+
+  # Facts from the village-structure probe (Bedrock 1.26.40.8), recorded in
+  # evidence/minecraft/gameplay/village-structures-probe/RESULTS.md. Read out of the world's own
+  # LevelDB records rather than inferred from the mobs, because the script API exposes no village.
+
+  - id: bedrock-keeps-a-village-in-four-leveldb-records
+    claim: |
+      A Bedrock world stores each village as four NBT records in its LevelDB, keyed
+      `VILLAGE_<dimension>_<uuid>_INFO`, `_DWELLERS`, `_POI` and `_PLAYERS` — the village's bounds,
+      the entities belonging to it, its points of interest, and the per-player reputation. The
+      dimension is part of the key, not only the uuid. A world holding no village holds no village
+      key at all, so presence of the record is itself the test for whether a village exists.
+    backing: tested
+    sources:
+      - run: village-structures-wreck
+        where: "`wreck` — the village record after every structure was destroyed and the chunk reloaded"
+        quote: |
+          village 50-after-reload :: id=Overworld_89703a4e-63c0-43c0-add4-8b6984bea968 dwellers=30/0/0/0 poiEntries=30 poiInstances=30 poiNames={"villager":30} players=0 bounds=132,196,88,112,133,197
+      - run: village-structures-baseline
+        where: "`baseline` — a world before any village formed"
+        quote: |
+          records 00-empty :: totalKeys=7 villages=0 ids=[]
+
+  - id: a-destroyed-bed-does-not-release-its-village-point-of-interest
+    claim: |
+      Breaking a bed leaves the village's record of it standing.
+    backing: tested
+    status: retired
+    reason: superseded
+    superseded_by: a-villagers-claimed-bed-poi-outlives-the-bed
+    sources:
+      - run: village-structures-wreck
+        where: "`wreck` — the world after every village block was destroyed"
+        quote: |
+          [2026-08-07 18:49:48:944 WARN] [Scripting] [vgvil] destroy :: destroyed=all counts={"beds":0,"occupied":0,"jobs":0,"bells":0}
+      - run: village-structures-wreck
+        where: "`wreck` — the village record still naming 30 beds"
+        quote: |
+          village 50-after-reload :: id=Overworld_89703a4e-63c0-43c0-add4-8b6984bea968 dwellers=30/0/0/0 poiEntries=30 poiInstances=30 poiNames={"villager":30} players=0 bounds=132,196,88,112,133,197
+
+  - id: villager-breeding-continues-with-every-bed-destroyed
+    claim: |
+      Destroying every bed does not stop villagers breeding. 3 villagers were born in the 2,400
+      ticks after all 30 beds were destroyed, and 11 in the 7,200 ticks after the beds, job sites
+      and bell had all been destroyed together. Breeding is not interrupted and so does not need to
+      resume.
+    backing: tested
+    sources:
+      - run: village-structures-breed
+        where: "`breed` — the phase after every bed was destroyed"
+        quote: |
+          [2026-08-07 18:52:01:551 WARN] [Scripting] [vgvil] watch :: phase-end name=no-beds ticks=2400 bornInPhase=3 golemSpawnsInPhase=0 deathsInPhase=0
+      - run: village-structures-wreck
+        where: "`wreck` — the phase after beds, job sites and bell were all destroyed"
+        quote: |
+          [2026-08-07 18:56:14:995 WARN] [Scripting] [vgvil] watch :: phase-end name=razed ticks=7200 bornInPhase=11 golemSpawnsInPhase=0 deathsInPhase=0
+
+  - id: villagers-survive-an-unload-with-no-village-structures-standing
+    claim: |
+      Villagers are not lost when a village's structures are gone. With no bed, job site or bell in
+      the world, dropping the ticking area took all 30 villagers out of view and re-adding it
+      brought all 30 back, still breeding afterwards. No villager was lost in any phase of any
+      scenario, with or without structures.
+    backing: tested
+    sources:
+      - run: village-structures-wreck
+        where: "`wreck` — the chunk unload"
+        quote: |
+          [2026-08-07 18:56:55:692 WARN] [Scripting] [vgvil] unload :: unload villagersVisible=0
+      - run: village-structures-wreck
+        where: "`wreck` — the reload"
+        quote: |
+          [2026-08-07 18:57:31:194 WARN] [Scripting] [vgvil] reload :: reload villagersVisible=30 golemsVisible=0
+
+  - id: destroying-a-villages-bell-changes-nothing-observable
+    claim: |
+      Removing a village's bell while its beds and job sites stand changes nothing this probe could
+      observe: villagers went on breeding at the same rate — 7 births in the 2,400 ticks after the
+      bell was destroyed against 9 before — and the village record was unaffected.
+    caveat: |
+      Only counts, positions and the village records were observed. The bell's vanilla role is the
+      midday gathering and the raid warning, neither of which is reachable without a client
+      watching, so this says the village survives the bell rather than that nothing at all changes.
+    backing: tested
+    sources:
+      - run: village-structures-bell
+        where: "`bell` — the bell destroyed, beds and job sites left standing"
+        quote: |
+          [2026-08-07 18:58:02:341 WARN] [Scripting] [vgvil] destroy :: destroyed=bell counts={"beds":30,"occupied":0,"jobs":15,"bells":0}
+      - run: village-structures-bell
+        where: "`bell` — the phase after"
+        quote: |
+          [2026-08-07 19:00:28:642 WARN] [Scripting] [vgvil] watch :: phase-end name=no-bell ticks=2400 bornInPhase=7 golemSpawnsInPhase=0 deathsInPhase=0
+
+  - id: a-villager-that-never-claimed-a-job-site-keeps-its-profession
+    claim: |
+      A command-spawned villager arrives carrying a profession it did not take from a block, and
+      destroying every job site in the village does not change it: all seven tracked villagers read
+      the same profession triple before and after, and again after the blocks were rebuilt.
+    caveat: |
+      This is measured only on villagers whose profession did not come from a job site — the
+      village's point-of-interest slots for job sites read unclaimed throughout, so no villager ever
+      held one to lose. Whether a villager that earned its profession at a block keeps it when that
+      block goes, and whether trading first locks it, are both unmeasured: they need a player, and
+      neither the script API nor this rig has one.
+    backing: tested
+    sources:
+      - run: village-structures-jobs
+        where: "`jobs` — the professions either side of destroying every job site"
+        quote: |
+          [2026-08-07 18:39:44:300 WARN] [Scripting] [vgvil] diff :: professions after-jobs-destroyed tracked=7 unchanged=7 moves=[4584:v14m0s2->v14m0s2,4590:v10m0s5->v10m0s5,4591:v4m0s1->v4m0s1,4587:v8m0s2->v8m0s2,4585:v11m0s3->v11m0s3,4589:v10m0s2->v10m0s2,4588:v13m0s4->v13m0s4]
+
+  - id: a-villagers-claimed-bed-poi-outlives-the-bed
+    claim: |
+      A village's `POI` record holds one entry per villager, keyed by that villager's id, each with
+      three claim slots. A villager that has claimed a bed carries it in the first slot as a named
+      point at the bed's own coordinates, with the other two slots unclaimed; the entry count
+      therefore tracks villagers rather than beds — 30 beds and 5 villagers gave 5 entries, not 30.
+
+      That claim outlives the block. Across four captures of one run — beds standing, beds just
+      destroyed, a window with no beds at all, and beds rebuilt — every villager's slot held the same
+      coordinates throughout, matching the grid the beds were placed on. Destroying the bed does not
+      clear the claim, and rebuilding does not cause it to be re-taken.
+    caveat: |
+      What the claim's persistence costs is unmeasured. No villager ever slept — occupancy read zero
+      in every capture, including through a full night — so whether a stale claim still functions as
+      a bed for sleeping, breeding or golem spawning is not established here. The related reading
+      that a village's breeding ceiling is its recorded bed count is *not* supported: villagers and
+      POI entries move together because there is one entry per villager, which makes the comparison
+      circular. This supersedes
+      [[f:a-destroyed-bed-does-not-release-its-village-point-of-interest]], which made that mistake.
+    backing: tested
+    sources:
+      - description: |
+          The `beds` scenario captures the village records at four points — beds standing, beds just
+          destroyed, a window with no beds, and beds rebuilt — parsed into
+          evidence/minecraft/gameplay/village-structures-probe/records/beds/. Every villager's first
+          claim slot holds the same coordinates in all four, and those coordinates fall on the grid
+          the probe placed beds on (x = 149 + 3*col, z = 153 + 3*row about the arena centre), which
+          is what identifies the slot as the bed claim.
+      - run: village-structures-breed
+        where: "`breed` — 5 villagers in a village of 30 beds, giving 5 POI entries rather than 30"
+        quote: |
+          village 10-breeding :: id=Overworld_0de543f0-9834-4571-9790-cfe3dd0e3c02 dwellers=5/0/0/0 poiEntries=5 poiInstances=5 poiNames={"villager":5} players=0 bounds=117,181,88,112,133,197
+      - run: village-structures-wreck
+        where: "`wreck` — the world with every village block destroyed"
+        quote: |
+          [2026-08-07 18:49:48:944 WARN] [Scripting] [vgvil] destroy :: destroyed=all counts={"beds":0,"occupied":0,"jobs":0,"bells":0}
+
+  - id: a-pistons-horizontal-facing-direction-points-away-from-its-arm
+    claim: |
+      A piston placed by `setblock` with `["facing_direction"=N]` on Bedrock 1.26.43.1 sends its arm
+      the opposite way from what the value's usual reading suggests on the two horizontal axes, and
+      the expected way vertically. Firing one piston per value in empty air, powered by a redstone
+      block beneath it, put the arm at +y for 1, +z for 2, -z for 3, +x for 4, and -x for 5 — so 4 is
+      the value that pushes toward +x, not 5. A piston set to 0 did not extend, its arm being aimed
+      into the redstone block that powered it. Redstone works with no player connected as long as the
+      area is a ticking area: every one of these fired.
+    backing: tested
+    caveat: |
+      Read from where the `minecraft:piston_arm_collision` block landed, which is what a piston puts in
+      the block its arm occupies. Only the piston is covered; other blocks carrying a
+      `facing_direction` state are not measured and need not agree.
+    sources:
+      - run: run-40cmv8ds
+        where: the calibration round, one piston per facing_direction value in an empty scratch arena
+        quote: |
+          [2026-08-11 16:03:35:972 WARN] [Scripting] PISTON cal facing_direction=0 arm=did-not-extend
+          [2026-08-11 16:03:35:972 WARN] [Scripting] PISTON cal facing_direction=1 arm=+y
+          [2026-08-11 16:03:35:972 WARN] [Scripting] PISTON cal facing_direction=2 arm=+z
+          [2026-08-11 16:03:35:972 WARN] [Scripting] PISTON cal facing_direction=3 arm=-z
+          [2026-08-11 16:03:35:972 WARN] [Scripting] PISTON cal facing_direction=4 arm=+x
+          [2026-08-11 16:03:35:973 WARN] [Scripting] PISTON cal facing_direction=5 arm=-x

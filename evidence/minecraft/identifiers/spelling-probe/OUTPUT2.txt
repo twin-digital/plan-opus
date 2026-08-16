@@ -1,0 +1,71 @@
+# bedrock namespace-character probe, part 2
+
+--- case-follow-up bp=[{"pack_id":"5f2c1c4e-1d7a-4f3b-9d21-6a7c0f1e2b30","version":[0,1,0]}] rp=[{"pack_id":"3d8f9b02-6a41-4c55-9f7e-2b0c8d16a4f7","version":[0,1,0]}] ---
+
+--- rp-broken-control bp=[{"pack_id":"5f2c1c4e-1d7a-4f3b-9d21-6a7c0f1e2b30","version":[0,1,0]}] rp=[{"pack_id":"b41d7e26-3a90-4f18-9c02-5e7d1a638b4c","version":[0,1,0]}] ---
+
+server=1.26.43.1 bp=5f2c1c4e-1d7a-4f3b-9d21-6a7c0f1e2b30 rp=3d8f9b02-6a41-4c55-9f7e-2b0c8d16a4f7 rp2=b41d7e26-3a90-4f18-9c02-5e7d1a638b4c
+
+=== raw [nsprobe] lines from this part, delivery order ===
+[2026-08-12 04:23:10:738 WARN] [Scripting] [nsprobe] boot :: ready cases=13
+[2026-08-12 04:23:15:925 WARN] [Scripting] [nsprobe] case-follow-up :: start
+[2026-08-12 04:23:16:881 WARN] [Scripting] [nsprobe] arena :: built centre=(163,100,170) floor=minecraft:stone attempts=1
+[2026-08-12 04:23:17:131 WARN] [Scripting] [nsprobe] case-follow-up/case :: EntityTypes.get(probe_ns:subject) -> type id=probe_ns:subject
+[2026-08-12 04:23:17:131 WARN] [Scripting] [nsprobe] case-follow-up/case :: EntityTypes.get(probe_ns:SubJect) -> type id=probe_ns:SubJect
+[2026-08-12 04:23:17:131 WARN] [Scripting] [nsprobe] case-follow-up/case :: EntityTypes.get(PROBE_NS:SUBJECT) -> undefined
+[2026-08-12 04:23:17:131 WARN] [Scripting] [nsprobe] case-follow-up/case :: EntityTypes.get(probe_ns:subJect) -> undefined
+[2026-08-12 04:23:17:131 WARN] [Scripting] [nsprobe] case-follow-up/case :: EntityTypes.get(ProbeNS:subject) -> type id=ProbeNS:subject
+[2026-08-12 04:23:17:131 WARN] [Scripting] [nsprobe] case-follow-up/case :: EntityTypes.get(probens:subject) -> undefined
+[2026-08-12 04:23:17:380 WARN] [Scripting] [nsprobe] case-follow-up/case :: api-spawned typeId=probe_ns:SubJect
+[2026-08-12 04:23:17:381 WARN] [Scripting] [nsprobe] case-follow-up/case :: with-api-spawned getEntities({type:probe_ns:SubJect}).length=0
+[2026-08-12 04:23:17:381 WARN] [Scripting] [nsprobe] case-follow-up/case :: with-api-spawned getEntities({type:probe_ns:subject}).length=0
+[2026-08-12 04:23:17:381 WARN] [Scripting] [nsprobe] case-follow-up/case :: with-api-spawned getEntities({type:PROBE_NS:SUBJECT}).length=0
+[2026-08-12 04:23:17:381 WARN] [Scripting] [nsprobe] case-follow-up/case :: with-api-spawned cmd testfor @e[type=probe_ns:subject] successCount=0
+[2026-08-12 04:23:17:630 WARN] [Scripting] [nsprobe] case-follow-up/case :: cmd summon probe_ns:SubJect successCount=1
+[2026-08-12 04:23:17:880 WARN] [Scripting] [nsprobe] case-follow-up/case :: cmd-summoned typeId=probe_ns:subject
+[2026-08-12 04:23:17:880 WARN] [Scripting] [nsprobe] case-follow-up/case :: end
+[2026-08-12 04:23:17:880 WARN] [Scripting] [nsprobe] case-follow-up :: complete
+[2026-08-12 04:23:25:475 WARN] [Scripting] [nsprobe] boot :: ready cases=13
+[2026-08-12 04:23:30:671 WARN] [Scripting] [nsprobe] rp-broken-control :: start
+[2026-08-12 04:23:31:739 WARN] [Scripting] [nsprobe] arena :: built centre=(163,100,170) floor=minecraft:stone attempts=1
+[2026-08-12 04:23:31:987 WARN] [Scripting] [nsprobe] rp-broken-control/case :: EntityTypes.get(probe_ns:subject) -> type id=probe_ns:subject
+[2026-08-12 04:23:31:987 WARN] [Scripting] [nsprobe] rp-broken-control/case :: EntityTypes.get(probe_ns:SubJect) -> type id=probe_ns:SubJect
+[2026-08-12 04:23:31:987 WARN] [Scripting] [nsprobe] rp-broken-control/case :: EntityTypes.get(PROBE_NS:SUBJECT) -> undefined
+[2026-08-12 04:23:31:987 WARN] [Scripting] [nsprobe] rp-broken-control/case :: EntityTypes.get(probe_ns:subJect) -> undefined
+[2026-08-12 04:23:31:987 WARN] [Scripting] [nsprobe] rp-broken-control/case :: EntityTypes.get(ProbeNS:subject) -> type id=ProbeNS:subject
+[2026-08-12 04:23:31:987 WARN] [Scripting] [nsprobe] rp-broken-control/case :: EntityTypes.get(probens:subject) -> undefined
+[2026-08-12 04:23:32:237 WARN] [Scripting] [nsprobe] rp-broken-control/case :: api-spawned typeId=probe_ns:SubJect
+[2026-08-12 04:23:32:237 WARN] [Scripting] [nsprobe] rp-broken-control/case :: with-api-spawned getEntities({type:probe_ns:SubJect}).length=0
+[2026-08-12 04:23:32:237 WARN] [Scripting] [nsprobe] rp-broken-control/case :: with-api-spawned getEntities({type:probe_ns:subject}).length=0
+[2026-08-12 04:23:32:238 WARN] [Scripting] [nsprobe] rp-broken-control/case :: with-api-spawned getEntities({type:PROBE_NS:SUBJECT}).length=0
+[2026-08-12 04:23:32:241 WARN] [Scripting] [nsprobe] rp-broken-control/case :: with-api-spawned cmd testfor @e[type=probe_ns:subject] successCount=0
+[2026-08-12 04:23:32:488 WARN] [Scripting] [nsprobe] rp-broken-control/case :: cmd summon probe_ns:SubJect successCount=1
+[2026-08-12 04:23:32:736 WARN] [Scripting] [nsprobe] rp-broken-control/case :: cmd-summoned typeId=probe_ns:subject
+[2026-08-12 04:23:32:737 WARN] [Scripting] [nsprobe] rp-broken-control/case :: end
+[2026-08-12 04:23:32:737 WARN] [Scripting] [nsprobe] rp-broken-control :: complete
+
+=== every non-scripting WARN/ERROR line from this part ===
+[2026-08-12 04:23:10:572 ERROR] [Commands] enum name: <EntityType> | Keywords in commands need to be lower case. 'probe_ns:SubJect' was not registered.
+[2026-08-12 04:23:10:572 ERROR] [Commands] enum name: <EntityType> | Keywords in commands need to be lower case. 'ProbeNS:subject' was not registered.
+[2026-08-12 04:23:10:572 ERROR] [Commands] enum name: <EntityTypeSelector> | Keywords in commands need to be lower case. 'probe_ns:SubJect' was not registered.
+[2026-08-12 04:23:10:572 ERROR] [Commands] enum name: <EntityTypeSelector> | Keywords in commands need to be lower case. 'ProbeNS:subject' was not registered.
+[2026-08-12 04:23:10:723 WARN] ================ ALLOW LIST WARNING ===================
+[2026-08-12 04:23:10:723 WARN] Allow list is enabled but contains no entries.
+[2026-08-12 04:23:10:723 WARN] Use allowlist add <playername> for you and your friends so that they can access the server, or modify allowlist.json manually.
+[2026-08-12 04:23:10:723 WARN]
+[2026-08-12 04:23:10:723 WARN] =======================================================
+[2026-08-12 04:23:25:312 ERROR] [Commands] enum name: <EntityType> | Keywords in commands need to be lower case. 'probe_ns:SubJect' was not registered.
+[2026-08-12 04:23:25:312 ERROR] [Commands] enum name: <EntityType> | Keywords in commands need to be lower case. 'ProbeNS:subject' was not registered.
+[2026-08-12 04:23:25:312 ERROR] [Commands] enum name: <EntityTypeSelector> | Keywords in commands need to be lower case. 'probe_ns:SubJect' was not registered.
+[2026-08-12 04:23:25:312 ERROR] [Commands] enum name: <EntityTypeSelector> | Keywords in commands need to be lower case. 'ProbeNS:subject' was not registered.
+[2026-08-12 04:23:25:461 WARN] ================ ALLOW LIST WARNING ===================
+[2026-08-12 04:23:25:461 WARN] Allow list is enabled but contains no entries.
+[2026-08-12 04:23:25:461 WARN] Use allowlist add <playername> for you and your friends so that they can access the server, or modify allowlist.json manually.
+[2026-08-12 04:23:25:461 WARN]
+[2026-08-12 04:23:25:461 WARN] =======================================================
+
+=== every Pack Stack line from this part ===
+[2026-08-12 04:23:09:756 INFO] Pack Stack - [00] namespace character probe (behavior) (id: 5f2c1c4e-1d7a-4f3b-9d21-6a7c0f1e2b30, version: 0.1.0) @ development_behavior_packs/nsprobebp
+[2026-08-12 04:23:24:542 INFO] Pack Stack - [00] namespace character probe (behavior) (id: 5f2c1c4e-1d7a-4f3b-9d21-6a7c0f1e2b30, version: 0.1.0) @ development_behavior_packs/nsprobebp
+
+=== end ===
