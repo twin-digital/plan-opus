@@ -1,0 +1,21 @@
+version: "1"
+
+decisions:
+  - id: d-pd9900jm
+    title: script sources live in the package's src directory
+    statement: |
+      a pack package's script sources sit under `src/`, with `src/main.ts` the bundle entry. a pack
+      directory — `behavior_pack/`, `resource_pack/` — holds only pack content: its manifest and the
+      files copied verbatim into the output tree. nothing under a pack directory is a build input,
+      and a pack directory holds no `scripts/` directory at all.
+
+      the built bundle still lands at `<pack>/scripts/main.js` in the output tree, where the engine
+      requires it. what moves is the source, not the output.
+    status: accepted
+    supersedes: d-d727qv5z
+    pinned:
+      reason: other
+      notes: the source layout a consuming pack package must follow
+    because:
+      - r-umoo5i1i
+    facets: build
