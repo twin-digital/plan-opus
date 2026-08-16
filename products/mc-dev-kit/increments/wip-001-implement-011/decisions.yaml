@@ -12,7 +12,7 @@ decisions:
       of every module in the bundle — `packToken` the package's npm name with the `@` dropped and
       the `/` a hyphen, `prefixes` the frozen, sorted prefixes of the merged vendored packs. With
       namespacing off nothing is assigned, and every runtime read sees the global absent.
-    status: proposed
+    status: accepted
     scope: [build, runtime]
     pinned:
       reason: public-api
@@ -32,7 +32,7 @@ decisions:
     commentary: |
       A contended identifier resolves to one whole definition, and the loser's family is what
       goes absent (f-1yo29upp) — a namespace-keyed family could not say whose definition won.
-    status: proposed
+    status: accepted
     scope: [build, runtime]
     pinned:
       reason: public-api
@@ -51,7 +51,7 @@ decisions:
       registered types whose identifier carries its own namespace and the `mcdk_claim_` prefix
       with another pack's token. The `mcdk_claim_` name space is reserved: a bare name that
       would land in it fails the build.
-    status: proposed
+    status: delegated
     scope: [build, runtime]
     pinned:
       reason: public-api
@@ -81,7 +81,7 @@ decisions:
       guard the pack's own types and nothing else. A dotted first segment is always a prefix
       claim, since bare declarations are dot-free by build rule, so an unknown one is a typo or
       an un-merged dependency and silent passthrough would spell a nonexistent entity.
-    status: proposed
+    status: accepted
     scope: [runtime]
     pinned:
       reason: public-api
@@ -100,7 +100,7 @@ decisions:
       `foreignNamespaceClaims()` answers the most recent world-load enumeration, and called
       before one has happened it throws naming the boundary — never an empty list, which would
       read as "no rivals" while nothing is known yet.
-    status: proposed
+    status: accepted
     scope: [runtime]
     pinned:
       reason: public-api
@@ -123,7 +123,7 @@ decisions:
       as their token. A vendored asset's name carries its library's token and a content hash
       instead, so an identical name is identical bytes: consumers share names exactly where
       content is unchanged, and an upgrade renames exactly the assets that changed.
-    status: proposed
+    status: accepted
     scope: [build]
     pinned:
       reason: data-format
@@ -159,7 +159,7 @@ decisions:
       - when: a vendored material names a vendored parent
         then: the parent's final name folds into the hash, recursively; a cycle fails the build naming the file
       - otherwise: a file's hash is its bytes alone, and every declaration in the file shares it
-    status: proposed
+    status: delegated
     scope: [build]
     pinned:
       reason: data-format
@@ -184,7 +184,7 @@ decisions:
         then: the build fails naming both; an explicit `vendor` prefix is the fix
       - when: a vendored module imports the runtime
         then: its `packId` is bound as `name => packId('<prefix>.' + name)`, so computed names work
-    status: proposed
+    status: accepted
     scope: [build, runtime]
     pinned:
       reason: public-api
@@ -216,7 +216,7 @@ decisions:
       - when: a `vendor` name resolves to no package holding a `vendored_pack/` tree
         then: the build fails naming it
       - otherwise: a name nothing reachable declares copies through as written
-    status: proposed
+    status: accepted
     scope: [build]
     pinned:
       reason: public-api
@@ -319,7 +319,7 @@ decisions:
       - when: the file is `.json`, `.material`, `.lang` or `.mcfunction` outside the modeled locations
         then: the build fails naming the file
       - otherwise: the file copies unchanged, dotfiles and unknown extensions included
-    status: proposed
+    status: delegated
     scope: [build]
     pinned:
       reason: public-api
@@ -343,7 +343,7 @@ decisions:
       render-controller names; a behavior entity's identifier and animation names; a material's
       parent; geometry identifiers in both declaration forms; and the two localization key forms.
       A declared name anywhere else copies as written.
-    status: proposed
+    status: delegated
     scope: [build]
     pinned:
       reason: public-api
@@ -364,7 +364,7 @@ decisions:
       entries first, then each vendored pack's in name order — and any other shared path fails
       the build naming both contributing files. Vendored files otherwise keep their
       source-relative paths, textures excepted, whose path moves with their name.
-    status: proposed
+    status: delegated
     scope: [build]
     pinned:
       reason: data-format
