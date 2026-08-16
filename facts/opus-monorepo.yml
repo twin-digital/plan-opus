@@ -136,3 +136,28 @@ facts:
           and tagged too — a dependency bump or shared-config change that touches them belongs in the
           changeset just like a published library. The publish workflow opens/merges the "Version
           Packages" PR and publishes.
+
+  - id: opus-pack-archive-carries-only-the-packages-own-packs
+    claim: |
+      `mc-pack-archive` cuts a package's release `.mcaddon` from that package's own `dist/` output
+      tree, and its members are fixed in source: `dist/behavior_pack` and `dist/resource_pack`, one
+      `.mcpack` each. The command's input is the package directory it runs in and nothing else, so
+      an adventure's archive cannot carry a dependency's packs — bundling a foreign pack would be a
+      kit capability that does not exist.
+    backing: documented
+    sources:
+      - url: https://github.com/twin-digital/opus/blob/dfd8f1bf51ef0cd64a6737ee235bb065c3340859/nodejs/minecraft/mc-dev-kit/src/internal/archive.ts
+        where: PACK_MEMBERS — the fixed member list
+        quote: |
+          /** The pack kinds an output tree may hold, and the mcpack member each is cut into. */
+          export const PACK_MEMBERS = [
+            ['behavior_pack', 'behavior_pack.mcpack'],
+            ['resource_pack', 'resource_pack.mcpack'],
+          ] as const
+      - url: https://github.com/twin-digital/opus/blob/dfd8f1bf51ef0cd64a6737ee235bb065c3340859/nodejs/minecraft/mc-dev-kit/src/internal/archive.ts
+        where: archivePackage — the doc comment describing the input tree
+        quote: |
+          The tree is the whole of the input: the packs are the kind-named directories `dist/` holds, and
+          the kit is never called, so a tree stale with respect to source is archived as it stands. Each
+          pack becomes one `.mcpack` member holding the contents of its output directory at the archive
+          root, and the `.mcaddon` holds one member per pack whatever the number of packs.
