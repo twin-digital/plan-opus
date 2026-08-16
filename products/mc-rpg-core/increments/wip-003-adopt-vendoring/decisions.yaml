@@ -274,11 +274,12 @@ decisions:
       - d-qfs3szzx
 
   - id: d-85wcszy4
-    title: a durable name's record key is composed from the adventure's own namespace
+    title: a durable name's record keys on the adventure's namespace and stores the bare preset
     statement: |
       a durable name `<id>` is carried as the world dynamic property
       `<adventure-namespace>:rpg-core.actor.<id>`, the namespace read at run time through
-      `packNamespace()`. everything else d-cqgi5xms states holds unchanged.
+      `packNamespace()`. `<id>` holds no `:`. the record stores the bare preset name, not a
+      composed identifier, and `findActor` recomposes through `packId` at read time.
     status: proposed
     pinned:
       reason: data-format
@@ -290,9 +291,14 @@ decisions:
       - d-d4yzvu0o
       - f:mc-pack-runtime-spells-identifiers-and-checks-the-packs-own-family
     commentary: |
-      unchanged: the value is JSON holding the preset, the entity type id, and the engine entity
-      id; `findActor` resolves through that record alone; `remove()` deletes it, freeing the name
-      for a later spawn; an unreadable record reads as absent.
+      unchanged from d-cqgi5xms: the value is JSON, `findActor` resolves through the record alone,
+      `remove()` deletes it and frees the name for a later spawn, and an unreadable record reads as
+      absent. what changes is that the stored entity type id goes. an adventure may change its
+      `minecraft.vendor` prefix, which d-5iy08kgn offers it, and a composed identifier stored in a
+      world would then name an entity type that no longer exists — stranding every actor an
+      existing world holds. the bare preset name survives it.
+
+      `<id>` holding no `:` keeps the key parseable, since the key already carries one.
 
       the literal `rpg:` d-cqgi5xms wrote came from the product namespace, which is gone. keying by
       the adventure's namespace keeps two adventures' records apart in one world whatever the
@@ -313,6 +319,132 @@ decisions:
       - r-lna5xlfe
       - d-zohkvwu1
       - d-5lutr7ok
+
+  - id: d-ckn4rwz8
+    title: the entry point exports the preset catalogue by name, and no identifier
+    statement: |
+      the entry point exports the preset names, and each preset's own description — its display
+      name and whatever an adventure may pass back to `spawnActor`. it exports no entity
+      identifier, no namespace, and no pack name, none of which is a constant any more.
+    status: proposed
+    pinned:
+      reason: public-api
+    scope: actors
+    because:
+      - r-lna5xlfe
+      - r-lqfu2ki9
+      - d-dpeizvxw
+      - d-cc9xbsyz
+    commentary: |
+      the example spawns every actor the product offers, so something has to enumerate them; a
+      hand-written list in the example would drift from the registry the definitions build from.
+
+  - id: d-w4m10236
+    title: a durable record resolving to a foreign entity is not treated as stale
+    statement: |
+      spawnActor under a durable name the world already holds resolves the record before anything
+      else, through the runtime's checked lookup.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: whether an adventure can recover a name whose actor a rival pack replaced
+    scope: actors
+    supersedes: d-gja1pnav
+    cases:
+      - when: the record's actor still resolves and carries this pack's family
+        then: the call returns that actor unchanged — a display-name override in the options is not applied
+      - when: the record's actor resolves but lacks this pack's family
+        then: the call raises `ForeignEntityError` and the record is left as it stands
+      - otherwise: the record is stale — a fresh actor is spawned and the record overwritten
+    because:
+      - d-9uu20w3r
+      - d-ivrc98oa
+      - d-85wcszy4
+    commentary: |
+      d-gja1pnav split on resolves or not, which was the whole of it before a lookup could answer
+      an entity that is not ours. overwriting on a foreign answer would spawn a second actor beside
+      a live one and lose the name that reached the first; raising leaves the adventure a failure
+      it can report, and the record intact for when the rival pack is removed.
+
+  - id: d-n4s9g0kv
+    title: the vendored entities carry no type family of this product's
+    statement: |
+      the vendored entity definitions declare no `minecraft:type_family` of their own. what
+      distinguishes an actor from another pack's entity is the family the adventure's build stamps
+      on everything its pack declares.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: the family an adventure writes in an `@e[family=]` selector
+    scope: actors
+    because:
+      - d-ivrc98oa
+      - d-d4yzvu0o
+      - f:mc-pack-runtime-spells-identifiers-and-checks-the-packs-own-family
+    commentary: |
+      a bare family name survives the merge unnamespaced and identical in every adventure, so a
+      selector in one would match another's actors in the same world — the contention this whole
+      increment removes from identifiers, reintroduced through a family. the checked calls read
+      the build's family, so a family of this product's would carry nothing.
+
+  - id: d-x60dka1o
+    title: an adventure's behavior pack declares its own resource half
+    statement: |
+      an adventure's behavior manifest names its own resource half in `dependencies`, so activating
+      the one activates both and the appearance cannot be left behind. the example does this and it
+      is what the product's documentation tells an adventure's author to do.
+    status: proposed
+    pinned:
+      reason: public-api
+      notes: what an adventure's author writes, and whether a half-activated world shows actors
+    scope: actors
+    because:
+      - d-rbi829o3
+      - d-b9m9okhx
+      - r-9owgd93o
+    commentary: |
+      d-3or6phg1 held this property when the two halves were this product's pack. they are the
+      adventure's packs now, and the property is worth keeping: an operator who activates only the
+      behavior half gets actors the library reports as present and no player can see, which
+      d-bcybwddk says the library cannot detect.
+
+  - id: d-i9d989zl
+    title: the example's namespacing is declared as a config exception, not hand-edited
+    statement: |
+      the example turns namespacing on through an exception declared where the monorepo's
+      configuration lives, not by editing the generated build fragment. until the generator can
+      emit the setting, the exception is how this product gets it.
+    status: proposed
+    scope: example
+    because:
+      - d-tctmdf5z
+      - r-82ck2fax
+      - r-cyd08e6q
+    commentary: |
+      the generator writes `packBuild({ packageDir })` verbatim for every package holding a pack
+      manifest and offers no namespace input, while r-82ck2fax forbids editing what it writes and
+      names a declared exception as the route. every namespaced pack will want the setting, so the
+      generator growing an input is the better end state — that is a change to another product,
+      and this decision is what unblocks the example without waiting on it.
+
+  - id: d-f2mk1u7n
+    title: the vendored tree is validated at a consumer's build, not at this package's
+    statement: |
+      this package runs no pack build of its own: its `dist/` is a library bundle, and the kit's
+      pack build owns and prunes that directory. its `vendored_pack/` tree is therefore validated
+      when an adventure builds, and a release of this package can carry a tree no build has read.
+    status: proposed
+    scope: actors
+    because:
+      - d-zohkvwu1
+      - r-cyd08e6q
+      - r-lqfu2ki9
+      - f:a-vendoring-package-supplies-the-namespace-the-uuids-and-a-manifest-of-every-kind
+    commentary: |
+      the consequence is real and accepted: a broken vendored tree publishes and fails first in a
+      consumer's build, naming the file. what closes it is a validate-only entry point on the kit,
+      which does not exist. this product's own guard is the example, which builds against the tree
+      on every run of the monorepo's build.
 
 retires:
   - id: d-3or6phg1
