@@ -301,7 +301,11 @@ decisions:
       use qualifiers: it cannot know consumer prefixes, so its dotted internal names stay its
       own and the shadowing check guards own declarations only. A qualified spelling naming an
       un-merged supplier's default prefix does not bind and falls through to bare resolution —
-      reference an un-admitted supplier barely until it is admitted.
+      reference an un-admitted supplier barely until it is admitted. The guess is not extended
+      there deliberately: a dotted asset spelling is vanilla-legal, so a wrong guess would
+      instruct an admission that rewrites a vanilla reference. An author wanting removal
+      protection configures the prefix explicitly — a vendor entry whose package goes missing
+      already fails loudly.
 
   - id: d-3bmgnb25
     title: what a namespaced pack's own source may hold
