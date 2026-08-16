@@ -174,15 +174,15 @@ decisions:
     title: vendored entities carry a consumer-chosen prefix in the name half
     statement: |
       with namespacing on, own entities build as `<ns>:<name>` and a merged vendored pack's as
-      `<ns>:<prefix>.<name>` — the prefix per dependency from the `vendor` option, defaulting to
-      the unscoped npm name. A bare declaration may not contain a dot, so a composed name's first
+      `<ns>:<prefix>.<name>` — the prefix per dependency from the shipping package's
+      `minecraft.vendor` field, defaulting to the unscoped npm name. A bare declaration may not contain a dot, so a composed name's first
       segment is always the prefix. A vendored module's runtime import arrives bound to its
       prefix.
     cases:
       - when: a prefix holds anything outside lowercase letters, digits, underscore and hyphen, or lands in `mcdk_claim_*`
         then: the build fails naming what it found
       - when: two merged dependencies resolve to one prefix
-        then: the build fails naming both; an explicit `vendor` prefix is the fix
+        then: the build fails naming both; an explicit `minecraft.vendor` prefix is the fix
       - when: a vendored module imports the runtime
         then: its `packId` is bound as `name => packId('<prefix>.' + name)`, so computed names work
     status: accepted
@@ -208,14 +208,14 @@ decisions:
     title: what merges is the consumer's own dependencies and vendor-block names
     statement: |
       a package merges the `vendored_pack/` of two sets of packages and no others: those in its
-      own `dependencies`, and those named in its `vendor` option — either route admits a
-      transitive supplier. `devDependencies` never merge, and a package reached by several paths
+      own `dependencies`, and those named in its `minecraft.vendor` field — either route
+      admits a transitive supplier. `devDependencies` never merge, and a package reached by several paths
       merges once. The transitive tree is still read: a dangling reference fails naming the
       supplier and the fix.
     cases:
       - when: a merged pack's reference resolves to no merged declaration and a reachable un-merged vendored pack declares the name
         then: the build fails naming the referencing file, the name, the supplying package, and the fix
-      - when: a `vendor` name resolves to no package holding a `vendored_pack/` tree
+      - when: a `minecraft.vendor` name resolves to no package holding a `vendored_pack/` tree
         then: the build fails naming it
       - otherwise: a name nothing reachable declares copies through as written
     status: accepted
@@ -236,22 +236,20 @@ decisions:
   - id: d-i4oeiclv
     title: own references bind own or qualified; vendored references by uniqueness
     statement: |
-      an asset reference in the consumer's own files either names something its own pack
-      declares, or carries a prefix saying which vendored pack it means. An unprefixed name
-      only vendored packs declare is a build failure printing the prefixed form to use. A
-      reference written inside a vendored pack resolves within that pack and its own direct
-      dependencies' merged packs.
+      in any pack's files — the consumer's and a vendored pack's alike — a reference is
+      unprefixed, meaning that pack's own declaration or vanilla, or carries a token of the
+      writer's own `minecraft.vendor` field saying which dependency it means. An unprefixed
+      name a pack in the writer's own closure declares is a build failure printing the writer's
+      token form.
     cases:
-      - when: an unprefixed name matches a declaration in the consumer's own pack
-        then: it means that declaration, whatever any vendored pack declares
-      - when: an unprefixed name matches no declaration anywhere
-        then: it is vanilla and copies as written — or fails with d-vi1sct9w's dangling diagnosis where an un-admitted supplier declares it
-      - when: two of a vendored pack's direct suppliers declare a name it references
-        then: the build fails naming every candidate — the library's bug, identical for every consumer
-      - when: a vendored reference names something only packs outside its closure declare
-        then: the build fails naming each declarer and the fix — the library declares that supplier directly
-      - when: a prefixed entity reference names an entity that pack does not declare
-        then: the build fails naming the file, the reference, and the pack
+      - when: an unprefixed name matches a declaration in the writer's own pack
+        then: it means that declaration, whatever anything else declares
+      - when: an unprefixed name matches nothing in the writer's world
+        then: it is vanilla and copies as written, out-of-closure merged packs included; the consumer's bare misses keep d-vi1sct9w's dangling diagnosis
+      - when: a token-qualified reference names something its dependency does not declare
+        then: the build fails naming the file, the spelling, and the dependency
+      - when: a token names a package outside the writer's own dependencies
+        then: the writing package's fault, failing at any build that reads it
     status: proposed
     scope: [build]
     pinned:
@@ -279,16 +277,14 @@ decisions:
       vendored pack cannot silently shadow a vanilla name the consumer references — the failure
       with the printed prefixed form replaces both silent readings.
 
-      A vendored pack resolves within its own closure because a reference should resolve within
-      the world its author could see: a library's imports resolve against its dependencies, not
-      the consumer's, so nothing the consumer installs or declares reaches a library's
-      references — the consumer's own declarations included, which a vendored reference treats
-      as vanilla and copies past (the rewritten declaration no longer holds the bare spelling,
-      so the copy resolves to true vanilla in-engine). Where a miss has both an un-admitted
-      direct supplier and an out-of-closure declarer, the admission diagnosis wins — the
-      library's own dependency declaration is the stronger signal, and its fix is the
-      consumer's to apply. Vendored material parents hash by the same closure, so a hash can
-      never depend on the consumer's sibling dependencies.
+      Unprefixed means mine or vanilla; a token means the dependency my own field names — one
+      rule for every pack, the consumer being only the pack whose tokens also reach the output.
+      A reference resolves within the world its author could see, so nothing outside a writer's
+      own closure can bind or capture its references: an arrival or an upgrade turns a
+      reference loud at worst, never silently rebound. An unprefixed name matching an
+      un-admitted direct supplier answers with the admission diagnosis rather than a copy — the
+      supplier is in the writer's own world. Vendored material parents hash by the same rule,
+      so a hash can never depend on the consumer's sibling dependencies.
 
   - id: d-piquxs3y
     title: the prefix qualifies an asset reference
@@ -302,7 +298,7 @@ decisions:
       - when: the named dependency declares no such asset
         then: the build fails naming the file, the spelling, and the dependency
       - when: an own declaration sits in a merged prefix's qualifier position
-        then: the build fails naming the declaration and the prefix; renaming that prefix in the vendor block is the fix
+        then: the build fails naming the declaration and the prefix; renaming that prefix in the `minecraft.vendor` field is the fix
       - when: an own bare spelling names an asset merged packs declare
         then: the failure prints each declarer's qualified spelling as the fix
       - otherwise: an own bare reference means an own declaration or vanilla; vendored content resolves internally without qualifiers
@@ -331,7 +327,71 @@ decisions:
       the reference. The guess is not extended to qualified spellings deliberately: a dotted
       asset spelling is vanilla-legal, so a wrong guess would instruct an admission that
       rewrites a vanilla reference. An author wanting removal protection configures the prefix
-      explicitly — a vendor entry whose package goes missing already fails loudly.
+      explicitly — a `minecraft.vendor` entry whose package goes missing already fails loudly.
+
+  - id: d-rqgcxxsz
+    title: vendoring is configured by the shipped minecraft.vendor field
+    statement: |
+      `{ "minecraft": { "vendor": { "<npm name>": { "prefix": "<token>" } } } }` in a package's
+      own `package.json` is the whole vendor configuration; the `packBuild` `vendor` option is
+      gone and `namespace` stays a build option. The field means one thing in every package:
+      the token this package writes in its own source for that dependency's content.
+    cases:
+      - when: the package is the one shipping the packs
+        then: its tokens also fix the output entity-id segment `<ns>:<prefix>.<name>` and the injected prefixes
+      - when: the package is a vendored library
+        then: its entries are source-side aliases; output naming is always the shipping consumer's
+      - otherwise: every direct dependency holding a vendored pack gets the unscoped-name default token
+    status: proposed
+    scope: [build]
+    pinned:
+      reason: public-api
+      notes: what every package author writes, shipped in the one file npm always publishes
+    because:
+      - d-ru4zegfs
+      - d-vi1sct9w
+      - d-jdqt63fi
+      - r-h1p0uyhr
+      - d-zk0c48uy
+    commentary: |
+      The declaration must be readable from an installed or workspace dependency with no build
+      having run (d-jdqt63fi), so a dev-time bundler config cannot carry it; `package.json`
+      ships unconditionally, sits beside the `dependencies` list that is the closure, and is
+      already read and watched by the build. One location for both roles lets a package that is
+      both library and pack-shipper declare its suppliers once. What is build-time-only — the
+      namespace — stays in build config; what must ship lives here.
+
+  - id: d-rzcxpj7p
+    title: packBuild validates a vendored tree at its author's build
+    statement: |
+      a package holding `vendored_pack/` has that tree validated by its own `packBuild`:
+      content kinds, declarations, token shadowing, and every reference — own names bare,
+      supplier names through its own field tokens over its own direct dependencies. A package
+      holding only a vendored tree validates and emits nothing rather than failing as
+      pack-less.
+    cases:
+      - when: the package also holds packs of its own
+        then: the tree is validated in addition to the normal build
+      - when: a token references a supplier that is not installed
+        then: reported as such, never parsed as vanilla
+      - otherwise: the consumer's build re-validates everything — shipped trees are untrusted, and a workspace sibling may never have built
+    status: proposed
+    scope: [build]
+    pinned:
+      reason: public-api
+      notes: what a library author's own build catches pre-publish, through the same pipeline as every package
+    supersedes: d-4e0kt69q
+    because:
+      - d-rqgcxxsz
+      - d-27lzrwsu
+      - d-7aqne91n
+      - d-jdqt63fi
+      - r-f1i0d5h2
+    commentary: |
+      Every fault this catches is the library's own and fails identically for every consumer,
+      so the author's build is the right first reporter; the consumer's build stays the
+      backstop that cannot be bypassed. The superseded rule made any pack-less package a
+      failure; a vendored tree is now a reason for packBuild to exist.
 
   - id: d-3bmgnb25
     title: what a namespaced pack's own source may hold

@@ -7,14 +7,14 @@ requirements:
     scope: build
     title: arrival changes nothing
     statement: |
-      adding a dependency, or declaring a new name of one's own, never changes which declaration
-      any existing reference binds to. A collision a new arrival would cause is a build failure
-      naming it, never a rebinding.
+      adding or upgrading a dependency, or declaring a new name of one's own, never silently
+      changes which declaration any existing reference binds to. A collision an arrival or an
+      upgrade would cause is a build failure naming it, never a rebinding.
     commentary: |
-      The property the naming and binding decisions purchase, stated once. Upgrades of a
-      vendored pack's own suppliers sit outside it deliberately: inside a library, vanilla and
-      supplier names share one bare space, so an upgrade rebinding is undecidable at the
-      consumer's build — that edge belongs to the vendored-pack author's check (b-di9a4wpu).
+      The property the naming and binding decisions purchase, stated once. Upgrades are inside
+      it because bare never binds cross-pack anywhere: a supplier gaining a name can only turn
+      a reference into a named failure printing the token form, and a supplier renaming one
+      turns a token-qualified reference into a named miss.
 
   - id: r-f1i0d5h2
     scope: build

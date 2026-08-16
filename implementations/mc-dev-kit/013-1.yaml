@@ -906,12 +906,27 @@ coverage:
         ref: src/internal/pack-build.test.ts
         note: an unrelated package's malformed package.json fails the build, and its path is in the message
 
-  - claim: d-4e0kt69q # a package with no pack fails the build
+  - claim: d-rqgcxxsz # vendoring is configured by the shipped minecraft.vendor field
     covered_by:
+      - kind: code-test
+        ref:
+          - src/internal/pack-build.test.ts
+          - src/consumer.test.ts
+        note: the field read for both roles — explicit consumer prefixes, admission, diamond and charset through the field; a library's aliases binding its supplier references; the options surface pinned back to packageDir plus namespace
       - kind: attestation
-        note: an empty pack set for this package fails naming the directory searched
+        ref:
+          - src/internal/vendored-packs.ts
+          - src/build.ts
+        note: findVendoredPacks and the library context read the field from package.json; every prefix and token message names it
+
+  - claim: d-rzcxpj7p # packBuild validates a vendored tree at its author's build
+    covered_by:
       - kind: code-test
         ref: src/internal/pack-build.test.ts
+        note: a vendored_pack-only package validates and emits nothing instead of failing as pack-less, failing on each fault class — forbidden content kind, dotted declaration, field naming a non-dependency, token miss, bare capture, uninstalled supplier; a pack-less package with no vendored tree still fails naming the directory
+      - kind: attestation
+        ref: src/internal/pack-build-plugin.ts
+        note: library-only mode drops the bundler chunk, never prunes dist, ignores the namespace option; a package holding packs besides validates its tree in addition to the normal build
 
   - claim: d-9s4tdc8z # documentation ships as TSDoc and a README section
     covered_by:
@@ -1858,12 +1873,12 @@ coverage:
           - src/internal/namespace.test.ts
           - src/internal/pack-build.test.ts
           - src/consumer.test.ts
-        note: every case — a string names it, true derives scope-name with the @ dropped and the / a hyphen, a bad character fails naming it, vendoring without a namespace fails naming the dependency, off means verbatim; the options now carry vendor beside packageDir and namespace
+        note: every case — a string names it, true derives scope-name with the @ dropped and the / a hyphen, a bad character fails naming it, vendoring without a namespace fails naming the dependency, off means verbatim; the consumer type test pins the options surface as packageDir plus namespace, the vendor option gone for the shipped field
       - kind: attestation
         ref:
           - src/build.ts
           - src/internal/namespace.ts
-        note: no manifest.json field is read or written for the setting; the vendor block is the ruled extension of the option surface
+        note: no manifest.json field is read or written for the setting; vendor configuration moved wholly to the shipped minecraft.vendor field
 
   - claim: d-jibcuv16 # the watch set reaches the vendored trees a build reads
     covered_by:
@@ -1923,22 +1938,22 @@ coverage:
         ref: src/internal/merge-plan.ts
         note: the vendored classification is the closed list; vendored .lang entries not keyed by an entity identifier fail naming file and key
 
-  - claim: d-i4oeiclv # own references bind own or qualified; vendored references by uniqueness
+  - claim: d-i4oeiclv # unprefixed means mine or vanilla; a token means my declared dependency
     covered_by:
       - kind: code-test
         ref: src/internal/pack-build.test.ts
-        note: an own bare reference binds own or fails — a bare spelling merged packs declare fails printing each declarer's qualified spelling, one declarer or several; a vendored reference resolves within its own pack and its direct suppliers' merged packs, two direct suppliers failing as ambiguous, an out-of-closure declarer failing with the promotion fix, and a name only the consumer declares copying as written; own and vendored declarations of one bare entity name coexist as distinct composed ids
+        note: the symmetric per-scope suite — an unprefixed name binds the writer's own declaration or fails printing the writer's token form when the writer's own closure declares it, in consumer and library scopes alike; a library's token-qualified reference binds through its own minecraft.vendor field; a name matching nothing in the writer's world copies as written, out-of-closure merged packs included; own and vendored declarations of one bare entity name coexist as distinct composed ids
       - kind: attestation
         ref:
           - src/internal/merge-plan.ts
           - src/internal/vendored-packs.ts
-        note: resolveDeclaration's own-content branch is own then qualified only; the vendored branch filters candidates to the referencing pack's merged direct suppliers, ordering miss diagnoses admission-first; cross-pack entity contention is impossible by construction, so the check moved to the prefix
+        note: one resolver serves every scope — own-token-qualified, own bare, bare-matching-closure failure, admission diagnosis, copy-as-written — with each pack's shipped field as its scope's alias map; the shadowing check runs per scope; cross-pack entity contention is impossible by construction
 
   - claim: r-h1p0uyhr # arrival changes nothing
     covered_by:
       - kind: code-test
         ref: src/internal/pack-build.test.ts
-        note: the day-90 immunity suite — an own bare name never rebinds when merged packs declare it (it fails instead); a vendored reference to a name only the consumer or a sibling dependency declares copies as written unchanged; declaring an own name in a merged prefix's qualifier position fails rather than capturing; a prefix collision fails naming both arrivals
+        note: the arrival-and-upgrade immunity suite — an own bare name never rebinds when merged packs declare it (it fails instead); a library's bare reference its own supplier newly declares fails printing the token form, never rebinding; a name only the consumer or a sibling dependency declares copies as written from a library's seat; declaring an own name in a token qualifier position fails rather than capturing; a prefix collision fails naming both arrivals
       - kind: attestation
         ref:
           - src/internal/merge-plan.ts
@@ -1998,7 +2013,7 @@ coverage:
         ref:
           - src/internal/pack-build.test.ts
           - src/identifier.test.ts
-        note: mc-dev-kit — default and explicit prefixes, charset and collision failures, dotted-declaration failure, composed consumer references, and the bound runtime import with a computed packId argument; mc-pack-runtime — packId spells composed names through the injected prefixes, throwing on an unknown first segment
+        note: mc-dev-kit — default and explicit prefixes now read from the shipped minecraft.vendor field, charset and collision failures, dotted-declaration failure, composed consumer references, and the bound runtime import with a computed packId argument; mc-pack-runtime — packId spells composed names through the injected prefixes, throwing on an unknown first segment
       - kind: attestation
         ref:
           - src/internal/vendored-packs.ts
