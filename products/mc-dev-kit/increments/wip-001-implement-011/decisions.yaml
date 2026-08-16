@@ -230,25 +230,26 @@ decisions:
       - r-c9bu8xes
 
   - id: d-i4oeiclv
-    title: entity ids cannot contend; asset references resolve per scope
+    title: a reference binds to its own pack's declaration first
     statement: |
-      composed ids end cross-pack entity contention: own and vendored declarations of one bare
-      name build to distinct ids, and the failure that remains is two merged dependencies
-      resolving to one prefix. An asset reference resolves first against the pack whose file
-      wrote it, then across the other merged packs when exactly one declares the name.
+      every rewritten reference binds within the pack whose file carries it first. An asset name
+      not declared there binds to the one merged pack declaring it, several failing the build
+      naming every candidate; an entity spelling reaches another pack only through its dot
+      prefix. What nothing merged declares copies as written, or fails where an un-merged
+      supplier declares it.
     cases:
-      - when: an own reference names an asset that own and vendored content both declare
-        then: it resolves to the own declaration
-      - when: it names an asset that only several vendorings declare
+      - when: an own file references an asset name that own and vendored content both declare
+        then: it binds to the own declaration
+      - when: an asset reference misses its own pack and several merged packs declare the name
         then: the build fails naming every candidate declaration and its file
-      - when: an own dotted entity spelling names a merged prefix whose pack declares no such entity
+      - when: an own file's dotted entity spelling names a merged prefix whose pack declares no such entity
         then: the build fails naming the file, the spelling, and the dependency
-      - otherwise: a name no merged pack declares copies as written, or fails with the dangling diagnosis where an un-merged supplier declares it
+      - otherwise: a name nothing merged declares copies as written, or fails with d-vi1sct9w's dangling diagnosis where an un-merged supplier declares it
     status: proposed
     scope: [build]
     pinned:
       reason: public-api
-      notes: which declaration an author's reference lands on, and the collision that remains a failure
+      notes: the binding order of every reference in a built pack — nothing else fixes which declaration a reference lands on
     supersedes: d-1vhwdhk1
     because:
       - d-ru4zegfs
@@ -256,6 +257,14 @@ decisions:
       - d-ni5n2r3c
       - r-c9bu8xes
       - d-82zp77fo
+    commentary: |
+      This is the rule d-1vhwdhk1's collision check becomes, which is why the supersession sits
+      here. The naming decisions dissolved the collisions themselves — composed ids (d-ru4zegfs)
+      end entity contention, hashed tokens (d-l45sm4ja) end asset contention — and that is
+      precisely what makes references ambiguous where declarations once collided: several packs
+      may now declare one bare name, so a reference must bind somewhere. Own-first keeps a pack
+      self-contained under vendoring; cross-pack binding is by uniqueness or not at all; and
+      ambiguity fails rather than guesses, which is r-c9bu8xes's bar.
 
   - id: d-3bmgnb25
     title: what a namespaced pack's own source may hold
