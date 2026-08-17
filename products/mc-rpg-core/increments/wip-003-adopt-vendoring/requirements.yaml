@@ -1,4 +1,21 @@
 version: "3"
+requirements:
+  - id: r-wwha7y68
+    title: an adventure's author writes no actor content
+    statement: |
+      an adventure built on this product spawns and uses an actor without its author writing an
+      entity definition, a model, a texture, an animation, or a default name for it. what an
+      author writes is their own story, their triggers, and their logic, and one dependency.
+    scope: actors
+    supersedes: r-e8p2oto6
+    commentary: |
+      r-e8p2oto6 said an adventure carries none of that content. under vendoring the adventure's
+      build emits all of it into the adventure's own packs, so the requirement holds of what an
+      author writes and not of what ships.
+
+      this is the reading the product already applied to code, which the build inlines into an
+      adventure's script without anyone counting it against the requirement. what the requirement
+      protects is unchanged: an author never authors a character.
 components:
   - id: actors
     description: what an adventure depends on — the presets, the spawn call, and the actor content an adventure's build merges into its own packs

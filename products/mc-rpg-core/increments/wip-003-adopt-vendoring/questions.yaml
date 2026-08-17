@@ -1,27 +1,5 @@
 version: "1"
 questions:
-  - id: q-9uliqgnt
-    answer: requirement
-    question: |
-      does r-e8p2oto6 still hold once an adventure's build emits the actor content into the
-      adventure's own packs?
-
-      r-e8p2oto6 says an adventure "spawns and uses an actor without carrying an entity definition,
-      a model, a texture, an animation, or a default name for it." under vendoring that stays true
-      of what an author *writes* and stops being true of what the build *emits*: every one of those
-      things ends up inside the adventure's own behavior and resource packs, and inside its
-      archive.
-
-      the same is already true of code — the build inlines the library into the adventure's script
-      and nobody counts that against the requirement — so the narrowed reading is the consistent
-      one. but the requirement is the owner's, and the whole of this increment is written against
-      it, so the reading is theirs to state rather than mine to assume.
-
-      the reading this increment is built to: an adventure's *author* writes no entity definition,
-      model, texture, animation, or default name, and takes one dependency to obtain them. if that
-      is the requirement, it wants restating in those words. if the requirement means the emitted
-      pack too, vendoring cannot be adopted at all and this increment is refused.
-
   - id: q-r7db9r31
     answer: fact
     question: |
@@ -41,6 +19,18 @@ questions:
       trades a name every player reads for one most players never see.
 
       so d-bfdql5tx and d-kklnm4j4 stand unchanged in this increment, with their stated reason
-      expired and their conclusion unmeasured. answering this takes an in-engine session: spawn a
-      pack-defined entity carrying a `.lang` entry and no `nameTag` and see what a player reads,
-      then set a `nameTag` holding a translation key and see whether it resolves.
+      expired and their conclusion unmeasured.
+
+      the probe is prepared at `artifacts/name-display-probe/`: five entities differing only in
+      whether the pack carries a localization entry and what the script writes to `nameTag`, with
+      an english and a german lang file. it cannot be run headless —
+      f:a-resource-pack-cannot-carry-anything-a-script-can-reach establishes that a resource pack
+      reaches nothing a script can observe, and a name plate is drawn by the client — so a person
+      reads the plates in a client and reads them again in german.
+
+      the readings pick between three designs, which is why this is a question rather than an
+      assumption. if the pack's entry shows above an actor, the name moves there and becomes
+      localisable and adventure-overridable. if it shows nothing and a plate is literal text, moving
+      the name would trade a name every player reads for one most never see. if a plate resolves a
+      translation key, the pack carries the text and the library writes the key — visible and
+      translated, which nobody would guess. the README carries what each outcome changes.
