@@ -241,3 +241,28 @@ facts:
         where: "`wreck` — the world with every village block destroyed"
         quote: |
           [2026-08-07 18:49:48:944 WARN] [Scripting] [vgvil] destroy :: destroyed=all counts={"beds":0,"occupied":0,"jobs":0,"bells":0}
+
+  - id: a-pistons-horizontal-facing-direction-points-away-from-its-arm
+    claim: |
+      A piston placed by `setblock` with `["facing_direction"=N]` on Bedrock 1.26.43.1 sends its arm
+      the opposite way from what the value's usual reading suggests on the two horizontal axes, and
+      the expected way vertically. Firing one piston per value in empty air, powered by a redstone
+      block beneath it, put the arm at +y for 1, +z for 2, -z for 3, +x for 4, and -x for 5 — so 4 is
+      the value that pushes toward +x, not 5. A piston set to 0 did not extend, its arm being aimed
+      into the redstone block that powered it. Redstone works with no player connected as long as the
+      area is a ticking area: every one of these fired.
+    backing: tested
+    caveat: |
+      Read from where the `minecraft:piston_arm_collision` block landed, which is what a piston puts in
+      the block its arm occupies. Only the piston is covered; other blocks carrying a
+      `facing_direction` state are not measured and need not agree.
+    sources:
+      - run: run-40cmv8ds
+        where: the calibration round, one piston per facing_direction value in an empty scratch arena
+        quote: |
+          [2026-08-11 16:03:35:972 WARN] [Scripting] PISTON cal facing_direction=0 arm=did-not-extend
+          [2026-08-11 16:03:35:972 WARN] [Scripting] PISTON cal facing_direction=1 arm=+y
+          [2026-08-11 16:03:35:972 WARN] [Scripting] PISTON cal facing_direction=2 arm=+z
+          [2026-08-11 16:03:35:972 WARN] [Scripting] PISTON cal facing_direction=3 arm=-z
+          [2026-08-11 16:03:35:972 WARN] [Scripting] PISTON cal facing_direction=4 arm=+x
+          [2026-08-11 16:03:35:973 WARN] [Scripting] PISTON cal facing_direction=5 arm=-x

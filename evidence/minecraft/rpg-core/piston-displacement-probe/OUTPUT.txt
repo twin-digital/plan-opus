@@ -1,0 +1,120 @@
+docker host: ssh://prod-development-docker
+image: itzg/minecraft-bedrock-server:latest   requested VERSION: 1.26.43.1
+staged pack in /tmp/rpg-piston-OLHX9R/7b2c0000-0000-4000-8000-000000000001
+subjects (27): current bare pushable_false pushable_piston_only kbr push_through nograv nocollide nocollide_nograv no_push_to_space nophysics nophysics_nopush tinybox tinybox_nophysics current_nocollide current_nograv_nocollide kitchen_sink home_tether sittable vanilla_pig vanilla_zombie vanilla_armor_stand vanilla_npc vanilla_shulker vanilla_ender_crystal vanilla_iron_golem vanilla_boat
+
+hypotheses:
+  current                   the mc-rpg-core actor set
+  bare                      physics + box only, no pushable component
+  pushable_false            pushable{is_pushable:false,is_pushable_by_piston:false} alone
+  pushable_piston_only      pushable{is_pushable:true,is_pushable_by_piston:false}
+  kbr                       knockback_resistance{value:1} alone
+  push_through              push_through{value:0} alone
+  nograv                    physics{has_gravity:false}
+  nocollide                 physics{has_collision:false}
+  nocollide_nograv          physics{has_collision:false,has_gravity:false}
+  no_push_to_space          physics{push_towards_closest_space:false}
+  nophysics                 no minecraft:physics component at all
+  nophysics_nopush          no physics component + pushable false
+  tinybox                   collision_box 0.01 x 0.01, physics on
+  tinybox_nophysics         collision_box 0.01 x 0.01, no physics component
+  current_nocollide         the mc-rpg-core set + physics{has_collision:false}
+  current_nograv_nocollide  the mc-rpg-core set + physics{has_collision:false,has_gravity:false}
+  kitchen_sink              every suppressor at once: no physics, pushable false, kbr 1, push_through 0, tiny box, movement 0
+  home_tether               home{restriction_radius:1} + behavior.go_home, movement 0.4, navigation.walk
+  sittable                  sittable + behavior.stay_while_sitting, the sit event triggered from script on spawn
+  vanilla_pig               vanilla, as-is
+  vanilla_zombie            vanilla, as-is
+  vanilla_armor_stand       vanilla, as-is
+  vanilla_npc               vanilla, as-is
+  vanilla_shulker           vanilla, as-is
+  vanilla_ender_crystal     vanilla, as-is
+  vanilla_iron_golem        vanilla, as-is
+  vanilla_boat              vanilla, as-is
+
+=== boot
+server version: 1.26.43.1
+activation list: [{"pack_id":"7b2c0000-0000-4000-8000-000000000001","version":[1,0,0]}]
+
+=== running the stimulus
+[2026-08-11 16:03:21:681 INFO] Level Name: piston
+[2026-08-11 16:03:21:681 INFO] Profiler config ('bootstrap.json') load result: success=1, errorMessage=(null)
+[2026-08-11 16:03:22:070 INFO] Opening level 'worlds/piston/db'
+[2026-08-11 16:03:22:120 INFO] Pack Stack - [00] piston displacement probe (id: 7b2c0000-0000-4000-8000-000000000001, version: 1.0.0) @ development_behavior_packs/7b2c0000-0000-4000-8000-000000000001
+[2026-08-11 16:03:26:028 WARN] [Scripting] PISTON setup :: subjects=27 zmax=112
+[2026-08-11 16:03:35:972 WARN] [Scripting] PISTON === CALIBRATION :: where the arm lands for each piston facing_direction
+[2026-08-11 16:03:35:972 WARN] [Scripting] PISTON cal facing_direction=0 arm=did-not-extend
+[2026-08-11 16:03:35:972 WARN] [Scripting] PISTON cal facing_direction=1 arm=+y
+[2026-08-11 16:03:35:972 WARN] [Scripting] PISTON cal facing_direction=2 arm=+z
+[2026-08-11 16:03:35:972 WARN] [Scripting] PISTON cal facing_direction=3 arm=-z
+[2026-08-11 16:03:35:972 WARN] [Scripting] PISTON cal facing_direction=4 arm=+x
+[2026-08-11 16:03:35:973 WARN] [Scripting] PISTON cal facing_direction=5 arm=-x
+[2026-08-11 16:03:35:973 WARN] [Scripting] PISTON cal :: the measurement lanes use facing_direction=4 to push toward +x
+[2026-08-11 16:03:37:972 WARN] [Scripting] PISTON A-built :: pistons placed at x=0 facing_direction=4, arm travelling +x
+[2026-08-11 16:03:39:972 WARN] [Scripting] PISTON A-spawned :: 27/27
+[2026-08-11 16:03:42:968 WARN] [Scripting] PISTON A-powered :: redstone_block at x=-1
+[2026-08-11 16:03:48:968 WARN] [Scripting] PISTON === RESULTS A arm-push :: a piston arm extends into the block the subject stands in
+[2026-08-11 16:03:48:968 WARN] [Scripting] PISTON A current :: before=1.500,1.000,0.500 after3s=2.300,1.000,0.500 after6s=2.300,1.000,0.500 drift_h=0.800 drift_y=0.000 moved=YES stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: the mc-rpg-core actor set
+[2026-08-11 16:03:48:968 WARN] [Scripting] PISTON A bare :: before=1.500,1.000,4.500 after3s=2.300,1.000,4.500 after6s=2.300,1.000,4.500 drift_h=0.800 drift_y=0.000 moved=YES stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: physics + box only, no pushable component
+[2026-08-11 16:03:48:968 WARN] [Scripting] PISTON A pushable_false :: before=1.500,1.000,8.500 after3s=2.300,1.000,8.500 after6s=2.300,1.000,8.500 drift_h=0.800 drift_y=0.000 moved=YES stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: pushable{is_pushable:false,is_pushable_by_piston:false} alone
+[2026-08-11 16:03:48:968 WARN] [Scripting] PISTON A pushable_piston_only :: before=1.500,1.000,12.500 after3s=2.300,1.000,12.500 after6s=2.300,1.000,12.500 drift_h=0.800 drift_y=0.000 moved=YES stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: pushable{is_pushable:true,is_pushable_by_piston:false}
+[2026-08-11 16:03:48:968 WARN] [Scripting] PISTON A kbr :: before=1.500,1.000,16.500 after3s=2.300,1.000,16.500 after6s=2.300,1.000,16.500 drift_h=0.800 drift_y=0.000 moved=YES stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: knockback_resistance{value:1} alone
+[2026-08-11 16:03:48:968 WARN] [Scripting] PISTON A push_through :: before=1.500,1.000,20.500 after3s=2.300,1.000,20.500 after6s=2.300,1.000,20.500 drift_h=0.800 drift_y=0.000 moved=YES stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: push_through{value:0} alone
+[2026-08-11 16:03:48:968 WARN] [Scripting] PISTON A nograv :: before=1.500,1.000,24.500 after3s=2.300,1.000,24.500 after6s=2.300,1.000,24.500 drift_h=0.800 drift_y=0.000 moved=YES stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: physics{has_gravity:false}
+[2026-08-11 16:03:48:968 WARN] [Scripting] PISTON A nocollide :: before=1.500,-96.521,28.500 after3s=gone after6s=gone drift_h=NaN drift_y=NaN moved=? stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: physics{has_collision:false}
+[2026-08-11 16:03:48:968 WARN] [Scripting] PISTON A nocollide_nograv :: before=1.500,1.000,32.500 after3s=1.500,1.000,32.500 after6s=1.500,1.000,32.500 drift_h=0.000 drift_y=0.000 moved=no stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: physics{has_collision:false,has_gravity:false}
+[2026-08-11 16:03:48:968 WARN] [Scripting] PISTON A no_push_to_space :: before=1.500,1.000,36.500 after3s=2.300,1.000,36.500 after6s=2.300,1.000,36.500 drift_h=0.800 drift_y=0.000 moved=YES stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: physics{push_towards_closest_space:false}
+[2026-08-11 16:03:48:968 WARN] [Scripting] PISTON A nophysics :: before=1.500,1.000,40.500 after3s=1.500,1.000,40.500 after6s=1.500,1.000,40.500 drift_h=0.000 drift_y=0.000 moved=no stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: no minecraft:physics component at all
+[2026-08-11 16:03:48:968 WARN] [Scripting] PISTON A nophysics_nopush :: before=1.500,1.000,44.500 after3s=1.500,1.000,44.500 after6s=1.500,1.000,44.500 drift_h=0.000 drift_y=0.000 moved=no stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: no physics component + pushable false
+[2026-08-11 16:03:48:968 WARN] [Scripting] PISTON A tinybox :: before=1.500,1.000,48.500 after3s=1.505,1.000,48.500 after6s=1.505,1.000,48.500 drift_h=0.005 drift_y=0.000 moved=no stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: collision_box 0.01 x 0.01, physics on
+[2026-08-11 16:03:48:969 WARN] [Scripting] PISTON A tinybox_nophysics :: before=1.500,1.000,52.500 after3s=1.500,1.000,52.500 after6s=1.500,1.000,52.500 drift_h=0.000 drift_y=0.000 moved=no stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: collision_box 0.01 x 0.01, no physics component
+[2026-08-11 16:03:48:969 WARN] [Scripting] PISTON A current_nocollide :: before=1.500,-96.521,56.500 after3s=gone after6s=gone drift_h=NaN drift_y=NaN moved=? stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: the mc-rpg-core set + physics{has_collision:false}
+[2026-08-11 16:03:48:969 WARN] [Scripting] PISTON A current_nograv_nocollide :: before=1.500,1.000,60.500 after3s=1.500,1.000,60.500 after6s=1.500,1.000,60.500 drift_h=0.000 drift_y=0.000 moved=no stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: the mc-rpg-core set + physics{has_collision:false,has_gravity:false}
+[2026-08-11 16:03:48:969 WARN] [Scripting] PISTON A kitchen_sink :: before=1.500,1.000,64.500 after3s=1.500,1.000,64.500 after6s=1.500,1.000,64.500 drift_h=0.000 drift_y=0.000 moved=no stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: every suppressor at once: no physics, pushable false, kbr 1, push_through 0, tiny box, movement 0
+[2026-08-11 16:03:48:969 WARN] [Scripting] PISTON A home_tether :: before=1.500,1.000,68.500 after3s=2.300,1.000,68.500 after6s=2.300,1.000,68.500 drift_h=0.800 drift_y=0.000 moved=YES stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: home{restriction_radius:1} + behavior.go_home, movement 0.4, navigation.walk
+[2026-08-11 16:03:48:969 WARN] [Scripting] PISTON A sittable :: before=1.500,1.000,72.500 after3s=2.300,1.000,72.500 after6s=2.300,1.000,72.500 drift_h=0.800 drift_y=0.000 moved=YES stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: sittable + behavior.stay_while_sitting, the sit event triggered from script on spawn
+[2026-08-11 16:03:48:969 WARN] [Scripting] PISTON A vanilla_pig :: before=1.500,1.000,72.406 after3s=1.500,1.000,69.450 after6s=1.500,1.000,69.450 drift_h=2.956 drift_y=0.000 moved=YES stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: vanilla, as-is
+[2026-08-11 16:03:48:969 WARN] [Scripting] PISTON A vanilla_zombie :: before=1.500,1.000,85.598 after3s=2.056,1.000,91.135 after6s=4.848,1.000,94.240 drift_h=9.267 drift_y=0.000 moved=YES stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: vanilla, as-is
+[2026-08-11 16:03:48:969 WARN] [Scripting] PISTON A vanilla_armor_stand :: before=1.500,1.000,84.500 after3s=2.250,1.000,84.500 after6s=2.250,1.000,84.500 drift_h=0.750 drift_y=0.000 moved=YES stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: vanilla, as-is
+[2026-08-11 16:03:48:969 WARN] [Scripting] PISTON A vanilla_npc :: before=1.500,1.000,88.500 after3s=2.300,1.000,88.500 after6s=2.300,1.000,88.500 drift_h=0.800 drift_y=0.000 moved=YES stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: vanilla, as-is
+[2026-08-11 16:03:48:969 WARN] [Scripting] PISTON A vanilla_shulker :: before=1.500,1.000,92.500 after3s=2.500,1.000,92.500 after6s=2.500,1.000,92.500 drift_h=1.000 drift_y=0.000 moved=YES stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: vanilla, as-is
+[2026-08-11 16:03:48:969 WARN] [Scripting] PISTON A vanilla_ender_crystal :: before=1.500,1.000,96.500 after3s=3.000,1.000,96.500 after6s=3.000,1.000,96.500 drift_h=1.500 drift_y=0.000 moved=YES stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: vanilla, as-is
+[2026-08-11 16:03:48:969 WARN] [Scripting] PISTON A vanilla_iron_golem :: before=2.618,1.000,97.743 after3s=2.973,1.000,93.700 after6s=6.306,2.605,95.415 drift_h=4.362 drift_y=1.605 moved=YES stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: vanilla, as-is
+[2026-08-11 16:03:48:969 WARN] [Scripting] PISTON A vanilla_boat :: before=1.700,1.000,104.700 after3s=2.700,1.000,104.700 after6s=2.700,1.000,104.700 drift_h=1.000 drift_y=0.000 moved=YES stimulus=at-subject-block=minecraft:piston_arm_collision piston=minecraft:piston :: vanilla, as-is
+[2026-08-11 16:03:48:969 WARN] [Scripting] PISTON A-done
+[2026-08-11 16:03:50:973 WARN] [Scripting] PISTON B-built :: pushed block at x=40, subject stands on top of it at y=2
+[2026-08-11 16:03:52:970 WARN] [Scripting] PISTON B-spawned :: 27/27
+[2026-08-11 16:03:55:974 WARN] [Scripting] PISTON B-powered :: redstone_block at x=38
+[2026-08-11 16:04:01:973 WARN] [Scripting] PISTON === RESULTS B block-carriage :: the piston pushes the block the subject stands on
+[2026-08-11 16:04:01:973 WARN] [Scripting] PISTON B current :: before=40.500,2.000,0.500 after3s=42.300,1.000,0.500 after6s=42.300,1.000,0.500 drift_h=1.800 drift_y=-1.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: the mc-rpg-core actor set
+[2026-08-11 16:04:01:973 WARN] [Scripting] PISTON B bare :: before=40.500,2.000,4.500 after3s=42.300,1.000,4.500 after6s=42.300,1.000,4.500 drift_h=1.800 drift_y=-1.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: physics + box only, no pushable component
+[2026-08-11 16:04:01:973 WARN] [Scripting] PISTON B pushable_false :: before=40.500,2.000,8.500 after3s=42.300,1.000,8.500 after6s=42.300,1.000,8.500 drift_h=1.800 drift_y=-1.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: pushable{is_pushable:false,is_pushable_by_piston:false} alone
+[2026-08-11 16:04:01:973 WARN] [Scripting] PISTON B pushable_piston_only :: before=40.500,2.000,12.500 after3s=42.300,1.000,12.500 after6s=42.300,1.000,12.500 drift_h=1.800 drift_y=-1.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: pushable{is_pushable:true,is_pushable_by_piston:false}
+[2026-08-11 16:04:01:973 WARN] [Scripting] PISTON B kbr :: before=40.500,2.000,16.500 after3s=42.300,1.000,16.500 after6s=42.300,1.000,16.500 drift_h=1.800 drift_y=-1.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: knockback_resistance{value:1} alone
+[2026-08-11 16:04:01:973 WARN] [Scripting] PISTON B push_through :: before=40.500,2.000,20.500 after3s=42.300,1.000,20.500 after6s=42.300,1.000,20.500 drift_h=1.800 drift_y=-1.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: push_through{value:0} alone
+[2026-08-11 16:04:01:974 WARN] [Scripting] PISTON B nograv :: before=40.500,2.000,24.500 after3s=41.500,2.000,24.500 after6s=41.500,2.000,24.500 drift_h=1.000 drift_y=0.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: physics{has_gravity:false}
+[2026-08-11 16:04:01:974 WARN] [Scripting] PISTON B nocollide :: before=40.500,-95.521,28.500 after3s=gone after6s=gone drift_h=NaN drift_y=NaN moved=? stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: physics{has_collision:false}
+[2026-08-11 16:04:01:974 WARN] [Scripting] PISTON B nocollide_nograv :: before=40.500,2.000,32.500 after3s=41.500,2.000,32.500 after6s=41.500,2.000,32.500 drift_h=1.000 drift_y=0.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: physics{has_collision:false,has_gravity:false}
+[2026-08-11 16:04:01:974 WARN] [Scripting] PISTON B no_push_to_space :: before=40.500,2.000,36.500 after3s=42.300,1.000,36.500 after6s=42.300,1.000,36.500 drift_h=1.800 drift_y=-1.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: physics{push_towards_closest_space:false}
+[2026-08-11 16:04:01:974 WARN] [Scripting] PISTON B nophysics :: before=40.500,2.000,40.500 after3s=41.500,2.000,40.500 after6s=41.500,2.000,40.500 drift_h=1.000 drift_y=0.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: no minecraft:physics component at all
+[2026-08-11 16:04:01:974 WARN] [Scripting] PISTON B nophysics_nopush :: before=40.500,2.000,44.500 after3s=41.500,2.000,44.500 after6s=41.500,2.000,44.500 drift_h=1.000 drift_y=0.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: no physics component + pushable false
+[2026-08-11 16:04:01:974 WARN] [Scripting] PISTON B tinybox :: before=40.500,2.000,48.500 after3s=42.005,1.000,48.500 after6s=42.005,1.000,48.500 drift_h=1.505 drift_y=-1.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: collision_box 0.01 x 0.01, physics on
+[2026-08-11 16:04:01:974 WARN] [Scripting] PISTON B tinybox_nophysics :: before=40.500,2.000,52.500 after3s=41.500,2.000,52.500 after6s=41.500,2.000,52.500 drift_h=1.000 drift_y=0.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: collision_box 0.01 x 0.01, no physics component
+[2026-08-11 16:04:01:974 WARN] [Scripting] PISTON B current_nocollide :: before=40.500,-95.521,56.500 after3s=gone after6s=gone drift_h=NaN drift_y=NaN moved=? stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: the mc-rpg-core set + physics{has_collision:false}
+[2026-08-11 16:04:01:974 WARN] [Scripting] PISTON B current_nograv_nocollide :: before=40.500,2.000,60.500 after3s=41.500,2.000,60.500 after6s=41.500,2.000,60.500 drift_h=1.000 drift_y=0.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: the mc-rpg-core set + physics{has_collision:false,has_gravity:false}
+[2026-08-11 16:04:01:974 WARN] [Scripting] PISTON B kitchen_sink :: before=40.500,2.000,64.500 after3s=41.500,2.000,64.500 after6s=41.500,2.000,64.500 drift_h=1.000 drift_y=0.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: every suppressor at once: no physics, pushable false, kbr 1, push_through 0, tiny box, movement 0
+[2026-08-11 16:04:01:974 WARN] [Scripting] PISTON B home_tether :: before=40.500,2.000,68.500 after3s=42.300,1.000,68.500 after6s=42.300,1.000,68.500 drift_h=1.800 drift_y=-1.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: home{restriction_radius:1} + behavior.go_home, movement 0.4, navigation.walk
+[2026-08-11 16:04:01:974 WARN] [Scripting] PISTON B sittable :: before=40.500,2.000,72.500 after3s=42.300,1.000,72.500 after6s=42.300,1.000,72.500 drift_h=1.800 drift_y=-1.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: sittable + behavior.stay_while_sitting, the sit event triggered from script on spawn
+[2026-08-11 16:04:01:974 WARN] [Scripting] PISTON B vanilla_pig :: before=40.500,2.000,76.500 after3s=42.492,1.000,75.343 after6s=42.806,1.000,68.757 drift_h=8.079 drift_y=-1.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: vanilla, as-is
+[2026-08-11 16:04:01:974 WARN] [Scripting] PISTON B vanilla_zombie :: before=40.500,2.000,80.509 after3s=42.500,1.000,86.309 after6s=43.498,1.000,92.268 drift_h=12.135 drift_y=-1.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: vanilla, as-is
+[2026-08-11 16:04:01:974 WARN] [Scripting] PISTON B vanilla_armor_stand :: before=40.500,2.000,84.500 after3s=42.250,1.000,84.500 after6s=42.250,1.000,84.500 drift_h=1.750 drift_y=-1.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: vanilla, as-is
+[2026-08-11 16:04:01:974 WARN] [Scripting] PISTON B vanilla_npc :: before=40.500,2.000,88.500 after3s=42.300,1.000,88.500 after6s=42.300,1.000,88.500 drift_h=1.800 drift_y=-1.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: vanilla, as-is
+[2026-08-11 16:04:01:974 WARN] [Scripting] PISTON B vanilla_shulker :: before=40.500,2.000,92.500 after3s=45.500,1.000,96.500 after6s=gone drift_h=NaN drift_y=NaN moved=? stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: vanilla, as-is
+[2026-08-11 16:04:01:974 WARN] [Scripting] PISTON B vanilla_ender_crystal :: before=40.500,2.000,96.500 after3s=41.500,2.000,96.500 after6s=41.500,2.000,96.500 drift_h=1.000 drift_y=0.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: vanilla, as-is
+[2026-08-11 16:04:01:974 WARN] [Scripting] PISTON B vanilla_iron_golem :: before=42.367,1.000,95.723 after3s=43.954,1.262,94.967 after6s=43.659,3.966,94.667 drift_h=1.668 drift_y=2.966 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: vanilla, as-is
+[2026-08-11 16:04:01:974 WARN] [Scripting] PISTON B vanilla_boat :: before=40.700,2.000,104.500 after3s=41.200,2.000,104.500 after6s=41.200,2.000,104.500 drift_h=0.500 drift_y=0.000 moved=YES stimulus=destination=minecraft:stone origin=minecraft:piston_arm_collision :: vanilla, as-is
+[2026-08-11 16:04:01:974 WARN] [Scripting] PISTON B-done
+[2026-08-11 16:04:01:974 WARN] [Scripting] PISTON done
+
+=== teardown
+  container and volume removed

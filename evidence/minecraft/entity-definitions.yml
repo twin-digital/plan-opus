@@ -32,3 +32,29 @@ runs:
       deadline expiring while that phase's arena chunk loaded over a slow remote Docker connection —
       the phase's readings and its `complete` line landed after the harness had moved on, and are in
       the log.
+  - id: run-xw908twx
+    command: node run.mjs
+    output: evidence/minecraft/entity-definitions/family-spelling-probe/OUTPUT.txt
+    ran_at: 2026-08-15
+    environment: |
+      Run in evidence/minecraft/entity-definitions/family-spelling-probe against
+      itzg/minecraft-bedrock-server (digest
+      sha256:0723ada81c10d3a9333d551b9ad8f22d666c3728071b6a15808bcef1fd394ab2), Bedrock dedicated
+      1.26.44.3, @minecraft/server 2.8.0 as a pack manifest dependency with no experiments enabled.
+
+      Two behavior packs at 0.1.0: a script pack, uuid 93c91f34-a9f4-4ed5-a470-d9acea830bfc,
+      holding the probe, and a data pack, uuid 3c384f42-b3b6-46d9-8341-93bd5322bf6b, declaring
+      `probe:spelling` with families ["probe_underscore_token",
+      "mcdk_pack_twin-digital-village-guard","mcdk_pack_dotted.pkg.name"] and one solo entity per
+      token (`probe:under`, `probe:hyphen`, `probe:dot`). `probe_absent_token`, declared nowhere,
+      is the negative control on every path.
+
+      One phase, triggered from the console as `scriptevent probe:run spelling`, reads each token
+      through getTypeFamilies/hasTypeFamily, Entity.matches({families}),
+      Dimension.getEntities({families}), and runCommand `testfor @e[family=]`. The harness then
+      drives the selector from the server console per token: `execute if entity @e[family=<t>] run
+      scriptevent probe:hit <t>` followed by an unconditional `scriptevent probe:checked <t>`, so a
+      `hit` line in the content log means the selector parsed and matched console-side. The phase
+      produced its `complete` line, all four `checked` lines landed, and the content-log filter at
+      the end of OUTPUT.txt matched no warnings or errors. OUTPUT.txt is the captured transcript
+      the sources cite; RESULTS.md beside it is a reading of the same lines.

@@ -1,0 +1,252 @@
+version: "3"
+decisions:
+  - id: d-qtj99irh
+    title: the vendoring record is vendored-assets.yml, naming repository, revision, and per-file paths
+    statement: |
+      the assets pack's vendoring record is `vendored-assets.yml` at the package root: `repository` —
+      the source repository's url; `revision` — the exact tag or commit vendored; and `files` — one
+      `{source, committed}` pair of paths per file taken. a re-vendoring changes this file in the
+      same change as the assets it refreshes.
+    status: delegated
+    pinned:
+      reason: data-format
+    scope: assets-pack
+    because:
+      - d-cb9jl02i
+      - d-lyvjq8l1
+  - id: d-z7e5isj2
+    title: the wizard is drawn with the stock material `evoker`
+    statement: |
+      the stock entity material the wizard's client entity names is `evoker` — the material the
+      game's own evoker is drawn with. it is the only vanilla name the shipped resource half
+      carries.
+    status: accepted
+    pinned:
+      reason: other
+      notes: how the wizard is drawn, and the one vanilla name the resource half ships — a different material re-draws the wizard's face
+    scope: assets-pack
+    because:
+      - d-3ggbl0kl
+      - r-qi348761
+      - f:f-8it4axjv
+      - f:f-z999a7yv
+  - id: d-o9lynydc
+    title: the spawn call is spawnActor, and a handle is looked up with findActor
+    statement: |
+      the spawn call is `spawnActor(preset, place, options?)`, returning an actor-handle; `place` is
+      a dimension and a location; `options` may override the display name or set a durable name.
+      `findActor(id)` resolves a handle from a durable name, or `undefined`. a handle exposes the
+      preset, the entity identifier, the durable name where given, the underlying entity, and
+      `remove()`.
+    commentary: |
+      a place carries no rotation: an actor faces nearby players by behavior (r-apu8m7vz), so an
+      initial facing would bind nothing a player could keep observing.
+    status: accepted
+    pinned:
+      reason: public-api
+    scope: library
+    because:
+      - d-5lutr7ok
+      - d-9uu20w3r
+      - r-lna5xlfe
+  - id: d-lt24vke1
+    title: the missing-definitions error is ActorDefinitionsMissingError
+    statement: |
+      where an actor's entity type is not registered, the library throws
+      `ActorDefinitionsMissingError` — an `Error` subclass carrying `preset`, `identifier`, and
+      `pack` as fields, its message naming all three and directing the reader to install and
+      activate the pack.
+    status: delegated
+    pinned:
+      reason: public-api
+    scope: library
+    because:
+      - d-xobjyw2e
+      - r-9owgd93o
+  - id: d-kklnm4j4
+    title: the wizard's default name is the string `Wizard`
+    statement: |
+      the wizard preset's library-carried default name is the string `Wizard`.
+    status: accepted
+    pinned:
+      reason: other
+      notes: what a player reads above the actor every adventure spawns unrenamed
+    scope: library
+    because:
+      - d-bfdql5tx
+      - r-rpcudvbl
+  - id: d-h4dvevea
+    title: the registry carries the assets pack's display name, and the pack's productName matches it
+    statement: |
+      the library's registry exports the assets pack's display name, `RPG Core Actors`. the assets
+      pack's `productName` carries the same string, so the pack name the library's error reports
+      and the name an operator sees in a world's pack list agree.
+    status: delegated
+    pinned:
+      reason: other
+      notes: the string an operator matches against the pack list when the error directs them to install the pack
+    scope:
+      - library
+      - assets-pack
+    because:
+      - d-xobjyw2e
+      - d-icz8rnnw
+  - id: d-kmw62ki3
+    title: the library package is @twin-digital/rpg-core, published
+    statement: |
+      the npm name an adventure imports is `@twin-digital/rpg-core`, published under ISC and
+      shipping `dist/` only.
+    status: accepted
+    pinned:
+      reason: public-api
+    scope: library
+    because:
+      - d-knzip5zc
+      - d-6jlj0rl2
+  - id: d-og6f9j6c
+    title: the two packages advance majors together, and the library's first release is 1.0.0
+    statement: |
+      the library and the assets pack advance majors together: the library's first release is
+      `1.0.0`, and a namespace change is a new major of both packages. each package therefore reads
+      the namespace from its own version's major.
+    status: tolerated
+    pinned:
+      reason: other
+      notes: it is how the library's identifiers and the pack's stay one namespace as majors advance
+    scope:
+      - library
+      - assets-pack
+    because:
+      - d-2zclv5ol
+      - d-i8pjw2on
+      - d-orqkexpm
+  - id: d-nd1ed8qx
+    title: the example is a private behavior-pack-only package with no importable surface
+    statement: |
+      `@twin-digital/rpg-core-example` is private and never published. it holds one behavior pack
+      and no resource pack, its deliverable is the `.mcaddon` its release hook archives, and it
+      exposes no importable surface.
+    status: accepted
+    scope: example
+    because:
+      - d-2qxdv80k
+  - id: d-cqgi5xms
+    title: a durable name is a namespaced world dynamic property holding a JSON record
+    statement: |
+      a durable name `<id>` is carried as the world dynamic property `rpg:actor.<id>` — the key's
+      namespace token per d-2zclv5ol — whose value is JSON holding the preset, the entity type id,
+      and the engine entity id. `findActor` resolves through that record alone; `remove()` deletes
+      it, freeing the name for a later spawn; an unreadable record reads as absent.
+    status: delegated
+    pinned:
+      reason: data-format
+      notes: the record is world state existing worlds already hold — a reimplementation that cannot read it strands every placed actor
+    scope: library
+    because:
+      - d-9uu20w3r
+      - r-8ih6ab2r
+      - r-pop72yk6
+      - d-i8pjw2on
+  - id: d-gja1pnav
+    title: what placement under an already-held durable name does
+    statement: |
+      spawnActor under a durable name the world already holds resolves the record before anything
+      else.
+    cases:
+      - when: the record's actor still resolves
+        then: the call returns that actor unchanged — a display-name override in the options is not applied
+      - when: the record's actor no longer resolves
+        then: the record is stale — a fresh actor is spawned and the record overwritten
+    status: delegated
+    scope: library
+    because:
+      - d-9uu20w3r
+  - id: d-f7o3vg4n
+    title: an absent durable name makes no definitions check
+    statement: |
+      `findActor` of a name no record holds returns `undefined` without a definitions lookup —
+      there is no actor to act on, so the check has no subject. a present record is checked, from
+      its stored preset and type id, before the entity is touched.
+    status: delegated
+    scope: library
+    because:
+      - d-xobjyw2e
+  - id: d-clemw9ag
+    title: the vendored evoker's riding and particle references are not carried
+    statement: |
+      the wizard's client entity and animation controllers carry none of the evoker's riding
+      animations and no particle effects. an actor cannot be displaced onto a mount and casts no
+      spells, and either reference would be a vanilla name in the shipped resource half.
+    status: delegated
+    scope: assets-pack
+    because:
+      - d-3ggbl0kl
+      - d-lyvjq8l1
+      - d-w0smdozf
+      - r-qi348761
+  - id: d-uq70bkcx
+    title: what the shared actor components establish, and where the engine stops
+    statement: |
+      an actor refuses damage from every cause; is summonable by identifier with no spawn egg, so it
+      never appears in the creative menu; cannot be renamed by a player; watches a nearby player
+      continuously; survives a restart and a chunk unload with no player near; falls under gravity;
+      and carries every control the pack format offers against being pushed.
+    cases:
+      - when: a player, a mob, or a piston arm pushes an actor
+        then: the push is refused as far as the components reach — a piston arm still moves it
+      - when: a piston carries the block an actor stands on, or a current reaches it
+        then: the actor moves; no component prevents either
+    status: tolerated
+    supersedes: d-w0smdozf
+    pinned:
+      reason: other
+      notes: what a player sees an actor do, and what an adventure may rely on an actor's position surviving
+    scope: assets-pack
+    because:
+      - r-0fmfslpl
+      - r-rytfox4t
+      - r-apu8m7vz
+      - f:f-1mbwecmv
+      - f:f-vcnueu1q
+      - f:f-c1hoepxs
+      - f:f-5ci71l13
+      - f:f-wyefuxpy
+    commentary: |
+      the components carried are knockback resistance, `pushable` refused for entities and pistons,
+      a zeroed movement system, and a water drag factor — every dial the 1.21.130 format documents.
+      the sweep behind the cases measured 27 component sets against a piston and 20 against a
+      current: the only configurations that survive a piston arm have no collision at all, which
+      costs an actor its footing, and no configuration at all survives a carried block or a current.
+      vanilla's own armor stands and NPCs move under both.
+
+      gravity is deliberate. an actor left hovering where the ground was broken reads as a bug, so an
+      actor falls; a character that must hold a position in the air is a run-time lock an adventure
+      opts into, not a component.
+  - id: d-kxl9ej80
+    title: an adventure and the assets pack install as an archive each
+    statement: |
+      an adventure's release archive carries the adventure's own packs. this product's assets pack
+      ships as its own release archive, installed beside the adventure's, and a world holds one
+      installed copy of a given assets-pack major however many adventures use it.
+    status: delegated
+    supersedes: d-hybkhum6
+    pinned:
+      reason: other
+      notes: what an operator installs, and how many pieces they must keep in step — the surface d-hybkhum6 pinned
+    scope:
+      - library
+      - assets-pack
+    because:
+      - d-knzip5zc
+      - d-3or6phg1
+      - f:opus-pack-archive-carries-only-the-packages-own-packs
+    commentary: |
+      the kit's release archive is cut from the owning package's own output tree, with its members
+      fixed in source — there is no route by which an adventure's `.mcaddon` carries a dependency's
+      packs, so d-hybkhum6's one-file install is not buildable today. bundling a dependency's packs
+      into an adventure's archive is a kit capability to capture against `@twin-digital/mc-dev-kit`,
+      beside the two checks d-lgaqtx4c already sends there; if the owner prefers to hold d-hybkhum6
+      instead, this implementation pauses on that capability rather than shipping around it.
+
+      what survives unchanged: the pack's own archive carries both halves, so d-ro5pj8er holds, and
+      one manifest uuid still activates both halves through d-3or6phg1.

@@ -1,0 +1,33 @@
+version: "3"
+requirements:
+  - id: r-0fmfslpl
+    title: a player in creative cannot edit, rename, remove, or harm an actor
+    statement: |
+      no action a player can take in creative mode edits an actor, renames it, removes it, or
+      harms it, and none moves it by hand. an actor is changed only by the adventure that spawned
+      it, and what may move one is gravity or a physics contraption a player builds.
+    scope: assets-pack
+    supersedes: r-wqwub3zz
+    commentary: |
+      the worlds this product is for are built in creative, where an ordinary click on a character is
+      an authoring action rather than play; an actor a curious player can rename or delete with one
+      click is not a character. that is what this requirement protects, and it holds.
+
+      what it no longer claims is total immobility, because the engine does not offer it. a piston
+      arm, a block a piston carries, and a water current each move an actor whatever components it
+      carries, and the components that would stop the arm cost the actor its collision, which a
+      standing character cannot give up. an adventure wanting a character nothing can shift needs a
+      run-time lock rather than a component.
+  - id: r-rytfox4t
+    title: an actor keeps its place until the adventure removes it
+    statement: |
+      an actor stays in the world, with its name and appearance, at the place the adventure put it,
+      until that adventure removes it — across a server restart, and whether or not a player is
+      nearby. it never wanders on its own.
+    scope: assets-pack
+    supersedes: r-8ih6ab2r
+    commentary: |
+      "its place" is where the adventure put it rather than the exact coordinates it was given:
+      an actor settles onto the ground under it, and a player's physics contraption can shift it.
+      the claim this makes is that nothing in the world's own running — chunk unloading, a restart,
+      an absent player, or the actor's own behaviour — takes an actor away from where it belongs.

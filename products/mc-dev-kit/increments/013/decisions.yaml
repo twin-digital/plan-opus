@@ -1,0 +1,476 @@
+version: "3"
+
+# The implement-011 companion: the concrete spellings the vendoring build and the engine-side
+# runtime share, and the choices building them forced. The two format decisions rest on
+# f-5acfquxr, probed for this implementation.
+decisions:
+  - id: d-jej5f2em
+    title: the injected constant is a frozen global holding the namespace and the pack token
+    statement: |
+      for a namespaced pack the build assigns
+      `globalThis.__MC_PACK_RUNTIME__ = Object.freeze({ namespace, packToken, prefixes })` ahead
+      of every module in the bundle — `packToken` the package's npm name with the `@` dropped and
+      the `/` a hyphen, `prefixes` the frozen, sorted prefixes of the merged vendored packs. With
+      namespacing off nothing is assigned, and every runtime read sees the global absent.
+    status: accepted
+    scope: [build, runtime]
+    pinned:
+      reason: public-api
+      notes: the spelling every built bundle carries, shared by both halves and any reimplementation
+    because:
+      - d-zm6pxfrg
+      - r-tvea5tvf
+      - d-zk0c48uy
+
+  - id: d-vwyuhb7e
+    title: the stamped family is mcdk_pack_ plus the pack token
+    statement: |
+      the type family the build stamps on every entity type a namespaced pack declares is
+      `mcdk_pack_<packToken>` — the pack token rather than the namespace, so two packs
+      contending for one namespace still tell apart. `packFamily()` exposes the token for an
+      author's own filters.
+    commentary: |
+      A contended identifier resolves to one whole definition, and the loser's family is what
+      goes absent (f-1yo29upp) — a namespace-keyed family could not say whose definition won.
+    status: accepted
+    scope: [build, runtime]
+    pinned:
+      reason: public-api
+      notes: a family visible to any pack, built on by authors' selectors and filters
+    because:
+      - d-wj60379v
+      - d-jej5f2em
+      - f-1yo29upp
+      - f-5acfquxr
+
+  - id: d-2dg93d2a
+    title: the claim type is the namespace, mcdk_claim_, and the pack token
+    statement: |
+      the entity type the build adds to a namespaced pack's behavior half is
+      `<namespace>:mcdk_claim_<packToken>`. The runtime reads rivals by enumerating the
+      registered types whose identifier carries its own namespace and the `mcdk_claim_` prefix
+      with another pack's token. The `mcdk_claim_` name space is reserved: a bare name that
+      would land in it fails the build.
+    status: delegated
+    scope: [build, runtime]
+    pinned:
+      reason: public-api
+      notes: an identifier every namespaced pack declares, and the prefix a reader parses
+    because:
+      - d-q7mz2qb0
+      - d-jej5f2em
+      - f-te6cfwkw
+      - f-5acfquxr
+      - f-o8xk7go5
+
+  - id: d-y86n5etq
+    title: the runtime's exported surface
+    statement: |
+      `@twin-digital/mc-pack-runtime` exports, from its one entry point: `packId(name)`, spelling
+      an unnamespaced name — bare, or `<prefix>.<name>` against the injected prefixes — into the
+      pack's namespace; `packNamespace()` and `packFamily()`; the checked `spawnEntity`,
+      `getEntity` and `getEntities`, with `ForeignEntityError`; and `foreignNamespaceClaims()`
+      returning `NamespaceClaim` entries. The checked calls are for the pack's own types.
+    cases:
+      - when: the name carries a `:`, no namespace was injected, or its first dot-segment is not an injected prefix
+        then: "`packId` throws, the last naming the segment and the known prefixes"
+      - otherwise: only the first segment is validated — `pack1.a.b` is prefix `pack1`, name `a.b`
+    commentary: |
+      `packNamespace()` and `packFamily()` answer undefined with namespacing off. Vanilla and
+      foreign entities are reached through `@minecraft/server` directly — the checked calls
+      guard the pack's own types and nothing else. A dotted first segment is always a prefix
+      claim, since bare declarations are dot-free by build rule, so an unknown one is a typo or
+      an un-merged dependency and silent passthrough would spell a nonexistent entity.
+    status: accepted
+    scope: [runtime]
+    pinned:
+      reason: public-api
+      notes: the importable surface of a package consumers install
+    because:
+      - d-4idoxbul
+      - d-zm6pxfrg
+      - d-wj60379v
+      - d-q7mz2qb0
+      - r-l4e55kqu
+      - f-i8fx23h0
+
+  - id: d-nqb3dtxv
+    title: the claim report throws until the world has loaded
+    statement: |
+      `foreignNamespaceClaims()` answers the most recent world-load enumeration, and called
+      before one has happened it throws naming the boundary — never an empty list, which would
+      read as "no rivals" while nothing is known yet.
+    status: accepted
+    scope: [runtime]
+    pinned:
+      reason: public-api
+      notes: when the value a pack reads its rivals from becomes readable, and what a too-early read does
+    because:
+      - d-q7mz2qb0
+      - d-y86n5etq
+      - f-rtmfaoba
+    commentary: |
+      An empty answer before load is a silent false negative — a check appearing to cover what
+      it cannot. The engine itself refuses catalog reads in early execution (f-rtmfaoba), so the
+      boundary is real and the throw surfaces it. Undefined would also distinguish the states;
+      the package's other guards throw on misuse, and one signaling style is worth keeping.
+      Enumerating on demand is not available — the catalog answers nothing before world load.
+
+  - id: d-l45sm4ja
+    title: own names carry the pack namespace; vendored assets a library token and hash
+    statement: |
+      the entity identifiers a pack declares carry its namespace, and so do its own asset names,
+      as their token. A vendored asset's name carries its library's token and a content hash
+      instead, so an identical name is identical bytes: consumers share names exactly where
+      content is unchanged, and an upgrade renames exactly the assets that changed.
+    status: accepted
+    scope: [build]
+    pinned:
+      reason: data-format
+      notes: the literal names inside a built pack, and the property that a shared name is a shared definition
+    supersedes: d-tnhykfkz
+    because:
+      - r-h1p0uyhr
+      - r-jxzqhhmo
+      - r-293j8n70
+      - d-82zp77fo
+      - d-zk0c48uy
+      - f-8bxtf5w7
+      - f-1yo29upp
+    commentary: |
+      Winner-takes-all resolution is decided by activation order, not version (f-1yo29upp), so
+      any name shared between packs holding different bytes drifts arbitrarily per world. Hashing
+      makes sharing exact: a shared name cannot resolve to anything but the bytes every sharer
+      built with. Own assets need no hash — they change under the author's own hand, and hashing
+      them would rename on every tweak, forcing a dev-loop restart per save.
+
+  - id: d-sycw8wo2
+    title: the asset token structures and the vendored content hash
+    statement: |
+      a token is written into each name kind's structure: `geometry.<token>.<name>`,
+      `controller.render.<token>.<name>`, `animation.<token>.<name>`,
+      `controller.animation.<token>.<name>`, `<token>_<name>` for materials, and
+      `textures/<token>/<path>` for textures, whose file moves with its name. A vendored token is
+      `<packToken>-<hash>`: sixteen hex digits of sha256 over the declaring file's bytes and the
+      sorted final names it references. A vendored definition file's output basename carries the
+      packToken.
+    cases:
+      - when: one vendored pack declares an asset name in two files
+        then: the build fails naming both files — two hashes would leave references nothing to pick
+      - when: a vendored material names a vendored parent
+        then: the parent's final name folds into the hash, recursively; a cycle fails the build naming the file
+      - otherwise: a file's hash is its bytes alone, and every declaration in the file shares it
+    status: delegated
+    scope: [build]
+    pinned:
+      reason: data-format
+      notes: the literal names inside every built namespaced pack, and what makes them deterministic across rebuilds
+    because:
+      - d-l45sm4ja
+      - d-hqtqb43i
+      - f-8bxtf5w7
+
+  - id: d-ru4zegfs
+    title: vendored entities carry a consumer-chosen prefix in the name half
+    statement: |
+      with namespacing on, own entities build as `<ns>:<name>` and a merged vendored pack's as
+      `<ns>:<prefix>.<name>` — the prefix from the shipping package's `minecraft.vendor` field,
+      else the dependency's shipped `defaultAlias`, else its unscoped name. Bare declarations
+      may not contain a dot, so a composed name's first segment is always the prefix. A vendored
+      module's runtime import arrives bound to its prefix.
+    cases:
+      - when: a prefix holds anything outside lowercase letters, digits, underscore and hyphen, or lands in `mcdk_claim_*`
+        then: the build fails naming what it found
+      - when: two merged dependencies resolve to one prefix
+        then: the build fails naming both; an explicit `minecraft.vendor` prefix is the fix
+      - when: a vendored module imports the runtime
+        then: its `packId` is bound as `name => packId('<prefix>.' + name)`, so computed names work
+    status: accepted
+    scope: [build, runtime]
+    pinned:
+      reason: public-api
+      notes: the ids a consumer's worlds and commands address, and the option surface that names them
+    because:
+      - r-h1p0uyhr
+      - d-82zp77fo
+      - d-zk0c48uy
+      - d-zm6pxfrg
+      - r-tvea5tvf
+      - f-te6cfwkw
+      - f-dlia9v1f
+    commentary: |
+      Dots are the separator because they are proven command-safe in the name half while a slash
+      is unwritable in any command (f-dlia9v1f). Localization keys follow the final ids. The
+      family and claim machinery are untouched; a vendored entity's id merely carries the prefix
+      segment.
+
+  - id: d-vi1sct9w
+    title: what merges is the consumer's own dependencies and vendor-block names
+    statement: |
+      a package merges the `vendored_pack/` of two sets of packages and no others: those in its
+      own `dependencies`, and those named in its `minecraft.vendor` field — either route
+      admits a transitive supplier. `devDependencies` never merge, and a package reached by several paths
+      merges once. The transitive tree is still read: a dangling reference fails naming the
+      supplier and the fix.
+    cases:
+      - when: a merged pack's reference resolves to no merged declaration and a reachable un-merged vendored pack declares the name
+        then: the build fails naming the referencing file, the name, the supplying package, and the fix
+      - when: a `minecraft.vendor` name resolves to no package holding a `vendored_pack/` tree
+        then: the build fails naming it
+      - otherwise: a name nothing reachable declares copies through as written
+    status: accepted
+    scope: [build]
+    pinned:
+      reason: public-api
+      notes: what makes a dependency's content arrive, and what a shipped pack can contain unchosen — nothing
+    supersedes: d-xoz6pwt8
+    because:
+      - r-f1i0d5h2
+      - r-h1p0uyhr
+      - d-27lzrwsu
+      - d-82zp77fo
+      - r-dge04upw
+      - d-ru4zegfs
+      - r-c9bu8xes
+
+  - id: d-i4oeiclv
+    title: own references bind own or qualified; vendored references by uniqueness
+    statement: |
+      in any pack's files — the consumer's and a vendored pack's alike — a reference is
+      unprefixed, meaning that pack's own declaration or vanilla, or carries a token of the
+      writer's own `minecraft.vendor` field saying which dependency it means. An unprefixed
+      name a pack in the writer's own closure declares is a build failure printing the writer's
+      token form.
+    cases:
+      - when: an unprefixed name matches a declaration in the writer's own pack
+        then: it means that declaration, whatever anything else declares
+      - when: an unprefixed name matches nothing in the writer's world
+        then: it is vanilla and copies as written, out-of-closure merged packs included; the consumer's bare misses keep d-vi1sct9w's dangling diagnosis
+      - when: a token-qualified reference names something its dependency does not declare
+        then: the build fails naming the file, the spelling, and the dependency
+      - when: a token names a package outside the writer's own dependencies
+        then: the writing package's fault, failing at any build that reads it
+    status: accepted
+    scope: [build]
+    pinned:
+      reason: public-api
+      notes: the binding order of every reference in a built pack — nothing else fixes which declaration a reference lands on
+    supersedes: d-1vhwdhk1
+    because:
+      - r-f1i0d5h2
+      - r-h1p0uyhr
+      - d-ru4zegfs
+      - d-l45sm4ja
+      - d-ni5n2r3c
+      - d-piquxs3y
+      - r-c9bu8xes
+      - d-82zp77fo
+    commentary: |
+      This is the rule d-1vhwdhk1's collision check becomes, which is why the supersession sits
+      here. The naming decisions dissolved the collisions themselves — composed ids (d-ru4zegfs)
+      end entity contention, hashed tokens (d-l45sm4ja) end asset contention — and that is
+      precisely what makes an unprefixed name ambiguous where declarations once collided.
+
+      Unprefixed means yours or vanilla; prefixed means theirs. A vendored pack never receives
+      an unprefixed binding from the consumer's files, so adding a dependency cannot change
+      what any existing reference means, declaring a name later captures nothing, and a
+      vendored pack cannot silently shadow a vanilla name the consumer references — the failure
+      with the printed prefixed form replaces both silent readings.
+
+      Unprefixed means mine or vanilla; a token means the dependency my own field names — one
+      rule for every pack, the consumer being only the pack whose tokens also reach the output.
+      A reference resolves within the world its author could see, so nothing outside a writer's
+      own closure can bind or capture its references: an arrival or an upgrade turns a
+      reference loud at worst, never silently rebound. An unprefixed name matching an
+      un-admitted direct supplier answers with the admission diagnosis rather than a copy — the
+      supplier is in the writer's own world. Vendored material parents hash by the same rule,
+      so a hash can never depend on the consumer's sibling dependencies.
+
+  - id: d-piquxs3y
+    title: the prefix qualifies an asset reference
+    statement: |
+      in the consumer's own content, an asset reference carrying a merged prefix in its
+      qualifier position — the segment after the kind keyword, the first path segment under
+      `textures/`, the first dot-segment of a material name — binds to that dependency's
+      declaration of the remainder; the build rewrites it to the hashed name, and the token
+      never reaches the output.
+    cases:
+      - when: the named dependency declares no such asset
+        then: the build fails naming the file, the spelling, and the dependency
+      - when: an own declaration sits in a merged prefix's qualifier position
+        then: the build fails naming the declaration and the prefix; renaming that prefix in the `minecraft.vendor` field is the fix
+      - when: an own bare spelling names an asset merged packs declare
+        then: the failure prints each declarer's qualified spelling as the fix
+      - otherwise: an own bare reference means an own declaration or vanilla; vendored content resolves internally without qualifiers
+    status: accepted
+    scope: [build]
+    pinned:
+      reason: public-api
+      notes: a reference grammar an author writes, and the recourse every ambiguity error prints
+    because:
+      - r-f1i0d5h2
+      - d-ru4zegfs
+      - d-i4oeiclv
+      - d-l45sm4ja
+      - r-c9bu8xes
+    commentary: |
+      The qualifier is a directing token the rewrite consumes, so engine grammar never
+      constrains it, and the remainder must be the dependency's declared spelling verbatim —
+      `geometry.lib.lib.smoke` reaches lib's own `lib.smoke`, and a partial match is a loud
+      miss, never a guess. A prefix colliding with a vanilla naming family (`evoker`, say)
+      makes vanilla references parse as qualified and fail as misses — loud and fixed by
+      renaming the prefix, which beats maintaining a vanilla allowlist. Vendored content cannot
+      use qualifiers: it cannot know consumer prefixes, so its dotted internal names stay its
+      own and the shadowing check guards own declarations only. A qualified spelling naming an
+      un-merged supplier's default prefix does not bind and falls through to bare resolution,
+      where the dangling diagnosis names the admission; once admitted, the qualified spelling is
+      the reference. The guess is not extended to qualified spellings deliberately: a dotted
+      asset spelling is vanilla-legal, so a wrong guess would instruct an admission that
+      rewrites a vanilla reference. An author wanting removal protection configures the prefix
+      explicitly — a `minecraft.vendor` entry whose package goes missing already fails loudly.
+
+  - id: d-rqgcxxsz
+    title: vendoring is configured by the shipped minecraft.vendor field
+    statement: |
+      `{ "minecraft": { "vendor": { "<npm name>": { "prefix": "<token>" } } } }` in a package's
+      own `package.json` is the whole vendor configuration; the `packBuild` `vendor` option is
+      gone and `namespace` stays a build option. The field means one thing in every package:
+      the token this package writes in its own source for that dependency's content.
+    cases:
+      - when: the package is the one shipping the packs
+        then: its tokens also fix the output entity-id segment `<ns>:<prefix>.<name>` and the injected prefixes
+      - when: the package is a vendored library
+        then: its entries are source-side aliases; output naming is always the shipping consumer's
+      - when: a dependency ships `minecraft.defaultAlias` beside its tree
+        then: that is its default token in every package's resolution — an explicit prefix still winning
+      - otherwise: every direct dependency holding a vendored pack defaults to its shipped `defaultAlias`, else its unscoped name
+    status: delegated
+    scope: [build]
+    pinned:
+      reason: public-api
+      notes: what every package author writes, shipped in the one file npm always publishes
+    because:
+      - d-ru4zegfs
+      - d-vi1sct9w
+      - d-jdqt63fi
+      - r-h1p0uyhr
+      - d-zk0c48uy
+    commentary: |
+      The declaration must be readable from an installed or workspace dependency with no build
+      having run (d-jdqt63fi), so a dev-time bundler config cannot carry it; `package.json`
+      ships unconditionally, sits beside the `dependencies` list that is the closure, and is
+      already read and watched by the build. One location for both roles lets a package that is
+      both library and pack-shipper declare its suppliers once. What is build-time-only — the
+      namespace — stays in build config; what must ship lives here.
+
+      `defaultAlias` follows the field's rules: token charset and the `mcdk_claim_` reservation,
+      validated at the shipping library's own build and again at every consumer's, where an
+      invalid one fails naming the library and the explicit-prefix fix; on a package holding no
+      vendored tree it is inert, since nothing ever consults it. Changing a shipped
+      `defaultAlias` is a breaking change with a loud edge: references to the old token fail
+      listing the resolved spellings — never rebinding, never silently renaming — and pinning
+      the old token as an explicit prefix restores the build with shipped-world entity ids
+      preserved exactly. The stale-token failure is precise but not an oracle: a genuine vanilla
+      dotted reference whose first segment is unknown and whose remainder coincides with a
+      closure declaration fails loudly too, and short of copying the asset into the own pack
+      there is no spelling for that vanilla name — the known corner of the grammar, loud in
+      every direction.
+
+  - id: d-rzcxpj7p
+    title: packBuild validates a vendored tree at its author's build
+    statement: |
+      a package holding `vendored_pack/` has that tree validated by its own `packBuild`:
+      content kinds, declarations, token shadowing, and every reference — own names bare,
+      supplier names through its own field tokens over its own direct dependencies. A package
+      holding only a vendored tree validates and emits nothing rather than failing as
+      pack-less.
+    cases:
+      - when: the package also holds packs of its own
+        then: the tree is validated in addition to the normal build
+      - when: a token references a supplier that is not installed
+        then: reported as such, never parsed as vanilla
+      - otherwise: the consumer's build re-validates everything — shipped trees are untrusted, and a workspace sibling may never have built
+    status: accepted
+    scope: [build]
+    pinned:
+      reason: public-api
+      notes: what a library author's own build catches pre-publish, through the same pipeline as every package
+    supersedes: d-4e0kt69q
+    because:
+      - d-rqgcxxsz
+      - d-27lzrwsu
+      - d-7aqne91n
+      - d-jdqt63fi
+      - r-f1i0d5h2
+    commentary: |
+      Every fault this catches is the library's own and fails identically for every consumer,
+      so the author's build is the right first reporter; the consumer's build stays the
+      backstop that cannot be bypassed. The superseded rule made any pack-less package a
+      failure; a vendored tree is now a reason for packBuild to exist.
+
+  - id: d-3bmgnb25
+    title: what a namespaced pack's own source may hold
+    statement: |
+      with namespacing on, a package's own pack holds the modeled content kinds and its manifest
+      freely; every other file copies unchanged unless it could carry an engine-readable name.
+      Namespacing off keeps the copy-everything behavior.
+    cases:
+      - when: the file is one of d-7aqne91n's content kinds or a `.lang` file, or is the manifest
+        then: it is read, rewritten or composed as the build defines
+      - when: the file is `.json`, `.material`, `.lang` or `.mcfunction` outside the modeled locations
+        then: the build fails naming the file
+      - otherwise: the file copies unchanged, dotfiles and unknown extensions included
+    status: delegated
+    scope: [build]
+    pinned:
+      reason: public-api
+      notes: what an author may put in a pack once they set the namespace option
+    because:
+      - r-c9bu8xes
+      - d-8qkamvz7
+      - d-hqtqb43i
+      - d-7aqne91n
+    commentary: |
+      Those four extensions are where engine-readable names live — a function can summon an
+      entity by id — so copying one unexamined would ship a name the build cannot carry into its
+      new spelling. An author turning namespacing on gives up functions, spawn rules, items and
+      the like until the rewriter models them.
+
+  - id: d-l12ch4vq
+    title: the reference positions the rewrite reaches
+    statement: |
+      references are rewritten in the schema positions where the joined-halves guarantee lives: a
+      client entity's description identifier and its geometry, texture, material, animation and
+      render-controller names; a behavior entity's identifier and animation names; a material's
+      parent; geometry identifiers in both declaration forms; and the two localization key forms.
+      A declared name anywhere else copies as written.
+    status: delegated
+    scope: [build]
+    pinned:
+      reason: public-api
+      notes: which of an author's references survive the build rewritten
+    because:
+      - d-ni5n2r3c
+      - r-c9bu8xes
+      - f-gvmc2wfa
+    commentary: |
+      A string in an arbitrary component position — a summon trigger naming the pack's own
+      entity, say — is indistinguishable from data, so it is not recognized as a reference and
+      an author must not expect the rewrite there.
+
+  - id: d-pc2nrqxj
+    title: only .lang files compose; any other shared path fails
+    statement: |
+      where merged packs contribute one output path, `.lang` files are composed — the own pack's
+      entries first, then each vendored pack's in name order — and any other shared path fails
+      the build naming both contributing files. Vendored files otherwise keep their
+      source-relative paths, textures excepted, whose path moves with their name.
+    status: delegated
+    scope: [build]
+    pinned:
+      reason: data-format
+      notes: which files survive merging and how a shared localization file is assembled
+    because:
+      - d-hqtqb43i
+      - d-82zp77fo
+      - r-c9bu8xes
