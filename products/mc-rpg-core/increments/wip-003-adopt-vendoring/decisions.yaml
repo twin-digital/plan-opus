@@ -39,7 +39,7 @@ decisions:
       names this product in no pack manifest. the kit's build merges the package's vendored content
       into the adventure's own behavior and resource packs, under the adventure's namespace and
       header uuids.
-    status: proposed
+    status: accepted
     pinned:
       reason: public-api
     scope: actors
@@ -176,7 +176,7 @@ decisions:
       rather than `@minecraft/server` directly, so an entity answering under one of this product's
       identifiers without this pack's own type family raises `ForeignEntityError` instead of being
       acted on.
-    status: proposed
+    status: accepted
     pinned:
       reason: public-api
       notes: the failure an author meets when a rival pack's content replaced a definition
@@ -197,7 +197,7 @@ decisions:
       and reports nothing about either: no lookup before acting, no counting of the world's pack
       stack, no inference from an entity's dimensions, and no path that implies an actor will
       render.
-    status: proposed
+    status: tolerated
     pinned:
       reason: public-api
       notes: what a successful call is evidence of, which is narrower than an author will assume
