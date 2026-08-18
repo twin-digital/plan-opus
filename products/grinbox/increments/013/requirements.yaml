@@ -1,0 +1,59 @@
+version: "3"
+
+terms:
+  - id: folder
+    definition: |
+      a named container of messages within an account.
+
+  - id: arrival-folder
+    scope: backends
+    display: arrival folder
+    definition: |
+      the folder of an account that new mail is delivered into.
+
+requirements:
+  - id: r-5wpns28x
+    title: a mailbox reachable only by IMAP is one grinbox can triage
+    statement: |
+      the user can put grinbox on a mailbox whose provider offers nothing but IMAP and a password
+      of the user's own, and mail arriving there is triaged as any other account's mail is.
+    commentary: |
+      Everything grinbox does rests on the mail it can reach, and a mailbox that is not a Google
+      one is the ordinary case outside one vendor: a work address on a company server, a personal
+      one at a host that sells mail rather than advertising, a self-hosted mailbox. IMAP is what
+      those have in common. What a particular server cannot do — keep a keyword, move a message —
+      narrows what grinbox offers on that account rather than refusing the account.
+
+  - id: r-blqzjemx
+    title: one way to set a message aside, whatever the backend can do
+    statement: |
+      the user can configure one thing that marks a message for later on every account they have,
+      and grinbox carries it out the best way each account's backend allows.
+    commentary: |
+      A pipeline runs on accounts of more than one backend, and a user should not have to build two
+      configurations and remember which accounts each one serves. Where the backend keeps
+      per-message metadata that is what is used; where it does not, putting the message somewhere
+      is the nearest thing the user would have chosen themselves.
+
+  - id: r-e40s6olu
+    title: a folder is chosen from the ones that exist
+    statement: |
+      wherever grinbox asks the user to name a folder, it offers the folders the account actually
+      has to choose from.
+    commentary: |
+      Grinbox creates no folder and a name that matches nothing fails when mail arrives, so a free
+      text field is a trap: the user finds out they mistyped when a message does not move, days
+      later. The folders are already listed to propose an account's four, so the same listing
+      serves anywhere a folder is named.
+
+  - id: r-g1iwlbzs
+    title: the shape of the user's mailbox is theirs
+    statement: |
+      grinbox creates, renames, and deletes no folder in the user's account. Where what grinbox
+      does must put a message somewhere other than where it found it, the user names where.
+    commentary: |
+      A mail account is a place the user lives, arranged the way they arranged it, and a tool that
+      tidies it on their behalf has taken a liberty they did not offer. This is the sibling of
+      "nothing grinbox does to a mailbox loses mail": that one governs the messages, this one the
+      containers. It bites on IMAP, where getting a message out of the inbox means moving it into
+      some other folder and no server has to have one to move it to.
