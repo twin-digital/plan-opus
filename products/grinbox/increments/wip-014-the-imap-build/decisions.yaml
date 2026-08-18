@@ -235,6 +235,68 @@ decisions:
       - d-fuln110d
     pinned: false
 
+  - id: d-m6bufvwy
+    scope: backends
+    title: a message with no Message-ID is keyed by where it was
+    statement: |
+      an IMAP message carrying no Message-ID is stored under a key naming its folder, that
+      folder's UIDVALIDITY, and its UID, marked as a location rather than an identity.
+    status: proposed
+    because:
+      - d-00smatg0
+      - d-k4nt8zbu
+    pinned:
+      reason: data-format
+      notes: written to disk and read back, and what the snapshot branches on
+
+  - id: d-ntojglaa
+    scope: backends
+    title: re-pointing the arrival folder clears the cursor
+    statement: |
+      pointing an account's arrival role at another folder clears its stored cursor, so the next
+      poll takes the recent window a first poll takes. Re-pointing any other role leaves it.
+    status: delegated
+    because:
+      - d-cepkyeoa
+      - d-8pdx8qsd
+    pinned: false
+
+  - id: d-ti1jnva6
+    scope: backends
+    title: the window a first poll takes
+    statement: |
+      a first poll of an IMAP account, and one whose arrival folder reports another UIDVALIDITY,
+      takes that folder's most recent 200 messages.
+    status: delegated
+    because:
+      - d-cepkyeoa
+      - d-sj4u6eyj
+    pinned: false
+
+  - id: d-emwk4xdy
+    scope: triage
+    title: set-aside on an account that has never polled categorizes
+    statement: |
+      where an account carries no declaration yet, a set-aside takes the category branch, and the
+      server's own refusal is what fails the run.
+    status: delegated
+    because:
+      - d-hj9nac5f
+      - d-p9q9dxqn
+    pinned: false
+
+  - id: d-um0gejyz
+    scope: backends
+    title: an IMAP account holds no address of its own
+    statement: |
+      adding an IMAP account asks for nothing beyond what it is configured with and a name to show
+      it under. Where an account's own address is wanted, the username stands for it.
+    status: delegated
+    because:
+      - d-ioso3voc
+      - d-5h66e3zl
+    pinned: false
+
   - id: d-mcdtvppm
     scope: backends
     title: repairing an account is adding it again, pre-filled
