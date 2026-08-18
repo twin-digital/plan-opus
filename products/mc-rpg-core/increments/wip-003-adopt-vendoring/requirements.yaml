@@ -16,6 +16,21 @@ requirements:
       this is the reading the product already applied to code, which the build inlines into an
       adventure's script without anyone counting it against the requirement. what the requirement
       protects is unchanged: an author never authors a character.
+  - id: r-tbk2pm77
+    title: the library returns no handle to an actor it did not create
+    statement: |
+      the library returns no handle to an actor it did not create, and claims nothing about
+      whether an actor will render.
+    scope: actors
+    supersedes: r-9owgd93o
+    commentary: |
+      r-9owgd93o also asked the library to refuse a call and name what is missing where an actor's
+      definitions are absent. that clause is dropped with the pre-check it required: the
+      definitions now arrive inside the adventure's own behavior pack, so a world whose script is
+      running has them, and there is no half-installed state left for the refusal to catch.
+
+      what an author meets instead, where an identifier answers with content another pack
+      replaced, is `ForeignEntityError` from the checked calls.
 components:
   - id: actors
     description: what an adventure depends on — the presets, the spawn call, and the actor content an adventure's build merges into its own packs

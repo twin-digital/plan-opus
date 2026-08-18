@@ -7,7 +7,7 @@ decisions:
       and the handle. its `vendored_pack/` holds every piece of actor content — the entity
       definitions and the assets they render from — in the kind-named subdirectories the kit
       requires. the package declares no manifest and bears no pack.
-    status: proposed
+    status: accepted
     pinned:
       reason: public-api
     scope: actors
@@ -169,52 +169,48 @@ decisions:
       majors could not contend over a whole-file kind. there is no product namespace and no
       contention, and the kit enforces its own list at the build that merges the content.
 
-  - id: d-ivrc98oa
-    title: the definitions check stands, over the runtime's checked calls
+  - id: d-q9fkyuqx
+    title: the library reaches an actor through the runtime's checked calls
     statement: |
-      the library reaches an actor through the runtime's checked calls, so an entity answering
-      under one of this product's identifiers without this pack's own type family raises
-      `ForeignEntityError` rather than being acted on. ahead of that, every entry point still
-      checks the preset's entity type is registered.
+      the library reaches every actor through `@twin-digital/mc-pack-runtime`'s checked calls
+      rather than `@minecraft/server` directly, so an entity answering under one of this product's
+      identifiers without this pack's own type family raises `ForeignEntityError` instead of being
+      acted on.
     status: proposed
     pinned:
       reason: public-api
-      notes: the two failures an adventure's author catches, and which one is reached first
+      notes: the failure an author meets when a rival pack's content replaced a definition
     scope: actors
-    supersedes: d-xobjyw2e
     because:
-      - r-9owgd93o
       - d-zohkvwu1
       - d-dpeizvxw
       - f:mc-pack-runtime-spells-identifiers-and-checks-the-packs-own-family
     commentary: |
-      d-xobjyw2e's motivating scenario was an operator who installed one half. it nearly cannot
-      arise now — the definitions arrive in the adventure's own behavior pack or the script does
-      not run at all — and the check is kept because r-9owgd93o asks for it and it costs a lookup.
-      what it can still catch is a stale build.
+      this is the half of the retired d-ivrc98oa that was not the pre-check. it is a choice the kit
+      does not make — a pack may reach entities through the game's own api — and d-w4m10236 and
+      d-n4s9g0kv both rest on it, so it is stated rather than left to the code.
 
-      the failure that actually replaces it is another pack's content replacing a definition under
-      a colliding namespace, which the family check catches at use rather than at entry.
-
-  - id: d-qv84a7ix
-    title: the missing-definitions error names the preset and the identifier, not a pack
+  - id: d-xiswv8vb
+    title: the library asserts nothing about an actor's definitions or its appearance
     statement: |
-      where an actor's entity type is not registered the library throws
-      `ActorDefinitionsMissingError` — an `Error` subclass carrying `preset` and `identifier`, its
-      message naming both and directing the reader to rebuild the adventure.
+      the library performs no runtime check of an actor's definitions and none of its appearance,
+      and reports nothing about either: no lookup before acting, no counting of the world's pack
+      stack, no inference from an entity's dimensions, and no path that implies an actor will
+      render.
     status: proposed
     pinned:
       reason: public-api
+      notes: what a successful call is evidence of, which is narrower than an author will assume
     scope: actors
-    supersedes: d-lt24vke1
+    supersedes: d-bcybwddk
     because:
-      - d-ivrc98oa
-      - d-rbi829o3
-      - r-9owgd93o
+      - d-zohkvwu1
+      - d-q9fkyuqx
+      - f:a-resource-pack-cannot-carry-anything-a-script-can-reach
     commentary: |
-      the `pack` field goes with the pack. there is nothing to install and no product display name
-      for an operator to match against a world's pack list, so directing the reader anywhere but
-      their own build would send them somewhere that does not exist.
+      d-bcybwddk said the library checks the definitions and nothing else. with the pre-check
+      retired it checks nothing, and the appearance half it was written for is unchanged: a script
+      cannot observe a resource pack at all.
 
   - id: d-z3jf4sjg
     title: the package is @twin-digital/rpg-core, private until its licensing is settled
@@ -223,7 +219,7 @@ decisions:
       nowhere until this product's licensing is settled. its `files` carries `dist` and
       `vendored_pack`, which is what it would publish, since an installed dependency's vendored
       tree is read from the tarball.
-    status: proposed
+    status: delegated
     pinned:
       reason: public-api
     scope: actors
@@ -265,7 +261,7 @@ decisions:
       `<adventure-namespace>:rpg-core.actor.<id>`, the namespace read at run time through
       `packNamespace()`. `<id>` holds no `:`. the record stores the bare preset name, not a
       composed identifier, and `findActor` recomposes through `packId` at read time.
-    status: proposed
+    status: delegated
     pinned:
       reason: data-format
       notes: world state existing worlds already hold, which a reimplementation must read
@@ -316,7 +312,7 @@ decisions:
       the entry point exports the preset names, and each preset's own description — its display
       name and whatever an adventure may pass back to `spawnActor`. it exports no entity
       identifier, no namespace, and no pack name, none of which is a constant any more.
-    status: proposed
+    status: delegated
     pinned:
       reason: public-api
     scope: actors
@@ -334,7 +330,7 @@ decisions:
     statement: |
       spawnActor under a durable name the world already holds resolves the record before anything
       else, through the runtime's checked lookup.
-    status: proposed
+    status: delegated
     pinned:
       reason: public-api
       notes: whether an adventure can recover a name whose actor a rival pack replaced
@@ -348,7 +344,7 @@ decisions:
       - otherwise: the record is stale — a fresh actor is spawned and the record overwritten
     because:
       - d-9uu20w3r
-      - d-ivrc98oa
+      - d-q9fkyuqx
       - d-85wcszy4
     commentary: |
       d-gja1pnav split on resolves or not, which was the whole of it before a lookup could answer
@@ -362,13 +358,13 @@ decisions:
       the vendored entity definitions declare no `minecraft:type_family` of their own. what
       distinguishes an actor from another pack's entity is the family the adventure's build stamps
       on everything its pack declares.
-    status: proposed
+    status: delegated
     pinned:
       reason: public-api
       notes: the family an adventure writes in an `@e[family=]` selector
     scope: actors
     because:
-      - d-ivrc98oa
+      - d-q9fkyuqx
       - d-d4yzvu0o
       - f:mc-pack-runtime-spells-identifiers-and-checks-the-packs-own-family
     commentary: |
@@ -383,7 +379,7 @@ decisions:
       an adventure's behavior manifest names its own resource half in `dependencies`, so activating
       the one activates both and the appearance cannot be left behind. the example does this and it
       is what the product's documentation tells an adventure's author to do.
-    status: proposed
+    status: delegated
     pinned:
       reason: public-api
       notes: what an adventure's author writes, and whether a half-activated world shows actors
@@ -405,7 +401,7 @@ decisions:
       one and calling the kit's build with namespacing on. it edits no generated file and adds no
       build logic: the fragment calls the same function the generated one does, with the setting
       the generated one cannot express.
-    status: proposed
+    status: accepted
     scope: example
     because:
       - d-tctmdf5z
@@ -430,7 +426,7 @@ decisions:
       this package runs no pack build of its own: its `dist/` is a library bundle, and the kit's
       pack build owns and prunes that directory. its `vendored_pack/` tree is therefore validated
       when an adventure builds, and a release of this package can carry a tree no build has read.
-    status: proposed
+    status: tolerated
     scope: actors
     because:
       - d-zohkvwu1
@@ -442,6 +438,23 @@ decisions:
       consumer's build, naming the file. what closes it is a validate-only entry point on the kit,
       which does not exist. this product's own guard is the example, which builds against the tree
       on every run of the monorepo's build.
+  - id: d-54gr5qt7
+    title: where a preset's default name lives is deferred
+    statement: |
+      whether a preset's default name stays a library string or becomes a localization entry the
+      vendored pack carries is deferred to a later increment of this product, and to whoever runs
+      the probe this increment ships. until then d-bfdql5tx and d-kklnm4j4 stand as written.
+    status: deferred
+    scope: actors
+    commentary: |
+      the probe is at `artifacts/name-display-probe/` and what each reading changes is written
+      there. it cannot run headless: a resource pack reaches nothing a script can observe, and a
+      name plate is drawn by the client, so a person reads the plates and reads them again in
+      german.
+
+      what is settled is that the two reasons d-bfdql5tx gave have expired — d-ny9lcyjg is
+      superseded and the kit composes a `.lang` file two packs both contribute to. what is not is
+      whether a pack-carried entry reaches a player at all.
 
 retires:
   - id: d-3or6phg1
@@ -459,6 +472,10 @@ retires:
   - id: d-icz8rnnw
     reason: the registry and the definitions it produces are content of one package, so no dependency crosses between them (d-dpeizvxw)
   - id: d-h4dvevea
-    reason: there is no pack for an operator to find in a world's pack list, and the error names none (d-qv84a7ix)
+    reason: there is no pack for an operator to find in a world's pack list, and no error naming one (d-lt24vke1)
+  - id: d-xobjyw2e
+    reason: the definitions arrive in the adventure's own behavior pack or its script does not run, so the pre-check has no failure left to catch (d-zohkvwu1, d-rbi829o3)
+  - id: d-lt24vke1
+    reason: the error it defines was thrown only by the retired pre-check, and nothing raises it now (d-xobjyw2e)
   - id: d-lgaqtx4c
     reason: both checks whose enforcement it deferred are gone, so there is nothing left to defer (d-b9m9okhx, d-5f011w0o)
