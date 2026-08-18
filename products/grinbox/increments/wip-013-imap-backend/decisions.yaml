@@ -184,7 +184,7 @@ decisions:
       and re-adding the account — loses every record grinbox holds of it. Re-pointing does not
       rewrite history: a message archived into the old folder was archived, and the reconcile finds
       it where it is or records it archived for sitting in none of the four.
-    status: proposed
+    status: tolerated
     because:
       - d-zxvkt95o
       - d-qstpa7y0
@@ -207,7 +207,7 @@ decisions:
       that travels with it. A message whose headers carry none is still taken in and triaged; it
       simply cannot be found again after someone else moves it, and keeps the standing grinbox last
       recorded until it is seen somewhere.
-    status: proposed
+    status: delegated
     because:
       - f-ubjw3f0i
       - f-1hjkefq3
@@ -230,7 +230,7 @@ decisions:
       UIDVALIDITY is the server's only way of saying the stored ones are void. Re-taking a window
       already taken in costs nothing: the poll path already recognises what it holds, and matching
       by Message-ID is what recognises a message whose UID has changed underneath it.
-    status: proposed
+    status: accepted
     because:
       - d-8fvu0g4z
       - d-sj4u6eyj
@@ -271,7 +271,7 @@ decisions:
       and archived and nothing else. This is the one place the IMAP backend reaches a sibling — the
       Gmail backend answers the same operation, and its own two-state reading now says so rather
       than being read into a bare list by the caller.
-    status: proposed
+    status: delegated
     because:
       - d-qstpa7y0
       - d-x3aqw6up
@@ -541,7 +541,7 @@ decisions:
       name, and the user is the only one who knows where filed mail belongs. The order is fixed
       rather than configured, since categorizing leaves the message where it is and filing moves
       it, and the less invasive one is the one to prefer where both are available.
-    status: proposed
+    status: accepted
     because:
       - r-blqzjemx
       - d-5n8oyi8c
@@ -695,7 +695,7 @@ decisions:
       and on a thread older than the account's first poll it is smaller than the provider's — a
       rule counting on it is counting what grinbox has seen, which is what it could honestly mean
       either way.
-    status: proposed
+    status: delegated
     because:
       - d-q96iw28w
       - d-nol93aud
