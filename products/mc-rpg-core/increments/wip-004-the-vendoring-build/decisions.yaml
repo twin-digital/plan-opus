@@ -1,0 +1,84 @@
+version: "3"
+
+# The implement-003 companion: what building the vendoring shape settled. Four spellings the
+# fold left to the build, and one repair to a decision increment 3 left without a subject.
+decisions:
+  - id: d-80jjasrk
+    title: the entry point re-exports ForeignEntityError
+    statement: |
+      `@twin-digital/rpg-core` re-exports `ForeignEntityError` from
+      `@twin-digital/mc-pack-runtime`. An adventure catches it through the one dependency it
+      already has.
+    status: delegated
+    pinned:
+      reason: public-api
+      notes: the failure an adventure catches by type, and whether catching it costs a second dependency
+    scope: actors
+    because:
+      - d-q9fkyuqx
+      - d-rbi829o3
+      - d-ckn4rwz8
+
+  - id: d-mo536gkq
+    title: the durable record is a preset name and an entity id
+    statement: |
+      the value stored at a durable name's dynamic property is `{ preset, entity }` — the bare
+      preset name and the entity's runtime id. it holds no composed identifier and no type id.
+    status: delegated
+    pinned:
+      reason: data-format
+      notes: world state existing worlds already hold, which a reimplementation must read
+    scope: actors
+    because:
+      - d-85wcszy4
+      - d-9uu20w3r
+
+  - id: d-jt6302fr
+    title: what the durable-name path refuses
+    statement: |
+      the durable-name path raises rather than proceeding on three inputs: a durable name holding
+      `:` and an unknown preset name each raise `TypeError`; a pack built with namespacing off —
+      `packNamespace()` undefined — raises a plain `Error`, the fault being the build's rather
+      than the caller's. none of the three is exported.
+    status: delegated
+    pinned:
+      reason: public-api
+      notes: what an adventure's author meets on a bad call, and what they can catch by type
+    scope: actors
+    because:
+      - d-85wcszy4
+      - d-o9lynydc
+      - r-lqfu2ki9
+
+  - id: d-aoxi27un
+    title: a record naming a preset the catalogue no longer holds is stale
+    statement: |
+      a durable record whose stored preset the catalogue no longer holds takes d-w4m10236's
+      `otherwise` branch: a fresh actor is spawned and the record overwritten.
+    status: delegated
+    pinned:
+      reason: public-api
+      notes: what an adventure sees when a release drops a preset out from under a world's records
+    scope: actors
+    because:
+      - d-w4m10236
+      - d-85wcszy4
+
+  - id: d-1t51vz5z
+    title: findActor of an unheld name returns undefined, and checks nothing
+    statement: |
+      `findActor` of a name no record holds returns `undefined` without touching the world. a
+      present record is resolved through the runtime's checked lookup, and nothing about the
+      actor's definitions is checked at any point.
+    status: delegated
+    scope: actors
+    supersedes: d-f7o3vg4n
+    because:
+      - d-xiswv8vb
+      - d-85wcszy4
+      - d-q9fkyuqx
+    commentary: |
+      d-f7o3vg4n's second sentence had the record checked "from its stored preset and type id".
+      Increment 3 removed both halves of that subject — the record stores no type id (d-85wcszy4)
+      and there is no definitions check left anywhere (d-xiswv8vb) — so the sentence described
+      an implementation nothing could have.
