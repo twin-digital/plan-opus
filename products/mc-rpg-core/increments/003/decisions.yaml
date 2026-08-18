@@ -1,0 +1,481 @@
+version: "3"
+decisions:
+  - id: d-zohkvwu1
+    title: one package holds the presets, the spawn call, and the actor content it vendors
+    statement: |
+      the product ships one package for the actors. its `src/` holds the presets, the spawn call,
+      and the handle. its `vendored_pack/` holds every piece of actor content — the entity
+      definitions and the assets they render from — in the kind-named subdirectories the kit
+      requires. the package declares no manifest and bears no pack.
+    status: accepted
+    pinned:
+      reason: public-api
+    scope: actors
+    supersedes: d-6jlj0rl2
+    because:
+      - r-e8p2oto6
+      - r-cyd08e6q
+      - f:a-vendored-librarys-runtime-prefix-binds-by-package-directory-containment
+      - f:a-vendoring-package-supplies-the-namespace-the-uuids-and-a-manifest-of-every-kind
+    commentary: |
+      combining is not a tidying, it is required. the kit binds a vendored library's `packId` to
+      its prefix by package-directory containment, so code sitting in a different package from the
+      `vendored_pack/` tree its entities come from composes every identifier without the prefix and
+      every lookup misses. `src/` and `vendored_pack/` under one package is the shape that works.
+
+      all of it is vendored content; none of it is a pack of this package's. the `behavior_pack/`
+      and `resource_pack/` directories inside `vendored_pack/` are the kit's required layout, and
+      they say which half of the consumer's pack each file merges into — the entity definitions
+      into the behavior half, the models, textures and animations into the resource half. that is
+      the only thing they mean here.
+
+      what d-6jlj0rl2 was written against was two delivery mechanisms — npm for code, a manifest
+      uuid for assets. there is one now.
+
+  - id: d-rbi829o3
+    title: an adventure takes one npm dependency and declares no uuid
+    statement: |
+      an adventure takes `@twin-digital/rpg-core` as a `dependencies` entry of its package, and
+      names this product in no pack manifest. the kit's build merges the package's vendored content
+      into the adventure's own behavior and resource packs, under the adventure's namespace and
+      header uuids.
+    status: accepted
+    pinned:
+      reason: public-api
+    scope: actors
+    supersedes: d-knzip5zc
+    because:
+      - r-e8p2oto6
+      - d-zohkvwu1
+      - f:a-vendoring-package-supplies-the-namespace-the-uuids-and-a-manifest-of-every-kind
+    commentary: |
+      an adventure therefore holds a source manifest of both kinds, including a resource manifest
+      it would otherwise have no content of its own for: vendored content merges into a pack the
+      adventure already declares, and there is nowhere for the appearance to land without one.
+
+  - id: d-b9m9okhx
+    title: an adventure installs as one archive, and half an actor cannot ship
+    statement: |
+      an adventure's release archive carries everything an operator installs: its own packs, with
+      this product's definitions and appearance merged into them. there is no second archive and
+      no version of this product for a world to hold. an actor's two halves cannot arrive
+      separately, each being content of a pack the adventure's own build emitted.
+    status: accepted
+    pinned:
+      reason: other
+      notes: what an operator installs, and how many pieces they must keep in step
+    scope: actors
+    supersedes: d-kxl9ej80
+    because:
+      - d-zohkvwu1
+      - d-rbi829o3
+      - f:a-vendoring-package-supplies-the-namespace-the-uuids-and-a-manifest-of-every-kind
+      - f:opus-pack-archive-carries-only-the-packages-own-packs
+    commentary: |
+      d-ro5pj8er guarded against an actor whose appearance never arrived — invisible, and
+      unfindable by pointing at it. the guard was a build check because the two halves travelled
+      separately. they no longer can, so the property holds structurally and there is no check.
+
+  - id: d-d4yzvu0o
+    title: an actor's identifier is the adventure's namespace over this product's prefix
+    statement: |
+      an actor's entity identifier is `<adventure-namespace>:<prefix>.<preset>`, composed by the
+      adventure's build. this product declares no namespace, mints no pack uuid, and puts no
+      version in any name. the same preset is spelled differently in every adventure, so two
+      adventures share no identifier whatever versions they were built against.
+    status: accepted
+    pinned:
+      reason: public-api
+      notes: the literal strings an operator sees in a target selector and in a server log
+    scope: actors
+    supersedes: d-i8pjw2on
+    because:
+      - r-pop72yk6
+      - r-6q7adtpo
+      - d-zohkvwu1
+      - d-rbi829o3
+      - f:a-vendored-librarys-prefix-is-the-consumers-then-defaultalias-then-the-npm-name
+      - f:a-vendoring-package-supplies-the-namespace-the-uuids-and-a-manifest-of-every-kind
+    commentary: |
+      internal asset names are the build's too: it writes each under a library token and a content
+      hash, so an identical name is identical bytes and an upgrade renames exactly what changed.
+
+      the major-namespace scheme existed to stop consumers of one shared pack contending over it.
+      consumers sharing nothing cannot contend, and isolation stops being a scheme this product
+      maintains and becomes a property of how its content arrives.
+
+  - id: d-5iy08kgn
+    title: the product ships `rpg` as its default prefix
+    statement: |
+      the package declares `minecraft.defaultAlias: "rpg"`, so an adventure naming no prefix of its
+      own spells the wizard `<namespace>:rpg.wizard`. an adventure may override it with a
+      `minecraft.vendor` entry, which is how it resolves a collision with another library it
+      vendors.
+    status: accepted
+    pinned:
+      reason: public-api
+      notes: changing it breaks consumers' token references and renames their shipped entity ids
+    scope: actors
+    because:
+      - d-d4yzvu0o
+      - f:a-vendored-librarys-prefix-is-the-consumers-then-defaultalias-then-the-npm-name
+    commentary: |
+      the default the kit would apply is the unscoped npm name, `rpg-core`. `rpg` is shorter to
+      type in a selector and reads better in a command, at the cost of a more collidable token —
+      and a collision is a build failure naming both libraries, with an explicit prefix as the fix,
+      not a silent wrong-entity lookup.
+
+      a prefix is not a namespace: it is a token inside whatever namespace the adventure chose, so
+      nothing here is claimed against other add-ons and there is no registry to claim it at.
+
+  - id: d-dpeizvxw
+    title: one identifier per preset, composed at call time through packId
+    statement: |
+      every actor carries the same behavior-pack components, and each preset has its own entity
+      definition and client entity definition in the vendored pack. the library exports no
+      identifier: it composes one at call time with `packId('<preset>')`, which the kit binds to
+      this package's prefix.
+    status: accepted
+    pinned:
+      reason: public-api
+      notes: a preset's entity id stops being a static export a consumer can read
+    scope: actors
+    supersedes: d-ipgh0g2d
+    because:
+      - r-lna5xlfe
+      - d-zohkvwu1
+      - d-d4yzvu0o
+      - f:a-vendored-librarys-runtime-prefix-binds-by-package-directory-containment
+      - f:mc-pack-runtime-spells-identifiers-and-checks-the-packs-own-family
+    commentary: |
+      what the library spells is therefore whatever namespace and prefix the adventure's build
+      chose, and the registry and the definitions it must agree with are content of one package
+      rather than two sides of a build-time dependency.
+
+  - id: d-nyh4i1x1
+    title: what the vendored pack may hold is the kit's list
+    statement: |
+      the content this product's vendored pack may hold is whatever `@twin-digital/mc-dev-kit`
+      admits in one, and this product states no list of its own.
+    status: tolerated
+    scope: actors
+    supersedes: d-ny9lcyjg
+    because:
+      - d-zohkvwu1
+      - d-d4yzvu0o
+      - f:a-vendored-pack-may-carry-entity-keyed-localization-and-lang-files-compose
+    commentary: |
+      d-ny9lcyjg confined the pack to kinds this product's own namespace could reach, so that two
+      majors could not contend over a whole-file kind. there is no product namespace and no
+      contention, and the kit enforces its own list at the build that merges the content.
+
+  - id: d-q9fkyuqx
+    title: the library reaches an actor through the runtime's checked calls
+    statement: |
+      the library reaches every actor through `@twin-digital/mc-pack-runtime`'s checked calls
+      rather than `@minecraft/server` directly, so an entity answering under one of this product's
+      identifiers without this pack's own type family raises `ForeignEntityError` instead of being
+      acted on.
+    status: accepted
+    pinned:
+      reason: public-api
+      notes: the failure an author meets when a rival pack's content replaced a definition
+    scope: actors
+    because:
+      - d-zohkvwu1
+      - d-dpeizvxw
+      - f:mc-pack-runtime-spells-identifiers-and-checks-the-packs-own-family
+    commentary: |
+      this is the half of the retired d-ivrc98oa that was not the pre-check. it is a choice the kit
+      does not make — a pack may reach entities through the game's own api — and d-w4m10236 and
+      d-n4s9g0kv both rest on it, so it is stated rather than left to the code.
+
+  - id: d-xiswv8vb
+    title: the library asserts nothing about an actor's definitions or its appearance
+    statement: |
+      the library performs no runtime check of an actor's definitions and none of its appearance,
+      and reports nothing about either: no lookup before acting, no counting of the world's pack
+      stack, no inference from an entity's dimensions, and no path that implies an actor will
+      render.
+    status: tolerated
+    pinned:
+      reason: public-api
+      notes: what a successful call is evidence of, which is narrower than an author will assume
+    scope: actors
+    supersedes: d-bcybwddk
+    because:
+      - d-zohkvwu1
+      - d-q9fkyuqx
+      - f:a-resource-pack-cannot-carry-anything-a-script-can-reach
+    commentary: |
+      d-bcybwddk said the library checks the definitions and nothing else. with the pre-check
+      retired it checks nothing, and the appearance half it was written for is unchanged: a script
+      cannot observe a resource pack at all.
+
+  - id: d-z3jf4sjg
+    title: the package is @twin-digital/rpg-core, private until its licensing is settled
+    statement: |
+      the npm name an adventure depends on is `@twin-digital/rpg-core`. it is private and publishes
+      nowhere until this product's licensing is settled. its `files` carries `dist` and
+      `vendored_pack`, which is what it would publish, since an installed dependency's vendored
+      tree is read from the tarball.
+    status: delegated
+    pinned:
+      reason: public-api
+    scope: actors
+    supersedes: d-kmw62ki3
+    because:
+      - d-zohkvwu1
+      - d-rbi829o3
+      - f:a-vendoring-package-supplies-the-namespace-the-uuids-and-a-manifest-of-every-kind
+    commentary: |
+      private reaches only adventures inside this monorepo, which take the package as a workspace
+      sibling and whose builds read its vendored tree from source. an adventure outside it cannot
+      use the product until this is lifted.
+
+      no license is named here. what a pack vendoring the game's own assets may be licensed under
+      turns on the Minecraft EULA and is not settled.
+
+  - id: d-tctmdf5z
+    title: the example holds both pack kinds and derives its namespace from its own name
+    statement: |
+      `@twin-digital/rpg-core-example` is private and never published. it holds a behavior pack and
+      a resource pack, its deliverable is the `.mcaddon` its release hook archives, and it exposes
+      no importable surface. it takes the namespace the kit derives from its package name, claiming
+      no token of its own.
+    status: delegated
+    scope: example
+    supersedes: d-nd1ed8qx
+    because:
+      - d-2qxdv80k
+      - d-rbi829o3
+      - f:a-vendoring-package-supplies-the-namespace-the-uuids-and-a-manifest-of-every-kind
+    commentary: |
+      the resource half exists so the vendored appearance has somewhere to land — the example
+      authors no resource content of its own.
+
+  - id: d-85wcszy4
+    title: a durable name's record keys on the adventure's namespace and stores the bare preset
+    statement: |
+      a durable name `<id>` is carried as the world dynamic property
+      `<adventure-namespace>:rpg-core.actor.<id>`, the namespace read at run time through
+      `packNamespace()`. `<id>` holds no `:`. the record stores the bare preset name, not a
+      composed identifier, and `findActor` recomposes through `packId` at read time.
+    status: delegated
+    pinned:
+      reason: data-format
+      notes: world state existing worlds already hold, which a reimplementation must read
+    scope: actors
+    supersedes: d-cqgi5xms
+    because:
+      - d-9uu20w3r
+      - d-d4yzvu0o
+      - f:mc-pack-runtime-spells-identifiers-and-checks-the-packs-own-family
+    commentary: |
+      unchanged from d-cqgi5xms: the value is JSON, `findActor` resolves through the record alone,
+      `remove()` deletes it and frees the name for a later spawn, and an unreadable record reads as
+      absent. what changes is that the stored entity type id goes. an adventure may change its
+      `minecraft.vendor` prefix, which d-5iy08kgn offers it, and a composed identifier stored in a
+      world would then name an entity type that no longer exists — stranding every actor an
+      existing world holds. the bare preset name survives it.
+
+      `<id>` holding no `:` keeps the key parseable, since the key already carries one.
+
+      the `rpg-core` segment is the package's own name, and it is there so two libraries vendored
+      into one adventure cannot collide on `actor.<id>`. it is deliberately not the prefix: an
+      adventure may change its prefix, and a key built from one would strand every record in an
+      existing world — the same failure that took the composed type id out of the record.
+
+      the literal `rpg:` d-cqgi5xms wrote came from the product namespace, which is gone. keying by
+      the adventure's namespace keeps two adventures' records apart in one world whatever the
+      engine's own scoping of dynamic properties turns out to be, and costs a read of an injected
+      value.
+
+  - id: d-cc9xbsyz
+    title: the example is the product's second package, not its third
+    statement: |
+      the product ships a second package: an adventure built on the actors package, which spawns
+      every actor the product offers. it is what demonstrates the product's run-time claims, and
+      what an adventure's author reads as the worked example.
+    status: tolerated
+    scope: example
+    supersedes: d-2qxdv80k
+    because:
+      - r-e8p2oto6
+      - r-lna5xlfe
+      - d-zohkvwu1
+      - d-5lutr7ok
+
+  - id: d-ckn4rwz8
+    title: the entry point exports the preset catalogue by name, and no identifier
+    statement: |
+      the entry point exports the preset names, and each preset's own description — its display
+      name and whatever an adventure may pass back to `spawnActor`. it exports no entity
+      identifier, no namespace, and no pack name, none of which is a constant any more.
+    status: delegated
+    pinned:
+      reason: public-api
+    scope: actors
+    because:
+      - r-lna5xlfe
+      - r-lqfu2ki9
+      - d-dpeizvxw
+      - d-cc9xbsyz
+    commentary: |
+      the example spawns every actor the product offers, so something has to enumerate them; a
+      hand-written list in the example would drift from the registry the definitions build from.
+
+  - id: d-w4m10236
+    title: a durable record resolving to a foreign entity is not treated as stale
+    statement: |
+      spawnActor under a durable name the world already holds resolves the record before anything
+      else, through the runtime's checked lookup.
+    status: delegated
+    pinned:
+      reason: public-api
+      notes: whether an adventure can recover a name whose actor a rival pack replaced
+    scope: actors
+    supersedes: d-gja1pnav
+    cases:
+      - when: the record's actor still resolves and carries this pack's family
+        then: the call returns that actor unchanged — a display-name override in the options is not applied
+      - when: the record's actor resolves but lacks this pack's family
+        then: the call raises `ForeignEntityError` and the record is left as it stands
+      - otherwise: the record is stale — a fresh actor is spawned and the record overwritten
+    because:
+      - d-9uu20w3r
+      - d-q9fkyuqx
+      - d-85wcszy4
+    commentary: |
+      d-gja1pnav split on resolves or not, which was the whole of it before a lookup could answer
+      an entity that is not ours. overwriting on a foreign answer would spawn a second actor beside
+      a live one and lose the name that reached the first; raising leaves the adventure a failure
+      it can report, and the record intact for when the rival pack is removed.
+
+  - id: d-n4s9g0kv
+    title: the vendored entities carry no type family of this product's
+    statement: |
+      the vendored entity definitions declare no `minecraft:type_family` of their own. what
+      distinguishes an actor from another pack's entity is the family the adventure's build stamps
+      on everything its pack declares.
+    status: delegated
+    pinned:
+      reason: public-api
+      notes: the family an adventure writes in an `@e[family=]` selector
+    scope: actors
+    because:
+      - d-q9fkyuqx
+      - d-d4yzvu0o
+      - f:mc-pack-runtime-spells-identifiers-and-checks-the-packs-own-family
+    commentary: |
+      a bare family name survives the merge unnamespaced and identical in every adventure, so a
+      selector in one would match another's actors in the same world — the contention this whole
+      increment removes from identifiers, reintroduced through a family. the checked calls read
+      the build's family, so a family of this product's would carry nothing.
+
+  - id: d-x60dka1o
+    title: an adventure's behavior pack declares its own resource half
+    statement: |
+      an adventure's behavior manifest names its own resource half in `dependencies`, so activating
+      the one activates both and the appearance cannot be left behind. the example does this and it
+      is what the product's documentation tells an adventure's author to do.
+    status: delegated
+    pinned:
+      reason: public-api
+      notes: what an adventure's author writes, and whether a half-activated world shows actors
+    scope: actors
+    because:
+      - d-rbi829o3
+      - d-b9m9okhx
+      - r-9owgd93o
+    commentary: |
+      d-3or6phg1 held this property when the two halves were this product's pack. they are the
+      adventure's packs now, and the property is worth keeping: an operator who activates only the
+      behavior half gets actors the library reports as present and no player can see, which
+      d-bcybwddk says the library cannot detect.
+
+  - id: d-i9d989zl
+    title: the example turns namespacing on through its own build override fragment
+    statement: |
+      the example carries a `tsdown.config.d/` fragment of its own, sorting after the generated
+      one and calling the kit's build with namespacing on. it edits no generated file and adds no
+      build logic: the fragment calls the same function the generated one does, with the setting
+      the generated one cannot express.
+    status: accepted
+    scope: example
+    because:
+      - d-tctmdf5z
+      - r-82ck2fax
+      - r-cyd08e6q
+      - f:a-packages-own-tsdown-fragment-shallow-merges-over-the-generated-one
+      - f:the-pack-builds-namespace-is-a-code-option-not-a-package-json-field
+    commentary: |
+      the namespace is a code option with no `package.json` route, and the config manager writes
+      the build fragment verbatim for every package holding a pack manifest, with no per-package
+      input. the override directory is the sanctioned channel for exactly this, so the fragment is
+      not an exception to r-82ck2fax but the mechanism it leaves open.
+
+      it reads like a trick — two calls to the same builder, the later winning by filename order —
+      and it is one. what removes it is the kit reading the namespace from the `minecraft` block
+      beside `vendor` and `defaultAlias`, where its two sibling settings already live. that is
+      another product's change, and this product does not wait on it.
+
+  - id: d-f2mk1u7n
+    title: the vendored tree is validated at a consumer's build, not at this package's
+    statement: |
+      this package runs no pack build of its own: its `dist/` is a library bundle, and the kit's
+      pack build owns and prunes that directory. its `vendored_pack/` tree is therefore validated
+      when an adventure builds, and a release of this package can carry a tree no build has read.
+    status: tolerated
+    scope: actors
+    because:
+      - d-zohkvwu1
+      - r-cyd08e6q
+      - r-lqfu2ki9
+      - f:a-vendoring-package-supplies-the-namespace-the-uuids-and-a-manifest-of-every-kind
+    commentary: |
+      the consequence is real and accepted: a broken vendored tree publishes and fails first in a
+      consumer's build, naming the file. what closes it is a validate-only entry point on the kit,
+      which does not exist. this product's own guard is the example, which builds against the tree
+      on every run of the monorepo's build.
+  - id: d-54gr5qt7
+    title: where a preset's default name lives is deferred
+    statement: |
+      whether a preset's default name stays a library string or becomes a localization entry the
+      vendored pack carries is deferred to a later increment of this product, and to whoever runs
+      the probe this increment ships. until then d-bfdql5tx and d-kklnm4j4 stand as written.
+    status: deferred
+    scope: actors
+    commentary: |
+      the probe is at `artifacts/name-display-probe/` and what each reading changes is written
+      there. it cannot run headless: a resource pack reaches nothing a script can observe, and a
+      name plate is drawn by the client, so a person reads the plates and reads them again in
+      german.
+
+      what is settled is that the two reasons d-bfdql5tx gave have expired — d-ny9lcyjg is
+      superseded and the kit composes a `.lang` file two packs both contribute to. what is not is
+      whether a pack-carried entry reaches a player at all.
+
+retires:
+  - id: d-3or6phg1
+    reason: there is no second pack for a manifest to declare — an adventure names this product in no manifest at all (d-rbi829o3)
+  - id: d-ro5pj8er
+    reason: an archive cannot ship one half of an actor, both halves being the adventure's own packs (d-b9m9okhx)
+  - id: d-2zclv5ol
+    reason: the namespace is the adventure's and carries no version of this product's (d-d4yzvu0o)
+  - id: d-orqkexpm
+    reason: this product mints no pack uuids, and its version no longer partitions a shared namespace (d-d4yzvu0o)
+  - id: d-og6f9j6c
+    reason: there is one package, so no second one to advance majors in step with (d-zohkvwu1)
+  - id: d-5f011w0o
+    reason: an adventure keeps the content it vendored, so a withdrawal reaches no adventure that does not upgrade (d-zohkvwu1, d-rbi829o3)
+  - id: d-icz8rnnw
+    reason: the registry and the definitions it produces are content of one package, so no dependency crosses between them (d-dpeizvxw)
+  - id: d-h4dvevea
+    reason: there is no pack for an operator to find in a world's pack list, and no error naming one (d-lt24vke1)
+  - id: d-xobjyw2e
+    reason: the definitions arrive in the adventure's own behavior pack or its script does not run, so the pre-check has no failure left to catch (d-zohkvwu1, d-rbi829o3)
+  - id: d-lt24vke1
+    reason: the error it defines was thrown only by the retired pre-check, and nothing raises it now (d-xobjyw2e)
+  - id: d-lgaqtx4c
+    reason: both checks whose enforcement it deferred are gone, so there is nothing left to defer (d-b9m9okhx, d-5f011w0o)
