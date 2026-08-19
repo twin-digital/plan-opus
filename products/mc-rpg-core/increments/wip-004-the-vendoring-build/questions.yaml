@@ -1,21 +1,18 @@
 version: "1"
 
-# Open questions the vendoring build raised. Neither blocked the build; both are the owner's.
+# One open question the vendoring build raised, answered by the client session
+# increment 003's name-display probe already needs.
 questions:
-  - id: q-o70twmpv
-    answer: requirement
-    question: |
-      do the claims declared against the retired `library` and `assets-pack` components keep
-      their scopes, or are they rescoped to `actors`? d-zohkvwu1 retired both components, but
-      the requirements and decisions declared at increments 1 and 2 still carry their scopes,
-      and `product.yaml` maps no package to either. Nothing gates on it and coverage is filed
-      per claim, so both implementers allocated by claim and ignored the scope.
-
   - id: q-zwn1at3x
     answer: fact
     question: |
-      does d-x60dka1o's "the appearance cannot be left behind" reach the client, or only the
-      world's pack stack? An adventure's behavior manifest naming its own resource half
-      activates both in the world, but a client that declines the resource-pack download still
-      renders nothing for an actor, and no server-side mechanism reaches that. It bears on how
-      r-apu8m7vz, d-3ggbl0kl, and d-z7e5isj2 can be verified at all.
+      does a client that declines the resource-pack download prompt render an adventure's actors?
+      d-x60dka1o rests on a behavior manifest naming its own resource half in `dependencies`, and
+      the world half of that is settled: such a dependency pulls the resource pack into the client
+      pack stack against an empty resource activation list, and the server offers it to the client,
+      which prompts to download before joining. What is not established is what a decline leaves —
+      whether the join is refused, or proceeds with the actors unrendered, and whether
+      `TEXTUREPACK_REQUIRED` changes it. Nothing server-side can detect the outcome, so it is read
+      at a client. `artifacts/resource-pack-decline/` carries the steps; they reuse increment 003's
+      name-display probe packs and are run in the same client session, that probe being queued for
+      the same reason.
