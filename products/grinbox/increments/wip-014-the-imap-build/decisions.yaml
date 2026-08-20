@@ -1,0 +1,312 @@
+version: "3"
+
+decisions:
+  # the stored shapes the IMAP account brought
+  - id: d-eyi05i6b
+    scope: backends
+    title: what an IMAP account stores
+    statement: |
+      an IMAP account's provider type is `imap`, and it stores the server's host, its port, a
+      `security` of `tls` where the connection is encrypted from the start or `starttls` where it
+      is upgraded, and the username. The password is a credential of kind `imap_password`.
+    status: accepted
+    because:
+      - d-ioso3voc
+      - d-oevikmal
+      - d-xe41okh9
+    pinned:
+      reason: data-format
+      notes: d-ioso3voc fixes what an IMAP account is configured with and names no field
+
+  - id: d-pr8pm2zy
+    scope: backends
+    title: the four folders are stored under their roles
+    statement: |
+      an account's four folders are stored as `arrival`, `archived`, `trashed`, and `spam`.
+    status: accepted
+    because:
+      - d-zxvkt95o
+    pinned:
+      reason: data-format
+
+  - id: d-jl5giafw
+    scope: backends
+    title: what an account declares it supports
+    statement: |
+      an account's declaration is a set drawn from `apply_category`, `archive`, `file`, and
+      `send_message`, each carrying the reason it is absent where it is. Reading a mailbox and
+      fetching a body are not in it: no account gates them.
+    status: delegated
+    because:
+      - d-bzw8qoiy
+      - d-f9tj4wnr
+    pinned:
+      reason: data-format
+      notes: stored per account, and every surface that reports a gap reads it
+
+  - id: d-0oyit0qb
+    scope: triage
+    title: the stored shape of the file and set-aside operators
+    statement: |
+      the file action's type key is `file` and its configuration is one field, `folder`. The
+      set-aside action's is `set_aside`, carrying `category_template` and `folder`. Both take the
+      firing gate every action type takes.
+    status: accepted
+    because:
+      - d-jj2mymbi
+      - d-hj9nac5f
+      - d-16geyxco
+    pinned:
+      reason: data-format
+      notes: |
+        both fix the behaviour and leave the field names to implementation, as d-grcdd4ov left
+        the delay's to d-7f5rbatg
+
+  - id: d-zcg4r2z9
+    scope: triage
+    title: filing is the mailbox.file operation
+    statement: |
+      filing is the resource operation `mailbox.file`, which an operator declares as it declares
+      archiving, and which is seeded with a limit of 100 in 600 seconds.
+    status: accepted
+    because:
+      - d-x3aqw6up
+      - d-jj2mymbi
+      - d-v5zamgjn
+      - d-b6zt4kpn
+    pinned:
+      reason: public-api
+      notes: an operator declares it and a limit counts it
+
+  - id: d-x198jell
+    scope: triage
+    title: the shape of a capability warning
+    statement: |
+      the gap a save or an activation warns about is one value carrying the capability, the
+      operators that need it, and the accounts that lack it.
+    status: delegated
+    because:
+      - d-qzxvoph1
+      - d-5h66e3zl
+    pinned:
+      reason: public-api
+
+  - id: d-oaaz2fwk
+    scope: backends
+    title: the refusals the IMAP account added
+    statement: |
+      four codes join the refusal envelope: `invalid_category_name`, `duplicate_folder_role`,
+      `account_login_failed`, and `certificate_unverified`. The last is distinct from an
+      unreachable server, so that a server grinbox will not talk to says so.
+    status: delegated
+    because:
+      - d-u2rotm38
+      - d-mbh2pthe
+      - d-zxvkt95o
+      - d-v4mejzw5
+      - d-lru4i8rp
+    pinned:
+      reason: public-api
+      notes: the code is what the interface branches on
+
+  - id: d-hinqfmdf
+    scope: backends
+    title: an account is paused, and needing authorization is read per backend
+    statement: |
+      an account whose polling stopped for want of the user reads `paused`. An account needs
+      authorization where it holds no live credential of the kind its own backend is authorized
+      by, rather than where it holds no grant.
+    status: delegated
+    because:
+      - d-v4mejzw5
+      - d-oevikmal
+      - d-fuln110d
+    pinned:
+      reason: public-api
+      notes: a status the interface reads and shows
+
+  - id: d-00ccjo38
+    scope: backends
+    title: filing on a Gmail account adds a label that exists
+    statement: |
+      filing on a Gmail account adds the label named in the action and drops the inbox label. The
+      name is matched against the account's labels character for character, and a name it does not
+      hold fails the operation. Applying a category still creates its label.
+    status: accepted
+    because:
+      - d-jj2mymbi
+      - d-93swk5rr
+      - r-g1iwlbzs
+      - d-k8va629q
+    pinned:
+      reason: other
+      notes: |
+        the contrast with applying a category, which does create, is invisible in the code to
+        anyone who has not read both
+
+  # what the build settled
+  - id: d-po29qlm2
+    scope: backends
+    title: what Gmail's snapshot reports
+    statement: |
+      a Gmail account's whole-mailbox snapshot enumerates the inbox and reports each message it
+      finds as present. A message grinbox holds that the snapshot does not name is recorded
+      archived, and the finer standings keep coming from the account's history feed.
+    status: delegated
+    because:
+      - d-cd0jnrdj
+      - d-gj8j4np0
+    pinned: false
+
+  - id: d-p9q9dxqn
+    scope: backends
+    title: an account that has never polled is not gated
+    statement: |
+      an operation is refused for a capability gap only where the account's stored declaration
+      names it unsupported. An account carrying no declaration yet is attempted, and the server's
+      own refusal is what fails it.
+    status: delegated
+    because:
+      - d-bzw8qoiy
+      - d-qzxvoph1
+    pinned: false
+
+  - id: d-00smatg0
+    scope: backends
+    title: a message carrying no Message-ID is triaged all the same
+    statement: |
+      an IMAP message whose headers carry no Message-ID is taken in and triaged. It is stored
+      without one, is not matched again once it moves, and keeps the standing grinbox last
+      recorded until it is seen somewhere.
+    status: delegated
+    because:
+      - d-k4nt8zbu
+      - d-qstpa7y0
+      - d-qwoyio2e
+    pinned: false
+
+  - id: d-i1cae43j
+    scope: triage
+    title: a category that renders to nothing applies nothing
+    statement: |
+      where a category's template renders to an empty string, no keyword is applied and the
+      operator's run fails.
+    status: delegated
+    because:
+      - d-mbh2pthe
+      - f-xltd4r4v
+    pinned: false
+
+  - id: d-axa16o94
+    scope: backends
+    title: a folder name is neither trimmed nor case-folded
+    statement: |
+      a folder name is matched against the server's listing exactly as the user wrote it, with no
+      trimming and no case folding. A name carrying a line break is refused when it is saved.
+    status: delegated
+    because:
+      - d-k8va629q
+      - r-e40s6olu
+    pinned: false
+
+  - id: d-mehrbfcx
+    scope: triage
+    title: the folder picker lists an account's folders and takes a name it does not hold
+    statement: |
+      where an operator names a folder, the interface lists the folders of one account the user
+      picks and still accepts a name that listing does not hold. A pipeline runs on accounts whose
+      folders differ, and a folder an account lacks fails the run rather than the save.
+    status: delegated
+    because:
+      - r-e40s6olu
+      - d-jj2mymbi
+      - d-qzxvoph1
+    pinned: false
+
+  - id: d-rydjjggx
+    scope: backends
+    title: adding an account begins by naming its backend
+    statement: |
+      adding an account starts with the choice of backend, which leads to that backend's own
+      flow — a consent screen, or the connection form an IMAP account is configured with.
+    status: delegated
+    because:
+      - d-oevikmal
+      - d-fuln110d
+    pinned: false
+
+  - id: d-m6bufvwy
+    scope: backends
+    title: a message with no Message-ID is keyed by where it was
+    statement: |
+      an IMAP message carrying no Message-ID is stored under a key naming its folder, that
+      folder's UIDVALIDITY, and its UID, marked as a location rather than an identity.
+    status: proposed
+    because:
+      - d-00smatg0
+      - d-k4nt8zbu
+    pinned:
+      reason: data-format
+      notes: written to disk and read back, and what the snapshot branches on
+
+  - id: d-ntojglaa
+    scope: backends
+    title: re-pointing the arrival folder clears the cursor
+    statement: |
+      pointing an account's arrival role at another folder clears its stored cursor, so the next
+      poll takes the recent window a first poll takes. Re-pointing any other role leaves it.
+    status: delegated
+    because:
+      - d-cepkyeoa
+      - d-8pdx8qsd
+    pinned: false
+
+  - id: d-ti1jnva6
+    scope: backends
+    title: the window a first poll takes
+    statement: |
+      a first poll of an IMAP account, and one whose arrival folder reports another UIDVALIDITY,
+      takes that folder's most recent 200 messages.
+    status: delegated
+    because:
+      - d-cepkyeoa
+      - d-sj4u6eyj
+    pinned: false
+
+  - id: d-emwk4xdy
+    scope: triage
+    title: set-aside on an account that has never polled categorizes
+    statement: |
+      where an account carries no declaration yet, a set-aside takes the category branch, and the
+      server's own refusal is what fails the run.
+    status: delegated
+    because:
+      - d-hj9nac5f
+      - d-p9q9dxqn
+    pinned: false
+
+  - id: d-um0gejyz
+    scope: backends
+    title: an IMAP account holds no address of its own
+    statement: |
+      adding an IMAP account asks for nothing beyond what it is configured with and a name to show
+      it under. Where an account's own address is wanted, the username stands for it.
+    status: delegated
+    because:
+      - d-ioso3voc
+      - d-5h66e3zl
+    pinned: false
+
+  - id: d-mcdtvppm
+    scope: backends
+    title: repairing an account is adding it again, pre-filled
+    statement: |
+      repairing an IMAP account runs the same two steps as adding one — the connection, then the
+      four folders — with everything but the password filled in from what is stored. Its backend
+      is not offered.
+    status: delegated
+    because:
+      - d-r3ogwkv7
+      - d-8jc4taom
+      - d-v4mejzw5
+    pinned: false
