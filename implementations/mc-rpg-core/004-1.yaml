@@ -1,0 +1,854 @@
+version: "1"
+product: mc-rpg-core
+target: 4
+built_at: 2026-08-18
+packages:
+  - path: nodejs/minecraft/rpg-core
+    version: 1.0.0
+  - path: nodejs/minecraft/rpg-core-example
+    version: 0.1.0
+coverage:
+  # ---- requirements ----
+  - claim: r-lna5xlfe # an actor is spawned by naming a preset
+    covered_by:
+      - kind: attestation
+        ref:
+          - src/presets.ts
+          - src/actor.ts
+        note: >
+          spawnActor's first argument is a preset name and nothing else, and PRESETS holds only a
+          preset's name and default name; adding a preset is a new key, changing no signature
+      - kind: code-test
+        ref:
+          - src/actor.test.ts
+          - src/adventure.test.ts
+        note: >
+          an actor is obtained from the name and a place with no identifier, namespace, or asset
+          supplied by the caller; the example's gallery is built by mapping PRESET_NAMES
+      - kind: manual-check
+        ref:
+          - README.md
+        note: >
+          executed headless 2026-08-18 (rpg-core-example): 'wizard' was the whole of what the story
+          named, and a named, drawn actor stood in a live world
+  - claim: r-apu8m7vz # an actor faces a player who approaches
+    covered_by:
+      - kind: attestation
+        ref:
+          - vendored_pack/behavior_pack/entities/wizard.json
+        note: >
+          minecraft:behavior.look_at_player at probability 1.0 is the entity's only behavior and
+          minecraft:movement is 0 — it turns to face and otherwise holds still
+      - kind: code-test
+        ref:
+          - src/vendored-pack.test.ts
+        note: >
+          the look-at-player component is asserted present and sole, and the zeroed movement beside
+          it; the turn itself is drawn at a client and no headless route reaches it
+  - claim: r-qi348761 # an actor's appearance does not depend on the game's own assets
+    covered_by:
+      - kind: attestation
+        ref:
+          - vendored_pack/resource_pack/
+        note: >
+          every geometry, texture, animation, and render controller is committed here under bare
+          re-identified names; the stock `evoker` material is the one vanilla name
+      - kind: code-test
+        ref:
+          - src/vendored-pack.test.ts
+        note: >
+          each declared name resolves to one this tree commits and the texture file exists;
+          materials are pinned to exactly ['evoker'], so a second vanilla name would fail
+  - claim: r-pop72yk6 # adventures built against different versions coexist in one world
+    covered_by:
+      - kind: attestation
+        ref:
+          - src/actor.ts
+          - src/presets.ts
+        note: >
+          no version token appears in any identifier, key, or record; identifiers are composed from
+          the adventure's namespace at call time, so two adventures produce disjoint identifiers
+          and disjoint dynamic-property keys
+      - kind: code-test
+        ref:
+          - src/actor.test.ts
+        note: >
+          both the composed identifier and the world-state key are shown to vary with the
+          adventure's namespace, not with this package's version
+  - claim: r-6q7adtpo # an adventure keeps working as the product gains releases
+    covered_by:
+      - kind: attestation
+        ref:
+          - src/presets.ts
+          - src/index.ts
+        note: >
+          what an adventure names is a preset name and the exported catalogue; the wizard preset and
+          its meaning are unchanged by anything a later release adds
+  - claim: r-rpcudvbl # a wizard preset
+    covered_by:
+      - kind: attestation
+        ref:
+          - src/presets.ts
+          - vendored_pack/
+        note: >
+          the wizard preset exists, defaults to `Wizard`, and renders from the evoker's geometry,
+          texture, and animations
+      - kind: code-test
+        ref:
+          - src/shipped-pack.test.ts
+        note: >
+          the built pack declares twin-digital-rpg-core-example:rpg.wizard and ships its model,
+          texture, and animations
+      - kind: manual-check
+        ref:
+          - README.md
+        note: >
+          executed headless 2026-08-18 (rpg-core-example): the wizard stood and answered to its
+          identifier. 'reads as an elderly robed spellcaster' is a human judgement at a client and
+          was not made this run
+  - claim: r-0fmfslpl # a player in creative cannot edit, rename, remove, or harm an actor
+    covered_by:
+      - kind: attestation
+        ref:
+          - vendored_pack/behavior_pack/entities/wizard.json
+        note: >
+          damage_sensor deals no damage, no nameable component so a name tag cannot rename it,
+          is_spawnable false so no spawn egg reaches the creative menu, pushable off both ways
+      - kind: code-test
+        ref:
+          - src/vendored-pack.test.ts
+        note: >
+          one assertion per verb of the requirement — refuses damage, cannot be renamed, reaches the
+          creative menu through no spawn egg, blocks every stoppable displacement vector
+      - kind: manual-check
+        ref:
+          - README.md
+        note: >
+          executed headless 2026-08-18 (rpg-core-example): damage under entity_attack and void both
+          reported 'Could not apply damage' and both actors survived. rename-by-name-tag and
+          shove-by-hand are client actions and were not exercised
+  - claim: r-rytfox4t # an actor keeps its place until the adventure removes it
+    covered_by:
+      - kind: attestation
+        ref:
+          - vendored_pack/behavior_pack/entities/wizard.json
+        note: >
+          minecraft:persistent with no despawn component and zeroed movement — it stays where it was
+          put until the adventure removes it
+      - kind: code-test
+        ref:
+          - src/vendored-pack.test.ts
+          - src/actor.test.ts
+        note: >
+          persistence and the absence of despawn are asserted, and removal is shown to be the
+          adventure's own call
+      - kind: manual-check
+        ref:
+          - README.md
+        note: >
+          executed headless 2026-08-18 (rpg-core-example): across a real stop/start with no player
+          ever connected, the same two uniqueIds stood at the same coordinates under the same names
+  - claim: r-wwha7y68 # an adventure's author writes no actor content
+    covered_by:
+      - kind: attestation
+        ref:
+          - vendored_pack/
+          - package.json
+        note: >
+          every entity definition, model, texture, animation, and default name is in the actors
+          package and `files` ships vendored_pack; an author writes one dependencies entry
+      - kind: code-test
+        ref:
+          - src/vendored-pack.test.ts
+          - src/shipped-pack.test.ts
+        note: >
+          the content exists in the actors package for each preset, while the example's committed
+          tree carries no actor-content file and its built resource pack carries all of it
+      - kind: manual-check
+        ref:
+          - README.md
+        note: >
+          executed headless 2026-08-18 (rpg-core-example): complete, named actors stood in a live
+          world from a package that authored none of them
+  - claim: r-tbk2pm77 # the library returns no handle to an actor it did not create
+    covered_by:
+      - kind: attestation
+        ref:
+          - src/actor.ts
+        note: >
+          every handle is built from an entity returned by the runtime's checked getEntity or
+          spawnEntity; no path constructs one from an unchecked entity, and no call reports on
+          rendering
+      - kind: code-test
+        ref:
+          - src/actor.test.ts
+          - src/adventure.test.ts
+        note: >
+          a handle is refused with ForeignEntityError for an entity answering the identifier without
+          this pack's family, on both the spawn and the findActor path
+  - claim: r-hear6pun # packs unit-test with the shared test lib
+    covered_by:
+      - kind: attestation
+        ref:
+          - vitest.config.d/minecraft-test-lib.ts
+        note: >
+          "@minecraft/server" resolves only through the shared test lib's vitest plugin; there is no
+          hand-rolled double and no module mock of it in either package
+      - kind: code-test
+        ref:
+          - src/actor.test.ts
+          - src/entry.test.ts
+        note: both packages' suites drive their code against the shared fakes
+  - claim: r-cyd08e6q # packs are built by the dev kit
+    covered_by:
+      - kind: attestation
+        ref:
+          - tsdown.config.ts
+          - tsdown.config.d/minecraft-pack.ts
+          - tsdown.config.d/namespace.ts
+        note: >
+          both fragments call the kit's packBuild and define no bundling; build, watch, dev, and
+          release-assets all route through it
+      - kind: manual-check
+        ref:
+          - README.md
+        note: >
+          executed 2026-08-18 (rpg-core-example): the kit completed the manifests, merged the
+          vendored tree, and pruned dist to what it wrote
+  - claim: r-w2vh7olv # a pack does not deliver itself
+    covered_by:
+      - kind: attestation
+        ref:
+          - package.json
+        note: >
+          private, release-assets is mc-pack-archive, and the package publishes and deploys nothing
+          of its own
+      - kind: manual-check
+        ref:
+          - README.md
+        note: >
+          executed 2026-08-18 (rpg-core-example): pnpm release-assets produced
+          rpg-core-example-0.1.0.mcaddon through the kit alone
+  - claim: r-992moral # packs run against the dev server
+    covered_by:
+      - kind: attestation
+        ref:
+          - package.json
+          - .minecraft.yml
+        note: >
+          dev and dev:stop delegate to mc-dev-server; the package holds no server, container, world,
+          or activation file
+      - kind: manual-check
+        ref:
+          - README.md
+        note: >
+          executed 2026-08-18 (rpg-core-example): pnpm dev and nothing else brought up a Bedrock
+          server with this pack deployed and active in the world .minecraft.yml names
+  - claim: r-82ck2fax # package config is repo-kit managed
+    covered_by:
+      - kind: attestation
+        ref:
+          - eslint.config.js
+          - tsconfig.json
+          - vitest.config.ts
+          - package.json
+        note: >
+          every shared config file is repo-kit's, unedited; the actors package's one exception
+          (package-manifest off, one entry point by design) is declared in the monorepo's
+          .repo-kit.yml, and the example declares none
+      - kind: manual-check
+        ref:
+          - README.md
+        note: "`pnpm sync` regenerated every rule for both packages and left the tree clean"
+  - claim: r-lqfu2ki9 # a library's public surface is minimal
+    covered_by:
+      - kind: attestation
+        ref:
+          - package.json
+          - src/index.ts
+        note: >
+          one "." export, no wildcard, every export named — no `export *`; presets.js and actor.js
+          are unreachable from outside
+      - kind: code-test
+        ref:
+          - src/package-manifest.test.ts
+          - src/actor.test.ts
+        note: the exports map is read for its single entry and no wildcard, and the entry point's export list is pinned exactly
+  - claim: r-brdf1c2g # node packages ship as ESM
+    covered_by:
+      - kind: attestation
+        ref:
+          - package.json
+        note: >
+          type is module and the exports map has an import condition only — no require path and no
+          .cjs file exists, so require() of the package cannot resolve
+      - kind: code-test
+        ref:
+          - src/package-manifest.test.ts
+        note: the type field and the exact conditions are asserted, and that no `require` or `.cjs` appears in the map
+  - claim: r-paoy41od # node packages are TypeScript
+    covered_by:
+      - kind: attestation
+        ref:
+          - src/
+          - tsconfig.build.json
+        note: >
+          all sources are TypeScript; the build emits .d.ts beside .js and the exports map's types
+          points at dist/index.d.ts, which `files` ships
+      - kind: manual-check
+        ref:
+          - README.md
+        note: "`pnpm build` emitted index.d.ts, actor.d.ts, and presets.d.ts alongside the .js"
+  - claim: r-6r489hbd # node packages support the current LTS
+    covered_by:
+      - kind: attestation
+        ref:
+          - package.json
+          - .nvmrc
+        note: >
+          engines.node is 24.x and .nvmrc pins 24 — the latest LTS as of this implementation — and
+          the shared build target admits it
+      - kind: code-test
+        ref:
+          - src/package-manifest.test.ts
+        note: the declared engine range is asserted
+  # ---- decisions ----
+  - claim: d-gzoqebyy # an actor is a custom entity, never the game's NPC entity
+    covered_by:
+      - kind: attestation
+        ref:
+          - vendored_pack/behavior_pack/entities/wizard.json
+        note: >
+          the entity is this product's own definition; no minecraft:npc anywhere in the tree and no
+          dialogue surface in src/
+      - kind: code-test
+        ref:
+          - src/vendored-pack.test.ts
+        note: every definition is shown to be one of this product's presets, minted here
+  - claim: d-lyvjq8l1 # assets are vendored from a pinned revision and re-identified
+    covered_by:
+      - kind: attestation
+        ref:
+          - vendored_pack/resource_pack/
+          - vendored-assets.yml
+        note: >
+          every model, texture, animation, and animation controller is committed here under
+          re-identified bare names; the material is the one exception
+      - kind: code-test
+        ref:
+          - src/vendored-pack.test.ts
+        note: >
+          every declared name across geometries, animations, animation controllers, and render
+          controllers is asserted bare, and the material list is exactly ['evoker']
+  - claim: d-3ggbl0kl # the wizard preset is vendored from the evoker, without its material
+    covered_by:
+      - kind: attestation
+        ref:
+          - vendored-assets.yml
+          - vendored_pack/
+        note: >
+          the wizard's geometry, texture, and animations are vendored from the evoker; the evoker's
+          material is not vendored — the client entity names a stock material
+      - kind: code-test
+        ref:
+          - src/vendored-pack.test.ts
+        note: each committed asset is tied to its evoker source path, and the material is shown not to have been vendored
+  - claim: d-5lutr7ok # the spawn call takes a preset name and returns a handle
+    covered_by:
+      - kind: attestation
+        ref:
+          - src/actor.ts
+        note: >
+          the call takes a preset name, a place, and options that may override the default name, and
+          returns a handle to the actor it created
+      - kind: code-test
+        ref:
+          - src/actor.test.ts
+        note: the shape and the display-name override are each exercised
+  - claim: d-9uu20w3r # an actor may be given a durable name, and placement is idempotent
+    covered_by:
+      - kind: attestation
+        ref:
+          - src/actor.ts
+        note: >
+          options.id is the adventure's own durable name; a spawn under a held name returns the
+          standing actor, and findActor resolves it from world state a later session also reads
+      - kind: code-test
+        ref:
+          - src/actor.test.ts
+          - src/adventure.test.ts
+        note: >
+          a second spawn under a held name leaves one entity in the dimension, not two — idempotence
+          read literally
+      - kind: manual-check
+        ref:
+          - README.md
+        note: >
+          executed headless 2026-08-18 (rpg-core-example): after a real stop/start the same two
+          uniqueIds stood and the gallery had not doubled
+  - claim: d-bfdql5tx # a preset's default name is a library string, applied at creation
+    covered_by:
+      - kind: attestation
+        ref:
+          - src/presets.ts
+          - vendored_pack/
+        note: >
+          defaultName is a library string applied as nameTag at creation; no vendored file holds a
+          name for any actor and nothing is translated
+      - kind: code-test
+        ref:
+          - src/actor.test.ts
+        note: nameTag equals PRESETS.wizard.defaultName immediately after the spawn call
+  - claim: d-cb9jl02i # the vendoring records its source, revision, and every file taken
+    covered_by:
+      - kind: attestation
+        ref:
+          - vendored-assets.yml
+        note: the record names the repository, the revision v1.21.130.3, and the source path of each file taken
+      - kind: code-test
+        ref:
+          - src/vendored-pack.test.ts
+        note: the repository and revision are asserted, and every committed path is shown to exist
+  - claim: d-qtj99irh # the vendoring record is vendored-assets.yml at the package root
+    covered_by:
+      - kind: attestation
+        ref:
+          - vendored-assets.yml
+        note: it is at the package root and carries repository, revision, and files as {source, committed} pairs
+      - kind: code-test
+        ref:
+          - src/vendored-pack.test.ts
+        note: the file's location, its two scalar keys, and one pair per file are asserted
+  - claim: d-z7e5isj2 # the wizard is drawn with the stock material `evoker`
+    covered_by:
+      - kind: attestation
+        ref:
+          - vendored_pack/resource_pack/entity/wizard.entity.json
+        note: 'materials is { default: "evoker" }'
+      - kind: code-test
+        ref:
+          - src/vendored-pack.test.ts
+        note: the material values are asserted to be exactly ['evoker'], so a second vanilla name would fail
+  - claim: d-o9lynydc # the spawn call is spawnActor, and a handle is looked up with findActor
+    covered_by:
+      - kind: attestation
+        ref:
+          - src/actor.ts
+        note: >
+          spawnActor(preset, place, options?) with place a dimension and a location; findActor(id)
+          returning a handle or undefined; the handle exposing preset, entityId, id, entity, and
+          remove()
+      - kind: code-test
+        ref:
+          - src/actor.test.ts
+        note: every handle field is read, remove() is exercised, and the undefined return is asserted for the absent- and stale-record cases
+  - claim: d-kklnm4j4 # the wizard's default name is the string `Wizard`
+    covered_by:
+      - kind: attestation
+        ref:
+          - src/presets.ts
+        note: the wizard preset's defaultName is the string 'Wizard'
+      - kind: code-test
+        ref:
+          - src/actor.test.ts
+        note: the default-name test reads it through PRESETS, asserting the literal at its source
+  - claim: d-clemw9ag # the vendored evoker's riding and particle references are not carried
+    covered_by:
+      - kind: attestation
+        ref:
+          - vendored_pack/resource_pack/
+        note: no riding animation and no particle effect survives in the client entity or the animation controllers
+      - kind: code-test
+        ref:
+          - src/vendored-pack.test.ts
+        note: both file kinds are searched for either reference
+  - claim: d-uq70bkcx # what the shared actor components establish, and where the engine stops
+    covered_by:
+      - kind: attestation
+        ref:
+          - vendored_pack/behavior_pack/entities/wizard.json
+        note: every clause of the statement is a component or a description flag on the definition
+      - kind: code-test
+        ref:
+          - src/vendored-pack.test.ts
+        note: >
+          one assertion per clause — damage refusal, summonable-without-egg, not nameable,
+          persistent, look-at-player, the push controls, and gravity left in force
+      - kind: manual-check
+        ref:
+          - README.md
+        note: >
+          executed headless 2026-08-18 (rpg-core-example): damage refused under two causes, the
+          actors persisted across a restart with no player ever connected, and each fell one block
+          onto the ground under gravity. the two `when` cases are contraption- or client-side and
+          were not exercised
+  - claim: d-zohkvwu1 # one package holds the presets, the spawn call, and the actor content
+    covered_by:
+      - kind: attestation
+        ref:
+          - src/
+          - vendored_pack/
+          - package.json
+        note: >
+          one package; src/ holds presets, spawn call, and handle; vendored_pack/ holds the entity
+          definitions and their assets in the kit's kind-named subdirectories; no manifest anywhere
+      - kind: code-test
+        ref:
+          - src/vendored-pack.test.ts
+        note: the absence of a manifest in either half is asserted
+  - claim: d-rbi829o3 # an adventure takes one npm dependency and declares no uuid
+    covered_by:
+      - kind: attestation
+        ref:
+          - package.json
+          - behavior_pack/manifest.json
+        note: >
+          the example takes one dependencies entry, @twin-digital/rpg-core, and the only uuid in its
+          manifest is its own resource half's
+      - kind: code-test
+        ref:
+          - src/shipped-pack.test.ts
+        note: the vendored content lands in the adventure's own packs under its own namespace and header uuids
+      - kind: manual-check
+        ref:
+          - README.md
+        note: >
+          executed headless 2026-08-18 (rpg-core-example): the world's pack stack held this
+          adventure and nothing else, and its actors stood
+  - claim: d-b9m9okhx # an adventure installs as one archive, and half an actor cannot ship
+    covered_by:
+      - kind: attestation
+        ref:
+          - vendored_pack/
+          - README.md
+        note: >
+          both halves are content of the actors package's one tree, merged into the adventure's own
+          packs; there is no second archive and no product version a world could hold
+      - kind: manual-check
+        ref:
+          - README.md
+        note: >
+          executed 2026-08-18 (rpg-core-example): pnpm release-assets produced one archive holding
+          behavior_pack.mcpack and resource_pack.mcpack, each carrying its half of the merged actor
+          content
+  - claim: d-d4yzvu0o # an actor's identifier is the adventure's namespace over this product's prefix
+    covered_by:
+      - kind: attestation
+        ref:
+          - src/actor.ts
+          - src/presets.ts
+        note: >
+          identifiers come from packId(preset) at call time; the actors package declares no
+          namespace, mints no uuid, and puts no version in any name
+      - kind: code-test
+        ref:
+          - src/actor.test.ts
+          - src/shipped-pack.test.ts
+        note: >
+          the composed form is shown under an injected namespace, and in the built pack the shipped
+          definition's identifier is twin-digital-rpg-core-example:rpg.wizard, which the run-time
+          injection composes identically
+      - kind: manual-check
+        ref:
+          - README.md
+        note: >
+          executed headless 2026-08-18 (rpg-core-example): 'testfor
+          @e[type=twin-digital-rpg-core-example:rpg.wizard]' found both actors, so the composed
+          spelling is what the engine registered
+  - claim: d-5iy08kgn # the product ships `rpg` as its default prefix
+    covered_by:
+      - kind: attestation
+        ref:
+          - package.json
+        note: >
+          minecraft.defaultAlias is "rpg" and nothing in the code reads or hardcodes it; the example
+          declares no minecraft.vendor, so the prefix it gets is that default
+      - kind: code-test
+        ref:
+          - src/package-manifest.test.ts
+          - src/shipped-pack.test.ts
+        note: the field is asserted, and the built pack's injected prefix list is exactly ["rpg"] with the wizard spelled <namespace>:rpg.wizard
+      - kind: manual-check
+        ref:
+          - README.md
+        note: >
+          executed headless 2026-08-18 (rpg-core-example): the literal an operator types in a
+          selector is twin-digital-rpg-core-example:rpg.wizard
+  - claim: d-dpeizvxw # one identifier per preset, composed at call time through packId
+    covered_by:
+      - kind: attestation
+        ref:
+          - src/presets.ts
+          - src/actor.ts
+        note: >
+          no identifier is exported or stored; one behavior and one client entity definition per
+          preset, and every actor carries the same components
+      - kind: code-test
+        ref:
+          - src/vendored-pack.test.ts
+          - src/shipped-pack.test.ts
+        note: >
+          the definitions and the catalogue are in exact correspondence, and the identifier the
+          built script composes at run time equals the one the shipped definition declares
+  - claim: d-nyh4i1x1 # what the vendored pack may hold is the kit's list
+    covered_by:
+      - kind: attestation
+        ref:
+          - vendored_pack/
+        note: >
+          the tree holds entity definitions, models, textures, animations, animation controllers,
+          and render controllers — all kinds the kit admits; the package states no list of its own
+  - claim: d-q9fkyuqx # the library reaches an actor through the runtime's checked calls
+    covered_by:
+      - kind: attestation
+        ref:
+          - src/actor.ts
+        note: >
+          "@minecraft/server" is imported only for `world` and its types; every entity reach —
+          spawnEntity, getEntity — is the runtime's checked call
+      - kind: code-test
+        ref:
+          - src/actor.test.ts
+        note: >
+          ForeignEntityError is raised for a spawned entity without the family and for a record
+          whose entity lacks it, showing the entity is not acted on instead
+  - claim: d-xiswv8vb # the library asserts nothing about definitions or appearance
+    covered_by:
+      - kind: attestation
+        ref:
+          - src/actor.ts
+          - README.md
+        note: >
+          no code path reads the entity-type catalog, counts the pack stack, or inspects dimensions;
+          the README states what a successful call is evidence of
+      - kind: code-test
+        ref:
+          - src/actor.test.ts
+        note: >
+          the one path that could have made a lookup makes none, and no error type naming missing
+          definitions is exported — the entry point's export list is pinned
+  - claim: d-z3jf4sjg # the package is @twin-digital/rpg-core, private until licensing is settled
+    covered_by:
+      - kind: attestation
+        ref:
+          - package.json
+        note: name @twin-digital/rpg-core, private true, license UNLICENSED, files carries dist and vendored_pack
+      - kind: code-test
+        ref:
+          - src/package-manifest.test.ts
+        note: each clause is asserted separately
+  - claim: d-tctmdf5z # the example holds both pack kinds and derives its namespace from its name
+    covered_by:
+      - kind: attestation
+        ref:
+          - package.json
+          - behavior_pack/manifest.json
+          - resource_pack/manifest.json
+        note: private, no exports map, both manifests present, deliverable is the .mcaddon
+      - kind: code-test
+        ref:
+          - src/shipped-pack.test.ts
+        note: >
+          package.json declares no minecraft block, and the built pack's namespace is
+          twin-digital-rpg-core-example, derived from the package name
+  - claim: d-85wcszy4 # a durable name's record keys on the adventure's namespace
+    covered_by:
+      - kind: attestation
+        ref:
+          - src/actor.ts
+        note: >
+          the property key composes <packNamespace()>:rpg-core.actor.<id>, refuses an id holding
+          ':', and refuses namespacing being off; the record stores the bare preset name and
+          findActor recomposes through packId
+      - kind: code-test
+        ref:
+          - src/actor.test.ts
+          - src/adventure.test.ts
+        note: >
+          the exact key string and the bare preset are asserted, the ':' and namespacing-off
+          refusals are covered, and no durable id the example places carries a colon
+      - kind: manual-check
+        ref:
+          - README.md
+        note: >
+          executed headless 2026-08-18 (rpg-core-example): ids of the earlier shape
+          (`example:greeter`) took every placement to its retry limit with nothing in the world;
+          colon-free ids placed the gallery on the next world load
+  - claim: d-cc9xbsyz # the example is the product's second package, not its third
+    covered_by:
+      - kind: attestation
+        ref:
+          - package.json
+          - README.md
+        note: one adventure package on @twin-digital/rpg-core, and the worked example an author reads
+      - kind: code-test
+        ref:
+          - src/adventure.test.ts
+        note: the gallery is one actor per PRESET_NAMES entry — no hard-coded list to drift
+      - kind: manual-check
+        ref:
+          - README.md
+        note: >
+          executed headless 2026-08-18 (rpg-core-example): every preset the product offers stood in
+          a live world, placed by this script
+  - claim: d-ckn4rwz8 # the entry point exports the preset catalogue by name, and no identifier
+    covered_by:
+      - kind: attestation
+        ref:
+          - src/index.ts
+          - src/presets.ts
+        note: >
+          the entry point exports PRESET_NAMES, PRESETS, findActor, spawnActor, ForeignEntityError,
+          and the types; a preset carries only `preset` and `defaultName`
+      - kind: code-test
+        ref:
+          - src/actor.test.ts
+        note: the export list and each preset's key set are asserted exactly, so an added identifier would fail
+  - claim: d-w4m10236 # a durable record resolving to a foreign entity is not treated as stale
+    covered_by:
+      - kind: attestation
+        ref:
+          - src/actor.ts
+        note: spawnActor reads the record before anything else and branches exactly three ways as the decision's cases state
+      - kind: code-test
+        ref:
+          - src/actor.test.ts
+        note: >
+          one test per case — the standing actor returned unchanged with a display-name override not
+          applied; ForeignEntityError raised and the record left as it stands; a stale record
+          respawned and overwritten
+      - kind: manual-check
+        ref:
+          - README.md
+        note: >
+          executed headless 2026-08-18 (rpg-core-example): a live record returned its actor unchanged
+          and a killed actor's stale record respawned under a fresh uniqueId at the same spot. the
+          foreign branch needs a rival pack and was not exercised
+  - claim: d-n4s9g0kv # the vendored entities carry no type family of this product's
+    covered_by:
+      - kind: attestation
+        ref:
+          - vendored_pack/behavior_pack/entities/wizard.json
+        note: no minecraft:type_family component is declared
+      - kind: code-test
+        ref:
+          - src/vendored-pack.test.ts
+          - src/shipped-pack.test.ts
+        note: >
+          its absence is asserted on every definition, and the built wizard's type_family is exactly
+          [mcdk_pack_twin-digital-rpg-core-example] — the build's, with no product family beside it
+      - kind: manual-check
+        ref:
+          - README.md
+        note: >
+          executed headless 2026-08-18 (rpg-core-example):
+          '@e[family=mcdk_pack_twin-digital-rpg-core-example]' matched both actors, so the build's
+          family is the one an adventure writes in a selector
+  - claim: d-x60dka1o # an adventure's behavior pack declares its own resource half
+    covered_by:
+      - kind: attestation
+        ref:
+          - behavior_pack/manifest.json
+          - README.md
+        note: >
+          the behavior manifest's dependencies names the resource header uuid, and the actors
+          package's README tells an author to do it
+      - kind: code-test
+        ref:
+          - src/shipped-pack.test.ts
+        note: the built behavior manifest's dependency uuid is the built resource manifest's header uuid
+  - claim: d-i9d989zl # the example turns namespacing on through its own build override fragment
+    covered_by:
+      - kind: attestation
+        ref:
+          - tsdown.config.d/namespace.ts
+        note: >
+          one fragment sorting after minecraft-pack.ts, calling the same packBuild with namespace
+          on; no generated file edited and no build logic added
+      - kind: code-test
+        ref:
+          - src/shipped-pack.test.ts
+        note: the built script carries the injected namespace, which is what the fragment turns on
+  - claim: d-f2mk1u7n # the vendored tree is validated at a consumer's build
+    covered_by:
+      - kind: attestation
+        ref:
+          - package.json
+          - tsdown.config.d/namespace.ts
+        note: >
+          the actors package's build is tsc-only and its dist/ is a library bundle; the example's
+          build is what reads the vendored tree, and it runs on every build of the monorepo
+      - kind: code-test
+        ref:
+          - src/vendored-pack.test.ts
+          - src/shipped-pack.test.ts
+        note: >
+          the actors package holds its tree to shape as source because no build reads it there, and
+          the example's suite builds the pack, so a broken vendored tree fails both
+  # ---- decisions declared by this companion ----
+  - claim: d-80jjasrk # the entry point re-exports ForeignEntityError
+    covered_by:
+      - kind: attestation
+        ref:
+          - src/index.ts
+        note: >
+          ForeignEntityError is re-exported from @twin-digital/mc-pack-runtime through the one entry
+          point, so an adventure catches it without a second dependency
+      - kind: code-test
+        ref:
+          - src/actor.test.ts
+          - src/adventure.test.ts
+        note: >
+          the entry point's export list is pinned and carries it, and the example catches it while
+          declaring @twin-digital/rpg-core as its only dependency
+  - claim: d-mo536gkq # the durable record is a preset name and an entity id
+    covered_by:
+      - kind: attestation
+        ref:
+          - src/actor.ts
+        note: the value stored at a durable name's dynamic property is { preset, entity } — the bare preset name and the entity's runtime id, with no composed identifier and no type id
+      - kind: code-test
+        ref:
+          - src/actor.test.ts
+        note: the stored record's exact shape is asserted, and findActor is shown to recompose the identifier through packId at read time
+  - claim: d-jt6302fr # what the durable-name path refuses
+    covered_by:
+      - kind: attestation
+        ref:
+          - src/actor.ts
+        note: >
+          a durable name holding ':' and an unknown preset each raise TypeError; a pack built with
+          namespacing off raises a plain Error. none of the three is exported
+      - kind: code-test
+        ref:
+          - src/actor.test.ts
+        note: one assertion per refusal, each on the error type as well as the raise
+      - kind: manual-check
+        ref:
+          - README.md
+        note: >
+          executed headless 2026-08-18 (rpg-core-example): the colon refusal is what took every
+          placement of an `example:greeter`-shaped id to its retry limit with nothing in the world
+  - claim: d-aoxi27un # a record naming a preset the catalogue no longer holds is stale
+    covered_by:
+      - kind: attestation
+        ref:
+          - src/actor.ts
+        note: a record whose stored preset the catalogue no longer holds takes d-w4m10236's otherwise branch — a fresh actor is spawned and the record overwritten
+      - kind: code-test
+        ref:
+          - src/actor.test.ts
+        note: a record naming a dropped preset is shown to respawn and overwrite rather than raise or return undefined
+  - claim: d-1t51vz5z # findActor of an unheld name returns undefined, and checks nothing
+    covered_by:
+      - kind: attestation
+        ref:
+          - src/actor.ts
+        note: >
+          findActor of a name no record holds returns undefined without touching the world; a
+          present record is resolved through the runtime's checked lookup, and nothing about the
+          actor's definitions is checked at any point
+      - kind: code-test
+        ref:
+          - src/actor.test.ts
+        note: both the undefined return and that the world holds no entity as a result are asserted, and the checked-lookup path raises ForeignEntityError rather than inspecting definitions
