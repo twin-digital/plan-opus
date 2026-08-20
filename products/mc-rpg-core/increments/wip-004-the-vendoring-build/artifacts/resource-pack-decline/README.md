@@ -10,15 +10,58 @@ behavior pack already names its resource pack by uuid in `dependencies`
 adventure ship. Build and install those packs as that probe's README says, then add the steps
 below after its step 5.
 
-## The steps
+## The server
 
-1. Quit to the main menu and rejoin. At the resource-pack download prompt, answer **no**.
-2. Record whether the join is refused. If it proceeds, record whether the five entities are drawn
-   at all, and what stands where each should be.
-3. Set `texturepack-required=true` in the server's `server.properties`, restart the server, rejoin,
-   and decline again. Record whether the refusal changes.
+A server is up with the probe packs deployed in an adventure's own shape — the behavior pack
+activated, the resource pack in the pool only and reached through the behavior manifest's
+`dependencies`, with `world_resource_packs.json` left empty. That is the arrangement
+`d-x60dka1o` describes, so the prompt a client sees is the dependency-pulled one.
 
-Both settings must be read: the outcomes below are told apart only by running it twice.
+| | |
+|---|---|
+| address | `10.111.1.192:19140` |
+| world | `rp-decline-probe`, creative, seed 424242 |
+| container | `rp-decline-probe-bedrock-1` on `prod-development-docker` |
+| pack stack | `[00] Name Display Probe BP` |
+
+## Run the decline readings *first*
+
+**Order matters.** A Bedrock client caches a server's resource pack once accepted, so a client
+that has already taken the pack may not prompt again. Read both decline cases before accepting
+anything, while the client has never held it.
+
+### A — decline with `texturepack-required=false` (as the server stands)
+
+1. Join `10.111.1.192:19140` and answer **no** at the resource-pack prompt.
+2. Record whether the join is refused at all.
+3. If it proceeds, run `/scriptevent probe:run` and look where the five entities should be. Chat
+   confirms the server spawned them; the question is whether the client draws anything. Record
+   what stands there — nothing, an untextured shape, or something else.
+
+### B — decline with `texturepack-required=true`
+
+Flip the property and restart:
+
+```sh
+docker exec rp-decline-probe-bedrock-1 \
+  sed -i 's/^texturepack-required=false/texturepack-required=true/' /data/server.properties
+docker restart rp-decline-probe-bedrock-1
+```
+
+Rejoin, decline again, and record whether the refusal changes.
+
+### C — then accept, and read the plates
+
+Accept the pack on the next join and run the name-display probe's own steps 1-5 (its README, in
+increment 003's artifacts): `/scriptevent probe:run`, read the five plates, then switch the client
+to Deutsch and read them again. That is `q-r7db9r31`, and it is why one session answers both.
+
+## When you are done
+
+```sh
+docker rm -f rp-decline-probe-bedrock-1
+docker volume rm rp-decline-probe_data
+```
 
 ## What the question is
 
