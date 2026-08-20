@@ -9,7 +9,7 @@ decisions:
       an IMAP account's provider type is `imap`, and it stores the server's host, its port, a
       `security` of `tls` where the connection is encrypted from the start or `starttls` where it
       is upgraded, and the username. The password is a credential of kind `imap_password`.
-    status: proposed
+    status: accepted
     because:
       - d-ioso3voc
       - d-oevikmal
@@ -23,7 +23,7 @@ decisions:
     title: the four folders are stored under their roles
     statement: |
       an account's four folders are stored as `arrival`, `archived`, `trashed`, and `spam`.
-    status: proposed
+    status: accepted
     because:
       - d-zxvkt95o
     pinned:
@@ -36,7 +36,7 @@ decisions:
       an account's declaration is a set drawn from `apply_category`, `archive`, `file`, and
       `send_message`, each carrying the reason it is absent where it is. Reading a mailbox and
       fetching a body are not in it: no account gates them.
-    status: proposed
+    status: delegated
     because:
       - d-bzw8qoiy
       - d-f9tj4wnr
@@ -51,7 +51,7 @@ decisions:
       the file action's type key is `file` and its configuration is one field, `folder`. The
       set-aside action's is `set_aside`, carrying `category_template` and `folder`. Both take the
       firing gate every action type takes.
-    status: proposed
+    status: accepted
     because:
       - d-jj2mymbi
       - d-hj9nac5f
@@ -68,7 +68,7 @@ decisions:
     statement: |
       filing is the resource operation `mailbox.file`, which an operator declares as it declares
       archiving, and which is seeded with a limit of 100 in 600 seconds.
-    status: proposed
+    status: accepted
     because:
       - d-x3aqw6up
       - d-jj2mymbi
@@ -84,7 +84,7 @@ decisions:
     statement: |
       the gap a save or an activation warns about is one value carrying the capability, the
       operators that need it, and the accounts that lack it.
-    status: proposed
+    status: delegated
     because:
       - d-qzxvoph1
       - d-5h66e3zl
@@ -98,7 +98,7 @@ decisions:
       four codes join the refusal envelope: `invalid_category_name`, `duplicate_folder_role`,
       `account_login_failed`, and `certificate_unverified`. The last is distinct from an
       unreachable server, so that a server grinbox will not talk to says so.
-    status: proposed
+    status: delegated
     because:
       - d-u2rotm38
       - d-mbh2pthe
@@ -116,7 +116,7 @@ decisions:
       an account whose polling stopped for want of the user reads `paused`. An account needs
       authorization where it holds no live credential of the kind its own backend is authorized
       by, rather than where it holds no grant.
-    status: proposed
+    status: delegated
     because:
       - d-v4mejzw5
       - d-oevikmal
@@ -132,7 +132,7 @@ decisions:
       filing on a Gmail account adds the label named in the action and drops the inbox label. The
       name is matched against the account's labels character for character, and a name it does not
       hold fails the operation. Applying a category still creates its label.
-    status: proposed
+    status: accepted
     because:
       - d-jj2mymbi
       - d-93swk5rr
