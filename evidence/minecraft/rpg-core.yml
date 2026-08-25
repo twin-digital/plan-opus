@@ -130,3 +130,22 @@ runs:
       drift is an upper bound rather than the piston's contribution alone; the custom variants have no
       movement goals and do not. Nothing here observes whether a subject that resisted is still solid to
       a player, which no headless run can see.
+  - id: run-lpficsed
+    command: docker compose -f evidence/minecraft/rpg-core/name-display-and-rp-decline-probe/compose.yaml up -d
+    output: evidence/minecraft/rpg-core/name-display-and-rp-decline-probe/OUTPUT.txt
+    ran_at: 2026-08-21
+    environment: |
+      An itzg/minecraft-bedrock-server container running Bedrock dedicated server 1.26.44.3, with a
+      Bedrock client joining it over the network. Increment 003's `name-display-probe` packs are
+      deployed in an adventure's own shape: the behavior pack activated in
+      `world_behavior_packs.json`, the resource pack in the server pool with
+      `world_resource_packs.json` left empty, so the resource half is reached only through the
+      behavior manifest's `dependencies`. `TEXTUREPACK_REQUIRED` is set in the compose environment
+      rather than in `/data/server.properties`, which the image rewrites from the environment on
+      every boot. Two readings, differing only in that variable. The console carries the
+      configuration, the pack stack, whether a connecting player reached `Player Spawned`, and
+      `testfor`/`querytarget` proof of the probe entities and their distance from the player; what
+      a plate reads and whether an entity is drawn are client-rendered and are the owner's
+      observation, reported in the session that recorded these facts. See NOTES.md beside the
+      output.
+
