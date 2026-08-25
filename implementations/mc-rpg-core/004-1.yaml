@@ -852,3 +852,24 @@ coverage:
         ref:
           - src/actor.test.ts
         note: both the undefined return and that the world holds no entity as a result are asserted, and the checked-lookup path raises ForeignEntityError rather than inspecting definitions
+  - claim: d-2m1sojy7 # a preset's default name stays a library string
+    covered_by:
+      - kind: attestation
+        ref:
+          - src/presets.ts
+          - vendored_pack/
+        note: >
+          defaultName is a library string applied as nameTag at creation, and the vendored tree
+          carries no texts/ directory and no localization entry for any actor
+      - kind: code-test
+        ref:
+          - src/actor.test.ts
+        note: nameTag equals PRESETS.wizard.defaultName immediately after the spawn call, the library being what applies it
+      - kind: manual-check
+        ref:
+          - README.md
+        note: >
+          the probe increment 003 ships was read at a Bedrock client on 2026-08-21: a .lang entry
+          puts no plate above an entity and a nameTag is drawn literally, so a pack-carried name
+          would be read by nobody and would not translate
+

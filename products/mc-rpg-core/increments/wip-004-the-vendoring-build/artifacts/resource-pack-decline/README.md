@@ -1,105 +1,48 @@
-# Resource-pack decline — for q-zwn1at3x
+# Resource-pack decline — the reading, and how it was taken
 
-Run this **in the same client session** as increment 003's name-display probe, which is queued
-for the same reason: both need a person at a client, and neither can be read headless.
+`q-zwn1at3x` asked whether a client that declines an adventure's resource-pack download still
+renders its actors. It was read at a Bedrock client on 2026-08-21, in the same session as
+increment 003's name-display probe, and it is closed. What it established is recorded as
+`f:a-client-may-decline-a-servers-resource-pack-unless-texturepack-required-is-set` and
+`f:a-declined-resource-pack-leaves-a-packs-custom-entities-undrawn`; the run is `run-lpficsed`,
+with its console and notes under `evidence/minecraft/rpg-core/name-display-and-rp-decline-probe/`.
 
-It ships no packs of its own. It reuses
-`products/mc-rpg-core/increments/003/artifacts/name-display-probe/packs/` unchanged — that probe's
-behavior pack already names its resource pack by uuid in `dependencies`
-(`1343435e-adbc-4c5c-b03f-18711bd5f8d4`), which is exactly the shape `d-x60dka1o` has an
-adventure ship. Build and install those packs as that probe's README says, then add the steps
-below after its step 5.
+This directory ships no packs. The run reused increment 003's `name-display-probe` packs,
+deployed in an adventure's own shape — the behavior pack activated, the resource pack in the
+server pool only and reached through the behavior manifest's `dependencies`, which is what
+`d-x60dka1o` describes.
 
-## The server
+## The reading
 
-A server is up with the probe packs deployed in an adventure's own shape — the behavior pack
-activated, the resource pack in the pool only and reached through the behavior manifest's
-`dependencies`, with `world_resource_packs.json` left empty. That is the arrangement
-`d-x60dka1o` describes, so the prompt a client sees is the dependency-pulled one.
+| `texturepack-required` | the client is offered | what follows |
+|---|---|---|
+| `false` | "Download everything and join" / **"Join"** | declining joins the world, and no actor is drawn |
+| `true` | "Download everything and join" / **"Leave"** | there is no join without the pack |
 
-| | |
-|---|---|
-| address | `10.111.1.192:19140` |
-| world | `rp-decline-probe`, creative, seed 424242 |
-| container | `rp-decline-probe-bedrock-1` on `prod-development-docker` |
-| pack stack | `[00] Name Display Probe BP` |
+So the property is the lever. `d-x60dka1o`'s "the appearance cannot be left behind" holds of the
+world's pack stack unconditionally, and of what a player sees only where the server sets
+`texturepack-required=true`. Where it does not, declining is a one-click option offered without a
+warning, and it yields actors the library reports as present and no player can see — which
+`d-xiswv8vb` says the library cannot detect.
 
-## Run the decline readings *first*
+## Two things that will bite whoever runs this next
 
-**Order matters.** A Bedrock client caches a server's resource pack once accepted, so a client
-that has already taken the pack may not prompt again. Read both decline cases before accepting
-anything, while the client has never held it.
+**`TEXTUREPACK_REQUIRED` must be set in the container's environment.** The
+itzg/minecraft-bedrock-server image rewrites `/data/server.properties` from the environment on
+every boot, so editing that file inside a running container and restarting silently reverts it
+before the server starts. A reading taken that way is a duplicate of the permissive one wearing
+the other label. Set it in `compose.yaml` and recreate.
 
-### A — decline with `texturepack-required=false` (as the server stands)
+**A client caches a server's pack by uuid and version.** Once it has been accepted, rejoining
+offers no prompt and there is nothing to decline. Bump the resource pack's header version — and
+the behavior manifest's `dependencies` entry to match — to force a fresh offer.
 
-1. Join `10.111.1.192:19140` and answer **no** at the resource-pack prompt.
-2. Record whether the join is refused at all.
-3. If it proceeds, run `/scriptevent probe:run` and look where the five entities should be. Chat
-   confirms the server spawned them; the question is whether the client draws anything. Record
-   what stands there — nothing, an untextured shape, or something else.
+## What it leaves for the owner
 
-### B — decline with `texturepack-required=true`
+There is a server-side lever, so nothing here contradicts a decision. Two follow-ups, neither
+this increment's:
 
-Flip the property and restart:
-
-```sh
-docker exec rp-decline-probe-bedrock-1 \
-  sed -i 's/^texturepack-required=false/texturepack-required=true/' /data/server.properties
-docker restart rp-decline-probe-bedrock-1
-```
-
-Rejoin, decline again, and record whether the refusal changes.
-
-### C — then accept, and read the plates
-
-Accept the pack on the next join and run the name-display probe's own steps 1-5 (its README, in
-increment 003's artifacts): `/scriptevent probe:run`, read the five plates, then switch the client
-to Deutsch and read them again. That is `q-r7db9r31`, and it is why one session answers both.
-
-## When you are done
-
-```sh
-docker rm -f rp-decline-probe-bedrock-1
-docker volume rm rp-decline-probe_data
-```
-
-## What the question is
-
-`d-x60dka1o` has an adventure's behavior manifest name its own resource half in `dependencies`,
-"so activating the one activates both and **the appearance cannot be left behind**". Its `pinned`
-note puts the stake as "whether a half-activated world shows actors".
-
-The world half of that is already settled, and is not what these steps ask:
-
-- a behavior pack declaring a resource pack by uuid pulls it into the client pack stack against an
-  *empty* resource activation list, with the same stack count as listing it explicitly;
-- the server offers the pack to the client, which prompts to download it before joining;
-- with the depended-on resource pack absent from the pool entirely, nothing refuses the load or
-  logs a dependency error, and nothing a script can reach detects the absence
-  (`f:a-resource-pack-cannot-carry-anything-a-script-can-reach`).
-
-So the dependency reliably gets the pack *offered*. What nobody has recorded is what a **decline**
-leaves — the gap between "cannot be left behind" as a property of the world's pack stack and as a
-property of what a player sees.
-
-## What each outcome changes
-
-**A — the client refuses the join outright.** `d-x60dka1o` holds as written at the client too, and
-nothing changes. The strongest form of its `pinned` note is established.
-
-**B — the join proceeds and the entities are undrawn.** Then "the appearance cannot be left behind"
-is true of the world and false of the player, and a client alone produces exactly the failure
-`d-x60dka1o` exists to prevent: invisible actors the library reports as present, which
-`d-xiswv8vb` says it cannot detect. Whether that is acceptable or wants a requirement is the
-owner's call.
-
-**C — the refusal depends on `texturepack-required`.** Then that property is the lever, and where
-it is set becomes a decision for this product's documentation and for `mc-dev-server`'s defaults —
-which hardcode `TEXTUREPACK_REQUIRED: 'false'` today
-(`nodejs/minecraft/mc-dev-server/src/docker/compose-file.ts`).
-
-## Recording the result
-
-The reading is a fact about the engine, so it lands in `facts/minecraft/packs.yml` with a run under
-`evidence/` naming what was run and what was seen — the tested-fact bar, not an artifact
-conclusion. `q-zwn1at3x` closes against that fact.
+- `@twin-digital/mc-dev-server` hardcodes `TEXTUREPACK_REQUIRED: 'false'`
+  (`nodejs/minecraft/mc-dev-server/src/docker/compose-file.ts`), so every dev server this monorepo
+  starts is in the configuration where an actor's appearance can be left behind.
+- What this product's documentation tells an operator to set is unstated.

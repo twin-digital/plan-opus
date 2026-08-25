@@ -687,3 +687,94 @@ facts:
         where: scenario F — directory names inverted so the other copy sorts first
         quote: |
           bp pool dirs: zz_copy_a_v1 aa_copy_b_v1 observer   rp pool dirs: (none)
+  - id: a-client-may-decline-a-servers-resource-pack-unless-texturepack-required-is-set
+    claim: |
+      Whether a player can join a Bedrock dedicated server without its resource pack is decided by
+      `texturepack-required`. With it `false`, the client is offered "Download everything and join"
+      or "Join"; taking "Join" declines the pack and the join completes. With it `true`, the second
+      option is "Leave" instead — there is no join-without-the-pack, and taking it returns to the
+      server browser without the player ever entering the world. The property must be set in the
+      server's environment: the itzg image rewrites `/data/server.properties` from the environment
+      on every boot, so an in-container edit to that file reverts before the server starts.
+    backing: tested
+    sources:
+      - run: run-lpficsed
+        where: the permissive reading — the configuration it ran under
+        quote: "bedrock-1  | 2026/08/21 18:09:53 Setting texturepack-required to false in server.properties"
+      - run: run-lpficsed
+        where: the permissive reading — the player declined the pack and still entered the world
+        quote: "bedrock-1  | [2026-08-21 18:10:14:887 INFO] Player Spawned: worldbinder xuid: 2535466261040848, pfid: 5D0C8F7EEEA3CF02"
+      - run: run-lpficsed
+        where: the required reading — the configuration it ran under
+        quote: "bedrock-1  | 2026/08/21 18:06:23 Setting texturepack-required to true in server.properties"
+      - run: run-lpficsed
+        where: the required reading — the client connected, declined, and never spawned
+        quote: "bedrock-1  | [2026-08-21 18:06:46:748 INFO] Player connected: worldbinder, xuid: 2535466261040848"
+      - description: |
+          The two dialogs are the design's owner's observation, made at a Bedrock client against
+          this server on 2026-08-21 and reported in the session that recorded this fact: with
+          `texturepack-required=false` the choices read "download everything and join" and "join",
+          and clicking "join" entered the world; with it `true` the choices read "download
+          everything and join" and "leave", and "leave takes me back to server browser". The
+          console's `Player Spawned` line under the first and its absence under the second are the
+          server-side halves of the same two readings.
+
+  - id: a-declined-resource-pack-leaves-a-packs-custom-entities-undrawn
+    claim: |
+      A player who declines a server's resource pack sees nothing where that pack's custom entities
+      stand. Five entities whose appearance is carried only by the declined pack were spawned three
+      to six blocks from the player and confirmed present by `testfor` and `querytarget`; the player
+      standing among them saw nothing at all. The same entities under the same server rendered
+      normally once the pack was accepted. Nothing server-side reports the difference — the entities
+      are present, named, and answering selectors either way.
+    caveat: |
+      An eye-level reading, not an instrumented one. It establishes that a person standing among the
+      entities sees nothing, which is the standard the question asks, and not that the client drew
+      literally zero pixels.
+    backing: tested
+    sources:
+      - run: run-lpficsed
+        where: the declined reading — all five probe entities present server-side
+        quote: "bedrock-1  | [2026-08-21 18:10:31:702 INFO] Found entity.probe:lang_only.name"
+      - run: run-lpficsed
+        where: the declined reading — the player was in the world with the pack declined
+        quote: "bedrock-1  | [2026-08-21 18:10:14:887 INFO] Player Spawned: worldbinder xuid: 2535466261040848, pfid: 5D0C8F7EEEA3CF02"
+      - description: |
+          The observation is the design's owner's, made at a Bedrock client on 2026-08-21 and
+          reported in the session that recorded this fact. Teleported to within three blocks of the
+          row and facing it, the owner reported "dont seee anything here" while the console showed
+          all five entities standing at those coordinates. On a later join whose client held the
+          pack, the same five drew as evokers. The server console for the declined reading is the
+          second of two such runs; the first was lost when the container was recreated, and the
+          owner's reading of it was the same.
+
+  - id: a-lang-entry-does-not-name-an-entity-above-its-head-and-a-nametag-does-not-translate
+    claim: |
+      A resource pack's `entity.<id>.name` localization entry puts no name plate above a Bedrock
+      entity, and a `nameTag` is drawn as the literal string it is set to. Five entities differing
+      only in whether the pack carried a `.lang` entry for them and what the script wrote to
+      `nameTag` were read at a client: the entity with a `.lang` entry and no `nameTag` showed no
+      plate, matching the control with neither; the entity with both showed its `nameTag`; and the
+      two whose `nameTag` was set to a translation key and to rawtext each showed that string
+      verbatim rather than the text it names. The `.lang` file carried distinct strings per
+      language, so a resolved key would have read `Tag Is Key EN` rather than
+      `entity.probe:tag_is_key.name`. So a name a player reads above an entity is literal text with
+      no translation route.
+    caveat: |
+      This says a `.lang` entry does not drive a name plate, not that the entry goes unread. No
+      surface in this run consumes an entity type's name, so "the file is read but plates ignore it"
+      and "the file was never loaded" are indistinguishable here. The German half of the probe was
+      not run, the English reading having already ruled out any translation route.
+    backing: tested
+    sources:
+      - run: run-lpficsed
+        where: the five probe entities, each spawned and present
+        quote: "bedrock-1  | [2026-08-21 18:10:33:252 INFO] Found Literal Tag"
+      - description: |
+          The plates are the design's owner's observation, made at a Bedrock client on 2026-08-21
+          with the resource pack accepted, and reported in the session that recorded this fact.
+          Walking the row: `tag_is_rawtext` showed its rawtext JSON, `tag_is_key` showed
+          `entity.probe:tag_is_key.name`, `lang_and_tag` showed `Literal Tag`, and both `no_lang`
+          and `lang_only` showed no plate at all. The pack's `en_US.lang` holds
+          `entity.probe:lang_only.name=Lang Only EN` and a matching entry per case.
+

@@ -1,0 +1,24 @@
+name: rp-decline-probe
+services:
+  bedrock:
+    image: itzg/minecraft-bedrock-server:latest
+    stdin_open: true
+    tty: true
+    environment:
+      EULA: 'TRUE'
+      LEVEL_NAME: rp-decline-probe
+      LEVEL_SEED: '424242'
+      SERVER_PORT: '19132'
+      ONLINE_MODE: 'false'
+      ALLOW_LIST: 'false'
+      GAMEMODE: creative
+      # the variable under test — flipped to true for the second reading
+      TEXTUREPACK_REQUIRED: 'false'
+      CONTENT_LOG_CONSOLE_OUTPUT_ENABLED: 'true'
+    ports:
+      - '19140:19132/udp'
+    stop_grace_period: '120s'
+    volumes:
+      - data:/data
+volumes:
+  data: {}
